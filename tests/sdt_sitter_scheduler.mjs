@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 
+import { loadSitterLocale } from './fluent_stub.mjs';
+
 const context = {};
 // One read, reused by the phase enumeration below: a second literal copy of this
 // path would give verification/probes/sdt_sitter_scheduler_mutants.py two anchors
@@ -20,6 +22,15 @@ const bootstrapSource = fs.readFileSync('bench/sdt-sitter/bootstrap.js', 'utf8')
 // would be exercised against a binding the runtime has and the test does not.
 ui.SDT_STATUS_CLASSES = context.SDT_STATUS_CLASSES;
 vm.runInNewContext(bootstrapSource, ui);
+// Ticket 0692: every string below now comes from `locale/fr/sdt-pack-sitter.ftl`
+// rather than from a literal in bootstrap.js, so the French assertions in this
+// file are assertions about the French translation AND about the plugin's own
+// loader — which is the pairing that keeps them meaningful. Driven in French
+// deliberately: the identifier check further down reads `a-b` as the tell of a
+// leaked internal phase name, and the English label "turn ... off, then on
+// again" carries none while "re-enable" would have.
+const localized = await loadSitterLocale(ui, 'fr-FR');
+assert.equal(localized.locale, 'fr', 'the French locale did not load');
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
 function fixture() {
   const cached = new Set(), calls = [], updates = [];

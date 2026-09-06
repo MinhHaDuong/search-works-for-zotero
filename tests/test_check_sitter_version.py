@@ -49,7 +49,12 @@ def payload(root: Path) -> Path:
     sitter = root / "bench" / "sdt-sitter"
     sitter.mkdir(parents=True)
     for name in DELIVERED:
-        shutil.copyfile(SITTER / name, sitter / name)
+        # A delivered name may be a path: the locale files of ticket 0692 sit
+        # under `locale/<tag>/`, and a flat copy silently dropped them, which
+        # made every arm below run against a payload the guard does not hash.
+        destination = sitter / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(SITTER / name, destination)
     return sitter
 
 

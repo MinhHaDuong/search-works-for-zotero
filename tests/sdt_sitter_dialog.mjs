@@ -22,6 +22,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 
+import { loadSitterLocale } from './fluent_stub.mjs';
+
 const XHTML = 'http://www.w3.org/1999/xhtml';
 
 /* ---------------------------- the stub document ---------------------------- */
@@ -106,6 +108,13 @@ vm.runInContext(fs.readFileSync('bench/sdt-sitter/bootstrap.js', 'utf8'), ui);
 // without an initializer leaves bootstrap.js's own bindings alone, so the
 // dialog gets the real estimator and the real ring rather than stand-ins.
 vm.runInContext(fs.readFileSync('bench/sdt-sitter/scheduler.js', 'utf8'), ui);
+// Ticket 0692: the window's text comes from `locale/fr/sdt-pack-sitter.ftl`,
+// through the plugin's own loader. Every French assertion below is therefore
+// about the layout, the translation and the load path at once — and the arms
+// that assert what does NOT reach the clipboard are unaffected either way,
+// which is why they still read the same.
+assert.equal((await loadSitterLocale(ui, 'fr')).locale, 'fr',
+  'the French locale did not load, so every assertion below is about message ids');
 
 const DEBUG_PREF = 'extensions.sdt-pack-sitter.debug';
 const INSTALL_PATH = 'file:///home/tester/.zotero/profile/extensions/sdt-pack-sitter/';

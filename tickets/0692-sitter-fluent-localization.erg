@@ -10,6 +10,12 @@ Author: claude
 
 2026-09-06T10:11Z sim note blocker 0691 closed — Blocked-by removed.
 2026-09-06T00:00Z claude note Imagine phase round 2 (raid, sonnet): PROCEED WITH CHANGES. 0691 confirmed merged, gives this ticket exactly the vocabulary/DOM structure expected. Fixes applied: (1) closed the sequencing question with the same-day DECISIONS.md permahome ratification and ticket 0697's explicit wave dependency -- it was never actually open once that ruling landed; (2) corrected the plural-string count from one to two (tooltip AND the failures line); (3) rescoped acceptance to strings that exist today plus a forward rule for 0693/0696/0699; (4) dropped the verification/BRIDGE-0496.md citation -- it only shows the absence of a .ftl entry for an unrelated pref as evidence of a dev escape hatch, it doesn't establish Fluent parsing runs in every window; (5) specified FluentBundle/FluentResource fetched via the existing rootURI-read idiom, not Localization+L10nRegistry, since this addon has no chrome/resource-protocol registration for the latter to hook into.
+2026-09-06T16:27Z claude note Executed. Scope was the strings that exist TODAY, which is ~60 rather than the ~20 the ticket was drafted against: 0693's disclosure layers and 0699's coverage line landed in between. Two departures from the Design section, both recorded here because they were choices and not omissions. (1) No manifest line and no listing of any kind — the chain resolves by trying to fetch `locale/<tag>/…`, so an unshipped locale is a failed fetch, and adding a language is literally one file. A manifest key was the alternative and was dropped: an unrecognised manifest property is how a plugin quietly stops being installable, which ticket 0688 is about. (2) The English diagnostics latitude was not taken — every layer is translated in all four locales, because leaving layer 3 English would have left `describeSDTJournalTail`'s date format and `formatSDTBytes`'s decimal comma hardcoded anyway, and those are the locale literals the third criterion bans. Testing took the stub arm: tests/fluent_stub.mjs implements the .ftl subset these files use, and a new adherence-style test holds the files inside that subset so the stub and Gecko's real parser cannot read one file two ways. Both new grep guards were proven red once against a deliberately broken tree (a hardcoded `doc.title`, and a message dropped from fr.ftl) before being trusted.
+
+2026-09-06T17:45Z claude note Review round 1 (five perspectives; scope and correctness approve, consistency/doc-propagation/red-team comment). Folded in: the forward rule now sits in bootstrap.js's own header where a contributor adding a string will meet it, not only in test docstrings; `looks_like_a_sentence` no longer requires a capital or an accent -- red team walked through it with a lowercase ASCII `'unknown size'`, and the capital had only ever been standing in for the one internal phase key that reads like a sentence, which is now exempted by name; four malformed-`.ftl` arms added, with what they do NOT establish written down (this stub drops a whole resource on one bad entry where Gecko's Fluent is per-entry fault-tolerant, so production should do better and nothing here proves it); ticket 0725 filed for the 41 French lines missing their espace insécable. History squashed to one commit so no revision of this branch carries version 2.10.0.
+
+2026-09-06T17:46Z claude note Correction to the reported mechanism for that squash, because the fix was right and the reason given for it was not. The claim relayed was a guard failure on main "regardless of merge order". `check_sitter_version` compares each historical version against the WORKING TREE's version only -- `parse(was) > current` or `parse(was) == current` with a different payload -- and says so in its own docstring: "It says nothing about a collision between two purely historical versions." So two historical 2.10.0 commits under a tree at 2.10.1 do not fire. The hazard is real but conditional: it fires only if a tree carrying 2.10.0 lands with my differing 2.10.0 already an ancestor, i.e. if #402 merges after this PR, or if a manifest conflict resolves downward. Squashed anyway -- the fix costs one rewrite and removes the condition rather than relying on merge order holding -- but recorded here so nobody inherits the wrong model of what that guard checks.
+
 --- body ---
 ## Context
 
@@ -70,14 +76,26 @@ literal" grep test below regresses on the very next PR.
 
 ## Acceptance
 
-- [ ] All four locales (en, fr, es, vi) complete for every string that
-      exists in the dialog today (before 0693/0696/0699 land); the
-      diagnostics layer may stay English.
-- [ ] A missing-id fallback test, run with a deliberately truncated
+- [x] All four locales (en, fr, es, vi) complete for every string that
+      exists in the dialog today (0693 and 0699 had already landed, so that
+      is ~60 strings, not ~20); the diagnostics layer is translated too
+      rather than left English -- see the log note for why the latitude was
+      not taken. `test_the_four_locales_carry_exactly_the_english_id_set`.
+- [x] A missing-id fallback test, run with a deliberately truncated
       `fr.ftl`, shows English text where the id is missing and raises no
-      exception.
-- [ ] No locale literal (e.g. `'fr-FR'`) remains in code -- grep test.
-- [ ] Wording from 0691 lands first; this ticket externalizes it, it does
-      not also change it.
-- [ ] Both plural-sensitive strings (tooltip file count, failures line)
+      exception. `tests/sdt_sitter_l10n.mjs`, every arm paired with the
+      complete-file control that keeps it from passing vacuously.
+- [x] No locale literal (e.g. `'fr-FR'`) remains in code -- grep test.
+      `test_no_locale_literal_survives_in_the_source`, which checks the
+      `Intl` and `toLocale*` call sites rather than one spelling of the tag.
+- [x] Wording from 0691 lands first; this ticket externalizes it, it does
+      not also change it. The French `.ftl` reproduces every string verbatim,
+      which is what lets the driven suites keep their existing assertions.
+- [x] Both plural-sensitive strings (tooltip file count, failures line)
       use a Fluent `$count`-selector, not string concatenation.
+      `test_both_plural_sensitive_strings_use_a_count_selector`.
+- [x] Forward rule for 0696 and anything after it: a new string goes in all
+      four `.ftl` files and is read with `sdtText`. Enforced, not merely
+      asked -- `test_no_ui_site_keeps_a_sentence_of_its_own` reddens both on
+      a message hardcoded back into the source and on prose that is in no
+      locale at all.

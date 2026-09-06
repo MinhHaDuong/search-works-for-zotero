@@ -35,6 +35,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 
+import { FluentModule } from './fluent_stub.mjs';
+
 const SITTER = 'bench/sdt-sitter';
 const decoder = new TextDecoder();
 
@@ -310,6 +312,11 @@ export function createHarness(options = {}) {
     initializationPromise: Promise.resolve(),
     uiReadyPromise: Promise.resolve(),
     version: '10.0.5-stub',
+    // The UI locale the sitter follows (ticket 0692). French, because every
+    // string assertion in `tests/sdt_sitter_bootstrap.mjs` is French — and
+    // because a mock that left this undefined would silently drive the whole
+    // harness in English and turn each of those into a puzzle about wording.
+    locale: options.locale ?? 'fr-FR',
     debug: line => debugged.push(line),
     logError: error => logged.push(String(error)),
     Prefs: { get: name => prefs.get(name), set: (name, value) => prefs.set(name, value) },
@@ -354,6 +361,14 @@ export function createHarness(options = {}) {
       getContentsFromURLAsync: async url => {
         if (url === `${ROOT_URI}manifest.json`) return fs.readFileSync(`${SITTER}/manifest.json`, 'utf8');
         if (url === 'resource://zotero/document-worker/metadata.json') return VERSIONS_JSON;
+        // The locale files, served the way the real host serves them — off the
+        // packaged tree, one fetch per candidate in the fallback chain, and a
+        // throw for a tag this build does not ship (ticket 0692). Reading them
+        // from disk rather than from a fixture is deliberate: it is what makes
+        // the strings this harness asserts the strings that actually ship.
+        if (url.startsWith(`${ROOT_URI}locale/`)) {
+          return fs.readFileSync(`${SITTER}/${url.slice(ROOT_URI.length)}`, 'utf8');
+        }
         throw new Error(`unexpected URL read of ${url}`);
       },
       pathToFile: path => (options.pathToFile ? options.pathToFile(path) : {
@@ -439,6 +454,10 @@ export function createHarness(options = {}) {
     ChromeUtils: {
       now: () => clock.mono,
       importESModule: spec => {
+        // Two platform modules now, so the assertion becomes a switch: an
+        // unexpected spec must still be loud rather than answered with the
+        // wrong module.
+        if (spec === 'resource://gre/modules/Fluent.sys.mjs') return FluentModule;
         assert.equal(spec, 'resource://gre/modules/Timer.sys.mjs');
         return timers.module;
       },
