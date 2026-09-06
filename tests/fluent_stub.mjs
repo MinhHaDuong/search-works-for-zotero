@@ -164,7 +164,14 @@ export const FluentModule = { FluentBundle, FluentResource };
    they are held in the context's own `SDT_BUNDLES`, not on the host. */
 export async function loadSitterLocale(ui, requested = 'fr') {
   const previous = ui.Zotero;
-  ui.ChromeUtils = { importESModule: () => FluentModule };
+  // The globals, not a mocked import: privileged JS in Zotero 10.0.1 carries
+  // `FluentBundle` and `FluentResource` ambiently and serves no
+  // `resource://gre/modules/Fluent*.sys.mjs` at all. Assigning `ui.ChromeUtils`
+  // here also used to clobber whatever the host had put there — its monotonic
+  // clock, in the bootstrap harness — and never restored it, unlike `Zotero`
+  // below.
+  ui.FluentBundle = FluentModule.FluentBundle;
+  ui.FluentResource = FluentModule.FluentResource;
   ui.Zotero = { debug: () => {}, Prefs: { get: () => false },
     // The loader builds `<rootURI>locale/<tag>/sdt-pack-sitter.ftl`, which under
     // the repository root is the path on disk. A tag with no file throws here,
