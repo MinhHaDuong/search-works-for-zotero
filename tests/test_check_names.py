@@ -76,3 +76,14 @@ def test_missing_results_tree_fails(tmp_path):
 
 def test_the_live_repository_names_no_documents():
     assert cn.run(REPO) == 0
+
+
+def test_the_golden_subtree_is_exempt_and_nothing_beside_it_is(tmp_path, capsys):
+    """The golden replies carry the citation chain by design (ticket 0722): titles there are
+    the measurement, on a public-domain corpus whose names are already committed. The
+    exemption is one subtree, by path prefix; a sibling directory stays covered."""
+    build(tmp_path, {"golden/replies.json": {"replies": [{"chain": {"title": "Alpha, a decision"}}]}})
+    assert cn.run(tmp_path) == 0
+    assert "1 exempted" in capsys.readouterr().out
+    build(tmp_path, {"golden-like/replies.json": {"replies": [{"chain": {"title": "Alpha, a decision"}}]}})
+    assert cn.run(tmp_path) == 1
