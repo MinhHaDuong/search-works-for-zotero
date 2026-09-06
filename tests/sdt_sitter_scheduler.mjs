@@ -185,6 +185,13 @@ await test('Zotero.debug and pref failures never reach the sitter loop', async (
   assert.equal(ring.tail(1)[0].id, 7);
   assert.equal(ring.tail(1)[0].level, 'state');
   assert(Number.isFinite(ring.tail(1)[0].at));
+  // The invariant is the whole channel, not the half after the ring: a detail the
+  // ring itself rejects must not reach the loop either.
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => true } };
+  ui.emit('probe', { get hostile() { throw new Error('a detail that will not be read'); } });
+  assert.equal(ring.tail(50).length, 1);
+  ui.emit('admit', { id: 8 });
+  assert.equal(ring.tail(1)[0].id, 8);
 });
 await test('a failed candidate journals settle without the attachment title', async () => {
   const f = fixture();
@@ -299,6 +306,7 @@ await test('shutdown is the last record even with a submission still in flight',
   ui.noteDialogClose(dialog);
   ui.shutdown(null, 4);
   const closed = ring.tail(50).length;
+  const updates = f.updates.length;
   // Everything that resumes after an await outlives disable and must find the
   // channel sealed: a cache write in flight, a second unload, the native promise.
   ui.emit('cache-write', { rows: 3, compact: false });
@@ -306,6 +314,11 @@ await test('shutdown is the last record even with a submission still in flight',
   ui.noteDialogClose(dialog);
   callback(50); finish.resolve(); await running;
   ui.heartbeatTick();
+  // The seal keeps records off the far side of shutdown, so it would also hide a
+  // shutdown that never removed the callbacks. These read the sitter, not the ring.
+  assert.equal(f.api.state.enabled, false);
+  assert.equal(f.updates.length, updates);
+  assert.deepEqual(f.calls, [1]);
   const tail = Array.from(ring.tail(50));
   assert.equal(tail.length, closed);
   assert.deepEqual(tail.map(record => record.kind),
