@@ -27,12 +27,12 @@
       "alternates": [
         {
           "page_printed": "10",
-          "char_offset": 16497,
+          "char_offset": null,
           "quote": "Fig. 1. The number of distinct occupations in US Metropolitan Statistical Areas vs. total em ployment."
         },
         {
           "page_printed": "10",
-          "char_offset": 16604,
+          "char_offset": null,
           "quote": "The relationship between the number of professions present for each city (orange dots) and city size is well described by"
         }
       ],
@@ -50,42 +50,7 @@
   ],
   "expected_miss": false,
   "expected_miss_mechanism": null,
-  "reachability": {
-    "computed_by": "bench/golden_gate.py validate --stamp",
-    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
-    "extraction": {
-      "reindex_mode": "stock",
-      "reindex_limits": "applied",
-      "caps": {
-        "fulltext.pdfMaxPages": 100,
-        "fulltext.textMaxLength": 500000
-      },
-      "index_fulltext_max_chars": 40000,
-      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
-    },
-    "reachable": true,
-    "rows": [
-      {
-        "attachment_key": "R4W2BMSH",
-        "alternates": [
-          {
-            "reachable": true,
-            "char_offset": 16497,
-            "occurrences": 1,
-            "reason": null,
-            "within_index_cap": true
-          },
-          {
-            "reachable": true,
-            "char_offset": 16604,
-            "occurrences": 1,
-            "reason": null,
-            "within_index_cap": true
-          }
-        ]
-      }
-    ]
-  },
+  "reachability": null,
   "provenance": {
     "author": "claude (0722 authoring lane Q1c)",
     "date": "2026-09-06",

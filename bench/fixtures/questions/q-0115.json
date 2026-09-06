@@ -1,8 +1,8 @@
 {
   "schema": "menagerie-bank/v2",
   "id": "q-0115",
-  "need": "Written before opening the document: I have read the claim that Cournot denied the law of demand could ever be written as an algebraic formula, and left it to observation and statistics. Does the page bear that claim out?",
-  "query": "Cournot held that the law of demand can no more be given by an algebraic formula than the law of mortality",
+  "need": "Written before opening the document: I have read the claim that Cournot took rising wealth in circulation and improving living conditions to have moved together historically, while refusing to make a theorem of it. Does the page bear that claim out?",
+  "query": "Cournot: an improvement in the condition of the people has generally kept pace with an increase in the sum total of wealth in circulation",
   "question_language": "en",
   "answer_language": "en",
   "lane": "en->en",
@@ -19,12 +19,12 @@
       "recipe_id": "cournot-1897-researches-bacon",
       "attachment_id": "cournot-1897-researches-bacon-pdf",
       "attachment_key": "5I938WPW",
-      "section": "Chapter IV. Of the Law of Demand",
+      "section": "Chapter I. Of Value in Exchange or of Wealth in General",
       "alternates": [
         {
-          "page_printed": "47",
-          "char_offset": 78872,
-          "quote": "we should no more expect this law to be expressible by an algebraic formula than the law of mortality"
+          "page_printed": "14",
+          "char_offset": null,
+          "quote": "in general, an incontestable improvement in the condition of the people has kept pace with an equally incontestable increase in the sum total of wealth"
         }
       ],
       "chain": {
@@ -32,8 +32,8 @@
         "author": "Antoine-Augustin Cournot; translated by Nathaniel T. Bacon; essay and bibliography by Irving Fisher",
         "date": "1897",
         "identifier": "https://archive.org/details/bub_gb_AGoGpyJY_SAC",
-        "section_heading": "Chapter IV. Of the Law of Demand",
-        "page_printed": "47",
+        "section_heading": "Chapter I. Of Value in Exchange or of Wealth in General",
+        "page_printed": "14",
         "part_title": null,
         "part_byline": null
       }
@@ -41,35 +41,7 @@
   ],
   "expected_miss": false,
   "expected_miss_mechanism": null,
-  "reachability": {
-    "computed_by": "bench/golden_gate.py validate --stamp",
-    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
-    "extraction": {
-      "reindex_mode": "stock",
-      "reindex_limits": "applied",
-      "caps": {
-        "fulltext.pdfMaxPages": 100,
-        "fulltext.textMaxLength": 500000
-      },
-      "index_fulltext_max_chars": 40000,
-      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
-    },
-    "reachable": true,
-    "rows": [
-      {
-        "attachment_key": "5I938WPW",
-        "alternates": [
-          {
-            "reachable": true,
-            "char_offset": 78872,
-            "occurrences": 1,
-            "reason": null,
-            "within_index_cap": false
-          }
-        ]
-      }
-    ]
-  },
+  "reachability": null,
   "provenance": {
     "author": "claude (0722 authoring lane Q1c)",
     "date": "2026-09-06",

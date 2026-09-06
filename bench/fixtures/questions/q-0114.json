@@ -43,35 +43,7 @@
   ],
   "expected_miss": true,
   "expected_miss_mechanism": "page-cap crossing: the export holds the first 100 pdf pages (fulltext.pdfMaxPages = 100) of a 229-page scan; chapter XII (printed p. 150, pdf page 162) was read on the page but has no counterpart in the export's fulltext",
-  "reachability": {
-    "computed_by": "bench/golden_gate.py validate --stamp",
-    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
-    "extraction": {
-      "reindex_mode": "stock",
-      "reindex_limits": "applied",
-      "caps": {
-        "fulltext.pdfMaxPages": 100,
-        "fulltext.textMaxLength": 500000
-      },
-      "index_fulltext_max_chars": 40000,
-      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
-    },
-    "reachable": false,
-    "rows": [
-      {
-        "attachment_key": "5I938WPW",
-        "alternates": [
-          {
-            "reachable": false,
-            "char_offset": null,
-            "occurrences": 0,
-            "reason": "quote not located in the export fulltext",
-            "within_index_cap": null
-          }
-        ]
-      }
-    ]
-  },
+  "reachability": null,
   "provenance": {
     "author": "claude (0722 authoring lane Q1c)",
     "date": "2026-09-06",

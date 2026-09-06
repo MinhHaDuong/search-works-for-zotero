@@ -1,8 +1,8 @@
 {
   "schema": "menagerie-bank/v2",
   "id": "q-0117",
-  "need": "Hazard row for the structural-table mechanism: the vehicle classes asked for exist only as the rows of Table 2. On this page the report's small-caps display font carries a broken glyph map, so most cells extract as mojibake and only the lower-case cells survive.",
-  "query": "Table 2 Current Electric Vehicle Types plug-in hybrid charges via the electrical grid",
+  "need": "Hazard row for the structural-table mechanism with a glyph defect inside the same table: the three criteria the Department says it judges a technology by are set as a box of table cells, not as prose. One cell extracts cleanly, its neighbour is mojibake because the small-caps display font has no usable ToUnicode map — the same cell, the same table, two different fates.",
+  "query": "DOE criteria maturity materiality market potential technologies consequential impact on meeting national energy goals",
   "question_language": "en",
   "answer_language": "en",
   "lane": "en->en",
@@ -22,17 +22,17 @@
       "recipe_id": "doe-2011-quadrennial-technology-review",
       "attachment_id": "doe-2011-quadrennial-technology-review-pdf",
       "attachment_key": "CHSB3HZ9",
-      "section": "Vehicle Electrification, Table 2",
+      "section": "Executive Summary, maturity / materiality / market-potential box",
       "alternates": [
         {
-          "page_printed": "46",
-          "char_offset": 114972,
-          "quote": "Table 2. Current Electric Vehicle Types"
+          "page_printed": "VIII",
+          "char_offset": null,
+          "quote": "Materiality Technologies that could have a consequential impact on meeting national energy"
         },
         {
-          "page_printed": "46",
-          "char_offset": 115535,
-          "quote": "Uses electric propulsion alone for all electric range,"
+          "page_printed": "VIII",
+          "char_offset": null,
+          "quote": "Maturity 4ECHNOLOGIES THAT HAVE SIGNIÚCANT TECHNICAL HEADROOM YET COULD BE DEMONSTRATED AT COMMERCIAL SCALE WITHIN A DECADE"
         }
       ],
       "chain": {
@@ -40,8 +40,8 @@
         "author": "U.S. Department of Energy",
         "date": "2011",
         "identifier": "10.2172/1186659",
-        "section_heading": "Vehicle Electrification",
-        "page_printed": "46",
+        "section_heading": "Executive Summary",
+        "page_printed": "VIII",
         "part_title": null,
         "part_byline": null
       }
@@ -49,42 +49,7 @@
   ],
   "expected_miss": false,
   "expected_miss_mechanism": null,
-  "reachability": {
-    "computed_by": "bench/golden_gate.py validate --stamp",
-    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
-    "extraction": {
-      "reindex_mode": "stock",
-      "reindex_limits": "applied",
-      "caps": {
-        "fulltext.pdfMaxPages": 100,
-        "fulltext.textMaxLength": 500000
-      },
-      "index_fulltext_max_chars": 40000,
-      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
-    },
-    "reachable": true,
-    "rows": [
-      {
-        "attachment_key": "CHSB3HZ9",
-        "alternates": [
-          {
-            "reachable": true,
-            "char_offset": 114972,
-            "occurrences": 1,
-            "reason": null,
-            "within_index_cap": false
-          },
-          {
-            "reachable": true,
-            "char_offset": 115535,
-            "occurrences": 1,
-            "reason": null,
-            "within_index_cap": false
-          }
-        ]
-      }
-    ]
-  },
+  "reachability": null,
   "provenance": {
     "author": "claude (0722 authoring lane Q1c)",
     "date": "2026-09-06",

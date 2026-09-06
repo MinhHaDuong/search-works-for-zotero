@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0367",
+  "need": "在打開文獻之前寫下：1980年代以前科學家還不確定溫室氣體的增溫效應是否強過懸浮微粒的冷卻效應，那時他們用什麼詞來稱呼人類對氣候的影響？「全球暖化」與「氣候變化」是什麼時候才通行的？",
+  "query": "1980年代之前 科學家用 非故意的氣候改造 指稱人類對氣候的影響",
+  "question_language": "zh",
+  "answer_language": "zh",
+  "lane": "zh->zh",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "han-script-no-word-spaces"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "wp-climate-change-zh",
+      "recipe_id": "wp-climate-change-zh",
+      "attachment_id": "wp-climate-change-zh-html",
+      "attachment_key": "G46GUZDU",
+      "section": "術語",
+      "alternates": [
+        {
+          "page_printed": null,
+          "quote": "當時，他們使用「非故意的氣候改造」（inadvertent climate modification）來指稱人類對氣候的影響。",
+          "char_offset": 1922
+        }
+      ],
+      "chain": {
+        "title": "氣候變化",
+        "author": "Wikipedia contributors",
+        "date": "2026",
+        "identifier": "https://zh.wikipedia.org/w/index.php?title=氣候變化&oldid=93590833",
+        "section_heading": "術語",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "G46GUZDU",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 1922,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}
