@@ -538,7 +538,29 @@ def test_reachability_positive_and_negative_controls_on_the_committed_export():
 def test_the_committed_bank_validates_against_the_committed_export_without_restamping():
     summary = validate_bank(COMMITTED_BANK, load_export(COMMITTED_EXPORT), stamp=False)
     assert summary["questions"] >= 5
-    assert summary["reachable_alternates"] == summary["alternates"]
+    # An unreachable alternate is a defect only on a question that claims an answer.
+    # A declared failure control, and an answer the stock reindex never reached, pin a
+    # quote that is genuinely absent from the export — that absence IS the question, and
+    # validate_bank's own policy admits it only behind expected_miss with a mechanism.
+    # Equality here would have forced those rows out of the bank, which the authoring
+    # ruling of 2026-09-06 forbids ("do not drop such questions").
+    unreachable = 0
+    for path in sorted(COMMITTED_BANK.glob("q-*.json")):
+        record = json.loads(path.read_text(encoding="utf-8"))
+        absent = [
+            alternate
+            for row in record["reachability"]["rows"]
+            for alternate in row["alternates"]
+            if not alternate["reachable"]
+        ]
+        unreachable += len(absent)
+        if absent:
+            assert record["expected_miss"] is True, f"{record['id']} pins an absent quote but claims an answer"
+            assert record["expected_miss_mechanism"], f"{record['id']} is expected-miss with no mechanism named"
+    # Positive control: the reachability probe must be able to come out the other way.
+    # Without this the assertion above passes on a bank where nothing is ever unreachable.
+    assert unreachable > 0, "no expected-miss row exercises the unreachable branch"
+    assert summary["reachable_alternates"] == summary["alternates"] - unreachable
 
 
 def test_the_committed_replies_score_against_the_committed_bank(thresholds):
