@@ -12,6 +12,14 @@ first time the transitions were captured while they happened.
 
 ## What it shows
 
+**Refined 2026-09-07 00:51.** 0.3.1 was installed into pid 1057602, the process
+that had held 0.3.0 for forty minutes, and vanished in twenty seconds. So the
+survivor was not the process but the FIRST install into it. Every loss tonight
+was a replacement into a process that already had this add-on; every survival
+was a first install. That is the candidate now, and neither arm has been run
+deliberately.
+
+
 Six install cycles, all inside pid **635164** (up since 20:56), end in
 disable-then-delete: active for 20-80 seconds, then `active=False`, then the
 record and the XPI both gone. The seventh, into a **fresh** process (pid
@@ -41,4 +49,7 @@ ticket calls this a candidate and names the two runs that would settle it.
 2026-09-07T00:28:42+02:00  record=absent xpi=absent zotero_pid=635164
 2026-09-07T00:30:23+02:00  record=absent xpi=absent zotero_pid=1057602
 2026-09-07T00:30:43+02:00  record=present:0.3.0:active=True xpi=present zotero_pid=1057602
+2026-09-07T00:50:28+02:00  record=present:0.3.0:active=False xpi=present zotero_pid=1057602
+2026-09-07T00:50:48+02:00  record=present:0.3.1:active=True xpi=present zotero_pid=1057602
+2026-09-07T00:51:08+02:00  record=absent xpi=absent zotero_pid=1057602
 ```
