@@ -401,6 +401,18 @@ EXCUSED: dict[str, Excuse] = {
         "generation to pin it to; the roster's substrate is upstream's index file and this "
         "probe never touches one"
     ),
+    "bench/generator/run.py": Excuse(
+        frozenset({"items"}),
+        "the library-level bench's runner (ticket 0719). Its one read of the index is "
+        "`index_item_keys`: find the file whose `sqlite_master` lists a `meta` table, the "
+        "way the zoteus adapter does, and list `items.item_key`, so the sampler is restricted to the item "
+        "keys the index actually holds and the artifact records how many. It reads no "
+        "passage, no vector and no schema stamp, and nothing it reads becomes a figure: the "
+        "key list is the run's scope, checked against the target's own status counters. "
+        "Rostering it would drive a scope reader against the fixture generations for a "
+        "table whose name is itself the generation discriminator (`meta` against "
+        "`index_meta`), which is the same substrate reason that excuses the adapter above"
+    ),
     "bench/acceptance/adapters/zoteus.py": Excuse(
         frozenset({"meta"}),
         "the fourth file — it crossed into the class on `main` in `97d1490` (0 -> 4 "

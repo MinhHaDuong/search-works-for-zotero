@@ -155,6 +155,7 @@ def test_compact_deliverables_pass(tmp_path):
 | Formal specification | **Complete** | SPEC.md |
 | [Multilingual Menagerie](https://www.zotero.org/groups/6659303/semantic_search_challenge_fixture) | **In progress** | ticket 0080 |
 | Verification and scoring bench | **In progress** | bench/ |
+| Library-level bench | **In progress** | ticket 0080 |
 
 ### Multilingual Menagerie
 
@@ -167,6 +168,12 @@ def test_compact_deliverables_pass(tmp_path):
 | object | state | work owner |
 |---|---|---|
 | assertions | In progress | 0080 |
+
+### Library-level bench
+
+| object | state | work owner |
+|---|---|---|
+| generator | In progress | 0080 |
 """
     assert cp.run(build(tmp_path, page=page, sheet="- **Status:** COMPLETE\n" + SHEET)) == 0
 
