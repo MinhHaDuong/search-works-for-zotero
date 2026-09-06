@@ -452,6 +452,33 @@ replaced the file, and if the new bytes are the ones the corpus should carry,
 commit the new hash. That commit's diff is the review artifact, the same rule
 D11 applies to the pinned answer sets.
 
+## Three routes to the corpus
+
+Someone who wants the Menagerie has three, and they differ in what they cost and
+in what they prove:
+
+1. **Join the group.** The library is Zotero group 6659303, collection
+   `3AY48MA5`, synced and verified on the server at library version 592: 114 top
+   items, every manifest parent and attachment key present, all 114 attachment
+   file routes answering with bytes. The group is `PublicClosed` with
+   `fileEditing = members`, so its **metadata is world-readable and its file
+   bytes are not**: `GET /groups/6659303/items/<key>/file` answers 404
+   anonymously and serves the file to a member's key. That 404 is Zotero
+   behaving as configured, not a missing upload — a long-standing control group
+   whose files certainly sync answers the same way. This is the only route that
+   hands over the bytes and the Zotero item shapes together.
+2. **Rebuild from the recipe, by hash.** `bench/fixtures/recipe-pinned.json`
+   pins every source by URL and sha256; `fetch_recipe.py` fetches and verifies
+   them into the cache. This route needs no membership and no trust in us: a
+   mismatch is a loud failure, so the corpus you get is the corpus the readings
+   were taken against, or none.
+3. **Import the RIS package**, below. One gesture into your own Zotero, with the
+   bytes supplied from the cache route 2 filled.
+
+The replay artifacts (`export/items.json`, `export/fulltext/`,
+`export/manifest.json`) are none of these three: they are what the harness
+replays, and no person hands them to Zotero.
+
 ## Import into your own Zotero (RIS package)
 
 Ticket 0721. Beside `items.json`, `fulltext/` and `manifest.json`, which the
