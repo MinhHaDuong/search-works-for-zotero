@@ -381,7 +381,11 @@ def test_content_type_declared_min_body_chars_and_encoding_note_are_checked_when
     lying["attachments"][0]["content_type_declared"] = "text/html"
     assert offences(lying) == []
     lying["attachments"][0]["content_type_declared"] = "html"
-    assert any("content_type_declared must be a MIME type" in o for o in offences(lying))
+    assert any("content_type_declared must be a bare MIME type" in o for o in offences(lying))
+    # A parameter is refused: Zotero copies the upload's content type onto the item, so
+    # 'text/html; charset=…' became the item's content type on the 2026-09-06 padme run.
+    lying["attachments"][0]["content_type_declared"] = "text/html; charset=windows-1252"
+    assert any("content_type_declared must be a bare MIME type" in o for o in offences(lying))
     short = representative()
     short["attachments"][1]["min_body_chars"] = -1
     assert any("min_body_chars" in o for o in offences(short))

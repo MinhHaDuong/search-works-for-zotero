@@ -5017,7 +5017,7 @@
     },
     "license_basis": "same as parent",
     "charset": "windows-1252",
-    "content_type_declared": "text/html; charset=windows-1252",
+    "content_type_declared": "text/html",
     "min_body_chars": 1300,
     "encoding_note": "Bytes are ASCII and decode correctly as the declared windows-1252; the Vietnamese text is TCVN3 code points written as HTML character entities, so the decoded string is mojibake ('ViÖt Nam t×m kiÕm') and the true text is recoverable only through the VN3 table. Recorded as the file's charset (windows-1252) with this note; the true script encoding is TCVN3."
    }

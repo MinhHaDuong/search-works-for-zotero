@@ -470,8 +470,11 @@ def validate(recipe: list[dict]) -> list[str]:
             elif not legacy and fmt in TEXT_FORMATS and charset is None:
                 found.append(f"{label}: a {fmt} attachment declares its charset (Zotero guesses when the item carries none)")
             if "content_type_declared" in source and (
-                    not isinstance(source["content_type_declared"], str) or "/" not in source["content_type_declared"]):
-                found.append(f"{label}: content_type_declared must be a MIME type")
+                    not isinstance(source["content_type_declared"], str) or "/" not in source["content_type_declared"]
+                    or ";" in source["content_type_declared"]):
+                # Bare: the charset travels in `charset`; Zotero copies the upload's content
+                # type onto the item verbatim, so a parameter here becomes metadata drift.
+                found.append(f"{label}: content_type_declared must be a bare MIME type without parameters")
             if "min_body_chars" in source and (
                     not isinstance(source["min_body_chars"], int) or isinstance(source["min_body_chars"], bool)
                     or source["min_body_chars"] < 0):
