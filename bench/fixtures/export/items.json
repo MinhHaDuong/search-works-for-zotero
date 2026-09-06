@@ -1,0 +1,852 @@
+[
+  {
+    "data": {
+      "archive": "internet-archive",
+      "archiveLocation": "elementsdeconomi00walr",
+      "collections": [
+        "3AY48MA5"
+      ],
+      "creators": [
+        {
+          "creatorType": "author",
+          "name": "Léon Walras"
+        }
+      ],
+      "date": "1900",
+      "extra": "ticket-0029 recipe id: walras-1900-elements\nticket-0029 work id: walras-1900-elements\nticket-0029 type fidelity: unreviewed\nticket-0029 work relations: []",
+      "itemType": "document",
+      "key": "WDHDGA89",
+      "language": "fr",
+      "tags": [
+        {
+          "tag": "zoteus-golden-source:walras-1900-elements"
+        }
+      ],
+      "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale (4e éd.)",
+      "url": "https://archive.org/download/elementsdeconomi00walr/elementsdeconomi00walr.pdf",
+      "version": 3
+    },
+    "key": "WDHDGA89",
+    "version": 3
+  },
+  {
+    "data": {
+      "charset": "",
+      "contentType": "application/pdf",
+      "filename": "walras-1900-elements.pdf",
+      "itemType": "attachment",
+      "key": "3A2CSURL",
+      "linkMode": "imported_file",
+      "parentItem": "WDHDGA89",
+      "tags": [
+        {
+          "tag": "zoteus-golden-attachment:walras-1900-elements"
+        }
+      ],
+      "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale (4e éd.)",
+      "version": 12
+    },
+    "key": "3A2CSURL",
+    "version": 12
+  },
+  {
+    "data": {
+      "archive": "internet-archive",
+      "archiveLocation": "lasciencedesnego00lapo",
+      "collections": [
+        "3AY48MA5"
+      ],
+      "creators": [
+        {
+          "creatorType": "author",
+          "name": "Mathieu de La Porte"
+        }
+      ],
+      "date": "1770",
+      "extra": "ticket-0029 recipe id: porte-1770-science-des-negocians\nticket-0029 work id: porte-1770-science-des-negocians\nticket-0029 type fidelity: unreviewed\nticket-0029 work relations: []",
+      "itemType": "document",
+      "key": "6J5AEUMZ",
+      "language": "fr",
+      "tags": [
+        {
+          "tag": "zoteus-golden-source:porte-1770-science-des-negocians"
+        }
+      ],
+      "title": "La Science des négocians et teneurs de livres",
+      "url": "https://archive.org/download/lasciencedesnego00lapo/lasciencedesnego00lapo.pdf",
+      "version": 7
+    },
+    "key": "6J5AEUMZ",
+    "version": 7
+  },
+  {
+    "data": {
+      "charset": "",
+      "contentType": "application/pdf",
+      "filename": "porte-1770-science-des-negocians.pdf",
+      "itemType": "attachment",
+      "key": "4H5HAURM",
+      "linkMode": "imported_file",
+      "parentItem": "6J5AEUMZ",
+      "tags": [
+        {
+          "tag": "zoteus-golden-attachment:porte-1770-science-des-negocians"
+        }
+      ],
+      "title": "La Science des négocians et teneurs de livres",
+      "version": 13
+    },
+    "key": "4H5HAURM",
+    "version": 13
+  },
+  {
+    "data": {
+      "archive": "internet-archive",
+      "archiveLocation": "geometriederzahl00minkuoft",
+      "collections": [
+        "3AY48MA5"
+      ],
+      "creators": [
+        {
+          "creatorType": "author",
+          "name": "Hermann Minkowski"
+        }
+      ],
+      "date": "1896",
+      "extra": "ticket-0029 recipe id: minkowski-1896-geometrie-der-zahlen\nticket-0029 work id: minkowski-1896-geometrie-der-zahlen\nticket-0029 type fidelity: unreviewed\nticket-0029 work relations: []",
+      "itemType": "document",
+      "key": "5F9HCZ8B",
+      "language": "de",
+      "tags": [
+        {
+          "tag": "zoteus-golden-source:minkowski-1896-geometrie-der-zahlen"
+        }
+      ],
+      "title": "Geometrie der Zahlen",
+      "url": "https://archive.org/download/geometriederzahl00minkuoft/geometriederzahl00minkuoft.pdf",
+      "version": 10
+    },
+    "key": "5F9HCZ8B",
+    "version": 10
+  },
+  {
+    "data": {
+      "charset": "",
+      "contentType": "application/pdf",
+      "filename": "minkowski-1896-geometrie-der-zahlen.pdf",
+      "itemType": "attachment",
+      "key": "3WP92KR6",
+      "linkMode": "imported_file",
+      "parentItem": "5F9HCZ8B",
+      "tags": [
+        {
+          "tag": "zoteus-golden-attachment:minkowski-1896-geometrie-der-zahlen"
+        }
+      ],
+      "title": "Geometrie der Zahlen",
+      "version": 24
+    },
+    "key": "3WP92KR6",
+    "version": 24
+  },
+  {
+    "data": {
+      "archive": "internet-archive",
+      "archiveLocation": "dli.ministry.13166",
+      "collections": [
+        "3AY48MA5"
+      ],
+      "creators": [
+        {
+          "creatorType": "author",
+          "name": "Frank Plumpton Ramsey (ed. R. B. Braithwaite)"
+        }
+      ],
+      "date": "1931",
+      "extra": "ticket-0029 recipe id: ramsey-1931-foundations-of-mathematics\nticket-0029 work id: ramsey-1931-foundations-of-mathematics\nticket-0029 type fidelity: unreviewed\nticket-0029 work relations: []",
+      "itemType": "document",
+      "key": "TX53MLN2",
+      "language": "en",
+      "tags": [
+        {
+          "tag": "zoteus-golden-source:ramsey-1931-foundations-of-mathematics"
+        }
+      ],
+      "title": "The Foundations of Mathematics and other Logical Essays",
+      "url": "https://archive.org/download/dli.ministry.13166/E00026_The_Foundations_of_Mathematics.pdf",
+      "version": 15
+    },
+    "key": "TX53MLN2",
+    "version": 15
+  },
+  {
+    "data": {
+      "charset": "",
+      "contentType": "application/pdf",
+      "filename": "ramsey-1931-foundations-of-mathematics.pdf",
+      "itemType": "attachment",
+      "key": "K6VK5Y68",
+      "linkMode": "imported_file",
+      "parentItem": "TX53MLN2",
+      "tags": [
+        {
+          "tag": "zoteus-golden-attachment:ramsey-1931-foundations-of-mathematics"
+        }
+      ],
+      "title": "The Foundations of Mathematics and other Logical Essays",
+      "version": 27
+    },
+    "key": "K6VK5Y68",
+    "version": 27
+  },
+  {
+    "data": {
+      "archive": "internet-archive",
+      "archiveLocation": "dictionaryofengl01johnuoft",
+      "collections": [
+        "3AY48MA5"
+      ],
+      "creators": [
+        {
+          "creatorType": "author",
+          "name": "Samuel Johnson"
+        }
+      ],
+      "date": "1785",
+      "extra": "ticket-0029 recipe id: johnson-1785-dictionary\nticket-0029 work id: johnson-1785-dictionary\nticket-0029 type fidelity: unreviewed\nticket-0029 work relations: []",
+      "itemType": "document",
+      "key": "G3IXLJC6",
+      "language": "en",
+      "tags": [
+        {
+          "tag": "zoteus-golden-source:johnson-1785-dictionary"
+        }
+      ],
+      "title": "A Dictionary of the English Language, Vol. 1 (6th ed.)",
+      "url": "https://archive.org/download/dictionaryofengl01johnuoft/dictionaryofengl01johnuoft.pdf",
+      "version": 18
+    },
+    "key": "G3IXLJC6",
+    "version": 18
+  },
+  {
+    "data": {
+      "charset": "",
+      "contentType": "application/pdf",
+      "filename": "johnson-1785-dictionary.pdf",
+      "itemType": "attachment",
+      "key": "EB9TGHWH",
+      "linkMode": "imported_file",
+      "parentItem": "G3IXLJC6",
+      "tags": [
+        {
+          "tag": "zoteus-golden-attachment:johnson-1785-dictionary"
+        }
+      ],
+      "title": "A Dictionary of the English Language, Vol. 1 (6th ed.)",
+      "version": 28
+    },
+    "key": "EB9TGHWH",
+    "version": 28
+  },
+  {
+    "data": {
+      "archive": "internet-archive",
+      "archiveLocation": "lesfleursdum00baud",
+      "collections": [
+        "3AY48MA5"
+      ],
+      "creators": [
+        {
+          "creatorType": "author",
+          "name": "Charles Baudelaire"
+        }
+      ],
+      "date": "1857",
+      "extra": "ticket-0029 recipe id: baudelaire-1857-fleurs-du-mal\nticket-0029 work id: baudelaire-1857-fleurs-du-mal\nticket-0029 type fidelity: unreviewed\nticket-0029 work relations: []",
+      "itemType": "document",
+      "key": "HIQIHFD2",
+      "language": "fr",
+      "tags": [
+        {
+          "tag": "zoteus-golden-source:baudelaire-1857-fleurs-du-mal"
+        }
+      ],
+      "title": "Les Fleurs du Mal (1re éd.)",
+      "url": "https://archive.org/download/lesfleursdum00baud/lesfleursdum00baud.pdf",
+      "version": 21
+    },
+    "key": "HIQIHFD2",
+    "version": 21
+  },
+  {
+    "data": {
+      "charset": "",
+      "contentType": "application/pdf",
+      "filename": "baudelaire-1857-fleurs-du-mal.pdf",
+      "itemType": "attachment",
+      "key": "6A8VF7TF",
+      "linkMode": "imported_file",
+      "parentItem": "HIQIHFD2",
+      "tags": [
+        {
+          "tag": "zoteus-golden-attachment:baudelaire-1857-fleurs-du-mal"
+        }
+      ],
+      "title": "Les Fleurs du Mal (1re éd.)",
+      "version": 39
+    },
+    "key": "6A8VF7TF",
+    "version": 39
+  },
+  {
+    "data": {
+      "archive": "internet-archive",
+      "archiveLocation": "makingofamerican0000unse_j2t9",
+      "collections": [
+        "3AY48MA5"
+      ],
+      "creators": [
+        {
+          "creatorType": "author",
+          "name": "Gertrude Stein"
+        }
+      ],
+      "date": "1925",
+      "extra": "ticket-0029 recipe id: stein-1925-making-of-americans\nticket-0029 work id: stein-1925-making-of-americans\nticket-0029 type fidelity: unreviewed\nticket-0029 work relations: []",
+      "itemType": "document",
+      "key": "HYI6JTZ8",
+      "language": "en",
+      "tags": [
+        {
+          "tag": "zoteus-golden-source:stein-1925-making-of-americans"
+        }
+      ],
+      "title": "The Making of Americans",
+      "url": "https://archive.org/download/makingofamerican0000unse_j2t9/makingofamerican0000unse_j2t9.pdf",
+      "version": 25
+    },
+    "key": "HYI6JTZ8",
+    "version": 25
+  },
+  {
+    "data": {
+      "charset": "",
+      "contentType": "application/pdf",
+      "filename": "stein-1925-making-of-americans.pdf",
+      "itemType": "attachment",
+      "key": "NVZ7K36G",
+      "linkMode": "imported_file",
+      "parentItem": "HYI6JTZ8",
+      "tags": [
+        {
+          "tag": "zoteus-golden-attachment:stein-1925-making-of-americans"
+        }
+      ],
+      "title": "The Making of Americans",
+      "version": 43
+    },
+    "key": "NVZ7K36G",
+    "version": 43
+  },
+  {
+    "data": {
+      "archive": "internet-archive",
+      "archiveLocation": "recherchessurles00curi",
+      "collections": [
+        "3AY48MA5"
+      ],
+      "creators": [
+        {
+          "creatorType": "author",
+          "name": "Marie Curie"
+        }
+      ],
+      "date": "1904",
+      "extra": "ticket-0029 recipe id: curie-1904-recherches-substances-radioactives\nticket-0029 work id: curie-1904-recherches-substances-radioactives\nticket-0029 type fidelity: unreviewed\nticket-0029 work relations: []",
+      "itemType": "document",
+      "key": "UDI7E8I2",
+      "language": "fr",
+      "tags": [
+        {
+          "tag": "zoteus-golden-source:curie-1904-recherches-substances-radioactives"
+        }
+      ],
+      "title": "Recherches sur les substances radioactives",
+      "url": "https://archive.org/download/recherchessurles00curi/recherchessurles00curi.pdf",
+      "version": 30
+    },
+    "key": "UDI7E8I2",
+    "version": 30
+  },
+  {
+    "data": {
+      "charset": "",
+      "contentType": "application/pdf",
+      "filename": "curie-1904-recherches-substances-radioactives.pdf",
+      "itemType": "attachment",
+      "key": "DZM9SCW5",
+      "linkMode": "imported_file",
+      "parentItem": "UDI7E8I2",
+      "tags": [
+        {
+          "tag": "zoteus-golden-attachment:curie-1904-recherches-substances-radioactives"
+        }
+      ],
+      "title": "Recherches sur les substances radioactives",
+      "version": 38
+    },
+    "key": "DZM9SCW5",
+    "version": 38
+  },
+  {
+    "data": {
+      "archive": "internet-archive",
+      "archiveLocation": "theprincipleofre00einsuoft",
+      "collections": [
+        "3AY48MA5"
+      ],
+      "creators": [
+        {
+          "creatorType": "author",
+          "name": "Albert Einstein and Hermann Minkowski, translated by M. N. Saha and S. N. Bose"
+        }
+      ],
+      "date": "1920",
+      "extra": "ticket-0029 recipe id: einstein-minkowski-1920-principle-of-relativity\nticket-0029 work id: einstein-minkowski-1920-principle-of-relativity\nticket-0029 type fidelity: unreviewed\nticket-0029 work relations: []",
+      "itemType": "document",
+      "key": "R3YNUA6N",
+      "language": "en",
+      "tags": [
+        {
+          "tag": "zoteus-golden-source:einstein-minkowski-1920-principle-of-relativity"
+        }
+      ],
+      "title": "The Principle of Relativity: Original Papers by A. Einstein and H. Minkowski",
+      "url": "https://archive.org/download/theprincipleofre00einsuoft/theprincipleofre00einsuoft.pdf",
+      "version": 33
+    },
+    "key": "R3YNUA6N",
+    "version": 33
+  },
+  {
+    "data": {
+      "charset": "",
+      "contentType": "application/pdf",
+      "filename": "einstein-minkowski-1920-principle-of-relativity.pdf",
+      "itemType": "attachment",
+      "key": "4BU5XSSR",
+      "linkMode": "imported_file",
+      "parentItem": "R3YNUA6N",
+      "tags": [
+        {
+          "tag": "zoteus-golden-attachment:einstein-minkowski-1920-principle-of-relativity"
+        }
+      ],
+      "title": "The Principle of Relativity: Original Papers by A. Einstein and H. Minkowski",
+      "version": 58
+    },
+    "key": "4BU5XSSR",
+    "version": 58
+  },
+  {
+    "data": {
+      "archive": "wikimedia-commons",
+      "archiveLocation": "File:Viet Nam Su Luoc 1.djvu",
+      "collections": [
+        "3AY48MA5"
+      ],
+      "creators": [
+        {
+          "creatorType": "author",
+          "name": "Trần Trọng Kim"
+        }
+      ],
+      "date": "1920",
+      "extra": "ticket-0029 recipe id: tran-trong-kim-1920-viet-nam-su-luoc-q1\nticket-0029 work id: tran-trong-kim-1920-viet-nam-su-luoc-q1\nticket-0029 type fidelity: unreviewed\nticket-0029 work relations: []",
+      "itemType": "document",
+      "key": "WB2US5SC",
+      "language": "vi",
+      "tags": [
+        {
+          "tag": "zoteus-golden-source:tran-trong-kim-1920-viet-nam-su-luoc-q1"
+        }
+      ],
+      "title": "Việt Nam sử lược, quyển I",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/73/Viet_Nam_Su_Luoc_1.djvu",
+      "version": 77
+    },
+    "key": "WB2US5SC",
+    "version": 77
+  },
+  {
+    "data": {
+      "charset": "",
+      "contentType": "image/vnd.djvu",
+      "filename": "tran-trong-kim-1920-viet-nam-su-luoc-q1.djvu",
+      "itemType": "attachment",
+      "key": "G7FL2EI8",
+      "linkMode": "imported_file",
+      "parentItem": "WB2US5SC",
+      "tags": [
+        {
+          "tag": "zoteus-golden-attachment:tran-trong-kim-1920-viet-nam-su-luoc-q1"
+        }
+      ],
+      "title": "Việt Nam sử lược, quyển I",
+      "version": 84
+    },
+    "key": "G7FL2EI8",
+    "version": 84
+  },
+  {
+    "data": {
+      "archive": "wikimedia-commons",
+      "archiveLocation": "File:Viet Nam Su Luoc, Quyen 2, 1928.pdf",
+      "collections": [
+        "3AY48MA5"
+      ],
+      "creators": [
+        {
+          "creatorType": "author",
+          "name": "Trần Trọng Kim"
+        }
+      ],
+      "date": "1928",
+      "extra": "ticket-0029 recipe id: tran-trong-kim-1928-viet-nam-su-luoc-q2\nticket-0029 work id: tran-trong-kim-1928-viet-nam-su-luoc-q2\nticket-0029 type fidelity: unreviewed\nticket-0029 work relations: []",
+      "itemType": "document",
+      "key": "EYJCJMSI",
+      "language": "vi",
+      "tags": [
+        {
+          "tag": "zoteus-golden-source:tran-trong-kim-1928-viet-nam-su-luoc-q2"
+        }
+      ],
+      "title": "Việt Nam sử lược, quyển II (1928 printing)",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Viet_Nam_Su_Luoc%2C_Quyen_2%2C_1928.pdf",
+      "version": 80
+    },
+    "key": "EYJCJMSI",
+    "version": 80
+  },
+  {
+    "data": {
+      "charset": "",
+      "contentType": "application/pdf",
+      "filename": "tran-trong-kim-1928-viet-nam-su-luoc-q2.pdf",
+      "itemType": "attachment",
+      "key": "5MZPTISM",
+      "linkMode": "imported_file",
+      "parentItem": "EYJCJMSI",
+      "tags": [
+        {
+          "tag": "zoteus-golden-attachment:tran-trong-kim-1928-viet-nam-su-luoc-q2"
+        }
+      ],
+      "title": "Việt Nam sử lược, quyển II (1928 printing)",
+      "version": 83
+    },
+    "key": "5MZPTISM",
+    "version": 83
+  },
+  {
+    "data": {
+      "archive": "wikisource",
+      "archiveLocation": "vi.wikisource.org oldid=106527 (pageid 5125)",
+      "collections": [
+        "3AY48MA5"
+      ],
+      "creators": [
+        {
+          "creatorType": "author",
+          "name": "Trần Trọng Kim"
+        }
+      ],
+      "date": "1920",
+      "extra": "ticket-0029 recipe id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource\nticket-0029 work id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource\nticket-0029 type fidelity: unreviewed\nticket-0029 work relations: []",
+      "itemType": "document",
+      "key": "GYTR85DH",
+      "language": "vi",
+      "tags": [
+        {
+          "tag": "zoteus-golden-source:tran-trong-kim-1920-viet-nam-su-luoc-wikisource"
+        }
+      ],
+      "title": "Việt Nam sử lược (Wikisource transcription, index page)",
+      "url": "https://vi.wikisource.org/w/index.php?title=Vi%E1%BB%87t_Nam_s%E1%BB%AD_l%C6%B0%E1%BB%A3c&action=raw&oldid=106527",
+      "version": 45
+    },
+    "key": "GYTR85DH",
+    "version": 45
+  },
+  {
+    "data": {
+      "charset": "windows-1252",
+      "contentType": "text/plain",
+      "filename": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource.wikitext",
+      "itemType": "attachment",
+      "key": "63IK8WLP",
+      "linkMode": "imported_file",
+      "parentItem": "GYTR85DH",
+      "tags": [
+        {
+          "tag": "zoteus-golden-attachment:tran-trong-kim-1920-viet-nam-su-luoc-wikisource"
+        }
+      ],
+      "title": "Việt Nam sử lược (Wikisource transcription, index page)",
+      "version": 72
+    },
+    "key": "63IK8WLP",
+    "version": 72
+  },
+  {
+    "data": {
+      "archive": "wikisource",
+      "archiveLocation": "vi.wikisource.org oldid=110942 (pageid 4807)",
+      "collections": [
+        "3AY48MA5"
+      ],
+      "creators": [
+        {
+          "creatorType": "author",
+          "name": "Quốc hội Việt Nam"
+        }
+      ],
+      "date": "1992",
+      "extra": "ticket-0029 recipe id: vn-constitution-1992-vi\nticket-0029 work id: vn-constitution-1992-vi\nticket-0029 type fidelity: unreviewed\nticket-0029 work relations: []",
+      "itemType": "document",
+      "key": "AZGCI85Y",
+      "language": "vi",
+      "tags": [
+        {
+          "tag": "zoteus-golden-source:vn-constitution-1992-vi"
+        }
+      ],
+      "title": "Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992 (original text)",
+      "url": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992&action=raw&oldid=110942",
+      "version": 48
+    },
+    "key": "AZGCI85Y",
+    "version": 48
+  },
+  {
+    "data": {
+      "charset": "windows-1252",
+      "contentType": "text/plain",
+      "filename": "vn-constitution-1992-vi.wikitext",
+      "itemType": "attachment",
+      "key": "ERV2G8L8",
+      "linkMode": "imported_file",
+      "parentItem": "AZGCI85Y",
+      "tags": [
+        {
+          "tag": "zoteus-golden-attachment:vn-constitution-1992-vi"
+        }
+      ],
+      "title": "Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992 (original text)",
+      "version": 73
+    },
+    "key": "ERV2G8L8",
+    "version": 73
+  },
+  {
+    "data": {
+      "archive": "wikisource",
+      "archiveLocation": "en.wikisource.org oldid=16201311 (pageid 5192388)",
+      "collections": [
+        "3AY48MA5"
+      ],
+      "creators": [
+        {
+          "creatorType": "author",
+          "name": "Quốc hội Việt Nam (official translation)"
+        }
+      ],
+      "date": "1992",
+      "extra": "ticket-0029 recipe id: vn-constitution-1992-en\nticket-0029 work id: vn-constitution-1992-en\nticket-0029 type fidelity: unreviewed\nticket-0029 work relations: []",
+      "itemType": "document",
+      "key": "VSN32JSP",
+      "language": "en",
+      "tags": [
+        {
+          "tag": "zoteus-golden-source:vn-constitution-1992-en"
+        }
+      ],
+      "title": "Constitution of Vietnam (1992), English text",
+      "url": "https://en.wikisource.org/w/index.php?title=Constitution_of_Vietnam_(1992)&action=raw&oldid=16201311",
+      "version": 51
+    },
+    "key": "VSN32JSP",
+    "version": 51
+  },
+  {
+    "data": {
+      "charset": "windows-1252",
+      "contentType": "text/plain",
+      "filename": "vn-constitution-1992-en.wikitext",
+      "itemType": "attachment",
+      "key": "UBHINKN8",
+      "linkMode": "imported_file",
+      "parentItem": "VSN32JSP",
+      "tags": [
+        {
+          "tag": "zoteus-golden-attachment:vn-constitution-1992-en"
+        }
+      ],
+      "title": "Constitution of Vietnam (1992), English text",
+      "version": 74
+    },
+    "key": "UBHINKN8",
+    "version": 74
+  },
+  {
+    "data": {
+      "archive": "internet-archive",
+      "archiveLocation": "dictionnaireanna01bone",
+      "collections": [
+        "3AY48MA5"
+      ],
+      "creators": [
+        {
+          "creatorType": "author",
+          "name": "Jean Bonet"
+        }
+      ],
+      "date": "1899",
+      "extra": "ticket-0029 recipe id: bonet-1899-dictionnaire-annamite-francais-t1\nticket-0029 work id: bonet-1899-dictionnaire-annamite-francais-t1\nticket-0029 type fidelity: unreviewed\nticket-0029 work relations: []",
+      "itemType": "document",
+      "key": "NXIPLWTH",
+      "language": "vi",
+      "tags": [
+        {
+          "tag": "zoteus-golden-source:bonet-1899-dictionnaire-annamite-francais-t1"
+        }
+      ],
+      "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 1",
+      "url": "https://archive.org/download/dictionnaireanna01bone/dictionnaireanna01bone.pdf",
+      "version": 54
+    },
+    "key": "NXIPLWTH",
+    "version": 54
+  },
+  {
+    "data": {
+      "charset": "",
+      "contentType": "application/pdf",
+      "filename": "bonet-1899-dictionnaire-annamite-francais-t1.pdf",
+      "itemType": "attachment",
+      "key": "SW7V67LL",
+      "linkMode": "imported_file",
+      "parentItem": "NXIPLWTH",
+      "tags": [
+        {
+          "tag": "zoteus-golden-attachment:bonet-1899-dictionnaire-annamite-francais-t1"
+        }
+      ],
+      "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 1",
+      "version": 71
+    },
+    "key": "SW7V67LL",
+    "version": 71
+  },
+  {
+    "data": {
+      "archive": "internet-archive",
+      "archiveLocation": "dictionnaireanna02bone",
+      "collections": [
+        "3AY48MA5"
+      ],
+      "creators": [
+        {
+          "creatorType": "author",
+          "name": "Jean Bonet"
+        }
+      ],
+      "date": "1899",
+      "extra": "ticket-0029 recipe id: bonet-1899-dictionnaire-annamite-francais-t2\nticket-0029 work id: bonet-1899-dictionnaire-annamite-francais-t2\nticket-0029 type fidelity: unreviewed\nticket-0029 work relations: []",
+      "itemType": "document",
+      "key": "4AZTUVYF",
+      "language": "vi",
+      "tags": [
+        {
+          "tag": "zoteus-golden-source:bonet-1899-dictionnaire-annamite-francais-t2"
+        }
+      ],
+      "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 2",
+      "url": "https://archive.org/download/dictionnaireanna02bone/dictionnaireanna02bone.pdf",
+      "version": 57
+    },
+    "key": "4AZTUVYF",
+    "version": 57
+  },
+  {
+    "data": {
+      "charset": "",
+      "contentType": "application/pdf",
+      "filename": "bonet-1899-dictionnaire-annamite-francais-t2.pdf",
+      "itemType": "attachment",
+      "key": "PTW63V8E",
+      "linkMode": "imported_file",
+      "parentItem": "4AZTUVYF",
+      "tags": [
+        {
+          "tag": "zoteus-golden-attachment:bonet-1899-dictionnaire-annamite-francais-t2"
+        }
+      ],
+      "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 2",
+      "version": 70
+    },
+    "key": "PTW63V8E",
+    "version": 70
+  },
+  {
+    "data": {
+      "archive": "faolex",
+      "archiveLocation": "LEX-FAOC179224",
+      "collections": [
+        "3AY48MA5"
+      ],
+      "creators": [
+        {
+          "creatorType": "author",
+          "name": "Thủ tướng Chính phủ (Prime Minister of Vietnam)"
+        }
+      ],
+      "date": "2017",
+      "extra": "ticket-0029 recipe id: vn-decision-11-2017-qdttg-solar-fit-en\nticket-0029 work id: vn-decision-11-2017-qdttg-solar-fit-en\nticket-0029 type fidelity: unreviewed\nticket-0029 work relations: []",
+      "itemType": "document",
+      "key": "GEWEZPJ4",
+      "language": "en",
+      "tags": [
+        {
+          "tag": "zoteus-golden-source:vn-decision-11-2017-qdttg-solar-fit-en"
+        }
+      ],
+      "title": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation)",
+      "url": "https://faolex.fao.org/docs/pdf/vie179224.pdf",
+      "version": 63
+    },
+    "key": "GEWEZPJ4",
+    "version": 63
+  },
+  {
+    "data": {
+      "charset": "",
+      "contentType": "application/pdf",
+      "filename": "vn-decision-11-2017-qdttg-solar-fit-en.pdf",
+      "itemType": "attachment",
+      "key": "L68LPREA",
+      "linkMode": "imported_file",
+      "parentItem": "GEWEZPJ4",
+      "tags": [
+        {
+          "tag": "zoteus-golden-attachment:vn-decision-11-2017-qdttg-solar-fit-en"
+        }
+      ],
+      "title": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation)",
+      "version": 69
+    },
+    "key": "L68LPREA",
+    "version": 69
+  }
+]

@@ -1,0 +1,324 @@
+{
+  "attachment_count": 17,
+  "attachments": [
+    {
+      "attachment_key": "3A2CSURL",
+      "fulltext_file": "fulltext/3A2CSURL.json",
+      "fulltext_version": 0,
+      "indexed_chars": null,
+      "indexed_pages": 270,
+      "parent_key": "WDHDGA89",
+      "recipe_id": "walras-1900-elements",
+      "terminal_state": "indexed",
+      "total_chars": null,
+      "total_pages": 270
+    },
+    {
+      "attachment_key": "4H5HAURM",
+      "fulltext_file": "fulltext/4H5HAURM.json",
+      "fulltext_version": 0,
+      "indexed_chars": null,
+      "indexed_pages": 788,
+      "parent_key": "6J5AEUMZ",
+      "recipe_id": "porte-1770-science-des-negocians",
+      "terminal_state": "indexed",
+      "total_chars": null,
+      "total_pages": 788
+    },
+    {
+      "attachment_key": "3WP92KR6",
+      "fulltext_file": "fulltext/3WP92KR6.json",
+      "fulltext_version": 0,
+      "indexed_chars": null,
+      "indexed_pages": 274,
+      "parent_key": "5F9HCZ8B",
+      "recipe_id": "minkowski-1896-geometrie-der-zahlen",
+      "terminal_state": "indexed",
+      "total_chars": null,
+      "total_pages": 274
+    },
+    {
+      "attachment_key": "K6VK5Y68",
+      "failure_control": {
+        "answer_set_participation": "none",
+        "expected_degradation": "no full text: an un-OCR'd scan with no text layer and zero embedded fonts (pdftotext extracts 340 bytes over 340 pages, pdffonts lists none), so indexPDF gets no text, writes no fulltextItems row, and /fulltext has no census entry",
+        "expected_state": "unindexed"
+      },
+      "fulltext_file": null,
+      "fulltext_version": 0,
+      "indexed_chars": null,
+      "indexed_pages": null,
+      "observed_state": "unindexed",
+      "parent_key": "TX53MLN2",
+      "recipe_id": "ramsey-1931-foundations-of-mathematics",
+      "terminal_state": "unindexed",
+      "total_chars": null,
+      "total_pages": null
+    },
+    {
+      "attachment_key": "EB9TGHWH",
+      "fulltext_file": "fulltext/EB9TGHWH.json",
+      "fulltext_version": 0,
+      "indexed_chars": null,
+      "indexed_pages": 1104,
+      "parent_key": "G3IXLJC6",
+      "recipe_id": "johnson-1785-dictionary",
+      "terminal_state": "indexed",
+      "total_chars": null,
+      "total_pages": 1104
+    },
+    {
+      "attachment_key": "6A8VF7TF",
+      "fulltext_file": "fulltext/6A8VF7TF.json",
+      "fulltext_version": 0,
+      "indexed_chars": null,
+      "indexed_pages": 262,
+      "parent_key": "HIQIHFD2",
+      "recipe_id": "baudelaire-1857-fleurs-du-mal",
+      "terminal_state": "indexed",
+      "total_chars": null,
+      "total_pages": 262
+    },
+    {
+      "attachment_key": "NVZ7K36G",
+      "fulltext_file": "fulltext/NVZ7K36G.json",
+      "fulltext_version": 0,
+      "indexed_chars": null,
+      "indexed_pages": 940,
+      "parent_key": "HYI6JTZ8",
+      "recipe_id": "stein-1925-making-of-americans",
+      "terminal_state": "indexed",
+      "total_chars": null,
+      "total_pages": 940
+    },
+    {
+      "attachment_key": "DZM9SCW5",
+      "fulltext_file": "fulltext/DZM9SCW5.json",
+      "fulltext_version": 0,
+      "indexed_chars": null,
+      "indexed_pages": 176,
+      "parent_key": "UDI7E8I2",
+      "recipe_id": "curie-1904-recherches-substances-radioactives",
+      "terminal_state": "indexed",
+      "total_chars": null,
+      "total_pages": 176
+    },
+    {
+      "attachment_key": "4BU5XSSR",
+      "fulltext_file": "fulltext/4BU5XSSR.json",
+      "fulltext_version": 0,
+      "indexed_chars": null,
+      "indexed_pages": 260,
+      "parent_key": "R3YNUA6N",
+      "recipe_id": "einstein-minkowski-1920-principle-of-relativity",
+      "terminal_state": "indexed",
+      "total_chars": null,
+      "total_pages": 260
+    },
+    {
+      "attachment_key": "G7FL2EI8",
+      "failure_control": {
+        "answer_set_participation": "none",
+        "expected_degradation": "no full text: image/vnd.djvu is never eligible for extraction -- Zotero's own dispatch (fulltext.js, indexItem) handles application/pdf, application/epub+zip and text/* only, so no fulltextItems row is ever written and /fulltext has no census entry",
+        "expected_state": "unindexed"
+      },
+      "fulltext_file": null,
+      "fulltext_version": null,
+      "indexed_chars": null,
+      "indexed_pages": null,
+      "observed_state": "unindexed",
+      "parent_key": "WB2US5SC",
+      "recipe_id": "tran-trong-kim-1920-viet-nam-su-luoc-q1",
+      "terminal_state": "unindexed",
+      "total_chars": null,
+      "total_pages": null
+    },
+    {
+      "attachment_key": "5MZPTISM",
+      "failure_control": {
+        "answer_set_participation": "none",
+        "expected_degradation": "no full text: an un-OCR'd scan with no text layer (pdftotext extracts 347 bytes over 347 pages, one page break per page), so indexPDF gets no text, writes no fulltextItems row, and /fulltext has no census entry",
+        "expected_state": "unindexed"
+      },
+      "fulltext_file": null,
+      "fulltext_version": 0,
+      "indexed_chars": null,
+      "indexed_pages": null,
+      "observed_state": "unindexed",
+      "parent_key": "EYJCJMSI",
+      "recipe_id": "tran-trong-kim-1928-viet-nam-su-luoc-q2",
+      "terminal_state": "unindexed",
+      "total_chars": null,
+      "total_pages": null
+    },
+    {
+      "attachment_key": "63IK8WLP",
+      "fulltext_file": null,
+      "fulltext_version": 0,
+      "indexed_chars": 1176,
+      "indexed_pages": null,
+      "not_served_reason": "Zotero's local API serves /items/<key>/fulltext only for cached MIME types (application/pdf, text/html, application/epub+zip; Zotero.Fulltext.isCachedMIMEType); this content type is indexed from the file and its fulltext route answers 404",
+      "observed_state": "indexed",
+      "parent_key": "GYTR85DH",
+      "recipe_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource",
+      "terminal_state": "indexed-not-served",
+      "total_chars": 1176,
+      "total_pages": null
+    },
+    {
+      "attachment_key": "ERV2G8L8",
+      "fulltext_file": null,
+      "fulltext_version": 0,
+      "indexed_chars": 2628,
+      "indexed_pages": null,
+      "not_served_reason": "Zotero's local API serves /items/<key>/fulltext only for cached MIME types (application/pdf, text/html, application/epub+zip; Zotero.Fulltext.isCachedMIMEType); this content type is indexed from the file and its fulltext route answers 404",
+      "observed_state": "indexed",
+      "parent_key": "AZGCI85Y",
+      "recipe_id": "vn-constitution-1992-vi",
+      "terminal_state": "indexed-not-served",
+      "total_chars": 2628,
+      "total_pages": null
+    },
+    {
+      "attachment_key": "UBHINKN8",
+      "fulltext_file": null,
+      "fulltext_version": 0,
+      "indexed_chars": 78658,
+      "indexed_pages": null,
+      "not_served_reason": "Zotero's local API serves /items/<key>/fulltext only for cached MIME types (application/pdf, text/html, application/epub+zip; Zotero.Fulltext.isCachedMIMEType); this content type is indexed from the file and its fulltext route answers 404",
+      "observed_state": "indexed",
+      "parent_key": "VSN32JSP",
+      "recipe_id": "vn-constitution-1992-en",
+      "terminal_state": "indexed-not-served",
+      "total_chars": 78658,
+      "total_pages": null
+    },
+    {
+      "attachment_key": "SW7V67LL",
+      "fulltext_file": "fulltext/SW7V67LL.json",
+      "fulltext_version": 0,
+      "indexed_chars": null,
+      "indexed_pages": 488,
+      "parent_key": "NXIPLWTH",
+      "recipe_id": "bonet-1899-dictionnaire-annamite-francais-t1",
+      "terminal_state": "indexed",
+      "total_chars": null,
+      "total_pages": 488
+    },
+    {
+      "attachment_key": "PTW63V8E",
+      "fulltext_file": "fulltext/PTW63V8E.json",
+      "fulltext_version": 0,
+      "indexed_chars": null,
+      "indexed_pages": 552,
+      "parent_key": "4AZTUVYF",
+      "recipe_id": "bonet-1899-dictionnaire-annamite-francais-t2",
+      "terminal_state": "indexed",
+      "total_chars": null,
+      "total_pages": 552
+    },
+    {
+      "attachment_key": "L68LPREA",
+      "fulltext_file": "fulltext/L68LPREA.json",
+      "fulltext_version": 0,
+      "indexed_chars": null,
+      "indexed_pages": 9,
+      "parent_key": "GEWEZPJ4",
+      "recipe_id": "vn-decision-11-2017-qdttg-solar-fit-en",
+      "terminal_state": "indexed",
+      "total_chars": null,
+      "total_pages": 9
+    }
+  ],
+  "failure_control_count": 3,
+  "index_fulltext_max_chars": 40000,
+  "indexed_attachment_count": 11,
+  "indexed_not_served_count": 3,
+  "items_file": "items.json",
+  "known_defects": [
+    {
+      "declared_by": "operator",
+      "defect": "the pinned wikitext (1 176 bytes, 17 lines) is the Wikisource work page's header template, a transclusion skeleton, not the text of the 294-page volume; the injected attachment carries no body text to index -- re-source the transcluded pages and re-pin",
+      "recipe_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource"
+    },
+    {
+      "declared_by": "operator",
+      "defect": "the pinned wikitext (2 628 bytes, 43 lines) is the Wikisource work page's header and law infobox, a transclusion skeleton, not the constitution's articles; the injected attachment carries no body text to index -- re-source the transcluded pages and re-pin",
+      "recipe_id": "vn-constitution-1992-vi"
+    },
+    {
+      "declared_by": "operator",
+      "defect": "injected as bare text/plain with no charset; Zotero recorded windows-1252 and indexed 1 176 characters for 1 176 bytes whose UTF-8 reading is 914 characters (mojibake) -- re-inject with charset utf-8",
+      "recipe_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource"
+    },
+    {
+      "declared_by": "operator",
+      "defect": "injected as bare text/plain with no charset; Zotero recorded windows-1252 and indexed 2 628 characters for 2 628 bytes whose UTF-8 reading is 2 081 characters (mojibake) -- re-inject with charset utf-8",
+      "recipe_id": "vn-constitution-1992-vi"
+    },
+    {
+      "declared_by": "operator",
+      "defect": "injected as bare text/plain with no charset; Zotero recorded windows-1252 and indexed 78 658 characters for 78 658 bytes whose UTF-8 reading is 78 630 characters (28 non-ASCII characters mangled) -- re-inject with charset utf-8",
+      "recipe_id": "vn-constitution-1992-en"
+    },
+    {
+      "attachment_key": "63IK8WLP",
+      "defect": "charset guessed by Zotero: the injection wrote a bare text/plain attachment with no charset, Zotero recorded windows-1252, and the indexed text is the file's bytes decoded one per character (mojibake for non-ASCII text)",
+      "evidence": {
+        "indexed_chars": 1176,
+        "source_bytes": 1176,
+        "utf8_chars": 914
+      },
+      "recipe_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource",
+      "remedy": "re-inject with an explicit charset and re-pin"
+    },
+    {
+      "attachment_key": "ERV2G8L8",
+      "defect": "charset guessed by Zotero: the injection wrote a bare text/plain attachment with no charset, Zotero recorded windows-1252, and the indexed text is the file's bytes decoded one per character (mojibake for non-ASCII text)",
+      "evidence": {
+        "indexed_chars": 2628,
+        "source_bytes": 2628,
+        "utf8_chars": 2081
+      },
+      "recipe_id": "vn-constitution-1992-vi",
+      "remedy": "re-inject with an explicit charset and re-pin"
+    },
+    {
+      "attachment_key": "UBHINKN8",
+      "defect": "charset guessed by Zotero: the injection wrote a bare text/plain attachment with no charset, Zotero recorded windows-1252, and the indexed text is the file's bytes decoded one per character (mojibake for non-ASCII text)",
+      "evidence": {
+        "indexed_chars": 78658,
+        "source_bytes": 78658,
+        "utf8_chars": 78630
+      },
+      "recipe_id": "vn-constitution-1992-en",
+      "remedy": "re-inject with an explicit charset and re-pin"
+    }
+  ],
+  "library": {
+    "collection_key": "3AY48MA5",
+    "id": 6659303,
+    "type": "group"
+  },
+  "library_version": 84,
+  "normalizations": {
+    "linked_file_enclosure": "file: enclosure removed if present",
+    "linked_file_path": "absolute API path replaced by attachments:<filename>"
+  },
+  "parent_item_count": 17,
+  "recipe_sha256": "23980113a777c3ecec90692ee12c5b6205a95279dec61876c3ff13cc69f23716",
+  "reindex": {
+    "binding_record": "per-attachment indexed_pages/total_pages and indexed_chars/total_chars",
+    "limits": "ignored",
+    "mode": "complete",
+    "source": "bench/zotero-fulltext-plugin/bootstrap.js: Zotero.FullText.indexItems(ids, {complete: true, ignoreErrors: true}); fulltext.js indexPDF(filePath, itemID, allPages)"
+  },
+  "schema_version": 1,
+  "source_byte_count": 501029618,
+  "zotero": {
+    "client_version": "10.0.1 build 20260824184709",
+    "fulltext.pdfMaxPages": 100,
+    "fulltext.textMaxLength": 500000,
+    "preferences_are": "the injecting profile's values as read at run time; not a bound on this extraction, see reindex"
+  }
+}

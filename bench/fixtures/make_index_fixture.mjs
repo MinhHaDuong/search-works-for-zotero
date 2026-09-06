@@ -56,6 +56,8 @@ const SOURCE_TAG_PREFIX = 'zoteus-golden-source:';
 const ATTACHMENT_TAG_PREFIX = 'zoteus-golden-attachment:';
 const EXPORT_SENTINEL = '.zoteus-golden-export.json';
 const EXPORT_SENTINEL_SCHEMA = 'zoteus-golden-export/v1';
+// Zotero.Fulltext.isCachedMIMEType, the only types the local API serves on /items/<key>/fulltext.
+const SERVED_CONTENT_TYPES = new Set(['application/pdf', 'text/html', 'application/epub+zip']);
 const CONTENT_TYPES = {
   pdf: 'application/pdf', djvu: 'image/vnd.djvu', html: 'text/html', wikitext: 'text/plain',
   txt: 'text/plain; charset=utf-8', epub: 'application/epub+zip',
@@ -224,6 +226,17 @@ export function loadGoldenExport(directory, options = {}) {
           (source.selection_expectation === 'skipped-first-with-text' && !source.skip_reason))) {
         throw new Error(`${source.id}: source recipe lacks attachment semantics`);
       }
+      if (source.failure_control !== undefined) {
+        const control = source.failure_control;
+        if (!control || typeof control !== 'object' ||
+            JSON.stringify(Object.keys(control).sort()) !==
+              JSON.stringify(['answer_set_participation', 'expected_degradation', 'expected_state']) ||
+            control.expected_state !== 'unindexed' ||
+            typeof control.expected_degradation !== 'string' || !control.expected_degradation.trim() ||
+            control.answer_set_participation !== 'none') {
+          throw new Error(`${source.id}: source recipe has an invalid failure_control declaration`);
+        }
+      }
       sourceById.set(source.id, { parent: doc, source });
     }
     recipeById.set(doc.id, doc);
@@ -241,6 +254,7 @@ export function loadGoldenExport(directory, options = {}) {
   const attachmentIds = new Set();
   const consumedItemKeys = new Set();
   const fulltext = new Map();
+  const censusOnly = new Map();
   const expectedAttachmentOrder = recipe.flatMap((doc) => sources(doc).map((source) => source.id));
   const observedAttachmentOrder = [];
   for (const row of manifest.attachments) {
@@ -318,6 +332,64 @@ export function loadGoldenExport(directory, options = {}) {
     if (String(attachment.links?.enclosure?.href ?? '').startsWith('file:')) {
       throw new Error(`${recipeId}: linked-file enclosure discloses a machine path`);
     }
+    // A declared failure control (recipe `failure_control`) is exported with no full
+    // text: the extracting client finished and left it unindexed, and the replay must
+    // answer for it exactly as Zotero did -- no census entry, 404 on its fulltext route.
+    // The declaration and the export must agree in both directions, so a control that
+    // indexed after all, or an undeclared attachment exported empty, is refused.
+    if (row.terminal_state === 'unindexed') {
+      if (!source.failure_control) {
+        throw new Error(`${attachmentId}: exported without full text but not declared a failure control`);
+      }
+      // fulltext_version is 0 when Zotero kept an empty, missing-marked row for the
+      // attachment (recordMissingContent, a PDF with no text) and null when it never
+      // wrote one (a DjVu it does not dispatch); the census replays it accordingly.
+      if (row.fulltext_file !== null || ![null, 0].includes(row.fulltext_version) ||
+          JSON.stringify(canonicalJson(row.failure_control)) !== JSON.stringify(canonicalJson(source.failure_control)) ||
+          row.observed_state !== source.failure_control.expected_state ||
+          [row.indexed_pages, row.total_pages, row.indexed_chars, row.total_chars].some((v) => v !== null)) {
+        throw new Error(`${attachmentId}: failure-control export row does not match its declaration`);
+      }
+      if (existsSync(resolve(root, `fulltext/${key}.json`))) {
+        throw new Error(`${attachmentId}: failure control must not carry a fulltext file`);
+      }
+      if (row.fulltext_version === 0) censusOnly.set(key, 0);
+      consumedItemKeys.add(parent);
+      consumedItemKeys.add(key);
+      continue;
+    }
+    if (source.failure_control) {
+      throw new Error(`${attachmentId}: declared failure control was exported as ${row.terminal_state}; the declaration is stale`);
+    }
+    const contentType = CONTENT_TYPES[source.bytes_format ?? 'pdf'] ?? 'application/octet-stream';
+    // Zotero's local API serves /items/<key>/fulltext only for its cached MIME types
+    // (Zotero.Fulltext.isCachedMIMEType: PDF, HTML, EPUB). An attachment of any other
+    // type is indexed from the file, listed by the census, and answers 404 on the route
+    // -- the product then indexes it from metadata only. Captured as such; a 404 on a
+    // served type is vanished text and never accepted.
+    if (row.terminal_state === 'indexed-not-served') {
+      if (SERVED_CONTENT_TYPES.has(contentType)) {
+        throw new Error(`${attachmentId}: ${contentType} is served by the local API; an unserved export row is vanished text`);
+      }
+      if (row.fulltext_file !== null || !Number.isInteger(row.fulltext_version) || row.fulltext_version < 0 ||
+          row.observed_state !== 'indexed' || typeof row.not_served_reason !== 'string' || !row.not_served_reason ||
+          row.indexed_pages !== null || row.total_pages !== null ||
+          ![null, 'number'].includes(row.indexed_chars === null ? null : typeof row.indexed_chars) ||
+          ![null, 'number'].includes(row.total_chars === null ? null : typeof row.total_chars)) {
+        throw new Error(`${attachmentId}: indexed-not-served export row is malformed`);
+      }
+      if (existsSync(resolve(root, `fulltext/${key}.json`))) {
+        throw new Error(`${attachmentId}: an unserved attachment must not carry a fulltext file`);
+      }
+      censusOnly.set(key, row.fulltext_version);
+      consumedItemKeys.add(parent);
+      consumedItemKeys.add(key);
+      continue;
+    }
+    if (row.terminal_state !== 'indexed') throw new Error(`${attachmentId}: unknown terminal_state ${row.terminal_state}`);
+    if (!SERVED_CONTENT_TYPES.has(contentType)) {
+      throw new Error(`${attachmentId}: ${contentType} is not served by the local API; an indexed export row for it is not Zotero's answer`);
+    }
     const expectedFile = `fulltext/${key}.json`;
     if (row.fulltext_file !== expectedFile) throw new Error(`${recipeId}: fulltext locator must be ${expectedFile}`);
     if (!Number.isInteger(row.fulltext_version) || row.fulltext_version < 0) {
@@ -348,15 +420,21 @@ export function loadGoldenExport(directory, options = {}) {
   if (JSON.stringify(observedAttachmentOrder) !== JSON.stringify(expectedAttachmentOrder)) {
     throw new Error('manifest attachment order does not match the recipe');
   }
+  const declaredControls = [...sourceById.values()].filter(({ source }) => source.failure_control).length;
+  const unserved = [...sourceById.values()].filter(({ source }) => !source.failure_control &&
+    !SERVED_CONTENT_TYPES.has(CONTENT_TYPES[source.bytes_format ?? 'pdf'] ?? 'application/octet-stream')).length;
   if (manifest.parent_item_count !== recipe.length ||
       manifest.attachment_count !== sourceById.size ||
+      manifest.failure_control_count !== declaredControls ||
+      manifest.indexed_not_served_count !== unserved ||
+      manifest.indexed_attachment_count !== sourceById.size - declaredControls - unserved ||
       !Number.isInteger(manifest.source_byte_count) || manifest.source_byte_count <= 0) {
-    throw new Error('manifest parent, attachment, or source-byte count does not match the recipe');
+    throw new Error('manifest parent, attachment, failure-control, unserved, or source-byte count does not match the recipe');
   }
   if (consumedItemKeys.size !== itemByKey.size || [...itemByKey.keys()].some((key) => !consumedItemKeys.has(key))) {
     throw new Error('items export contains a row not consumed by the recipe attachment mapping');
   }
-  return { root, manifest, items, itemByKey, fulltext };
+  return { root, manifest, items, itemByKey, fulltext, censusOnly };
 }
 
 /** Sort object keys recursively to match `golden_fixture.py`'s canonical recipe hash. */
@@ -420,6 +498,11 @@ export function goldenReplayResponse(fixture, method, rawUrl) {
     const body = {};
     for (const [key, value] of fixture.fulltext) {
       if (since === 0 || value.version > since) body[key] = value.version;
+    }
+    // Zotero lists an empty missing-marked row at version 0 in a since=0 census and
+    // still answers 404 on its fulltext route; the replay does the same.
+    for (const [key, version] of fixture.censusOnly ?? []) {
+      if (since === 0 || version > since) body[key] = version;
     }
     return answer(200, body);
   }
@@ -571,10 +654,22 @@ export function validateGoldenBuildResult(fixture, result, requests, dataDirecto
   if (!Number.isInteger(indexSize) || indexSize <= 0 || !existsSync(indexPath) || statSync(indexPath).size <= 0) {
     throw new Error('golden replay did not produce a non-empty search-index.sqlite');
   }
-  const failed = requests.find((request) => request.status !== 200);
-  if (failed) throw new Error(`golden replay received ${failed.status} for ${failed.method} ${failed.url}`);
   const library = fixture.manifest.library;
   const prefix = library.type === 'group' ? `/api/groups/${library.id}` : '/api/users/0';
+  // Zotero answers 404 on the fulltext route of a key its census lists without a body
+  // (an empty missing-marked row, an unserved content type); the product asks and is
+  // told no. That exchange is the captured behaviour, so it is the one 404 allowed.
+  const unservedRoutes = new Set(
+    [...(fixture.censusOnly ?? new Map()).keys()].map((key) => `${prefix}/items/${encodeURIComponent(key)}/fulltext`),
+  );
+  const failed = requests.find((request) => request.status !== 200 &&
+    !(request.status === 404 && request.method === 'GET' && unservedRoutes.has(new URL(request.url, 'http://replay').pathname)));
+  if (failed) throw new Error(`golden replay received ${failed.status} for ${failed.method} ${failed.url}`);
+  for (const route of unservedRoutes) {
+    const asked = requests.some((request) => request.method === 'GET' && request.status === 404 &&
+      new URL(request.url, 'http://replay').pathname === route);
+    if (!asked) throw new Error(`golden replay did not exercise the unserved fulltext route ${route}`);
+  }
   const required = [
     ['local capability probe', (url) => url.pathname === '/api/users/0/items'],
     ['library item listing', (url) => url.pathname.startsWith(`${prefix}/`) && /\/items(?:\/top)?$/.test(url.pathname)],
@@ -584,6 +679,7 @@ export function validateGoldenBuildResult(fixture, result, requests, dataDirecto
     required.push(['local group discovery', (url) => url.pathname === '/api/users/0/groups']);
   }
   for (const row of fixture.manifest.attachments) {
+    if (row.terminal_state !== 'indexed') continue;
     required.push([
       `fulltext body ${row.attachment_key}`,
       (url) => url.pathname === `${prefix}/items/${encodeURIComponent(row.attachment_key)}/fulltext`,

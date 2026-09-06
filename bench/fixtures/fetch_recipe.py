@@ -234,6 +234,13 @@ CAP_RESULTS = frozenset({"crosses", "does-not-cross"})
 COMBINED_CAP_RESULTS = frozenset({"both", "page-only", "char-only", "neither"})
 STRUCTURAL_FEATURES = frozenset({"table", "figure-caption", "annex", "appendix", "footnote", "endnote", "multi-column", "equation-heavy-prose"})
 STRUCTURAL_EXPECTATIONS = frozenset({"present", "absent"})
+#: A declared failure control (DECISIONS.md, 2026-09-03: every failure control
+#: declares its expected terminal or degradation state and whether it takes part
+#: in golden answers). `unindexed` is Zotero's own state name for an attachment
+#: it finished trying and left without full text; the export accepts such an
+#: attachment only when its reindex observed exactly that state.
+FAILURE_CONTROL_FIELDS = frozenset({"expected_state", "expected_degradation", "answer_set_participation"})
+FAILURE_CONTROL_STATES = frozenset({"unindexed"})
 HEX64 = frozenset("0123456789abcdef")
 #: An id is one path component, because it names the cache file: `../x` or a
 #: slash would write outside the cache directory.
@@ -365,6 +372,17 @@ def validate(recipe: list[dict]) -> list[str]:
                                 found.append(f"{label}: crossing {boundary} cap needs before/after locators")
             if source.get("bytes_format", "pdf") not in MAGIC:
                 found.append(f"{label}: bytes_format {source.get('bytes_format')!r} is not one of {sorted(MAGIC)}")
+            if "failure_control" in source:
+                control = source["failure_control"]
+                if not isinstance(control, dict) or set(control) != FAILURE_CONTROL_FIELDS:
+                    found.append(f"{label}: failure_control must contain exactly {sorted(FAILURE_CONTROL_FIELDS)}")
+                else:
+                    if control["expected_state"] not in FAILURE_CONTROL_STATES:
+                        found.append(f"{label}: failure_control expected_state {control['expected_state']!r} unknown")
+                    if not isinstance(control["expected_degradation"], str) or not control["expected_degradation"].strip():
+                        found.append(f"{label}: failure_control expected_degradation is empty")
+                    if control["answer_set_participation"] != "none":
+                        found.append(f"{label}: a failure control takes no part in golden answer sets")
             if source.get("language", doc.get("language")) not in LANGUAGES:
                 found.append(f"{label}: language {source.get('language')!r} unknown")
             _validate_source(source, label, found)
