@@ -1,7 +1,7 @@
 {
   "schema": "menagerie-bank/v2",
   "id": "q-0152",
-  "need": "Written before opening the document: Smith holds that the division of labour is bounded by the size of the market; I want the sentence, and the tally wants the same sentence checked in both Gutenberg renderings, since it sits right at the 40 000-character index boundary and the two files count characters differently.",
+  "need": "Written before opening the document: Smith holds that the division of labour is bounded by the size of the market; I want the sentence, and the tally wants the same sentence checked in both Gutenberg renderings, since it sits right at the 40 000-character index boundary: the HTML extraction reaches it about 300 characters earlier than the EPUB one, so the same two sentences end inside the index cap in one rendering and past it in the other.",
   "query": "the division of labour is limited by the extent of the market",
   "question_language": "en",
   "answer_language": "en",
@@ -29,7 +29,7 @@
         {
           "page_printed": null,
           "char_offset": 39525,
-          "quote": "so the extent of this division must always be limited by the extent of that power, or, in other words, by the extent of the market"
+          "quote": "so the extent of this division must always be limited by the extent of that power, or, in other words, by the extent of the market. When the market is very small, no person can have any encouragement to dedicate himself entirely to one employment"
         }
       ],
       "chain": {
@@ -53,7 +53,7 @@
         {
           "page_printed": null,
           "char_offset": 39815,
-          "quote": "so the extent of this division must always be limited by the extent of that power, or, in other words, by the extent of the market"
+          "quote": "so the extent of this division must always be limited by the extent of that power, or, in other words, by the extent of the market. When the market is very small, no person can have any encouragement to dedicate himself entirely to one employment"
         }
       ],
       "chain": {
@@ -105,7 +105,7 @@
             "char_offset": 39815,
             "occurrences": 1,
             "reason": null,
-            "within_index_cap": true
+            "within_index_cap": false
           }
         ]
       }
