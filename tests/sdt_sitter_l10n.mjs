@@ -22,7 +22,7 @@ import vm from 'node:vm';
 
 import { FluentModule } from './fluent_stub.mjs';
 
-const SITTER = 'bench/sdt-sitter';
+const SITTER = 'plugins/sdt-sitter';
 const ROOT = `${SITTER}/`;
 const locale = tag => `${ROOT}locale/${tag}/sdt-pack-sitter.ftl`;
 

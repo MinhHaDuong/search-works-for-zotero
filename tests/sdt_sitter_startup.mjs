@@ -15,7 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 
-const SITTER = 'bench/sdt-sitter';
+const SITTER = 'plugins/sdt-sitter';
 const manifest = JSON.parse(fs.readFileSync(path.join(SITTER, 'manifest.json'), 'utf8'));
 const HALT = /halt: after the self-check/;
 

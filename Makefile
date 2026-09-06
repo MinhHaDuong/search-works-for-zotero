@@ -230,7 +230,7 @@ ticket-logs:
 # author's profile would notice two different plugins carrying one manifest
 # version — and four commits already did, all of them 2.2.0. Zotero keys its
 # add-on record on that number. Ticket 0688. Also run by the test suite; kept as
-# its own target because it is the one to run after touching bench/sdt-sitter/.
+# its own target because it is the one to run after touching plugins/sdt-sitter/.
 # Needs real history, and says NOT-RUN rather than green where it has none.
 sitter-version:
 	python3 bench/check_sitter_version.py

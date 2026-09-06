@@ -44,7 +44,7 @@ if str(ROOT / 'bench') not in sys.path:
 import build_sdt_sitter  # noqa: E402
 from sdt_sitter_install import ADDON_ID, install, read_addon_record  # noqa: E402
 
-SITTER = ROOT / 'bench' / 'sdt-sitter'
+SITTER = ROOT / 'plugins' / 'sdt-sitter'
 BOOTSTRAP = SITTER / 'bootstrap.js'
 SCHEDULER = SITTER / 'scheduler.js'
 
@@ -275,7 +275,7 @@ def test_sdt_sitter_bootstrap():
 
 @pytest.mark.integration
 def test_sdt_sitter_bootstrap_syntax():
-    subprocess.run(['node', '--check', 'bench/sdt-sitter/bootstrap.js'], cwd=ROOT,
+    subprocess.run(['node', '--check', 'plugins/sdt-sitter/bootstrap.js'], cwd=ROOT,
                    check=True, capture_output=True, text=True, timeout=30)
 
 
@@ -513,7 +513,7 @@ def test_manifest_names_no_unresolvable_host():
         "example.invalid" not in update_url and ".invalid/" not in update_url), update_url
     if update_url is not None:
         update = json.loads((SITTER / "update.json").read_text(encoding="utf-8"))
-        assert update_url.endswith("/bench/sdt-sitter/update.json"), update_url
+        assert update_url.endswith("/plugins/sdt-sitter/update.json"), update_url
         assert list(update["addons"]) == [zotero["id"]]
 
 

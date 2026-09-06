@@ -6,6 +6,13 @@ import json
 from pathlib import Path
 import zipfile
 
+#: Where the payload's source lives, relative to the repository root, and the
+#: only definition of it. Ticket 0697 promoted the sitter out of `bench/`, which
+#: is for probes and one-off measurements, to a top-level `plugins/`; the guard
+#: in `bench/check_sitter_version.py` reads this rather than restating it, so a
+#: further move cannot leave one of the two packaging the old directory.
+SOURCE = 'plugins/sdt-sitter'
+
 #: Where the sitter's locales live. A language is added by dropping one file
 #: here and naming its tag below; nothing enumerates the directory at runtime,
 #: because `bootstrap.js` resolves its fallback chain by trying to fetch each
@@ -29,7 +36,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
-    source = Path(__file__).resolve().parent / 'sdt-sitter'
+    source = Path(__file__).resolve().parent.parent / SOURCE
     names = DELIVERED
     with zipfile.ZipFile(args.output, 'x', compression=zipfile.ZIP_DEFLATED) as package:
         for name in names:
