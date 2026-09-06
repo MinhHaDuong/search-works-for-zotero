@@ -1,0 +1,107 @@
+%erg 0.1
+Title: Reconsider sitter toolbar placement as icon-position, not label-position
+Created: 2026-09-06
+Author: claude
+Closed: autoclosed — PR #376
+
+--- log ---
+2026-09-06T00:00Z claude created
+2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED, with a scope correction -- drop the bootstrap.js tooltip-fix step entirely. Grepped DECISIONS.md, SPEC.md and bootstrap.js on origin/main: no "Index NN%" or "Library: ..." wording exists anywhere yet (that's ticket 0691's prospective work, itself still unimplemented and blocked). This ticket has no code to correct; it resolves to a pure documentation PR -- one DECISIONS.md entry adapting the ticket's own "What changes the picture"/"Recommendation" text near-verbatim, and either closing the SPEC.md criterion as "nothing to change" or adding one generic system-only-prose sentence for future implementers, matching SPEC.md's existing register (no literal UI copy strings). Flag in the DECISIONS.md entry that this affirms the status-quo position and only revises the justification, so a skimming reader doesn't mistake the pros/cons discussion for authorization to move the button.
+2026-09-06T08:46Z claude note Execute phase: appended the correction entry to DECISIONS.md (icon position and label visibility are separate decisions; host coupling and precedent, not label-fitting, are why the items toolbar stays). SPEC.md unchanged -- grepped it for placement and toolbar wording and found none, so the second acceptance item resolves to nothing to change. Note that the Imagine-phase claim above, that SPEC.md holds no literal UI copy strings, is false: R18 pins three empty-result sentences verbatim and R22 pins "paused since <date>". The conclusion survives because the scoped string is a wording ticket's work, not because SPEC.md refuses literal copy. Docs-only PR: no code test applies; the gate is erg check plus the full make check.
+2026-09-06T09:00Z claude note Adherence round 2: corrected two stale cross-references in the appended entry -- the ProgressWindow/zotero-plugin-toolkit toast pattern is ticket 0696, not 0693, which the same day's raid split out of it after 0694's body was written, here and in the body above.
+2026-09-06T09:12Z claude note Adherence round 3, on the coordinator's relay of the author's decision. The single entry was wrong in register: a corrected premise that leaves two legitimate options open is a decision under the 2026-09-02 ruling, and an executor may not resolve it. Split into the ledger's own precedent shape -- a FINDING recording the false premise and both remaining cases, and a RULED entry above it carrying the author's actual choice to keep the button in the items toolbar. Header token CORRECTION dropped; it appears nowhere else in DECISIONS.md. Rebased onto origin/main, whose same-day permahome ruling foreclosed this entry's second revisit trigger; the union of both tail entries is preserved. The bare log note on 0691 is reverted -- 0691 closes with PR #369 on criteria that never asked for the scope prefix, so a note there could not own it; ticket 0710 is filed for the wording instead (0699 was taken by a sibling PR that merged mid-flight; renumbered clear of the frontier).
+2026-09-06T09:58Z claude note Review round 1 on PR #376, three blockers, all in the RULED entry. It prejudged the fix surface ("to be fixed in the tooltip") against its own FINDING and against 0710's Action 1, which both leave tooltip/aria-label/dialog open; reworded to leave it to 0710. It attributed host-coupling-and-precedent to the author, who only chose a position -- the same disguised-authorship defect round 3 fixed one layer up, so the RULED entry now says he gave no reasons and none are attributed to him. And the empirical claims were unsourced: measured them instead against the two Zotero trees on this machine, 6.0.35 (/opt/zotero/zotero.jar) and 10.0.1 (/opt/zotero7/app/omni.ja). zotero-items-toolbar is in both; the sync button's -stop, -progress-box, -storage-cancel, progressmeter and zoterofilesyncstatus children are gone from 10.0.1's markup while overlay.css still styles #zotero-tb-sync-progress, so a stylesheet grep would have said "unchanged". Span measured is 6-10, not the 7-10 the body claimed. The plugin-precedent claim stays unverified and is labelled as such in both the ledger and the body; FIELD-REVIEW.md never discusses injection location.
+2026-09-06T10:08Z sim closed — autoclosed — PR #376
+--- body ---
+## Context
+
+Author, 2026-09-06: "Sa position naturelle dans l'UI pros and cons? A cote
+de l'autre spinner, ou on laisse pres de la boite de recherche puisque
+c'est l'index?" -- asked for a pros/cons on toolbar placement: beside the
+existing sync spinner (global background activity) versus beside the
+search box (where the button sits today, and where the thing it measures
+-- the search index -- lives).
+
+A first pass (Fable 5.1 synthesis, "Sitter's Ledger") recommended keeping
+the current position, reasoning that only the items toolbar can carry the
+text label "Index 43 %" the wording fix (0691) needs, and that the sync
+area is icon-only "by design." On reflection that framing sets up a false
+choice: it treats icon *position* and label *visibility* as the same
+decision, when the ecosystem's own convention treats them as separate.
+
+## What changes the picture
+
+Zotero's sync spinner, and the `ProgressWindow` toast pattern most
+widely-adopted plugins use (`zotero-plugin-toolkit` -- see 0696, split out
+of 0693 the same day, after this body was written), both
+show state through an icon plus an on-demand disclosure (tooltip, toast,
+or the plugin's own dialog), not through permanent on-canvas text. That is
+also the desktop-wide convention for background-job indicators (Dropbox,
+iCloud, Time Machine menu-bar icons): the always-visible affordance is an
+icon; the number appears on hover, click, or a transient toast. Under that
+convention, "Index 43 %" does not need to live in the toolbar chrome at
+all to satisfy 0691 -- it can live in a tooltip, an `aria-label` (which
+also serves 0686's stable-accessible-name requirement), and the dialog's
+first line, in *either* toolbar position.
+
+This does not overturn the earlier recommendation, but it changes why it
+holds. The pros/cons that still favor the items toolbar:
+
+- **Host coupling.** The items-toolbar id is stable across Zotero 7-10;
+  the sync button's internals changed between 6 and 7, so injecting beside
+  it depends on more private layout.
+  *Measured at Execute time, against the two Zotero trees installed here:*
+  `zotero-items-toolbar` is present in both 6.0.35 (`zoteroPane.xul:116`,
+  `/opt/zotero/zotero.jar`) and 10.0.1 (`zoteroPane.xhtml:1244`,
+  `/opt/zotero7/app/omni.ja`), so the span is 6-10, wider than claimed
+  above. The sync button was rebuilt over the same span: `-stop`,
+  `-progress-box`, `-storage-cancel`, `progressmeter#-progress` and
+  `zoterofilesyncstatus` are all gone from 10.0.1's markup. Note the trap:
+  10.0.1's `overlay.css` still styles `#zotero-tb-sync-progress`, so a
+  stylesheet grep would report no change. No 7.x tree was available, so
+  "between 6 and 7" specifically is not what was measured.
+- **Precedent.** Other index/full-text plugins already use the items
+  toolbar; no known plugin injects beside the sync spinner.
+  *Unverified.* Nothing in this repo establishes it —
+  `verification/FIELD-REVIEW.md` surveys plugins without ever discussing
+  injection location (its three "inject" hits are about prompt and context
+  injection). Treat as the executor's own impression until probed.
+- **Zero migration cost.** The button is already there.
+
+What no longer favors either side, now that label-fitting is off the
+table:
+
+- Semantic/scope fit is genuinely closer for the sync area (global
+  background activity) than for the items toolbar (per-library, per-
+  collection scope) -- the earlier writeup called this a "mismatch" and
+  proposed fixing it with tooltip wording; that fix is needed either way.
+
+## Recommendation
+
+Keep the current position for now -- host coupling and precedent are the
+decisive, durable arguments, not the label-fitting argument that turns out
+not to hold. Revisit only if the plugin moves toward icon+toast as its
+primary interface (0696) and the extraction to its own repo (pending,
+separate proposal) changes what "stable host coupling" even means for a
+plugin no longer built as an in-tree experiment. That second trigger is
+gone: the same-day ruling keeps the sitter in this repo and promotes it to
+`plugins/sdt-sitter/` instead.
+
+## Acceptance
+
+- [x] DECISIONS.md records this reasoning, explicitly superseding the
+      earlier "only A can carry the label" justification with the
+      host-coupling/precedent one. Recorded as a FINDING, not a ruling,
+      matching the ledger's own precedent for a premise correction that
+      leaves two legitimate options open.
+- [x] The author rules. Since the corrected finding leaves both positions
+      legitimate, the outcome could not be self-authorized: the author was
+      asked and kept the current position. DECISIONS.md carries the ruling
+      as a separate RULED entry above the finding.
+- [x] SPEC.md's placement wording (if any) reflects the corrected tooltip/
+      scope fix: "Library: My Library -- Index 43 %", not "Index 43 %"
+      alone. There is none: grepped SPEC.md for placement, toolbar and
+      button wording and it carries none, so nothing to correct there. The
+      scoped string is UI copy and belongs to a wording ticket; 0691 ships
+      the unscoped form and closes on criteria that never asked for the
+      prefix, so 0710 is filed to carry it.

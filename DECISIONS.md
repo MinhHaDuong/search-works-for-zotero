@@ -6499,3 +6499,74 @@ implementations... plugins, and future adapters"), leaving room for a second
 plugin later without contradicting "not the home of a single product." The
 move is a plain `git mv`, tracked in a dedicated ticket, executed once no
 in-flight work is touching `bench/sdt-sitter/` paths.
+
+**2026-09-06 — RULED (formalized from the same-day finding below): the sitter
+button stays where it is, in the items toolbar beside the search box.** Asked
+to choose between the two positions once the label-fitting argument had fallen
+away, the author kept the current one. He gave no reasons and none are
+attributed to him here: the analysis that framed the choice is the finding's,
+below, and stands on its own evidence. The ruling settles the position and
+nothing else. The scope mismatch the finding records survives it as a wording
+problem, and which surface carries the library name — tooltip, accessible
+name, or both — is ticket 0710's to decide, not this entry's. Revisit only if
+the plugin moves toward icon+toast as its primary interface (ticket 0696);
+ticket 0694 named a second trigger, extraction to a repo of its own, which the
+ruling above forecloses, and the promotion to `plugins/sdt-sitter/` it orders
+instead changes no host coupling at all.
+
+SPEC.md needs no addition: it carries no placement or toolbar wording to
+correct. Not because the specification refuses literal UI copy — R18 pins its
+three empty-result sentences verbatim and R22 pins "paused since <date>" — but
+because it pins a string only where the specification itself requires that
+disclosure, and placement requires none. The scoped label ("Library: My
+Library — Index 43 %") is a separate wording fix: ticket 0691 ships the
+unscoped "Index 43 %" and closes on its own criteria, which never asked for
+the prefix, so ticket 0710 carries it. The finding follows, as the record of
+how the question was framed and what was measured before the author ruled.
+
+**2026-09-06 — FINDING, not a ruling: "only the items toolbar can carry the
+label" is a false premise, so both toolbar positions stay legitimate and the
+author's decision is needed.** The author asked for a pros/cons on toolbar
+placement (ticket 0694): beside the sync spinner, which reports global
+background activity, or beside the search box, where the button sits today and
+where the index it measures lives. An earlier synthesis (the sitter wave's
+Imagine pass, kept in ticket 0694 rather than in this ledger, and named
+"Sitter's Ledger" there) recommended keeping the current position because only
+the items toolbar can carry a text label like "Index 43 %" (ticket 0691's
+wording fix), and the sync area is icon-only "by design." That premise
+conflates icon position with label visibility, which the ecosystem treats as
+separate: Zotero's own sync spinner, and the ProgressWindow toast pattern most
+zotero-plugin-toolkit-based plugins use (ticket 0696), show state through an
+icon plus on-demand disclosure — tooltip, toast, or dialog — not permanent
+on-canvas text, the same convention desktop background-job indicators use
+generally (Dropbox, iCloud, Time Machine menu-bar icons). Under that
+convention "Index 43 %" does not need to live in the toolbar chrome to satisfy
+0691: a tooltip, an aria-label (also serving 0686's stable-accessible-name
+requirement), or a dialog's first line carries it in either toolbar position.
+
+With label-fitting out of the argument, each position keeps a legitimate case
+and the choice is the author's to make. The case for the items toolbar rests
+on host coupling, measured here against the two Zotero trees installed on this
+machine rather than asserted. `zotero-items-toolbar`, the id the sitter
+injects into, is present in both: `zoteroPane.xul:116` in 6.0.35
+(`/opt/zotero/zotero.jar`) and `zoteroPane.xhtml:1244` in 10.0.1
+(`/opt/zotero7/app/omni.ja`). The sync button next to it was rebuilt across
+the same span: 6.0.35 carries `zotero-tb-sync-stop`,
+`zotero-tb-sync-progress-box`, `zotero-tb-sync-storage-cancel`, a
+`progressmeter#zotero-tb-sync-progress` and a `zoterofilesyncstatus`, none of
+which appear in 10.0.1's markup, where only the outer `zotero-tb-sync` button
+and `zotero-tb-sync-error` survive and the tooltip's XUL rows have become an
+HTML div. Grepping the stylesheet would have missed this — `overlay.css` in
+10.0.1 still carries `#zotero-tb-sync-progress` rules that match nothing. The
+span measured is 6 to 10, not the 7-to-10 ticket 0694 claimed; no 7.x tree was
+available here, and the wider span is the stronger result anyway. Two further
+arguments are recorded as unverified: that other index and full-text plugins
+already inject at the items toolbar and none beside the sync spinner, which
+nothing in this repo establishes — `verification/FIELD-REVIEW.md` surveys
+plugins without discussing injection location — and zero migration cost, which
+is true by inspection but weak. The case for the sync area is semantic fit,
+genuinely closer there, since the sitter reports global background work while
+the items toolbar carries per-library, per-collection scope. The earlier
+writeup called that mismatch a defect and proposed fixing it with tooltip
+wording, a fix needed in either position, so it does not settle the question
+either.
