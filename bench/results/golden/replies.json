@@ -24161,6 +24161,401 @@
       "results": null
     },
     {
+      "id": "q-0247",
+      "mode": "lexical",
+      "results": [
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Minh Ha-Duong",
+            "date": "2005",
+            "identifier": "https://theses.hal.science/halshs-00007520v1",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Modèles de précaution en économie : introduction aux probabilités imprécises"
+          },
+          "evidence": "e 1 M tonnes de Chloreéquivalent par an. 3. Mais en l’absence de règlementation internationale, la consommation recommence à augmenter en 1982 jusqu’à un maximum vers 1988, un an après la signature du traité de Montréal. 4. Depuis nous en …",
+          "item_key": "LBW7QYN2",
+          "page": null,
+          "rank": 1,
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "work_id": "ha-duong-2005-modeles-de-precaution-hdr"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Nguyễn Du; Abel des Michels (ed., transl.)",
+            "date": "1884",
+            "identifier": "https://archive.org/details/kim-van-kieu-tan-truyen-1",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Kim Vân Kiều tân truyện — Les poèmes de l'Annam, tome I"
+          },
+          "evidence": "née, l'épingle déposée sur l'autel et la «place sur le chignon do la jeune fille, qu'elle ramène ensuite dans l'inté » rieur de la maison, après avoir de nouveau salué quatre fois l'autel des «ancêtres. A partir de ce moment la jeune fille …",
+          "item_key": "E6IJRR2H",
+          "page": null,
+          "rank": 2,
+          "score": 0.0136986301369863,
+          "source": "fulltext",
+          "work_id": "des-michels-1884-kim-van-kieu-t1"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Minh Ha-Duong",
+            "date": "1998",
+            "identifier": "https://theses.hal.science/tel-00003505v1",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Comment tenir compte de l'irréversibilité dans l'évaluation intégrée du changement climatique ?"
+          },
+          "evidence": "… cette augmentation, le climat s'adapte pour maintenir l'équilibre énergétique. Un des changements probables (parmi d'autres), serait un réchauffement de la surface de la terre et de la basse atmosphère. On appelle ce phénomène le …",
+          "item_key": "XMP2QFDN",
+          "page": null,
+          "rank": 3,
+          "score": 0.013513513513513514,
+          "source": "fulltext",
+          "work_id": "ha-duong-1998-irreversibilite-these"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Léon Walras",
+            "date": "1900",
+            "identifier": "https://archive.org/details/elementsdeconomi00walr",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale (4e éd.)"
+          },
+          "evidence": "aqi e objet de consommation ou service consommable, une (‘qua I — XV tion ou courbe exprimant Vintensité du dernier besoin satisfait, ou la rareté, en fonction décroi.ssante de la quantité consommée, et en nous faisant voir que l’échangeur …",
+          "item_key": "WDHDGA89",
+          "page": null,
+          "rank": 4,
+          "score": 0.01282051282051282,
+          "source": "fulltext",
+          "work_id": "walras-1900-elements"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Henri Poincaré; rédaction de A. Quiquet",
+            "date": "1912",
+            "identifier": "https://archive.org/details/calculdesprobab00poinuoft",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Calcul des probabilités"
+          },
+          "evidence": "t varier, peut-être de^go\" on de i8o°, la direction de sa vitesse après le choc. Et ce n'est pas tout, il suffit, nous venons de le voir, de dévier la molécule avant le choc d'une quantité infiniment petite, pour qu'elle soit déviée, après …",
+          "item_key": "8598JF8K",
+          "page": null,
+          "rank": 5,
+          "score": 0.0125,
+          "source": "fulltext",
+          "work_id": "poincare-1912-calcul-des-probabilites"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Antoine-Augustin Cournot",
+            "date": "1838",
+            "identifier": "https://archive.org/details/AugustinCournotRecherches",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Recherches sur les principes mathématiques de la théorie des richesses"
+          },
+          "evidence": "plus considérable si l'on tient compte , comme on doit le faire , de la valeur des matières premières avec lesquelles la réimpression s'est faite, et qui préexistaient à cette réimpression. Voilà une opération d'industrie, une production …",
+          "item_key": "HVXRRJDQ",
+          "page": null,
+          "rank": 6,
+          "score": 0.011764705882352941,
+          "source": "fulltext",
+          "work_id": "cournot-1838-recherches"
+        }
+      ],
+      "tool_reply": {
+        "embedder": "none (keyword-only)",
+        "embedderActive": false,
+        "embedderConfigured": "off",
+        "fulltextEnabled": true,
+        "ownWordsEnabled": false
+      }
+    },
+    {
+      "id": "q-0247",
+      "mode": "semantic",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "results": null
+    },
+    {
+      "id": "q-0247",
+      "mode": "hybrid",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "results": null
+    },
+    {
+      "id": "q-0248",
+      "mode": "lexical",
+      "results": [
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Minh Ha-Duong",
+            "date": "2005",
+            "identifier": "https://theses.hal.science/halshs-00007520v1",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Modèles de précaution en économie : introduction aux probabilités imprécises"
+          },
+          "evidence": "s imprécises n’imposent pas que chaque état du monde futur reçoive une probabilité unique, mais admettent que l’information peut être décrite par tout un ensemble de lois de probabilités, sans spécifier laquelle est la bonne. Dans le modèle …",
+          "item_key": "LBW7QYN2",
+          "page": null,
+          "rank": 1,
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "work_id": "ha-duong-2005-modeles-de-precaution-hdr"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Henri Poincaré; rédaction de A. Quiquet",
+            "date": "1912",
+            "identifier": "https://archive.org/details/calculdesprobab00poinuoft",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Calcul des probabilités"
+          },
+          "evidence": "rès petites, que chacune d'elles peut être aussi, bien népaiive que positive. Quelle est la courbe de probabilité de chacune d'elles? Nou? n'en savons rien, nous supposons seulement que cette courbe est symétrique. On démontre alors que …",
+          "item_key": "8598JF8K",
+          "page": null,
+          "rank": 2,
+          "score": 0.016129032258064516,
+          "source": "fulltext",
+          "work_id": "poincare-1912-calcul-des-probabilites"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Minh Ha-Duong",
+            "date": "1998",
+            "identifier": "https://theses.hal.science/tel-00003505v1",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Comment tenir compte de l'irréversibilité dans l'évaluation intégrée du changement climatique ?"
+          },
+          "evidence": "ation des gaz à effet de serre est un exemple immédiat, selon qu'on le mesure à l'échelle humaine ou à l'échelle géologique. Examinons deux termes qui pourraient sembler se rapporter à des notions moins absolues que l'irréversibilité : • La …",
+          "item_key": "XMP2QFDN",
+          "page": null,
+          "rank": 3,
+          "score": 0.014925373134328358,
+          "source": "fulltext",
+          "work_id": "ha-duong-1998-irreversibilite-these"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Nguyễn Du; Abel des Michels (ed., transl.)",
+            "date": "1884",
+            "identifier": "https://archive.org/details/kim-van-kieu-tan-truyen-1",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Kim Vân Kiều tân truyện — Les poèmes de l'Annam, tome I"
+          },
+          "evidence": "s eaux du fleuve Tien dubng, se souvient de la prophétie de Gide duyên et se précipite dans lesflots. Elle est sauvéepar l'im mortelle qui l'attendait depuis longtemps sur le bord du, fleuve. Désormais notre héroïne a payé sa dette au mal …",
+          "item_key": "E6IJRR2H",
+          "page": null,
+          "rank": 4,
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "work_id": "des-michels-1884-kim-van-kieu-t1"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Jean Bonet",
+            "date": "1899",
+            "identifier": "https://archive.org/details/dictionnaireanna01bone",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 1 (A–M)"
+          },
+          "evidence": "… il s'exprime au moyen des mots khâng c6 ou không du'o'c placés avant le positif, et des mots cho bàng placés après, ex. : cdi nhà c&a nô không c6 lo'n cho bàng cdi nhà càa tâi (sa maison n'est pas grande autant que la mienne, c'est-à-dire …",
+          "item_key": "M87F6NJF",
+          "page": null,
+          "rank": 5,
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "work_id": "bonet-1899-dictionnaire-annamite-francais-t1"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Nguyễn Du; Abel des Michels (ed., transl.)",
+            "date": "1885",
+            "identifier": "https://archive.org/details/kim-van-kieu-tan-truyen-2",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Kim Vân Kiều tân truyện — Les poèmes de l'Annam, tome II"
+          },
+          "evidence": "ira veibe actif; car, si Ton peut à la ligueur tiaduire littéralement «do1 bnng nght» par «souillei — (son propre) coeur — (qui) doute» en faisant de «bipig» un régime direct, on ne pourrait faire paral lèlement de «miêng» le îégime direct …",
+          "item_key": "R7Z3HR4C",
+          "page": null,
+          "rank": 6,
+          "score": 0.013513513513513514,
+          "source": "fulltext",
+          "work_id": "des-michels-1885-kim-van-kieu-t2"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Antoine-Augustin Cournot",
+            "date": "1838",
+            "identifier": "https://archive.org/details/AugustinCournotRecherches",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Recherches sur les principes mathématiques de la théorie des richesses"
+          },
+          "evidence": "… toutes les fois qu'il s'agit de discuter des relations entre des grandeurs ; et lors même qu'ils ne seraientpasrigoureusementnécessaires, s'ils peuvent faciliter l'exposition , la rendre plus concise , mettre sur la voie de développements …",
+          "item_key": "HVXRRJDQ",
+          "page": null,
+          "rank": 7,
+          "score": 0.012987012987012988,
+          "source": "fulltext",
+          "work_id": "cournot-1838-recherches"
+        }
+      ],
+      "tool_reply": {
+        "embedder": "none (keyword-only)",
+        "embedderActive": false,
+        "embedderConfigured": "off",
+        "fulltextEnabled": true,
+        "ownWordsEnabled": false
+      }
+    },
+    {
+      "id": "q-0248",
+      "mode": "semantic",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "results": null
+    },
+    {
+      "id": "q-0248",
+      "mode": "hybrid",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "results": null
+    },
+    {
+      "id": "q-0249",
+      "mode": "lexical",
+      "results": [
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Wikipedia contributors",
+            "date": "2026",
+            "identifier": "https://fr.wikipedia.org/w/index.php?title=Changement_climatique&oldid=239281043",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Changement climatique"
+          },
+          "evidence": "ques[N 5],[81],[N 6],[82],[N 7],[83]. Du point de vue de la production, les principales sources d'émissions de gaz à effet de serre dans le monde sont estimées comme suit : électricité et chauffage (25 %), agriculture et sylviculture (24 …",
+          "item_key": "YRAUIIKD",
+          "page": null,
+          "rank": 1,
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "work_id": "wp-climate-change-fr"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Minh Ha-Duong",
+            "date": "1998",
+            "identifier": "https://theses.hal.science/tel-00003505v1",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Comment tenir compte de l'irréversibilité dans l'évaluation intégrée du changement climatique ?"
+          },
+          "evidence": "et variation de température. (A gauche) Scénarios GIEC de stabilisation du CO2 atmosphérique. (A droite) Changements de la température moyenne globale correspondant par rapport au niveau préindustriel (valeur centrale plus plage …",
+          "item_key": "XMP2QFDN",
+          "page": null,
+          "rank": 2,
+          "score": 0.014492753623188406,
+          "source": "fulltext",
+          "work_id": "ha-duong-1998-irreversibilite-these"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Minh Ha-Duong",
+            "date": "2005",
+            "identifier": "https://theses.hal.science/halshs-00007520v1",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Modèles de précaution en économie : introduction aux probabilités imprécises"
+          },
+          "evidence": "… un début commun qui se divise en deux branches, aéronomique et économique. – La branche commune du Y se déroule en trois étapes. D’abord les trois scénarios sont décrits en mots. Puis ils sont traduits sous la forme de fichiers de …",
+          "item_key": "LBW7QYN2",
+          "page": null,
+          "rank": 3,
+          "score": 0.013157894736842105,
+          "source": "fulltext",
+          "work_id": "ha-duong-2005-modeles-de-precaution-hdr"
+        }
+      ],
+      "tool_reply": {
+        "embedder": "none (keyword-only)",
+        "embedderActive": false,
+        "embedderConfigured": "off",
+        "fulltextEnabled": true,
+        "ownWordsEnabled": false
+      }
+    },
+    {
+      "id": "q-0249",
+      "mode": "semantic",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "results": null
+    },
+    {
+      "id": "q-0249",
+      "mode": "hybrid",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "results": null
+    },
+    {
       "id": "q-0300",
       "mode": "lexical",
       "results": [
@@ -36643,6 +37038,1196 @@
     },
     {
       "id": "q-0369",
+      "mode": "hybrid",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "results": null
+    },
+    {
+      "id": "q-0370",
+      "mode": "lexical",
+      "results": [
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Wikipedia contributors",
+            "date": "2026",
+            "identifier": "https://fr.wikipedia.org/w/index.php?title=Changement_climatique&oldid=239281043",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Changement climatique"
+          },
+          "evidence": "… dernières décennies, les océans du monde ont absorbé 20 à 30 % des émissions de CO2[85]. Aérosols et nuages La pollution atmosphérique, sous forme d'aérosols, n'affecte pas seulement la santé, mais également le climat à grande …",
+          "item_key": "YRAUIIKD",
+          "page": null,
+          "rank": 1,
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "work_id": "wp-climate-change-fr"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Minh Ha-Duong",
+            "date": "1998",
+            "identifier": "https://theses.hal.science/tel-00003505v1",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Comment tenir compte de l'irréversibilité dans l'évaluation intégrée du changement climatique ?"
+          },
+          "evidence": "ayonnement infrarouge est émis par la surface terrestre 2. Le rayonnement solaire traverse l'atmosphère TERRE ATMOSPHERE . ) . . . Figure 1.1 : Schéma simplifié de l'effet de serre. Tableaux et Figure auteur, d'après le Résumé destiné aux …",
+          "item_key": "XMP2QFDN",
+          "page": null,
+          "rank": 2,
+          "score": 0.014925373134328358,
+          "source": "fulltext",
+          "work_id": "ha-duong-1998-irreversibilite-these"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Wikipedia contributors",
+            "date": "2026",
+            "identifier": "https://en.wikipedia.org/w/index.php?title=Climate_change&oldid=1372428406",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Climate change"
+          },
+          "evidence": "… snow-covered (and more reflective) plains.[134] Globally, these increases in surface albedo have been the dominant direct influence on temperature from land use change. Thus, land use change to date is estimated to have a slight cooling …",
+          "item_key": "A87PTDEU",
+          "page": null,
+          "rank": 3,
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "work_id": "wp-climate-change-en"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Wikipedia contributors",
+            "date": "2026",
+            "identifier": "https://es.wikipedia.org/w/index.php?title=Calentamiento_global&oldid=175145728",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Calentamiento global"
+          },
+          "evidence": "… superficiales, mientras que el aumento del ozono troposférico ha tenido un efecto de calentamiento algo mayor.[121] Véase también: Anexo:Países por emisiones de dióxido de carbono Aerosoles y hollín Esta sección es un extracto de Causas del …",
+          "item_key": "N3DSG5VT",
+          "page": null,
+          "rank": 4,
+          "score": 0.01282051282051282,
+          "source": "fulltext",
+          "work_id": "wp-climate-change-es"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Antoine-Augustin Cournot",
+            "date": "1838",
+            "identifier": "https://archive.org/details/AugustinCournotRecherches",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Recherches sur les principes mathématiques de la théorie des richesses"
+          },
+          "evidence": "… précédemment choisi, les expériences du pendule , rapprochées des lois connues de la mécanique , démontreront le mou vement diurne de la terre; le phénomène de l'aber ration de la lumière démontrera son mouvement an nuel ; et l'hypothèse de …",
+          "item_key": "HVXRRJDQ",
+          "page": null,
+          "rank": 5,
+          "score": 0.012048192771084338,
+          "source": "fulltext",
+          "work_id": "cournot-1838-recherches"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "U.S. Environmental Protection Agency",
+            "date": "2016",
+            "identifier": "10.5281/zenodo.259515",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Inventory of U.S. Greenhouse Gas Emissions and Sinks: 1990-2014"
+          },
+          "evidence": "… more detail than other energy-related emissions (see Figure 3-2). Fossil fuel combustion also emits CH4 and N2O. Stationary combustion of fossil fuels was the second-largest source of N2O emissions in the United States and mobile fossil …",
+          "item_key": "EZRNSMR8",
+          "page": null,
+          "rank": 6,
+          "score": 0.011627906976744186,
+          "source": "fulltext",
+          "work_id": "epa-2016-ghg-inventory-1990-2014"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Nguyễn Du; Abel des Michels (ed., transl.)",
+            "date": "1885",
+            "identifier": "https://archive.org/details/kim-van-kieu-tan-truyen-2",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Kim Vân Kiều tân truyện — Les poèmes de l'Annam, tome II"
+          },
+          "evidence": "ion de ces deux cosmétiques, « le fard et le vermillon» sont pris métaphoriquement pour les désigner. 7. Litt. : «Ma lampe — de nuit avancée —je garde allumée pendant toute la nuit — (quant à) Vombre; — la lune — ronde — je compare — (quant …",
+          "item_key": "R7Z3HR4C",
+          "page": null,
+          "rank": 7,
+          "score": 0.011111111111111112,
+          "source": "fulltext",
+          "work_id": "des-michels-1885-kim-van-kieu-t2"
+        }
+      ],
+      "tool_reply": {
+        "embedder": "none (keyword-only)",
+        "embedderActive": false,
+        "embedderConfigured": "off",
+        "fulltextEnabled": true,
+        "ownWordsEnabled": false
+      }
+    },
+    {
+      "id": "q-0370",
+      "mode": "semantic",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "results": null
+    },
+    {
+      "id": "q-0370",
+      "mode": "hybrid",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "results": null
+    },
+    {
+      "id": "q-0371",
+      "mode": "lexical",
+      "results": [
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_VI&oldid=104784",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "← Chương V Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam 1992 của Quốc hội Việt Nam Chương VI: Quốc hội Chương VII → Điều 83 Quốc hội là cơ quan đại biểu cao nhất của nhân dân, cơ quan quyền lực Nhà nước cao nhất của nước Cộng hoà Xã …",
+          "item_key": "6HHKNLYD",
+          "page": null,
+          "rank": 1,
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-vi"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_XII&oldid=104790",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "← Chương XI Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam 1992 của Quốc hội Việt Nam Chương XII: Hiệu lực của hiến pháp và việc sửa đổi hiến pháp Điều 146 Hiến pháp nước Cộng hoà Xã hội Chủ nghĩa Việt Nam là luật cơ bản của Nhà nước, có …",
+          "item_key": "MRBTULVZ",
+          "page": null,
+          "rank": 2,
+          "score": 0.016129032258064516,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-xii"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_VIII&oldid=104786",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "← Chương VII Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam 1992 của Quốc hội Việt Nam Chương VIII: Chính phủ Chương IX → Điều 109 Chính phủ là cơ quan chấp hành của Quốc hội, cơ quan hành chính Nhà nước cao nhất của nước Cộng hoà Xã hội …",
+          "item_key": "AUQMWR3Z",
+          "page": null,
+          "rank": 3,
+          "score": 0.015873015873015872,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-viii"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_IX&oldid=104787",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "← Chương VIII Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam 1992 của Quốc hội Việt Nam Chương IX: Hội đồng nhân dân và ủy ban nhân dân Chương X → Điều 118 Các đơn vị hành chính của nước Cộng hoà Xã hội Chủ nghĩa Việt Nam được phân định …",
+          "item_key": "4LJTF9JH",
+          "page": null,
+          "rank": 4,
+          "score": 0.015625,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-ix"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_I&oldid=104779",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "kinh tế, tổ chức xã hội, đơn vị vũ trang nhân dân và mọi công dân phải nghiêm chỉnh chấp hành Hiến pháp, pháp luật, đấu tranh phòng ngừa và chống các tội phạm, các vi phạm Hiến pháp và pháp luật. Mọi hành động xâm phạm lợi ích của Nhà nước, …",
+          "item_key": "NWVA2RU9",
+          "page": null,
+          "rank": 5,
+          "score": 0.015384615384615385,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-i"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_V&oldid=104783",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "← Chương IV Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam 1992 của Quốc hội Việt Nam Chương V: Quyền và nghĩa vụ cơ bản của công dân Chương VI → Điều 49 Công dân nước Cộng hòa Xã hội Chủ nghĩa Việt Nam là người có quốc tịch Việt Nam. …",
+          "item_key": "88PA89A2",
+          "page": null,
+          "rank": 6,
+          "score": 0.015151515151515152,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-v"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FL%E1%BB%9Di_n%C3%B3i_%C4%91%E1%BA%A7u&oldid=104778",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "c, thống nhất Tổ quốc, hoàn thành cách mạng dân tộc, dân chủ nhân dân. Ngày 2 tháng 7 năm 1976 Quốc hội nước Việt Nam thống nhất đã quyết định đổi tên nước là Cộng hòa Xã hội Chủ nghĩa Việt Nam; cả nước bước vào thời kỳ quá độ lên chủ nghĩa …",
+          "item_key": "IUTSQI2Q",
+          "page": null,
+          "rank": 7,
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_IV&oldid=104782",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "← Chương III Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam 1992 của Quốc hội Việt Nam Chương IV: Bảo vệ tổ quốc việt nam xã hội chủ nghĩa Chương V → Điều 44 Bảo vệ Tổ quốc Việt Nam xã hội chủ nghĩa, giữ vững an ninh quốc gia là sự …",
+          "item_key": "X7XR8TVW",
+          "page": null,
+          "rank": 8,
+          "score": 0.014492753623188406,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-iv"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_X&oldid=104788",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "← Chương IX Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam 1992 của Quốc hội Việt Nam Chương X: Toà án nhân dân và viện kiểm sát nhân dân Chương XI → Điều 126 Toà án nhân dân và Viện kiểm sát nhân dân nước Cộng hoà Xã hội Chủ nghĩa Việt …",
+          "item_key": "4HGW537Q",
+          "page": null,
+          "rank": 9,
+          "score": 0.014285714285714285,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-x"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Lu%E1%BA%ADt_B%E1%BA%A3o_v%E1%BB%87_m%C3%B4i_tr%C6%B0%E1%BB%9Dng_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_2005&oldid=112144",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "i tuân theo quy hoạch đã được cơ quan nhà nước có thẩm quyền phê duyệt. 4. Khu bảo tồn thiên nhiên có quy chế và ban quản lý riêng. 5. Trách nhiệm lập quy hoạch bảo tồn thiên nhiên, thành lập và quản lý các khu bảo tồn thiên nhiên được thực …",
+          "item_key": "JVAG4QBG",
+          "page": null,
+          "rank": 10,
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "work_id": "vn-law-environment-2005-vi"
+        }
+      ],
+      "tool_reply": {
+        "embedder": "none (keyword-only)",
+        "embedderActive": false,
+        "embedderConfigured": "off",
+        "fulltextEnabled": true,
+        "ownWordsEnabled": false
+      }
+    },
+    {
+      "id": "q-0371",
+      "mode": "semantic",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "results": null
+    },
+    {
+      "id": "q-0371",
+      "mode": "hybrid",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "results": null
+    },
+    {
+      "id": "q-0372",
+      "mode": "lexical",
+      "results": [
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam (official translation)",
+            "date": null,
+            "identifier": "https://en.wikisource.org/w/index.php?title=Constitution_of_Vietnam_%281992%29&oldid=16201311",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "… citizen exercises his right to mastery at the grassroots by participating in State and social affairs; he is duty bound to help protect public property, legitimate civic rights and interests, maintain national security and social order, and …",
+          "item_key": "GV65RWMF",
+          "page": null,
+          "rank": 1,
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-en"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "World Bank; Ministry of Planning and Investment of Vietnam",
+            "date": "2016",
+            "identifier": "10.1596/978-1-4648-0824-1",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Vietnam 2035: Toward Prosperity, Creativity, Equity, and Democracy — Overview"
+          },
+          "evidence": "state and a democratic society. After 30 years of economic reforms since the launch of Đổi Mới in 1986, Vietnam has recorded significant and historic achievements. From a poor, war-ravaged, centrally planned economy, which was closed off …",
+          "item_key": "FUMT38SR",
+          "page": null,
+          "rank": 2,
+          "score": 0.015384615384615385,
+          "source": "fulltext",
+          "work_id": "wb-2016-vietnam-2035-en-overview"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Adam Smith",
+            "date": "1776",
+            "identifier": "https://www.gutenberg.org/ebooks/3300",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "An Inquiry into the Nature and Causes of the Wealth of Nations"
+          },
+          "evidence": "… than eight hundred or a thousand nails in a day. I have seen several boys, under twenty years of age, who had never exercised any other trade but that of making nails, and who, when they exerted themselves, could make, each of them, upwards …",
+          "item_key": "3YKGHC7M",
+          "page": null,
+          "rank": 3,
+          "score": 0.012987012987012988,
+          "source": "fulltext",
+          "work_id": "smith-1776-wealth-of-nations"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Wikipedia contributors",
+            "date": "2026",
+            "identifier": "https://zh.wikipedia.org/w/index.php?title=氣候變化&oldid=93590833",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "氣候變化"
+          },
+          "evidence": "… global warming and climate change can be used interchangeably. Climate change is more accurate scientifically to describe the various effects of greenhouse gases on the world because it includes extreme weather, storms and changes in …",
+          "item_key": "ATPYH5U8",
+          "page": null,
+          "rank": 4,
+          "score": 0.011764705882352941,
+          "source": "fulltext",
+          "work_id": "wp-climate-change-zh"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "World Bank; Ministry of Planning and Investment of Vietnam",
+            "date": "2016",
+            "identifier": "10.1596/978-1-4648-0824-1",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Vietnam 2035: Toward Prosperity, Creativity, Equity, and Democracy"
+          },
+          "evidence": "… . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14 O.3 State effectiveness and development: Confluence of Eastern and Western thought . . . . 54 O.4 Webs of state connections driving the pharmaceutical industry . . . …",
+          "item_key": "PKX9T3CK",
+          "page": null,
+          "rank": 5,
+          "score": 0.011494252873563218,
+          "source": "fulltext",
+          "work_id": "wb-2016-vietnam-2035-en"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Qing Pei; David D. Zhang; Guodong Li; Harry F. Lee",
+            "date": "2015",
+            "identifier": "10.1371/journal.pone.0126480",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Climate change and the macroeconomic structure in pre-industrial Europe: new evidence from wavelet analysis"
+          },
+          "evidence": "… DOI:10.1371/journal.pone.0126480 June 3, 2015 10 / 17 Macroeconomic Structure under the Impact of Climate/Population Change In Section 4.1, the frequency band of 60–80 years in temperature, and other indicators has been shown in Fig 2. In …",
+          "item_key": "43XP9Q4L",
+          "page": null,
+          "rank": 6,
+          "score": 0.011235955056179775,
+          "source": "fulltext",
+          "work_id": "pei-2015-climate-macroeconomic-preindustrial-europe"
+        }
+      ],
+      "tool_reply": {
+        "embedder": "none (keyword-only)",
+        "embedderActive": false,
+        "embedderConfigured": "off",
+        "fulltextEnabled": true,
+        "ownWordsEnabled": false
+      }
+    },
+    {
+      "id": "q-0372",
+      "mode": "semantic",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "results": null
+    },
+    {
+      "id": "q-0372",
+      "mode": "hybrid",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "results": null
+    },
+    {
+      "id": "q-0373",
+      "mode": "lexical",
+      "results": [
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_VIII&oldid=104786",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "← Chương VII Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam 1992 của Quốc hội Việt Nam Chương VIII: Chính phủ Chương IX → Điều 109 Chính phủ là cơ quan chấp hành của Quốc hội, cơ quan hành chính Nhà nước cao nhất của nước Cộng hoà Xã hội …",
+          "item_key": "AUQMWR3Z",
+          "page": null,
+          "rank": 1,
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-viii"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_VI&oldid=104784",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "ó quyền trình dự án luật ra trước Quốc hội. Đại biểu Quốc hội có quyền trình kiến nghị về luật và dự án luật ra trước Quốc hội. Thủ tục trình Quốc hội dự án luật, kiến nghị về luật do luật định. Điều 88 Luật, nghị quyết của Quốc hội phải …",
+          "item_key": "6HHKNLYD",
+          "page": null,
+          "rank": 2,
+          "score": 0.016129032258064516,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-vi"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_XII&oldid=104790",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "← Chương XI Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam 1992 của Quốc hội Việt Nam Chương XII: Hiệu lực của hiến pháp và việc sửa đổi hiến pháp Điều 146 Hiến pháp nước Cộng hoà Xã hội Chủ nghĩa Việt Nam là luật cơ bản của Nhà nước, có …",
+          "item_key": "MRBTULVZ",
+          "page": null,
+          "rank": 3,
+          "score": 0.015873015873015872,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-xii"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_I&oldid=104779",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "dân chủ. Điều 7 Việc bầu cử đại biểu Quốc hội và đại biểu Hội đồng nhân dân tiến hành theo nguyên tắc phổ thông, bình đẳng, trực tiếp và bỏ phiếu kín. Đại biểu Quốc hội bị cử tri hoặc Quốc hội bãi nhiệm và đại biểu Hội đồng nhân dân bị cử …",
+          "item_key": "NWVA2RU9",
+          "page": null,
+          "rank": 4,
+          "score": 0.014925373134328358,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-i"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_VII&oldid=104785",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "← Chương VI Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam 1992 của Quốc hội Việt Nam Chương VII: Chủ tịch nước Chương VIII → Điều 101 Chủ tịch nước là người đứng đầu Nhà nước, thay mặt nước Cộng hoà Xã hội Chủ nghĩa Việt Nam về đối nội …",
+          "item_key": "LDNLMSP6",
+          "page": null,
+          "rank": 5,
+          "score": 0.0136986301369863,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-vii"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_IV&oldid=104782",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "← Chương III Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam 1992 của Quốc hội Việt Nam Chương IV: Bảo vệ tổ quốc việt nam xã hội chủ nghĩa Chương V → Điều 44 Bảo vệ Tổ quốc Việt Nam xã hội chủ nghĩa, giữ vững an ninh quốc gia là sự …",
+          "item_key": "X7XR8TVW",
+          "page": null,
+          "rank": 6,
+          "score": 0.0125,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-iv"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_V&oldid=104783",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "← Chương IV Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam 1992 của Quốc hội Việt Nam Chương V: Quyền và nghĩa vụ cơ bản của công dân Chương VI → Điều 49 Công dân nước Cộng hòa Xã hội Chủ nghĩa Việt Nam là người có quốc tịch Việt Nam. …",
+          "item_key": "88PA89A2",
+          "page": null,
+          "rank": 7,
+          "score": 0.011904761904761904,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-v"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_IX&oldid=104787",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "ng; về kế hoạch phát triển kinh tế - xã hội và ngân sách; về quốc phòng, an ninh ở địa phương; về biện pháp ổn định và nâng cao đời sống của nhân dân, hoàn thành mọi nhiệm vụ cấp trên giao cho, làm tròn nghĩa vụ đối với cả nước. Điều 121 …",
+          "item_key": "4LJTF9JH",
+          "page": null,
+          "rank": 8,
+          "score": 0.011764705882352941,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-ix"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Wikipedia tiếng Việt (contributors)",
+            "date": "2024",
+            "identifier": "https://vi.wikipedia.org/w/index.php?title=Ph%C3%A1t_tri%E1%BB%83n_b%E1%BB%81n_v%E1%BB%AFng&oldid=71364261",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Phát triển bền vững"
+          },
+          "evidence": "õ: Phát triển bền vững là \"sự phát triển có thể đáp ứng được những nhu cầu hiện tại mà không ảnh hưởng, tổn hại đến những khả năng đáp ứng nhu cầu của các thế hệ tương lai...\" 1. Nói cách khác, phát triển bền vững phải bảo đảm có sự phát …",
+          "item_key": "V4RNHPB8",
+          "page": null,
+          "rank": 9,
+          "score": 0.011627906976744186,
+          "source": "fulltext",
+          "work_id": "wp-sustainable-development-vi"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Trần Trọng Kim",
+            "date": "1920",
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Vi%E1%BB%87t_Nam_s%E1%BB%AD_l%C6%B0%E1%BB%A3c%2FQuy%E1%BB%83n_I%2FT%E1%BB%B1a&oldid=100853",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Việt Nam sử lược (Tựa)"
+          },
+          "evidence": "ảng: nước đã có vua lại có chúa. Trong Nam ngoài Bắc mỗi nơi một giang-sơn, công việc ở đâu chủ-trương ở đấy. Tuy vậy việc sửa-đổi ở ngoài Bắc cũng có nhiều việc hay, mà việc khai-khẩn trong Nam thật là ích-lợi. Nhưng cuộc thành-bại ai đâu …",
+          "item_key": "32UTQ3FR",
+          "page": null,
+          "rank": 10,
+          "score": 0.011235955056179775,
+          "source": "fulltext",
+          "work_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource"
+        }
+      ],
+      "tool_reply": {
+        "embedder": "none (keyword-only)",
+        "embedderActive": false,
+        "embedderConfigured": "off",
+        "fulltextEnabled": true,
+        "ownWordsEnabled": false
+      }
+    },
+    {
+      "id": "q-0373",
+      "mode": "semantic",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "results": null
+    },
+    {
+      "id": "q-0373",
+      "mode": "hybrid",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "results": null
+    },
+    {
+      "id": "q-0374",
+      "mode": "lexical",
+      "results": [
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_IX&oldid=104787",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "← Chương VIII Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam 1992 của Quốc hội Việt Nam Chương IX: Hội đồng nhân dân và ủy ban nhân dân Chương X → Điều 118 Các đơn vị hành chính của nước Cộng hoà Xã hội Chủ nghĩa Việt Nam được phân định …",
+          "item_key": "4LJTF9JH",
+          "page": null,
+          "rank": 1,
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-ix"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_I&oldid=104779",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "o động và của cả dân tộc, theo chủ nghĩa Mác - LêNin và tư tưởng Hồ Chí Minh, là lực lượng lãnh đạo Nhà nước và xã hội. Mọi tổ chức của Đảng hoạt động trong khuôn khổ Hiến pháp và pháp luật. Điều 5 Nhà nước Cộng hoà Xã hội Chủ nghĩa Việt …",
+          "item_key": "NWVA2RU9",
+          "page": null,
+          "rank": 2,
+          "score": 0.015873015873015872,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-i"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_X&oldid=104788",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "hủ nghĩa Việt Nam. Toà án nhân dân tối cao giám đốc việc xét xử của các Toà án nhân dân địa phương và các Toà án quân sự. Toà án nhân dân tối cao giám đốc việc xét xử của Toà án đặc biệt và các toà án khác, trừ trường hợp Quốc hội quy định …",
+          "item_key": "4HGW537Q",
+          "page": null,
+          "rank": 3,
+          "score": 0.015384615384615385,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-x"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_VI&oldid=104784",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "ết định kế hoạch phát triển kinh tế - xã hội của đất nước; Quyết định chính sách tài chính, tiền tệ quốc gia; quyết định dự toán ngân sách nhà nước và phân bổ ngân sách trung ương, phê chuẩn quyết toán ngân sách nhà nước; quy định, sửa đổi …",
+          "item_key": "6HHKNLYD",
+          "page": null,
+          "rank": 4,
+          "score": 0.015151515151515152,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-vi"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Lu%E1%BA%ADt_%C4%90i%E1%BB%87n_l%E1%BB%B1c_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_2004&oldid=188787",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "ếp theo. 3. Quy hoạch phát triển điện lực địa phương là quy hoạch phát triển điện lực tỉnh, thành phố trực thuộc trung ương, bao gồm cả quy hoạch phát triển điện lực huyện, quận, thị xã, thành phố thuộc tỉnh. Quy hoạch phát triển điện lực …",
+          "item_key": "BGM6XA2N",
+          "page": null,
+          "rank": 5,
+          "score": 0.014285714285714285,
+          "source": "fulltext",
+          "work_id": "vn-law-electricity-2004-vi"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_V&oldid=104783",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "← Chương IV Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam 1992 của Quốc hội Việt Nam Chương V: Quyền và nghĩa vụ cơ bản của công dân Chương VI → Điều 49 Công dân nước Cộng hòa Xã hội Chủ nghĩa Việt Nam là người có quốc tịch Việt Nam. …",
+          "item_key": "88PA89A2",
+          "page": null,
+          "rank": 6,
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-v"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_IV&oldid=104782",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "← Chương III Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam 1992 của Quốc hội Việt Nam Chương IV: Bảo vệ tổ quốc việt nam xã hội chủ nghĩa Chương V → Điều 44 Bảo vệ Tổ quốc Việt Nam xã hội chủ nghĩa, giữ vững an ninh quốc gia là sự …",
+          "item_key": "X7XR8TVW",
+          "page": null,
+          "rank": 7,
+          "score": 0.01282051282051282,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-iv"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FL%E1%BB%9Di_n%C3%B3i_%C4%91%E1%BA%A7u&oldid=104778",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "c, thống nhất Tổ quốc, hoàn thành cách mạng dân tộc, dân chủ nhân dân. Ngày 2 tháng 7 năm 1976 Quốc hội nước Việt Nam thống nhất đã quyết định đổi tên nước là Cộng hòa Xã hội Chủ nghĩa Việt Nam; cả nước bước vào thời kỳ quá độ lên chủ nghĩa …",
+          "item_key": "IUTSQI2Q",
+          "page": null,
+          "rank": 8,
+          "score": 0.012658227848101266,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_VII&oldid=104785",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "← Chương VI Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam 1992 của Quốc hội Việt Nam Chương VII: Chủ tịch nước Chương VIII → Điều 101 Chủ tịch nước là người đứng đầu Nhà nước, thay mặt nước Cộng hoà Xã hội Chủ nghĩa Việt Nam về đối nội …",
+          "item_key": "LDNLMSP6",
+          "page": null,
+          "rank": 9,
+          "score": 0.0125,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-vii"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam",
+            "date": null,
+            "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_VIII&oldid=104786",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "(untitled)"
+          },
+          "evidence": "14[ghi chú] Thủ tướng Chính phủ có những nhiệm vụ và quyền hạn sau đây: Lãnh đạo công tác của Chính phủ, các thành viên Chính phủ, Uỷ ban nhân dân các cấp; chủ toạ các phiên họp của Chính phủ; Đề nghị Quốc hội thành lập hoặc bãi bỏ các Bộ …",
+          "item_key": "AUQMWR3Z",
+          "page": null,
+          "rank": 10,
+          "score": 0.012048192771084338,
+          "source": "fulltext",
+          "work_id": "vn-constitution-1992-vi-chuong-viii"
+        }
+      ],
+      "tool_reply": {
+        "embedder": "none (keyword-only)",
+        "embedderActive": false,
+        "embedderConfigured": "off",
+        "fulltextEnabled": true,
+        "ownWordsEnabled": false
+      }
+    },
+    {
+      "id": "q-0374",
+      "mode": "semantic",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "results": null
+    },
+    {
+      "id": "q-0374",
+      "mode": "hybrid",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "results": null
+    },
+    {
+      "id": "q-0375",
+      "mode": "lexical",
+      "results": [
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Henri Poincaré; rédaction de A. Quiquet",
+            "date": "1912",
+            "identifier": "https://archive.org/details/calculdesprobab00poinuoft",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Calcul des probabilités"
+          },
+          "evidence": "que les causes sont très complexes. Passons à un deuxième exemple; pourquoi, dans une averse, les gouttes de pluie nous semblent elles distribuées au hasard? C'est encore à cause de la complexité des causes qui déterminent leur formation. …",
+          "item_key": "8598JF8K",
+          "page": null,
+          "rank": 1,
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "work_id": "poincare-1912-calcul-des-probabilites"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Antoine-Augustin Cournot",
+            "date": "1838",
+            "identifier": "https://archive.org/details/AugustinCournotRecherches",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Recherches sur les principes mathématiques de la théorie des richesses"
+          },
+          "evidence": "déter minations numériques que la pratique réclame. L'emploi des signes mathématiques est chose naturelle toutes les fois qu'il s'agit de discuter des relations entre des grandeurs ; et lors même qu'ils ne …",
+          "item_key": "HVXRRJDQ",
+          "page": null,
+          "rank": 2,
+          "score": 0.015384615384615385,
+          "source": "fulltext",
+          "work_id": "cournot-1838-recherches"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Jean Bonet",
+            "date": "1899",
+            "identifier": "https://archive.org/details/dictionnaireanna01bone",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 1 (A–M)"
+          },
+          "evidence": "… vôtres). Cdi cùa chûng nd (le leur, les leurs). 1-»^ XXII }<-* Cdi est employé dans la formation des pronoms possessifs lorsqu'il s'agit d'êtres inanimés, ex. : cài do dia tâi là dài, mà cdi ma anh là dài hffn nwa (mon habit est long, mais …",
+          "item_key": "M87F6NJF",
+          "page": null,
+          "rank": 3,
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "work_id": "bonet-1899-dictionnaire-annamite-francais-t1"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Mathieu de La Porte",
+            "date": "1770",
+            "identifier": "https://archive.org/details/lasciencedesnego00lapo",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "La Science des négocians et teneurs de livres"
+          },
+          "evidence": "ni à ce fujet. 3. Le crédit , pourvoir ce qu'on en a reçu. On en tire trois connoiffances r 1 . De nos Débiteurs, pour les faire payer dans le tems de l'échéance les articles qu'ils doivent. 2. De nos créanciers,pour lespaïer dans les tems …",
+          "item_key": "6J5AEUMZ",
+          "page": null,
+          "rank": 4,
+          "score": 0.014492753623188406,
+          "source": "fulltext",
+          "work_id": "porte-1770-science-des-negocians"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Nguyễn Du; Abel des Michels (ed., transl.)",
+            "date": "1885",
+            "identifier": "https://archive.org/details/kim-van-kieu-tan-truyen-2",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Kim Vân Kiều tân truyện — Les poèmes de l'Annam, tome II"
+          },
+          "evidence": "lune, qu'une moitié s'imprime dans l'oreiller solitaire, tandis que l'autre illumine la longue route4'? trouve dans ce fait que les lieux habités sont généralementdans la plaine ; d'où il suit que les déniés, qui, se trouvant au point de …",
+          "item_key": "R7Z3HR4C",
+          "page": null,
+          "rank": 5,
+          "score": 0.014285714285714285,
+          "source": "fulltext",
+          "work_id": "des-michels-1885-kim-van-kieu-t2"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Wikipedia contributors",
+            "date": "2026",
+            "identifier": "https://fr.wikipedia.org/w/index.php?title=Changement_climatique&oldid=239281043",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Changement climatique"
+          },
+          "evidence": "ffet de serre, Émission de dioxyde de carbone et CO2 dans l'atmosphère terrestre. La concentration de CO2 atmosphérique au cours des 800 000 dernières années, mesurée à partir de carottes de glace (bleu/vert) et directement (noir). La Terre …",
+          "item_key": "YRAUIIKD",
+          "page": null,
+          "rank": 6,
+          "score": 0.013888888888888888,
+          "source": "fulltext",
+          "work_id": "wp-climate-change-fr"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Léon Walras",
+            "date": "1900",
+            "identifier": "https://archive.org/details/elementsdeconomi00walr",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale (4e éd.)"
+          },
+          "evidence": "a lin de la préface de cette se conde édition de son ouvrage, dans dix pages (xlviii-lviL très cu rieuses, qu’il fallait ici retourner complètement la formule de 1 école anglaise, ou du moins celle de l’école de Ricardo-Mill, en détermi …",
+          "item_key": "WDHDGA89",
+          "page": null,
+          "rank": 7,
+          "score": 0.0136986301369863,
+          "source": "fulltext",
+          "work_id": "walras-1900-elements"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Minh Ha-Duong",
+            "date": "2005",
+            "identifier": "https://theses.hal.science/halshs-00007520v1",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Modèles de précaution en économie : introduction aux probabilités imprécises"
+          },
+          "evidence": "al, mais imposé dix ans plus tôt : à partir de 1978 pour les pays industrialisés. Les contraintes sont, de plus, supposées appliquées à la production, et non à la consommation de CFCs. Dans ce scénario, on suppose qu’une réduction …",
+          "item_key": "LBW7QYN2",
+          "page": null,
+          "rank": 8,
+          "score": 0.012048192771084338,
+          "source": "fulltext",
+          "work_id": "ha-duong-2005-modeles-de-precaution-hdr"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Minh Ha-Duong",
+            "date": "1998",
+            "identifier": "https://theses.hal.science/tel-00003505v1",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Comment tenir compte de l'irréversibilité dans l'évaluation intégrée du changement climatique ?"
+          },
+          "evidence": "… augmentation, le climat s'adapte pour maintenir l'équilibre énergétique. Un des changements probables (parmi d'autres), serait un réchauffement de la surface de la terre et de la basse atmosphère. On appelle ce phénomène le réchauffement …",
+          "item_key": "XMP2QFDN",
+          "page": null,
+          "rank": 9,
+          "score": 0.011764705882352941,
+          "source": "fulltext",
+          "work_id": "ha-duong-1998-irreversibilite-these"
+        }
+      ],
+      "tool_reply": {
+        "embedder": "none (keyword-only)",
+        "embedderActive": false,
+        "embedderConfigured": "off",
+        "fulltextEnabled": true,
+        "ownWordsEnabled": false
+      }
+    },
+    {
+      "id": "q-0375",
+      "mode": "semantic",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "results": null
+    },
+    {
+      "id": "q-0375",
       "mode": "hybrid",
       "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
       "results": null

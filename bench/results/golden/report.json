@@ -186,23 +186,23 @@
   "ladder": {
     "all_strata_macro_by_lane": {
       "lanes": 22,
-      "mrr": 0.5117758444057146,
-      "near_or_better_rate": 0.6386265249901614,
-      "win_rate": 0.20571789321789324
+      "mrr": 0.5101403646858192,
+      "near_or_better_rate": 0.6329447068083431,
+      "win_rate": 0.20647184421107864
     },
     "all_strata_weighted": {
       "chain_completeness": {
-        "mean": 0.6344696969696969,
-        "measured": 154
+        "mean": 0.6313146997929606,
+        "measured": 161
       },
-      "count": 186,
-      "miss": 32,
-      "mrr": 0.7399748250554702,
-      "near_or_better_rate": 0.8279569892473119,
-      "near_win": 114,
+      "count": 195,
+      "miss": 34,
+      "mrr": 0.7417195767195767,
+      "near_or_better_rate": 0.8256410256410256,
+      "near_win": 119,
       "r34": {
-        "absent": 32,
-        "present": 154
+        "absent": 34,
+        "present": 161
       },
       "ranks": {
         "q-0001": 1,
@@ -308,6 +308,9 @@
         "q-0241": 1,
         "q-0242": 1,
         "q-0244": 5,
+        "q-0247": 1,
+        "q-0248": 1,
+        "q-0249": 1,
         "q-0300": 1,
         "q-0301": 2,
         "q-0302": 1,
@@ -366,6 +369,12 @@
         "q-0366": 1,
         "q-0367": null,
         "q-0369": 1,
+        "q-0370": 1,
+        "q-0371": 1,
+        "q-0372": null,
+        "q-0373": 1,
+        "q-0374": 1,
+        "q-0375": null,
         "q-0400": 1,
         "q-0401": null,
         "q-0402": 1,
@@ -392,24 +401,24 @@
         "q-0435": 1,
         "q-0436": 1
       },
-      "win": 40,
-      "win_rate": 0.21505376344086022
+      "win": 42,
+      "win_rate": 0.2153846153846154
     },
     "by_stratum": {
       "core": {
         "all": {
           "chain_completeness": {
-            "mean": 0.6353802672147996,
-            "measured": 139
+            "mean": 0.6318574690150033,
+            "measured": 146
           },
-          "count": 169,
-          "miss": 30,
-          "mrr": 0.7305837325068094,
-          "near_or_better_rate": 0.8224852071005917,
-          "near_win": 108,
+          "count": 178,
+          "miss": 32,
+          "mrr": 0.732969948278937,
+          "near_or_better_rate": 0.8202247191011236,
+          "near_win": 113,
           "r34": {
-            "absent": 30,
-            "present": 139
+            "absent": 32,
+            "present": 146
           },
           "ranks": {
             "q-0001": 1,
@@ -513,6 +522,9 @@
             "q-0241": 1,
             "q-0242": 1,
             "q-0244": 5,
+            "q-0247": 1,
+            "q-0248": 1,
+            "q-0249": 1,
             "q-0300": 1,
             "q-0301": 2,
             "q-0302": 1,
@@ -565,6 +577,12 @@
             "q-0365": 1,
             "q-0366": 1,
             "q-0367": null,
+            "q-0370": 1,
+            "q-0371": 1,
+            "q-0372": null,
+            "q-0373": 1,
+            "q-0374": 1,
+            "q-0375": null,
             "q-0400": 1,
             "q-0401": null,
             "q-0403": 1,
@@ -582,23 +600,23 @@
             "q-0435": 1,
             "q-0436": 1
           },
-          "win": 31,
-          "win_rate": 0.1834319526627219
+          "win": 33,
+          "win_rate": 0.1853932584269663
         },
         "by_facet": {
           "core": {
             "chain_completeness": {
-              "mean": 0.6302783613445379,
-              "measured": 136
+              "mean": 0.6332227891156462,
+              "measured": 140
             },
-            "count": 166,
+            "count": 170,
             "miss": 30,
-            "mrr": 0.7287268120099446,
-            "near_or_better_rate": 0.8192771084337349,
-            "near_win": 106,
+            "mrr": 0.735109710550887,
+            "near_or_better_rate": 0.8235294117647058,
+            "near_win": 109,
             "r34": {
               "absent": 30,
-              "present": 136
+              "present": 140
             },
             "ranks": {
               "q-0001": 1,
@@ -700,6 +718,9 @@
               "q-0241": 1,
               "q-0242": 1,
               "q-0244": 5,
+              "q-0247": 1,
+              "q-0248": 1,
+              "q-0249": 1,
               "q-0300": 1,
               "q-0301": 2,
               "q-0302": 1,
@@ -752,6 +773,7 @@
               "q-0365": 1,
               "q-0366": 1,
               "q-0367": null,
+              "q-0370": 1,
               "q-0400": 1,
               "q-0401": null,
               "q-0403": 1,
@@ -768,8 +790,8 @@
               "q-0422": null,
               "q-0436": 1
             },
-            "win": 30,
-            "win_rate": 0.18072289156626506
+            "win": 31,
+            "win_rate": 0.18235294117647058
           },
           "deep-body": {
             "chain_completeness": {
@@ -794,23 +816,28 @@
           },
           "group": {
             "chain_completeness": {
-              "mean": 0.8,
-              "measured": 1
+              "mean": 0.45,
+              "measured": 4
             },
-            "count": 1,
-            "miss": 0,
-            "mrr": 1.0,
-            "near_or_better_rate": 1.0,
-            "near_win": 1,
+            "count": 6,
+            "miss": 2,
+            "mrr": 0.6666666666666666,
+            "near_or_better_rate": 0.6666666666666666,
+            "near_win": 3,
             "r34": {
-              "absent": 0,
-              "present": 1
+              "absent": 2,
+              "present": 4
             },
             "ranks": {
+              "q-0371": 1,
+              "q-0372": null,
+              "q-0373": 1,
+              "q-0374": 1,
+              "q-0375": null,
               "q-0435": 1
             },
-            "win": 0,
-            "win_rate": 0.0
+            "win": 1,
+            "win_rate": 0.16666666666666666
           },
           "notes": {
             "count": 0,
@@ -820,17 +847,17 @@
         "by_format": {
           "html": {
             "chain_completeness": {
-              "mean": 0.6556437389770723,
-              "measured": 54
+              "mean": 0.6441485068603713,
+              "measured": 59
             },
-            "count": 74,
-            "miss": 20,
-            "mrr": 0.652080652080652,
-            "near_or_better_rate": 0.7297297297297297,
-            "near_win": 42,
+            "count": 81,
+            "miss": 22,
+            "mrr": 0.657456398197139,
+            "near_or_better_rate": 0.7283950617283951,
+            "near_win": 46,
             "r34": {
-              "absent": 20,
-              "present": 54
+              "absent": 22,
+              "present": 59
             },
             "ranks": {
               "q-0150": 1,
@@ -853,6 +880,7 @@
               "q-0239": null,
               "q-0240": 1,
               "q-0241": 1,
+              "q-0249": 1,
               "q-0300": 1,
               "q-0301": 2,
               "q-0302": 1,
@@ -891,6 +919,12 @@
               "q-0365": 1,
               "q-0366": 1,
               "q-0367": null,
+              "q-0370": 1,
+              "q-0371": 1,
+              "q-0372": null,
+              "q-0373": 1,
+              "q-0374": 1,
+              "q-0375": null,
               "q-0400": 1,
               "q-0401": null,
               "q-0403": 1,
@@ -908,8 +942,8 @@
               "q-0435": 1,
               "q-0436": 1
             },
-            "win": 12,
-            "win_rate": 0.16216216216216217
+            "win": 13,
+            "win_rate": 0.16049382716049382
           },
           "other": {
             "count": 0,
@@ -917,17 +951,17 @@
           },
           "pdf": {
             "chain_completeness": {
-              "mean": 0.6225070028011205,
-              "measured": 85
+              "mean": 0.6235221674876846,
+              "measured": 87
             },
-            "count": 95,
+            "count": 97,
             "miss": 10,
-            "mrr": 0.791733500417711,
-            "near_or_better_rate": 0.8947368421052632,
-            "near_win": 66,
+            "mrr": 0.7960276550482737,
+            "near_or_better_rate": 0.8969072164948454,
+            "near_win": 67,
             "r34": {
               "absent": 10,
-              "present": 85
+              "present": 87
             },
             "ranks": {
               "q-0001": 1,
@@ -1011,6 +1045,8 @@
               "q-0230": 1,
               "q-0242": 1,
               "q-0244": 5,
+              "q-0247": 1,
+              "q-0248": 1,
               "q-0313": 1,
               "q-0314": 6,
               "q-0315": 1,
@@ -1026,8 +1062,8 @@
               "q-0345": 1,
               "q-0348": 1
             },
-            "win": 19,
-            "win_rate": 0.2
+            "win": 20,
+            "win_rate": 0.20618556701030927
           }
         },
         "by_lane": {
@@ -1278,13 +1314,13 @@
               "mean": 0.6793650793650793,
               "measured": 3
             },
-            "count": 7,
-            "miss": 4,
-            "mrr": 0.10612244897959185,
-            "near_or_better_rate": 0.42857142857142855,
+            "count": 8,
+            "miss": 5,
+            "mrr": 0.09285714285714286,
+            "near_or_better_rate": 0.375,
             "near_win": 3,
             "r34": {
-              "absent": 4,
+              "absent": 5,
               "present": 3
             },
             "ranks": {
@@ -1294,7 +1330,8 @@
               "q-0327": null,
               "q-0335": null,
               "q-0350": null,
-              "q-0355": 7
+              "q-0355": 7,
+              "q-0372": null
             },
             "win": 0,
             "win_rate": 0.0
@@ -1375,17 +1412,17 @@
           },
           "fr->fr": {
             "chain_completeness": {
-              "mean": 0.6666666666666666,
-              "measured": 15
+              "mean": 0.6807017543859649,
+              "measured": 19
             },
-            "count": 15,
+            "count": 19,
             "miss": 0,
             "mrr": 1.0,
             "near_or_better_rate": 1.0,
-            "near_win": 12,
+            "near_win": 15,
             "r34": {
               "absent": 0,
-              "present": 15
+              "present": 19
             },
             "ranks": {
               "q-0004": 1,
@@ -1402,23 +1439,27 @@
               "q-0217": 1,
               "q-0218": 1,
               "q-0238": 1,
-              "q-0242": 1
+              "q-0242": 1,
+              "q-0247": 1,
+              "q-0248": 1,
+              "q-0249": 1,
+              "q-0370": 1
             },
-            "win": 3,
-            "win_rate": 0.2
+            "win": 4,
+            "win_rate": 0.21052631578947367
           },
           "fr->vi": {
             "chain_completeness": {
               "mean": 0.6349206349206349,
               "measured": 3
             },
-            "count": 6,
-            "miss": 3,
-            "mrr": 0.20370370370370372,
-            "near_or_better_rate": 0.5,
+            "count": 7,
+            "miss": 4,
+            "mrr": 0.17460317460317462,
+            "near_or_better_rate": 0.42857142857142855,
             "near_win": 3,
             "r34": {
-              "absent": 3,
+              "absent": 4,
               "present": 3
             },
             "ranks": {
@@ -1427,7 +1468,8 @@
               "q-0308": null,
               "q-0319": 9,
               "q-0331": null,
-              "q-0341": null
+              "q-0341": null,
+              "q-0375": null
             },
             "win": 0,
             "win_rate": 0.0
@@ -1529,17 +1571,17 @@
           },
           "vi->vi": {
             "chain_completeness": {
-              "mean": 0.5622710622710623,
-              "measured": 26
+              "mean": 0.5385878489326765,
+              "measured": 29
             },
-            "count": 26,
+            "count": 29,
             "miss": 0,
-            "mrr": 0.9189560439560439,
+            "mrr": 0.9273399014778325,
             "near_or_better_rate": 1.0,
-            "near_win": 21,
+            "near_win": 23,
             "r34": {
               "absent": 0,
-              "present": 26
+              "present": 29
             },
             "ranks": {
               "q-0300": 1,
@@ -1567,10 +1609,13 @@
               "q-0347": 1,
               "q-0349": 1,
               "q-0352": 1,
-              "q-0354": 1
+              "q-0354": 1,
+              "q-0371": 1,
+              "q-0373": 1,
+              "q-0374": 1
             },
-            "win": 5,
-            "win_rate": 0.19230769230769232
+            "win": 6,
+            "win_rate": 0.20689655172413793
           },
           "vi->zh": {
             "chain_completeness": {
@@ -1627,17 +1672,17 @@
           },
           "lexical": {
             "chain_completeness": {
-              "mean": 0.6353802672147996,
-              "measured": 139
+              "mean": 0.6318574690150033,
+              "measured": 146
             },
-            "count": 169,
-            "miss": 30,
-            "mrr": 0.7305837325068094,
-            "near_or_better_rate": 0.8224852071005917,
-            "near_win": 108,
+            "count": 178,
+            "miss": 32,
+            "mrr": 0.732969948278937,
+            "near_or_better_rate": 0.8202247191011236,
+            "near_win": 113,
             "r34": {
-              "absent": 30,
-              "present": 139
+              "absent": 32,
+              "present": 146
             },
             "ranks": {
               "q-0001": 1,
@@ -1741,6 +1786,9 @@
               "q-0241": 1,
               "q-0242": 1,
               "q-0244": 5,
+              "q-0247": 1,
+              "q-0248": 1,
+              "q-0249": 1,
               "q-0300": 1,
               "q-0301": 2,
               "q-0302": 1,
@@ -1793,6 +1841,12 @@
               "q-0365": 1,
               "q-0366": 1,
               "q-0367": null,
+              "q-0370": 1,
+              "q-0371": 1,
+              "q-0372": null,
+              "q-0373": 1,
+              "q-0374": 1,
+              "q-0375": null,
               "q-0400": 1,
               "q-0401": null,
               "q-0403": 1,
@@ -1810,8 +1864,8 @@
               "q-0435": 1,
               "q-0436": 1
             },
-            "win": 31,
-            "win_rate": 0.1834319526627219
+            "win": 33,
+            "win_rate": 0.1853932584269663
           },
           "semantic": {
             "count": 0,
@@ -1845,17 +1899,17 @@
           },
           "any-of": {
             "chain_completeness": {
-              "mean": 0.6366509103641456,
-              "measured": 136
+              "mean": 0.6329920079920079,
+              "measured": 143
             },
-            "count": 165,
-            "miss": 29,
-            "mrr": 0.7301130351130352,
-            "near_or_better_rate": 0.8242424242424242,
-            "near_win": 105,
+            "count": 174,
+            "miss": 31,
+            "mrr": 0.7325784528370736,
+            "near_or_better_rate": 0.8218390804597702,
+            "near_win": 110,
             "r34": {
-              "absent": 29,
-              "present": 136
+              "absent": 31,
+              "present": 143
             },
             "ranks": {
               "q-0001": 1,
@@ -1956,6 +2010,9 @@
               "q-0241": 1,
               "q-0242": 1,
               "q-0244": 5,
+              "q-0247": 1,
+              "q-0248": 1,
+              "q-0249": 1,
               "q-0300": 1,
               "q-0301": 2,
               "q-0302": 1,
@@ -2007,6 +2064,12 @@
               "q-0365": 1,
               "q-0366": 1,
               "q-0367": null,
+              "q-0370": 1,
+              "q-0371": 1,
+              "q-0372": null,
+              "q-0373": 1,
+              "q-0374": 1,
+              "q-0375": null,
               "q-0400": 1,
               "q-0401": null,
               "q-0403": 1,
@@ -2024,24 +2087,24 @@
               "q-0435": 1,
               "q-0436": 1
             },
-            "win": 31,
-            "win_rate": 0.18787878787878787
+            "win": 33,
+            "win_rate": 0.1896551724137931
           }
         },
         "by_signal": {
           "agreement": {
             "chain_completeness": {
-              "mean": 0.6319327731092437,
-              "measured": 17
+              "mean": 0.6512471655328798,
+              "measured": 21
             },
-            "count": 18,
+            "count": 22,
             "miss": 1,
-            "mrr": 0.9444444444444444,
-            "near_or_better_rate": 0.9444444444444444,
-            "near_win": 11,
+            "mrr": 0.9545454545454546,
+            "near_or_better_rate": 0.9545454545454546,
+            "near_win": 14,
             "r34": {
               "absent": 1,
-              "present": 17
+              "present": 21
             },
             "ranks": {
               "q-0102": 1,
@@ -2056,29 +2119,33 @@
               "q-0181": 1,
               "q-0187": 1,
               "q-0197": 1,
+              "q-0247": 1,
+              "q-0248": 1,
+              "q-0249": 1,
               "q-0303": 1,
               "q-0310": null,
               "q-0317": 1,
               "q-0321": 1,
               "q-0329": 1,
-              "q-0354": 1
+              "q-0354": 1,
+              "q-0370": 1
             },
-            "win": 6,
-            "win_rate": 0.3333333333333333
+            "win": 7,
+            "win_rate": 0.3181818181818182
           },
           "exact": {
             "chain_completeness": {
-              "mean": 0.6631216931216931,
-              "measured": 90
+              "mean": 0.655952380952381,
+              "measured": 92
             },
-            "count": 90,
+            "count": 92,
             "miss": 0,
-            "mrr": 0.9425573192239859,
+            "mrr": 0.9438060731538992,
             "near_or_better_rate": 1.0,
-            "near_win": 67,
+            "near_win": 68,
             "r34": {
               "absent": 0,
-              "present": 90
+              "present": 92
             },
             "ranks": {
               "q-0001": 1,
@@ -2162,6 +2229,8 @@
               "q-0358": 1,
               "q-0361": 1,
               "q-0365": 1,
+              "q-0371": 1,
+              "q-0374": 1,
               "q-0400": 1,
               "q-0403": 1,
               "q-0406": 1,
@@ -2172,22 +2241,22 @@
               "q-0435": 1,
               "q-0436": 1
             },
-            "win": 23,
-            "win_rate": 0.25555555555555554
+            "win": 24,
+            "win_rate": 0.2608695652173913
           },
           "paraphrase": {
             "chain_completeness": {
-              "mean": 0.5591889880952381,
-              "measured": 32
+              "mean": 0.5523448773448774,
+              "measured": 33
             },
-            "count": 61,
-            "miss": 29,
-            "mrr": 0.3547293780900338,
-            "near_or_better_rate": 0.5245901639344263,
-            "near_win": 30,
+            "count": 64,
+            "miss": 31,
+            "mrr": 0.3537264384920635,
+            "near_or_better_rate": 0.515625,
+            "near_win": 31,
             "r34": {
-              "absent": 29,
-              "present": 32
+              "absent": 31,
+              "present": 33
             },
             "ranks": {
               "q-0002": 8,
@@ -2244,6 +2313,9 @@
               "q-0362": 1,
               "q-0366": 1,
               "q-0367": null,
+              "q-0372": null,
+              "q-0373": 1,
+              "q-0375": null,
               "q-0401": null,
               "q-0404": null,
               "q-0408": null,
@@ -2253,7 +2325,7 @@
               "q-0422": null
             },
             "win": 2,
-            "win_rate": 0.03278688524590164
+            "win_rate": 0.03125
           }
         }
       },
@@ -2760,8 +2832,8 @@
     "hybrid": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
     "semantic": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors"
   },
-  "not_run_count": 544,
-  "question_count": 272,
+  "not_run_count": 562,
+  "question_count": 281,
   "questions": {
     "q-0001/hybrid": {
       "expected_miss": false,
@@ -15472,6 +15544,274 @@
       "state": "not-run",
       "stratum": "reserve"
     },
+    "q-0247/hybrid": {
+      "expected_miss": false,
+      "facet": "core",
+      "format": "pdf",
+      "id": "q-0247",
+      "lane": "fr->fr",
+      "mode": "hybrid",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "set_kind": "any-of",
+      "signal": "agreement",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0247/lexical": {
+      "chain": {
+        "fraction": 0.6666666666666666,
+        "matched": 4,
+        "mismatched": [],
+        "missing": [
+          "section_heading",
+          "page_printed"
+        ],
+        "of": 6
+      },
+      "expected_miss": false,
+      "facet": "core",
+      "format": "pdf",
+      "id": "q-0247",
+      "lane": "fr->fr",
+      "level": "win",
+      "mode": "lexical",
+      "r34_present": true,
+      "rank": 1,
+      "reciprocal_rank": 1.0,
+      "rows": [
+        {
+          "attachment_key": "WASTUP32",
+          "chain": {
+            "fraction": 0.6666666666666666,
+            "matched": 4,
+            "mismatched": [],
+            "missing": [
+              "section_heading",
+              "page_printed"
+            ],
+            "of": 6
+          },
+          "evidence": {
+            "how": "evidence-overlap",
+            "matched": true,
+            "overlap": 1.0
+          },
+          "level": "win",
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "section": "1.1 La protection de la couche d'ozone : précaution ?",
+          "work_id": "ha-duong-2005-modeles-de-precaution-hdr"
+        }
+      ],
+      "rows_found": {
+        "count": 1,
+        "fraction": 1.0,
+        "of": 1
+      },
+      "set_kind": "any-of",
+      "signal": "agreement",
+      "state": "scored",
+      "stratum": "core",
+      "top_k_item_keys": [
+        "LBW7QYN2",
+        "E6IJRR2H",
+        "XMP2QFDN",
+        "WDHDGA89",
+        "8598JF8K",
+        "HVXRRJDQ"
+      ]
+    },
+    "q-0247/semantic": {
+      "expected_miss": false,
+      "facet": "core",
+      "format": "pdf",
+      "id": "q-0247",
+      "lane": "fr->fr",
+      "mode": "semantic",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "set_kind": "any-of",
+      "signal": "agreement",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0248/hybrid": {
+      "expected_miss": false,
+      "facet": "core",
+      "format": "pdf",
+      "id": "q-0248",
+      "lane": "fr->fr",
+      "mode": "hybrid",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "set_kind": "any-of",
+      "signal": "agreement",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0248/lexical": {
+      "chain": {
+        "fraction": 0.6666666666666666,
+        "matched": 4,
+        "mismatched": [],
+        "missing": [
+          "section_heading",
+          "page_printed"
+        ],
+        "of": 6
+      },
+      "expected_miss": false,
+      "facet": "core",
+      "format": "pdf",
+      "id": "q-0248",
+      "lane": "fr->fr",
+      "level": "near-win",
+      "mode": "lexical",
+      "r34_present": true,
+      "rank": 1,
+      "reciprocal_rank": 1.0,
+      "rows": [
+        {
+          "attachment_key": "WASTUP32",
+          "chain": {
+            "fraction": 0.6666666666666666,
+            "matched": 4,
+            "mismatched": [],
+            "missing": [
+              "section_heading",
+              "page_printed"
+            ],
+            "of": 6
+          },
+          "evidence": {
+            "how": null,
+            "matched": false,
+            "overlap": 0.261,
+            "why": "item-without-evidence"
+          },
+          "level": "near-win",
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "section": "Introduction",
+          "work_id": "ha-duong-2005-modeles-de-precaution-hdr"
+        }
+      ],
+      "rows_found": {
+        "count": 1,
+        "fraction": 1.0,
+        "of": 1
+      },
+      "set_kind": "any-of",
+      "signal": "agreement",
+      "state": "scored",
+      "stratum": "core",
+      "top_k_item_keys": [
+        "LBW7QYN2",
+        "8598JF8K",
+        "XMP2QFDN",
+        "E6IJRR2H",
+        "M87F6NJF",
+        "R7Z3HR4C",
+        "HVXRRJDQ"
+      ]
+    },
+    "q-0248/semantic": {
+      "expected_miss": false,
+      "facet": "core",
+      "format": "pdf",
+      "id": "q-0248",
+      "lane": "fr->fr",
+      "mode": "semantic",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "set_kind": "any-of",
+      "signal": "agreement",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0249/hybrid": {
+      "expected_miss": false,
+      "facet": "core",
+      "format": "html",
+      "id": "q-0249",
+      "lane": "fr->fr",
+      "mode": "hybrid",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "set_kind": "any-of",
+      "signal": "agreement",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0249/lexical": {
+      "chain": {
+        "fraction": 0.8,
+        "matched": 4,
+        "mismatched": [],
+        "missing": [
+          "section_heading"
+        ],
+        "of": 5
+      },
+      "expected_miss": false,
+      "facet": "core",
+      "format": "html",
+      "id": "q-0249",
+      "lane": "fr->fr",
+      "level": "near-win",
+      "mode": "lexical",
+      "r34_present": true,
+      "rank": 1,
+      "reciprocal_rank": 1.0,
+      "rows": [
+        {
+          "attachment_key": "6PG6TSDT",
+          "chain": {
+            "fraction": 0.8,
+            "matched": 4,
+            "mismatched": [],
+            "missing": [
+              "section_heading"
+            ],
+            "of": 5
+          },
+          "evidence": {
+            "how": null,
+            "matched": false,
+            "overlap": 0.133,
+            "why": "item-without-evidence"
+          },
+          "level": "near-win",
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "section": "Gaz à effet de serre",
+          "work_id": "wp-climate-change-fr"
+        }
+      ],
+      "rows_found": {
+        "count": 1,
+        "fraction": 1.0,
+        "of": 1
+      },
+      "set_kind": "any-of",
+      "signal": "agreement",
+      "state": "scored",
+      "stratum": "core",
+      "top_k_item_keys": [
+        "YRAUIIKD",
+        "XMP2QFDN",
+        "LBW7QYN2"
+      ]
+    },
+    "q-0249/semantic": {
+      "expected_miss": false,
+      "facet": "core",
+      "format": "html",
+      "id": "q-0249",
+      "lane": "fr->fr",
+      "mode": "semantic",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "set_kind": "any-of",
+      "signal": "agreement",
+      "state": "not-run",
+      "stratum": "core"
+    },
     "q-0300/hybrid": {
       "expected_miss": false,
       "facet": "core",
@@ -21499,6 +21839,537 @@
       "state": "not-run",
       "stratum": "reserve"
     },
+    "q-0370/hybrid": {
+      "expected_miss": false,
+      "facet": "core",
+      "format": "html",
+      "id": "q-0370",
+      "lane": "fr->fr",
+      "mode": "hybrid",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "set_kind": "any-of",
+      "signal": "agreement",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0370/lexical": {
+      "chain": {
+        "fraction": 0.8,
+        "matched": 4,
+        "mismatched": [],
+        "missing": [
+          "section_heading"
+        ],
+        "of": 5
+      },
+      "expected_miss": false,
+      "facet": "core",
+      "format": "html",
+      "id": "q-0370",
+      "lane": "fr->fr",
+      "level": "near-win",
+      "mode": "lexical",
+      "r34_present": true,
+      "rank": 1,
+      "reciprocal_rank": 1.0,
+      "rows": [
+        {
+          "attachment_key": "6PG6TSDT",
+          "chain": {
+            "fraction": 0.8,
+            "matched": 4,
+            "mismatched": [],
+            "missing": [
+              "section_heading"
+            ],
+            "of": 5
+          },
+          "evidence": {
+            "how": null,
+            "matched": false,
+            "overlap": 0.0,
+            "why": "item-without-evidence"
+          },
+          "level": "near-win",
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "section": "Aérosols et nuages",
+          "work_id": "wp-climate-change-fr"
+        }
+      ],
+      "rows_found": {
+        "count": 1,
+        "fraction": 1.0,
+        "of": 1
+      },
+      "set_kind": "any-of",
+      "signal": "agreement",
+      "state": "scored",
+      "stratum": "core",
+      "top_k_item_keys": [
+        "YRAUIIKD",
+        "XMP2QFDN",
+        "A87PTDEU",
+        "N3DSG5VT",
+        "HVXRRJDQ",
+        "EZRNSMR8",
+        "R7Z3HR4C"
+      ]
+    },
+    "q-0370/semantic": {
+      "expected_miss": false,
+      "facet": "core",
+      "format": "html",
+      "id": "q-0370",
+      "lane": "fr->fr",
+      "mode": "semantic",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "set_kind": "any-of",
+      "signal": "agreement",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0371/hybrid": {
+      "expected_miss": false,
+      "facet": "group",
+      "format": "html",
+      "id": "q-0371",
+      "lane": "vi->vi",
+      "mode": "hybrid",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "set_kind": "any-of",
+      "signal": "exact",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0371/lexical": {
+      "chain": {
+        "fraction": 0.3333333333333333,
+        "matched": 2,
+        "mismatched": [
+          "title"
+        ],
+        "missing": [
+          "date",
+          "section_heading",
+          "part_title"
+        ],
+        "of": 6
+      },
+      "expected_miss": false,
+      "facet": "group",
+      "format": "html",
+      "id": "q-0371",
+      "lane": "vi->vi",
+      "level": "win",
+      "mode": "lexical",
+      "r34_present": true,
+      "rank": 1,
+      "reciprocal_rank": 1.0,
+      "rows": [
+        {
+          "attachment_key": "C6FTXKM9",
+          "chain": {
+            "fraction": 0.3333333333333333,
+            "matched": 2,
+            "mismatched": [
+              "title"
+            ],
+            "missing": [
+              "date",
+              "section_heading",
+              "part_title"
+            ],
+            "of": 6
+          },
+          "evidence": {
+            "how": "evidence-overlap",
+            "matched": true,
+            "overlap": 0.778
+          },
+          "level": "win",
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "section": "Điều 83",
+          "work_id": "vn-constitution-1992-vi-chuong-vi"
+        }
+      ],
+      "rows_found": {
+        "count": 1,
+        "fraction": 1.0,
+        "of": 1
+      },
+      "set_kind": "any-of",
+      "signal": "exact",
+      "state": "scored",
+      "stratum": "core",
+      "top_k_item_keys": [
+        "6HHKNLYD",
+        "MRBTULVZ",
+        "AUQMWR3Z",
+        "4LJTF9JH",
+        "NWVA2RU9",
+        "88PA89A2",
+        "IUTSQI2Q",
+        "X7XR8TVW",
+        "4HGW537Q",
+        "JVAG4QBG"
+      ]
+    },
+    "q-0371/semantic": {
+      "expected_miss": false,
+      "facet": "group",
+      "format": "html",
+      "id": "q-0371",
+      "lane": "vi->vi",
+      "mode": "semantic",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "set_kind": "any-of",
+      "signal": "exact",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0372/hybrid": {
+      "expected_miss": false,
+      "facet": "group",
+      "format": "html",
+      "id": "q-0372",
+      "lane": "en->vi",
+      "mode": "hybrid",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "set_kind": "any-of",
+      "signal": "paraphrase",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0372/lexical": {
+      "chain": "not-run",
+      "expected_miss": false,
+      "facet": "group",
+      "format": "html",
+      "id": "q-0372",
+      "lane": "en->vi",
+      "level": "miss",
+      "mode": "lexical",
+      "r34_present": false,
+      "rank": null,
+      "reciprocal_rank": 0.0,
+      "rows": [
+        {
+          "attachment_key": "Z63BD3V3",
+          "chain": "not-run",
+          "evidence": null,
+          "level": "miss",
+          "rank": null,
+          "reciprocal_rank": 0.0,
+          "section": "Điều 101",
+          "work_id": "vn-constitution-1992-vi-chuong-vii"
+        }
+      ],
+      "rows_found": {
+        "count": 0,
+        "fraction": 0.0,
+        "of": 1
+      },
+      "set_kind": "any-of",
+      "signal": "paraphrase",
+      "state": "scored",
+      "stratum": "core",
+      "top_k_item_keys": [
+        "GV65RWMF",
+        "FUMT38SR",
+        "3YKGHC7M",
+        "ATPYH5U8",
+        "PKX9T3CK",
+        "43XP9Q4L"
+      ]
+    },
+    "q-0372/semantic": {
+      "expected_miss": false,
+      "facet": "group",
+      "format": "html",
+      "id": "q-0372",
+      "lane": "en->vi",
+      "mode": "semantic",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "set_kind": "any-of",
+      "signal": "paraphrase",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0373/hybrid": {
+      "expected_miss": false,
+      "facet": "group",
+      "format": "html",
+      "id": "q-0373",
+      "lane": "vi->vi",
+      "mode": "hybrid",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "set_kind": "any-of",
+      "signal": "paraphrase",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0373/lexical": {
+      "chain": {
+        "fraction": 0.3333333333333333,
+        "matched": 2,
+        "mismatched": [
+          "title"
+        ],
+        "missing": [
+          "date",
+          "section_heading",
+          "part_title"
+        ],
+        "of": 6
+      },
+      "expected_miss": false,
+      "facet": "group",
+      "format": "html",
+      "id": "q-0373",
+      "lane": "vi->vi",
+      "level": "near-win",
+      "mode": "lexical",
+      "r34_present": true,
+      "rank": 1,
+      "reciprocal_rank": 1.0,
+      "rows": [
+        {
+          "attachment_key": "PNC4RLJ2",
+          "chain": {
+            "fraction": 0.3333333333333333,
+            "matched": 2,
+            "mismatched": [
+              "title"
+            ],
+            "missing": [
+              "date",
+              "section_heading",
+              "part_title"
+            ],
+            "of": 6
+          },
+          "evidence": {
+            "how": null,
+            "matched": false,
+            "overlap": 0.353,
+            "why": "item-without-evidence"
+          },
+          "level": "near-win",
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "section": "Điều 110",
+          "work_id": "vn-constitution-1992-vi-chuong-viii"
+        }
+      ],
+      "rows_found": {
+        "count": 1,
+        "fraction": 1.0,
+        "of": 1
+      },
+      "set_kind": "any-of",
+      "signal": "paraphrase",
+      "state": "scored",
+      "stratum": "core",
+      "top_k_item_keys": [
+        "AUQMWR3Z",
+        "6HHKNLYD",
+        "MRBTULVZ",
+        "NWVA2RU9",
+        "LDNLMSP6",
+        "X7XR8TVW",
+        "88PA89A2",
+        "4LJTF9JH",
+        "V4RNHPB8",
+        "32UTQ3FR"
+      ]
+    },
+    "q-0373/semantic": {
+      "expected_miss": false,
+      "facet": "group",
+      "format": "html",
+      "id": "q-0373",
+      "lane": "vi->vi",
+      "mode": "semantic",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "set_kind": "any-of",
+      "signal": "paraphrase",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0374/hybrid": {
+      "expected_miss": false,
+      "facet": "group",
+      "format": "html",
+      "id": "q-0374",
+      "lane": "vi->vi",
+      "mode": "hybrid",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "set_kind": "any-of",
+      "signal": "exact",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0374/lexical": {
+      "chain": {
+        "fraction": 0.3333333333333333,
+        "matched": 2,
+        "mismatched": [
+          "title"
+        ],
+        "missing": [
+          "date",
+          "section_heading",
+          "part_title"
+        ],
+        "of": 6
+      },
+      "expected_miss": false,
+      "facet": "group",
+      "format": "html",
+      "id": "q-0374",
+      "lane": "vi->vi",
+      "level": "near-win",
+      "mode": "lexical",
+      "r34_present": true,
+      "rank": 1,
+      "reciprocal_rank": 1.0,
+      "rows": [
+        {
+          "attachment_key": "82VNHS6P",
+          "chain": {
+            "fraction": 0.3333333333333333,
+            "matched": 2,
+            "mismatched": [
+              "title"
+            ],
+            "missing": [
+              "date",
+              "section_heading",
+              "part_title"
+            ],
+            "of": 6
+          },
+          "evidence": {
+            "how": null,
+            "matched": false,
+            "overlap": 0.333,
+            "why": "item-without-evidence"
+          },
+          "level": "near-win",
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "section": "Điều 119",
+          "work_id": "vn-constitution-1992-vi-chuong-ix"
+        }
+      ],
+      "rows_found": {
+        "count": 1,
+        "fraction": 1.0,
+        "of": 1
+      },
+      "set_kind": "any-of",
+      "signal": "exact",
+      "state": "scored",
+      "stratum": "core",
+      "top_k_item_keys": [
+        "4LJTF9JH",
+        "NWVA2RU9",
+        "4HGW537Q",
+        "6HHKNLYD",
+        "BGM6XA2N",
+        "88PA89A2",
+        "X7XR8TVW",
+        "IUTSQI2Q",
+        "LDNLMSP6",
+        "AUQMWR3Z"
+      ]
+    },
+    "q-0374/semantic": {
+      "expected_miss": false,
+      "facet": "group",
+      "format": "html",
+      "id": "q-0374",
+      "lane": "vi->vi",
+      "mode": "semantic",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "set_kind": "any-of",
+      "signal": "exact",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0375/hybrid": {
+      "expected_miss": false,
+      "facet": "group",
+      "format": "html",
+      "id": "q-0375",
+      "lane": "fr->vi",
+      "mode": "hybrid",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "set_kind": "any-of",
+      "signal": "paraphrase",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0375/lexical": {
+      "chain": "not-run",
+      "expected_miss": false,
+      "facet": "group",
+      "format": "html",
+      "id": "q-0375",
+      "lane": "fr->vi",
+      "level": "miss",
+      "mode": "lexical",
+      "r34_present": false,
+      "rank": null,
+      "reciprocal_rank": 0.0,
+      "rows": [
+        {
+          "attachment_key": "I8AZ4DZC",
+          "chain": "not-run",
+          "evidence": null,
+          "level": "miss",
+          "rank": null,
+          "reciprocal_rank": 0.0,
+          "section": "Điều 130",
+          "work_id": "vn-constitution-1992-vi-chuong-x"
+        }
+      ],
+      "rows_found": {
+        "count": 0,
+        "fraction": 0.0,
+        "of": 1
+      },
+      "set_kind": "any-of",
+      "signal": "paraphrase",
+      "state": "scored",
+      "stratum": "core",
+      "top_k_item_keys": [
+        "8598JF8K",
+        "HVXRRJDQ",
+        "M87F6NJF",
+        "6J5AEUMZ",
+        "R7Z3HR4C",
+        "YRAUIIKD",
+        "WDHDGA89",
+        "LBW7QYN2",
+        "XMP2QFDN"
+      ]
+    },
+    "q-0375/semantic": {
+      "expected_miss": false,
+      "facet": "group",
+      "format": "html",
+      "id": "q-0375",
+      "lane": "fr->vi",
+      "mode": "semantic",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "set_kind": "any-of",
+      "signal": "paraphrase",
+      "state": "not-run",
+      "stratum": "core"
+    },
     "q-0400/hybrid": {
       "expected_miss": false,
       "facet": "core",
@@ -25106,6 +25977,12 @@
         "q-0367/lexical": [
           "wp-climate-change-zh#術語"
         ],
+        "q-0372/lexical": [
+          "vn-constitution-1992-vi-chuong-vii#Điều 101"
+        ],
+        "q-0375/lexical": [
+          "vn-constitution-1992-vi-chuong-x#Điều 130"
+        ],
         "q-0401/lexical": [
           "wp-climate-change-ar#مفعول الدفيئة"
         ],
@@ -25131,7 +26008,7 @@
           "wp-inflation-zh#貨幣幻覺"
         ]
       },
-      "question_count": 186,
+      "question_count": 195,
       "state": "fail"
     },
     "stability": {
@@ -25139,7 +26016,7 @@
       "state": "not-run"
     }
   },
-  "reply_count": 816,
+  "reply_count": 843,
   "run": {
     "build": {
       "elapsed_s": 0.8,
@@ -25260,7 +26137,7 @@
     "tool": "zotero_semantic_search"
   },
   "schema": "golden-gate-report/v2",
-  "scored_count": 186,
+  "scored_count": 195,
   "state": "fail",
   "threshold_source": "SPEC.md §5.2.8",
   "unanswered_questions": []
