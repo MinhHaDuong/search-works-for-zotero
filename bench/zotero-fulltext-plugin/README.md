@@ -61,6 +61,21 @@ reindex since startup), and `prefs` — `pdfMaxPages` and `textMaxLength` read
 live from `Zotero.Prefs` on every call, so an export can record the values the
 extraction actually ran under instead of typing them.
 
+`import` (version 0.3.0) imports one bibliographic file — RIS, BibTeX, Zotero
+RDF — through Zotero's own import translators into the **user library of the
+running profile**, never a group, with file attachments linked rather than
+copied, so the relative `L1` paths of the Menagerie's RIS package resolve
+beside the file. It answers with the translator used and, per imported item,
+its type, title and each linked attachment's path and whether the file exists.
+A verification aid for ticket 0721's `make menagerie-ris`, meant for a scratch
+profile and data directory (`zotero -profile <scratch> -datadir <scratch>`);
+it refuses a relative path and a file no translator matches.
+
+```bash
+curl -s -X POST -H 'Content-Type: application/json' \
+  --data '{"path":"/abs/path/to/menagerie.ris"}' http://localhost:23119/search-works/fulltext/import
+```
+
 ## What it can reach
 
 Zotero binds the server to the loopback interface, refuses any `Host` header

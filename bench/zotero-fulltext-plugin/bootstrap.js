@@ -149,6 +149,55 @@ Status.prototype = {
   },
 };
 
+/**
+ * Import a bibliographic file (RIS, BibTeX, Zotero RDF) into the USER library of the
+ * running profile, as File -> Import would: Zotero's own import translators, file
+ * attachments linked rather than copied, so a relative L1 path in a RIS resolves
+ * beside the file. A verification aid for the Menagerie's RIS package (ticket 0721):
+ * the fixture's group library is never a permitted target, only the user library of a
+ * scratch profile, and the response reports what Zotero made of the file -- item
+ * types, and whether each linked attachment's file exists.
+ *
+ *   POST /search-works/fulltext/import   {"path": "/abs/menagerie.ris"}
+ */
+function Import() {}
+Import.prototype = {
+  supportedMethods: ['POST'],
+  supportedDataTypes: ['application/json'],
+  init: async function ({ data }) {
+    const path = typeof data?.path === 'string' && data.path.startsWith('/') ? data.path : null;
+    if (!path) return json(400, { error: 'body must be {"path": "/absolute/path/to/file"}' });
+    const libraryID = Zotero.Libraries.userLibraryID;
+    const translation = new Zotero.Translate.Import();
+    translation.setLocation(Zotero.File.pathToFile(path));
+    const translators = await translation.getTranslators();
+    if (!translators || translators.length === 0) return json(422, { error: 'no import translator matched the file' });
+    translation.setTranslator(translators[0]);
+    let imported;
+    try {
+      imported = await translation.translate({ libraryID, saveAttachments: true, linkFiles: true });
+    } catch (e) {
+      return json(500, { error: String(e?.message ?? e) });
+    }
+    const items = [];
+    for (const item of imported) {
+      const attachments = [];
+      for (const id of item.getAttachments ? item.getAttachments() : []) {
+        const a = Zotero.Items.get(id);
+        attachments.push({
+          key: a.key, linkMode: a.attachmentLinkMode, contentType: a.attachmentContentType,
+          path: a.attachmentPath, exists: await a.fileExists(),
+        });
+      }
+      items.push({
+        key: item.key, itemType: item.itemType, title: item.getField('title'),
+        isNote: item.isNote(), attachments,
+      });
+    }
+    return json(200, { translator: translators[0].label, libraryID, itemCount: items.length, items });
+  },
+};
+
 function install() {
   log('installed');
 }
@@ -158,12 +207,14 @@ async function startup({ version }) {
   pluginVersion = version ?? null;
   Zotero.Server.Endpoints[`${PREFIX}reindex`] = Reindex;
   Zotero.Server.Endpoints[`${PREFIX}status`] = Status;
+  Zotero.Server.Endpoints[`${PREFIX}import`] = Import;
   log(`started ${version}: endpoints registered under ${PREFIX}`);
 }
 
 function shutdown() {
   delete Zotero.Server.Endpoints[`${PREFIX}reindex`];
   delete Zotero.Server.Endpoints[`${PREFIX}status`];
+  delete Zotero.Server.Endpoints[`${PREFIX}import`];
   log('shut down: endpoints removed');
 }
 

@@ -26,6 +26,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const [bootstrapPath, body] = process.argv.slice(1);
 const calls = [];
+const imports = [];
 const prefs = { 'fulltext.pdfMaxPages': 100, 'fulltext.textMaxLength': 500000 };
 const items = { ATTACH01: { id: 11, isFileAttachment: () => true }, PARENT01: { id: 12, isFileAttachment: () => false } };
 const Zotero = {
@@ -41,7 +42,19 @@ const Zotero = {
   },
   DB: { rowQueryAsync: async () => ({ indexedPages: 3, totalPages: 3, indexedChars: null, totalChars: null, version: 0 }) },
   Prefs: { get: (name) => prefs[name] },
+  File: { pathToFile: (p) => ({ path: p }) },
+  Translate: { Import: class {
+    setLocation(file) { this.file = file; }
+    async getTranslators() { return this.file.path.endsWith('.ris') ? [{ label: 'RIS' }] : []; }
+    setTranslator(t) { this.translator = t; }
+    async translate(options) {
+      imports.push({ path: this.file.path, options });
+      return [{ key: 'NEWITEM1', itemType: 'book', getField: () => 'Imported', isNote: () => false, getAttachments: () => [77] }];
+    }
+  } },
 };
+Zotero.Libraries.userLibraryID = 1;
+Zotero.Items.get = (id) => ({ key: 'ATT' + id, attachmentLinkMode: 2, attachmentContentType: 'application/pdf', attachmentPath: 'attachments/x.pdf', fileExists: async () => true });
 const context = vm.createContext({ Zotero, console });
 vm.runInContext(fs.readFileSync(bootstrapPath, 'utf8'), context, { filename: 'bootstrap.js' });
 (async () => {
@@ -52,9 +65,14 @@ vm.runInContext(fs.readFileSync(bootstrapPath, 'utf8'), context, { filename: 'bo
   const reindex = await new Reindex().init({ data: JSON.parse(body) });
   prefs['fulltext.pdfMaxPages'] = 7;  // changed after startup: status must read live
   const status1 = await new Status().init({ searchParams: new URLSearchParams('keys=ATTACH01') });
+  const Import = context.Zotero.Server.Endpoints['/search-works/fulltext/import'];
+  const imported = await new Import().init({ data: { path: '/tmp/menagerie.ris' } });
+  const relative = await new Import().init({ data: { path: 'menagerie.ris' } });
+  const unmatched = await new Import().init({ data: { path: '/tmp/menagerie.xyz' } });
   console.log(JSON.stringify({
     before: JSON.parse(status0[2]), reindex: [reindex[0], JSON.parse(reindex[2])],
-    after: JSON.parse(status1[2]), calls,
+    after: JSON.parse(status1[2]), calls, imports,
+    imported: [imported[0], JSON.parse(imported[2])], relative: relative[0], unmatched: unmatched[0],
   }));
 })().catch((error) => { console.error(error.stack); process.exit(3); });
 """
@@ -102,9 +120,28 @@ def test_status_reports_version_last_mode_and_live_preferences():
 
 def test_manifest_version_matches_the_documented_contract():
     manifest = json.loads((PLUGIN / "manifest.json").read_text(encoding="utf-8"))
-    assert manifest["version"] == "0.2.0"
+    assert manifest["version"] == "0.3.0"
     readme = (PLUGIN / "README.md").read_text(encoding="utf-8")
     assert '"complete"' in readme and "lastReindexMode" in readme and "stock" in readme
     source = (PLUGIN / "bootstrap.js").read_text(encoding="utf-8")
     assert "indexItems(ids, { complete: true" not in source, "the mode is the caller's, never a literal"
     assert "indexItems(ids, { complete, ignoreErrors: true })" in source
+
+
+@pytest.mark.integration
+def test_import_targets_the_user_library_links_files_and_reports_what_zotero_made():
+    """Ticket 0721, the RIS package check: the endpoint imports an absolute path through
+    Zotero's own translators into the user library only, with files linked (not copied),
+    and reports item types and whether each linked file exists. A relative path and a
+    file no translator matches are refused."""
+    out = drive({"keys": ["ATTACH01"]})
+    status, body = out["imported"]
+    assert status == 200 and body["translator"] == "RIS" and body["libraryID"] == 1
+    assert body["items"][0]["itemType"] == "book"
+    assert body["items"][0]["attachments"][0] == {
+        "key": "ATT77", "linkMode": 2, "contentType": "application/pdf",
+        "path": "attachments/x.pdf", "exists": True,
+    }
+    imports = out["imports"]
+    assert imports == [{"path": "/tmp/menagerie.ris", "options": {"libraryID": 1, "saveAttachments": True, "linkFiles": True}}]
+    assert out["relative"] == 400 and out["unmatched"] == 422
