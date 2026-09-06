@@ -67,6 +67,39 @@ await test('native success without current persisted cache counts as failure', a
   const f = fixture(); f.host.ensure = async () => true;
   await f.api.sweep(); assert.equal(f.api.state.failed, 2); assert.equal(f.api.state.completed, 0);
 });
+/* Distinct from 'failure suppresses same source for session': that one returns false, never
+   rejects, and never reaches host.reportError. A rejection thrown out of the per-candidate
+   try must stay inside it — escaping to the outer catch would end the sweep in 'error' with
+   candidate 2 unadmitted and the host never told. */
+await test('native rejection mid-job is reported once and the next document is still admitted', async () => {
+  const f = fixture(), reportCalls = [], ensure = f.host.ensure;
+  f.host.reportError = async (before, error) => { reportCalls.push({ before, error }); };
+  f.host.ensure = async (id, progress) => {
+    if (id !== 1) return ensure(id, progress);
+    f.calls.push(id); progress(30); progress(60); progress(90);
+    throw new Error('native worker died');
+  };
+  await f.api.sweep();
+  assert.deepEqual(f.calls, [1, 2]);
+  assert.equal(reportCalls.length, 1);
+  assert.equal(reportCalls[0].before.identity, '1');
+  assert.equal(reportCalls[0].error.message, 'native worker died');
+  assert.equal(f.api.state.failed, 1); assert.equal(f.api.state.completed, 1);
+  assert.equal(f.api.state.counts['failed-session'], 1); assert.equal(f.api.state.counts.current, 1);
+  assert.equal(f.api.state.phase, 'waiting');
+});
+/* Distinct from 'resource or native queue blockage admits nothing': that one holds blocked()
+   constant for a whole sweep. Here the reading crosses the threshold between two admissions of
+   one sweep, which only a per-candidate check can see — a single pre-loop check would run both. */
+await test('resources crossing the threshold between admissions refuse the next, not the running job', async () => {
+  const f = fixture(); let checks = 0;
+  f.host.blocked = async () => (++checks > 1 ? 'low-disk' : null);
+  await f.api.sweep();
+  assert.deepEqual(f.calls, [1]);
+  assert(f.cached.has(1));
+  assert.equal(f.api.state.completed, 1); assert.equal(f.api.state.failed, 0);
+  assert.equal(f.api.state.phase, 'low-disk');
+});
 await test('unsupported, missing and future-version packs are never overwritten', async () => {
   for (const status of ['unsupported', 'missing-source', 'unsupported-pack', 'excluded']) {
     const f = fixture(); f.host.inspect = async () => ({ status });
