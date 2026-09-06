@@ -170,7 +170,7 @@ export async function loadSitterLocale(ui, requested = 'fr') {
     // the repository root is the path on disk. A tag with no file throws here,
     // exactly as an unshipped locale does against a real rootURI.
     File: { getContentsFromURLAsync: async url => fs.readFileSync(url, 'utf8') } };
-  const loaded = await ui.loadSDTLocalization('bench/sdt-sitter/', requested);
+  const loaded = await ui.loadSDTLocalization('plugins/sdt-sitter/', requested);
   if (previous !== undefined) ui.Zotero = previous;
   return loaded;
 }

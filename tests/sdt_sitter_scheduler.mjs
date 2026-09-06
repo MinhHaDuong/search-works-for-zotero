@@ -8,13 +8,13 @@ const context = {};
 // One read, reused by the phase enumeration below: a second literal copy of this
 // path would give verification/probes/sdt_sitter_scheduler_mutants.py two anchors
 // where it requires exactly one, and its mutants could no longer be loaded.
-const schedulerSource = fs.readFileSync('bench/sdt-sitter/scheduler.js', 'utf8');
+const schedulerSource = fs.readFileSync('plugins/sdt-sitter/scheduler.js', 'utf8');
 vm.runInNewContext(schedulerSource, context);
 // The host half of the journal (emit, heartbeat, shutdown) lives in bootstrap.js;
 // loading it here lets the ring be driven by the real scheduler rather than by hand.
 // Read once for the same reason, and reused by the phase enumeration below.
 const ui = {};
-const bootstrapSource = fs.readFileSync('bench/sdt-sitter/bootstrap.js', 'utf8');
+const bootstrapSource = fs.readFileSync('plugins/sdt-sitter/bootstrap.js', 'utf8');
 // The plugin loads scheduler.js into bootstrap's own global before it renders
 // anything (`Services.scriptloader.loadSubScript(..., globalThis)`), so the census
 // classification is in scope there. Two vm contexts are two realms, so the load

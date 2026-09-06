@@ -103,11 +103,11 @@ function makeZotero() {
 }
 
 const ui = vm.createContext({});
-vm.runInContext(fs.readFileSync('bench/sdt-sitter/bootstrap.js', 'utf8'), ui);
+vm.runInContext(fs.readFileSync('plugins/sdt-sitter/bootstrap.js', 'utf8'), ui);
 // Loaded second, as `initialize` loads it at runtime: `var` redeclaration
 // without an initializer leaves bootstrap.js's own bindings alone, so the
 // dialog gets the real estimator and the real ring rather than stand-ins.
-vm.runInContext(fs.readFileSync('bench/sdt-sitter/scheduler.js', 'utf8'), ui);
+vm.runInContext(fs.readFileSync('plugins/sdt-sitter/scheduler.js', 'utf8'), ui);
 // Ticket 0692: the window's text comes from `locale/fr/sdt-pack-sitter.ftl`,
 // through the plugin's own loader. Every French assertion below is therefore
 // about the layout, the translation and the load path at once — and the arms
@@ -341,7 +341,7 @@ async function driveReinitialisation() {
     Prefs: host.Prefs,
     File: { getContentsFromURLAsync: async url => {
       assert.equal(url, `${INSTALL_PATH}manifest.json`, 'the manifest is not read from rootURI');
-      return fs.readFileSync('bench/sdt-sitter/manifest.json', 'utf8');
+      return fs.readFileSync('plugins/sdt-sitter/manifest.json', 'utf8');
     } },
   };
   await assert.rejects(ui.initialize(INSTALL_PATH, 0), /halt: after the self-check/);

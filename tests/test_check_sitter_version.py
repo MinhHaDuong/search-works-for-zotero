@@ -8,6 +8,9 @@ answer as though it had. A third control locks in a deliberate design choice
 rather than a defect: the no-regression check was removed 2026-09-06 (author's
 ruling, this ticket's DECISIONS.md entry) for the sitter's unreleased-software
 version-scheme reset, so a version that goes backwards is now expected to pass.
+A fourth crosses ticket 0697's promotion out of `bench/`, where the payload's
+history is split across two directories and reading only the current one comes
+back green over a single revision.
 """
 import json
 import os
@@ -23,8 +26,9 @@ if str(REPO / "bench") not in sys.path:
     sys.path.insert(0, str(REPO / "bench"))
 
 from build_sdt_sitter import DELIVERED  # noqa: E402
+from check_sitter_version import HOMES  # noqa: E402
 
-SITTER = REPO / "bench" / "sdt-sitter"
+SITTER = REPO / "plugins" / "sdt-sitter"
 GUARD = REPO / "bench" / "check_sitter_version.py"
 
 
@@ -47,9 +51,14 @@ def set_version(sitter: Path, version: str) -> None:
     path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 
-def payload(root: Path) -> Path:
-    """A throwaway checkout carrying only what the guard reads."""
-    sitter = root / "bench" / "sdt-sitter"
+def payload(root: Path, base: str = HOMES[0]) -> Path:
+    """A throwaway checkout carrying only what the guard reads.
+
+    `base` is the payload directory to build, relative to `root`. It defaults to
+    the live one and is overridden only by the rename arm below, which has to
+    seed history at the pre-promotion path the guard no longer reads directly.
+    """
+    sitter = root / base
     sitter.mkdir(parents=True)
     for name in DELIVERED:
         # A delivered name may be a path: the locale files of ticket 0692 sit
@@ -61,8 +70,8 @@ def payload(root: Path) -> Path:
     return sitter
 
 
-def seed(root: Path, version: str) -> Path:
-    sitter = payload(root)
+def seed(root: Path, version: str, base: str = HOMES[0]) -> Path:
+    sitter = payload(root, base)
     set_version(sitter, version)
     subprocess.run(["git", "init", "-q", "-b", "main"], cwd=root, check=True, capture_output=True)
     commit(root, f"seed {version}")
@@ -150,8 +159,10 @@ def test_guard_reports_not_run_where_there_is_no_history(tmp_path):
 def test_guard_reports_not_run_on_a_repository_with_no_commit_for_the_payload(tmp_path):
     """A git tree that is neither shallow nor grafted, and still has nothing to read.
 
-    Zero revisions compared is no comparison, and it printed OK. It is also the
-    state ticket 0697's rename lands in: the new path's history starts empty.
+    Zero revisions compared is no comparison, and it printed OK. Ticket 0697's
+    rename would have landed here too — a new path whose history starts empty —
+    had the guard not been taught every home the payload has had; the arm below
+    covers that half, and this one covers a checkout with no history at all.
     """
     root = tmp_path / "fresh"
     payload(root)
@@ -170,6 +181,65 @@ def test_guard_reports_not_run_on_a_repository_with_no_commit_for_the_payload(tm
     result = guard(other)
     assert result.returncode != 0, result.stdout + result.stderr
     assert "NOT-RUN" in result.stdout + result.stderr
+
+
+@pytest.mark.integration
+def test_guard_reads_the_payload_history_across_the_promotion_rename(tmp_path):
+    """Ticket 0697 moved the payload; the history before the move must still count.
+
+    A rename across a directory is not followed by `git log <path>`, so a guard
+    that names only the new path sees a history that starts at the rename
+    commit — and every collision older than the move reads as absent. That is
+    the guard's own read == 0 NOT-RUN case only when the move is the very first
+    commit; with anything after it the count is nonzero and the verdict comes
+    back a confident OK over one revision. Two arms, because either half of the
+    fix alone still answers green: the `git log` pathspec must name both paths,
+    AND `git show` must try both, since `<sha>:plugins/...` does not exist on a
+    pre-move commit and an unreadable manifest is skipped, not counted.
+
+    The fixture puts the ONLY collision in pre-move history: the working tree
+    carries the first commit's version over the second commit's payload, and
+    the rename commit itself bumps, so nothing after the move can redden it.
+    """
+    # Read off the guard's own roster rather than restated: the arm has to seed
+    # at a path the guard no longer reads directly, and a literal here would
+    # keep passing against a roster that had lost that entry.
+    assert len(HOMES) >= 2, "this arm needs a superseded home to seed history at"
+    current, previous = HOMES[0], HOMES[-1]
+
+    root = tmp_path / "repo"
+    root.mkdir()
+    old = seed(root, "2.3.0", base=previous)                     # payload P1 as 2.3.0
+    (old / "bootstrap.js").write_text("// a second payload\n", encoding="utf-8")
+    set_version(old, "2.4.0")
+    commit(root, "a second payload, bumped")                     # payload P2 as 2.4.0
+
+    (root / current).parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run(["git", "mv", previous, current],
+                   cwd=root, check=True, capture_output=True)
+    new = root / current
+    set_version(new, "2.5.0")
+    commit(root, "promote the sitter to its current home, bumped")  # payload P2 as 2.5.0
+
+    # P2 under 2.3.0 collides with commit 1 (P1 under 2.3.0) and with nothing else.
+    set_version(new, "2.3.0")
+    commit(root, "reuse a pre-move version over a later payload")
+    result = guard(root)
+    output = result.stdout + result.stderr
+    assert result.returncode != 0, output
+    assert "NOT-RUN" not in output, output
+    assert "2.3.0" in output, output
+
+    # And the green arm reports what it actually read. Five commits touch the
+    # payload, two of them only at the pre-move path; a guard blind to the
+    # rename reports three and calls that a clean comparison. The literal count
+    # is the discriminator here, so it is asserted rather than bounded.
+    set_version(new, "2.6.0")
+    commit(root, "bump clear of every earlier version")
+    result = guard(root)
+    output = result.stdout + result.stderr
+    assert result.returncode == 0, output
+    assert "across 5 revisions" in output, output
 
 
 @pytest.mark.integration
@@ -217,8 +287,14 @@ def test_guard_reports_not_run_when_the_history_names_blobs_it_cannot_produce(tm
     # Remove the earlier bootstrap.js blob, which is what a blobless clone lacks.
     first = subprocess.run(["git", "rev-list", "--max-parents=0", "HEAD"], cwd=root,
                            check=True, capture_output=True, text=True).stdout.strip()
-    blob = subprocess.run(["git", "rev-parse", f"{first}:bench/sdt-sitter/bootstrap.js"],
-                          cwd=root, check=True, capture_output=True, text=True).stdout.strip()
+    blob = None
+    for home in HOMES:
+        resolved = subprocess.run(["git", "rev-parse", f"{first}:{home}/bootstrap.js"],
+                                  cwd=root, capture_output=True, text=True)
+        if resolved.returncode == 0:
+            blob = resolved.stdout.strip()
+            break
+    assert blob is not None, f"{first} carries no bootstrap.js under any configured home"
     subprocess.run(["git", "unpack-objects"], cwd=root, capture_output=True)  # keep loose
     loose = root / ".git" / "objects" / blob[:2] / blob[2:]
     if not loose.exists():

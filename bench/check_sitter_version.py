@@ -57,6 +57,13 @@ control rather than by reading the code:
   and sets no marker at all, so the shallow probe answers false;
 * **no commit touching the payload path** — a fresh checkout, or a rename to a
   path whose history starts empty. Zero revisions compared is no comparison;
+* **a payload that has moved** — `git log <path>` does not follow a rename
+  across a directory, and `<sha>:<newpath>` does not exist on a commit older
+  than the move. Ticket 0697 promoted the sitter out of `bench/`, so both the
+  log pathspec and the blob reads name every historical home (`HOMES`), newest
+  first. Half the fix is not a fix: with only the pathspec widened, the
+  pre-move commits are listed and then skipped as manifest-less, and the count
+  comes back the same as if they had never been listed;
 * **a partial clone** — commits present, blobs absent. `git show` fails there
   exactly as it does on a path that never existed, and only the tree can say
   which, so the tree is asked;
@@ -81,10 +88,22 @@ import subprocess
 import sys
 from pathlib import Path
 
-from build_sdt_sitter import DELIVERED
+from build_sdt_sitter import DELIVERED, SOURCE
 
-#: Where the payload lives, relative to the repository root.
-SITTER = "bench/sdt-sitter"
+#: Where the payload lives now, relative to the repository root. Imported from
+#: the packager rather than restated: the file that builds the XPI is the one
+#: that decides which directory is the payload, and two copies of that answer
+#: would let a future move be packaged from one place and gated at another.
+SITTER = SOURCE
+
+#: Every directory the payload has ever lived in, newest first. History is read
+#: through all of them, because a rename across a directory is invisible to both
+#: `git log <path>` and `<sha>:<path>`: the first reports a history that begins
+#: at the move, the second fails on every commit older than it. A guard reading
+#: only `SITTER` after ticket 0697's promotion would have compared the working
+#: tree against a single revision and called that clean. Old homes are appended
+#: here and never removed — a version reused before a move is reused.
+HOMES = (SITTER, "bench/sdt-sitter")
 
 #: Environment that redirects git away from `--root`. Inherited from whoever ran
 #: the gate, and every one of these silently answers the question about a
@@ -171,25 +190,38 @@ def worktree_reader(root: Path):
 
 
 def commit_reader(root: Path, sha: str):
+    """Read a delivered file at one revision, from whichever home held it then.
+
+    `HOMES` is tried newest first, so a commit that carries both — the rename
+    itself — is read at the new path. A revision predating a move has nothing
+    at the new path and everything at the old one, and only trying both keeps
+    it comparable instead of silently manifest-less.
+    """
     def read(name: str) -> bytes | None:
-        address = f"{sha}:{SITTER}/{name}"
-        shown = git(root, "show", address)
-        if shown.returncode == 0:
-            return shown.stdout
-        # `git show` failed. The tree says which of the two reasons it was, and
-        # it can say so without the blob: a name the tree lists is a payload
-        # that exists and could not be produced, which is a gap in the clone
-        # rather than a file that was never committed.
-        listed = git(root, "ls-tree", "--name-only", sha, "--", f"{SITTER}/{name}")
-        if listed.returncode == 0 and listed.stdout.strip():
-            raise Unreadable(f"{address} is listed by the tree but its object is not here")
+        unreadable = None
+        for home in HOMES:
+            address = f"{sha}:{home}/{name}"
+            shown = git(root, "show", address)
+            if shown.returncode == 0:
+                return shown.stdout
+            # `git show` failed. The tree says which of the two reasons it was,
+            # and it can say so without the blob: a name the tree lists is a
+            # payload that exists and could not be produced, which is a gap in
+            # the clone rather than a file that was never committed. Held, not
+            # raised, until every home has been tried: an older home the clone
+            # cannot produce must not mask a newer one it can.
+            listed = git(root, "ls-tree", "--name-only", sha, "--", f"{home}/{name}")
+            if listed.returncode == 0 and listed.stdout.strip():
+                unreadable = f"{address} is listed by the tree but its object is not here"
+        if unreadable is not None:
+            raise Unreadable(unreadable)
         return None
     return read
 
 
 def history(root: Path) -> list[str]:
-    """Every commit that touched the payload, newest first."""
-    listed = git(root, "log", "--format=%H", "--", SITTER)
+    """Every commit that touched the payload at any of its homes, newest first."""
+    listed = git(root, "log", "--format=%H", "--", *HOMES)
     return listed.stdout.decode("utf-8", "replace").split()
 
 
@@ -272,18 +304,20 @@ def main() -> int:
         # The last way to be blind and look green: a checkout that is neither
         # shallow nor grafted and simply has no commit touching the payload —
         # a fresh `git init`, or the payload moved to a new path whose history
-        # starts empty (ticket 0697's rename is exactly that). Zero revisions
-        # compared is not a clean comparison, it is no comparison.
-        log.error("NOT-RUN: no commit under %s touches %s, so there is no earlier payload "
-                  "to compare against. If the directory was just renamed, pass the old path "
-                  "too; if the checkout is fresh, this guard has nothing to say yet.",
-                  root, SITTER)
+        # starts empty. Ticket 0697's rename was exactly that second case, and
+        # `HOMES` is what answers it; a move to a home not listed there lands
+        # back here. Zero revisions compared is not a clean comparison, it is
+        # no comparison.
+        log.error("NOT-RUN: no commit under %s touches any of %s, so there is no earlier "
+                  "payload to compare against. If the directory was just moved, add its "
+                  "previous path to HOMES in this file; if the checkout is fresh, this "
+                  "guard has nothing to say yet.", root, ", ".join(HOMES))
         return 1
     for finding in findings:
         log.error("FAIL: %s", finding)
     if findings:
         return 1
-    log.info("OK: version %s, checked against %d earlier revisions of %s, and no earlier "
+    log.info("OK: version %s, checked across %d revisions of %s, and no earlier "
              "revision shipped a different payload under it", version, read, SITTER)
     return 0
 

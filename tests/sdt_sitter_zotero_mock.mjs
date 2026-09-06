@@ -37,7 +37,7 @@ import vm from 'node:vm';
 
 import { FluentModule } from './fluent_stub.mjs';
 
-const SITTER = 'bench/sdt-sitter';
+const SITTER = 'plugins/sdt-sitter';
 const decoder = new TextDecoder();
 
 export const ROOT_URI = 'file:///home/tester/.zotero/profile/extensions/sdt-pack-sitter/';
