@@ -39,14 +39,13 @@ To read what the sitter itself is doing, open Zotero's Help → Debug Output
 Logging → View Output with logging enabled; the same transitions are also held
 in a volatile in-session ring, readable as
 `Zotero.SDTPackSitter.journal.tail()` from Tools → Developer → Run JavaScript.
-Neither is a file. The ring holds the last 2000 transitions and dies with the
-session, so the no-private-ledger promise above stands. Records name attachments
-by numeric item id and failures by the error's class alone, never by title, path
-or message text — the on-screen failure line is where the author sees the whole
-error, locally. Creating `extensions.sdt-pack-sitter.debug` and setting it true
-in the Config Editor (Settings → Advanced → Config Editor) widens the debug
-output to per-progress and per-heartbeat records; errors and state transitions
-are logged whether or not it is set.
+Neither is a file, and the ring dies with the session, so the no-private-ledger
+promise above stands. What a record may and may not carry, and what the trace
+level adds, are owned by SPEC.md's R22 design paragraph; the on-screen failure
+line remains the place the whole error text appears. To widen the debug output,
+create `extensions.sdt-pack-sitter.debug` and set it true in the Config Editor
+(Settings → Advanced → Config Editor); errors and state transitions are logged
+whether or not it is set.
 
 The cache/clock and grouped-progress build is covered by
 `bench/results/sdt-sitter-launch-2026-09-05/cache-and-progress.json`, including
