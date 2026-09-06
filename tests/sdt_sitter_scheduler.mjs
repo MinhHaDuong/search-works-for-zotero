@@ -486,7 +486,7 @@ await test('every attachment that is not indexed lands in exactly one user-facin
   assert.equal(coverage.total, attachments.length - sum(classes.outOfScope));
   assert.equal(coverage.current, sum(classes.indexed));
   // The property. `failed` is the banner; `queued` is work the sitter still owes.
-  assert.equal(api.state.failed, sum(classes.blocked));
+  assert.equal(api.state.failed, sum(classes.failed));
   assert.equal(coverage.current + api.state.failed + sum(classes.queued), coverage.total);
   // And the same reconciliation written out in numbers, so a classification that
   // moved a status from one class to another cannot satisfy it by symmetry.
@@ -529,6 +529,31 @@ await test('the failure total is this census, not every census since startup', a
   }
   assert.deepEqual(f.calls, [1, 2, 1, 2, 1, 2]);
 });
+/* The half of the derivation that only a mid-census observer can see, and the
+   reason every other test here is blind to it: they all assert after `sweep()`
+   resolves, which is the one moment the numbers are guaranteed whole. The census
+   rebuilds `state.counts` from empty and publishes once per attachment — and
+   `changed: render`, plus a 100 ms repaint, makes every one of those publishes a
+   frame the author can read. Recomputed ungated, the banner would empty at the
+   top of each sweep and climb back as the scan ran, every thirty seconds: the
+   silence this ticket removed, returning periodically. The reading is sampled
+   from inside `inspect()`, i.e. from within the census that has not closed. */
+await test('the failure banner holds the last complete census while the next one runs', async () => {
+  const f = fixture();
+  f.host.list = async () => [1, 2, 3];
+  f.host.inspect = async id => {
+    if (id === 3) throw new Error('attachment unreadable');
+    return { status: 'current', identity: String(id) };
+  };
+  await f.api.sweep();
+  assert.equal(f.api.state.failed, 1);
+  const midCensus = [], settled = f.host.inspect;
+  f.host.inspect = async id => { midCensus.push(f.api.state.failed); return settled(id); };
+  await f.api.sweep();
+  // One reading per attachment, taken before that attachment has been counted.
+  assert.deepEqual(midCensus, [1, 1, 1]);
+  assert.equal(f.api.state.failed, 1);
+});
 /* A pack `inspect()` has just verified as current IS indexed. What follows is
    disposable cache bookkeeping — a duration written into a store SPEC.md calls
    derived — and letting it throw into the per-candidate catch turned a verified
@@ -536,14 +561,21 @@ await test('the failure total is this census, not every census since startup', a
    later sweep would retry it either. The second sweep is what shows the second
    half; the counters alone would let a fix that only silenced the tally pass. */
 await test('a verified pack stays a success when the duration observation throws', async () => {
-  const f = fixture();
+  const f = fixture(), traced = [];
   f.host.observed = async () => { throw new Error('cache unwritable'); };
+  f.host.emit = (kind, detail, level = 'state') => traced.push({ kind, level, ...detail });
   await f.api.sweep();
   assert.equal(f.api.state.completed, 2);
   assert.equal(f.api.state.failed, 0);
   assert.equal(f.api.state.counts.current, 2);
   assert.equal(f.api.state.counts['failed-session'], undefined);
   assert.equal(f.api.state.error, null);
+  // Contained is not silent. A cache that has stopped recording durations must
+  // not look exactly like one that is working, and the record carries the id
+  // only — a platform message names whatever file it failed on.
+  const observe = traced.filter(record => record.kind === 'observe-failed');
+  assert.deepEqual(observe, [{ kind: 'observe-failed', level: 'trace', id: 1 },
+    { kind: 'observe-failed', level: 'trace', id: 2 }]);
   f.cached.clear();
   await f.api.sweep();
   assert.deepEqual(f.calls, [1, 2, 1, 2]);

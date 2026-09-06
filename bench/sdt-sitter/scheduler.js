@@ -1,8 +1,8 @@
 /* The census's whole status vocabulary, partitioned by what each status means for
    the author's library. Every attachment lands in exactly one class, and that is
-   what makes the two numbers on screen add up: `indexed + blocked + queued` is the
+   what makes the two numbers on screen add up: `indexed + failed + queued` is the
    coverage denominator, `outOfScope` is the rest of the library. One owner —
-   admission, the failure banner and the reconciliation all read this list, so a
+   admission, the failure banner and the coverage line all read this list, so a
    status added to one of them cannot be forgotten by the others.
 
    Ticket 0699. `inspection-error`, `unsupported-pack` and `missing-source` used to
@@ -12,8 +12,12 @@
    could not reach 100 % with nothing on screen saying why. */
 var SDT_STATUS_CLASSES = {
   indexed: ['current'],
-  // Not indexed, and not admissible: nothing this session does changes them.
-  blocked: ['failed-session', 'inspection-error', 'unsupported-pack', 'missing-source'],
+  // Not indexed, and not admissible: nothing this sweep does changes them. Named
+  // for `state.failed`, the banner it feeds, and deliberately NOT `blocked` —
+  // `host.blocked()` in the same codebase answers a different question (whether
+  // resources allow an admission right now), and one word for both invites the
+  // reader to take a stalled sitter for a library full of failures.
+  failed: ['failed-session', 'inspection-error', 'unsupported-pack', 'missing-source'],
   // Not indexed yet. Exactly the statuses admission accepts, and nothing else.
   queued: ['missing-pack', 'stale-source', 'stale-processor', 'invalid-pack'],
   // Not the sitter's business: trashed or not an attachment, or no processor exists.
@@ -32,9 +36,19 @@ var createSDTSitter = function (host) {
   // at the head of every sweep, so a counter incremented alongside it drifts by one
   // sweep's failures every pass and the banner slowly overstates a library that
   // never changed. Recomputed on every publish, which is every counts mutation.
+  //
+  // And only once the census is whole. A total read from a half-filled `counts`
+  // counts only what has been scanned so far, so an ungated derivation would blank
+  // the banner at the top of every sweep and refill it as the scan ran — the same
+  // silence this ticket removed, arriving every thirty seconds instead of
+  // permanently. Until the scan closes, the last complete census's figure stands;
+  // it is the last thing actually known. This is the predicate `getSDTCoverage`
+  // already publishes as `known`, and the reason the coverage line carries it.
   const publish = () => {
-    state.failed = SDT_STATUS_CLASSES.blocked
-      .reduce((n, key) => n + (state.counts[key] || 0), 0);
+    if (state.scanned === state.total) {
+      state.failed = SDT_STATUS_CLASSES.failed
+        .reduce((n, key) => n + (state.counts[key] || 0), 0);
+    }
     if (state.enabled) host.changed(state);
   };
   return {
@@ -119,7 +133,12 @@ var createSDTSitter = function (host) {
             // blacklisted the source by identity, so no later sweep retried it either.
             if (host.observed) {
               try { await host.observed(before, state.samples[state.samples.length - 1]); }
-              catch (_error) { /* The cache is disposable; the verdict is not its business. */ }
+              // Contained, not silent: a swallow with no surface at all is how a
+              // cache that has stopped recording durations looks exactly like one
+              // that is working. No detail travels — the throw can come from the
+              // platform, and a platform message names whatever it failed on
+              // (bootstrap.js's classifyError carries the argument in full).
+              catch (_error) { if (host.emit) host.emit('observe-failed', { id }, 'trace'); }
             }
             if (state.samples.length % 3 === 0) state.fittedSamples = state.samples.slice();
             state.counts[status]--; state.counts.current = (state.counts.current || 0) + 1;

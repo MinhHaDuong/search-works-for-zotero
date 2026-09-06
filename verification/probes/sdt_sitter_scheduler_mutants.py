@@ -102,21 +102,32 @@ MUTANTS = [
     # assertion in the suite green, because nothing throws and every bucket still
     # sums to the census.
     ("M9 inspection-error falls out of the failure classification (the 0699 under-report)",
-     "  blocked: ['failed-session', 'inspection-error', 'unsupported-pack', 'missing-source'],",
-     "  blocked: ['failed-session'],"),
+     "  failed: ['failed-session', 'inspection-error', 'unsupported-pack', 'missing-source'],",
+     "  failed: ['failed-session'],"),
     ("M10 a throwing duration observation reaches the verdict again (the 0699 false failure)",
-     "            if (host.observed) {\n"
-     "              try { await host.observed(before, state.samples[state.samples.length - 1]); }\n"
-     "              catch (_error) { /* The cache is disposable; the verdict is not its business. */ }\n"
-     "            }\n",
-     "            if (host.observed) await host.observed(before, state.samples[state.samples.length - 1]);\n"),
+     "              try { await host.observed(before, state.samples[state.samples.length - 1]); }\n",
+     "              await host.observed(before, state.samples[state.samples.length - 1]);\n"
+     "              try { /* the catch below is now unreachable */ }\n"),
     # The banner used to be incremented beside the census instead of derived from
     # it, so it grew by one sweep's failures every pass over an unchanged library.
     # Paired with the SETUPS["M11"] edit, this is exactly the pre-0699 shape.
     ("M11 the failure total accumulates across sweeps instead of reading this census",
-     "    state.failed = SDT_STATUS_CLASSES.blocked\n"
-     "      .reduce((n, key) => n + (state.counts[key] || 0), 0);\n",
+     "    if (state.scanned === state.total) {\n"
+     "      state.failed = SDT_STATUS_CLASSES.failed\n"
+     "        .reduce((n, key) => n + (state.counts[key] || 0), 0);\n"
+     "    }\n",
      ""),
+    # The other half of the derivation, and the one only a mid-census observer can
+    # see: an ungated recompute reads a `counts` the census has not finished
+    # filling, so the banner empties at the top of every sweep and refills as the
+    # scan runs. Every assertion taken after `sweep()` resolves is blind to it.
+    ("M12 the failure total is recomputed from a half-filled census",
+     "    if (state.scanned === state.total) {\n"
+     "      state.failed = SDT_STATUS_CLASSES.failed\n"
+     "        .reduce((n, key) => n + (state.counts[key] || 0), 0);\n"
+     "    }\n",
+     "    state.failed = SDT_STATUS_CLASSES.failed\n"
+     "      .reduce((n, key) => n + (state.counts[key] || 0), 0);\n"),
 ]
 
 

@@ -3,6 +3,11 @@ var createSDTSitter;
 var estimateSDTDuration;
 var createSDTCache;
 var createSDTJournal;
+// The census's status classification, which the coverage line below reads. Same
+// provenance as the four above — scheduler.js is loaded into this global before
+// anything renders — and declared here for the same reason: the forward
+// declarations are where a reader finds out what this file expects to be given.
+var SDT_STATUS_CLASSES;
 // `var`, not `let`: the journal and the sitter are the state the scheduler test
 // drives this file's emit/heartbeat/shutdown against, and only `var` reaches the
 // script global a sandboxed load exposes.
@@ -223,7 +228,9 @@ function render() {
       // accumulates over the whole session, `failed` is read off the last census
       // and includes attachments this session never touched.
       `Créés cette session : ${s.completed}`,
-      `Non indexés au dernier recensement : ${s.failed}`,
+      // Not "non indexés": that would cover the queued statuses too, which are
+      // work still owed rather than work that failed. The banner's own verb.
+      `N’ont pas pu être indexés (dernier recensement) : ${s.failed}`,
       s.error ? `Erreur : ${s.error}` : '',
       // The cache is derived and disposable, so a failed write changes nothing
       // about what is indexed and belongs in the disclosure rather than beside
@@ -421,7 +428,7 @@ async function initialize(rootURI, token) {
         emit('cache-write', { rows: changes.length, compact });
         compact = false;
       }
-      catch (error) { if (alive) sitter.state.cacheWarning = `Cache non enregistré : ${error}`; }
+      catch (error) { if (alive && sitter) sitter.state.cacheWarning = `Cache non enregistré : ${error}`; }
     });
     Zotero.SDTPackSitterCacheWrite = write;
     await write;

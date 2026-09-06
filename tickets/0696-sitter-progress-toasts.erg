@@ -10,6 +10,7 @@ Blocked-by: 0699
 
 2026-09-06T10:11Z sim note blocker 0691 closed — Blocked-by removed.
 2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED WITH CHANGES. As originally worded this ticket would have shipped a real regression: the sweep wrapper reschedules on a fixed 30s timer forever, so a toast fired on every sweep() call (not gated on real work done) would repeat every 30s once the library is caught up -- the same class of incident the author already hit once this session (a stuck census loop producing a "toast storm"). Rewrote Design/Acceptance to gate on an actual completed/failed delta, dropped the per-document "job start" toast (redundant with the already-shipped toolbar ambient indicators, and unworded for a per-sweep cadence anyway), and added `Blocked-by: 0699` since the failure count this ticket would display is currently known-buggy in both directions.
+2026-09-06T15:37Z claude note Corrected a stale reading of 0699: it is no longer 'zero acceptance boxes checked'. Its fix is in review as PR #387, and state.failed there is derived from the census (SDT_STATUS_CLASSES.failed) and recomputed only once scanned === total, so it is stable across a running census -- which is the property a per-sweep toast needs. The Blocked-by header still gates this ticket.
 --- body ---
 ## Context
 
@@ -56,10 +57,13 @@ already-shipped ambient indicators (spinning glyph while a file is
 active, opacity pulse during census).
 
 Text for the failure count depends on `state.failed`, which ticket 0699
-(open, reopened, zero acceptance boxes checked) documents as currently
-both over- and under-reporting. Land this ticket after 0699, or scope
-its first cut to a completion-only toast ("N fichiers indexes") and defer
-the failure-inclusive wording until 0699's fix lands.
+documented as both over- and under-reporting. 0699's fix is in review
+(PR #387): `state.failed` is now derived from the census through
+`SDT_STATUS_CLASSES.failed` rather than accumulated, and it is only
+recomputed once `scanned === total`, so it is stable across a running
+census. Read it after that PR merges; the `Blocked-by: 0699` header above
+is what gates this ticket, and until it clears, scope a first cut to a
+completion-only toast ("N fichiers indexes").
 
 ## Acceptance
 
