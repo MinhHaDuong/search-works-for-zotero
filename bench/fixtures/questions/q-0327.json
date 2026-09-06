@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0327",
+  "need": "Written before opening the document: a reader outside Vietnam wants to know whether the 1992 constitution names one single organisation as the leading force of the state and of society, and, if so, on what doctrine that leadership is said to rest.",
+  "query": "which organisation does the 1992 Vietnamese constitution designate as the leading force of the state and society, and under what doctrine",
+  "question_language": "en",
+  "answer_language": "vi",
+  "lane": "en->vi",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "compound-document-chain"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "vn-constitution-1992-vi-chuong-i",
+      "recipe_id": "vn-constitution-1992-vi-chuong-i",
+      "attachment_id": "vn-constitution-1992-vi-chuong-i-html",
+      "attachment_key": "83M6XUVM",
+      "section": "Điều 4",
+      "alternates": [
+        {
+          "page_printed": null,
+          "quote": "Đảng Cộng sản Việt Nam, đội tiên phong của giai cấp công nhân Việt Nam, đại biểu trung thành quyền lợi của giai cấp công nhân, nhân dân lao động và của cả dân tộc, theo chủ nghĩa Mác - LêNin và tư tưởng Hồ Chí Minh, là lực lượng lãnh đạo Nhà nước và xã hội.",
+          "char_offset": 918
+        }
+      ],
+      "chain": {
+        "title": "Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992, Chương I: Nước Cộng hòa Xã hội Chủ nghĩa Việt Nam - chế độ chính trị",
+        "author": "Quốc hội Việt Nam",
+        "date": "1992",
+        "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_I&oldid=104779",
+        "section_heading": "Chương I: Nước Cộng hòa Xã hội Chủ nghĩa Việt Nam - chế độ chính trị",
+        "page_printed": null,
+        "part_title": "Điều 4",
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "83M6XUVM",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 918,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

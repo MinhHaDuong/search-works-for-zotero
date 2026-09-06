@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0328",
+  "need": "Viết trước khi mở tài liệu: theo Hiến pháp 1992, đất đai và tài nguyên trong lòng đất thuộc hình thức sở hữu nào, và điều nào của chương về chế độ kinh tế nói điều đó?",
+  "query": "đất đai rừng núi sông hồ nguồn nước tài nguyên trong lòng đất thềm lục địa thuộc sở hữu toàn dân Hiến pháp 1992",
+  "question_language": "vi",
+  "answer_language": "vi",
+  "lane": "vi->vi",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "compound-document-chain"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "vn-constitution-1992-vi-chuong-ii",
+      "recipe_id": "vn-constitution-1992-vi-chuong-ii",
+      "attachment_id": "vn-constitution-1992-vi-chuong-ii-html",
+      "attachment_key": "X3QJKBTM",
+      "section": "Điều 17",
+      "alternates": [
+        {
+          "page_printed": null,
+          "quote": "Đất đai, rừng núi, sông hồ, nguồn nước, tài nguyên trong lòng đất, nguồn lợi ở vùng biển, thềm lục địa và vùng trời, phần vốn và tài sản do Nhà nước đầu tư vào các xí nghiệp, công trình thuộc các ngành và lĩnh vực kinh tế, văn hoá, xã hội, khoa học, kỹ thuật, ngoại giao, quốc phòng, an ninh cùng các tài sản khác mà pháp luật quy định là của Nhà nước, đều thuộc sở hữu toàn dân.",
+          "char_offset": 1013
+        }
+      ],
+      "chain": {
+        "title": "Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992, Chương II: Chế độ kinh tế",
+        "author": "Quốc hội Việt Nam",
+        "date": "1992",
+        "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_II&oldid=104780",
+        "section_heading": "Chương II: Chế độ kinh tế",
+        "page_printed": null,
+        "part_title": "Điều 17",
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "X3QJKBTM",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 1013,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}
