@@ -13,6 +13,12 @@ vm.runInNewContext(schedulerSource, context);
 // Read once for the same reason, and reused by the phase enumeration below.
 const ui = {};
 const bootstrapSource = fs.readFileSync('bench/sdt-sitter/bootstrap.js', 'utf8');
+// The plugin loads scheduler.js into bootstrap's own global before it renders
+// anything (`Services.scriptloader.loadSubScript(..., globalThis)`), so the census
+// classification is in scope there. Two vm contexts are two realms, so the load
+// order has to be reproduced by hand or the dialog's own reading of the census
+// would be exercised against a binding the runtime has and the test does not.
+ui.SDT_STATUS_CLASSES = context.SDT_STATUS_CLASSES;
 vm.runInNewContext(bootstrapSource, ui);
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
 function fixture() {
@@ -393,6 +399,154 @@ await test('shutdown is the last record even with a submission still in flight',
     ['admit', 'submit', 'dialog-close', 'shutdown']);
   assert.equal(tail[tail.length - 1].reason, 'disable');
   assert.equal(ui.Zotero.SDTPackSitter, undefined);
+});
+/* Ticket 0699, the acceptance property — and it is deliberately NOT the
+   conservation law. `sum(counts[*]) === scanned` holds in any version of this file
+   that decrements one bucket for every bucket it increments, unfixed ones
+   included, so it cannot tell right totals from wrong ones. What discriminates is
+   the *split*: the two numbers a reader actually sees — the coverage line and the
+   failure banner — have to account between them for every attachment that is not
+   currently indexed, and three whole statuses used to belong to neither.
+   `inspection-error` never became a candidate and never touched `state.failed`;
+   `unsupported-pack` and `missing-source` sat in the coverage denominator and in
+   no user-facing tally at all, so 100 % was unreachable with nothing on screen
+   saying why.
+
+   The fixture is messy in the one way that matters. The census enumerates
+   `itemAttachments` rows, so the unit is the attachment and not the reference:
+   here one reference carries two supported attachments (SPEC.md D6 twins), one
+   carries none, and one attachment has no parent at all. A reconciliation keyed
+   on a count of references passes on a 1:1 fixture and is wrong on any real
+   library. */
+await test('every attachment that is not indexed lands in exactly one user-facing total', async () => {
+  // Written as references owning attachment rows, because that asymmetry is the
+  // point; the sitter only ever sees the flattened rows.
+  const references = [
+    { reference: 'twins', rows: [{ id: 11, status: 'current' },
+      { id: 12, status: 'missing-pack', ensure: 'persists' }] },
+    { reference: 'no attachment at all', rows: [] },
+    { reference: 'a book nobody scanned', rows: [] },
+    { reference: 'unreadable', rows: [{ id: 21, inspectThrows: true }] },
+    { reference: 'pack from a newer Zotero', rows: [{ id: 22, status: 'unsupported-pack' }] },
+    { reference: 'file gone from disk', rows: [{ id: 23, status: 'missing-source' }] },
+    { reference: 'trashed', rows: [{ id: 24, status: 'excluded' }] },
+    { reference: 'a video', rows: [{ id: 25, status: 'unsupported' }] },
+    { reference: 're-saved source', rows: [{ id: 26, status: 'stale-source', ensure: 'throws' }] },
+    { reference: null, rows: [{ id: 27, status: 'invalid-pack', ensure: 'lies' }] },
+    { reference: 'older processor', rows: [{ id: 28, status: 'stale-processor' }] },
+  ];
+  const attachments = references.flatMap(entry => entry.rows);
+  // Non-vacuity guards for the cardinality itself: without these three the
+  // reconciliation below could be keyed on references and still come out green.
+  assert(references.some(entry => entry.rows.length === 2), 'no reference carries twin attachments');
+  assert(references.some(entry => entry.rows.length === 0), 'no reference carries zero attachments');
+  assert.notEqual(attachments.length, references.length);
+
+  const rows = new Map(attachments.map(row => [row.id, { ...row }]));
+  let clock = 0, checks = 0;
+  const api = context.createSDTSitter({
+    list: async () => [...rows.keys()],
+    inspect: async id => {
+      const row = rows.get(id);
+      if (row.inspectThrows) throw new Error('attachment unreadable');
+      return { status: row.status, identity: `id-${id}` };
+    },
+    // Falls below the threshold for the fourth admission, so the last candidate
+    // is still queued when the sweep ends — the bucket a reconciliation that only
+    // ever ran a library to completion would never see populated.
+    blocked: async () => (++checks > 3 ? 'low-disk' : null),
+    yield: async () => {}, now: () => ++clock, changed: () => {},
+    ensure: async id => {
+      const row = rows.get(id);
+      if (row.ensure === 'throws') throw new Error('native worker died');
+      // 'lies': native reports success and the re-inspection still shows no
+      // current pack. Ticket 0699 keeps that counted as a failure on purpose.
+      if (row.ensure === 'persists') row.status = 'current';
+      return true;
+    },
+  });
+  await api.sweep();
+
+  const counts = api.state.counts;
+  const classes = context.SDT_STATUS_CLASSES;
+  const sum = keys => keys.reduce((n, key) => n + (counts[key] || 0), 0);
+  // The conservation law, stated as the floor it is rather than as the property.
+  assert.equal(Object.values(counts).reduce((a, b) => a + b, 0), attachments.length);
+  assert.equal(api.state.total, attachments.length);
+
+  // Every status the fixture set out to exercise really occurred: a classification
+  // that silently dropped one would otherwise reconcile against a smaller library.
+  for (const status of ['current', 'inspection-error', 'unsupported-pack', 'missing-source',
+    'excluded', 'unsupported', 'failed-session', 'stale-processor']) {
+    assert(counts[status] > 0, `${status} never occurred: ${JSON.stringify(counts)}`);
+  }
+
+  const coverage = ui.getSDTCoverage(api.state);
+  assert.equal(coverage.known, true);
+  assert.equal(coverage.total, attachments.length - sum(classes.outOfScope));
+  assert.equal(coverage.current, sum(classes.indexed));
+  // The property. `failed` is the banner; `queued` is work the sitter still owes.
+  assert.equal(api.state.failed, sum(classes.blocked));
+  assert.equal(coverage.current + api.state.failed + sum(classes.queued), coverage.total);
+  // And the same reconciliation written out in numbers, so a classification that
+  // moved a status from one class to another cannot satisfy it by symmetry.
+  assert.equal(coverage.total, 8);
+  assert.equal(coverage.current, 2);
+  assert.equal(api.state.failed, 5);
+  assert.equal(sum(classes.queued), 1);
+});
+/* Acceptance box 1 on its own, at the smallest size that shows it: `inspect()`
+   throwing was mapped to a status outside the admission whitelist, so the
+   attachment became no candidate, reached no `ensure()`, and touched no total —
+   visible only as one line inside the collapsed diagnostics. */
+await test('an attachment whose inspection throws reaches the failure total, not only the diagnostics', async () => {
+  const f = fixture();
+  f.host.inspect = async id => {
+    if (id === 2) throw new Error('attachment unreadable');
+    return { status: 'current', identity: String(id) };
+  };
+  await f.api.sweep();
+  assert.equal(f.api.state.counts['inspection-error'], 1);
+  assert.equal(f.api.state.failed, 1);
+  assert.equal(f.calls.length, 0);
+});
+/* `state.counts` is rebuilt at the head of every sweep and `state.failed` used to
+   be a running total incremented beside it, so the banner grew by one sweep's
+   failures every thirty seconds while the library did not change. Suppression by
+   identity hid it whenever it held; a source whose identity moves — a re-saved
+   PDF, a processor upgrade — is the case where it did not. Derivation from the
+   census is what makes the two agree by construction rather than by discipline. */
+await test('the failure total is this census, not every census since startup', async () => {
+  const f = fixture();
+  let generation = 0;
+  f.host.ensure = async id => { f.calls.push(id); return false; };
+  f.host.inspect = async id => ({ status: 'missing-pack', identity: `${id}/${generation}` });
+  for (let sweep = 0; sweep < 3; sweep++) {
+    await f.api.sweep();
+    assert.equal(f.api.state.failed, 2, `after sweep ${sweep + 1}`);
+    assert.equal(f.api.state.counts['failed-session'], 2);
+    generation++;
+  }
+  assert.deepEqual(f.calls, [1, 2, 1, 2, 1, 2]);
+});
+/* A pack `inspect()` has just verified as current IS indexed. What follows is
+   disposable cache bookkeeping — a duration written into a store SPEC.md calls
+   derived — and letting it throw into the per-candidate catch turned a verified
+   success into a failure and, worse, blacklisted the source by identity so no
+   later sweep would retry it either. The second sweep is what shows the second
+   half; the counters alone would let a fix that only silenced the tally pass. */
+await test('a verified pack stays a success when the duration observation throws', async () => {
+  const f = fixture();
+  f.host.observed = async () => { throw new Error('cache unwritable'); };
+  await f.api.sweep();
+  assert.equal(f.api.state.completed, 2);
+  assert.equal(f.api.state.failed, 0);
+  assert.equal(f.api.state.counts.current, 2);
+  assert.equal(f.api.state.counts['failed-session'], undefined);
+  assert.equal(f.api.state.error, null);
+  f.cached.clear();
+  await f.api.sweep();
+  assert.deepEqual(f.calls, [1, 2, 1, 2]);
 });
 console.log(JSON.stringify({ tests: results, result: 'pass' }));
 

@@ -82,10 +82,14 @@ function noteDialogClose(dialog) {
   emit('dialog-close', {});
 }
 
+/* The denominator reads the same classification the scheduler admits from, so a
+   status added to one class cannot leave the coverage line counting it under
+   another. `scheduler.js` is loaded into this global before any render. */
 function getSDTCoverage(state) {
+  const tally = keys => keys.reduce((n, key) => n + (state.counts[key] || 0), 0);
   return { known: state.scanned === state.total && state.phase !== 'ready',
-    current: state.counts.current || 0,
-    total: Math.max(0, state.total - (state.counts.excluded || 0) - (state.counts.unsupported || 0)) };
+    current: tally(SDT_STATUS_CLASSES.indexed),
+    total: Math.max(0, state.total - tally(SDT_STATUS_CLASSES.outOfScope)) };
 }
 
 /* Every phase a reader can meet on hover, in the user's vocabulary. A blocked or
@@ -161,8 +165,6 @@ function render() {
     if (!status) continue;
     const elapsed = s.active === null ? null : Math.round((Date.now() - s.startedAt) / 1000);
     const silence = s.active === null ? null : Math.round((Date.now() - s.lastProgressAt) / 1000);
-    const remaining = ['missing-pack', 'stale-source', 'stale-processor', 'invalid-pack']
-      .reduce((n, key) => n + (s.counts[key] || 0), 0);
     const formatDuration = ms => {
       const minutes = Math.max(1, Math.round(ms / 60000));
       return minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
@@ -216,8 +218,18 @@ function render() {
     doc.getElementById('sdt-diagnostics').textContent = [
       `État : ${s.phase}`, `Recensement : ${s.scanned} / ${s.total}`,
       ...Object.entries(s.counts).map(([key, n]) => `${key} : ${n}`),
-      `Créés cette session : ${s.completed} ; échecs : ${s.failed}`,
+      // Two clauses, because the two numbers have different spans and one
+      // "cette session" governing both would misdescribe the second: `completed`
+      // accumulates over the whole session, `failed` is read off the last census
+      // and includes attachments this session never touched.
+      `Créés cette session : ${s.completed}`,
+      `Non indexés au dernier recensement : ${s.failed}`,
       s.error ? `Erreur : ${s.error}` : '',
+      // The cache is derived and disposable, so a failed write changes nothing
+      // about what is indexed and belongs in the disclosure rather than beside
+      // the totals — but it was set and read nowhere at all, which made an
+      // unwritable data directory a silence instead of a line.
+      s.cacheWarning || '',
     ].filter(Boolean).join('\n');
     const progress = doc.getElementById('sdt-progress');
     progress.hidden = s.active === null;
@@ -401,6 +413,9 @@ async function initialize(rootURI, token) {
         // Compact once per activation; subsequent writes contain changed rows only.
         await IOUtils.write(cachePath, bytes, compact ? { tmpPath: `${cachePath}.tmp` } : { mode: 'append' });
         cache.saved(changes);
+        // Cleared here, or a transient failure — a full disk that was emptied, a
+        // directory momentarily unwritable — would stay on screen for the session.
+        if (alive && sitter) sitter.state.cacheWarning = null;
         // This one resumes after an await, so disable can land under it. The seal
         // in shutdown() is what keeps it off the far side of the shutdown record.
         emit('cache-write', { rows: changes.length, compact });
