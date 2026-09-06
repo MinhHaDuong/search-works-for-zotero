@@ -11,10 +11,16 @@ a file attached to a Zotero entry. A reply is read hit by hit, in rank order:
   other rendering or the other language of ruling 5;
 - anything else is noise.
 
-**win**: the answer row is within the first ten and the reply carries every
-element of the chain — title, creators, date, identifier, section heading and
-printed page label — measured. **near-win**: the answer row is within the first
-ten with an incomplete chain, or only the same work is. **miss**: neither.
+**win**, as ruled on 2026-09-06 (`DECISIONS.md`, the identifier clause): the
+answer row is within the first ten and the reply carries a resolvable item key,
+which satisfies the identifier and work-identity part of the chain. For a
+**compound document** — a book, a book section, a proceedings paper, a
+dictionary or encyclopedia entry — a key alone is only a near-win: a win there
+still needs the part (the chapter, talk or entry title, which is what the hit's
+title names for a part) with its byline and the page in the reply. **near-win**:
+the answer row is within the first ten without that, or only the same work is.
+**miss**: neither. The full chain-completeness reading — every element the reply
+carried — is kept beside the verdict, since the ladder no longer turns on it.
 
 Two reciprocal ranks are kept because they answer different questions: the
 row's, which is the score ruling 5 names, and the work's, which is what a user
@@ -41,6 +47,12 @@ CHAIN_FIELDS: dict[str, tuple[str, ...]] = {
 }
 
 WIN, NEAR, MISS = "win", "near-win", "miss"
+
+#: Item types whose record is, or holds, parts: the ruling's compound documents.
+COMPOUND_TYPES = frozenset({"book", "bookSection", "conferencePaper", "dictionaryEntry", "encyclopediaArticle"})
+#: What a compound document's win needs in the reply beyond the key: the part's
+#: title (the hit's title, for a part), its byline, and the page.
+COMPOUND_WIN = ("title", "creators", "page_label")
 SHINGLE = 5
 
 
@@ -92,8 +104,9 @@ def classify(hits: list[dict], answer: dict, top_k: int = 10) -> dict:
         if row_rank is not None and work_rank is not None:
             break
     chain = chain_in_reply(row_hit) if row_hit is not None else {e: False for e in CHAIN_FIELDS}
-    complete = all(chain.values())
-    if row_rank is not None and complete:
+    compound = answer.get("item_type") in COMPOUND_TYPES
+    key_resolvable = bool(row_hit and row_hit.get("itemKey"))
+    if row_rank is not None and key_resolvable and (not compound or all(chain[e] for e in COMPOUND_WIN)):
         verdict = WIN
     elif row_rank is not None or work_rank is not None:
         verdict = NEAR
@@ -106,18 +119,30 @@ def classify(hits: list[dict], answer: dict, top_k: int = 10) -> dict:
         "row_rr": 1 / row_rank if row_rank else 0.0,
         "work_rr": 1 / work_rank if work_rank else 0.0,
         "chain_in_reply": chain,
+        "chain_complete": all(chain.values()),
+        "compound": compound,
+        "key_resolvable": key_resolvable,
         "hits": len(hits),
     }
 
 
-def aggregate(readings: list[dict], key) -> dict:
-    """Counts beside rates, per group of `key(reading)`, plus the whole."""
+def aggregate(readings: list[dict], key, score_key: str = "score") -> dict:
+    """Counts beside rates, per group of `key(reading)`, plus the whole. `score_key`
+    selects which reading of a row to aggregate when a row was asked in several
+    modes (`by_mode.<mode>`); the default is the primary mode's."""
     groups: dict[str, list[dict]] = defaultdict(list)
     for r in readings:
         groups[str(key(r))].append(r)
     groups["all"] = list(readings)
 
-    def cell(rs: list[dict]) -> dict:
+    def score_of(r: dict) -> dict:
+        node = r
+        for part in score_key.split("."):
+            node = node[part]
+        return node
+
+    def cell(rs0: list[dict]) -> dict:
+        rs = [{"score": score_of(r)} for r in rs0]
         n = len(rs)
         c = Counter(r["score"]["verdict"] for r in rs)
         return {
@@ -130,6 +155,7 @@ def aggregate(readings: list[dict], key) -> dict:
             "work_mrr": round(sum(r["score"]["work_rr"] for r in rs) / n, 3) if n else None,
             "row_in_top10": sum(1 for r in rs if r["score"]["row_rank"]),
             "work_in_top10": sum(1 for r in rs if r["score"]["work_rank"]),
+            "chain_complete": sum(1 for r in rs if r["score"].get("chain_complete")),
         }
 
     return {g: cell(rs) for g, rs in sorted(groups.items(), key=lambda kv: (kv[0] != "all", kv[0]))}

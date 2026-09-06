@@ -40,16 +40,31 @@ def test_overlap_needs_a_shared_shingle():
     assert SC.overlaps("The carbon tax", PARA)  # a short snippet contained whole
 
 
-def test_win_needs_the_row_and_the_whole_chain():
+def test_win_is_the_row_with_a_resolvable_key_for_a_simple_document():
+    """Ruled 2026-09-06: the item key satisfies the identifier and work-identity part
+    of the chain, so a title-plus-key hit wins; the chain reading is kept beside it."""
     s = SC.classify([NOISE[0], FULL_ROW], ANSWER)
     assert s["verdict"] == SC.WIN and s["row_rank"] == 2 and s["work_rank"] == 2
-    assert s["row_rr"] == pytest.approx(0.5) and all(s["chain_in_reply"].values())
-
-
-def test_right_row_incomplete_chain_is_a_near_win():
+    assert s["row_rr"] == pytest.approx(0.5) and s["chain_complete"] and not s["compound"]
     s = SC.classify([ROW], ANSWER)
-    assert s["verdict"] == SC.NEAR and s["row_rank"] == 1
-    assert s["chain_in_reply"]["title"] and not s["chain_in_reply"]["page_label"]
+    assert s["verdict"] == SC.WIN and s["row_rank"] == 1 and s["key_resolvable"]
+    assert s["chain_in_reply"]["title"] and not s["chain_in_reply"]["page_label"] and not s["chain_complete"]
+    keyless = {**ROW, "itemKey": ""}
+    assert SC.classify([keyless], {**ANSWER, "item_key": ""})["verdict"] != SC.WIN
+
+
+def test_a_compound_document_needs_part_byline_and_page_to_win():
+    """The exception: for a book, section, proceedings paper or dictionary entry a
+    key alone is a near-win; the part's title with its byline and the page win."""
+    chapter = {**ANSWER, "item_type": "bookSection"}
+    s = SC.classify([ROW], chapter)
+    assert s["verdict"] == SC.NEAR and s["row_rank"] == 1 and s["compound"]
+    part = {**ROW, "creators": ["A. Author"], "pageLabel": "14"}
+    assert SC.classify([part], chapter)["verdict"] == SC.WIN
+    assert SC.classify([{**ROW, "creators": ["A. Author"]}], chapter)["verdict"] == SC.NEAR
+    for t in ("book", "conferencePaper", "dictionaryEntry", "encyclopediaArticle"):
+        assert SC.classify([ROW], {**ANSWER, "item_type": t})["verdict"] == SC.NEAR
+    assert SC.classify([ROW], {**ANSWER, "item_type": "report"})["verdict"] == SC.WIN
 
 
 def test_same_work_without_the_paragraph_is_a_near_win():
@@ -76,9 +91,14 @@ def test_aggregate_counts_beside_rates_with_misses_at_zero():
     ]
     agg = SC.aggregate(readings, lambda r: r["lane"])
     assert list(agg)[0] == "all"
-    assert agg["all"] == {"n": 3, "win": 1, "near_win": 1, "miss": 1, "win_rate": 0.333, "near_win_rate": 0.333,
-                          "miss_rate": 0.333, "row_mrr": 0.5, "work_mrr": 0.5, "row_in_top10": 2, "work_in_top10": 2}
+    assert agg["all"] == {"n": 3, "win": 2, "near_win": 0, "miss": 1, "win_rate": 0.667, "near_win_rate": 0.0,
+                          "miss_rate": 0.333, "row_mrr": 0.5, "work_mrr": 0.5, "row_in_top10": 2, "work_in_top10": 2,
+                          "chain_complete": 1}
     assert agg["fr->en"]["n"] == 1 and agg["fr->en"]["row_mrr"] == 0.0
+    # A row asked in several modes aggregates under the mode's own score.
+    multi = [{"lane": "x", "score": readings[2]["score"], "by_mode": {"exact": readings[0]["score"]}}]
+    assert SC.aggregate(multi, lambda r: r["lane"], "by_mode.exact")["all"]["win"] == 1
+    assert SC.aggregate(multi, lambda r: r["lane"])["all"]["miss"] == 1
     tally = SC.chain_tally(readings)
     assert tally["answer_rows_found"] == 2
     assert tally["carried"]["entry_title"] == 2 and tally["carried"]["page_label"] == 1

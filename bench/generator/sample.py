@@ -304,6 +304,29 @@ class Sampler:
             self._texts[key] = self.lib.get_json(f"items/{key}/fulltext")
         return self._texts[key]
 
+    def draw_random(self, cells: dict[tuple, list], n: int) -> list[dict]:
+        """One paragraph per (record, attachment) pair, pairs drawn uniformly at
+        random from the whole frame, no quota — the scope ruling's reading: thin
+        cells are what the library has, and the summary reports them at their
+        true weight beside the census shares."""
+        pairs = [pair for cell_pairs in cells.values() for pair in cell_pairs]
+        self.rng.shuffle(pairs)
+        out: list[dict] = []
+        for record, attachment in pairs:
+            if len(out) >= n:
+                break
+            row = self.one(record, attachment)
+            if row is None:
+                self.rejected["no-eligible-paragraph"] += 1
+                continue
+            self.achieved["type"][row["type_group"]] += 1
+            self.achieved["format"][row["format"]] += 1
+            self.achieved["length"][row["length_bucket"]] += 1
+            out.append(row)
+        if len(out) < n:
+            logging.warning("frame exhausted after %d samples", len(out))
+        return out
+
     def one(self, record: dict, attachment: dict) -> dict | None:
         """One sampled paragraph of one attachment, with its whole chain, or None
         when the text holds no eligible paragraph."""
@@ -402,15 +425,22 @@ def summarise(rows: list[dict], sampler: Sampler, n_requested: int) -> dict:
     }
 
 
-def sample(args: argparse.Namespace, fetch: Fetch = http_fetch) -> tuple[list[dict], dict, dict[str, str]]:
-    """Run the sampler. Returns the private rows, the aggregate summary and the
-    API headers of the listing (library version, Zotero version)."""
-    census = json.loads(Path(args.census).read_text(encoding="utf-8"))
-    targets = census_targets(census)
+def list_library(args: argparse.Namespace, fetch: Fetch = http_fetch) -> tuple[Library, list[dict], dict[str, str]]:
+    """The whole item listing and the headers it came with (library version)."""
     lib = Library(fetch, args.base_url, "users/0", page_size=args.page_size)
     logging.info("listing the library")
     items = list(lib.items())
-    headers = dict(lib.last_headers)
+    return lib, items, dict(lib.last_headers)
+
+
+def sample(args: argparse.Namespace, fetch: Fetch = http_fetch,
+           listed: tuple[Library, list[dict], dict[str, str]] | None = None) -> tuple[list[dict], dict, dict[str, str]]:
+    """Run the sampler. Returns the private rows, the aggregate summary and the
+    API headers of the listing (library version, Zotero version). A caller that
+    has already listed the library passes the listing in, so the API is read once."""
+    census = json.loads(Path(args.census).read_text(encoding="utf-8"))
+    targets = census_targets(census)
+    lib, items, headers = listed if listed is not None else list_library(args, fetch)
     entries = lib.fulltext_entries()
     scope = None
     if args.scope_keys:
@@ -421,8 +451,10 @@ def sample(args: argparse.Namespace, fetch: Fetch = http_fetch) -> tuple[list[di
     cells = sampler.frame(items, entries, scope)
     frame_pairs = sum(len(v) for v in cells.values())
     logging.info("frame: %d pairs in %d cells", frame_pairs, len(cells))
-    rows = sampler.draw(cells, args.n)
+    sampling = getattr(args, "sampling", "random")
+    rows = sampler.draw_random(cells, args.n) if sampling == "random" else sampler.draw(cells, args.n)
     summary = summarise(rows, sampler, args.n)
+    summary["sampling"] = sampling
     summary["frame_pairs"] = frame_pairs
     summary["scope_items"] = len(scope) if scope is not None else None
     summary["seed"] = args.seed
@@ -448,6 +480,9 @@ def add_arguments(ap: argparse.ArgumentParser) -> None:
     ap.add_argument("--fulltext-cap", type=int, default=DEFAULT_FULLTEXT_CAP,
                     help="the target's per-item body-text cap, for the reachability flag")
     ap.add_argument("--page-size", type=int, default=100)
+    ap.add_argument("--sampling", choices=["random", "quota"], default="random",
+                    help="random: pairs drawn uniformly (the 2026-09-06 scope ruling); "
+                         "quota: fill census cells by deficit, census shares as targets")
 
 
 def build_parser() -> argparse.ArgumentParser:

@@ -6778,3 +6778,37 @@ A laptop closed for a week resumes with its memoized hashes still inside the
 window. That is the honest reading of "the session that runs for weeks", which is
 the case that ruling exists for, and it is stated in `SPEC.md` §5 beside the
 window itself.
+
+**2026-09-06 — RULED: three questions the library-level bench's first run
+(ticket 0719, `verification/GENERATOR-0719.md`) put to the author, on the
+chain, the scope and the question writer.**
+
+1. *The identifier clause of ruling 7.* A resolvable item key in the reply
+   satisfies the identifier and work-identity part of the citation chain, so a
+   zoteus hit — item key, title, snippet, score — can win. The exception is the
+   compound document: for a book, a proceedings, a dictionary or an
+   encyclopedia and the parts they hold, a key alone is a near-win, and a win
+   still needs the part — the chapter, talk or entry title with its byline —
+   and the page in the reply. The chain-completeness readings stay reported
+   beside the ladder; the ladder no longer turns on them.
+2. *The scope.* A seeded random sample of items, not a stratified one and not
+   the newest N, built into its own index. Thin cells are what the library
+   has, and a random sample reports them at their true weight; a stratified
+   sample would manufacture precision. Each lane and format cell prints its
+   count. The run identity records seed and scope.
+3. *The question writer.* padme is admissible under R10: it is the author's
+   own second machine. It runs a llama-server, whose model is better than the
+   Qwen3-8B this ledger and `SPEC.md` §5.2.8 had named in shorthand ("Qwen
+   3.8" stood for it). The endpoint and the model actually served are read
+   from the machine over ssh, never assumed, and recorded in the run identity;
+   the local transformers.js path stays as the fallback. Nothing is started or
+   installed on padme by a run; a server that is not running is reported, and
+   the fallback is used.
+
+Also asked for, same day: the run identity and the report state which
+retrieval mode each question went through — lexical, semantic or hybrid, as
+the adapter's query verb resolves it against the target's default path — read
+from the adapter and the target's replies rather than from documentation, and
+the same questions run in all three modes where the harness allows, the ladder
+per mode beside the per-lane table, so a lane's near-zero can be read as a mode
+effect or a model effect rather than guessed.

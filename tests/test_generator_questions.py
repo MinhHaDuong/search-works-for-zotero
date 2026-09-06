@@ -113,3 +113,66 @@ def test_the_driver_script_ships_beside_the_writer():
     source = script.read_text()
     assert "text-generation" in source and "cacheDir" in source
     assert "fetch(" not in source.replace("do_sample", ""), "the driver reaches no service of its own"
+
+
+def fake_exchange(answers, models=("qwen-x",), fail=False):
+    calls = []
+
+    def exchange(url, payload=None, timeout=None):
+        calls.append((url, payload))
+        if fail:
+            raise OSError("connection refused")
+        if url.endswith("/v1/models"):
+            return {"data": [{"id": m} for m in models]}
+        i = len([c for c in calls if c[1] is not None]) - 1
+        return {"choices": [{"message": {"content": answers[i]}}], "system_fingerprint": "b1-abc"}
+    exchange.calls = calls
+    return exchange
+
+
+def test_llama_server_writer_asks_the_endpoint_and_falls_back_on_a_blank():
+    ex = fake_exchange(["When was the carbon tax introduced?", ""])
+    writer = Q.LlamaServerWriter("http://srv:1/", "qwen-x", ex, note="ssh tunnel")
+    rs = rows(2)
+    rs[0]["question_language"] = "vi"
+    rs[1]["question_language"] = "fr"
+    written = writer.write(rs)
+    assert written[0]["writer"] == "llama-server" and written[0]["question"] == "When was the carbon tax introduced?"
+    assert written[1]["writer"] == "template-fallback"
+    url, payload = ex.calls[0]
+    assert url == "http://srv:1/v1/chat/completions" and payload["model"] == "qwen-x"
+    assert payload["chat_template_kwargs"] == {"enable_thinking": False} and payload["temperature"] == 0
+    assert "Vietnamese" in payload["messages"][1]["content"] and PARA in payload["messages"][1]["content"]
+    assert writer.fingerprint == "b1-abc" and "ssh tunnel" in writer.model and writer.model.startswith("qwen-x at")
+
+
+def test_discover_server_reads_the_model_never_assumes_it():
+    found = Q.discover_server("http://srv:1", fake_exchange([], models=("served-model", "other")))
+    assert found["model"] == "served-model" and found["models"] == ["served-model", "other"]
+    try:
+        Q.discover_server("http://srv:1", fake_exchange([], models=()))
+    except RuntimeError as e:
+        assert "names no model" in str(e)
+    else:
+        raise AssertionError("a server naming no model must not be used")
+
+
+def _args(**over):
+    import argparse
+    ns = argparse.Namespace(writer="llama-server", endpoint="http://srv:1", endpoint_note="", model="",
+                            transformers_path="", cache_dir="", dtype="q4", fallback_model="")
+    for k, v in over.items():
+        setattr(ns, k, v)
+    return ns
+
+
+def test_build_writer_uses_the_server_when_it_answers_and_records_the_fallback_when_not():
+    w = Q.build_writer(_args(), fake_exchange([]))
+    assert w.name == "llama-server" and w.model_id == "qwen-x" and w.fallback_reason is None
+    w = Q.build_writer(_args(model="not-served"), fake_exchange([]))
+    assert w.name == "template" and "not 'not-served'" in w.fallback_reason
+    w = Q.build_writer(_args(transformers_path="/tp", cache_dir="/c", fallback_model="small/model"),
+                       fake_exchange([], fail=True))
+    assert w.name == "tjs" and w.model_id == "small/model" and "did not answer" in w.fallback_reason
+    w = Q.build_writer(_args(), fake_exchange([], fail=True))
+    assert w.name == "template" and w.fallback_reason

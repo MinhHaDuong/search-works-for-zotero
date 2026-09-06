@@ -11,12 +11,18 @@ language except a declared share, drawn by the seed, written in another of R7's
 default-path languages (English, French, Vietnamese), cycling through the
 alternatives so the cross-lingual pairs are spread rather than piled on one.
 
-**Writers.** `tjs` drives `tjs_generate.mjs`, a small instruct model through
-transformers.js on CPU: local, free, and the runtime the target already
-carries. `template` is the deterministic fallback, a fixed sentence per language
-around the paragraph's most distinctive words, used when no model runtime is
-usable and for every row a model left blank; the artifact says which writer
-wrote each question so a run on the fallback is never read as a run on a model.
+**Writers.** `llama-server` puts the prompt to an OpenAI-compatible
+`/v1/chat/completions` endpoint — the author's own second machine, admissible
+under R10 by the ruling of 2026-09-06; the model is read from the server's
+`/v1/models`, never assumed, and recorded. Reaching a server that listens on its
+own loopback is the operator's business (an ssh tunnel), and the endpoint given
+here is what the artifact records. `tjs` drives `tjs_generate.mjs`, a small
+instruct model through transformers.js on CPU: the runtime the target already
+carries, and the fallback when the server does not answer. `template` is the
+deterministic last resort, a fixed sentence per language around the paragraph's
+most distinctive words, used for every row a model left blank; the artifact
+says which writer wrote each question so a run on a fallback is never read as a
+run on the model that was asked for.
 
 **What this measures.** A question written from the paragraph it must retrieve
 is a self-consistency probe: it asks whether the engine can find a paragraph
@@ -31,6 +37,9 @@ import random
 import re
 import subprocess
 import sys
+import time
+import urllib.error
+import urllib.request
 from collections.abc import Callable
 from pathlib import Path
 
@@ -109,6 +118,7 @@ def acceptable(question: str, paragraph: str) -> bool:
 class TemplateWriter:
     name = "template"
     model = "deterministic template"
+    fallback_reason = None
 
     def write(self, rows: list[dict]) -> list[dict]:
         return [{"question": template_question(r["paragraph"], r["question_language"]),
@@ -156,6 +166,84 @@ class TjsWriter:
         return out
 
 
+LANGUAGE_NAMES = {"en": "English", "fr": "French", "vi": "Vietnamese", "de": "German", "es": "Spanish",
+                  "zh": "Chinese", "ru": "Russian", "ar": "Arabic", "hi": "Hindi", "it": "Italian", "pt": "Portuguese"}
+SYSTEM_PROMPT = ("You write one short search question a researcher would type into a library search box "
+                 "to find the passage. The question must be answerable from the passage alone and must not "
+                 "copy a sentence of it. Answer with the question only, no preamble, no quotes.")
+
+
+def http_json(url: str, payload: dict | None = None, timeout: float = 300.0) -> dict:
+    """One JSON exchange with the inference server: GET without a payload, POST with one.
+    This is the writer's only network call site, and it never addresses Zotero."""
+    data = json.dumps(payload).encode() if payload is not None else None
+    request = urllib.request.Request(url, data=data, method="POST" if data else "GET",
+                                     headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        return json.loads(response.read())
+
+
+def discover_server(endpoint: str, exchange: Callable = http_json) -> dict:
+    """What the server says it serves: the first model id of `/v1/models`, and the
+    build fingerprint of one tiny completion. Raises when it does not answer."""
+    models = exchange(endpoint.rstrip("/") + "/v1/models")
+    ids = [m.get("id") for m in models.get("data", []) if m.get("id")]
+    if not ids:
+        raise RuntimeError(f"{endpoint}: /v1/models names no model")
+    return {"endpoint": endpoint, "model": ids[0], "models": ids}
+
+
+class LlamaServerWriter:
+    """An OpenAI-compatible chat endpoint, one request per paragraph."""
+
+    name = "llama-server"
+
+    def __init__(self, endpoint: str, model: str, exchange: Callable = http_json,
+                 max_tokens: int = 96, note: str = ""):
+        self.endpoint = endpoint.rstrip("/")
+        self.model_id = model
+        self.model = f"{model} at {endpoint}" + (f" ({note})" if note else "")
+        self.exchange = exchange
+        self.max_tokens = max_tokens
+        self.fingerprint: str | None = None
+
+    def _ask(self, paragraph: str, language: str) -> tuple[str, int]:
+        payload = {
+            "model": self.model_id,
+            "messages": [{"role": "system", "content": SYSTEM_PROMPT},
+                         {"role": "user", "content": f"Passage:\n{paragraph}\n\nWrite the question in "
+                                                     f"{LANGUAGE_NAMES.get(language, language)}."}],
+            "max_tokens": self.max_tokens,
+            "temperature": 0,
+            # A reasoning model would spend the budget thinking and answer nothing.
+            "chat_template_kwargs": {"enable_thinking": False},
+        }
+        t0 = time.monotonic()
+        reply = self.exchange(self.endpoint + "/v1/chat/completions", payload)
+        elapsed = int((time.monotonic() - t0) * 1000)
+        self.fingerprint = reply.get("system_fingerprint") or self.fingerprint
+        choices = reply.get("choices") or [{}]
+        return str((choices[0].get("message") or {}).get("content") or ""), elapsed
+
+    def write(self, rows: list[dict]) -> list[dict]:
+        out = []
+        for i, r in enumerate(rows, 1):
+            try:
+                raw, elapsed = self._ask(r["paragraph"], r["question_language"])
+            except (urllib.error.URLError, OSError, ValueError) as e:
+                logging.warning("llama-server: row %d: %s", i, e)
+                raw, elapsed = "", None
+            q = clean_question(raw)
+            if acceptable(q, r["paragraph"]):
+                out.append({"question": q, "writer": self.name, "elapsed_ms": elapsed})
+            else:
+                out.append({"question": template_question(r["paragraph"], r["question_language"]),
+                            "writer": "template-fallback", "elapsed_ms": elapsed})
+            if i % 10 == 0:
+                logging.info("%d / %d questions written", i, len(rows))
+        return out
+
+
 def write_questions(rows: list[dict], writer, share: float, seed: int) -> list[dict]:
     lanes = assign_lanes(rows, share, seed)
     for row, lang in zip(rows, lanes):
@@ -188,16 +276,46 @@ def load_rows(path: Path) -> list[dict]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
-def build_writer(args: argparse.Namespace):
-    if args.writer == "tjs":
-        if not (args.transformers_path and args.model and args.cache_dir):
+def build_writer(args: argparse.Namespace, exchange: Callable = http_json):
+    """The writer asked for, or the fallback when the server does not answer.
+
+    `llama-server` is tried first when asked for; a server that does not answer
+    is reported, and the run falls back to `tjs` when its three inputs are given,
+    else to the template. The reason is kept on the writer (`fallback_reason`) so
+    the run identity says which writer actually wrote, and why."""
+    writer = None
+    reason = None
+    if args.writer == "llama-server":
+        if not args.endpoint:
+            raise SystemExit("--writer llama-server needs --endpoint")
+        try:
+            found = discover_server(args.endpoint, exchange)
+            model = args.model or found["model"]
+            if model not in found["models"]:
+                raise RuntimeError(f"{args.endpoint} serves {found['models']}, not {model!r}")
+            writer = LlamaServerWriter(args.endpoint, model, exchange, note=getattr(args, "endpoint_note", ""))
+        except (urllib.error.URLError, OSError, ValueError, RuntimeError) as e:
+            reason = f"llama-server at {args.endpoint} did not answer or serves another model: {e}"
+            logging.warning("%s — falling back", reason)
+    if writer is None and args.writer in ("tjs", "llama-server"):
+        if args.transformers_path and args.model and args.cache_dir and args.writer == "tjs":
+            writer = TjsWriter(args.transformers_path, args.model, args.cache_dir, dtype=args.dtype)
+        elif args.transformers_path and args.cache_dir and getattr(args, "fallback_model", ""):
+            writer = TjsWriter(args.transformers_path, args.fallback_model, args.cache_dir, dtype=args.dtype)
+        elif args.writer == "tjs":
             raise SystemExit("--writer tjs needs --transformers-path, --model and --cache-dir")
-        return TjsWriter(args.transformers_path, args.model, args.cache_dir, dtype=args.dtype)
-    return TemplateWriter()
+    if writer is None:
+        writer = TemplateWriter()
+    writer.fallback_reason = reason
+    return writer
 
 
 def add_arguments(ap: argparse.ArgumentParser) -> None:
-    ap.add_argument("--writer", choices=["tjs", "template"], default="template")
+    ap.add_argument("--writer", choices=["llama-server", "tjs", "template"], default="template")
+    ap.add_argument("--endpoint", default="", help="OpenAI-compatible server root, for --writer llama-server")
+    ap.add_argument("--endpoint-note", default="", help="how the endpoint is reached, recorded in the run identity")
+    ap.add_argument("--fallback-model", default="",
+                    help="hub id of the transformers.js model to fall back on when the server does not answer")
     ap.add_argument("--transformers-path", default="", help="a @huggingface/transformers package directory")
     ap.add_argument("--model", default="", help="model id for the text-generation pipeline")
     ap.add_argument("--cache-dir", default="", help="where transformers.js keeps model files")

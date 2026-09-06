@@ -274,3 +274,16 @@ def test_length_quota_defers_rather_than_discards_on_a_small_frame():
     assert len(rows) == 4
     assert sampler.rejected["length-over-quota"] >= 1 and sampler.rejected["length-quota-released"] >= 1
     assert Lib.calls == 5, "one GET per attachment; deferred pairs are not re-fetched"
+
+
+def test_random_draw_takes_pairs_uniformly_without_quota(tmp_path):
+    rows, summary, _ = S.sample(args(tmp_path, n=2, seed=3), fetch=Route())
+    assert len(rows) == 2 and summary["sampling"] == "random"
+    assert summary["rejected"] == {} or set(summary["rejected"]) <= {"no-eligible-paragraph"}
+    again, _, _ = S.sample(args(tmp_path, n=2, seed=3), fetch=Route())
+    assert [r["attachment_key"] for r in again] == [r["attachment_key"] for r in rows]
+    other, _, _ = S.sample(args(tmp_path, n=3, seed=4, sampling="quota"), fetch=Route())
+    assert len(other) == 3
+    listed = S.list_library(args(tmp_path), fetch=Route())
+    rows2, _, headers = S.sample(args(tmp_path, n=3), fetch=Route(), listed=listed)
+    assert len(rows2) == 3 and headers["last-modified-version"] == "1257"

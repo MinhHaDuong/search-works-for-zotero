@@ -48,7 +48,9 @@ class FakeTarget:
 
     def query(self, q, mode, limit):
         self.queries.append((q, mode, limit))
-        return self.replies.get(q, {"hits": []})
+        reply = dict(self.replies.get(q, {"hits": []}))
+        reply.update({"embedder": "local", "embedderActive": mode != "exact", "vectors": 40})
+        return reply
 
 
 def row(i, q, lane="en->en", fmt="pdf", cross=False, cap=True):
@@ -84,38 +86,46 @@ def test_build_index_polls_until_done_and_records_the_cost():
     assert build_call == {"action": "build", "fulltext": True, "limit": 30, "auto_build": False}
 
 
-def test_ask_goes_through_the_query_verb_and_scores_each_reply():
+def test_ask_puts_every_question_through_every_mode_and_reads_the_evidence():
     hit = {"itemKey": "ITEM1", "title": "T1", "snippet": "under the name of the climate energy contribution, at a rate"}
     target = FakeTarget({"q1": {"hits": [{"itemKey": "X", "title": "x", "snippet": "no"}, hit]},
                          "q2": {"hits": [], "isError": True}})
-    readings = R.ask(target, [row(1, "q1"), row(2, "q2", lane="fr->en", cross=True)], top_k=10)
-    assert [q for q, _, _ in target.queries] == ["q1", "q2"] and target.queries[0][1] == R.MODE
-    assert readings[0]["score"]["verdict"] == "near-win" and readings[0]["score"]["row_rank"] == 2
+    readings, evidence = R.ask(target, [row(1, "q1"), row(2, "q2", lane="fr->en", cross=True)], top_k=10)
+    assert [(q, m) for q, m, _ in target.queries] == [("q1", "combined"), ("q1", "exact"), ("q1", "meaning"),
+                                                       ("q2", "combined"), ("q2", "exact"), ("q2", "meaning")]
+    assert readings[0]["score"]["verdict"] == "win" and readings[0]["score"]["row_rank"] == 2
+    assert readings[0]["by_mode"]["exact"]["verdict"] == "win" and readings[0]["by_mode"]["meaning"]["row_rank"] == 2
     assert readings[1]["score"]["verdict"] == "miss" and readings[1]["reply_error"]
+    # The mode map is the adapter's own, and the evidence is what the reply said.
+    assert evidence["combined"]["target_mode"] == "auto" and evidence["exact"]["target_mode"] == "keyword"
+    assert evidence["exact"]["embedderActive"] is False and evidence["meaning"]["embedderActive"] is True
     doc = R.report(readings, {"n": 2}, {"n": 2})
     assert doc["ladder"]["by_lane"]["fr->en"]["miss"] == 1
+    assert doc["ladder"]["by_mode"]["exact"]["win"] == 1 and doc["ladder"]["by_mode_and_lane"]["meaning"]["en->en"]["n"] == 1
     assert doc["ladder"]["by_cross_lingual"]["cross-lingual"]["n"] == 1
+    assert doc["ladder"]["by_compound"]["simple"]["n"] == 2
     assert doc["ladder"]["by_reachability"]["within-cap"]["n"] == 2
     assert doc["chain_in_reply"]["answer_rows_found"] == 1
     assert "self-consistency" in doc["self_consistency_note"]
-    text = json.dumps(doc)
-    assert PARA[:30] not in text and "ITEM1" not in text and "T1" not in text.replace("\"T1\"", "") or True
     md = R.markdown(doc)
-    assert "| fr->en | 1 | 0 | 0 | 1 |" in md
+    assert "| fr->en | 1 | 0 | 0 | 1 |" in md and "by retrieval mode" in md
 
 
 def test_the_parser_builds_without_option_collisions():
     ap = R.build_parser()
     ns = ap.parse_args(["--entrypoint", "e", "--arena", "a", "--work-dir", "w", "--output", "o",
-                        "--census", "c", "--transformers-path", "t", "--zotero-data-dir", "z", "--n", "7"])
-    assert ns.transformers_path == "t" and ns.zotero_data_dir == "z" and ns.n == 7 and ns.build_limit == 0
+                        "--census", "c", "--transformers-path", "t", "--zotero-data-dir", "z", "--n", "7",
+                        "--writer", "llama-server", "--endpoint", "http://127.0.0.1:1", "--scope-items", "50"])
+    assert ns.transformers_path == "t" and ns.zotero_data_dir == "z" and ns.n == 7
+    assert ns.scope_items == 50 and ns.endpoint == "http://127.0.0.1:1" and not ns.reuse_index
+    assert ns.sampling == "random"
 
 
 def test_the_artifact_carries_no_row_level_text():
     """The report is aggregates: a reading's paragraph, question and key never reach it."""
     hit = {"itemKey": "ITEM1", "title": "T1", "snippet": "under the name of the climate energy contribution, at a rate"}
     target = FakeTarget({"what is the carbon tax": {"hits": [hit]}})
-    readings = R.ask(target, [row(1, "what is the carbon tax")], top_k=10)
+    readings, _ = R.ask(target, [row(1, "what is the carbon tax")], top_k=10)
     text = json.dumps(R.report(readings, {"n": 1}, {"n": 1}))
     for secret in (PARA[:25], "what is the carbon tax", "ITEM1", "T1"):
         assert secret not in text
