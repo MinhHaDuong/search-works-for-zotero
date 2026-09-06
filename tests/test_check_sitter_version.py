@@ -239,7 +239,7 @@ def test_guard_reads_the_payload_history_across_the_promotion_rename(tmp_path):
     result = guard(root)
     output = result.stdout + result.stderr
     assert result.returncode == 0, output
-    assert "against 5 earlier revisions" in output, output
+    assert "against 4 earlier revisions" in output, output
 
 
 @pytest.mark.integration

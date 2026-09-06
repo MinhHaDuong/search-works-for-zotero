@@ -317,8 +317,9 @@ def main() -> int:
         log.error("FAIL: %s", finding)
     if findings:
         return 1
+    earlier = max(0, read - 1)
     log.info("OK: version %s, checked against %d earlier revisions of %s, and no earlier "
-             "revision shipped a different payload under it", version, read, SITTER)
+             "revision shipped a different payload under it", version, earlier, SITTER)
     return 0
 
 
