@@ -49,25 +49,33 @@ reads.
 A document names a public, third-party-hosted, persistent identifier that
 resolves to one fixed set of bytes. A personal Zotero library is not one, a
 personal homepage is not one, and a publisher's live page is not one. The
-admitted archives, and the identifier each pins:
+admitted archives are data, in `archives.json` beside this file: one entry
+per archive with its hosts, the identifier form, the version rule, and the
+admission probe under the five-part test ratified 2026-09-04 — robot-open,
+licence-open, reputable, byte-exact identifier, ten years old — recorded as
+one real fetch (date, URL, status, content type, first bytes). A new archive
+is admitted by adding an entry with its probe, never by editing a set in
+`fetch_recipe.py`, which derives everything it checks from that file. The
+entries as of 2026-09-06, and the identifier each pins:
 
 | archive | identifier | version |
 |---|---|---|
 | Internet Archive | item identifier | none; hash pins the bytes |
-| Gallica | `ark:/12148/…` | none; hash pins the bytes |
 | Wikimedia Commons | file page | file history; hash pins the version |
 | Wikisource | permanent revision id (`oldid`) | the revision is the version |
-| HAL | `hal-…`, `tel-…` | required, `vN` |
+| Wikipedia | `<lang>:<Title>@<oldid>`, the article namespace fetched as raw wikitext | the revision is the version; an interlanguage link is a `same-subject` relation, never a translation |
+| HAL | `hal-…`, `tel-…` | required, `vN`; narrow exception, existing records only (Anubis challenge, pinned once by hand) |
 | arXiv | `NNNN.NNNNN` | required, `vN`; the PDF may be regenerated, so a hash mismatch is a text diff to inspect |
 | Zenodo | version DOI | required; never the concept DOI |
-| FAOLEX | `LEX-FAOC…` | none; admitted for Decision 11/2017 only, with the `docs/pdf/` address, hash, and Wayback capture date pinned |
-| UK Government Web Archive | dated snapshot URL | the timestamp is the version |
+| FAOLEX | `LEX-FAOC…` | none; admitted for Decision 11/2017 only (allowlist `LEX-FAOC179224`), with the `docs/pdf/` address, hash, and Wayback capture date pinned |
+| UK Government Web Archive | dated snapshot URL | the timestamp is the version; the host answers scripts with a WAF refusal, so a snapshot is pinned once by hand |
 | Project Gutenberg | numeric ebook identifier | none; each official distribution is hash-pinned because Gutenberg corrects files in place |
+| Gallica | `ark:/12148/…` | **dropped** 2026-09-04: every scripted fetch is answered with an ALTCHA challenge (429 on re-probe); a ruled-shape attachment naming it is refused, a legacy-shape record is tolerated until the recipe lane retires it and is never fetched (`dropped-archive`) |
 
 Nothing is deposited anywhere by this project to manufacture an identifier.
 `fetch_recipe.py` refuses a recipe that breaks any of this before it fetches a
 byte, and `tests/test_fixture_recipe.py` proves the refusal fires on the exact
-defects the closed PR shipped.
+defects the closed PR shipped and on each of the ruled-shape offences.
 
 ## Licensing bases
 
@@ -178,10 +186,63 @@ belong to the declared archive and to no refused host), `sha256` (or `null`
 with `sha256_reason`), `license_basis`.
 
 Recommended, by convention: `bytes_format` (`pdf`, `djvu`, `wikitext`,
-`txt`, `html`, `epub`; default `pdf`), `min_size` (bytes below which a download is treated as
-an error page; default 1 000), `archive_checksums` (the archive's own md5 or
+`txt`, `html`, `md`, `epub`, `docx`, `xlsx`, `odt`, `rtf`, `jpg`, `png`,
+`zip`, `tgz`; default `pdf` — the office, image and archive formats are the
+9,2 % of files the extractor never reads and are failure controls by
+construction), `min_size` (bytes below which a download is treated as an
+error page; default 1 000), `archive_checksums` (the archive's own md5 or
 sha1 where it publishes one), `page_count`, `provenance_check`,
-`wayback_capture` (for the unversioned database of record), `notes`.
+`wayback_capture` (for the unversioned database of record).
+
+### The ruled shape (ticket 0721)
+
+A record in the `attachments` shape carries, beyond the parent fields above
+(`item_type`, `type_fidelity`, `work_id`, `work_relations`,
+`structural_features`):
+
+- `topic`, one of the author's library's seven: `economics`, `uncertainty`,
+  `energy`, `environment`, `development`, `sts`, `hss`; a record kept
+  off-topic says why in `retained_reason`;
+- `stratum`, `core` (representative, following the census marginals) or
+  `reserve` (adversarial); a reserve member names the mechanism ids it
+  carries in `mechanisms` (a list of strings, empty for core);
+- `language_field`, the exact string written to Zotero's language field —
+  `""` or a malformed spelling on purpose, following the census — while the
+  recipe's `language` stays the declared language of the work and is the
+  fallback when no `language_field` is given;
+- `citation`, any subset of `{doi, isbn, url}`, written to the Zotero fields
+  the item type has (`zotero-item-fields.json`, Zotero's public schema reduced
+  to item type → field names; `golden_fixture.py item-fields` regenerates it)
+  and to Extra as `DOI: …` / `ISBN: …` / `URL: …` otherwise;
+- `notes`, an optional list of `{id, html}` child notes, `id` a globally
+  unique slug;
+- `record_only: true` with `attachments: []` for a record with no file
+  (14,8 % of the census); an empty attachment list without the flag is an
+  offence, and so is the flag with attachments;
+- `work_relations[].type` gains `same-subject`, a Wikipedia interlanguage
+  link, never recorded as `translation`.
+
+Each attachment carries, beyond the existing fields (`language`, `role`,
+`relation`, `selection_expectation`, `cap_expectations`, provenance):
+
+- `charset`, required for every text format (`html`, `wikitext`, `txt`,
+  `md`) and a codec Python can name: `utf-8`, or the authentic legacy charset
+  the archive served (`windows-1258`, `koi8-r`, `windows-1251`, `gb2312`,
+  `big5`, `iso-8859-1`, `windows-1256`, …). The injection writes it on the
+  Zotero attachment item, canonicalised as Zotero stores it (`iso-8859-1`
+  becomes `windows-1252`, `gb2312` becomes `gbk`), and on the upload's
+  `Content-Type`; `fetch_recipe.py` checks a text download decodes under it.
+  No file is ever converted. A legacy-shape record (no `attachments`) carries
+  no charset until the recipe lane rewrites it;
+- `content_type_declared`, optional, the MIME type written instead of the
+  format's own — the lying-MIME failure control only;
+- `min_body_chars`, optional (default 2 000): the injection refuses a text
+  attachment whose decoded body — HTML tags stripped, wikitext templates,
+  comments and category links stripped — is shorter, unless the attachment
+  declares a `failure_control`. This is the transclusion-skeleton guard: two
+  of ticket 0632's three Wikisource records were work pages carrying only
+  header templates;
+- `encoding_note`, optional prose on a legacy encoding.
 
 Optional, and checked by the validator when present: `failure_control`, the
 declaration the 2026-09-03 ruling requires of every failure control — an
@@ -192,7 +253,7 @@ and `answer_set_participation` (`none`: a control is never a pinned answer).
 Three records carry it (author's rulings of 2026-09-04 and 2026-09-06): the
 Trần Trọng Kim DjVu, which Zotero's extraction dispatch never processes, and
 the two un-OCR'd scans, Trần Trọng Kim volume II and Ramsey 1931, which yield
-no text.
+no text. A control is also exempt from the body-text floor above.
 
 ## The pinned subset and the export
 
@@ -205,9 +266,18 @@ export` and the offline replay all read, so the export manifest's
 whenever `recipe.json` gains a pinned hash, and re-export.
 
 The export (`golden_fixture.py export`, destination `export/`) is a raw
-capture of the live API: `items.json`, one `fulltext/<key>.json` per indexed
-attachment, and `manifest.json` binding each attachment row to its recipe
-record. A declared failure control is exported with `terminal_state`
+capture of the live API: `items.json` (parents, attachments and child notes),
+one `fulltext/<key>.json` per indexed attachment, and `manifest.json`
+(`schema_version` 2) binding each parent to its Zotero key, its note keys and
+its `record_only` flag under `parents`, and each attachment row to its recipe
+record under `attachments`. It also counts `note_count`,
+`record_only_count`, `strata`, `topic_counts`, `format_counts` (by content
+type) and `language_counts` (per attachment's declared language). The loader
+in `make_index_fixture.mjs` reads schema 2 only and refuses the schema-1
+export of 2026-09-06 with a message naming the re-export: that export lacked
+explicit charsets, the observed reindex mode and the parent bindings, and is
+superseded by the re-export this schema exists for. A declared failure
+control is exported with `terminal_state`
 `unindexed`, no fulltext file, its declaration copied from the recipe and the
 state the reindex observed. It is accepted on evidence from the run itself:
 the reindex must have watched Zotero go idle and leave the attachment at the
@@ -223,17 +293,44 @@ An indexed attachment is refused when the reindex left its fulltext version
 unchanged, since Zotero resets that version on every local extraction and an
 unchanged one means the client held the item but never read the file.
 
-The manifest's two extraction preferences describe the injecting profile,
-not a bound on the extraction: the control plugin reindexes with
-`complete: true`, which Zotero documents as ignoring the page and character
-limits, and the manifest says so under `reindex` beside them. The binding
-record is each row's observed `indexed_pages`/`total_pages` and
+### Reindex modes, and what the manifest observes
+
+`inject` and `export` take `--reindex-mode stock|uncapped`, `stock` by
+default. Stock asks the control plugin for `complete: false`, so Zotero
+applies its own `fulltext.pdfMaxPages` and `fulltext.textMaxLength` exactly as
+it would to its own extraction; uncapped asks for `complete: true` and both
+limits are ignored (plugin 0.2.0 and later; an older plugin, which always
+ignored the limits, is refused because it does not echo the mode). The
+manifest's `reindex.mode` is recorded as the plugin's status reports it after
+the reindex settled, never as typed, and the export refuses when the two
+disagree. The two preferences under `zotero` are likewise read live from the
+plugin's status (`prefs`), with `--pdf-max-pages` and `--text-max-length`
+kept only as optional cross-checks that refuse on mismatch; `plugin_version`
+is recorded beside them. In stock mode the export refuses itself when a
+captured counter contradicts the recorded preference — an attachment indexed
+past the cap, or over the cap and not cut exactly at it — and the loader
+applies the same rule to a manifest claiming stock. The binding record stays
+each row's observed `indexed_pages`/`total_pages` and
 `indexed_chars`/`total_chars`. `known_defects` lists what the export knows is
 wrong with the fixture as injected — declared by the operator with
-`--known-defect`, or detected by the export itself (a text attachment whose
-charset Zotero guessed, so its indexed text is one character per byte) — and
-records them without repairing anything, because the export is what Zotero
-holds.
+`--known-defect`, or detected by the export itself (a text attachment
+indexed one character per byte although its item declares its charset) —
+and records them without repairing anything, because the export is what
+Zotero holds. A charset the injection set explicitly is no longer a defect;
+a charset Zotero holds that differs from the recipe's is metadata drift, and
+the export refuses.
+
+### Notes, record-only parents, and retiring a record
+
+Child notes are written as Zotero note items under the managed marker
+`zoteus-golden-note:<id>`, reconciled idempotently like attachments (a
+changed `html` is an update, never a second note), exported in `items.json`
+and served by the replay on `/items/<parent>/children`. A record-only parent
+is injected with no attachment and takes no part in the reindex. `retire
+--ids a,b` moves managed parents out of the fixture collection by rewriting
+their `collections` field — children follow, nothing is deleted or trashed —
+so a later `inject` no longer sees them as stale; a parent already outside the
+collection is reported as absent, and a second run changes nothing.
 
 A third row shape, `indexed-not-served`, records a fact of the local API
 found on the first real run: `/items/<key>/fulltext` answers 404 for every
