@@ -2,6 +2,7 @@
 Title: Heartbeat only covers extraction hangs, not census/admission hangs
 Created: 2026-09-06
 Author: claude
+Closed: autoclosed — PR #389
 
 --- log ---
 2026-09-06T00:00Z claude created
@@ -9,6 +10,7 @@ Author: claude
 2026-09-06T10:25Z sim note blocker 0689 closed — Blocked-by removed.
 2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED, highest priority of the four Fable-findings tickets (the incident-linked one). Confirmed unchanged. Implementation guidance, traced against the real code and the existing test suite: gate `heartbeatTick` on a newly-exposed `state.busy` flag (set by the scheduler's own outer `finally`, mirroring how `busy` already works internally), NOT on `state.phase !== 'ready'` -- that alternative was tried and found to break the existing test `after a hang the ring names the active document, its last progress and every heartbeat` (tests/sdt_sitter_scheduler.mjs:333), because after `stop()` aborts a sweep mid-extraction, `state.phase` stays stale at 'extracting' (phase-fixup is skipped once `enabled=false`), so a phase-based guard would wrongly keep emitting. `busy` goes false in the outermost finally the instant sweep() truly exits, matching that test unmodified. Also null-guard `elapsedMS`/`sinceProgressMS` (`startedAt`/`lastProgressAt` may be stale/null during census). For journal survival: expose a second, never-deleted reference (e.g. `Zotero.SDTPackSitterJournal = journal`, set once alongside the existing `journal ??= createSDTJournal()`) rather than restructuring what shutdown() deletes -- the existing test asserting `Zotero.SDTPackSitter === undefined` post-shutdown names a different property and is unaffected. No line-level conflict with 0701/0702/0704 (touches only heartbeatTick()/shutdown()), but same files -- sequence via rebase. Priority nuance: the live incident (a stuck, actively re-running loop, not a dead one) matches 0701's unconditional re-census+rehash more than 0702's silent-death pattern -- fix 0703 first as the diagnostic instrument, but don't let it crowd out 0701 as equally causally relevant.
 2026-09-06T12:11Z claude note Heartbeat gated on the scheduler's new state.busy, so census, host.list() and blocked() all beat; elapsedMS/sinceProgressMS null-guarded. Journal republished as Zotero.SDTPackSitterJournal at initialize and again in shutdown's finally, which nothing deletes. Five control arms (old active-null gate, unguarded ages, no gate at all, no republish, busy never cleared) each verified red against the new tests.
+2026-09-06T16:01Z sim closed — autoclosed — PR #389
 --- body ---
 ## Context
 
