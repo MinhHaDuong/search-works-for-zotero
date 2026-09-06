@@ -672,6 +672,7 @@ def test_export_is_raw_complete_atomic_and_bound_to_recipe(tmp_path):
         "parent_key": manifest["attachments"][0]["parent_key"],
         "attachment_key": attachment,
         "terminal_state": "indexed",
+        "observed_state": "indexed",
         "fulltext_file": f"fulltext/{attachment}.json",
         "fulltext_version": 17,
         "indexed_pages": 2,
