@@ -12,7 +12,7 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate schema-gate
+.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate schema-gate sitter-version sitter-install sitter-verify-install
 
 # Where the acceptance layer's arenas live: outside the repository, because the
 # residue sweep fills them with a target's derived state and bench/ is scanned
@@ -134,6 +134,9 @@ help:
 	@echo "make names       — committed artifacts address a document by key, never by name"
 	@echo "make fold-gate   — R19: every token the query side produces is one the index can produce"
 	@echo "make schema-gate — 0620: the declared index-schema generation IS upstream's at the reviewed SHA (not-run is red here, unlike in check)"
+	@echo "make sitter-version — no two sitter payloads answer to one manifest version"
+	@echo "make sitter-install        — SITTER_PROFILE=… SITTER_XPI=… persistent profile install"
+	@echo "make sitter-verify-install — SITTER_PROFILE=… what the host's extensions.json records"
 	@echo "make tickets     — erg check over the ticket store"
 	@echo "make ticket-logs — no log entry is stamped after the commit that wrote it"
 	@echo "make acceptance-fixtures — the acceptance layer's fail-controls still fail"
@@ -142,7 +145,7 @@ help:
 	@echo "make upstream-catchup  — QUIET or TOUCHED: did upstream move anything of ours"
 	@echo "make upstream-rebaseline — the UPSTREAM block for the current tip, computed, and the recipe"
 
-check: deps lint figures models names progress tickets ticket-logs check-fast
+check: deps lint figures models names progress tickets ticket-logs sitter-version check-fast
 
 check-fast:
 	python3 -m pytest tests/ -q
@@ -211,6 +214,39 @@ tickets:
 # defect. Needs real history — the guard says so on a shallow checkout.
 ticket-logs:
 	python3 bench/check_ticket_logs.py
+
+# The sitter ships as a hand-delivered XPI, so nothing between the build and the
+# author's profile would notice two different plugins carrying one manifest
+# version — and four commits already did, all of them 2.2.0. Zotero keys its
+# add-on record on that number. Ticket 0688. Also run by the test suite; kept as
+# its own target because it is the one to run after touching bench/sdt-sitter/.
+# Needs real history, and says NOT-RUN rather than green where it has none.
+sitter-version:
+	python3 bench/check_sitter_version.py
+
+# The other half of 0688, and deliberately NOT in `check`: both need a real
+# Zotero profile, which no gate may guess. `install` copies the built XPI to
+# `<profile>/extensions/<id>.xpi` — a persistent install that survives a restart,
+# unlike the session sideload the acceptance layer does — and `verify-install`
+# reads back what the host itself recorded, which is the only place that says
+# whether the application accepted the artifact or later disabled it.
+#
+#   make sitter-install SITTER_PROFILE=~/.zotero/zotero/xxxx.default SITTER_XPI=/tmp/sitter.xpi
+#   make sitter-verify-install SITTER_PROFILE=~/.zotero/zotero/xxxx.default   # after a restart
+#
+# verify exits 0 present, 1 absent, 3 could not read — a profile Zotero has never
+# opened has no extensions.json, and that is reported, never called absent.
+SITTER_PROFILE ?=
+SITTER_XPI ?=
+
+sitter-install:
+	@test -n "$(SITTER_PROFILE)" || { echo "Set SITTER_PROFILE=<the Zotero profile directory>" >&2; exit 2; }
+	@test -n "$(SITTER_XPI)" || { echo "Set SITTER_XPI=<the XPI from bench/build_sdt_sitter.py>" >&2; exit 2; }
+	python3 bench/sdt_sitter_install.py install --profile "$(SITTER_PROFILE)" --xpi "$(SITTER_XPI)"
+
+sitter-verify-install:
+	@test -n "$(SITTER_PROFILE)" || { echo "Set SITTER_PROFILE=<the Zotero profile directory>" >&2; exit 2; }
+	python3 bench/sdt_sitter_install.py verify --profile "$(SITTER_PROFILE)"
 
 # The acceptance layer's own positive control, and it reads backwards on
 # purpose: the fail-controls MUST fail. A fixture built to break an assertion

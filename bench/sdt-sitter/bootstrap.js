@@ -323,8 +323,42 @@ function startup({ rootURI }) {
   // Addon startup is serialized. Never hold it on UI readiness or a modal prompt.
   timer = timers.setTimeout(() => initialize(rootURI, token).catch(error => Zotero.logError(error)), 0);
 }
+/* Ticket 0688. The plugin "tends to disappear on its own from the installed-plugins
+   list" and left nothing behind saying which build was running when it did. Raw
+   values, no compatibility-range parsing: `strict_max_version` against
+   `Zotero.version` is exactly the comparison the host already made, and a second
+   verdict here could only disagree with it.
+
+   Every read is guarded, because this runs as an ARGUMENT to emit() and therefore
+   outside emit()'s own guard — the hazard classifyError() above carries for the
+   same reason. `JSON.parse` of a document that is not an object is the case the
+   first draft missed (`null` and `3` parse, then read wrong or throw), and
+   `Zotero.version` is a getter that runs code in a compartment this plugin does
+   not own. A diagnosis must never be the thing that stops startup. */
+async function sitterStartupSelfCheck(rootURI) {
+  let manifest = null;
+  try {
+    manifest = JSON.parse(await Zotero.File.getContentsFromURLAsync(rootURI + 'manifest.json'));
+  } catch (error) { manifest = { version: `unreadable (${classifyError(error)})` }; }
+  if (!manifest || typeof manifest !== 'object') manifest = { version: `unreadable (${typeof manifest})` };
+  const application = (manifest.applications && manifest.applications.zotero) || {};
+  let zoteroVersion = '<unreadable>';
+  try { zoteroVersion = Zotero.version; } catch (_error) { /* A getter can throw. */ }
+  return { version: manifest.version, rootURI, zoteroVersion,
+    strictMinVersion: application.strict_min_version,
+    strictMaxVersion: application.strict_max_version };
+}
 async function initialize(rootURI, token) {
   await Zotero.initializationPromise;
+  // First thing after the host is up, and before any of the work below can throw:
+  // a disappearance that leaves no `startup` record happened earlier than this
+  // point. It goes through 0689's channel rather than a Zotero.debug() of its own
+  // — one diagnostic channel, already guarded, already sealed at shutdown. The
+  // ring is not up yet (scheduler.js loads below), so this record reaches the
+  // debug log only; that is the half a vanished plugin leaves behind anyway.
+  try {
+    emit('startup', await sitterStartupSelfCheck(rootURI));
+  } catch (_error) { /* Diagnostics must never throw into startup. */ }
   await Zotero.uiReadyPromise;
   if (token !== generation) return;
   Services.scriptloader.loadSubScript(rootURI + 'scheduler.js', globalThis);
