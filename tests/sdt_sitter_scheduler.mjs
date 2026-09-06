@@ -900,6 +900,179 @@ await test('a verified pack stays a success when the duration observation throws
   await f.api.sweep();
   assert.deepEqual(f.calls, [1, 2, 1, 2]);
 });
+/* Ticket 0696. The end-of-sweep toast, and above all its silence.
+
+   `announceSDTSweep` is driven here with the same snapshot the sweep wrapper
+   takes; that the wrapper takes one, and takes it before the await, is asserted
+   on the source in tests/test_sdt_sitter.py, because the wrapper closes over
+   initialize()'s generation token and its timers and cannot be reached from a
+   sandbox load.
+
+   The second arm is the one the ticket exists for. The wrapper reschedules on a
+   fixed timer for the life of the plugin, so a caught-up library goes on sweeping
+   every thirty seconds all night; a toast fired on the call rather than on the
+   work would arrive every thirty seconds with it. The fourth arm is what stops
+   that assertion being satisfied by a gate welded shut. */
+function recordingProgressWindow(shown) {
+  return class {
+    constructor() { this.lines = []; this.headline = null; this.closeMS = null; }
+    changeHeadline(text) { this.headline = text; }
+    addDescription(text) { this.lines.push(text); }
+    show() { shown.push(this); }
+    startCloseTimer(ms) { this.closeMS = ms; }
+  };
+}
+await test('a sweep announces the work it did, and an idle one announces nothing', async () => {
+  const f = fixture(), shown = [];
+  ui.journal = context.createSDTJournal(50); ui.sealed = false;
+  ui.alive = true; ui.sitter = f.api;
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => true },
+    ProgressWindow: recordingProgressWindow(shown) };
+  const announce = async () => {
+    const before = { completed: f.api.state.completed, failed: f.api.state.failed };
+    await f.api.sweep();
+    return ui.announceSDTSweep(before);
+  };
+  assert.equal(await announce(), true, 'a sweep that indexed two files said nothing');
+  assert.equal(shown.length, 1);
+  assert.equal(shown[0].headline, 'Assistant d’indexation');
+  assert.deepEqual(shown[0].lines, ['2 fichiers indexés']);
+  assert(shown[0].closeMS > 0, 'the toast is never dismissed');
+  for (let tick = 0; tick < 5; tick++) {
+    assert.equal(await announce(), false, `a caught-up library announced on tick ${tick}`);
+  }
+  assert.equal(shown.length, 1, 'the caught-up library produced a toast storm');
+  // A file added to the library is work, and work is announced again. Without
+  // this arm a gate that never opens twice would pass everything above.
+  f.host.list = async () => [1, 2, 3];
+  assert.equal(await announce(), true, 'a newly added file was indexed in silence');
+  assert.deepEqual(shown[1].lines, ['3 fichiers indexés']);
+  // And a sitter that has been disabled announces nothing at all: shutdown()
+  // clears `alive` while a sweep may still be settling.
+  ui.alive = false;
+  f.host.list = async () => [1, 2, 3, 4];
+  assert.equal(await announce(), false, 'a disabled sitter still toasts');
+  assert.equal(shown.length, 2);
+  ui.alive = true;
+});
+await test('a changed failure total is announced, in the words the dialog uses', async () => {
+  const f = fixture(), shown = [];
+  f.host.ensure = async () => false;          // no pack becomes current
+  ui.journal = context.createSDTJournal(50); ui.sealed = false;
+  ui.alive = true; ui.sitter = f.api;
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => true },
+    ProgressWindow: recordingProgressWindow(shown) };
+  const before = { completed: f.api.state.completed, failed: f.api.state.failed };
+  await f.api.sweep();
+  // The count the toast shows is the census-derived one of ticket 0699, not a
+  // tally accumulated beside it: nothing was indexed, and both files failed.
+  assert.equal(f.api.state.failed, 2);
+  assert.equal(ui.announceSDTSweep(before), true, 'two failures went unannounced');
+  assert.deepEqual(shown[0].lines,
+    ['0 fichier indexé', '2 fichiers n’ont pas pu être indexés']);
+  // The same two files fail again on the next sweep. Nothing changed, so nothing
+  // is said — the failure half of the storm the gate exists to stop.
+  const again = { completed: f.api.state.completed, failed: f.api.state.failed };
+  await f.api.sweep();
+  assert.equal(ui.announceSDTSweep(again), false, 'a repeated failure was re-announced');
+  assert.equal(shown.length, 1);
+});
+await test('a toast that cannot be shown is journalled, not thrown into the sweep loop', async () => {
+  const f = fixture();
+  const ring = context.createSDTJournal(50);
+  ui.journal = ring; ui.sealed = false; ui.alive = true; ui.sitter = f.api;
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => true },
+    ProgressWindow: class { constructor() { throw new Error('no window to attach to'); } } };
+  const before = { completed: f.api.state.completed, failed: f.api.state.failed };
+  await f.api.sweep();
+  assert.equal(f.api.state.completed, 2, 'the arm needs the gate to open to mean anything');
+  assert.equal(ui.announceSDTSweep(before), false);
+  const records = Array.from(ring.tail(50)).filter(record => record.kind === 'toast-error');
+  assert.equal(records.length, 1, 'a toast failed with no record of it');
+  assert.equal(records[0].level, 'error');
+  // The class alone, as everywhere else in this channel: a platform message
+  // names whatever it happens to name.
+  assert.equal(records[0].error, 'Error');
+});
+/* Ticket 0696, review round 1. Two panel seats reproduced the same race, and it
+   is a race no assertion in this file could have seen, because nothing here ran
+   the sweep loop: the arms above drive announceSDTSweep with a snapshot built by
+   hand, and the Python side compares substring positions. Red team demonstrated
+   the hole by welding the gate permanently shut — `const before = sitter.state`,
+   one object compared with itself — and watching all forty arms stay green.
+
+   So the loop is hoisted out of initialize() and driven here, whole: the real
+   snapshot, the real await, the real generation check, the real reschedule.
+
+   THE DEFECT. `sitter` is a module-level binding that initialize() reassigns and
+   shutdown() never clears, so `alive` and `sitter` can both be truthy while
+   naming a different sitter than the one whose counters filled `before`. The
+   plugin's own launch prompt advertises the way in — disabling stops admissions
+   but the file in flight finishes — so a disable during an uninterruptible
+   ensure() and a prompt re-enable leave this closure suspended while a second
+   sitter is installed and `alive` goes back to true. Before the guard, the
+   resumed closure diffed one sitter's snapshot against another's counters and
+   announced the subtraction: three files indexed, then "0 fichier indexé".
+
+   The third phase is the control, and the arm is worthless without it: it stages
+   the identical suspend-and-resume with no generation change, and requires the
+   toast. Without it every assertion here is satisfied by a loop that never
+   announces at all — which is exactly the mutation red team used. */
+await test('a sweep loop left over from a previous generation announces nothing', async () => {
+  const shown = [], scheduled = [];
+  ui.journal = context.createSDTJournal(50); ui.sealed = false;
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => true },
+    ProgressWindow: recordingProgressWindow(shown) };
+  ui.timers = { setTimeout: (fn, ms) => scheduled.push({ fn, ms }),
+    clearTimeout: () => {}, setInterval: () => 0, clearInterval: () => {} };
+  // A sitter that has already done work, so its snapshot is not the zeros a
+  // freshly built one carries — the two must be distinguishable for the
+  // misattribution to have anything to misattribute.
+  const suspendMidExtraction = (f, entered, finish) => {
+    f.host.list = async () => [1, 2, 3];
+    f.host.ensure = async (id, progress) => {
+      f.calls.push(id); entered.resolve(); await finish.promise;
+      progress(90); f.cached.add(id); return true;
+    };
+  };
+  const stale = fixture();
+  await stale.api.sweep();
+  assert.equal(stale.api.state.completed, 2, 'the fixture sweep did not run');
+  const entered = deferred(), finish = deferred();
+  suspendMidExtraction(stale, entered, finish);
+  ui.generation = 7; ui.alive = true; ui.sitter = stale.api;
+  const running = ui.createSDTSweepLoop(7)();
+  await entered.promise;
+  // Disable, then re-enable. initialize() installs the new sitter and restores
+  // `alive` before its modal confirm, so this needs no click to happen.
+  stale.api.stop();
+  ui.generation = 8;
+  const current = fixture();
+  ui.sitter = current.api; ui.alive = true;
+  finish.resolve();
+  await running;
+  assert.equal(shown.length, 0,
+    'a stale sweep announced against a sitter it never swept');
+  assert.equal(scheduled.length, 0, 'a stale sweep rescheduled itself');
+  // The control. Same suspension, same resume, one generation throughout.
+  const live = fixture();
+  await live.api.sweep();
+  const enteredAgain = deferred(), finishAgain = deferred();
+  suspendMidExtraction(live, enteredAgain, finishAgain);
+  ui.generation = 9; ui.alive = true; ui.sitter = live.api;
+  const alive = ui.createSDTSweepLoop(9)();
+  await enteredAgain.promise;
+  finishAgain.resolve();
+  await alive;
+  assert.equal(shown.length, 1, 'the loop announces nothing at all');
+  // Three, not the two the snapshot held: the copy is a copy. A `before` bound
+  // to sitter.state by reference would read this same number twice and never
+  // open the gate.
+  assert.deepEqual(shown[0].lines, ['3 fichiers indexés']);
+  assert.equal(scheduled.length, 1, 'the live loop stopped rescheduling itself');
+  assert.equal(scheduled[0].ms, 30000);
+  ui.timers = undefined;
+});
 console.log(JSON.stringify({ tests: results, result: 'pass' }));
 
 const samples = [1, 2, 3].map(n => ({ milliseconds: n * 1000, pages: 10, sourceBytes: 100 }));

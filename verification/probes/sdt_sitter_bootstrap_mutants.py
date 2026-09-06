@@ -175,6 +175,46 @@ MUTANTS = [
      "      if (Number.isFinite(reading)) return reading;\n"
      "    }\n",
      ""),
+
+    # ---- the end-of-sweep toast (ticket 0696) --------------------------------
+    # M23 is the defect two review seats found on PR #396 and the reason the
+    # sweep loop was hoisted out of initialize() at all. `sitter` is reassigned
+    # wholesale by initialize() and never cleared by shutdown(), so `alive` and
+    # `sitter` can both be truthy while naming a sitter that did not fill
+    # `before`. Distinct from M12, which burns the token: this one leaves the
+    # token intact and stops the announcement from reading it.
+    ("M23 the toast is spent against whatever generation happens to be current",
+     "      if (token === generation) announceSDTSweep(before);",
+     "      announceSDTSweep(before);"),
+    # The gate itself, in both directions, because a gate has two ways to be
+    # wrong and only one of them is the toast storm. Removing the comparison
+    # fires on every timer tick forever once the library is caught up; binding
+    # `before` to the live state object compares it with itself and fires never.
+    # The second is the mutation that left all forty driven arms green before
+    # this ticket's review, which is why it is recorded here rather than in a
+    # merge request.
+    ("M24 the toast fires on the sweep call rather than on the work it did",
+     "  if (s.completed === before.completed && s.failed === before.failed) return false;\n",
+     ""),
+    ("M25 the snapshot is the live state object, so the gate never opens",
+     "    const before = { completed: sitter.state.completed, failed: sitter.state.failed };",
+     "    const before = sitter.state;"),
+    # `failed` is derived from the census and recomputed only once the scan is
+    # whole, which is what makes it usable in the gate at all. Dropped from the
+    # comparison, a sweep that indexed nothing and failed two files says nothing.
+    ("M26 a changed failure total no longer opens the gate",
+     "  if (s.completed === before.completed && s.failed === before.failed) return false;",
+     "  if (s.completed === before.completed) return false;"),
+    # The guard that keeps a diagnostic from becoming a new way to break the
+    # sweep loop. Unguarded, a host with no ProgressWindow rejects the toast into
+    # the loop's own catch, which journals it as a sweep error — the wrong record
+    # for the wrong reason.
+    ("M27 a toast that cannot be shown throws into the sweep loop",
+     "  } catch (error) {\n"
+     "    emit('toast-error', { error: classifyError(error) }, 'error');\n"
+     "    return false;\n"
+     "  }\n",
+     "  } catch (error) { throw error; }\n"),
 ]
 
 

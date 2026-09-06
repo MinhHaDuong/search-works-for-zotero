@@ -308,7 +308,23 @@ export function createHarness(options = {}) {
 
   const prefs = new Map();
   const clipboard = { text: null };
+  /* Ticket 0696's end-of-sweep toast. It belongs in the mock rather than in the
+     one scenario that asserts on it, because announceSDTSweep is guarded: a
+     missing `Zotero.ProgressWindow` does not fail, it journals `toast-error` and
+     returns. So an absent primitive here would leave every scenario in this file
+     silently recording a swallowed error where a toast belongs, and the scenario
+     that checks for silence would pass because the constructor threw rather than
+     because the gate held — a null result with no positive control. */
+  const toasts = [];
+  class ProgressWindow {
+    constructor() { this.lines = []; this.headline = null; this.closeMS = null; toasts.push(this); }
+    changeHeadline(text) { this.headline = text; }
+    addDescription(text) { this.lines.push(text); }
+    show() { this.shown = true; }
+    startCloseTimer(ms) { this.closeMS = ms; }
+  }
   const Zotero = {
+    ProgressWindow,
     initializationPromise: Promise.resolve(),
     uiReadyPromise: Promise.resolve(),
     version: '10.0.5-stub',
@@ -502,6 +518,8 @@ export function createHarness(options = {}) {
   return {
     context, Zotero, files, timers, calls, windows,
     clock, advance, quiet, turn, persistPack, debugged, logged,
+    /** Every toast shown, in order, with the lines it carried. */
+    toasts,
     /** Run the real `startup()` and let `initialize()` reach its first sweep. */
     async start() { context.startup({ rootURI: ROOT_URI }); await quiet(); assertStarted(); },
     /** The same, for a fixture whose `ensure` never settles. */

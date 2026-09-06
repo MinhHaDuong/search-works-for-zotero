@@ -96,6 +96,9 @@ BUTTON_BLOCK = ('for (const button of buttons) {', 'for (const dialog of dialogs
 # ('sdt-document-status') and helper names (formatDocumentDuration) stay legal.
 UI_SITES = (
     ('function describeSDTTooltip(state) {', '\n}'),
+    ('function describeSDTIndexed(count) {', '\n}'),
+    ('function describeSDTFailures(count) {', '\n}'),
+    ('function announceSDTSweep(before) {', '\n}'),
     ('function describeSDTScope() {', '\n}'),
     ('function describeSDTCoverage(state) {', '\n}'),
     ('function describeSDTFile(info, fallback) {', '\n}'),
@@ -126,6 +129,13 @@ UI_SITES = (
     ('function composeSDTJournalReport() {', '\n}'),
     ('function buildSDTDiagnostics(doc, element) {', '\n}'),
     ("getElementById('sdt-observations').textContent", ';'),
+    # The end-of-sweep toast of ticket 0696, and the first site this list
+    # acquired after 0692 externalized the wording. It arrived carrying one
+    # French literal for its headline, which is what the note above predicts and
+    # what adding the site here refuses.
+    ('function announceSDTSweep(before) {', '\n}'),
+    ('function describeSDTIndexed(count) {', '\n}'),
+    ('function describeSDTFailures(count) {', '\n}'),
 )
 
 # "document" is the trap: Zotero's own French UI renders *item* as "document",
@@ -532,8 +542,11 @@ def test_toolbar_tooltip_counts_files_not_packs():
     assert 'fichiers indexés' in messages('fr')['files-indexed']
     assert 'files indexed' in messages('en')['files-indexed']
     assert 'packs créés' not in BOOTSTRAP.read_text(encoding='utf-8')
-    site = _site('function describeSDTTooltip(state) {', '\n}')
-    assert "sdtText('files-indexed'" in site, 'the tooltip no longer reads the count message'
+    # 0696's structure and 0692's wording, asserted apart: the tooltip reads the
+    # one composer, and the composer reads the one message. Either half alone
+    # would go green while the other rotted.
+    assert 'describeSDTIndexed(' in _site('function describeSDTTooltip(state) {', '\n}')
+    assert "sdtText('files-indexed'" in _site('function describeSDTIndexed(count) {', '\n}')
 
 
 def test_no_user_facing_string_says_document():
@@ -818,8 +831,128 @@ def test_failure_summary_line_is_rendered_outside_the_diagnostics():
     assert "'sdt-failures'" in source, 'no failure-summary element is created'
     site = _site("getElementById('sdt-failures').textContent", ';')
     assert 's.failed' in site
-    assert "sdtText('files-failed'" in site
+    assert 'describeSDTFailures(' in site, 'the banner composes its own plural'
     assert 'fichiers n’ont pas pu être indexés' in messages('fr')['files-failed']
+
+
+def test_one_composer_owns_each_running_total():
+    """Ticket 0696. The two counts a reader is shown now reach three surfaces —
+    the tooltip, the dialog's failure banner and the end-of-sweep toast, three
+    sites that can only agree by coincidence. Both earlier composers in this file
+    were written for the same reason: describeSDTFile after the progress and
+    error lines came to name one file two different ways (ticket 0691, round 3),
+    describeSDTCoverage before the toolbar strip and the tooltip could round one
+    percentage two ways (ticket 0710). Here the shared quantity is a count and
+    its plural agreement.
+
+    Ticket 0692 then moved the wording itself into the `.ftl` files, and the two
+    requirements are orthogonal: the composer is what stops three SITES drifting,
+    the selector is what stops one site being wrong in three LANGUAGES. So each
+    composer must own the message id — a `count > 1` here would be a French rule
+    in JavaScript, and a literal at a call site would defeat 0696."""
+    toast = _site('function announceSDTSweep(before) {', '\n}')
+    for composer in ('describeSDTIndexed(', 'describeSDTFailures('):
+        assert composer in toast, f'the toast composes its own {composer}'
+    # Each composer owns one message id, and the singular lives in the locale.
+    for start, message in (('function describeSDTIndexed(count) {', 'files-indexed'),
+                           ('function describeSDTFailures(count) {', 'files-failed')):
+        site = _site(start, '\n}')
+        assert f"sdtText('{message}'" in site, f'{start!r} does not read {message}'
+        assert 'count > 1' not in site, f'{start!r} decides plural in JavaScript'
+        assert 'fichier' in messages('fr')[message], f'{message} lost its French singular'
+    # An empty failure line at zero: a library with nothing wrong says nothing
+    # about failures rather than printing "0 fichier". That stays in JavaScript —
+    # it is a decision about showing a line, not about wording one.
+    assert "return ''" in _site('function describeSDTFailures(count) {', '\n}')
+
+
+def test_the_sweep_toast_is_gated_on_work_the_sweep_actually_did():
+    """Ticket 0696, and the regression it was rewritten to avoid. The loop
+    reschedules on a fixed timer for the life of the plugin, so a toast fired on
+    the call rather than on a completed/failed delta would repeat every thirty
+    seconds forever once the library is caught up.
+
+    Ordering only, and deliberately so: two review seats showed that a
+    source-ordering assertion is blind to what the ordered lines mean — a
+    snapshot bound to `sitter.state` by reference satisfies every index
+    comparison here and welds the gate shut. The loop was hoisted out of
+    initialize() for that reason and is driven whole, against real sweeps and a
+    real generation change, in tests/sdt_sitter_scheduler.mjs.
+    """
+    site = _site('function createSDTSweepLoop(token) {', '\n}')
+    snapshot = site.index('sitter.state.completed')
+    swept = site.index('await sitter.sweep()')
+    announced = site.index('announceSDTSweep(before)')
+    assert snapshot < swept, 'the counts are snapshotted after the sweep changed them'
+    assert swept < announced, 'the toast is composed before the sweep it reports'
+    assert 'sitter.state.failed' in site
+    gate = _site('function announceSDTSweep(before) {', '\n}')
+    for read in ('before.completed', 'before.failed'):
+        assert read in gate, f'the gate never compares {read}'
+    assert 'return false' in gate, 'the gate has no silent path'
+
+
+def test_every_deferred_callback_checks_the_generation_it_was_armed_in():
+    """Ticket 0696, review round 1. `sitter` is a module-level binding that
+    initialize() reassigns and shutdown() never clears, so `alive` and `sitter`
+    can both be truthy and still name a different sitter than the one whose
+    counters a suspended sweep snapshotted. The plugin's own launch prompt
+    advertises the flow — disable stops admissions, the file in flight finishes —
+    and initialize() restores `alive` before its modal confirm, so no click is
+    needed. The race itself is staged and driven in
+    tests/sdt_sitter_bootstrap.mjs, over a real startup/disable/re-enable, and
+    the gate alone in tests/sdt_sitter_scheduler.mjs; what is asserted here is
+    the file-wide convention it broke, since a second deferred callback added
+    without the check would reintroduce the same class in a new place."""
+    loop = _site('function createSDTSweepLoop(token) {', '\n}')
+    assert 'if (token === generation) announceSDTSweep(before)' in loop, \
+        'the announcement is spent against whatever generation happens to be current'
+    assert 'if (alive && token === generation)' in loop, \
+        'a stale loop reschedules itself, running two sweeps per interval'
+    # The bindings the race walks through must reach a sandbox load, or the
+    # regression test cannot stage it and this convention goes back to being
+    # asserted by reading. `let` at script top level does not.
+    source = BOOTSTRAP.read_text(encoding='utf-8')
+    for binding in ('var generation = 0;', 'var timer, pulse, heartbeat, timers;'):
+        assert binding in source, f'{binding!r} is out of reach of a driven test'
+
+
+def test_the_mock_host_carries_the_toast_primitive():
+    """`announceSDTSweep` is guarded, so a host without `Zotero.ProgressWindow`
+    does not fail — it journals `toast-error` and returns. The mock in
+    tests/sdt_sitter_zotero_mock.mjs must therefore carry the primitive, or every
+    scenario driven through it records a swallowed error where a toast belongs
+    and the one that checks for silence passes because the constructor threw. A
+    control run with the primitive removed reddens
+    `a disable, a re-enable, and the suspended sweep announces nothing`."""
+    mock = (ROOT / 'tests' / 'sdt_sitter_zotero_mock.mjs').read_text(encoding='utf-8')
+    assert 'class ProgressWindow' in mock, 'the mock host cannot show a toast'
+    assert 'ProgressWindow,' in mock, 'the class is never published on the Zotero stub'
+    assert 'toasts,' in mock, 'the harness exposes no toasts to assert on'
+
+
+def test_the_toast_adds_no_dependency_and_uses_zoteros_own_primitive():
+    """Acceptance line 1. This plugin has no build tooling — Zotero's own
+    bootstrapped-extension mechanism loads bootstrap.js and bootstrap.js loads
+    scheduler.js raw through Services.scriptloader, with nothing between source
+    and runtime — so pulling in zotero-plugin-toolkit for a toast would mean
+    introducing a bundler for the first time to get the thing Zotero ships."""
+    assert 'Zotero.ProgressWindow' in \
+        _site('function announceSDTSweep(before) {', '\n}')
+    source = BOOTSTRAP.read_text(encoding='utf-8')
+    assert 'zotero-plugin-toolkit' not in source
+    assert not (SITTER / 'package.json').exists(), 'the sitter acquired a build step'
+
+
+def test_no_toast_announces_the_start_of_a_sweep():
+    """A sweep touches zero, one or many files, so there is no single title to
+    name at its start, and the toolbar already spins on the active file and
+    pulses through the census. The assertion is on the one construction site:
+    exactly one toast exists, and it is the one the wrapper fires afterwards."""
+    source = BOOTSTRAP.read_text(encoding='utf-8')
+    assert source.count('new Zotero.ProgressWindow') == 1
+    assert source.count('announceSDTSweep(') == 2, \
+        'one definition and one call site — a second call is a second cadence'
 
 
 def test_native_fulltext_panel_is_the_text_search_index():

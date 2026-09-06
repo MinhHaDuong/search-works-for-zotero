@@ -30,11 +30,23 @@ var environment = {}, admission = null;
 // against bindings a sandboxed load exposes. As `let` they were invisible, so the
 // half of shutdown() that stops the sitter from rescheduling itself was checked by
 // nothing (ticket 0695).
+//
+// Two tickets arrived at this line independently, which is worth recording rather
+// than collapsing: 0696 needed `timers` for the other half of the same loop. The
+// sweep reschedules through this handle, so a test that cannot install a clock
+// cannot run the loop at all — and a loop nothing runs is where 0696's
+// cross-generation defect hid from two suites at once, past a green mutation.
 var timer, pulse, heartbeat, timers;
 const closeJournalled = new WeakSet();
 const BUTTON = 'sdt-pack-sitter-button';
 const SWEEP_INTERVAL_MS = 30000;
 const IDLE_SWEEP_INTERVAL_MS = 10 * 60 * 1000;
+// How long the end-of-sweep toast stays up. Presentation, like the 1400 ms
+// completion blink and the 100 ms redraw beside it, so it lives here rather than
+// in SPEC.md, which owns gates, decision rules and budgets. Long enough to read
+// two short lines without looking up quickly, and comfortably shorter than the
+// 30 s floor above, so two toasts can never be on screen at once.
+const SWEEP_TOAST_MS = 8000;
 const DEBUG_PREF = 'extensions.sdt-pack-sitter.debug';
 // SPEC.md owns these two numbers; this file needs them to compare against, and
 // the diagnostics layer needs to print them. One statement each, so a threshold
@@ -43,6 +55,10 @@ const MIN_FREE_MEMORY = 4 * 1024 ** 3, MIN_FREE_DISK = 8 * 1024 ** 3;
 // Bootstrap reason constants are numeric here and named elsewhere; accept both.
 const SHUTDOWN_REASONS = { 2: 'app-shutdown', 3: 'enable', 4: 'disable',
   5: 'install', 6: 'uninstall', 7: 'upgrade', 8: 'downgrade' };
+// Also `var`, and 0696 needs it writable rather than merely readable: the
+// disable/re-enable race IS a generation change, so a test that cannot move this
+// number cannot stage the defect, and the guard against it would be asserted by
+// reading the source — which is how the defect got in.
 var generation = 0;
 let lastCompleted = 0;
 let completionBlinkUntil = 0;
@@ -295,6 +311,112 @@ function nextSweepDelayMS(state) {
     ? IDLE_SWEEP_INTERVAL_MS : SWEEP_INTERVAL_MS;
 }
 
+/* Ticket 0696. One toast when a sweep actually did something, and nothing at all
+   otherwise.
+
+   THE GATE IS A DIFF, NOT A CALL. `nextSweepDelayMS` above reschedules for the
+   life of the plugin, so a toast fired on every sweep would arrive every thirty
+   seconds forever once the library is caught up — strictly worse than the
+   per-file storm this exists to replace. `before` is the wrapper's own snapshot,
+   taken ahead of the await: a sweep that admitted nothing, that the resource gate
+   refused, or that returned early because one was already running leaves both
+   counts equal and this says nothing.
+
+   `failed` belongs in the gate beside `completed` because of how scheduler.js
+   derives it — off the census, and only once the scan is whole — so it holds
+   still across an idle sweep and moves only when the library did. An accumulated
+   tally would drift by one sweep's failures every pass and toast on every one.
+
+   There is no start toast. A sweep touches zero, one or many files, so there is
+   no single title to name at its start, and the toolbar already spins on the
+   active file and pulses through the census.
+
+   Guarded whole, for the reason render() is. This runs on the sweep loop's own
+   path, and an unguarded throw would be caught by the loop's `catch` and
+   journalled as a sweep error — a record naming the wrong thing entirely.
+
+   It sits here, beside the delay it shares a loop with, rather than beside the
+   two composers it borrows from the UI vocabulary section below: what it is
+   about is the sweep, and the wording it shows is not its own. */
+function announceSDTSweep(before) {
+  if (!alive || !sitter) return false;
+  const s = sitter.state;
+  if (s.completed === before.completed && s.failed === before.failed) return false;
+  try {
+    const toast = new Zotero.ProgressWindow();
+    // The same message the status window's own title reads (ticket 0692). The
+    // toast and the window are the same thing announcing itself, so naming it
+    // twice would be two places for one name to drift.
+    toast.changeHeadline(sdtText('dialog-title'));
+    // One line each, rather than one string with a newline in it: the two counts
+    // have different spans (the session's, and the last census's) and a reader
+    // meets them as two statements on the tooltip and in the dialog too.
+    for (const line of [describeSDTIndexed(s.completed), describeSDTFailures(s.failed)]) {
+      if (line) toast.addDescription(line);
+    }
+    toast.show();
+    toast.startCloseTimer(SWEEP_TOAST_MS);
+    emit('toast', { completed: s.completed, failed: s.failed });
+    return true;
+  } catch (error) {
+    emit('toast-error', { error: classifyError(error) }, 'error');
+    return false;
+  }
+}
+
+/* The sweep loop: one call, then the reschedule that keeps the sitter alive.
+
+   Hoisted out of initialize() rather than left as a closure inside it, and the
+   reason is a defect, not tidiness. Both suites could reach the toast and
+   neither could reach the loop, so the two lines that MAKE the toast correct —
+   where the snapshot is taken, and against which generation it is spent — were
+   verified by reading source text and by nothing else. A mutation that welded
+   the gate shut left all forty driven arms green. What is not runnable is not
+   tested, and this file already learned that about the startup self-check
+   (ticket 0688) and about render() (ticket 0702).
+
+   `token !== generation` before the announcement, matching every other deferred
+   callback in this file, and load-bearing rather than symmetric. `sitter` is a
+   module-level binding that initialize() reassigns wholesale and shutdown()
+   never clears, so `alive` and `sitter` can both be truthy and still belong to a
+   DIFFERENT sitter than the one that filled `before`. The plugin's own launch
+   prompt advertises the flow that gets there: disabling stops admissions but the
+   file in flight finishes, so a disable during an uninterruptible ensure()
+   followed by a re-enable leaves this closure suspended while initialize()
+   installs a second sitter and sets `alive` back to true — and initialize() does
+   both BEFORE its modal confirm, so no click is needed to open the window. The
+   resumed closure would then diff one sitter's snapshot against another's
+   counters and toast whatever the subtraction happened to say.
+
+   The reschedule below already carried the same check, for the neighbouring
+   reason: a stale loop that rescheduled would run two sweeps per interval. It is
+   in a `finally` because it is the single point whose loss stops the sitter for
+   the session, so it must not depend on the sweep having returned normally — nor
+   on this file being the only place a throw can come from. That is defence in
+   depth behind render()'s own guard (ticket 0702), not a substitute for it.
+
+   The snapshot is a copy of the two numbers, taken outside the try. A reference
+   to `sitter.state` would read the same object twice and compare it with itself,
+   which is a gate that never opens — the mutation above. Outside the try because
+   there is nothing to catch: this reads two integers off a live binding, and if
+   that binding is gone the loop has no sweep to run either. */
+function createSDTSweepLoop(token) {
+  const sweep = async () => {
+    const before = { completed: sitter.state.completed, failed: sitter.state.failed };
+    try {
+      await sitter.sweep();
+      if (token === generation) announceSDTSweep(before);
+    } catch (error) {
+      emit('sweep-error', { error: classifyError(error) }, 'error');
+    } finally {
+      if (alive && token === generation) {
+        timer = timers.setTimeout(sweep, nextSweepDelayMS(sitter.state));
+      }
+    }
+  };
+  return sweep;
+}
+
 /* The failure half of settle. It goes to the session ring and Zotero.debug(),
    never to a file, for the reason createSDTJournal carries. The identity is the
    opaque cache key, never the attachment's title. */
@@ -417,11 +539,39 @@ function describeSDTScope() {
   } catch (_error) { return null; }
 }
 
-/* Four segments joined by one em dash. The count is the only genuinely
-   plural-sensitive string on this line, and it is a Fluent `$count` selector
-   rather than a `> 1` test: French calls zero singular, English does not, and
-   Vietnamese has one form — a rule the source language cannot hold for the
-   target one.
+/* The two running totals a reader is shown, each composed once. Both now reach
+   three surfaces — the tooltip, the dialog, and the end-of-sweep toast — and
+   three sites agreeing by coincidence is not agreement. The two composers above
+   were each written after their sites had already drifted: describeSDTFile after
+   the progress line and the error line came to name one file two different ways
+   (ticket 0691, round 3), describeSDTCoverage before the toolbar strip and the
+   tooltip could round one percentage two ways (ticket 0710). Here the shared
+   quantity is a count and its plural agreement.
+
+   The failure line is empty at zero rather than "0 file": a library with
+   nothing wrong has nothing to say about failures, and the dialog's banner has
+   read that way since ticket 0699. The indexed line is not, because it is the
+   count itself and reads as a measurement even at zero. That emptiness stays
+   here in JavaScript, because it is a decision about whether to show a line
+   at all rather than about how to word one.
+
+   The plural agreement itself does NOT stay here (ticket 0692). `count > 1` is
+   a French rule written in JavaScript: French calls zero singular, English does
+   not, and Vietnamese has one form for every count — no source language can
+   hold that rule for the target one. So each composer keeps 0696's guarantee
+   that the three surfaces cannot drift, and delegates the agreement to the
+   locale's own plural rules through a Fluent `$count` selector. The two
+   requirements are orthogonal and this is what satisfying both looks like. */
+function describeSDTIndexed(count) {
+  return sdtText('files-indexed', { count });
+}
+
+function describeSDTFailures(count) {
+  if (!count) return '';
+  return sdtText('files-failed', { count });
+}
+
+/* Four segments joined by one em dash.
 
    Before the first census there is no percentage, and the bare word "Index"
    between two em dashes says nothing the rest of the line does not: that
@@ -432,7 +582,7 @@ function describeSDTScope() {
 function describeSDTTooltip(state) {
   const label = SDT_PHASE_LABELS[state.phase];
   return [describeSDTScope(), describeSDTCoverage(state), label && sdtText(label),
-    sdtText('files-indexed', { count: state.completed })].filter(Boolean).join(' — ');
+    describeSDTIndexed(state.completed)].filter(Boolean).join(' — ');
 }
 
 /* The unit of work is one attachment, and Zotero names attachments for us
@@ -752,10 +902,9 @@ function renderState() {
         low: finishAt(total.low), high: finishAt(total.high) }) : '';
     doc.getElementById('sdt-global-estimate').textContent = globalEstimate;
     // Failures were reachable only by opening the diagnostics. Surface the
-    // count — the second of the two plural-sensitive strings, and a `$count`
-    // selector for the same reason the tooltip's is one.
-    doc.getElementById('sdt-failures').textContent = s.failed === 0 ? ''
-      : sdtText('files-failed', { count: s.failed });
+    // count — through the composer, so this banner and the toast cannot word
+    // one number two ways, and its plural comes from the locale.
+    doc.getElementById('sdt-failures').textContent = describeSDTFailures(s.failed);
     doc.getElementById('sdt-diagnostics').textContent = [
       sdtText('diagnostics-phase', { phase: s.phase }),
       sdtText('diagnostics-census', { scanned: s.scanned, total: s.total }),
@@ -1202,24 +1351,9 @@ async function initialize(rootURI, token) {
       .map(id => sdtText(id)).join('\n\n'));
   if (token !== generation) return;
   if (!launch) { sitter.state.phase = 'launch-declined; disable/re-enable to launch'; render(); return; }
-  // Defence in depth behind render()'s own guard. The reschedule is the single
-  // point whose loss stops the sitter for the session, so it does not depend on
-  // the sweep having returned normally — nor on this file being the only place a
-  // throw can come from.
-  const sweep = async () => {
-    try {
-      await sitter.sweep();
-    } catch (error) {
-      emit('sweep-error', { error: classifyError(error) }, 'error');
-    } finally {
-      if (alive && token === generation) {
-        timer = timers.setTimeout(sweep, nextSweepDelayMS(sitter.state));
-      }
-    }
-  };
   pulse = timers.setInterval(render, 100);
   heartbeat = timers.setInterval(heartbeatTick, 60000);
-  timer = timers.setTimeout(sweep, 0);
+  timer = timers.setTimeout(createSDTSweepLoop(token), 0);
 }
 function shutdown(data, reason) {
   // try/finally, because the teardown between here and the seal calls out to the
