@@ -102,6 +102,94 @@ def test_read_addon_record_discriminates_present_absent_and_someone_else(tmp_pat
     assert record["read"] is False and "present" not in record
 
 
+def test_a_document_of_the_wrong_shape_is_unread_rather_than_absent(tmp_path):
+    """Valid JSON is not a valid record, and the difference is a whole verdict.
+
+    `[]` and `"text"` parse cleanly and then have no `.get`. The first draft
+    let that AttributeError out of `main()`, where Python exits 1 — the code
+    this tool means by ABSENT. A crash landing on "the plugin is gone" is the
+    exact collapse the three-valued read exists to prevent.
+    """
+    for document in ("[]", '"text"', "3", "null"):
+        profile = tmp_path / f"shape-{abs(hash(document))}"
+        profile.mkdir()
+        (profile / "extensions.json").write_text(document, encoding="utf-8")
+        record = read_addon_record(profile)
+        assert record["read"] is False, document
+        assert "present" not in record, document
+
+
+def test_install_refuses_an_addon_id_that_is_not_one_path_component(tmp_path):
+    """The id becomes a filename; a separator in it writes outside the profile."""
+    profile = tmp_path / "profile"
+    (profile / "extensions").mkdir(parents=True)
+    xpi = tmp_path / "built.xpi"
+    xpi.write_bytes(b"PK\x03\x04")
+    for hostile in ("../../evil", "a/b", "..", ".", ""):
+        with pytest.raises(ValueError):
+            install(profile, xpi, hostile)
+    assert list((profile / "extensions").iterdir()) == []
+
+
+# ---- the exit codes, which are the contract a Make target and a shell see ----
+
+def cli(*arguments: str) -> subprocess.CompletedProcess:
+    return subprocess.run([sys.executable, str(REPO / "bench" / "sdt_sitter_install.py"),
+                           *arguments], capture_output=True, text=True, timeout=60)
+
+
+@pytest.mark.integration
+def test_verify_exit_codes_separate_present_absent_and_unread(tmp_path):
+    """Driven through the CLI, because nothing outside Python sees the dict.
+
+    The shape bug above shipped precisely because the dict was tested and the
+    exit code was not: `read_addon_record` was returning nothing wrong, it was
+    raising, and the raise only becomes a wrong ANSWER at the process boundary.
+    """
+    present = tmp_path / "present"
+    write_extensions(present, [other_entry(), sitter_entry()])
+    assert cli("verify", "--profile", str(present)).returncode == 0
+
+    absent = tmp_path / "absent"
+    write_extensions(absent, [other_entry()])
+    result = cli("verify", "--profile", str(absent))
+    assert result.returncode == 1
+    assert OTHER_ID in result.stdout + result.stderr
+
+    never_opened = tmp_path / "never-opened"
+    never_opened.mkdir()
+    assert cli("verify", "--profile", str(never_opened)).returncode == 3
+
+    for document in ("[]", '"text"', "{ truncated"):
+        wrong = tmp_path / f"wrong-{abs(hash(document))}"
+        wrong.mkdir()
+        (wrong / "extensions.json").write_text(document, encoding="utf-8")
+        result = cli("verify", "--profile", str(wrong))
+        assert result.returncode == 3, f"{document}: {result.stdout}{result.stderr}"
+
+    # An id nobody installed is absent, and the message must name the id that
+    # was looked for rather than the module's default.
+    result = cli("--addon-id", "nobody@example.org", "verify", "--profile", str(present))
+    assert result.returncode == 1
+    assert "nobody@example.org" in result.stdout + result.stderr
+
+
+@pytest.mark.integration
+def test_install_exit_codes_refuse_rather_than_guess(tmp_path):
+    xpi = tmp_path / "built.xpi"
+    xpi.write_bytes(b"PK\x03\x04")
+    profile = tmp_path / "profile"
+    profile.mkdir()
+    assert cli("install", "--profile", str(profile), "--xpi", str(xpi)).returncode == 0
+    assert cli("install", "--profile", str(tmp_path / "nope"), "--xpi", str(xpi)).returncode == 2
+    assert cli("install", "--profile", str(profile),
+               "--xpi", str(tmp_path / "nope.xpi")).returncode == 2
+    assert cli("--addon-id", "../escape", "install", "--profile", str(profile),
+               "--xpi", str(xpi)).returncode == 2
+    # A missing --profile is argparse's refusal, not a default.
+    assert cli("verify").returncode != 0
+
+
 def test_install_writes_the_xpi_where_the_host_looks_for_it(tmp_path):
     profile = tmp_path / "profile"
     profile.mkdir()

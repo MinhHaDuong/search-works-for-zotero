@@ -55,4 +55,46 @@ assert.equal(logged.length, 1);
 assert(logged[0].includes('unreadable'), logged[0]);
 assert(logged[0].includes('zoteroVersion=10.0.5-stub'), logged[0]);
 
-console.log(JSON.stringify({ tests: ['startup self-check', 'unreadable manifest'], result: 'pass' }));
+// A manifest that parses to something that is not an object. `null` and `3` are
+// valid JSON, so the parse succeeds and the shape is what is wrong; before this
+// was checked, `null` threw and the diagnostic aborted the startup it explains.
+for (const document of ['null', '3', '[]', '"text"']) {
+  logged.length = 0;
+  context.Zotero.File.getContentsFromURLAsync = async () => document;
+  await assert.rejects(context.initialize(`${SITTER}/`, 0), /halt: after the self-check/);
+  assert.equal(logged.length, 1, `no line for manifest ${document}`);
+  assert(logged[0].includes('zoteroVersion=10.0.5-stub'), logged[0]);
+}
+
+// The two ways the self-check could itself become a new way to fail startup. Both
+// must leave `initialize` running far enough to reach the rejecting uiReadyPromise:
+// reaching it is the assertion, since a throw from the diagnostic would surface as
+// its own error instead.
+context.Zotero.File.getContentsFromURLAsync = async url => fs.readFileSync(url, 'utf8');
+const errors = [];
+context.Zotero.logError = error => errors.push(String(error));
+
+context.Zotero.debug = () => { throw new Error('debug is unavailable'); };
+await assert.rejects(context.initialize(`${SITTER}/`, 0), /halt: after the self-check/);
+assert.equal(errors.length, 1, 'a failing Zotero.debug must be reported, not propagated');
+assert(errors[0].includes('debug is unavailable'), errors[0]);
+
+logged.length = 0;
+errors.length = 0;
+context.Zotero.debug = message => logged.push(message);
+Object.defineProperty(context.Zotero, 'version',
+  { configurable: true, get() { throw new Error('version getter is broken'); } });
+await assert.rejects(context.initialize(`${SITTER}/`, 0), /halt: after the self-check/);
+assert.equal(logged.length, 0, 'nothing can be logged when the line cannot be built');
+assert.equal(errors.length, 1, 'a failing Zotero.version must be reported, not propagated');
+assert(errors[0].includes('version getter is broken'), errors[0]);
+
+// And the last resort: reporting the failure must not fail either.
+errors.length = 0;
+context.Zotero.logError = () => { throw new Error('logError is unavailable too'); };
+await assert.rejects(context.initialize(`${SITTER}/`, 0), /halt: after the self-check/);
+
+console.log(JSON.stringify({ tests: [
+  'startup self-check', 'unreadable manifest', 'manifest of the wrong shape',
+  'Zotero.debug throws', 'Zotero.version throws', 'Zotero.logError throws too',
+], result: 'pass' }));

@@ -58,9 +58,19 @@ def read_addon_record(profile: Path, addon_id: str = ADDON_ID) -> dict:
     if not path.is_file():
         return {"read": False, "why": f"{path} does not exist"}
     try:
-        addons = json.loads(path.read_text(encoding="utf-8")).get("addons", [])
+        document = json.loads(path.read_text(encoding="utf-8"))
     except (ValueError, OSError) as exc:
         return {"read": False, "why": f"{type(exc).__name__}: {exc}"}
+    # Shape, separately from syntax, and this is where the first draft was wrong.
+    # `[]` and `"text"` are valid JSON, so nothing above rejects them, and
+    # `.get` on the result raised AttributeError straight out of main() — which
+    # exits 1, the code this tool means by ABSENT. A crash that lands on
+    # "the plugin is gone" is the exact collapse the three-valued read exists to
+    # prevent, so the shape is checked rather than assumed.
+    if not isinstance(document, dict):
+        return {"read": False,
+                "why": f"{path}: the document is {type(document).__name__}, not an object"}
+    addons = document.get("addons", [])
     if not isinstance(addons, list):
         return {"read": False,
                 "why": f'{path}: "addons" is {type(addons).__name__}, not a list'}
@@ -84,6 +94,12 @@ def install(profile: Path, xpi: Path, addon_id: str = ADDON_ID) -> Path:
     it would install into a profile no Zotero will ever open.
     """
     profile, xpi = Path(profile), Path(xpi)
+    # The id becomes a filename, so it must be one path component. `--addon-id`
+    # is an operator's argument rather than an attacker's, but a value carrying
+    # a separator writes outside the directory the caller named, and refusing it
+    # costs one line.
+    if "/" in addon_id or "\\" in addon_id or addon_id in (".", "..", ""):
+        raise ValueError(f"addon id {addon_id!r} is not a single path component")
     if not profile.is_dir():
         raise FileNotFoundError(
             f"{profile} is not a directory. Pass the Zotero PROFILE directory "
@@ -96,7 +112,12 @@ def install(profile: Path, xpi: Path, addon_id: str = ADDON_ID) -> Path:
     return destination
 
 
-def report(record: dict) -> int:
+def report(record: dict, addon_id: str = ADDON_ID) -> int:
+    """The three-valued read as three exit codes. This is the observed contract.
+
+    Nothing outside a Python import sees the dict; a Make target and a shell see
+    only the code, and the codes are what the acceptance line is written against.
+    """
     print(json.dumps(record, indent=2))
     if not record["read"]:
         log.error("NOT-RUN: %s. Nothing here says whether the plugin is installed; "
@@ -107,7 +128,7 @@ def report(record: dict) -> int:
                  record["version"], record["active"], record["location"])
         return 0
     log.error("ABSENT: the host records %d add-on(s), none of them %s",
-              len(record["ids"]), ADDON_ID)
+              len(record["ids"]), addon_id)
     return 1
 
 
@@ -133,14 +154,14 @@ def main() -> int:
     if args.command == "install":
         try:
             destination = install(args.profile, args.xpi, args.addon_id)
-        except (FileNotFoundError, OSError) as exc:
+        except (FileNotFoundError, OSError, ValueError) as exc:
             log.error("FAIL: %s", exc)
             return 2
         log.info("installed %s", destination)
         log.info("Restart Zotero, then: python3 bench/sdt_sitter_install.py verify --profile %s",
                  args.profile)
         return 0
-    return report(read_addon_record(args.profile, args.addon_id))
+    return report(read_addon_record(args.profile, args.addon_id), args.addon_id)
 
 
 if __name__ == "__main__":

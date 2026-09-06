@@ -104,6 +104,25 @@ def test_guard_reddens_on_a_version_that_goes_backwards(tmp_path):
 
 
 @pytest.mark.integration
+def test_guard_reddens_when_a_leading_zero_hides_the_reuse(tmp_path):
+    """`2.03.0` and `2.3.0` are one version to any dotted-number comparator.
+
+    String equality called them two, so the reuse check missed the collision
+    while the regression check — which already parsed numerically — saw nothing
+    ahead of the tip either. A changed payload went out green through the gap
+    between two checks that disagreed about what a version is.
+    """
+    root = tmp_path / "repo"
+    root.mkdir()
+    sitter = seed(root, "2.3.0")
+    (sitter / "bootstrap.js").write_text("// a different payload\n", encoding="utf-8")
+    set_version(sitter, "2.03.0")
+    commit(root, "reformat the version, change the payload")
+    result = guard(root)
+    assert result.returncode != 0, result.stdout + result.stderr
+
+
+@pytest.mark.integration
 def test_guard_reports_not_run_where_there_is_no_history(tmp_path):
     """No git tree, no earlier payload, no verdict — and never a green one."""
     root = tmp_path / "bare"
@@ -111,6 +130,55 @@ def test_guard_reports_not_run_where_there_is_no_history(tmp_path):
     result = guard(root)
     assert result.returncode != 0
     assert "NOT-RUN" in result.stdout + result.stderr
+
+
+@pytest.mark.integration
+def test_guard_reports_not_run_on_a_repository_with_no_commit_for_the_payload(tmp_path):
+    """A git tree that is neither shallow nor grafted, and still has nothing to read.
+
+    Zero revisions compared is no comparison, and it printed OK. It is also the
+    state ticket 0697's rename lands in: the new path's history starts empty.
+    """
+    root = tmp_path / "fresh"
+    payload(root)
+    subprocess.run(["git", "init", "-q", "-b", "main"], cwd=root, check=True, capture_output=True)
+    result = guard(root)
+    assert result.returncode != 0, result.stdout + result.stderr
+    assert "NOT-RUN" in result.stdout + result.stderr
+
+    # And a repository with commits, none of them touching the payload path.
+    other = tmp_path / "elsewhere"
+    other.mkdir()
+    subprocess.run(["git", "init", "-q", "-b", "main"], cwd=other, check=True, capture_output=True)
+    (other / "README.md").write_text("unrelated\n", encoding="utf-8")
+    commit(other, "something else entirely")
+    payload(other)
+    result = guard(other)
+    assert result.returncode != 0, result.stdout + result.stderr
+    assert "NOT-RUN" in result.stdout + result.stderr
+
+
+@pytest.mark.integration
+def test_guard_reports_not_run_on_a_grafted_history(tmp_path):
+    """`git replace --graft` truncates the ancestry and sets no shallow marker.
+
+    Same blindness as a shallow clone, reached by a route the shallow probe
+    answers `false` for: the tip is identical, the visible history is not, and
+    the guard printed the same OK sentence either way.
+    """
+    root = tmp_path / "repo"
+    root.mkdir()
+    sitter = seed(root, "2.3.0")
+    (sitter / "bootstrap.js").write_text("// a different payload\n", encoding="utf-8")
+    commit(root, "change the payload, keep the version")
+    assert guard(root).returncode != 0, "the ungrafted history must see the collision"
+
+    head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, check=True,
+                          capture_output=True, text=True).stdout.strip()
+    subprocess.run(["git", "replace", "--graft", head], cwd=root, check=True, capture_output=True)
+    result = guard(root)
+    assert result.returncode != 0, result.stdout + result.stderr
+    assert "NOT-RUN" in result.stdout + result.stderr, result.stdout + result.stderr
 
 
 @pytest.mark.integration

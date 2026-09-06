@@ -18,6 +18,13 @@ whole history:
    hashed together. Change one byte of `bootstrap.js` without bumping and this
    fires; bump and it clears.
 
+IT BITES INSIDE A BRANCH TOO, and that is intended rather than tolerated. An
+unbumped payload change fires against the branch's own previous commit, not
+only against `main`. In another workshop that would be nagging; here it is the
+case that matters, because this plugin is hand-delivered — ticket 0680 carried
+an XPI to the author's home directory straight from a branch. A commit on a
+branch is a payload someone can install, so it needs its own number.
+
 WHERE IT IS DELIBERATELY BLIND, because a guard's blind spot is worth more
 written down than discovered. It says nothing about a collision between two
 purely historical versions — `2.2.0`'s several payloads are recorded and
@@ -26,10 +33,25 @@ make green, which is a guard that gets deleted. Anchoring at the tip is what
 makes it both true today and binding tomorrow: the very next unbumped payload
 change is a collision with the tip's own version.
 
-It needs real history to say anything. A checkout that has none — not a git
-tree, or a shallow clone whose boundary could hide the earlier payload at this
-exact version — reports NOT-RUN and exits non-zero. A gate that cannot look
-must never answer green.
+It needs real history to say anything, and every way of having none is a
+NOT-RUN rather than a green — a gate that cannot look must never answer as
+though it had. Four are covered, and they were found one at a time, each by a
+control rather than by reading the code:
+
+* **not a git tree** — nothing to compare against;
+* **a shallow clone** — its boundary hides the earlier payload. Detected with
+  `--is-shallow-repository`, NOT the `shallow` marker under
+  `--absolute-git-dir`: that marker lives in the common git dir, so from a
+  linked worktree, which is how every lane here works, the marker check looks
+  where it never is;
+* **a grafted history** — `git replace --graft` truncates the visible ancestry
+  and sets no marker at all, so the shallow probe answers false;
+* **no commit touching the payload path** — a fresh checkout, or a rename to a
+  path whose history starts empty. Zero revisions compared is no comparison.
+
+What it still cannot see: a rewritten history that keeps the same shape (a
+filter-branch that edited an old manifest in place), and a payload delivered
+outside this repository. Both are outside what a path's own log can evidence.
 
     python3 bench/check_sitter_version.py [--root .]
 """
@@ -137,7 +159,11 @@ def run(root: Path) -> tuple[list[str], str, int]:
                 f"{sha[:12]} carries version {was}, ahead of the working tree's "
                 f"{current_version}. A version that goes backwards makes the newer "
                 "artifact look older to Zotero and to every bug report about it.")
-        elif was == current_version and payload(reader) != current_payload:
+        # Numerically, like the regression check one line up, and not as text.
+        # `"2.03.0"` and `"2.3.0"` are one version to any dotted-number
+        # comparator, Zotero's included; string equality calls them two, so a
+        # leading zero slipped a changed payload past BOTH checks at once.
+        elif parse(was) == current and payload(reader) != current_payload:
             findings.append(
                 f"{sha[:12]} already shipped a DIFFERENT payload under version "
                 f"{current_version}. Bump the manifest version: two builds sharing "
@@ -171,11 +197,32 @@ def main() -> int:
                   "is invisible and a reused version would read as unused. Run "
                   "`git fetch --unshallow` before trusting a verdict here.")
         return 1
+    # A grafted history is a truncated one that sets no marker: `git replace
+    # --graft` cuts the visible ancestry while `--is-shallow-repository` still
+    # answers false. Reproduced — 17 real revisions against 3 after grafting,
+    # same tip, opposite truth, and the same OK sentence either way. A replace
+    # ref in a checkout being gated is not a state to reason under.
+    if git(root, "for-each-ref", "--format=%(refname)", "refs/replace/").stdout.strip():
+        log.error("NOT-RUN: this checkout carries replace/graft refs, so the history read "
+                  "here is not the history that was written and a truncated ancestry would "
+                  "read as an absent one. Run `git replace --list` and clear them first.")
+        return 1
 
     try:
         findings, version, read = run(root)
     except ValueError as exc:
         log.error("FAIL: a manifest version this guard cannot order: %s", exc)
+        return 1
+    if not findings and read == 0:
+        # The last way to be blind and look green: a checkout that is neither
+        # shallow nor grafted and simply has no commit touching the payload —
+        # a fresh `git init`, or the payload moved to a new path whose history
+        # starts empty (ticket 0697's rename is exactly that). Zero revisions
+        # compared is not a clean comparison, it is no comparison.
+        log.error("NOT-RUN: no commit under %s touches %s, so there is no earlier payload "
+                  "to compare against. If the directory was just renamed, pass the old path "
+                  "too; if the checkout is fresh, this guard has nothing to say yet.",
+                  root, SITTER)
         return 1
     for finding in findings:
         log.error("FAIL: %s", finding)

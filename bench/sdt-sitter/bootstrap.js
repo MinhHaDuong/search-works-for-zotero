@@ -203,14 +203,17 @@ function startup({ rootURI }) {
 // list" and left nothing behind saying which build was running when it did. Raw
 // values only, no compatibility-range parsing: `strict_max_version` against
 // `Zotero.version` is exactly the comparison the host already made and disagreeing
-// with it here would only invent a second verdict. Reading the manifest can fail —
-// a diagnosis must never be the thing that stops startup — so it is caught, and the
-// line is still emitted with whatever was learned.
+// with it here would only invent a second verdict.
+//
+// `JSON.parse` of a document that is not an object is the case the first draft
+// missed: `null` and `3` parse fine and then `manifest.version` throws or reads
+// wrong, so the shape is checked rather than assumed.
 async function sitterStartupSelfCheck(rootURI) {
-  let manifest = {};
+  let manifest = null;
   try {
     manifest = JSON.parse(await Zotero.File.getContentsFromURLAsync(rootURI + 'manifest.json'));
   } catch (error) { manifest = { version: `unreadable (${error})` }; }
+  if (!manifest || typeof manifest !== 'object') manifest = { version: `unreadable (${manifest})` };
   const application = (manifest.applications && manifest.applications.zotero) || {};
   return `SDT pack sitter startup: version=${manifest.version} rootURI=${rootURI}`
     + ` zoteroVersion=${Zotero.version} strictMinVersion=${application.strict_min_version}`
@@ -220,7 +223,19 @@ async function initialize(rootURI, token) {
   await Zotero.initializationPromise;
   // First thing after the host is up, and before any of the work below can throw:
   // a disappearance that leaves no line here happened earlier than this point.
-  Zotero.debug(await sitterStartupSelfCheck(rootURI));
+  //
+  // The whole call is wrapped, not just the manifest read inside it. A diagnosis
+  // must never be the thing that stops startup, and every part of this line can
+  // fail on its own: `Zotero.debug` is a function on an object this plugin does
+  // not own, and `Zotero.version` is a getter that runs code. Wrapping only the
+  // fetch left the self-check able to abort the startup it exists to explain,
+  // which is the failure inverted. The inner catch is there because reporting the
+  // failure must not fail either.
+  try {
+    Zotero.debug(await sitterStartupSelfCheck(rootURI));
+  } catch (error) {
+    try { Zotero.logError(error); } catch (unreportable) { /* Nothing left to try. */ }
+  }
   await Zotero.uiReadyPromise;
   if (token !== generation) return;
   Services.scriptloader.loadSubScript(rootURI + 'scheduler.js', globalThis);
