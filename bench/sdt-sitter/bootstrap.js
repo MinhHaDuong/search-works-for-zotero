@@ -199,8 +199,28 @@ function startup({ rootURI }) {
   // Addon startup is serialized. Never hold it on UI readiness or a modal prompt.
   timer = timers.setTimeout(() => initialize(rootURI, token).catch(error => Zotero.logError(error)), 0);
 }
+// Ticket 0688. The plugin "tends to disappear on its own from the installed-plugins
+// list" and left nothing behind saying which build was running when it did. Raw
+// values only, no compatibility-range parsing: `strict_max_version` against
+// `Zotero.version` is exactly the comparison the host already made and disagreeing
+// with it here would only invent a second verdict. Reading the manifest can fail —
+// a diagnosis must never be the thing that stops startup — so it is caught, and the
+// line is still emitted with whatever was learned.
+async function sitterStartupSelfCheck(rootURI) {
+  let manifest = {};
+  try {
+    manifest = JSON.parse(await Zotero.File.getContentsFromURLAsync(rootURI + 'manifest.json'));
+  } catch (error) { manifest = { version: `unreadable (${error})` }; }
+  const application = (manifest.applications && manifest.applications.zotero) || {};
+  return `SDT pack sitter startup: version=${manifest.version} rootURI=${rootURI}`
+    + ` zoteroVersion=${Zotero.version} strictMinVersion=${application.strict_min_version}`
+    + ` strictMaxVersion=${application.strict_max_version}`;
+}
 async function initialize(rootURI, token) {
   await Zotero.initializationPromise;
+  // First thing after the host is up, and before any of the work below can throw:
+  // a disappearance that leaves no line here happened earlier than this point.
+  Zotero.debug(await sitterStartupSelfCheck(rootURI));
   await Zotero.uiReadyPromise;
   if (token !== generation) return;
   Services.scriptloader.loadSubScript(rootURI + 'scheduler.js', globalThis);
