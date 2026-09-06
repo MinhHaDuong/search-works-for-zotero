@@ -149,24 +149,30 @@ function describeSDTCoverage(state) {
    groups; a feed item carries no attachment, so no feed is in the set the census
    measures. Listing "Nature News" beside the user library, or counting it into
    "Toutes les bibliothèques (7)", would state a scope the figure was never
-   measured over — the very failure the prefix exists to end. */
+   measured over — the very failure the prefix exists to end.
+
+   The whole body is inside the guard, not just the `getAll()` call: `render` and
+   the pulse timer carry no `try` of their own, so anything escaping here escapes
+   into a callback that fires ten times a second and would go on throwing for as
+   long as the sitter is alive. A first version guarded only the call, which left
+   the iteration itself — a `getAll()` returning something truthy and not
+   iterable — outside the guard it was written for. */
 function describeSDTScope() {
-  let libraries;
-  try { libraries = Zotero.Libraries.getAll(); }
-  catch (_error) { return null; }
-  const names = [];
-  for (const library of libraries || []) {
-    let name;
-    try {
-      if (!library || library.libraryType === 'feed') continue;
-      name = library.name;
-    } catch (_error) { continue; }
-    if (typeof name === 'string' && name.trim()) names.push(name.trim());
-  }
-  if (names.length === 0) return null;
-  if (names.length === 1) return `Bibliothèque : ${names[0]}`;
-  if (names.length <= 3) return `Bibliothèques : ${names.join(', ')}`;
-  return `Toutes les bibliothèques (${names.length})`;
+  try {
+    const names = [];
+    for (const library of Zotero.Libraries.getAll() || []) {
+      let name;
+      try {
+        if (!library || library.libraryType === 'feed') continue;
+        name = library.name;
+      } catch (_error) { continue; }
+      if (typeof name === 'string' && name.trim()) names.push(name.trim());
+    }
+    if (names.length === 0) return null;
+    if (names.length === 1) return `Bibliothèque : ${names[0]}`;
+    if (names.length <= 3) return `Bibliothèques : ${names.join(', ')}`;
+    return `Toutes les bibliothèques (${names.length})`;
+  } catch (_error) { return null; }
 }
 
 function describeSDTTooltip(state) {

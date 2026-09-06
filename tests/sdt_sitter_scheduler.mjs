@@ -461,14 +461,21 @@ assert.equal(tooltip({ phase: 'waiting', completed: 3 }),
   'Toutes les bibliothèques (4) — Index 57 % — 3 fichiers indexés');
 // A group library is loaded lazily and its record can throw from the name getter
 // after a restart. One unreadable record must cost its own name, not the prefix:
-// without the per-record guard this reads as the unscoped tooltip below.
+// without the per-record guard the outer guard catches instead and the whole
+// prefix goes, leaving the unscoped tooltip below.
 withLibraries(() => [{ name: 'Ma bibliothèque' },
   { get name() { throw new Error('library not loaded'); } }]);
 assert.equal(tooltip({ phase: 'waiting', completed: 3 }), idle);
+const unscoped = 'Index 57 % — 3 fichiers indexés';
 // And when nothing at all can be read, the tooltip degrades to the unscoped
 // form rather than throwing into the render loop.
 withLibraries(() => { throw new Error('libraries unavailable'); });
-assert.equal(tooltip({ phase: 'waiting', completed: 3 }), 'Index 57 % — 3 fichiers indexés');
+assert.equal(tooltip({ phase: 'waiting', completed: 3 }), unscoped);
+// The iteration is inside the guard too, not only the call: `render` and the
+// pulse timer have no try of their own, so a getAll() returning something truthy
+// and not iterable would throw ten times a second for the life of the sitter.
+withLibraries(() => ({ 0: { name: 'Ma bibliothèque' }, length: 1 }));
+assert.equal(tooltip({ phase: 'waiting', completed: 3 }), unscoped);
 named('Ma bibliothèque');
 // A bare count is reserved for the two healthy idle phases. Mapping any other
 // phase to null would silence it exactly as the raw-name removal once did.
@@ -477,18 +484,31 @@ assert.deepEqual(silent, ['ready', 'waiting'],
   `only healthy idle phases may render a bare count: ${silent.join(' | ')}`);
 const stalled = [...phases].filter(phase => !silent.includes(phase) && phase !== 'census');
 const rendered = new Set();
+// Driven under a HYPHENATED library name on purpose. The identifier check below
+// reads a hyphen as the tell of a leaked internal phase name ('low-memory',
+// 'cpu-busy'), which it was until library names began flowing into the same
+// string; a hyphen is ordinary in a name the user chose. Running this loop under
+// "Ma bibliothèque" would leave the check's new scoping unexercised and green by
+// accident of the fixture -- which is what it was before this line.
+named('Groupe socio-technique');
+const hyphenated = 'Bibliothèque : Groupe socio-technique — Index 57 % — ';
+const hyphenatedIdle = tooltip({ phase: 'waiting', completed: 3 });
+assert.equal(hyphenatedIdle, `${hyphenated}3 fichiers indexés`);
 for (const phase of stalled) {
   const text = tooltip({ phase, completed: 3 });
-  assert(text !== idle, `'${phase}' is indistinguishable from a healthy idle sitter`);
+  assert(text !== hyphenatedIdle, `'${phase}' is indistinguishable from a healthy idle sitter`);
   assert(!text.includes(phase), `'${phase}' leaks its internal name: ${text}`);
-  assert(!/[a-z]-[a-z]/.test(text), `'${phase}' reads as an identifier, not a sentence: ${text}`);
   assert(text.endsWith('3 fichiers indexés'), `'${phase}' dropped the count: ${text}`);
-  assert(text.startsWith(scope), `'${phase}' dropped the library scope: ${text}`);
+  assert(text.startsWith(hyphenated), `'${phase}' dropped the library scope: ${text}`);
+  assert(!/[a-z]-[a-z]/.test(text.slice(hyphenated.length)),
+    `'${phase}' reads as an identifier, not a sentence: ${text}`);
   rendered.add(text);
 }
 assert.equal(rendered.size, stalled.length, 'two blocking phases share one tooltip');
 // An unlisted phase degrades to the scoped count instead of leaking its name.
-assert.equal(tooltip({ phase: 'a-brand-new-phase', completed: 3 }), idle);
+assert.equal(tooltip({ phase: 'a-brand-new-phase', completed: 3 }), hyphenatedIdle);
+named('Ma bibliothèque');
+assert.equal(tooltip({ phase: 'waiting', completed: 3 }), idle);
 
 /* Zotero auto-names attachments, so the reference must lead. A line reading
    only 'Full Text PDF' identifies nothing, which is the whole point of
