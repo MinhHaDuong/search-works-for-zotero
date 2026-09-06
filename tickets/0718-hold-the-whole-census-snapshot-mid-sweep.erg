@@ -1,0 +1,69 @@
+%erg 0.1
+Title: Hold the whole census snapshot mid-sweep, not just the failure total
+Created: 2026-09-06
+Author: sim
+
+--- log ---
+2026-09-06T15:48Z sim created
+
+--- body ---
+
+## Context
+
+Ticket 0699 (PR #387) fixed the sitter's failure accounting to derive
+`state.failed` from the census each sweep, rather than accumulating it --
+and added a fix ("hold the last complete census while the next one runs")
+so `state.failed` doesn't blank to empty every ~30s while a re-scan is in
+progress: `publish()` gates the `state.failed` recompute on
+`state.scanned === state.total`.
+
+Correctness review of PR #387 found this holds only ONE of the three terms
+in the reconciliation identity (`coverage.current + state.failed + queued
+=== coverage.total`). `getSDTCoverage()` reads `state.counts` live, ungated,
+every `render()` call -- and `state.counts` is reset to `{}` at the top of
+every sweep. So during a re-scan, `coverage.current` (and any `queued`
+tally computed the same way) drops to 0 and climbs back up, WHILE
+`state.failed` now sits frozen at the prior sweep's value -- a new
+three-way inconsistency that did not exist before 0699 (before, all three
+terms were live and reset together, so they stayed mutually consistent
+even though all were momentarily wrong).
+
+Confirmed by direct reproduction (script sampling all three terms from
+inside `host.inspect()` mid-census): `identityHolds: false` for every
+mid-census sample once past the first sweep, `true` only once `scanned ===
+total`.
+
+This is not a regression against anything ticket 0699 promised (its own
+tests only assert the identity post-sweep, and its scope was explicitly
+`state.failed`-specific) and it's an improvement over the prior
+always-zeroing behavior. But it falls short of 0699's own docstring claim
+("that is what makes the two numbers on screen add up") during a window
+that recurs every sweep, for any library large enough that a re-scan takes
+perceptible time -- the toolbar's coverage percentage will visibly flicker
+downward and climb back every ~30s, while the failure banner sits frozen,
+visibly disagreeing.
+
+## Work
+
+- Snapshot the whole census result atomically at sweep-end (current,
+  failed, queued, outOfScope counts together), the way `state.pending`/
+  `state.samples` are already snapshotted, rather than gating `state.failed`
+  alone while `getSDTCoverage()` keeps reading live `state.counts`.
+- `getSDTCoverage()` should read the held snapshot when a census is in
+  progress, falling back to live counts only when idle/complete.
+
+## Acceptance
+
+- [ ] A test samples `coverage.current`, `state.failed`, and any `queued`
+      tally simultaneously from inside a running census (not just after
+      sweep() resolves) and asserts the three-way identity holds throughout,
+      not only at sweep-end.
+- [ ] No existing test regresses.
+
+## Scope
+
+Follow-up to 0699, not a blocker for it -- 0699 is a strict improvement
+over the prior behavior and met its own literal acceptance criteria. This
+ticket closes the gap between "add up to the correct totals" as stated and
+as delivered.
+

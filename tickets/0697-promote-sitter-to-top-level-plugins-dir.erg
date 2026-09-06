@@ -6,6 +6,7 @@ Author: claude
 --- log ---
 2026-09-06T00:00Z claude created
 
+2026-09-06T09:05Z claude note Heads-up from 0688: bench/check_sitter_version.py pins SITTER = 'bench/sdt-sitter' and walks the history of that path. The move must update it AND keep the old path in the history query (pass both pathspecs), since a rename across a directory is not followed by default and a bare rename would leave the guard reading an empty history, reporting green on no evidence. The same rename applies to the SITTER constants in tests/sdt_sitter_startup.mjs, tests/test_sdt_sitter.py, tests/test_check_sitter_version.py, the docstring of bench/sdt_sitter_install.py, the sitter-version and sitter-install and sitter-verify-install Make targets, and manifest.json's update_url, which now names the raw path bench/sdt-sitter/update.json on main.
 --- body ---
 ## Context
 

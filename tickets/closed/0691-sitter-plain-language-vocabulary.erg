@@ -1,0 +1,96 @@
+%erg 0.1
+Title: Replace SDT jargon with plain-language sitter vocabulary
+Created: 2026-09-06
+Author: claude
+Blocked-by: github.com/MinhHaDuong/search-works-for-zotero#365
+Closed: autoclosed — PR #369
+
+--- log ---
+2026-09-06T00:00Z claude created
+2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED, but the six-row table alone is not sufficient -- necessary but not sufficient against this ticket's own "no jargon outside diagnostics" intent. Gaps found by reading bootstrap.js directly: (1) the toolbar tooltip leaks raw internal phase strings verbatim when phase isn't 'census' (e.g. 'native-worker-busy', 'low-memory', 'launch-declined; disable/re-enable to launch') -- none in the table; (2) the global status line 'Packs a jour : X / Y' uses the excluded word 'packs' but isn't literally named by any checkbox; (3) 'active document' needs new plumbing, not a word swap -- state.active is a raw item ID today, never a title (title is already computed in inspect() as result.title and needs threading through); (4) 'finished with exceptions' is a new summary line, not a rename -- nothing today surfaces failures outside the diagnostics block. All four must land in the same pass or the checkboxes will read green while the leak is only half-fixed. Also: pair the sitter's own 'index' rename with Zotero's native full-text panel rename in the same commit (acceptance criterion 2 already requires this; the collision doesn't exist yet but a partial implementation would create it).
+2026-09-06T00:00Z claude note Author directive 1 (PR #369 review): "Informative tooltip is nice to have, preserve." Dropping the phase word outside 'census' fixed the raw-name leak but cost all zero-click observability -- a blocked sitter read exactly like a healthy idle one. Resolved with SDT_PHASE_LABELS: a plain French sentence per blocking/error phase, an explicit null for the two healthy idle phases, bare count for anything unlisted. Added acceptance line 4.
+2026-09-06T00:00Z claude note Author directive 2 (PR #369 review): "document" is banned from the UI, not merely imprecise. The sitter indexes attachments (SELECT itemID FROM itemAttachments; Zotero.SDT.ensure(attachmentID)) and a reference can carry several (SPEC.md D6); Zotero's own French UI renders *item* as "document", so the word named the wrong object. Vocabulary gains file/fichier and reference; "document", "element", "piece jointe", "item" join the banned list. The directive also exposed a real defect: inspect() sets title from the attachment's own field, which Zotero auto-generates ("Full Text PDF"), so the threaded title identified nothing -- parentTitle now threads alongside it and the active line composes reference then file. Added acceptance line 3.
+2026-09-06T00:00Z claude note Downstream, not re-planned here: 0693/0696/0699 need the same reference-then-file composition and the "document" ban; 0692's Fluent ids should read files-indexed / files-failed. One residual ambiguity reported, not changed: the extraction plateau message "Analyse des references..." uses "references" in its bibliographic sense, which now collides with "reference" as the parent item -- rewording it needs a ruling on what the processor is actually doing at that point.
+2026-09-06T00:00Z claude note Consistency review round 3 (PR #369): describeError still led with the attachment's auto-generated title and appended the reference -- the same defect just fixed on the progress line, at a site this PR had already touched for the word swap. Root cause was two independent compositions, so both now go through one describeSDTFile(info, fallback) and a test asserts neither site composes its own label. Also: BANNED_IN_UI had drifted from the ban this ticket states ("item" missing), and the quietMessage strings were outside the checked site list; both closed.
+2026-09-06T00:00Z claude note Acceptance boxes 1-4 ticked against PR #369. Box 5 stays open deliberately: its "no bundling" half is met (this PR carries no externalization) but its "lands before 0692" half is a merge-order fact nothing can observe from inside the PR, so it closes when 0692 merges after it.
+
+2026-09-06T10:11Z sim closed — autoclosed — PR #369
+2026-09-06T12:14Z claude note Vocabulary table amended after close by ticket 0710: three rows for the coverage figure carried with the scope it is measured over (one library, several, more than three). Recorded here because the table is this ticket's artifact and an edit invisible in the log is an edit the store cannot audit; the ticket itself stays closed and its acceptance is unchanged.
+--- body ---
+## Context
+
+Author, 2026-09-06: "SDT ca dit rien, 'Index 43%' on comprend" -- SDT means
+nothing to a reader, "Index 43%" is immediately understood. Ticket 0686
+already asked for "human-readable states" and to "move technical
+diagnostics below primary progress information"; this ticket supplies the
+actual wording 0686 should adopt, so the two are not solved twice with
+different vocabularies.
+
+## Vocabulary
+
+| Internal | User-facing (en) | fr |
+|---|---|---|
+| SDT pack sitter | Index assistant | Assistant d'indexation |
+| SDT pack | index (of a file) | index (du fichier) |
+| coverage | Index 43 % | Index 43 % |
+| coverage, with the scope it is measured over | Library: My Library — Index 43 % | Bibliothèque : Ma bibliothèque — Index 43 % |
+| that scope, several libraries | Libraries: My Library, Climate Group — Index 43 % | Bibliothèques : Ma bibliothèque, Groupe Climat — Index 43 % |
+| that scope, more than three | All libraries (4) — Index 43 % | Toutes les bibliothèques (4) — Index 43 % |
+| native full-text index (Zotero's own) | text search index | index de recherche textuelle |
+| attachment (the unit of work) | file | fichier |
+| item owning the attachment | reference | reference |
+| active attachment | Indexing: <reference> - <file> | Indexation : <reference> - <fichier> |
+| finished with exceptions | 12 files could not be indexed | 12 fichiers n'ont pas pu etre indexes |
+
+The three scoped rows were added by ticket 0710, after this ticket closed, so
+that one table stays the whole vocabulary rather than splitting across two
+tickets. The library names in them are examples: the sitter reads them from
+Zotero's own library records, never from a literal.
+
+"SDT", "pack", "processor", "fingerprint" survive only inside the
+diagnostics disclosure (see 0693), where a reader has explicitly asked for
+them.
+
+Banned outright from the UI, alongside "SDT" and "pack": **"document",
+"element", "piece jointe", "item"**. The sitter's unit of work is one
+attachment -- it lists `itemAttachments` and calls `Zotero.SDT.ensure` on an
+attachment id -- while a reference can carry several attachments (SPEC.md D6,
+twin-attachment rule), so "document" collapses two things the UI must keep
+apart. Worse, Zotero's own French UI already translates *item* as "document",
+so to a French reader the word names the reference, which is the opposite of
+what it would mean here. "Document" also already carries two unrelated senses
+in this repo (README's chapter-sized content unit; SPEC.md's retrieval unit,
+deliberately distinguished from "entry") -- four collisions on one word.
+
+Zotero auto-names attachments ("Full Text PDF", "Snapshot"), so the
+attachment title alone identifies nothing. Any line naming the active work
+leads with the reference title and appends the file.
+
+One naming conflict to resolve, not just translate around: Zotero already
+has its own "full-text index" panel. The sitter's object keeps the word
+"index"; Zotero's older one is relabeled "text search index" and confined
+to the disclosure, so the two are never both called "index" in view at
+once.
+
+## Acceptance
+
+- [x] Toolbar, dialog, and all user-facing prompts use only the
+      user-facing column above; "SDT" does not appear outside the
+      diagnostics disclosure. (PR #369. manifest.json's name and description
+      are out of scope: Add-ons Manager, not toolbar/dialog/prompt.)
+- [x] The two "index" concepts are never both visible under the same
+      unqualified label in one view. (PR #369, same commit as the sitter's
+      own rename.)
+- [x] Every count names the unit it counts (files). The active line shows the
+      reference title when one exists, never the attachment's generic
+      auto-generated title alone. (PR #369; `describeSDTFile` composes
+      reference then file for both the progress line and the error line.)
+- [x] A blocked or failed sitter is distinguishable from a healthy idle one
+      without opening the dialog, and no internal phase name reaches the
+      toolbar to do it. (PR #369; SDT_PHASE_LABELS, with a test enumerating
+      the phase literals so a new one cannot ship untranslated.)
+- [ ] Wording lands before 0692 (i18n) externalizes it -- do not bundle a
+      wording change and a string-externalization change in one PR; they
+      cannot be diffed against each other. (Half met: PR #369 carries no
+      externalization. The ordering half is only observable at merge, so this
+      box stays open until 0692 lands after it.)
