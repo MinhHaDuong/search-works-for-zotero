@@ -364,6 +364,50 @@ await test('after a hang the ring names the active document, its last progress a
   ui.heartbeatTick();
   assert.equal(ring.tail(50).length, settled);
 });
+/* Ticket 0704. The sample's clock used to start before ensure(), which hashes the
+   file, validates any existing pack, and queues behind whatever native work is
+   already running. None of that is a property of the document, and all of it was
+   booked as its extraction time. With three samples the 95th percentile IS the
+   maximum, so one inflated observation sets the upper bound for every later
+   estimate — and the cache keeps only the latest observation per attachment,
+   which is now `current` and never re-measured, so the poisoned number outlives
+   the session. The injected clock separates the two windows by two orders of
+   magnitude, because a sample that split the difference would pass a looser one. */
+await test('the queue wait before the first progress tick is not booked as extraction', async () => {
+  const f = fixture();
+  let clock = 0;
+  f.host.now = () => clock;
+  f.host.list = async () => [1];
+  f.host.ensure = async (id, progress) => {
+    clock += 100000;                 // hash, pack validation, and the native queue
+    progress(10); clock += 400;
+    progress(90); clock += 600;      // the extraction itself: 1000 ms
+    f.cached.add(id); return true;
+  };
+  await f.api.sweep();
+  assert.equal(f.api.state.samples.length, 1);
+  assert.equal(f.api.state.samples[0].milliseconds, 1000);
+  // state.startedAt is untouched, and serviceMS still answers the other question
+  // — how long the sitter held the slot — which the UI and the overrun check read.
+  assert.equal(f.api.state.startedAt, 0);
+  assert.equal(f.api.state.serviceMS, 101000);
+});
+await test('a document that never reports progress still yields a sample', async () => {
+  const f = fixture();
+  // An epoch clock, as host.now() really is. It has to be one: a missing start
+  // subtracts as zero rather than as NaN, so against a clock counting from zero
+  // the absent fallback and the present one agree, and the arm proves nothing.
+  let clock = 1_700_000_000_000;
+  f.host.now = () => (clock += 10);
+  f.host.list = async () => [1];
+  f.host.ensure = async id => { f.cached.add(id); return true; };
+  await f.api.sweep();
+  assert.equal(f.api.state.samples.length, 1);
+  const [sample] = f.api.state.samples;
+  assert(sample.milliseconds > 0);
+  assert(sample.milliseconds < 60000,
+    `a silent extraction recorded ${sample.milliseconds} ms — it measured the epoch`);
+});
 /* Ticket 0701. The census hashed every attachment on every 30 s sweep, because
    the cache key embeds the source MD5 and so the hash had to be taken before the
    cache could be consulted. Counted across two consecutive sweeps of a library

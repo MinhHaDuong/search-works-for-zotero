@@ -79,10 +79,22 @@ var createSDTSitter = function (host) {
           state.lastProgressAt = state.startedAt; state.progress = null;
           state.phase = 'extracting'; publish();
           if (host.emit) host.emit('submit', { id });
+          // The duration sample's own clock, and deliberately not state.startedAt,
+          // which the UI's elapsed line, the overrun check and the prediction math
+          // all read as "since submission" and must keep reading that way. Between
+          // the two, ensure() hashes the file, validates any existing pack, and
+          // queues behind whatever native work is already running — none of it a
+          // property of this document, all of it booked as its extraction time
+          // (ticket 0704). With three samples the 95th percentile IS the maximum,
+          // so one inflated observation sets the upper bound for every later
+          // estimate, and the cache keeps it until a processor version bump.
+          let extractingSince = null;
           try {
             const ok = await host.ensure(id, progress => {
               if (!state.enabled) return;
-              state.progress = progress; state.lastProgressAt = host.now();
+              const at = host.now();
+              extractingSince ??= at;
+              state.progress = progress; state.lastProgressAt = at;
               if (host.emit) host.emit('progress', { id, progress }, 'trace');
               publish();
             });
@@ -92,7 +104,7 @@ var createSDTSitter = function (host) {
             if (!ok || after.status !== 'current') throw new Error('Native SDT did not persist a current pack');
             state.completed++; state.serviceMS += host.now() - state.startedAt;
             state.samples.push({ sourceBytes: before.sourceBytes, pages: before.pages,
-              milliseconds: host.now() - state.startedAt });
+              milliseconds: host.now() - (extractingSince ?? state.startedAt) });
             if (host.emit) host.emit('settle',
               { id, ok: true, ms: state.samples[state.samples.length - 1].milliseconds });
             if (host.observed) await host.observed(before, state.samples[state.samples.length - 1]);

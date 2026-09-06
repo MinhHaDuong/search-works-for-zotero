@@ -67,8 +67,17 @@ MUTANTS = [
      "if (reason) { state.phase = reason; publish(); continue; }"),
     ("M5 success path stops accumulating duration samples",
      "            state.samples.push({ sourceBytes: before.sourceBytes, pages: before.pages,\n"
-     "              milliseconds: host.now() - state.startedAt });\n",
+     "              milliseconds: host.now() - (extractingSince ?? state.startedAt) });\n",
      ""),
+    # Ticket 0704's defect, kept as a mutant rather than only as a test: the
+    # sample is the one number here that is wrong rather than absent when it
+    # regresses, and a wrong duration is invisible in every count the other
+    # mutants move. It reads state.startedAt, which is still right there and
+    # still legitimately used two lines above — the easiest edit in the file to
+    # make by accident.
+    ("M9 duration sample measures from submission again, not from first progress",
+     "              milliseconds: host.now() - (extractingSince ?? state.startedAt) });",
+     "              milliseconds: host.now() - state.startedAt });"),
     ("M6 host.reportError is never called",
      "            if (host.reportError) await host.reportError(before, error);\n",
      ""),
