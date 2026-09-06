@@ -6,6 +6,7 @@ Blocked-by: github.com/MinhHaDuong/search-works-for-zotero#365
 
 --- log ---
 2026-09-06T00:00Z claude created
+2026-09-06T00:00Z claude note Fable 5.1 deep-QA pass found three sibling gaps, folded into this ticket's scope: `unsupported-pack`/`missing-source` documents sit in the coverage denominator but are never candidates and never counted as failures, so coverage can never reach 100% with no explanation shown; `host.observed()` throwing on an already-persisted pack counts a success as a failure and blacklists it for the session (a false negative in the opposite direction from the two gaps already described above); `state.cacheWarning` is set but never rendered anywhere, so cache-write failures are invisible even though the data exists.
 
 --- body ---
 ## Context
@@ -81,3 +82,9 @@ the library's non-indexed count. Concretely:
       branches (current, missing-pack, stale-source, stale-processor,
       invalid-pack, inspection-error, failed-session).
 - [ ] No existing passing test regresses.
+- [ ] `unsupported-pack`/`missing-source` documents are reflected honestly
+      in the coverage total, not silently excluded from both numerator
+      and denominator in a way that makes 100% unreachable.
+- [ ] A persisted, verified pack (`host.observed()` returns true) is
+      never counted as a failure, even if `observed()` itself throws on
+      a later check.
