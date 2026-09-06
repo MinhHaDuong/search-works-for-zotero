@@ -1,12 +1,12 @@
 %erg 0.1
-Title: Add adversarial smoke tests for the sitter scheduler and bootstrap
+Title: Add adversarial scheduler-seam tests for the sitter (doable now)
 Created: 2026-09-06
 Author: claude
 Blocked-by: github.com/MinhHaDuong/search-works-for-zotero#365
-Blocked-by: 0689
 
 --- log ---
 2026-09-06T00:00Z claude created
+2026-09-06T00:00Z claude note Imagine phase (raid, model sonnet) ESCALATEd the original combined ticket: ~7 of 13 scenarios needed a Zotero-environment mock harness that does not exist anywhere in this repo's test tree, one scenario (clock jump backwards) asked for monotonic-time behavior that does not exist in the code -- a design decision, not a test -- and one row referenced an uncoded counter. Split per its recommendation: this ticket keeps only the scenarios testable today with the existing `host` mock pattern in `tests/sdt_sitter_scheduler.mjs`; the rest moved to 0695.
 
 --- body ---
 ## Context
@@ -15,42 +15,37 @@ The author wants adversarial smoke testing of the plugin, not just the
 happy-path DOM/style smoke that already exists (per ticket 0686's own
 note: "the existing DOM/style smoke does not establish keyboard or
 screen-reader behavior" -- the same gap applies to the scheduler's
-failure handling). This is the raison d'etre theme: the sitter is a
-supervisor, so its resilience to its own dependencies misbehaving is the
-thing worth testing, more than its happy path.
+failure handling).
 
-Each scenario asserts against the journal from 0689 (the ring buffer /
-`Zotero.debug()` stream), not against UI state -- so these tests inherit
-0689's trustworthiness rather than duplicating a second assertion surface.
+`scheduler.js`'s `createSDTSitter(host)` already takes an injectable
+`host.now()` for every timestamp, and `tests/sdt_sitter_scheduler.mjs`'s
+fixture already injects a fake clock -- confirmed in code, not to-add.
+The four scenarios below are testable today, in the same style as the
+existing seven tests in that file, with no new harness and no dependency
+on ticket 0689's journal (assert against `host.reportError` calls and
+scheduler state directly; do not invent a dependency on an unbuilt
+journal for scenarios that don't need one).
 
-## Scenarios (drive the scheduler and bootstrap seams with hostile fakes)
+## Scenarios
 
 | Scenario | Fake | Expected |
 |---|---|---|
-| Worker promise never settles | `ensure()` pends forever | No 2nd submission; heartbeat continues; no hang verdict rendered |
-| Worker rejects mid-job | rejects after 3 progress ticks | Suppressed by identity; next doc admitted; error line logged |
-| Worker resolves, pack absent/corrupt | `inspect` finds nothing | Not counted as coverage; "finished with exception" |
-| RAM/disk reading unavailable | stat throws | Admission refused; refusal logged; no busy loop |
-| Disk crosses threshold mid-job | 9 GiB -> 2 GiB | Current job continues (check, not cap); next admission refused |
-| Cache file corrupt / partial line | crafted cache | Falls back to inspection; drops bad rows; counts them |
-| Cache directory unwritable | write throws | One log line; estimates still computed in memory |
-| Dialog closed & reopened mid-job | open/close/open | One instance, no duplicated listeners, state preserved |
-| Two windows, two `startup()` calls | double call | One global object; one active submission |
-| Disable during active job | `shutdown` while pending | `shutdown(disable)` last; no further `submit` |
-| Quit during cache write | reject write chain at quit | No partial line, or dropped on next load |
-| Clock jump backwards | `Date.now` steps back 1h | Elapsed uses monotonic time; finish shows "unavailable" |
-| Empirical upper bound exceeded | duration > p95 | Finish time "unavailable, not now" |
+| Worker rejects mid-job | `ensure()` rejects after 3 progress ticks | Suppressed by source/processor identity; next document admitted; `host.reportError` called once |
+| Worker resolves, pack absent/corrupt | `inspect` finds nothing | Not counted as coverage; treated as a failure, not a silent success -- check this isn't a near-duplicate of the existing "native success without persisted cache counts as failure" test before writing it |
+| Disk crosses threshold mid-job | resource reading goes from comfortable to below-threshold between admissions | Current job continues uninterrupted (admission-time check, not a running cap); the next admission is refused |
+| Disable during active job | `stop()`/shutdown called while a submission is pending | No further `submit` after the call; the pending promise is not force-cancelled |
 
 Worker-process death itself (kill the worker, not just reject a promise)
-is out of scope here -- that is ticket 0681's crash-recovery detection.
-These tests only assert that 0681's absence degrades to "no further
-submissions," never to a retry loop.
+is out of scope -- that is ticket 0681's crash-recovery detection.
 
 ## Acceptance
 
 - [ ] Each row is one test, shown red once against a deliberately broken
       scheduler -- record the red commit hash in this ticket's log.
-- [ ] No test uses sleep-based timing; the scheduler takes an injectable
-      clock (confirm `tests/sdt_sitter_scheduler.mjs` already supports
-      this, or add it).
-- [ ] Tests run from `make check`'s integration tier, not only by hand.
+- [ ] Tests run under this repo's existing `make check` (no separate
+      "integration tier" selector exists in this project's Makefile/
+      conftest -- tag with the registered `integration` marker for
+      classification only, it is not a gate).
+- [ ] Each test is checked against the existing seven in
+      `tests/sdt_sitter_scheduler.mjs` for overlap before being counted as
+      new coverage.

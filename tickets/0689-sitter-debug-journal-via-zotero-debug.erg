@@ -6,6 +6,7 @@ Blocked-by: github.com/MinhHaDuong/search-works-for-zotero#365
 
 --- log ---
 2026-09-06T00:00Z claude created
+2026-09-06T00:00Z claude note Imagine-phase finding (raid, model sonnet): the code merged in PR #365 already writes an unbounded, never-rotated `sdt-sitter-errors.jsonl` on every failure (bootstrap.js's `reportError` host callback, via `IOUtils.write(..., {mode:'append'})`). That is the exact durable failure ledger the 2026-09-05 ruling and SPEC.md R22 forbid, predates this ticket, and isn't mentioned in the original body. Folded into scope below as in-scope cleanup, not new scope -- removing an existing write isn't "writing a new file" under this ticket's own acceptance bar.
 
 --- body ---
 ## Context
@@ -49,7 +50,14 @@ already settled, and should not ship as designed:
   without violating the no-durable-ledger ruling: nothing here survives a
   crash, but the last 2,000 transitions are there the moment the author
   opens the panel. Surfaced in the dialog's diagnostics disclosure (see
-  0691) with a "copy" action.
+  0693) with a "copy" action.
+- **Retire the existing `sdt-sitter-errors.jsonl` write.** `bootstrap.js`'s
+  `reportError` host callback currently does `IOUtils.write(errorPath, ...,
+  {mode: 'append'})` on every failure -- an unbounded, cross-session,
+  never-rotated file that is already the durable failure ledger the
+  2026-09-05 ruling forbids. Replace that callback's body with the new
+  `settle`/failure event into the ring + `Zotero.debug()`; do not leave the
+  old write running alongside the new compliant channel.
 - **A single pref**, e.g. `extensions.sdt-pack-sitter.debug`, gates only
   the `trace`-level detail (heartbeats, per-probe resource readings) going
   to `Zotero.debug()` -- `error` and `state` levels always go through it,
@@ -75,3 +83,5 @@ already settled, and should not ship as designed:
       nothing after -- evidence the callbacks were really removed.
 - [ ] No new file is written to disk by this ticket. If that changes, the
       ticket log records the author's explicit go-ahead first.
+- [ ] `sdt-sitter-errors.jsonl` and its `IOUtils.write` call are removed;
+      no code path writes it any longer.

@@ -5,6 +5,7 @@ Author: claude
 
 --- log ---
 2026-09-06T00:00Z claude created
+2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED, with a scope correction -- drop the bootstrap.js tooltip-fix step entirely. Grepped DECISIONS.md, SPEC.md and bootstrap.js on origin/main: no "Index NN%" or "Library: ..." wording exists anywhere yet (that's ticket 0691's prospective work, itself still unimplemented and blocked). This ticket has no code to correct; it resolves to a pure documentation PR -- one DECISIONS.md entry adapting the ticket's own "What changes the picture"/"Recommendation" text near-verbatim, and either closing the SPEC.md criterion as "nothing to change" or adding one generic system-only-prose sentence for future implementers, matching SPEC.md's existing register (no literal UI copy strings). Flag in the DECISIONS.md entry that this affirms the status-quo position and only revises the justification, so a skimming reader doesn't mistake the pros/cons discussion for authorization to move the button.
 
 --- body ---
 ## Context

@@ -1,0 +1,48 @@
+%erg 0.1
+Title: Reorganize sitter dialog into primary/details/diagnostics layers
+Created: 2026-09-06
+Author: claude
+Blocked-by: 0689
+
+--- log ---
+2026-09-06T00:00Z claude created
+2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED. Confirmed the reorg is purely additive over the existing nested <details> (bootstrap.js lines 153-161 already nest sdt-index-details inside sdt-details) -- no restructuring of the section scaffolding implied. Recommended splitting the progress-toast addition into its own ticket (0696) since it is self-initiated (not author-requested, no DECISIONS.md ratification) and adds new accessibility surface on top of 0686's still-open a11y gap; done below. Sequencing: build the reorg skeleton and diagnostics content that's independent of 0689 (versions, admission readings, install path) now; wire 0689's debug checkbox and ring tail into the existing diagnostics disclosure once 0689 merges, with one final a11y re-verification against the completed layout rather than two passes.
+
+--- body ---
+## Context
+
+Author, 2026-09-06: wants essential technical details hidden by default
+but discoverable in the plugin's own window -- not removed, not exiled to
+a log file only. Ticket 0686 already asked to "move technical diagnostics
+below primary progress information." The dialog already has the right
+skeleton: two existing `<details>` disclosures (`sdt-details`,
+`sdt-index-details`).
+
+## Design: three layers
+
+1. **Primary** (always visible): progress bar, "Index 43 %" (0691),
+   current document title, elapsed time, estimated finish, p5/p50/p95
+   labelled "total scenarios" per SPEC.md R22.
+2. **Details** (`<details>`, closed by default): observation count,
+   covariate used (per-page vs. per-byte), last exceptions in plain
+   words, native text-search-index stats (0691's renamed Zotero panel).
+3. **Diagnostics** (`<details>` nested inside Details, closed by
+   default): the debug checkbox from 0689, the ring-buffer tail (last 50
+   records, auto-refreshed), a "copy journal" action, versions (plugin,
+   Zotero, pack/schema/processor), admission readings, install path.
+
+Nothing already shown is removed -- this is ordering, not deletion. The
+diagnostics-layer skeleton and the content that doesn't depend on 0689
+(versions, admission readings, install path) can be built now; the debug
+checkbox and ring-buffer tail slot in once 0689 merges.
+
+## Acceptance
+
+- [ ] Diagnostics disclosure hosts 0689's debug checkbox and ring tail
+      once available; opening the disclosure does not require debug mode
+      to already be on.
+- [ ] 0686's still-open accessibility items (keyboard open/focus/close/
+      Escape/focus-return, reduced-motion, transition-only announcements)
+      are verified in a real window against the reorganized layout, not
+      re-approved from the old one -- verified once, after 0689's wiring
+      lands, not twice.

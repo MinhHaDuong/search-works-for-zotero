@@ -6,6 +6,7 @@ Blocked-by: github.com/MinhHaDuong/search-works-for-zotero#365
 
 --- log ---
 2026-09-06T00:00Z claude created
+2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED, but the six-row table alone is not sufficient -- necessary but not sufficient against this ticket's own "no jargon outside diagnostics" intent. Gaps found by reading bootstrap.js directly: (1) the toolbar tooltip leaks raw internal phase strings verbatim when phase isn't 'census' (e.g. 'native-worker-busy', 'low-memory', 'launch-declined; disable/re-enable to launch') -- none in the table; (2) the global status line 'Packs a jour : X / Y' uses the excluded word 'packs' but isn't literally named by any checkbox; (3) 'active document' needs new plumbing, not a word swap -- state.active is a raw item ID today, never a title (title is already computed in inspect() as result.title and needs threading through); (4) 'finished with exceptions' is a new summary line, not a rename -- nothing today surfaces failures outside the diagnostics block. All four must land in the same pass or the checkboxes will read green while the leak is only half-fixed. Also: pair the sitter's own 'index' rename with Zotero's native full-text panel rename in the same commit (acceptance criterion 2 already requires this; the collision doesn't exist yet but a partial implementation would create it).
 
 --- body ---
 ## Context
