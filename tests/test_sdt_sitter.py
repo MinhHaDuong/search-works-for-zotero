@@ -92,6 +92,8 @@ UI_SITES = (
     # The disclosure layers of ticket 0693. A site added to the dialog and not
     # added here is a site the vocabulary ban stops covering, which is the
     # asymmetry this list fails on: removing a site is loud, arriving is silent.
+    ('function formatSDTBytes(bytes) {', '\n}'),
+    ('function formatSDTAge(ms) {', '\n}'),
     ('function describeSDTEnvironment() {', '\n}'),
     ('function describeSDTAdmission() {', '\n}'),
     ('function describeSDTJournalTail(limit = 50) {', '\n}'),

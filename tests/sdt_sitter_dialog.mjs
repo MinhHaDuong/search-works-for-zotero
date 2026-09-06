@@ -12,7 +12,10 @@
 //   * a ring tail that renders only when debug logging is already on, which is
 //     the acceptance criterion the author wrote;
 //   * a copy action that carries the install path — the author's home directory —
-//     into text destined for a bug report;
+//     into text destined for a bug report, including by the indirect route: the
+//     ring survives a disable/re-enable, so the second `initialize()` writes a
+//     startup record carrying rootURI INTO the ring, and a verbatim tail puts it
+//     on the clipboard even though it is omitted as a top-level field;
 //   * a redraw that throws out of render() when a pref read fails, which stops
 //     the whole 100 ms loop.
 import assert from 'node:assert/strict';
@@ -265,10 +268,12 @@ test('the copied journal carries the build and never the install path', () => {
   assert.equal(report.zoteroVersion, '10.0.5-stub');
   assert.equal(report.nativeVersions.SDT_SCHEMA_VERSION, '2.1');
   assert(report.records.some(record => record.kind === 'settle'));
-  // The ring is scrubbed where it is written; the install path is not, and this
-  // text is meant to be pasted into a report that leaves the machine.
+  // Weak on its own, and deliberately kept as the shallow arm: `ui.environment`
+  // was assigned by hand above, so nothing ever put the install path into this
+  // ring and its absence here proves only that the top-level field is omitted.
+  // The arm that carries the invariant is the last one in this file, where the
+  // ring is contaminated by the real startup path first.
   assert(!state.clipboard.includes(INSTALL_PATH), 'the install path reached the clipboard');
-  assert(!state.clipboard.includes('/home/tester'), state.clipboard);
   assert(!state.clipboard.includes('Secret'), state.clipboard);
 });
 
@@ -301,6 +306,65 @@ test('a torn-down ring degrades to a message instead of throwing', () => {
   ui.render();
   assert.equal(doc.getElementById('sdt-journal').textContent, 'Journal illisible : Error');
   ui.journal = ring;
+});
+
+/* The arm the clipboard invariant actually rests on, and the one the first draft
+   of this file got wrong. Assigning `ui.environment` by hand never contaminates
+   the ring, so asserting the clipboard is clean proved nothing: it was a null
+   result with no positive control, which is the shape that reads like evidence
+   and is not.
+
+   Here the real `emit('startup', environment)` runs, from the real
+   `initialize()`, into a ring that already exists. That is not a contrived
+   state: `journal ??=` keeps the ring across a disable/re-enable, which is
+   exactly what the sitter's own "désactiver puis réactiver l'extension" tells
+   the author to do. Halted at `uiReadyPromise`, the first thing after the
+   startup record, as tests/sdt_sitter_startup.mjs halts it. */
+async function driveReinitialisation() {
+  const host = ui.Zotero;
+  ui.Zotero = {
+    initializationPromise: Promise.resolve(),
+    // Lazily rejected, so nothing is an unhandled rejection before the await.
+    get uiReadyPromise() { return Promise.reject(new Error('halt: after the self-check')); },
+    version: '10.0.5-stub',
+    debug: () => {},
+    logError: () => {},
+    Prefs: host.Prefs,
+    File: { getContentsFromURLAsync: async url => {
+      assert.equal(url, `${INSTALL_PATH}manifest.json`, 'the manifest is not read from rootURI');
+      return fs.readFileSync('bench/sdt-sitter/manifest.json', 'utf8');
+    } },
+  };
+  await assert.rejects(ui.initialize(INSTALL_PATH, 0), /halt: after the self-check/);
+  ui.Zotero = host;
+}
+
+await driveReinitialisation();
+
+test('a re-initialization contaminates the ring, and the clipboard still holds no path', () => {
+  // The positive control, first and load-bearing: without it the two assertions
+  // below pass whether or not the scrub exists.
+  const startup = Array.from(ui.journal.tail(50)).filter(record => record.kind === 'startup');
+  assert.equal(startup.length, 1, 'the real startup record never reached the ring');
+  assert.equal(startup[0].rootURI, INSTALL_PATH,
+    'the ring was not contaminated, so this arm would prove nothing');
+  // On screen the path stays: the panel prints it two lines above, on the
+  // author's own machine. The difference between the channels is the point.
+  assert(ui.describeSDTJournalTail(50).includes(INSTALL_PATH),
+    'the on-screen tail hides what the panel shows deliberately');
+
+  state.copyAvailable = true;
+  doc.getElementById('sdt-journal-copy').fire('click');
+  assert(!state.clipboard.includes(INSTALL_PATH), 'the install path reached the clipboard');
+  assert(!state.clipboard.includes('/home/tester'), state.clipboard);
+  assert(!state.clipboard.includes('file://'), state.clipboard);
+  // Surgical, not a whole-record drop: deleting the startup record entirely
+  // would satisfy every assertion above and lose the build identity that makes
+  // a pasted ring worth reading.
+  const copied = JSON.parse(state.clipboard).records.filter(record => record.kind === 'startup');
+  assert.equal(copied.length, 1, 'the scrub dropped the record instead of the field');
+  assert.equal(copied[0].zoteroVersion, '10.0.5-stub');
+  assert.equal(copied[0].rootURI, undefined);
 });
 
 console.log(JSON.stringify({ tests: results, result: 'pass' }));
