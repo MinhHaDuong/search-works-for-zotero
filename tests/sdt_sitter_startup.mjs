@@ -4,9 +4,12 @@
 // after something that throws, name a variable that is not in scope, or be
 // unreachable, and every one of those reads fine in a diff. So `initialize` is
 // actually invoked here, against a Zotero stub whose `uiReadyPromise` rejects.
-// That rejection is the positive control's other half — it proves the line is
-// emitted BEFORE the first thing that can fail, which is the whole point of
-// where it was placed.
+// That rejection is the positive control's other half — reaching it proves the
+// record was emitted BEFORE the first thing that can fail, which is the whole
+// point of where it was placed.
+//
+// The record goes through 0689's `emit`, so what lands in the debug log is
+// `SDT sitter startup {...}` rather than a line of this ticket's own devising.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -14,8 +17,10 @@ import vm from 'node:vm';
 
 const SITTER = 'bench/sdt-sitter';
 const manifest = JSON.parse(fs.readFileSync(path.join(SITTER, 'manifest.json'), 'utf8'));
+const HALT = /halt: after the self-check/;
 
 const logged = [];
+const errors = [];
 const context = {
   Zotero: {
     initializationPromise: Promise.resolve(),
@@ -23,7 +28,8 @@ const context = {
     get uiReadyPromise() { return Promise.reject(new Error('halt: after the self-check')); },
     version: '10.0.5-stub',
     debug: message => logged.push(message),
-    logError: () => {},
+    logError: error => errors.push(String(error)),
+    Prefs: { get: () => false },
   },
 };
 context.Zotero.File = {
@@ -34,67 +40,79 @@ context.Zotero.File = {
 };
 vm.runInNewContext(fs.readFileSync(path.join(SITTER, 'bootstrap.js'), 'utf8'), context);
 
-await assert.rejects(context.initialize(`${SITTER}/`, 0), /halt: after the self-check/);
-assert.equal(logged.length, 1, `expected exactly one startup line, got ${JSON.stringify(logged)}`);
-const line = logged[0];
-for (const expected of [
-  `version=${manifest.version}`,
-  `rootURI=${SITTER}/`,
-  'zoteroVersion=10.0.5-stub',
-  `strictMinVersion=${manifest.applications.zotero.strict_min_version}`,
-  `strictMaxVersion=${manifest.applications.zotero.strict_max_version}`,
-]) assert(line.includes(expected), `startup line lacks ${expected}: ${line}`);
+/** The one `startup` record emitted by a run of initialize, as its detail object. */
+async function startupRecord() {
+  logged.length = 0;
+  await assert.rejects(context.initialize(`${SITTER}/`, 0), HALT);
+  const records = logged.filter(line => line.startsWith('SDT sitter startup '));
+  assert.equal(records.length, 1,
+    `expected exactly one startup record, got ${JSON.stringify(logged)}`);
+  return JSON.parse(records[0].slice('SDT sitter startup '.length));
+}
 
-// An unreadable manifest must not be what stops startup: the line still goes out,
-// saying so, because a disappearance with no line at all is the case this exists to
-// distinguish from one whose manifest could not be parsed.
-logged.length = 0;
-context.Zotero.File.getContentsFromURLAsync = async () => { throw new Error('no such file'); };
-await assert.rejects(context.initialize(`${SITTER}/`, 0), /halt: after the self-check/);
-assert.equal(logged.length, 1);
-assert(logged[0].includes('unreadable'), logged[0]);
-assert(logged[0].includes('zoteroVersion=10.0.5-stub'), logged[0]);
+let record = await startupRecord();
+assert.deepEqual(record, {
+  version: manifest.version,
+  rootURI: `${SITTER}/`,
+  zoteroVersion: '10.0.5-stub',
+  strictMinVersion: manifest.applications.zotero.strict_min_version,
+  strictMaxVersion: manifest.applications.zotero.strict_max_version,
+});
+
+// An unreadable manifest must not be what stops startup: the record still goes
+// out, saying so, because a disappearance with NO record is the case this exists
+// to distinguish from one whose manifest could not be read. The error's class
+// reaches it and its message does not — 0689's rule, and a manifest read failure
+// carries a full filesystem path.
+context.Zotero.File.getContentsFromURLAsync = async () => {
+  const error = new Error('/home/someone/Zotero/extensions/x.xpi is missing');
+  error.name = 'NotFoundError';
+  throw error;
+};
+record = await startupRecord();
+assert.equal(record.version, 'unreadable (NotFoundError)');
+assert.equal(record.zoteroVersion, '10.0.5-stub');
+assert(!JSON.stringify(record).includes('/home/someone'), JSON.stringify(record));
 
 // A manifest that parses to something that is not an object. `null` and `3` are
 // valid JSON, so the parse succeeds and the shape is what is wrong; before this
 // was checked, `null` threw and the diagnostic aborted the startup it explains.
-for (const document of ['null', '3', '[]', '"text"']) {
-  logged.length = 0;
+for (const [document, shape] of [['null', 'object'], ['3', 'number'],
+  ['"text"', 'string'], ['true', 'boolean']]) {
   context.Zotero.File.getContentsFromURLAsync = async () => document;
-  await assert.rejects(context.initialize(`${SITTER}/`, 0), /halt: after the self-check/);
-  assert.equal(logged.length, 1, `no line for manifest ${document}`);
-  assert(logged[0].includes('zoteroVersion=10.0.5-stub'), logged[0]);
+  record = await startupRecord();
+  assert.equal(record.version, `unreadable (${shape})`, document);
+  assert.equal(record.zoteroVersion, '10.0.5-stub', document);
 }
+// An array IS an object; it simply has no version, which reads as undefined
+// rather than as a lie about one.
+context.Zotero.File.getContentsFromURLAsync = async () => '[]';
+record = await startupRecord();
+assert.equal(record.version, undefined);
 
-// The two ways the self-check could itself become a new way to fail startup. Both
-// must leave `initialize` running far enough to reach the rejecting uiReadyPromise:
-// reaching it is the assertion, since a throw from the diagnostic would surface as
-// its own error instead.
+// The two ways the self-check could itself become a new way to fail startup.
+// Both must leave initialize running far enough to reach the rejecting
+// uiReadyPromise: reaching it is the assertion, since a throw from the
+// diagnostic would surface as its own error instead.
 context.Zotero.File.getContentsFromURLAsync = async url => fs.readFileSync(url, 'utf8');
-const errors = [];
-context.Zotero.logError = error => errors.push(String(error));
 
-context.Zotero.debug = () => { throw new Error('debug is unavailable'); };
-await assert.rejects(context.initialize(`${SITTER}/`, 0), /halt: after the self-check/);
-assert.equal(errors.length, 1, 'a failing Zotero.debug must be reported, not propagated');
-assert(errors[0].includes('debug is unavailable'), errors[0]);
-
-logged.length = 0;
-errors.length = 0;
-context.Zotero.debug = message => logged.push(message);
 Object.defineProperty(context.Zotero, 'version',
   { configurable: true, get() { throw new Error('version getter is broken'); } });
-await assert.rejects(context.initialize(`${SITTER}/`, 0), /halt: after the self-check/);
-assert.equal(logged.length, 0, 'nothing can be logged when the line cannot be built');
-assert.equal(errors.length, 1, 'a failing Zotero.version must be reported, not propagated');
-assert(errors[0].includes('version getter is broken'), errors[0]);
+record = await startupRecord();
+assert.equal(record.zoteroVersion, '<unreadable>');
+assert.equal(record.version, manifest.version, 'the rest of the record survives');
+Object.defineProperty(context.Zotero, 'version',
+  { configurable: true, value: '10.0.5-stub', writable: true });
 
-// And the last resort: reporting the failure must not fail either.
-errors.length = 0;
-context.Zotero.logError = () => { throw new Error('logError is unavailable too'); };
-await assert.rejects(context.initialize(`${SITTER}/`, 0), /halt: after the self-check/);
+// `emit` swallows a failing debug by design (0689); what this arm proves is that
+// the swallow holds all the way out to initialize, which is where it matters.
+logged.length = 0;
+context.Zotero.debug = () => { throw new Error('debug is unavailable'); };
+await assert.rejects(context.initialize(`${SITTER}/`, 0), HALT);
+assert.equal(logged.length, 0);
+context.Zotero.debug = message => logged.push(message);
 
 console.log(JSON.stringify({ tests: [
-  'startup self-check', 'unreadable manifest', 'manifest of the wrong shape',
-  'Zotero.debug throws', 'Zotero.version throws', 'Zotero.logError throws too',
+  'startup record', 'unreadable manifest carries a class and no path',
+  'manifest of the wrong shape', 'Zotero.version throws', 'Zotero.debug throws',
 ], result: 'pass' }));

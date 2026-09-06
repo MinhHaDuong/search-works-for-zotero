@@ -1,0 +1,46 @@
+%erg 0.1
+Title: A throw inside render() must not permanently kill the sweep loop
+Created: 2026-09-06
+Author: claude
+
+--- log ---
+2026-09-06T00:00Z claude created
+
+2026-09-06T10:25Z sim note blocker 0689 closed — Blocked-by removed.
+--- body ---
+## Context
+
+Fable 5.1 deep-QA pass (2026-09-06). `publish()` calls `host.changed` ->
+`render()`, which runs unguarded DOM work over `dialogs`, and is invoked
+from inside the scheduler's `finally` block. If `render()` throws there
+(realistic triggers: a dead XUL dialog object after its window closed,
+`getElementById` returning null mid-render), `sitter.sweep()` itself
+rejects. The bootstrap wrapper that reschedules the next sweep never
+runs, so the sitter silently stops forever for the rest of the session
+while `state.phase` still shows `waiting`/`extracting` -- indistinguishable
+from working, from the outside.
+
+Ticket 0689's diagnostic journal does not see this: no `sweep-start`/
+`sweep-end` records exist today, and its heartbeat is silent whenever no
+document is active (see ticket 0703) -- so this failure mode currently
+produces zero trace anywhere, matching the author's own irreproducible
+hang this morning.
+
+## Work
+
+- Wrap `render()`'s body (or at minimum the call from `publish()`) in a
+  try/catch that cannot itself propagate.
+- Wrap the sweep-rescheduling wrapper so it always reschedules the next
+  sweep and always emits a record, regardless of whether the sweep body
+  threw.
+- Emit explicit `sweep-start`/`sweep-end` (success or error) events
+  through 0689's journal so a hang here becomes diagnosable after the
+  fact, not just prevented.
+
+## Acceptance
+
+- [ ] A synthetic `render()` throw does not prevent the next sweep from
+      being scheduled 30s later.
+- [ ] The journal (once 0689 lands) records the render failure and the
+      subsequent successful reschedule.
+- [ ] No existing test regresses.

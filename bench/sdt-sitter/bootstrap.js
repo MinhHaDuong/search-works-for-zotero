@@ -2,17 +2,133 @@
 var createSDTSitter;
 var estimateSDTDuration;
 var createSDTCache;
-let sitter, alive = false, timer, pulse, timers;
-const buttons = new Set(), dialogs = new Set();
+var createSDTJournal;
+// `var`, not `let`: the journal and the sitter are the state the scheduler test
+// drives this file's emit/heartbeat/shutdown against, and only `var` reaches the
+// script global a sandboxed load exposes.
+var sitter, journal, alive = false, sealed = false;
+let timer, pulse, heartbeat, timers;
+const buttons = new Set(), dialogs = new Set(), closeJournalled = new WeakSet();
 const BUTTON = 'sdt-pack-sitter-button';
+const DEBUG_PREF = 'extensions.sdt-pack-sitter.debug';
+// Bootstrap reason constants are numeric here and named elsewhere; accept both.
+const SHUTDOWN_REASONS = { 2: 'app-shutdown', 3: 'enable', 4: 'disable',
+  5: 'install', 6: 'uninstall', 7: 'upgrade', 8: 'downgrade' };
 let generation = 0;
 let lastCompleted = 0;
 let completionBlinkUntil = 0;
+
+/* The sitter's whole diagnostic channel. Until the seal, the ring takes
+   everything; Zotero.debug() takes everything but trace, which waits on the
+   pref. The whole body is guarded: the invariant is that no diagnostic ever
+   throws into the sitter loop, and a `detail` the ring rejects must not
+   either. */
+function emit(kind, detail, level = 'state') {
+  // Sealed at shutdown, so nothing can land behind the shutdown record — an
+  // invariant of the channel rather than a guard each call site has to remember.
+  // Anything that resumes after an await outlives disable: the cache write, the
+  // native promise, a dialog's unload.
+  if (sealed) return;
+  try {
+    journal?.push({ at: Date.now(), kind, level, ...detail });
+    // Fully qualified pref name: `true` stops Zotero prepending `extensions.zotero.`.
+    if (level === 'trace' && !Zotero.Prefs.get(DEBUG_PREF, true)) return;
+    Zotero.debug(`SDT sitter ${kind} ${JSON.stringify(detail ?? {})}`);
+  } catch (_error) { /* Diagnostics must never throw into the sitter loop. */ }
+}
+
+/* The error's class reaches the journal; its message never does. Message text is
+   free prose written by the platform, and it carries whatever it happens to name:
+   a Gecko IO failure carries the file's full path, a parse failure carries the
+   attachment's title. Zotero's debug output is submittable to Zotero's servers,
+   so this is not session-confined. Three successive attempts to scrub that prose
+   token by token each leaked — a stored filename is "Author - Year - Title.pdf",
+   several whitespace-separated words of which a pattern anchored on runs of
+   non-whitespace can only ever redact the one touching the extension. Prose and
+   filenames are not separable by pattern, so the message is not carried at all.
+   describeError still shows the author everything, on screen, locally, where it
+   is his own library he is reading. The name is validated rather than trusted:
+   a name with a space or a separator in it is a message wearing a name's clothes,
+   and the whole body is guarded because a torn-down compartment can throw from
+   a getter — this runs outside emit()'s guard, as its argument. */
+function classifyError(error) {
+  try {
+    const name = error && error.name;
+    return typeof name === 'string' && /^[\w.$-]{1,64}$/.test(name) ? name : 'Error';
+  } catch (_error) {
+    return '<unreadable error>';
+  }
+}
+
+function heartbeatTick() {
+  if (!alive || !sitter || sitter.state.active === null) return;
+  const s = sitter.state;
+  emit('heartbeat', { id: s.active, phase: s.phase, progress: s.progress,
+    elapsedMS: Date.now() - s.startedAt, sinceProgressMS: Date.now() - s.lastProgressAt,
+    pending: s.pending.length }, 'trace');
+}
+
+/* The failure half of settle. It goes to the session ring and Zotero.debug(),
+   never to a file, for the reason createSDTJournal carries. The identity is the
+   opaque cache key, never the attachment's title. */
+function reportSettleFailure(info, error) {
+  emit('settle', { id: info.cacheKey ?? null, ok: false, error: classifyError(error) }, 'error');
+}
+
+function noteDialogClose(dialog) {
+  // `close()` may dispatch unload after shutdown has run; record it once, in order.
+  if (closeJournalled.has(dialog)) return;
+  closeJournalled.add(dialog);
+  emit('dialog-close', {});
+}
 
 function getSDTCoverage(state) {
   return { known: state.scanned === state.total && state.phase !== 'ready',
     current: state.counts.current || 0,
     total: Math.max(0, state.total - (state.counts.excluded || 0) - (state.counts.unsupported || 0)) };
+}
+
+/* Every phase a reader can meet on hover, in the user's vocabulary. A blocked or
+   failed sitter must be distinguishable from a healthy idle one at zero clicks,
+   so each blocking reason gets its own plain sentence; the raw internal name
+   stays in the diagnostics disclosure. `null` is the deliberate no-label case:
+   the two healthy idle phases, where the count already says everything. An
+   unlisted phase falls back to the bare count rather than leaking its name. */
+var SDT_PHASE_LABELS = {
+  ready: null,
+  waiting: null,
+  census: 'Recensement',
+  extracting: 'Indexation en cours',
+  error: 'Erreur',
+  disabled: 'Désactivé',
+  'native-worker-busy': 'En attente : indexation native en cours',
+  'cpu-busy': 'En pause : processeur occupé',
+  'low-memory': 'En pause : mémoire insuffisante',
+  'low-disk': 'En pause : espace disque insuffisant',
+  'storage-unavailable': 'En pause : stockage indisponible',
+  'resources-unavailable': 'En pause : ressources système illisibles',
+  'launch-declined; disable/re-enable to launch': 'Non lancé : désactiver puis réactiver l’extension',
+};
+
+function describeSDTTooltip(state) {
+  const indexed = state.completed > 1
+    ? `${state.completed} fichiers indexés` : `${state.completed} fichier indexé`;
+  const label = SDT_PHASE_LABELS[state.phase];
+  return label ? `${label} — ${indexed}` : indexed;
+}
+
+/* The unit of work is one attachment, and Zotero names attachments for us
+   ('Full Text PDF', 'Snapshot'), so the attachment title alone identifies
+   nothing. Lead with the reference that owns it. One composer, so the progress
+   line and the error line cannot drift into naming the same file two ways. */
+function describeSDTFile(info, fallback) {
+  const { parentTitle, title } = info || {};
+  if (parentTitle && title) return `${parentTitle} — ${title}`;
+  return parentTitle || title || fallback;
+}
+
+function describeSDTActiveFile(state) {
+  return describeSDTFile(state.activeInfo, `fichier n° ${state.active}`);
 }
 
 function render() {
@@ -31,12 +147,12 @@ function render() {
     const spinning = s.active !== null;
     const blinking = !working && now < completionBlinkUntil;
     button.setAttribute('label', spinning
-      ? `${['◐', '◓', '◑', '◒'][Math.floor(now / 140) % 4]} SDT${coverageLabel}` : `SDT${coverageLabel}`);
+      ? `${['◐', '◓', '◑', '◒'][Math.floor(now / 140) % 4]} Index${coverageLabel}` : `Index${coverageLabel}`);
     const opacity = s.phase === 'census'
       ? 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(now / 450))
       : blinking ? ((Math.floor(now / 180) % 2) ? 0.2 : 1) : 1;
     button.style.setProperty('opacity', String(opacity), 'important');
-    button.setAttribute('tooltiptext', `${s.phase === 'census' ? 'Recensement' : s.phase} — ${s.completed} packs créés`);
+    button.setAttribute('tooltiptext', describeSDTTooltip(s));
   }
   for (const dialog of dialogs) {
     if (dialog.closed) { dialogs.delete(dialog); continue; }
@@ -82,17 +198,21 @@ function render() {
     globalProgress.max = Math.max(1, coverage.total);
     if (coverage.known) globalProgress.value = coverage.current;
     else globalProgress.removeAttribute('value');
-    status.textContent = coverage.known ? `Packs à jour : ${coverage.current} / ${coverage.total}` : `Packs à jour : ${coverage.current}`;
-    const documentMessage = s.active === null ? 'Aucun document en cours' :
-      `Document ${s.active} — ${s.progress ?? '?'} % — ${formatDocumentDuration(elapsed * 1000)} écoulées`;
+    status.textContent = coverage.known ? `Fichiers indexés : ${coverage.current} / ${coverage.total}` : `Fichiers indexés : ${coverage.current}`;
+    const activeMessage = s.active === null ? 'Aucune indexation en cours' :
+      `Indexation : ${describeSDTActiveFile(s)} — ${s.progress ?? '?'} % — ${formatDocumentDuration(elapsed * 1000)} écoulées`;
     const quietMessage = s.active !== null && Number(s.progress) >= 90 && silence >= 60
       ? (Number(s.progress) >= 95 ? 'Finalisation…' : 'Analyse des références…') : '';
-    doc.getElementById('sdt-document-status').textContent = [documentMessage, quietMessage].filter(Boolean).join('\n');
+    doc.getElementById('sdt-document-status').textContent = [activeMessage, quietMessage].filter(Boolean).join('\n');
     doc.getElementById('sdt-document-estimate').textContent = activePrediction
       ? `Durée estimée : ${formatDocumentDuration(activePrediction.median)} (entre ${formatDocumentDuration(activePrediction.low)} et ${formatDocumentDuration(activePrediction.high)})` : '';
     const globalEstimate = !overrun && s.scanned === s.total && s.fittedSamples.length >= 3
       ? `Fin estimée vers ${finishAt(total.median)} (entre ${finishAt(total.low)} et ${finishAt(total.high)})` : '';
     doc.getElementById('sdt-global-estimate').textContent = globalEstimate;
+    // Failures were reachable only by opening the diagnostics. Surface the count.
+    doc.getElementById('sdt-failures').textContent = s.failed === 0 ? ''
+      : s.failed > 1 ? `${s.failed} fichiers n’ont pas pu être indexés`
+        : `${s.failed} fichier n’a pas pu être indexé`;
     doc.getElementById('sdt-diagnostics').textContent = [
       `État : ${s.phase}`, `Recensement : ${s.scanned} / ${s.total}`,
       ...Object.entries(s.counts).map(([key, n]) => `${key} : ${n}`),
@@ -110,6 +230,7 @@ function openDialog(window) {
   for (const existing of dialogs) {
     if (!existing.closed) {
       existing.focus();
+      emit('dialog-open', { reused: true });
       render();
       return existing;
     }
@@ -117,10 +238,12 @@ function openDialog(window) {
   }
   const dialog = window.openDialog('about:blank', 'sdt-pack-sitter-status',
     'chrome,dialog=no,resizable,width=700,height=650');
+  emit('dialog-open', { reused: false });
+  dialog.addEventListener('unload', () => { dialogs.delete(dialog); noteDialogClose(dialog); }, { once: true });
   const populate = async () => {
     if (!alive || dialog.closed) return;
     const doc = dialog.document;
-    doc.title = 'SDT Pack Sitter';
+    doc.title = 'Assistant d’indexation';
     const body = doc.body || doc.documentElement;
     body.replaceChildren();
     // A bare chrome about:blank window does not inherit Zotero's opaque surface.
@@ -147,8 +270,9 @@ function openDialog(window) {
       body.append(group);
     };
     section('sdt-global-section', 'Progression globale — bibliothèque', [
-      ['pre', 'sdt-status'], ['progress', 'sdt-global-progress'], ['pre', 'sdt-global-estimate']]);
-    section('sdt-document-section', 'Document en cours', [
+      ['pre', 'sdt-status'], ['progress', 'sdt-global-progress'], ['pre', 'sdt-global-estimate'],
+      ['pre', 'sdt-failures']]);
+    section('sdt-document-section', 'Indexation en cours', [
       ['pre', 'sdt-document-status'], ['progress', 'sdt-progress'], ['pre', 'sdt-document-estimate']]);
     const details = element('details', 'sdt-details');
     const summary = element('summary', 'sdt-details-title');
@@ -156,14 +280,14 @@ function openDialog(window) {
     details.append(summary, element('pre', 'sdt-diagnostics'));
     const indexDetails = element('details', 'sdt-index-details');
     const indexSummary = element('summary', 'sdt-index-title');
-    indexSummary.textContent = 'Index texte natif';
+    indexSummary.textContent = 'Index de recherche textuelle';
     indexDetails.append(indexSummary, element('pre', 'sdt-fulltext'));
     details.append(indexDetails); body.append(details);
     dialogs.add(dialog); render();
     try {
       const stats = await Zotero.Fulltext.getIndexStats();
       if (alive && !dialog.closed) doc.getElementById('sdt-fulltext').textContent =
-        `Index texte natif (distinct des packs SDT) :\n${JSON.stringify(stats, null, 2)}`;
+        `Index de recherche textuelle de Zotero (distinct de l’index préparé par l’assistant) :\n${JSON.stringify(stats, null, 2)}`;
     } catch (error) {
       if (alive && !dialog.closed) doc.getElementById('sdt-fulltext').textContent = `Statistiques indisponibles : ${error}`;
     }
@@ -199,46 +323,50 @@ function startup({ rootURI }) {
   // Addon startup is serialized. Never hold it on UI readiness or a modal prompt.
   timer = timers.setTimeout(() => initialize(rootURI, token).catch(error => Zotero.logError(error)), 0);
 }
-// Ticket 0688. The plugin "tends to disappear on its own from the installed-plugins
-// list" and left nothing behind saying which build was running when it did. Raw
-// values only, no compatibility-range parsing: `strict_max_version` against
-// `Zotero.version` is exactly the comparison the host already made and disagreeing
-// with it here would only invent a second verdict.
-//
-// `JSON.parse` of a document that is not an object is the case the first draft
-// missed: `null` and `3` parse fine and then `manifest.version` throws or reads
-// wrong, so the shape is checked rather than assumed.
+/* Ticket 0688. The plugin "tends to disappear on its own from the installed-plugins
+   list" and left nothing behind saying which build was running when it did. Raw
+   values, no compatibility-range parsing: `strict_max_version` against
+   `Zotero.version` is exactly the comparison the host already made, and a second
+   verdict here could only disagree with it.
+
+   Every read is guarded, because this runs as an ARGUMENT to emit() and therefore
+   outside emit()'s own guard — the hazard classifyError() above carries for the
+   same reason. `JSON.parse` of a document that is not an object is the case the
+   first draft missed (`null` and `3` parse, then read wrong or throw), and
+   `Zotero.version` is a getter that runs code in a compartment this plugin does
+   not own. A diagnosis must never be the thing that stops startup. */
 async function sitterStartupSelfCheck(rootURI) {
   let manifest = null;
   try {
     manifest = JSON.parse(await Zotero.File.getContentsFromURLAsync(rootURI + 'manifest.json'));
-  } catch (error) { manifest = { version: `unreadable (${error})` }; }
-  if (!manifest || typeof manifest !== 'object') manifest = { version: `unreadable (${manifest})` };
+  } catch (error) { manifest = { version: `unreadable (${classifyError(error)})` }; }
+  if (!manifest || typeof manifest !== 'object') manifest = { version: `unreadable (${typeof manifest})` };
   const application = (manifest.applications && manifest.applications.zotero) || {};
-  return `SDT pack sitter startup: version=${manifest.version} rootURI=${rootURI}`
-    + ` zoteroVersion=${Zotero.version} strictMinVersion=${application.strict_min_version}`
-    + ` strictMaxVersion=${application.strict_max_version}`;
+  let zoteroVersion = '<unreadable>';
+  try { zoteroVersion = Zotero.version; } catch (_error) { /* A getter can throw. */ }
+  return { version: manifest.version, rootURI, zoteroVersion,
+    strictMinVersion: application.strict_min_version,
+    strictMaxVersion: application.strict_max_version };
 }
 async function initialize(rootURI, token) {
   await Zotero.initializationPromise;
   // First thing after the host is up, and before any of the work below can throw:
-  // a disappearance that leaves no line here happened earlier than this point.
-  //
-  // The whole call is wrapped, not just the manifest read inside it. A diagnosis
-  // must never be the thing that stops startup, and every part of this line can
-  // fail on its own: `Zotero.debug` is a function on an object this plugin does
-  // not own, and `Zotero.version` is a getter that runs code. Wrapping only the
-  // fetch left the self-check able to abort the startup it exists to explain,
-  // which is the failure inverted. The inner catch is there because reporting the
-  // failure must not fail either.
+  // a disappearance that leaves no `startup` record happened earlier than this
+  // point. It goes through 0689's channel rather than a Zotero.debug() of its own
+  // — one diagnostic channel, already guarded, already sealed at shutdown. The
+  // ring is not up yet (scheduler.js loads below), so this record reaches the
+  // debug log only; that is the half a vanished plugin leaves behind anyway.
   try {
-    Zotero.debug(await sitterStartupSelfCheck(rootURI));
-  } catch (error) {
-    try { Zotero.logError(error); } catch (unreportable) { /* Nothing left to try. */ }
-  }
+    emit('startup', await sitterStartupSelfCheck(rootURI));
+  } catch (_error) { /* Diagnostics must never throw into startup. */ }
   await Zotero.uiReadyPromise;
   if (token !== generation) return;
   Services.scriptloader.loadSubScript(rootURI + 'scheduler.js', globalThis);
+  // `??=`: a re-initialization within one Zotero session keeps the transitions
+  // that led to it. A real plugin unload tears this scope down and takes the ring
+  // with it; surviving that needs a durable store, which the ruling forbids.
+  journal ??= createSDTJournal();
+  sealed = false;
   const win = Zotero.getMainWindow();
   if (!win || typeof Zotero.SDT?.ensure !== 'function') throw new Error('Zotero 10 native SDT unavailable');
   const SDT = win.require('resource://zotero/document-worker/structured-document-text.js');
@@ -246,7 +374,6 @@ async function initialize(rootURI, token) {
   const versions = JSON.parse(await Zotero.File.getContentsFromURLAsync('resource://zotero/document-worker/metadata.json'));
   if (token !== generation) return;
   const cachePath = PathUtils.join(Zotero.DataDirectory.dir, 'sdt-sitter-cache.jsonl');
-  const errorPath = PathUtils.join(Zotero.DataDirectory.dir, 'sdt-sitter-errors.jsonl');
   await Zotero.SDTPackSitterCacheWrite?.catch(() => {});
   const raw = { format: 1, versions: JSON.stringify(versions), records: Object.create(null) };
   try {
@@ -260,6 +387,7 @@ async function initialize(rootURI, token) {
     }
   } catch (error) { /* Disposable cache. */ }
   const cache = createSDTCache(raw, JSON.stringify(versions));
+  emit('cache-load', { records: Object.keys(raw.records).length });
   let seen = new Set();
   let compact = true;
   const saveCache = async () => {
@@ -272,7 +400,11 @@ async function initialize(rootURI, token) {
       try {
         // Compact once per activation; subsequent writes contain changed rows only.
         await IOUtils.write(cachePath, bytes, compact ? { tmpPath: `${cachePath}.tmp` } : { mode: 'append' });
-        cache.saved(changes); compact = false;
+        cache.saved(changes);
+        // This one resumes after an await, so disable can land under it. The seal
+        // in shutdown() is what keeps it off the far side of the shutdown record.
+        emit('cache-write', { rows: changes.length, compact });
+        compact = false;
       }
       catch (error) { if (alive) sitter.state.cacheWarning = `Cache non enregistré : ${error}`; }
     });
@@ -380,34 +512,26 @@ async function initialize(rootURI, token) {
     censusComplete: async () => { cache.prune(seen); await saveCache(); return cache.samples(); },
     observed: async (info, sample) => { cache.observe(info.cacheKey, info.identity, sample); await saveCache(); },
     inspect, blocked, now: () => Date.now(), changed: render,
-    describeError: (info, error) => {
-      const parent = info.parentTitle ? ` — élément : « ${info.parentTitle} »` : '';
-      return `Échec de « ${info.title || 'pièce jointe inconnue'} »${parent} : ${String(error)}`;
-    },
-    reportError: async (info, error) => {
-      const line = JSON.stringify({
-        at: new Date().toISOString(), attachment: info.title || null,
-        parent: info.parentTitle || null, identity: info.identity || null, error: String(error),
-      }) + '\n';
-      try {
-        await IOUtils.write(errorPath, new TextEncoder().encode(line), { mode: 'append' });
-      } catch (writeError) {
-        if (alive) sitter.state.error = `${sitter.state.error} (journal non enregistré : ${writeError})`;
-      }
-    },
+    // 0691's on-screen wording, this ticket's journal: describeError still shows
+    // the author the file and the full error text, locally, and the failure that
+    // reaches the journal is what replaced the retired on-disk error ledger.
+    describeError: (info, error) =>
+      `Échec de « ${describeSDTFile(info, 'fichier inconnu')} » : ${String(error)}`,
+    reportError: reportSettleFailure,
+    emit,
     yield: () => new Promise(resolve => timers.setTimeout(resolve, 0)),
     ensure: (id, onProgress) => Zotero.SDT.ensure(id, { isPriority: false, onProgress }),
   });
   alive = true;
-  Zotero.SDTPackSitter = { state: sitter.state, inspect, blocked };
+  Zotero.SDTPackSitter = { state: sitter.state, inspect, blocked, journal };
   for (const window of Zotero.getMainWindows()) onMainWindowLoad({ window });
-  const launch = Services.prompt.confirm(win, 'SDT Pack Sitter — expérimental',
-    'Préparer les packs SDT de toute la bibliothèque cette nuit ?\n\n' +
-    'Un document à la fois, avec au moins 4 Gio de RAM disponible et 8 Gio de disque libre. ' +
-    'Les PDF et les préférences d’indexation texte restent inchangés.\n\n' +
+  const launch = Services.prompt.confirm(win, 'Assistant d’indexation — expérimental',
+    'Indexer toute la bibliothèque cette nuit ?\n\n' +
+    'Un fichier à la fois, avec au moins 4 Gio de RAM disponible et 8 Gio de disque libre. ' +
+    'Les PDF et les préférences de l’index de recherche textuelle restent inchangés.\n\n' +
     'Le worker partagé ne peut être interrompu ni recevoir une priorité système indépendante. ' +
-    'Un gros document peut retarder un travail natif arrivé ensuite. Les seuils ne plafonnent pas sa consommation.\n\n' +
-    'Désactiver l’extension arrête les admissions ; le document en cours finit. ' +
+    'Un gros fichier peut retarder un travail natif arrivé ensuite. Les seuils ne plafonnent pas sa consommation.\n\n' +
+    'Désactiver l’extension arrête les admissions ; le fichier en cours finit. ' +
     'Les erreurs restent propres à la session. Un cache local jetable conserve les vérifications et durées ; il ne contient ni texte ni tâche active.');
   if (token !== generation) return;
   if (!launch) { sitter.state.phase = 'launch-declined; disable/re-enable to launch'; render(); return; }
@@ -416,16 +540,28 @@ async function initialize(rootURI, token) {
     if (alive && token === generation) timer = timers.setTimeout(sweep, 30000);
   };
   pulse = timers.setInterval(render, 100);
+  heartbeat = timers.setInterval(heartbeatTick, 60000);
   timer = timers.setTimeout(sweep, 0);
 }
-function shutdown() {
-  ++generation; alive = false; sitter?.stop();
-  if (timers) { timers.clearTimeout(timer); timers.clearInterval(pulse); }
-  for (const button of buttons) button.remove();
-  buttons.clear();
-  for (const dialog of dialogs) if (!dialog.closed) dialog.close();
-  dialogs.clear();
-  delete Zotero.SDTPackSitter;
+function shutdown(data, reason) {
+  // try/finally, because the teardown between here and the seal calls out to the
+  // platform: dialog.close() during app shutdown is a real throw site, and a
+  // shutdown that throws halfway would otherwise leave the channel open and write
+  // no record — losing the evidence at exactly the moment disable is being used
+  // to recover from a hang. The throw still propagates; the record is not lost.
+  try {
+    ++generation; alive = false; sitter?.stop();
+    if (timers) { timers.clearTimeout(timer); timers.clearInterval(pulse); timers.clearInterval(heartbeat); }
+    for (const button of buttons) button.remove();
+    buttons.clear();
+    for (const dialog of dialogs) if (!dialog.closed) { noteDialogClose(dialog); dialog.close(); }
+    dialogs.clear();
+    delete Zotero.SDTPackSitter;
+  } finally {
+    emit('shutdown', { reason: typeof reason === 'number' ? SHUTDOWN_REASONS[reason] || `reason-${reason}`
+      : reason ? String(reason).toLowerCase().replace(/^addon[_-]/, '').replace(/_/g, '-') : 'unknown' });
+    sealed = true;
+  }
 }
 function install() {}
 function uninstall() {}
