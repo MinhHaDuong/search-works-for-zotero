@@ -1,0 +1,93 @@
+%erg 0.1
+Title: Sitter fails on group-library items: 5926 attachments uncovered by one unhandled lazy load
+Created: 2026-09-06
+Author: claude
+
+--- log ---
+2026-09-06T21:53Z claude created
+2026-09-06T21:53Z claude note found while measuring ticket 0606's residue, not by a sitter sweep. The residue turned out to be this defect rather than documents native extraction cannot handle, which is what decides 0606 — so the measurement is recorded there too.
+
+--- body ---
+## Context
+
+The sitter's own error log on the author's machine
+(`~/data/Zotero/sdt-sitter-errors.jsonl`, read 2026-09-06) holds **12 673
+entries, all dated 2026-09-06**, over **5 926 distinct attachments**. Of
+those entries **12 611 are one exception**:
+
+    UnloadedDataException: Item data not loaded and field 'title' not set
+    for item 3/HX9BDQ5N
+
+Library 3 is a group library. Group libraries load lazily behind an async
+getter, so an item's fields are absent until awaited; the sitter reads
+`title` without that await and throws before it ever asks for a pack.
+
+**None of the 5 926 has a pack** — checked, not assumed. So this is not noisy
+logging over work that succeeded anyway: it is the reason the coverage is
+what it is. Against 9 108 PDF attachments in `storage/`, 5 255 carry a pack
+and 3 853 do not, and this defect accounts for the bulk of that gap.
+
+The remaining 62 entries are a different and much smaller class — "Native SDT
+did not persist a current pack", 30 distinct attachments — which is a genuine
+extraction failure and is **not** what this ticket is about.
+
+**Why this matters beyond the missing packs.** The sitter's failure
+accounting counts these as failures of the documents rather than as one
+fixable defect of its own, so its coverage report reads as "these attachments
+cannot be covered" when the truth is "the sitter never asked". A reader
+deciding whether native extraction is sufficient — which is exactly what
+ticket 0606 asks — gets the wrong answer from that report.
+
+## Relevant files
+
+- `plugins/sdt-sitter/scheduler.js`, `plugins/sdt-sitter/bootstrap.js` — the
+  census and sweep, where the item's fields are read.
+- `~/data/Zotero/sdt-sitter-errors.jsonl` — the evidence, author's machine,
+  not committed.
+- Ticket 0699 (failure accounting must add up) — this is a concrete instance
+  of an accounting gap, and the two should be read together.
+- Ticket 0606 — its residue question is answered by fixing this.
+
+## Actions
+
+1. Await the item's data load before reading any field, on the path the
+   census and the sweep both take. The lazy getter is the platform's
+   documented behaviour for group libraries, not an error condition.
+2. Re-run the sweep and confirm the class disappears from the error log
+   rather than merely shrinking.
+3. Separate the two error classes in the sitter's own report: an item the
+   sitter failed to read is not an attachment native extraction cannot
+   handle, and today both land in one bucket.
+
+## Test
+
+- Red first: a group-library attachment (library 3 on the author's machine
+  has 5 926 of them) put through the census with the current code. Assert a
+  pack is requested for it. It must fail against the unfixed tree with the
+  `UnloadedDataException` above — that failure is the control, and a test
+  that passes there is testing nothing.
+- After the fix, the same attachment yields either a pack or a *named*
+  failure of the extraction class, never a read error.
+- The report counts read failures and extraction failures apart.
+
+## Verification
+
+- [ ] A fresh sweep's error log carries zero `UnloadedDataException`.
+- [ ] The pack count over `storage/` rises, and the rise is measured rather
+      than asserted: count `.zotero-sdt-cache` before and after.
+- [ ] The sitter's coverage report distinguishes "not read" from "cannot
+      extract".
+
+## Invariants
+
+- The sitter still never writes to `storage/`, never changes extraction
+  preferences and never replaces a source attachment.
+- Personal-library behaviour is unchanged by the fix.
+
+## Exit criteria
+
+- [ ] The lazy load is awaited and the exception class is gone from a real
+      sweep, with the red-first test having failed against the unfixed tree.
+- [ ] Read failures and extraction failures are counted apart in the report.
+- [ ] The residue that remains after the fix is measured, so ticket 0606 has
+      the number its decision needs.
