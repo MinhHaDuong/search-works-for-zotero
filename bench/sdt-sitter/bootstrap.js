@@ -37,6 +37,13 @@ function heartbeatTick() {
     pending: s.pending.length }, 'trace');
 }
 
+/* The failure half of settle. It goes to the session ring and Zotero.debug(),
+   never to a file: a cross-session failure ledger is what the 2026-09-05 ruling
+   forbids. The identity is the opaque cache key, never the attachment's title. */
+function reportSettleFailure(info, error) {
+  emit('settle', { id: info.cacheKey ?? null, ok: false, error: String(error) }, 'error');
+}
+
 function noteDialogClose(dialog) {
   // `close()` may dispatch unload after shutdown has run; record it once, in order.
   if (closeJournalled.has(dialog)) return;
@@ -390,10 +397,7 @@ async function initialize(rootURI, token) {
       const parent = info.parentTitle ? ` — élément : « ${info.parentTitle} »` : '';
       return `Échec de « ${info.title || 'pièce jointe inconnue'} »${parent} : ${String(error)}`;
     },
-    // The failure record goes to the session ring and Zotero.debug(), never to a
-    // file: a cross-session failure ledger is what the 2026-09-05 ruling forbids.
-    reportError: (info, error) => emit('settle',
-      { id: info.cacheKey ?? null, ok: false, error: String(error) }, 'error'),
+    reportError: reportSettleFailure,
     emit,
     yield: () => new Promise(resolve => timers.setTimeout(resolve, 0)),
     ensure: (id, onProgress) => Zotero.SDT.ensure(id, { isPriority: false, onProgress }),

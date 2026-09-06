@@ -181,6 +181,33 @@ await test('Zotero.debug and pref failures never reach the sitter loop', async (
   assert.equal(ring.tail(1)[0].level, 'state');
   assert(Number.isFinite(ring.tail(1)[0].at));
 });
+await test('a failed candidate journals settle without the attachment title', async () => {
+  const f = fixture();
+  const ring = context.createSDTJournal(50);
+  ui.journal = ring; ui.alive = true; ui.sitter = f.api;
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => true } };
+  f.host.emit = ui.emit; f.host.reportError = ui.reportSettleFailure;
+  f.host.inspect = async id => ({ status: 'missing-pack', identity: String(id), cacheKey: `1/${id}`,
+    title: 'Secret Title', parentTitle: 'Secret Parent', directory: '/secret/storage' });
+  f.host.ensure = async id => { f.calls.push(id); return false; };
+  await f.api.sweep();
+  const settled = Array.from(ring.tail(50)).filter(record => record.kind === 'settle');
+  assert.equal(settled.length, 2);
+  for (const record of settled) {
+    assert.equal(record.level, 'error'); assert.equal(record.ok, false);
+    assert(record.error.includes('did not persist'));
+  }
+  assert.deepEqual(settled.map(record => record.id), ['1/1', '1/2']);
+  assert(!JSON.stringify(Array.from(ring.tail(50))).includes('Secret'));
+});
+await test('a late dialog unload is recorded once, never twice', async () => {
+  const ring = context.createSDTJournal(50);
+  ui.journal = ring;
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => true } };
+  const dialog = {};
+  ui.noteDialogClose(dialog); ui.noteDialogClose(dialog);
+  assert.deepEqual(Array.from(ring.tail(50), record => record.kind), ['dialog-close']);
+});
 await test('after a hang the ring names the active document, its last progress and every heartbeat', async () => {
   const f = fixture(), entered = deferred(), finish = deferred();
   const ring = context.createSDTJournal(50);
@@ -221,13 +248,19 @@ await test('shutdown is the last record even with a submission still in flight',
   };
   const running = f.api.sweep();
   await entered.promise;
+  const dialog = {};
+  ui.noteDialogClose(dialog);
   ui.shutdown(null, 4);
   const closed = ring.tail(50).length;
+  // close() may dispatch unload after shutdown returns, and the in-flight ensure
+  // still has to settle; neither may land a record behind the shutdown one.
+  ui.noteDialogClose(dialog);
   callback(50); finish.resolve(); await running;
   ui.heartbeatTick();
   const tail = Array.from(ring.tail(50));
   assert.equal(tail.length, closed);
-  assert.equal(tail[tail.length - 1].kind, 'shutdown');
+  assert.deepEqual(tail.map(record => record.kind),
+    ['admit', 'submit', 'dialog-close', 'shutdown']);
   assert.equal(tail[tail.length - 1].reason, 'disable');
   assert.equal(ui.Zotero.SDTPackSitter, undefined);
 });
