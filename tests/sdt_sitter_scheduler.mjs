@@ -160,7 +160,7 @@ await test('one sweep journals admit, submit, progress and settle, carrying no t
   assert.equal(seen[3].kind, 'settle'); assert.equal(seen[3].ok, true);
   assert.equal(seen[3].id, 1); assert(Number.isFinite(seen[3].ms));
   assert.equal(seen[6].level, 'error'); assert.equal(seen[6].ok, false);
-  assert.equal(seen[6].id, '1/2'); assert(seen[6].error.includes('did not persist'));
+  assert.equal(seen[6].id, '1/2'); assert.equal(seen[6].error, 'Error');
   // The whitelist is the privacy rule: spreading `before` wholesale would leak these.
   assert(!JSON.stringify(seen).includes('Secret'));
   assert(!JSON.stringify(seen).includes('/secret/storage'));
@@ -207,23 +207,31 @@ await test('a failed candidate journals settle without the attachment title', as
   assert.equal(settled.length, 2);
   for (const record of settled) {
     assert.equal(record.level, 'error'); assert.equal(record.ok, false);
-    assert(record.error.includes('did not persist'));
+    assert.equal(record.error, 'Error');
   }
   assert.deepEqual(settled.map(record => record.id), ['1/1', '1/2']);
   assert(!JSON.stringify(Array.from(ring.tail(50))).includes('Secret'));
 });
-await test('a platform IO error reaches the journal without the path it names', async () => {
+await test('a platform error reaches the journal as its class, never its message', async () => {
   // The second inspect(), after extraction, reaches IOUtils and attachmentHash
   // minutes after the source was last known to exist. Its throw is the realistic
-  // failure, and its message embeds the file it failed on.
+  // failure, and its message names whatever it happened to fail on. Every case
+  // below is one a reviewer reproduced against a scrubbing implementation.
   const thrown = [
-    Object.assign(new Error(
+    [Object.assign(new Error(
       'Could not open the file at /home/haduong/Zotero/storage/ABCD2345/Secret Title.pdf'),
-    { name: 'NotFoundError' }),
-    new Error('Access denied to file:///home/haduong/Zotero/storage/ABCD2345/Secret.epub'),
-    new Error('Unable to read C:\\Users\\haduong\\Zotero\\storage\\ABCD2345\\Secret.pdf'),
+    { name: 'NotFoundError' }), 'NotFoundError'],
+    [new Error('Access denied to file:///home/haduong/Zotero/storage/ABCD2345/Secret.epub'), 'Error'],
+    [new Error('Unable to read C:\\Users\\Minh Ha Duong\\Zotero\\ABCD2345\\Secret Report.pdf'), 'Error'],
+    // The case no token-wise scrub can reach: prose, no path, several words.
+    [new Error('Failed to parse Secret - 2019 - A Very Revealing Working Paper.pdf'), 'Error'],
+    [Object.assign(new Error('nsresult'), { name: 'NS_ERROR_FILE_UNRECOGNIZED_PATH' }),
+      'NS_ERROR_FILE_UNRECOGNIZED_PATH'],
+    // A name that is really a message wearing a name's clothes.
+    [Object.assign(new Error('x'), { name: 'failed on /home/haduong/Secret.pdf' }), 'Error'],
+    ['a thrown string naming /home/haduong/Secret.pdf', 'Error'],
   ];
-  for (const error of thrown) {
+  for (const [error, expected] of thrown) {
     const f = fixture();
     const ring = context.createSDTJournal(50);
     const debugged = [];
@@ -239,20 +247,48 @@ await test('a platform IO error reaches the journal without the path it names', 
     await f.api.sweep();
     const settled = Array.from(ring.tail(50)).filter(record => record.kind === 'settle');
     assert.equal(settled.length, 1);
-    // The opaque cache key is identity the journal is meant to carry, and it holds
-    // a separator; the error text is what must carry no filesystem identity at all.
-    for (const leak of ['Secret', 'haduong', 'ABCD2345', '.pdf', '.epub', '/', '\\']) {
-      assert(!settled[0].error.includes(leak), `${leak} reached the record: ${settled[0].error}`);
+    assert.equal(settled[0].error, expected);
+    const written = `${JSON.stringify(settled)} ${debugged.join(' ')}`;
+    for (const leak of ['Secret', 'haduong', 'ABCD2345', '.pdf', '.epub', 'Revealing', 'Ha ']) {
+      assert(!written.includes(leak), `${leak} reached the channel: ${written}`);
     }
-    const written = debugged.join(' ');
-    for (const leak of ['Secret', 'haduong', 'ABCD2345', '.pdf', '.epub']) {
-      assert(!written.includes(leak), `${leak} reached Zotero.debug: ${written}`);
-    }
-    // Scrubbed, not silenced: the failure's shape still has to be readable.
-    assert(settled[0].error.startsWith(error.name));
-    assert(settled[0].error.includes('<path>') || settled[0].error.includes('<file>'));
     assert(debugged.some(line => line.includes('settle')));
   }
+});
+await test('a hostile error object neither escapes nor truncates the sweep', async () => {
+  // A torn-down compartment can throw from a getter. classifyError runs as an
+  // argument to emit(), outside emit()'s own guard, so it carries its own.
+  const f = fixture();
+  const ring = context.createSDTJournal(50);
+  ui.journal = ring; ui.sealed = false; ui.alive = true; ui.sitter = f.api;
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => true } };
+  f.host.emit = ui.emit; f.host.reportError = ui.reportSettleFailure;
+  f.host.inspect = async id => ({ status: 'missing-pack', identity: String(id), cacheKey: `1/${id}` });
+  f.host.ensure = async id => {
+    f.calls.push(id);
+    throw { get name() { throw new Error('compartment gone'); },
+      get message() { throw new Error('compartment gone'); } };
+  };
+  await f.api.sweep();
+  // Both candidates were tried: an escaping throw would abort the loop at the first.
+  assert.deepEqual(f.calls, [1, 2]);
+  assert.equal(f.api.state.failed, 2);
+  const settled = Array.from(ring.tail(50)).filter(record => record.kind === 'settle');
+  assert.deepEqual(settled.map(record => record.error), ['<unreadable error>', '<unreadable error>']);
+});
+await test('a shutdown that throws still seals the channel and records itself', async () => {
+  const f = fixture();
+  const ring = context.createSDTJournal(50);
+  ui.journal = ring; ui.sealed = false; ui.alive = true;
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => true }, SDTPackSitter: {} };
+  // Standing in for dialog.close() during app teardown: something in the body
+  // throws before the seal is reached.
+  ui.sitter = { state: f.api.state, stop() { throw new Error('teardown failed'); } };
+  assert.throws(() => ui.shutdown(null, 4), /teardown failed/);
+  assert.deepEqual(Array.from(ring.tail(50), record => record.kind), ['shutdown']);
+  assert.equal(ring.tail(1)[0].reason, 'disable');
+  ui.emit('cache-write', { rows: 1 });
+  assert.equal(ring.tail(50).length, 1);
 });
 await test('a late dialog unload is recorded once, never twice', async () => {
   const ring = context.createSDTJournal(50);

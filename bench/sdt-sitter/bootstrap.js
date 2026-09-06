@@ -37,20 +37,27 @@ function emit(kind, detail, level = 'state') {
   } catch (_error) { /* Diagnostics must never throw into the sitter loop. */ }
 }
 
-/* Error text is the one field the per-call-site whitelist cannot see inside, and
-   it is unbounded platform prose: a Gecko IO failure embeds the full path of the
-   file it failed on, and the second inspect() after extraction reaches IOUtils
-   and attachmentHash minutes after the source was last known to exist. Zotero's
-   debug output is user-submittable, so this is not even session-confined.
-   Anything carrying a separator or a document extension is therefore replaced,
-   not trimmed: the failure's shape is diagnostic, the file's identity is not. */
-function summarizeError(error) {
-  const name = error && error.name ? String(error.name) : 'Error';
-  const message = String(error && error.message != null ? error.message : error)
-    .replace(/\S*[\\/]\S*/g, '<path>')
-    .replace(/\S+\.(?:pdf|epub|html?|zip|txt|sqlite|json)\b/gi, '<file>')
-    .slice(0, 200);
-  return message ? `${name}: ${message}` : name;
+/* The error's class reaches the journal; its message never does. Message text is
+   free prose written by the platform, and it carries whatever it happens to name:
+   a Gecko IO failure carries the file's full path, a parse failure carries the
+   attachment's title. Zotero's debug output is submittable to Zotero's servers,
+   so this is not session-confined. Three successive attempts to scrub that prose
+   token by token each leaked — a stored filename is "Author - Year - Title.pdf",
+   several whitespace-separated words of which a pattern anchored on runs of
+   non-whitespace can only ever redact the one touching the extension. Prose and
+   filenames are not separable by pattern, so the message is not carried at all.
+   describeError still shows the author everything, on screen, locally, where it
+   is his own library he is reading. The name is validated rather than trusted:
+   a name with a space or a separator in it is a message wearing a name's clothes,
+   and the whole body is guarded because a torn-down compartment can throw from
+   a getter — this runs outside emit()'s guard, as its argument. */
+function classifyError(error) {
+  try {
+    const name = error && error.name;
+    return typeof name === 'string' && /^[\w.$-]{1,64}$/.test(name) ? name : 'Error';
+  } catch (_error) {
+    return '<unreadable error>';
+  }
 }
 
 function heartbeatTick() {
@@ -65,7 +72,7 @@ function heartbeatTick() {
    never to a file, for the reason createSDTJournal carries. The identity is the
    opaque cache key, never the attachment's title. */
 function reportSettleFailure(info, error) {
-  emit('settle', { id: info.cacheKey ?? null, ok: false, error: summarizeError(error) }, 'error');
+  emit('settle', { id: info.cacheKey ?? null, ok: false, error: classifyError(error) }, 'error');
 }
 
 function noteDialogClose(dialog) {
@@ -454,16 +461,24 @@ async function initialize(rootURI, token) {
   timer = timers.setTimeout(sweep, 0);
 }
 function shutdown(data, reason) {
-  ++generation; alive = false; sitter?.stop();
-  if (timers) { timers.clearTimeout(timer); timers.clearInterval(pulse); timers.clearInterval(heartbeat); }
-  for (const button of buttons) button.remove();
-  buttons.clear();
-  for (const dialog of dialogs) if (!dialog.closed) { noteDialogClose(dialog); dialog.close(); }
-  dialogs.clear();
-  delete Zotero.SDTPackSitter;
-  emit('shutdown', { reason: typeof reason === 'number' ? SHUTDOWN_REASONS[reason] || `reason-${reason}`
-    : reason ? String(reason).toLowerCase().replace(/^addon[_-]/, '').replace(/_/g, '-') : 'unknown' });
-  sealed = true;
+  // try/finally, because the teardown between here and the seal calls out to the
+  // platform: dialog.close() during app shutdown is a real throw site, and a
+  // shutdown that throws halfway would otherwise leave the channel open and write
+  // no record — losing the evidence at exactly the moment disable is being used
+  // to recover from a hang. The throw still propagates; the record is not lost.
+  try {
+    ++generation; alive = false; sitter?.stop();
+    if (timers) { timers.clearTimeout(timer); timers.clearInterval(pulse); timers.clearInterval(heartbeat); }
+    for (const button of buttons) button.remove();
+    buttons.clear();
+    for (const dialog of dialogs) if (!dialog.closed) { noteDialogClose(dialog); dialog.close(); }
+    dialogs.clear();
+    delete Zotero.SDTPackSitter;
+  } finally {
+    emit('shutdown', { reason: typeof reason === 'number' ? SHUTDOWN_REASONS[reason] || `reason-${reason}`
+      : reason ? String(reason).toLowerCase().replace(/^addon[_-]/, '').replace(/_/g, '-') : 'unknown' });
+    sealed = true;
+  }
 }
 function install() {}
 function uninstall() {}
