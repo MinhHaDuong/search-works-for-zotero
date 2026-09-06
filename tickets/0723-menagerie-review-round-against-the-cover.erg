@@ -1,0 +1,28 @@
+%erg 0.1
+Title: Menagerie review round against the coverage ledger, tally, lanes and census
+Created: 2026-09-06
+Author: claude
+
+--- log ---
+2026-09-06T16:21Z sim created
+
+--- body ---
+## Context
+
+Child of 0029 (tracker). Ruling 10 of 2026-09-06: an agent builds library and
+bank in one shot; review rounds against checklists find what is missing;
+checklists and reviews, no automatic guard. Part D items 12 and 13 (minimum
+cell occupancy; a red state per MUST cell on broken builds) are review-round
+checks under that ruling.
+
+## Actions
+1. A decorrelated reviewer reads the bank and the recipe against 0029's
+   coverage ledger (its exit criteria), the tally rows, the lane pairs
+   (question language x answer-paragraph language, with R7 and R29 naming
+   which bind) and the census marginals of `verification/LIBRARY-CENSUS-0029.md`.
+2. Every gap is listed with its reason; a second round fills what it can;
+   the rest is reported plainly as a gap.
+
+## Exit criteria
+- [ ] the gap list recorded in this ticket's body and in the tracker
+- [ ] second-round fills committed on the build branches

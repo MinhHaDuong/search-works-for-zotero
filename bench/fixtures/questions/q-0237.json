@@ -1,0 +1,45 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0237",
+  "need": "Hazard row, unindexable format — the statistical twin of q-0236. This plate is a graph of the Pas-de-Calais coalfield's output since 1850, so the answer a reader wants is a number read off an axis: tonnage by year. It is a 1630×925 JPEG, unindexed for the same reason as the map, and declared a failure control that never joins an answer set. Numbers drawn rather than typeset are the sharpest case of the class: the document is rich in data and carries no text at all.",
+  "query": "production du bassin houiller du Pas-de-Calais depuis 1850 tonnage annuel graphique Vuillemin 1875",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "unindexable-format",
+    "image-only-attachment",
+    "declared-failure-control",
+    "data-as-graphic"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [],
+  "expected_miss": true,
+  "expected_miss_mechanism": "The item's only attachment is a JPEG raster of a printed statistical plate (1630×925 px, 1 024 660 bytes). Zotero's full-text indexer reads PDF, HTML, EPUB and plain text only, so the attachment terminates unindexed with no fulltext, and the export marks it a declared failure control with answer_set_participation = none — it may not be pinned as a row.",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": []
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

@@ -1,7 +1,10 @@
 """Client for the full-text control plugin (bench/zotero-fulltext-plugin/).
 
     uv run python bench/zotero_fulltext.py status KEY [KEY ...]
-    uv run python bench/zotero_fulltext.py reindex KEY [KEY ...] [--wait] [--poll 15]
+    uv run python bench/zotero_fulltext.py reindex KEY [KEY ...] [--complete] [--wait] [--poll 15]
+
+``reindex`` applies the client's stock extraction limits unless ``--complete``
+asks the plugin to ignore them; the plugin echoes the mode it queued.
 
 Talks to Zotero's local server on localhost; nothing leaves the machine.
 """
@@ -33,6 +36,7 @@ def status(base: str, keys: list[str]) -> dict:
 def print_status(s: dict) -> None:
     stats = s.get("stats") or {}
     logging.info("busy=%s running=%s lastError=%s stats=%s", s.get("busy"), s.get("running"), s.get("lastError"), stats)
+    logging.info("plugin=%s lastReindexMode=%s prefs=%s", s.get("version"), s.get("lastReindexMode"), s.get("prefs"))
     for it in s.get("items", []):
         if "error" in it:
             logging.info("  %s %s", it["key"], it["error"])
@@ -57,6 +61,8 @@ def main() -> int:
     ap.add_argument("command", choices=["status", "reindex"])
     ap.add_argument("keys", nargs="*")
     ap.add_argument("--base", default=DEFAULT_BASE)
+    ap.add_argument("--complete", action="store_true",
+                    help="reindex: ignore fulltext.pdfMaxPages / textMaxLength (default: the stock limits apply)")
     ap.add_argument("--wait", action="store_true", help="reindex: poll status until every key is complete")
     ap.add_argument("--poll", type=float, default=15.0, help="seconds between polls")
     ap.add_argument("--max-wait", type=float, default=3600.0)
@@ -69,8 +75,12 @@ def main() -> int:
             return 0
         if not args.keys:
             ap.error("reindex needs at least one key")
-        r = call(args.base, "reindex", {"keys": args.keys})
-        logging.info("queued=%s missing=%s notAttachments=%s", r.get("queued"), r.get("missing"), r.get("notAttachments"))
+        r = call(args.base, "reindex", {"keys": args.keys, "complete": args.complete})
+        logging.info("mode=%s queued=%s missing=%s notAttachments=%s",
+                     r.get("mode"), r.get("queued"), r.get("missing"), r.get("notAttachments"))
+        if r.get("mode") != ("uncapped" if args.complete else "stock"):
+            logging.error("the plugin queued mode %s, not the one asked for; is it 0.2.0 or later?", r.get("mode"))
+            return 3
         if not args.wait:
             return 0
         started = time.monotonic()

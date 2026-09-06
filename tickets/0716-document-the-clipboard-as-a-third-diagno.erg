@@ -6,7 +6,6 @@ Author: sim
 --- log ---
 2026-09-06T15:36Z sim created
 
-2026-09-06T18:39Z claude note Body pointer repathed by 0697: the sitter's payload moved from bench/sdt-sitter/ to plugins/sdt-sitter/. No change of scope.
 --- body ---
 
 ## Context
@@ -30,7 +29,7 @@ where diagnostic data can go would miss the clipboard entirely.
 - Add one sentence to SPEC.md's R22 diagnostic-channel paragraph (near the
   existing sink enumeration, likely after line ~2261) naming the clipboard
   copy action as a third sink, and stating it inherits the same privacy rule
-  (proof: `plugins/sdt-sitter/bootstrap.js`'s `composeSDTJournalReport`, which
+  (proof: `bench/sdt-sitter/bootstrap.js`'s `composeSDTJournalReport`, which
   scrubs `rootURI` from each ring record before serialization).
 - Bump SPEC.md's `Date:` header per this document's date-is-version
   convention.

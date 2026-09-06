@@ -47,7 +47,7 @@ def main():
     folders = [repo / 'verification/probes' / name
                for name in ('sdt-diagnostic-plugin', 'sdt-diagnostic-harness')]
     if args.sitter:
-        folders = [repo / 'plugins/sdt-sitter', repo / 'verification/probes/sdt-sitter-harness']
+        folders = [repo / 'bench/sdt-sitter', repo / 'verification/probes/sdt-sitter-harness']
     for folder in folders:
         name = folder.name
         manifest = json.loads((folder / 'manifest.json').read_text())

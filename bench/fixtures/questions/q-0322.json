@@ -1,0 +1,78 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0322",
+  "need": "Viết trước khi mở tài liệu: tác giả định nghĩa sách là gì — vừa văn hoá phẩm, vừa hàng hoá, vừa vật thiêng?",
+  "query": "bản chất kép của quyển in: thương mại nơi xưởng ấn loát, thiêng liêng nơi chùa chiền",
+  "question_language": "vi",
+  "answer_language": "vi",
+  "lane": "vi->vi",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "hal-04826774-lich-su-sach-nam-ky",
+      "recipe_id": "hal-04826774-lich-su-sach-nam-ky",
+      "attachment_id": "hal-04826774-lich-su-sach-nam-ky-pdf",
+      "attachment_key": "RLFNAG8E",
+      "section": "Tóm tắt",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 2696,
+          "quote": "Sách vừa là một văn hoá phẩm, vừa là một món hàng tiêu dụng khi các nhà in thay nhau in chỉ để bán kiếm lời, vừa là một vật thể mang tính tâm linh khi được dùng làm phước trong lĩnh vực tôn giáo."
+        }
+      ],
+      "chain": {
+        "title": "Lịch sử sách, in ấn và xuất bản ở Nam Kỳ. Dùng Heurist để hệ thống hoá và phân tích dữ liệu của kho lưu chiểu Đông Dương",
+        "author": "Cao Vy",
+        "date": "2024",
+        "identifier": "https://hal.science/hal-04826774v1",
+        "section_heading": null,
+        "page_printed": null,
+        "part_title": "Lịch sử sách, in ấn và xuất bản ở Nam Kỳ. Dùng Heurist để hệ thống hoá và phân tích dữ liệu của kho lưu chiểu Đông Dương",
+        "part_byline": "Vy Cao"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "RLFNAG8E",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 2696,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

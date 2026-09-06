@@ -1,0 +1,94 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0139",
+  "need": "Hazard row for the figure-caption mechanism, with a second defect on top: the fitted parameters of the diversity curve appear only in the Fig. 1 caption, and the preprint's line breaks are hyphenless, so 'total employment' extracts as 'total em ployment' and a lexical query on the caption's own words misses the word it breaks.",
+  "query": "Fig 1 number of distinct occupations in US Metropolitan Statistical Areas versus total employment d0 686 gamma 0.84",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "structural-caption",
+    "hyphenless-line-break",
+    "near-duplicate-publication"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "bettencourt-2012-professional-diversity-cities-arxiv",
+      "recipe_id": "bettencourt-2012-professional-diversity-cities-arxiv",
+      "attachment_id": "bettencourt-2012-professional-diversity-cities-arxiv-pdf",
+      "attachment_key": "R4W2BMSH",
+      "section": "Fig. 1 caption",
+      "alternates": [
+        {
+          "page_printed": "10",
+          "char_offset": 16497,
+          "quote": "Fig. 1. The number of distinct occupations in US Metropolitan Statistical Areas vs. total em ployment."
+        },
+        {
+          "page_printed": "10",
+          "char_offset": 16604,
+          "quote": "The relationship between the number of professions present for each city (orange dots) and city size is well described by"
+        }
+      ],
+      "chain": {
+        "title": "Professional diversity and the productivity of cities",
+        "author": "Luís M. A. Bettencourt; Horacio Samaniego; HyeJin Youn",
+        "date": "2012",
+        "identifier": "https://arxiv.org/abs/1210.7335v3",
+        "section_heading": "Fig. 1 caption",
+        "page_printed": "10",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "R4W2BMSH",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 16497,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          },
+          {
+            "reachable": true,
+            "char_offset": 16604,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

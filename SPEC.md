@@ -2,7 +2,7 @@
 
 - **Status:** COMPLETE
 - **Author:** Minh Ha-Duong (CNRS)
-- **Date:** 2026-09-07
+- **Date:** 2026-09-06
 
 ## 1. Introduction
 
@@ -88,8 +88,7 @@ the entry points at the question rather than settling it.
   recorded. Authoritative: SPEC.md R1 and R17; the coverage sentence
   and its counters are SPEC.md §5.2.8.
 - **cross-lingual** — the property that a query in one language retrieves
-  documents in another: an English query finding Vietnamese content, or a
-  Vietnamese query finding French.
+  documents in another: an English or French query finding Vietnamese content.
   Stronger than *multilingual* and routinely confused with it — multilingual is
   each language working in its own lane, cross-lingual is the lanes connecting.
   Only the embedding space crosses languages; the keyword path cannot.
@@ -559,20 +558,11 @@ has to survive. The English stopword list is a known ranking bias whose deletion
 is already decided. Every other language rides the default path untested; see
 "Out of scope".
 
-**R29. Crosslingual.** A query in any of English, French and Vietnamese MUST
-retrieve relevant content in either of the other two without the user
-translating anything.
+**R29. Crosslingual.** A query in English or French MUST retrieve relevant
+Vietnamese content without the user translating anything.
 
-R7 promises each language its own lane; this promises the lanes connect. A lane
-is a pair: the language of the question and the language of the paragraph that
-answers it. This requirement binds all six ordered pairs over R7's first tier,
-in both directions, because nothing in the mechanism distinguishes them — one
-multilingual space, no query translation — and a Vietnamese-speaking scholar
-querying an English or French library meets the same barrier as an
-English-speaking one querying a Vietnamese library. Second-tier languages
-inherit R7's tiering: their pairs are reported, and setting a pair aside is
-allowed and MUST be stated. The cross-lingual property
-MUST be gated separately from the monolingual one, so a
+R7 promises each language its own lane; this promises the lanes connect. The
+cross-lingual property MUST be gated separately from the monolingual one, so a
 regression names which promise it broke. When the semantic path is unavailable
 the reply MUST say that cross-language matching is down, rather than return a
 silent miss that reads as an honest empty. Query translation is not the
@@ -1014,8 +1004,7 @@ where it was measured; its mechanisms are this specification's answer
 wherever the capability lands.
 
 This is the current design. It owns every design number: the gate
-thresholds (§5.2.8), the fixture contract's per-cell minima (§5.2.10), the
-experiment decision rules (§5.3), and the budgets
+thresholds (§5.2.8), the experiment decision rules (§5.3), and the budgets
 (§5.2.9). The predecessor design ("The Settled Ledger", called v1 below) is
 superseded.
 
@@ -1329,13 +1318,13 @@ design and inside the execution-mode comparison (§5.2.5).
 
 **The segmenter's interface.** The segmenter takes the document's extracted
 text and a list of structure signals, each a set of candidate boundaries with
-a provenance: structured-text blocks, the PDF's outline page targets, layout
-headings, markup headings, form feeds, a parsed contents list. It returns
-entries, each carrying a title, a character range in the text, an optional
-page range, a confidence, and the tier that produced the cut. Discovery runs
-before the extractor and the cut runs after it: a tier reads structure from
-the PDF or from the structured-text response, the segmenter cuts the
-extracted text, and Zotero stays the extractor. seg/1 is the implementation for the empty signal list and the
+a provenance: pack blocks, the PDF's outline page targets, layout headings,
+markup headings, form feeds, a parsed contents list. It returns entries, each
+carrying a title, a character range in the text, an optional page range, a
+confidence, and the tier that produced the cut. Discovery runs before the
+extractor and the cut runs after it: a tier reads structure from the PDF or
+the pack, the segmenter cuts the extracted text, and Zotero stays the
+extractor. seg/1 is the implementation for the empty signal list and the
 fall-through for every tier that comes up empty or low.
 
 **The segmenter, seg/1** is new machinery; the spec lives here. Its primary
@@ -1624,44 +1613,32 @@ is lost in today's chunker rather than in transport, and the extract stage
 carries those signals through from day one. A later extractor can replace the
 shim without moving the ledger boundary or touching the stages downstream.
 
-**Two sources, structured first.** Per attachment the shim first asks a
-structured-text service for the attachment's structured text, over the same
-host and port the local API answers on. The service is whatever provides
-those blocks — an extension today, the platform itself if it ever serves them
-— and the shim knows it only by its contract. A response of a contract
-version the shim knows, carrying an identity it can key on, is the source:
-its blocks are the text, excluded flows (running heads, page numbers)
-dropped, joined so a passage's extent maps back to its blocks; its block
-types and page anchors go to the segmenter as the first structure signal; the
-source hash and processor version it reports are the C1 key, so a processor
-bump is a visible staleness event. Where the response also carries chunks,
-the chunker identity and geometry it names feed the chunk key: a chunker
-outside this tree that moves a boundary MUST arrive as a key bump and not as
-drift, and a response that serves chunks without naming its chunker is a
-fallback trigger rather than a default. No service, a contract version the
-shim does not know, an attachment the service does not cover, or an identity
-it does not name, and the source is the flat text over `/fulltext` exactly as
-above — never a direct read of `.zotero-ft-cache`, and never a direct read of
-the platform's pack either. Structured text never overlays the flat text; one
-attachment has one source, recorded in the ledger and counted in R17's
-report, so a mixed corpus is disclosed rather than discovered.
-
-The service boundary is what holds the platform's pack format at arm's
-length. That format is internal and unversioned in any public sense (C2), and
-behind a versioned contract it may move without reaching this design; the
-fallback stays structural, so a move degrades that attachment to the flat
-path and never to a failure. The response is read in pages and never as one
-body: C3 bounds peak memory to a section batch whatever the document's size,
-and the conductor materializes no document whole.
+**Two sources, pack first (ruling 2026-09-02).** Per attachment the shim
+first looks for Zotero's structured-text pack, `.zotero-sdt-cache` beside the
+file, located through the same `/file/view/url` route the segmenter uses to
+reach the PDF — which answers with the local file URL as a plain-text body,
+where `/file` and `/file/view` answer with a 302 to it
+(`server_localAPI.js:1264-1276`, `9e28eb0`). A pack of a known pack version is the source: its blocks are the
+text, excluded flows (running heads, page numbers) dropped, joined so a
+passage's extent maps back to its blocks; its block types and page anchors go
+to the segmenter as the first structure signal; its metadata's source hash and
+processor version are the C1 key, so a processor bump is a visible staleness
+event. No pack, or a pack version the reader does not know, or a pack cut
+short, and the source is the flat text over `/fulltext` exactly as above,
+never a direct read of `.zotero-ft-cache`. The pack never overlays the flat
+text; one attachment has one source, recorded in the ledger and counted in
+R17's report, so the mixture the reader-only trigger produces today is
+disclosed rather than discovered. The pack's format is internal and unversioned
+in any public sense (C2), which is why the fallback is structural: a format
+move degrades that attachment to the flat path, never to a failure.
 
 This is the permanent source-selection contract, not the current deployment
-state. Until a structured-text service answers, the shim uses the flat path
-for every attachment; enabling structured-first selection then changes no
-interface and no downstream stage, because source identity, reporting, the
-tier-0 structure signal and the fallback are all fixed above. What the
-structured route adds is structure and the pages beyond the platform's
-extraction cap, which it does not observe and the flat extraction does — not
-better words, since where both exist the two texts agree.
+state. The reader is deferred until Zotero #6012 makes packs library-wide; the
+measured 2 packs among 13 630 flat caches do not justify maintaining an
+internal-format reader before then. Until that checkpoint the shim uses the
+flat path for every attachment. When the checkpoint is met, enabling pack-first
+selection changes no interface or downstream stage: the source identity,
+reporting, tier-0 structure signal and fallback are already fixed above.
 
 **The version-0 residue.** 584 of 8 037 measured fulltext entries sit at
 version 0. A local re-extraction that stamps 0 again is invisible to an
@@ -1853,13 +1830,10 @@ is written by the conductor and by nothing else. It runs seg/1 (§5.2.2) as a
 streaming state machine over the text windows the worker forwards: it closes
 entries at structural boundaries — a book into chapters, the dictionary into
 entries, proceedings into presentations — taking its structure signals in
-order: the block types and page anchors a structured-text response carries
-when that is the source (§5.2.4), the PDF's own outline and layout otherwise,
-seg/1's heuristic last —
+order: the pack's block types and page anchors when the source is a pack
+(§5.2.4), the PDF's own outline and layout otherwise, seg/1's heuristic last —
 cuts the passages inside each entry
-as deterministic token windows over text it is already holding — or adopts
-the cuts a structured-text response carries, under the chunker identity that
-response names — and commits
+as deterministic token windows over text it is already holding, and commits
 slab, entry and passage rows as entries close. Peak memory is one window plus
 the segmenter's own state, which is the streaming property C3 already
 asserts. **The conductor never materializes a whole document**: the local API
@@ -2556,13 +2530,7 @@ the library level is the only thing that can renew it: the RSS gate's revalidati
 is the pattern, and it binds every surrogate here, not only that one.
 
 - **The golden gate (D11 = set)**, which decides R34. A pinned multilingual fixture
-  corpus, answer *sets* at k=10. §5.2.10 owns the fixture contract — the three
-  layers, the strata, the question record, the score ladder, and what a
-  lifecycle event invalidates; this bullet states only what the gate itself
-  asserts. Where the documents come from — the archives, the admission test
-  each passes, its licence basis, and the per-record inventory — is
-  `bench/fixtures/README.md`'s, beside the recipe it describes.
-  The corpus represents a real
+  corpus, ~40 queries, answer *sets* at k=10. The corpus represents a real
   library rather than an ideal catalogue: it preserves declared, intentional
   item-type errors beside correct types; uses authentic source formats rather
   than converted format specimens; and identifies translations, alternate
@@ -2585,35 +2553,30 @@ is the pattern, and it binds every surrogate here, not only that one.
   fixtures distinguish PDF-embedded, Zotero-database and note-copied content;
   preserve annotation and page locators, note block structure and source
   lineage; and cover textual, image and ink shapes without treating identical
-  text as identical provenance. The corpus crosses both of Zotero's stock
-  extraction limits, and the two bind different attachments: the 100-page limit
-  binds a PDF, the 500 000-character limit binds EPUB, HTML and plain text, so
-  no single attachment crosses both. Each is crossed on its own by an
-  attachment of the kind it binds; the pair is crossed by one parent holding a
-  page-capped PDF beside a character-capped text or EPUB sibling; and the export
-  records both counter families — pages total and indexed, characters total and
-  indexed — for every attachment, with answer-bearing text on each side of each
-  boundary. Thresholds derive from the
+  text as identical provenance. Project Gutenberg is an admitted source for
+  authentic same-work UTF-8 text, HTML and EPUB siblings; each official file
+  is pinned separately because the ebook identifier does not freeze bytes. The corpus
+  crosses Zotero's stock extraction limits of 100 pages and 500 000 characters
+  independently and together, recording total and indexed values for both and
+  placing answer-bearing text on each side of each boundary. Thresholds derive from the
   stability artifact: the measured per-query Jaccard minimum under
   legitimate perturbation is 0.25, so a 0.5 floor would flag legitimate
   churn. The thresholds: mean Jaccard ≥ 0.8, at most 5 % of queries below
   0.35, and a hard floor of 0.2, below the observed legitimate minimum and
-  far above the failure class's measured 0.00. That derivation and those three
-  numbers are calibrated on the superseded corpus and its sixty queries; they
-  are re-derived on this one before they gate it again, and until they are, what
-  they read is the old corpus's churn. Order is deliberately ungated
+  far above the failure class's measured 0.00. Order is deliberately ungated
   (`identical_ordered` was 22/60 under legitimate perturbation; an order
   gate flakes, gets turned off, and that is how a past defect
   happened). Re-pins are commits
   whose set diff is the review artifact, and the golden set is re-pinned at
   entry granularity when entries exist; until then it gates item
-  projections and says so. Rung evaluation binds the queries whose facet
-  (§5.2.10) the corpus already covers: goal 4 closes on the covered subset, and
-  the rest join goal 5's evaluation when their corpus lands. The corpus carries
-  a cross-lingual slice — questions whose answer paragraph is in a language
-  other than the query's, over the pairs R29 binds — gated separately from
-  the monolingual questions, so a regression names which of R7 and R29 it broke.
-  Beside it, never replacing it, a body-only parallel slice uses the
+  projections and says so. Each pinned query records, at pinning, which corpus
+  its answer needs — core, notes, group, or deep-body — and the facet rides the
+  same review artifact as the set. Rung evaluation binds the queries whose
+  facet the corpus already covers: goal 4 closes on the covered subset, and
+  the rest join goal 5's evaluation when their corpus lands. The corpus carries a cross-lingual slice — EN and
+  FR queries whose answer sets are Vietnamese entries — gated separately from
+  the monolingual queries, so a regression names which of R7 and R29 it broke.
+  Beside it, never replacing it, a body-only parallel slice uses the 157
   English–Vietnamese twin records in both directions. Shared record fields are
   masked; it reports document- and passage-level hit@10 separately for en→vi
   and vi→en. It measures embedding-space alignment on equivalent text, not
@@ -2841,171 +2804,6 @@ network round trip, hundreds of milliseconds to seconds, and no provider
 documents a p50 or a tail: the 700 ms band is not expected to hold there, and
 the 3 s bound is kept by the timeout that degrades to labeled keyword-only
 (§5.2.5).
-
-#### 5.2.10 The fixture contract
-
-§5.2.8 says what the golden gate asserts. This says what it reads: how the
-pinned corpus is put together, what a question record carries, how a reply is
-scored, and what a change to any of those invalidates. It owns none of the
-gate's thresholds, which stay §5.2.8's, and no sourcing: which archive a given
-document came from is `bench/fixtures/README.md`'s.
-
-**Three layers, and the gate reads the third.** The **source recipe** names
-each document by the public archive it comes from, its persistent identifier,
-the address of its bytes and their hash, so the corpus is rebuilt from archives
-rather than redistributed. The **injection** puts those documents into a Zotero
-collection as attachments of real records, which is the only way the client's
-own extractor ever runs on them. The **committed export** is what that
-extractor made of them, and it is the layer the gate reads — replayed through a
-mock local API, so the gate needs neither Zotero nor a model runtime. The
-distinction is load-bearing rather than tidy: an answer's relevance was judged
-on a page of the source document, but every number the gate computes is
-computed against the export. A recipe the archives stopped serving is a broken
-recipe and a rebuild says so; an export whose counters contradict its recorded
-settings refuses itself; only the export can make a reading wrong.
-
-**Two sampled strata, and an appendix that is in no average.** The
-**representative core** is quota-sampled against the marginals of a census of a
-real research library (`verification/LIBRARY-CENSUS-0029.md`), the defect
-marginals included at the rates the census measured rather than at zero: cap
-truncation, formats the extractor never dispatches, and language fields that
-are empty or malformed. A core scrubbed of those is a library nobody works in.
-The **adversarial reserve** holds only what a census cannot supply — one member
-per mechanism, each naming the mechanism it carries, the degradation expected
-of it, and whether it belongs to any answer set — and is oversampled on
-purpose. No score is reported over core plus reserve unweighted, and
-representativeness is claimed only on cells whose expected count exceeds one
-document. Beside both, in neither and in no average, sit the **scale
-surrogates**: the synthetic multi-megabyte document and the 15 000-page PDF
-that R8 and the RSS gate need. They are too large to commit, so what is
-committed is a deterministic generator and the hash of its output — which is
-what lets the intersections run wherever the gate runs (a monster in a
-non-Latin script, a scale run at the multilingual default) while their fidelity
-claim defers to the library level, exactly as §5.2.8 requires of every
-surrogate.
-
-**The question record is the gate's input contract.** Every question carries,
-and a record missing a field is refused at load rather than scored:
-
-| field | what it holds |
-|---|---|
-| `id` | stable identifier, unique in the bank |
-| `need` | the information need in prose, written before any document was opened |
-| `query` | the query text as a user would type it |
-| `lane` | the pair (question language, answer-paragraph language) |
-| `facet` | which corpus the answer needs: `core`, `notes`, `group` or `deep-body` |
-| `set_kind` | `any-of` when one member of the primary set answers the need, `all-of` when the reply must return every member |
-| `primary` | the primary answer set, never larger than k |
-| `relations` | one directional assertion per related record |
-| `answers` | one locator per primary member |
-| `mode` | the retrieval mode the question expects to be answered in, per R33 |
-| `mechanism` | the pathology rows this question consumes, where it consumes any |
-| `stratum` | core or reserve |
-| `provenance` | who wrote it, on what date, from which page, and whether it was written after the tuning it judges |
-
-A **lane** is R29's pair, and which pairs bind is R7's and R29's, never
-restated here. A **facet** says which corpus an answer needs, and §5.2.8's rung
-evaluation binds only the facets the corpus already covers, so an uncovered
-facet's questions wait rather than fail.
-
-**There is no neutral relevance grade; a relation is asserted directionally.**
-A grade that counts neither for nor against is not a grade, and on a
-cross-lingual question it is worse than none: returning the English translation
-in place of the Vietnamese decision is precisely the miss R29 exists to catch,
-and a neutral grade scores it as a pass. So each related record instead carries
-an assertion naming its relation — a declared rendering of the same text, a
-translation twin, the book that holds a chapter, a metadata-conflicting
-duplicate — and the outcome required of it: **collapsed** into the answer's
-row, present as a **distinct** row, or **absent**. R24 reads those assertions
-and a violated one fails the question. Where the answer paragraph is in a
-language other than the query's, the target-language document is primary and
-its other-language twin is asserted distinct. The primary set never exceeds k:
-a question that would need more members than the reply has room for is two
-questions, and the input schema refuses it at authoring rather than at scoring.
-R34 reads the primary set alone and tolerates no miss in it.
-
-**An answer is a paragraph.** Precisely: a paragraph, in a page, in a file,
-attached to a Zotero entry. A file that has no pages — plain text, HTML, EPUB —
-locates by character number instead. A locator is stored as attachment key,
-page or section, and the quoted span text, with the character offset resolved
-at load time, so a re-extraction relocates a span mechanically and only an
-answer that genuinely vanished comes back red. This is the unit the whole
-contract is built on: it is what R24's evidence must point at, what the rank in
-the ladder below is the rank of, and what a re-pin recomputes.
-
-**Relevance is judged on the source document; reachability is computed on the
-export.** The two are separate attributes of one pinned answer, and conflating
-them makes the bank non-reusable. Relevance is a human judgement made on the
-page, with the printed page number and a verbatim quote read there, and no
-re-export ever reopens it. Reachability is mechanical: recomputed against the
-committed export at every re-export, and stamped with the extraction
-configuration that produced that export. An answer that is reachable makes its
-question a retrieval question. An answer that is not stays in the bank as an
-**expected-miss** question naming the mechanism that hides it — a cap, a
-missing text layer, a format outside the extraction dispatch — gated as such
-and never deleted, so that the day the mechanism is fixed the question becomes
-a retrieval question with nobody re-deriving it. R1 promises the extraction
-chain will improve; this is the clause that keeps the bank worth its hours when
-it does. A no-answer question is the limiting case: its primary set is empty,
-and the win is the reply that returns nothing with R18's reason. The export is
-produced at the settings it records — the forced reindex runs at Zotero's stock
-limits by default, an uncapped reindex is a separately declared arm serving the
-cap-crossing questions, and both preferences are read from the client rather
-than typed.
-
-**The ladder is win, near-win, miss.** A reply is scored on the rank of the
-answer paragraph and on the completeness of the citation chain it carries. The
-chain is the entry's title, author, date and identifier (DOI, ISBN or URL); the
-section heading; the page number as printed in the text, roman numerals in
-front matter and never the PDF's own page index; and, for a compound document,
-the part's title and its byline. A resolvable item key satisfies the identifier
-and the work identity, so a hit that returns key, title, snippet and score wins
-outright for a simple document. The compound document is the exception — a
-book, a book section, a proceedings paper, a dictionary or an encyclopedia
-entry, and the parts they hold — and there a key alone is a **near-win**: a win
-still needs the part, the chapter or talk or entry title with its byline, and
-the printed page. A reply that returns the same work in another rendering or
-another language in place of the answer paragraph is a near-win, not a miss.
-Everything else is a **miss**. Chain completeness is reported beside the
-ladder; the ladder no longer turns on it. What the chain demands of the system
-is R24's page clause carried to its end: a locator that hands back the PDF's
-own index where the page prints a different folio has not led the reader to
-the page.
-
-**The `run` block, and a result without one is not-run.** Every result carries
-the recipe hash and the export hash as the fixture version, the extraction
-configuration, §5.2.7's embedder fingerprint, the chunker key, the index schema
-generation, the scope and seed where the run sampled, and the retrieval mode
-each question actually went through — read from the adapter's own reply, never
-from documentation. A result missing the block is `not-run` in §5.2.8's sense:
-neither a pass nor a failure, and comparable with nothing.
-
-**The total is soft; the cells are not.** A bank-wide question tally is a plan,
-and a gate on it would be a gate on effort. What is hard is per cell: every
-MUST cell of R7 and R29 carries a minimum question count, fixed before the
-questions are authored, so that the hard questions cannot be parked where
-nothing gates. A cell holding fewer questions than its minimum prints
-**not-evaluated** under R7's set-aside clause rather than a rate computed on
-two questions; a cell holding none prints **not-measured**; and both print
-their count beside their rate. R34's non-vacuity rides on those minima and on
-nothing else. The minima are this section's numbers to own and none is stated
-yet, because none is ruled: a floor invented here would be a floor the bank was
-authored to clear rather than one the promise needs. Fixing them is the last
-step before the first cell is authored, and until then every MUST cell prints
-not-evaluated.
-
-**What a lifecycle event invalidates.** Every reported number binds to one
-version of each layer, and the table says which readings a change voids rather
-than leaving it to be inferred:
-
-| event | what it voids |
-|---|---|
-| compatible addition — a question or a document added, existing answers unmoved | nothing |
-| re-pin — the export changes | every answer locator and every reachability attribute, both recomputed; every rate measured against the old passage distribution |
-| re-judgement — a relevance judgement or a directional assertion changes | the graded set, re-pinned with its set diff as the review artifact; historical comparison of the affected cells |
-| re-derivation — §5.2.8's stability thresholds are re-derived | every stability reading taken under the old thresholds |
-| major version — the record shape, the lane set or the ladder changes | historical comparison, whole |
-| archive — results move to `verification/` with their run block | nothing; they stop being current |
 
 ---
 

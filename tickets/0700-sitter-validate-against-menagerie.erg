@@ -2,10 +2,10 @@
 Title: Validate the sitter's census and extraction against the real Menagerie
 Created: 2026-09-06
 Author: claude
+Blocked-by: 0632
 
 --- log ---
 2026-09-06T00:00Z claude created
-2026-09-07T08:20Z claude note UNBLOCKED: the premise of the Blocked-by is satisfied. The Menagerie is a live, injectable fixture library -- group 6659303 on zotero.org at library version 592, 103 documents in collection 3AY48MA5, 114 top-level items, 125 imported-file attachments with their bytes on the server (authenticated /file returns 302; the anonymous 404 is Zotero's normal group-file behaviour, confirmed against group 305258 as a control). Its text attachments carry real charsets, the deliberate legacy ones included: utf-8, windows-1252, windows-1251, koi8-r, gbk, big5. Ticket 0632's exit criteria are all ticked on main; it remains open only until PR #409 lands the re-injection and stock-limit re-export that clear its two recorded defects. None of that gates this ticket, whose work is running the sitter's census and extraction against the corpus
 
 --- body ---
 ## Context

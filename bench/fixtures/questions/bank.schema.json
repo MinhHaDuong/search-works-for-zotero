@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/MinhHaDuong/search-works-for-zotero/bench/fixtures/questions/bank.schema.json",
+  "title": "Menagerie question bank record (menagerie-bank/v2)",
+  "description": "One question of the golden gate's bank, ticket 0722. The vocabularies here are the ones bench/golden_gate.py enforces; tests hold the two in step.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "id", "need", "query", "question_language", "answer_language", "lane", "signal", "mode",
+    "facet", "stratum", "mechanisms", "generator", "set_kind", "pinned", "expected_miss",
+    "expected_miss_mechanism", "reachability", "provenance"
+  ],
+  "properties": {
+    "schema": {"const": "menagerie-bank/v2"},
+    "id": {"type": "string", "pattern": "^q-[0-9]{4,}$"},
+    "need": {"type": "string", "minLength": 1},
+    "query": {"type": "string", "minLength": 1},
+    "question_language": {"$ref": "#/$defs/language"},
+    "answer_language": {"$ref": "#/$defs/language"},
+    "lane": {"type": "string", "pattern": "^[a-z]{2}->[a-z]{2}$"},
+    "signal": {"enum": ["exact", "paraphrase", "agreement"]},
+    "mode": {"enum": ["lexical", "semantic", "hybrid", "any"]},
+    "facet": {"enum": ["core", "notes", "group", "deep-body"]},
+    "stratum": {"enum": ["core", "reserve"]},
+    "mechanisms": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "generator": {"enum": ["need", "hazard"]},
+    "set_kind": {"enum": ["any-of", "all-of"]},
+    "pinned": {"type": "array", "items": {"$ref": "#/$defs/row"}},
+    "expected_miss": {"type": "boolean"},
+    "expected_miss_mechanism": {"type": ["string", "null"]},
+    "reachability": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/reachability"}]},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["author", "date", "page_read"],
+      "properties": {
+        "author": {"type": "string", "minLength": 1},
+        "date": {"type": "string", "format": "date"},
+        "page_read": {"type": "boolean"}
+      }
+    },
+    "retained_reason": {"type": "string"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"expected_miss": {"const": true}}},
+      "then": {"properties": {"expected_miss_mechanism": {"type": "string", "minLength": 1}}},
+      "else": {"properties": {"expected_miss_mechanism": {"type": "null"}, "pinned": {"minItems": 1}}}
+    }
+  ],
+  "$defs": {
+    "language": {"enum": ["en", "fr", "de", "vi", "zh", "ar", "ru", "hi", "es", "la", "pt"]},
+    "nullableString": {"type": ["string", "null"]},
+    "chain": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {"$ref": "#/$defs/nullableString"},
+        "author": {"$ref": "#/$defs/nullableString"},
+        "date": {"$ref": "#/$defs/nullableString"},
+        "identifier": {"$ref": "#/$defs/nullableString"},
+        "section_heading": {"$ref": "#/$defs/nullableString"},
+        "page_printed": {"$ref": "#/$defs/nullableString"},
+        "part_title": {"$ref": "#/$defs/nullableString"},
+        "part_byline": {"$ref": "#/$defs/nullableString"}
+      }
+    },
+    "alternate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["page_printed", "char_offset", "quote"],
+      "properties": {
+        "page_printed": {"$ref": "#/$defs/nullableString"},
+        "char_offset": {"type": ["integer", "null"], "minimum": 0},
+        "quote": {"type": "string", "minLength": 1}
+      }
+    },
+    "row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["work_id", "recipe_id", "attachment_key", "section", "alternates", "chain"],
+      "properties": {
+        "work_id": {"type": "string", "minLength": 1},
+        "recipe_id": {"type": "string", "minLength": 1},
+        "attachment_id": {"$ref": "#/$defs/nullableString"},
+        "attachment_key": {"type": "string", "pattern": "^[A-Z0-9]{8}$"},
+        "section": {"type": "string", "minLength": 1},
+        "alternates": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/alternate"}},
+        "chain": {"$ref": "#/$defs/chain"}
+      }
+    },
+    "reachability": {
+      "type": "object",
+      "required": ["computed_by", "export_sha256", "extraction", "reachable", "rows"],
+      "properties": {
+        "computed_by": {"type": "string"},
+        "export_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "extraction": {
+          "type": "object",
+          "required": ["reindex_mode", "reindex_limits", "caps", "index_fulltext_max_chars", "recipe_sha256"],
+          "properties": {
+            "reindex_mode": {"$ref": "#/$defs/nullableString"},
+            "reindex_limits": {"$ref": "#/$defs/nullableString"},
+            "caps": {"type": "object"},
+            "index_fulltext_max_chars": {"type": ["integer", "null"]},
+            "recipe_sha256": {"$ref": "#/$defs/nullableString"}
+          }
+        },
+        "reachable": {"type": "boolean"},
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["attachment_key", "alternates"],
+            "properties": {
+              "attachment_key": {"type": "string"},
+              "alternates": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["reachable", "char_offset", "occurrences", "reason", "within_index_cap"],
+                  "properties": {
+                    "reachable": {"type": "boolean"},
+                    "char_offset": {"type": ["integer", "null"]},
+                    "occurrences": {"type": "integer", "minimum": 0},
+                    "reason": {"$ref": "#/$defs/nullableString"},
+                    "within_index_cap": {"type": ["boolean", "null"]}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

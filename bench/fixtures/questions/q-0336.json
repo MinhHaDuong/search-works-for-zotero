@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0336",
+  "need": "Hazard: the rural, mountain and island electrification chapter opens at character 66 611 of a 79 632-character page, well past the 40 000-character index cap, so the whole of Chương VIII is in the export and absent from the index — the reader who asks about điện nông thôn gets nothing.",
+  "query": "chính sách phát triển điện nông thôn miền núi hải đảo điện khí hoá đẩy nhanh Luật Điện lực 2004",
+  "question_language": "vi",
+  "answer_language": "vi",
+  "lane": "vi->vi",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "compound-document-chain",
+    "index_fulltext_max_chars"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "vn-law-electricity-2004-vi",
+      "recipe_id": "vn-law-electricity-2004-vi",
+      "attachment_id": "vn-law-electricity-2004-vi-html",
+      "attachment_key": "I3LAA8TA",
+      "section": "Điều 60, khoản 1",
+      "alternates": [
+        {
+          "page_printed": null,
+          "quote": "Thu hút mọi nguồn lực để đầu tư xây dựng cơ sở hạ tầng điện lực, đẩy nhanh quá trình điện khí hoá nông thôn, miền núi, hải đảo.",
+          "char_offset": 66734
+        }
+      ],
+      "chain": {
+        "title": "Luật Điện lực (28/2004/QH11)",
+        "author": "Quốc hội Việt Nam",
+        "date": "2004",
+        "identifier": "https://vi.wikisource.org/w/index.php?title=Lu%E1%BA%ADt_%C4%90i%E1%BB%87n_l%E1%BB%B1c_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_2004&oldid=188787",
+        "section_heading": "Chương VIII:Điện phục vụ nông thôn, miền núi, hải đảo",
+        "page_printed": null,
+        "part_title": "Điều 60: Chính sách phát triển điện nông thôn, miền núi, hải đảo",
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "index_fulltext_max_chars: Chương VIII (Điện phục vụ nông thôn, miền núi, hải đảo) begins at character 66 611 of the 79 632-character extraction, past the 40 000-character index cap; the article is in the export's fulltext but never enters the index",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "I3LAA8TA",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 66734,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

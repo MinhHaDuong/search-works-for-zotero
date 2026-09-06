@@ -35,16 +35,12 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 
+import { FluentModule } from './fluent_stub.mjs';
 
-const SITTER = 'plugins/sdt-sitter';
+const SITTER = 'bench/sdt-sitter';
 const decoder = new TextDecoder();
 
 export const ROOT_URI = 'file:///home/tester/.zotero/profile/extensions/sdt-pack-sitter/';
-/** What the host hands `startup()`. A real installed add-on is given its
-    version from the record Zotero already holds; a harness that omitted it
-    modelled a host nobody runs, which is how the version field went unnoticed
-    reading "unreadable" in production for the life of ticket 0688. */
-export const INSTALLED_VERSION = '9.9.9-test';
 export const DATA_DIR = '/home/tester/Zotero';
 export const CACHE_PATH = `${DATA_DIR}/sdt-sitter-cache.jsonl`;
 export const STORAGE = '/home/tester/Zotero/storage';
@@ -473,15 +469,12 @@ export function createHarness(options = {}) {
     },
     ChromeUtils: {
       now: () => clock.mono,
-      // Timer is the ONE module the real host serves this way. Fluent used to
-      // be answered here too, and that was the mock inventing a platform: no
-      // `resource://gre/modules/Fluent.sys.mjs` exists in Zotero 10.0.1, the
-      // import always threw there, and the whole locale layer fell to its
-      // catch while forty tests stayed green against a module only this file
-      // provided. An unexpected spec must be loud, never answered.
       importESModule: spec => {
-        assert.equal(spec, 'resource://gre/modules/Timer.sys.mjs',
-          'the real host serves no other module through importESModule');
+        // Two platform modules now, so the assertion becomes a switch: an
+        // unexpected spec must still be loud rather than answered with the
+        // wrong module.
+        if (spec === 'resource://gre/modules/Fluent.sys.mjs') return FluentModule;
+        assert.equal(spec, 'resource://gre/modules/Timer.sys.mjs');
         return timers.module;
       },
     },
@@ -528,10 +521,10 @@ export function createHarness(options = {}) {
     /** Every toast shown, in order, with the lines it carried. */
     toasts,
     /** Run the real `startup()` and let `initialize()` reach its first sweep. */
-    async start() { context.startup({ rootURI: ROOT_URI, version: INSTALLED_VERSION }); await quiet(); assertStarted(); },
+    async start() { context.startup({ rootURI: ROOT_URI }); await quiet(); assertStarted(); },
     /** The same, for a fixture whose `ensure` never settles. */
     async startHanging(times = 12) {
-      context.startup({ rootURI: ROOT_URI, version: INSTALLED_VERSION });
+      context.startup({ rootURI: ROOT_URI });
       await turn(times);
       assertStarted();
     },

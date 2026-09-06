@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0112",
+  "need": "Écrit avant d'ouvrir le document : Cournot prend l'exemple d'un livre rare que l'on réimprime — combien d'exemplaires subsistaient et à quel prix montait l'enchère ? Je lis le français, mais la bibliothèque contient à la fois l'original de 1838 et sa traduction anglaise de 1897 : la réponse peut arriver dans l'une ou l'autre langue.",
+  "query": "Cournot : l'exemple du livre rare réimprimé, combien d'exemplaires subsistants et à quel prix aux enchères",
+  "question_language": "fr",
+  "answer_language": "en",
+  "lane": "fr->en",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "work-identity-translation",
+    "cross-lingual"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "cournot-1897-researches-bacon",
+      "recipe_id": "cournot-1897-researches-bacon",
+      "attachment_id": "cournot-1897-researches-bacon-pdf",
+      "attachment_key": "5I938WPW",
+      "section": "Chapter I. Of Value in Exchange or of Wealth in General",
+      "alternates": [
+        {
+          "page_printed": "12",
+          "char_offset": 25516,
+          "quote": "suppose that only fifty copies exist of a curious book, and that this scarcity carries up the price at auction to three hundred francs a copy."
+        }
+      ],
+      "chain": {
+        "title": "Researches into the Mathematical Principles of the Theory of Wealth",
+        "author": "Antoine-Augustin Cournot; translated by Nathaniel T. Bacon; essay and bibliography by Irving Fisher",
+        "date": "1897",
+        "identifier": "https://archive.org/details/bub_gb_AGoGpyJY_SAC",
+        "section_heading": "Chapter I. Of Value in Exchange or of Wealth in General",
+        "page_printed": "12",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "5I938WPW",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 25516,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

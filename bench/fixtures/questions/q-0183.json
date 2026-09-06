@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0183",
+  "need": "Written before opening the document: the introduction calls 2014 the warmest year on record and footnotes when the record starts; I want that footnote.",
+  "query": "since what year have global thermometer measurements been kept, NOAA source",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "structural-footnote"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "worldbank-2015-state-trends-carbon-pricing",
+      "recipe_id": "worldbank-2015-state-trends-carbon-pricing",
+      "attachment_id": "worldbank-2015-state-trends-carbon-pricing-pdf",
+      "attachment_key": "L4DY79FF",
+      "section": "1 Introduction, footnote 1",
+      "alternates": [
+        {
+          "page_printed": "16",
+          "char_offset": 25680,
+          "quote": "1 Temperature record keeping began in 1880 (source: NOAA National Climatic Data Center, Global Analysis - Annual 2014"
+        }
+      ],
+      "chain": {
+        "title": "State and Trends of Carbon Pricing 2015",
+        "author": "Alexandre Kossoy; Grzegorz Peszko; Klaus Oppermann; Nicolai Prytz; Noémie Klein; Kornelis Blok; Long Lam; Lindee Wong; Bram Borkent",
+        "date": "2015",
+        "identifier": "10.1596/978-1-4648-0725-1",
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": "1 Introduction",
+        "page_printed": "16"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "L4DY79FF",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 25680,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": true,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

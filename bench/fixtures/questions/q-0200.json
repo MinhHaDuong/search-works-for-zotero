@@ -1,0 +1,92 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0200",
+  "need": "Written before opening the document: Cournot opens his treatise on wealth not with a definition but with an etymology — the Germanic root behind 'riche' — and then separates being a proprietor from being rich. I want that opening passage.",
+  "query": "Cournot racine tudesque Rik Reich ricos hombres Joinville riches hommes propriétaire et non riche",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "known-item"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "cournot-1838-recherches",
+      "recipe_id": "cournot-1838-recherches-ia",
+      "attachment_id": "cournot-1838-recherches-ia-pdf",
+      "attachment_key": "TLZ7JLEX",
+      "section": "Chapitre Ier. De la valeur d'échange ou de la richesse en général",
+      "alternates": [
+        {
+          "page_printed": "1",
+          "char_offset": 11629,
+          "quote": "Los ricos hombres se dit encore en espagnol des nobles de distinction , des grands seigneurs ; et telle est l'acception des mots riches hommes dans le français de Joinville."
+        },
+        {
+          "page_printed": "2",
+          "char_offset": 13012,
+          "quote": "cet homme est propriétaire et n'est point riche."
+        }
+      ],
+      "chain": {
+        "title": "Recherches sur les principes mathématiques de la théorie des richesses",
+        "author": "Antoine-Augustin Cournot",
+        "date": "1838",
+        "identifier": "https://archive.org/details/AugustinCournotRecherches",
+        "section_heading": "CHAPITRE Ier. De la valeur d'échange ou de la richesse en général",
+        "page_printed": "1",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "TLZ7JLEX",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 11629,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          },
+          {
+            "reachable": true,
+            "char_offset": 13012,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

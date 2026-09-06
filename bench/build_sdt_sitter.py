@@ -6,12 +6,11 @@ import json
 from pathlib import Path
 import zipfile
 
-#: Where the payload's source lives, relative to the repository root, and the
-#: only definition of it. Ticket 0697 promoted the sitter out of `bench/`, which
-#: is for probes and one-off measurements, to a top-level `plugins/`; the guard
-#: in `bench/check_sitter_version.py` reads this rather than restating it, so a
-#: further move cannot leave one of the two packaging the old directory.
-SOURCE = 'plugins/sdt-sitter'
+#: Where the sitter's locales live. A language is added by dropping one file
+#: here and naming its tag below; nothing enumerates the directory at runtime,
+#: because `bootstrap.js` resolves its fallback chain by trying to fetch each
+#: candidate (ticket 0692). This tuple is what packs them.
+LOCALES = ('en', 'fr', 'es', 'vi')
 
 #: The payload, and the only definition of it. `bench/check_sitter_version.py`
 #: reads this rather than keeping a second list: a file added to the XPI and
@@ -19,17 +18,18 @@ SOURCE = 'plugins/sdt-sitter'
 #: which is the one thing that guard exists to prevent. `update.json` beside
 #: these is deliberately absent — it is served over HTTP, never packed.
 #:
-#: The locale files that briefly sat here are gone with the rest of the
-#: multilingual layer (author's instruction, 2026-09-07): the strings live in
-#: `bootstrap.js`, so they are payload by being part of it.
-DELIVERED = ('manifest.json', 'bootstrap.js', 'scheduler.js')
+#: The `.ftl` files are payload for both reasons at once: an XPI without them
+#: shows every string as its own message id, and a translation corrected without
+#: a version bump is exactly the two-builds-one-number case the guard is for.
+DELIVERED = ('manifest.json', 'bootstrap.js', 'scheduler.js',
+             *(f'locale/{tag}/sdt-pack-sitter.ftl' for tag in LOCALES))
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
-    source = Path(__file__).resolve().parent.parent / SOURCE
+    source = Path(__file__).resolve().parent / 'sdt-sitter'
     names = DELIVERED
     with zipfile.ZipFile(args.output, 'x', compression=zipfile.ZIP_DEFLATED) as package:
         for name in names:

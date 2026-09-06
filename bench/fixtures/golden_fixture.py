@@ -13,8 +13,10 @@ failure control (``failure_control`` on the recipe record) that the reindex of t
 run watched Zotero leave at the declared state -- a document Zotero cannot extract (a
 DjVu container, an un-OCR'd scan) is real ground truth the fixture exists to carry, and
 is exported with no full text, its expected degradation, and no answer-set part.
-The client version and both extraction preferences are required inputs: silently using
-defaults would make two exports from different Zotero profiles look like one corpus.
+The client version is a required input; the two extraction preferences and the reindex
+mode are read from the control plugin's status, never typed: an export records what the
+client actually ran under (ticket 0721, after ticket 0632's run recorded the stock
+preferences beside a limits-ignored reindex and nothing could tell).
 """
 
 import argparse
@@ -34,19 +36,72 @@ from pathlib import Path
 
 SOURCE_TAG_PREFIX = "zoteus-golden-source:"
 ATTACHMENT_TAG_PREFIX = "zoteus-golden-attachment:"
+NOTE_TAG_PREFIX = "zoteus-golden-note:"
+MANAGED_TAG_PREFIXES = (SOURCE_TAG_PREFIX, ATTACHMENT_TAG_PREFIX, NOTE_TAG_PREFIX)
 EXPORT_SENTINEL = ".zoteus-golden-export.json"
 EXPORT_SENTINEL_SCHEMA = "zoteus-golden-export/v1"
 API_HEADERS = {
     "Zotero-API-Version": "3",
     "x-zotero-connector-api-version": "3",
 }
+#: Bare MIME types per recipe bytes_format.  The charset of a text format is a
+#: separate Zotero field (`charset`), written from the recipe, and travels on the
+#: upload's Content-Type as a parameter -- never inside contentType, which Zotero
+#: stores bare.  The office, image and archive formats are the 9,2 % of files the
+#: extractor never reads (census, ticket 0711): failure controls by construction.
 CONTENT_TYPES = {
     "pdf": "application/pdf",
     "djvu": "image/vnd.djvu",
     "html": "text/html",
     "wikitext": "text/plain",
-    "txt": "text/plain; charset=utf-8",
+    "txt": "text/plain",
+    "md": "text/markdown",
     "epub": "application/epub+zip",
+    "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "odt": "application/vnd.oasis.opendocument.text",
+    "rtf": "application/rtf",
+    "jpg": "image/jpeg",
+    "png": "image/png",
+    "zip": "application/zip",
+    "tgz": "application/gzip",
+}
+#: The formats Zotero reads as text: their attachment item carries an explicit
+#: charset from the recipe, so Zotero never guesses (ticket 0632's real run: bare
+#: text/plain, Zotero guessed windows-1252 for UTF-8 Vietnamese, one character
+#: per byte indexed).
+TEXT_FORMATS = frozenset({"html", "wikitext", "txt", "md"})
+#: A text attachment whose decoded body is shorter than this is a transclusion
+#: skeleton or an empty page, not a document (two Wikisource work pages carried
+#: only header templates on the real run); the recipe may set `min_body_chars`
+#: per attachment, and a declared failure control is exempt.
+DEFAULT_MIN_BODY_CHARS = 2000
+#: What the control plugin is asked for, by name: `stock` passes complete:false so
+#: Zotero applies fulltext.pdfMaxPages / textMaxLength as it would to its own
+#: extraction; `uncapped` passes complete:true and both limits are ignored.
+REINDEX_MODES = {"stock": False, "uncapped": True}
+ITEM_FIELDS_FILE = Path(__file__).with_name("zotero-item-fields.json")
+ZOTERO_SCHEMA_URL = "https://api.zotero.org/schema"
+#: The WHATWG Encoding Standard labels Zotero canonicalises on write
+#: (Zotero.CharacterSets.toCanonical, item.js `set charset`): the value written
+#: is the canonical name so the item reads back equal to what the recipe meant.
+#: Labels not listed pass through lowercased.
+CHARSET_LABELS = {
+    **{label: "utf-8" for label in ("utf8", "utf-8", "unicode-1-1-utf-8")},
+    **{label: "windows-1252" for label in (
+        "ascii", "us-ascii", "iso-8859-1", "iso8859-1", "iso_8859-1", "latin1", "l1", "cp1252",
+        "x-cp1252", "windows-1252", "ansi_x3.4-1968", "cp819", "ibm819", "iso-ir-100", "csisolatin1",
+    )},
+    **{label: "gbk" for label in ("gb2312", "gbk", "gb_2312", "gb_2312-80", "chinese", "csgb2312", "x-gbk", "iso-ir-58")},
+    **{label: "big5" for label in ("big5", "big5-hkscs", "cn-big5", "csbig5", "x-x-big5")},
+    **{label: "koi8-r" for label in ("koi8-r", "koi", "koi8", "koi8_r", "cskoi8r")},
+    **{label: "windows-1251" for label in ("windows-1251", "cp1251", "x-cp1251")},
+    **{label: "windows-1256" for label in ("windows-1256", "cp1256", "x-cp1256")},
+    **{label: "windows-1258" for label in ("windows-1258", "cp1258", "x-cp1258")},
+    **{label: "shift_jis" for label in ("shift_jis", "shift-jis", "sjis", "x-sjis", "ms_kanji", "csshiftjis")},
+    **{label: "euc-kr" for label in ("euc-kr", "cseuckr", "korean", "ks_c_5601-1987", "windows-949")},
+    **{label: "iso-8859-2" for label in ("iso-8859-2", "latin2", "l2", "iso8859-2", "csisolatin2")},
+    **{label: "iso-8859-15" for label in ("iso-8859-15", "latin9", "l9", "iso8859-15")},
 }
 #: The content types whose extracted text Zotero's local API serves on
 #: /items/<key>/fulltext: exactly Zotero.Fulltext.isCachedMIMEType (fulltext.js),
@@ -71,6 +126,131 @@ def source_tag(recipe_id: str) -> str:
 
 def attachment_tag(recipe_id: str) -> str:
     return ATTACHMENT_TAG_PREFIX + recipe_id
+
+
+def note_tag(note_id: str) -> str:
+    return NOTE_TAG_PREFIX + note_id
+
+
+def canonical_charset(label: str) -> str:
+    """The name Zotero stores for a charset label (Encoding Standard canonical)."""
+    key = label.strip().lower()
+    return CHARSET_LABELS.get(key, key)
+
+
+def _content_type(source: dict) -> str:
+    """The bare MIME type the attachment item carries: the recipe's declared lie
+    (`content_type_declared`, the lying-MIME failure control) or the format's own."""
+    declared = source.get("content_type_declared")
+    if isinstance(declared, str) and declared:
+        return declared
+    return CONTENT_TYPES.get(source.get("bytes_format", "pdf"), "application/octet-stream")
+
+
+def _attachment_charset(source: dict) -> str | None:
+    """The canonical charset a text attachment is written with; None for a non-text
+    format.  A text format with no declared charset is refused: Zotero guesses when
+    the item carries none, which is the defect this field exists to close."""
+    if source.get("bytes_format", "pdf") not in TEXT_FORMATS:
+        return None
+    charset = source.get("charset")
+    if not isinstance(charset, str) or not charset.strip():
+        raise GoldenFixtureError(
+            f"{source.get('id', '<no id>')}: a {source.get('bytes_format')} attachment must declare its charset"
+        )
+    return canonical_charset(charset)
+
+
+def _notes(doc: dict) -> list[dict]:
+    notes = doc.get("notes", [])
+    return notes if isinstance(notes, list) else []
+
+
+_ITEM_FIELDS: dict[str, list[str]] | None = None
+
+
+def _item_schema(path: Path = ITEM_FIELDS_FILE) -> dict:
+    global _ITEM_FIELDS
+    if _ITEM_FIELDS is None:
+        try:
+            _ITEM_FIELDS = json.loads(path.read_text(encoding="utf-8"))
+            _ITEM_FIELDS["item_types"]
+        except (OSError, KeyError, json.JSONDecodeError) as error:
+            raise GoldenFixtureError(f"cannot read Zotero item fields from {path}: {error}") from error
+    return _ITEM_FIELDS
+
+
+def item_fields(path: Path = ITEM_FIELDS_FILE) -> dict[str, list[str]]:
+    """Zotero's item types and their field names, from the committed reduction of
+    https://api.zotero.org/schema (`golden_fixture.py item-fields` regenerates it)."""
+    return _item_schema(path)["item_types"]
+
+
+def type_field(item_type: str, base_field: str) -> str:
+    """The field name this item type stores a base field under: a statute keeps its
+    title in nameOfAct and its date in dateEnacted, and Zotero rewrites the base name
+    on write, so the desired item must name the type's field (padme, 2026-09-06)."""
+    return _item_schema().get("base_fields", {}).get(item_type, {}).get(base_field, base_field)
+
+
+def primary_creator_type(item_type: str) -> str:
+    """The creator type Zotero stores a plain author under for this item type: 'author'
+    for most, 'presenter' for a presentation, 'cartographer' for a map. Zotero rewrites
+    the creator type on write, so writing 'author' on a presentation and expecting it
+    back reads as drift (padme, 2026-09-06)."""
+    return _item_schema().get("primary_creators", {}).get(item_type, "author")
+
+
+#: Recipe citation key -> (Zotero field name, the Extra line label Zotero's own
+#: convention uses when the item type lacks the field).
+CITATION_TARGETS = {"doi": ("DOI", "DOI"), "isbn": ("ISBN", "ISBN"), "url": ("url", "URL")}
+
+
+def _citation_placement(item_type: str, citation: dict) -> tuple[dict, list[str]]:
+    """Split a recipe citation into the fields this item type has and Extra lines
+    for the rest (Zotero reads `DOI: ...` / `ISBN: ...` from Extra itself)."""
+    fields = item_fields()
+    if item_type not in fields:
+        raise GoldenFixtureError(f"item type {item_type!r} is not in Zotero's schema (zotero-item-fields.json)")
+    placed, extra = {}, []
+    for key, value in citation.items():
+        if key not in CITATION_TARGETS:
+            raise GoldenFixtureError(f"citation key {key!r} is not one of {sorted(CITATION_TARGETS)}")
+        field, label = CITATION_TARGETS[key]
+        if field in fields[item_type]:
+            placed[field] = value
+        else:
+            extra.append(f"{label}: {value}")
+    return placed, extra
+
+
+def write_item_fields(destination: Path = ITEM_FIELDS_FILE, schema_path: Path | None = None) -> dict:
+    """Regenerate zotero-item-fields.json from Zotero's public schema (a local copy
+    or a fresh GET), keeping only itemType -> field names."""
+    if schema_path is not None:
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    else:
+        with urllib.request.urlopen(ZOTERO_SCHEMA_URL, timeout=60) as response:
+            schema = json.load(response)
+    reduced = {
+        "_source": f"{ZOTERO_SCHEMA_URL} (GET, unauthenticated), reduced to itemType -> field names, base-field map and primary creator type; "
+                   f"fetched {time.strftime('%Y-%m-%d')}. Regenerate with "
+                   "`python3 bench/fixtures/golden_fixture.py item-fields [--schema <schema.json>]` "
+                   "when Zotero's schema version moves.",
+        "schema_version": schema["version"],
+        "item_types": {entry["itemType"]: [field["field"] for field in entry["fields"]] for entry in schema["itemTypes"]},
+        "base_fields": {
+            entry["itemType"]: {field["baseField"]: field["field"] for field in entry["fields"] if "baseField" in field}
+            for entry in schema["itemTypes"]
+            if any("baseField" in field for field in entry["fields"])
+        },
+        "primary_creators": {
+            entry["itemType"]: next(c["creatorType"] for c in entry["creatorTypes"] if c.get("primary"))
+            for entry in schema["itemTypes"] if entry.get("creatorTypes")
+        },
+    }
+    _write_json(destination, reduced)
+    return reduced
 
 
 def recipe_digest(recipe: list[dict]) -> str:
@@ -124,6 +304,54 @@ def verify_source_bytes(recipe: list[dict], cache_dir: Path) -> dict[str, Path]:
     return found
 
 
+def _body_text(raw: bytes, fmt: str, charset: str) -> str:
+    """The text a reader would see: HTML with scripts, styles and tags stripped and
+    entities decoded; wikitext with templates, comments, noinclude blocks and
+    category links stripped; txt and md as they are.  Whitespace collapsed."""
+    import html as html_module
+
+    text = raw.decode(charset, errors="replace")
+    if fmt == "html":
+        text = re.sub(r"(?is)<(script|style)\b.*?</\1\s*>", " ", text)
+        text = re.sub(r"(?s)<!--.*?-->", " ", text)
+        text = re.sub(r"(?s)<[^>]+>", " ", text)
+        text = html_module.unescape(text)
+    elif fmt == "wikitext":
+        text = re.sub(r"(?s)<!--.*?-->", " ", text)
+        text = re.sub(r"(?is)<noinclude\b.*?</noinclude\s*>", " ", text)
+        # Templates nest ({{header | notes = {{small|...}} }}): peel from the inside out.
+        previous = None
+        while previous != text:
+            previous = text
+            text = re.sub(r"(?s)\{\{[^{}]*\}\}", " ", text)
+        text = re.sub(r"\[\[(?:Category|Thể loại|Catégorie|Kategorie)\s*:[^\]]*\]\]", " ", text, flags=re.IGNORECASE)
+        text = re.sub(r"(?s)<[^>]+>", " ", text)
+    return " ".join(text.split())
+
+
+def verify_text_bodies(recipe: list[dict], source_paths: dict[str, Path]) -> dict[str, int]:
+    """Refuse a text attachment whose decoded body is under its `min_body_chars`
+    (default DEFAULT_MIN_BODY_CHARS) unless it declares a failure control: a
+    Wikisource work page that is only header templates, an empty page, a
+    redirect.  Returns the body length per text attachment id."""
+    lengths = {}
+    for parent in recipe:
+        for source in _sources(parent):
+            fmt = source.get("bytes_format", "pdf")
+            if fmt not in TEXT_FORMATS:
+                continue
+            charset = _attachment_charset(source)
+            body = _body_text(source_paths[source["id"]].read_bytes(), fmt, charset)
+            lengths[source["id"]] = len(body)
+            floor = source.get("min_body_chars", DEFAULT_MIN_BODY_CHARS)
+            if len(body) < floor and "failure_control" not in source:
+                raise GoldenFixtureError(
+                    f"{source['id']}: decoded body is {len(body)} characters, under min_body_chars {floor}: "
+                    "a transclusion skeleton or an empty page, not the document; re-source it or declare a failure control"
+                )
+    return lengths
+
+
 def _tag_values(data: dict) -> list[str]:
     return [
         entry.get("tag")
@@ -133,10 +361,7 @@ def _tag_values(data: dict) -> list[str]:
 
 
 def _managed_markers(data: dict) -> list[str]:
-    return [
-        tag for tag in _tag_values(data)
-        if tag.startswith(SOURCE_TAG_PREFIX) or tag.startswith(ATTACHMENT_TAG_PREFIX)
-    ]
+    return [tag for tag in _tag_values(data) if tag.startswith(MANAGED_TAG_PREFIXES)]
 
 
 def _require_only_managed_marker(data: dict, expected: str, label: str) -> None:
@@ -161,24 +386,52 @@ def _key(item: dict) -> str:
 
 
 def _desired_parent(doc: dict, collection_key: str) -> dict:
+    """The parent item the recipe wants.  `language_field` is the exact string
+    written to Zotero's language field -- "" or a malformed spelling on purpose,
+    the census's own distribution -- and defines nothing for the lane; the recipe's
+    `language` is the fallback when the record carries no language_field.  The
+    citation goes to the fields the item type has and to Extra otherwise; topic,
+    stratum, mechanisms and retained_reason are recorded in Extra beside the
+    ticket-0029 lines when the record carries them."""
+    item_type = doc.get("item_type", "document")
+    extra_lines = [
+        f"ticket-0029 recipe id: {doc['id']}",
+        f"ticket-0029 work id: {doc.get('work_id', doc['id'])}",
+        f"ticket-0029 type fidelity: {doc.get('type_fidelity', 'unreviewed')}",
+        "ticket-0029 work relations: " + canonical_json(doc.get("work_relations", [])),
+    ]
+    if "topic" in doc:
+        extra_lines.append(f"ticket-0029 topic: {doc['topic']}")
+    if "stratum" in doc:
+        extra_lines.append(f"ticket-0029 stratum: {doc['stratum']}")
+    if "mechanisms" in doc:
+        extra_lines.append("ticket-0029 mechanisms: " + canonical_json(doc["mechanisms"]))
+    if "retained_reason" in doc:
+        extra_lines.append(f"ticket-0029 retained reason: {doc['retained_reason']}")
+    placed, citation_extra = _citation_placement(item_type, doc.get("citation", {}))
     desired = {
-        "itemType": doc.get("item_type", "document"),
-        "title": doc["title"],
-        "creators": [{"creatorType": "author", "name": doc["author"]}],
-        "date": str(doc["year"]),
-        "language": doc["language"],
-        "extra": "\n".join([
-            f"ticket-0029 recipe id: {doc['id']}",
-            f"ticket-0029 work id: {doc.get('work_id', doc['id'])}",
-            f"ticket-0029 type fidelity: {doc.get('type_fidelity', 'unreviewed')}",
-            "ticket-0029 work relations: " + canonical_json(doc.get("work_relations", [])),
-        ]),
+        "itemType": item_type,
+        type_field(item_type, "title"): doc["title"],
+        "creators": [{"creatorType": primary_creator_type(item_type), "name": doc["author"]}],
+        type_field(item_type, "date"): str(doc["year"]),
+        "language": doc["language_field"] if "language_field" in doc else doc["language"],
+        "extra": "\n".join(extra_lines + citation_extra),
         "tags": [{"tag": source_tag(doc["id"])}],
         "collections": [collection_key],
     }
     if "attachments" not in doc:
         desired.update(url=doc["bytes_url"], archive=doc["archive"], archiveLocation=doc["identifier"])
+    desired.update(placed)
     return desired
+
+
+def _desired_note(note: dict, parent_key: str) -> dict:
+    return {
+        "itemType": "note",
+        "parentItem": parent_key,
+        "note": note["html"],
+        "tags": [{"tag": note_tag(note["id"])}],
+    }
 
 
 def _desired_attachment(
@@ -204,14 +457,16 @@ def _desired_attachment(
     interrupted-reindex recovery marker its own reviewed change, since the earlier
     two-phase pending/final write only differed by this now-removed field, so a
     single write suffices."""
-    fmt = doc.get("bytes_format", "pdf")
     common = {
         "itemType": "attachment",
         "parentItem": parent_key,
         "title": doc.get("title", parent["title"]),
-        "contentType": CONTENT_TYPES.get(fmt, "application/octet-stream"),
+        "contentType": _content_type(doc),
         "tags": [{"tag": attachment_tag(doc["id"])}],
     }
+    charset = _attachment_charset(doc)
+    if charset is not None:
+        common["charset"] = charset
     if library_type == "group":
         common.update(linkMode="imported_file", filename=path.name)
     else:
@@ -220,8 +475,14 @@ def _desired_attachment(
 
 
 def _managed_equal(item: dict, desired: dict) -> bool:
+    """Zotero's API omits a field written as the empty string (a deliberately empty
+    language field comes back absent, padme 2026-09-06), so an absent field equals a
+    desired empty string; every other difference is drift."""
     data = _data(item)
-    return all(data.get(field) == value for field, value in desired.items())
+    return all(
+        data.get(field, "" if isinstance(value, str) else None) == value
+        for field, value in desired.items()
+    )
 
 
 def _update_payload(item: dict, desired: dict) -> dict:
@@ -240,10 +501,39 @@ def _one_marked(items: list[dict], marker: str, kind: str) -> dict | None:
     return matches[0] if matches else None
 
 
+def _classify_children(children: list[dict], recipe_id: str) -> tuple[dict[str, dict], dict[str, dict]]:
+    """Split a managed parent's children into attachments and notes by marker; any
+    other child is unowned and refused.  Zotero's /children lists both kinds."""
+    attachments, notes = {}, {}
+    for child in children:
+        markers = _managed_markers(_data(child))
+        if len(markers) != 1:
+            raise GoldenFixtureError(f"{recipe_id}: managed parent has an unowned child")
+        marker = markers[0]
+        if marker.startswith(ATTACHMENT_TAG_PREFIX):
+            child_id = marker[len(ATTACHMENT_TAG_PREFIX):]
+            _require_only_managed_marker(_data(child), attachment_tag(child_id), f"attachment {_key(child)}")
+            if child_id in attachments:
+                raise GoldenFixtureError(f"{recipe_id}: duplicate attachment {child_id}")
+            attachments[child_id] = child
+        elif marker.startswith(NOTE_TAG_PREFIX):
+            child_id = marker[len(NOTE_TAG_PREFIX):]
+            _require_only_managed_marker(_data(child), note_tag(child_id), f"note {_key(child)}")
+            if _data(child).get("itemType") != "note":
+                raise GoldenFixtureError(f"{recipe_id}: note marker on a non-note item {_key(child)}")
+            if child_id in notes:
+                raise GoldenFixtureError(f"{recipe_id}: duplicate note {child_id}")
+            notes[child_id] = child
+        else:
+            raise GoldenFixtureError(f"{recipe_id}: managed parent has an unowned child")
+    return attachments, notes
+
+
 def inject(
-    recipe: list[dict], cache_dir: Path, client, *, collection_key: str, library_type: str = "user"
+    recipe: list[dict], cache_dir: Path, client, *, collection_key: str, library_type: str = "user",
+    reindex_mode: str = "stock",
 ) -> dict[str, int]:
-    """Reconcile recipe parents and attachments; return mutation counts.
+    """Reconcile recipe parents, attachments and child notes; return mutation counts.
 
     A group library needs its attachment bytes uploaded (client.upload_file) before
     reindex_fulltext has anything to extract from -- a user-library linked_file
@@ -251,8 +541,14 @@ def inject(
     Group uploads are deliberately repeated even when item metadata already matches:
     Zotero commits the attachment item before its three-phase file upload, so metadata
     cannot attest that a previous upload completed or that its bytes match the recipe.
+    A record-only parent (``record_only: true``, ``attachments: []``) gets no
+    attachment and no reindex.  Text attachments are refused before the first write
+    when their decoded body is under ``min_body_chars`` (verify_text_bodies).
     """
+    if reindex_mode not in REINDEX_MODES:
+        raise GoldenFixtureError(f"reindex mode {reindex_mode!r} is not one of {sorted(REINDEX_MODES)}")
     source_paths = verify_source_bytes(recipe, cache_dir)
+    verify_text_bodies(recipe, source_paths)
     parents = client.list_top_items()
     wanted_ids = {doc["id"] for doc in recipe}
     if len(wanted_ids) != len(recipe):
@@ -260,6 +556,7 @@ def inject(
     doc_by_id = {doc["id"]: doc for doc in recipe}
     parent_by_id = {}
     attachment_by_id = {}
+    note_by_id = {}
     for item in parents:
         markers = _managed_markers(_data(item))
         if not markers:
@@ -271,29 +568,32 @@ def inject(
         recipe_id = markers[0][len(SOURCE_TAG_PREFIX):]
         _require_only_managed_marker(_data(item), source_tag(recipe_id), f"parent {_key(item)}")
         if recipe_id not in wanted_ids:
-            raise GoldenFixtureError(f"stale managed parent {recipe_id} is not in the source recipe")
+            raise GoldenFixtureError(
+                f"stale managed parent {recipe_id} is not in the source recipe (retire it with `retire --ids`)"
+            )
         if recipe_id in parent_by_id:
             raise GoldenFixtureError(
                 f"duplicate parent for managed marker {source_tag(recipe_id)}"
             )
         parent_by_id[recipe_id] = item
         expected_attachment_ids = {source["id"] for source in _sources(doc_by_id[recipe_id])}
-        for attachment in client.get_children(_key(item)):
-            markers = _managed_markers(_data(attachment))
-            if len(markers) != 1 or not markers[0].startswith(ATTACHMENT_TAG_PREFIX):
-                raise GoldenFixtureError(f"{recipe_id}: managed parent has an unowned child")
-            attachment_id = markers[0][len(ATTACHMENT_TAG_PREFIX):]
-            _require_only_managed_marker(
-                _data(attachment), attachment_tag(attachment_id), f"attachment {_key(attachment)}"
-            )
+        expected_note_ids = {note["id"] for note in _notes(doc_by_id[recipe_id])}
+        attachments, notes = _classify_children(client.get_children(_key(item)), recipe_id)
+        for attachment_id, attachment in attachments.items():
             if attachment_id not in expected_attachment_ids or attachment_id in attachment_by_id:
                 raise GoldenFixtureError(f"{recipe_id}: stale or duplicate attachment {attachment_id}")
             attachment_by_id[attachment_id] = attachment
+        for note_id, note in notes.items():
+            if note_id not in expected_note_ids or note_id in note_by_id:
+                raise GoldenFixtureError(f"{recipe_id}: stale or duplicate note {note_id}")
+            note_by_id[note_id] = note
     counts = {
         "created_parents": 0,
         "updated_parents": 0,
         "created_attachments": 0,
         "updated_attachments": 0,
+        "created_notes": 0,
+        "updated_notes": 0,
     }
     pending_reindex = []
     for doc in recipe:
@@ -323,17 +623,55 @@ def inject(
                 counts["updated_attachments"] += 1
                 changed = True
             if library_type == "group":
-                content_type = CONTENT_TYPES.get(source.get("bytes_format", "pdf"), "application/octet-stream")
                 client.upload_file(
-                    _key(attachment), source_path, content_type,
+                    _key(attachment), source_path, _content_type(source),
+                    charset=_attachment_charset(source),
                     previous_md5=existing_md5 if isinstance(existing_md5, str) else None,
                 )
                 pending_reindex.append(_key(attachment))
             elif changed:
                 pending_reindex.append(_key(attachment))
+
+        for note in _notes(doc):
+            note_want = _desired_note(note, _key(parent))
+            existing = note_by_id.get(note["id"])
+            if existing is None:
+                client.write_items([note_want])
+                counts["created_notes"] += 1
+            elif not _managed_equal(existing, note_want):
+                client.write_items([_update_payload(existing, note_want)])
+                counts["updated_notes"] += 1
     if pending_reindex:
-        client.reindex_fulltext(pending_reindex)
+        client.reindex_fulltext(pending_reindex, complete=REINDEX_MODES[reindex_mode])
     return counts
+
+
+def retire(recipe_ids, client, *, collection_key: str) -> dict[str, list[str]]:
+    """Move managed parents out of the fixture collection, children following;
+    nothing is deleted or trashed.  A parent is found by its source marker among
+    the collection's top items; one already outside is reported as absent, so a
+    second run changes nothing."""
+    wanted = list(dict.fromkeys(recipe_ids))
+    if not wanted:
+        raise GoldenFixtureError("retire needs at least one recipe id")
+    retired = []
+    for item in client.list_top_items():
+        markers = _managed_markers(_data(item))
+        if len(markers) != 1 or not markers[0].startswith(SOURCE_TAG_PREFIX):
+            continue
+        recipe_id = markers[0][len(SOURCE_TAG_PREFIX):]
+        if recipe_id not in wanted:
+            continue
+        collections = _data(item).get("collections", [])
+        if not isinstance(collections, list) or collection_key not in collections:
+            continue
+        remaining = [key for key in collections if key != collection_key]
+        # The full item data goes back, not a partial object: Zotero's local API applies
+        # a write through Item.fromJSON, which clears every field the JSON omits, so a
+        # bare {collections} would blank the retired record's title and creators.
+        client.write_items([_update_payload(item, {**_data(item), "collections": remaining})])
+        retired.append(recipe_id)
+    return {"retired": retired, "absent": [recipe_id for recipe_id in wanted if recipe_id not in retired]}
 
 
 def _observed_item_version(client) -> int:
@@ -409,8 +747,8 @@ def _not_served_row(
 def _snapshot_rows(
     recipe: list[dict], client, source_paths: dict[str, Path], collection_key: str,
     *, library_type: str = "user", settled: dict[str, dict] | None = None,
-) -> tuple[list[dict], list[dict], int]:
-    """Capture every recipe attachment from the live API.
+) -> tuple[list[dict], list[dict], list[dict], int]:
+    """Capture every recipe parent, child note and attachment from the live API.
 
     ``settled`` is what ``reindex_fulltext`` observed per attachment key once Zotero
     went idle in this very run (``state``, the plugin's counters, ``version`` and
@@ -426,6 +764,7 @@ def _snapshot_rows(
     starting_item_version = opening_versions[0]
     items = []
     attachments = []
+    parent_rows = []
     version_zero_bodies = {}
     census = client.fulltext_since(0)
     seen_recipe_ids = set()
@@ -444,13 +783,33 @@ def _snapshot_rows(
         if any(version != starting_item_version for version in _last_item_page_versions(client)):
             raise GoldenFixtureError("Zotero items changed while the fixture snapshot was captured")
         sources = _sources(doc)
-        if len(children) != len(sources):
-            raise GoldenFixtureError(f"{doc['id']}: injected parent does not have exactly its recipe attachments")
+        notes = _notes(doc)
+        if len(children) != len(sources) + len(notes):
+            raise GoldenFixtureError(f"{doc['id']}: injected parent does not have exactly its recipe attachments and notes")
         parent_key = _key(parent)
         if parent_key in seen_item_keys:
             raise GoldenFixtureError(f"duplicate exported Zotero item key {parent_key}")
         seen_item_keys.add(parent_key)
         items.append(parent)
+        note_keys = []
+        for note in notes:
+            child = _one_marked(children, note_tag(note["id"]), "note")
+            if child is None:
+                raise GoldenFixtureError(f"{doc['id']}: no child note {note['id']} in Zotero")
+            _require_only_managed_marker(_data(child), note_tag(note["id"]), note["id"])
+            if not _managed_equal(child, _desired_note(note, parent_key)):
+                raise GoldenFixtureError(f"{note['id']}: note drifted from the source recipe")
+            note_key = _key(child)
+            if note_key in seen_item_keys:
+                raise GoldenFixtureError(f"duplicate exported Zotero item key {note_key}")
+            seen_item_keys.add(note_key)
+            items.append(child)
+            note_keys.append(note_key)
+        parent_rows.append({
+            "recipe_id": doc["id"], "parent_key": parent_key,
+            "record_only": bool(doc.get("record_only", False)) or not sources,
+            "note_keys": note_keys, "attachment_count": len(sources),
+        })
         for source in sources:
             child = _one_marked(children, attachment_tag(source["id"]), "linked attachment")
             if child is None:
@@ -518,7 +877,9 @@ def _snapshot_rows(
                 )
                 continue
             if observed is not None:
-                if observed.get("state") != "indexed":
+                # `partial` is a stock reindex stopping at a cap (100 pages, 500 000 characters):
+                # Zotero serves the truncated text and the counters record where it stopped.
+                if observed.get("state") not in ("indexed", "partial"):
                     raise GoldenFixtureError(
                         f"{source['id']}: the reindex settled at {observed.get('state')!r}; only a "
                         "declared failure control may be exported without full text"
@@ -533,7 +894,7 @@ def _snapshot_rows(
                 raise GoldenFixtureError(f"{source['id']}: attachment has no /fulltext census entry")
             fulltext = _fulltext_or_none(client, attachment_key)
             if fulltext is None:
-                content_type = CONTENT_TYPES.get(source.get("bytes_format", "pdf"), "application/octet-stream")
+                content_type = _content_type(source)
                 if observed is not None and content_type not in SERVED_CONTENT_TYPES:
                     # Indexed by Zotero (the reindex just saw it, the census lists it) yet
                     # never served by the local API: the product indexes such an item from
@@ -549,22 +910,39 @@ def _snapshot_rows(
                 raise GoldenFixtureError(f"{source['id']}: attachment has no /fulltext response")
             if not isinstance(census[attachment_key], int) or census[attachment_key] < 0:
                 raise GoldenFixtureError(f"{source['id']}: invalid /fulltext census version")
-            if not isinstance(fulltext, dict) or not isinstance(fulltext.get("content"), str) or not fulltext["content"].strip():
+            if not isinstance(fulltext, dict) or not isinstance(fulltext.get("content"), str):
                 raise GoldenFixtureError(f"{source['id']}: malformed /fulltext response")
+            # Whitespace-only content with matching counters is Zotero's own answer for a file
+            # whose extraction found no text (the Internet Archive's Jevons EPUB, 2026-09-06):
+            # an indexed attachment with a blank body, kept as the pathology it is.
+            body_blank = not fulltext["content"].strip()
+            if body_blank and fulltext.get("indexedChars") != len(fulltext["content"]):
+                raise GoldenFixtureError(f"{source['id']}: blank /fulltext content whose counters do not match it")
             response_version = getattr(client, "last_fulltext_version", fulltext.get("version", None))
             if response_version != census[attachment_key]:
                 raise GoldenFixtureError(f"{source['id']}: fulltext body version does not match its census")
-            if not isinstance(fulltext.get("indexedPages"), int) or not isinstance(fulltext.get("totalPages"), int):
-                raise GoldenFixtureError(f"{source['id']}: /fulltext lacks integer indexedPages/totalPages")
-            indexed_pages, total_pages = fulltext["indexedPages"], fulltext["totalPages"]
-            if indexed_pages < 0 or total_pages < 0 or indexed_pages > total_pages:
-                raise GoldenFixtureError(f"{source['id']}: invalid indexedPages/totalPages relation")
+            # A PDF answers with page counters, a served text format (HTML, EPUB) with
+            # character counters and no pages; either pair is the binding record.
+            pages = (fulltext.get("indexedPages"), fulltext.get("totalPages"))
+            chars = (fulltext.get("indexedChars"), fulltext.get("totalChars"))
+            has_pages = all(isinstance(v, int) for v in pages)
+            has_chars = all(isinstance(v, int) for v in chars)
+            if not has_pages and not has_chars:
+                raise GoldenFixtureError(
+                    f"{source['id']}: /fulltext lacks integer indexedPages/totalPages or indexedChars/totalChars"
+                )
+            for name, (indexed, total), present in (("Pages", pages, has_pages), ("Chars", chars, has_chars)):
+                if present and (indexed < 0 or total < 0 or indexed > total):
+                    raise GoldenFixtureError(f"{source['id']}: invalid indexed{name}/total{name} relation")
+            indexed_pages, total_pages = pages if has_pages else (None, None)
             if census[attachment_key] == 0:
                 version_zero_bodies[attachment_key] = (source["id"], fulltext)
             items.append(child)
             row = {
                 "recipe_id": doc["id"], "parent_key": parent_key,
                 "attachment_key": attachment_key, "terminal_state": "indexed",
+                "observed_state": (observed or {}).get("state", "indexed"),
+                "body_blank": body_blank,
                 "fulltext_file": f"fulltext/{attachment_key}.json",
                 "fulltext_version": census[attachment_key], "body": fulltext,
             }
@@ -604,7 +982,7 @@ def _snapshot_rows(
         raise GoldenFixtureError("Zotero items changed while the fixture snapshot was captured")
     if ending_census != census:
         raise GoldenFixtureError("Zotero fulltext changed while the fixture snapshot was captured")
-    return items, attachments, starting_item_version
+    return items, attachments, parent_rows, starting_item_version
 
 
 def canonical_json(value) -> str:
@@ -613,14 +991,15 @@ def canonical_json(value) -> str:
 
 def _refresh_fulltext_from_pinned_sources(
     recipe: list[dict], client, source_paths: dict[str, Path], collection_key: str,
-    cache_dir: Path, *, library_type: str = "user",
+    cache_dir: Path, *, library_type: str = "user", reindex_mode: str = "stock",
 ) -> dict[str, dict] | None:
     """Force the export's extraction from the bytes verified around this operation.
 
     reindex_fulltext (the plugin call) is what forces the actual re-extraction; no
     item write is needed to trigger it, and the metadata equality check just above
     already proves the live item matches what the recipe wants.  Returns the per-key
-    settled state the reindex observed, or None when the client reports none."""
+    settled state the reindex observed, or None when the client reports none; an
+    empty dict when the recipe has no attachment to reindex (record-only parents)."""
     parents = client.list_top_items()
     keys = []
     for doc in recipe:
@@ -628,8 +1007,12 @@ def _refresh_fulltext_from_pinned_sources(
         if parent is None or not _managed_equal(parent, _desired_parent(doc, collection_key)):
             raise GoldenFixtureError(f"{doc['id']}: parent metadata drifted from the source recipe")
         children = client.get_children(_key(parent))
-        if len(children) != len(_sources(doc)):
+        if len(children) != len(_sources(doc)) + len(_notes(doc)):
             raise GoldenFixtureError(f"{doc['id']}: injected parent has a missing or extra child")
+        for note in _notes(doc):
+            child = _one_marked(children, note_tag(note["id"]), "note")
+            if child is None or not _managed_equal(child, _desired_note(note, _key(parent))):
+                raise GoldenFixtureError(f"{note['id']}: note drifted from the source recipe")
         for source in _sources(doc):
             attachment = _one_marked(children, attachment_tag(source["id"]), "linked attachment")
             if attachment is None:
@@ -641,7 +1024,9 @@ def _refresh_fulltext_from_pinned_sources(
                 raise GoldenFixtureError(f"{source['id']}: attachment metadata drifted from the source recipe")
             keys.append(_key(attachment))
 
-    settled = client.reindex_fulltext(keys)
+    if not keys:
+        return {}
+    settled = client.reindex_fulltext(keys, complete=REINDEX_MODES[reindex_mode])
     # A linked file can change while Zotero is reading it.  Do not attest or export
     # unless the complete source set still has the recipe hashes after extraction.
     verify_source_bytes(recipe, cache_dir)
@@ -658,10 +1043,15 @@ def _portable_item(item: dict) -> dict:
     common = {"key", "version", "itemType", "title", "tags"}
     if data.get("itemType") == "attachment":
         allowed = common | {"parentItem", "linkMode", "contentType", "charset", "path", "filename", "extra"}
+    elif data.get("itemType") == "note":
+        allowed = common | {"parentItem", "note"}
     else:
+        item_type = str(data.get("itemType", "document"))
         allowed = common | {
             "creators", "date", "language", "url", "archive", "archiveLocation",
-            "extra", "collections",
+            "extra", "collections", "DOI", "ISBN",
+            # the item type's own names for title and date (a statute's nameOfAct, dateEnacted)
+            type_field(item_type, "title"), type_field(item_type, "date"),
         }
     public_data = {key: copy.deepcopy(data[key]) for key in allowed if key in data}
     if public_data.get("linkMode") == "linked_file" and isinstance(public_data.get("path"), str):
@@ -715,47 +1105,108 @@ def _safe_export_destination(destination: Path) -> tuple[Path, bool]:
     return candidate, True
 
 
-#: What the control plugin asks of Zotero.  bench/zotero-fulltext-plugin/bootstrap.js
-#: calls Zotero.FullText.indexItems(ids, {complete: true, ignoreErrors: true}), and
-#: fulltext.js documents `complete` as "ignore page/character limits" (indexPDF passes
-#: null for maxPages when allPages is set).  The two preferences the manifest records
-#: therefore describe the injecting profile, not a bound on this extraction; the
-#: per-attachment counters are the binding record.
-REINDEX_MODE = {
-    "mode": "complete",
-    "limits": "ignored",
-    "source": "bench/zotero-fulltext-plugin/bootstrap.js: Zotero.FullText.indexItems(ids, "
-              "{complete: true, ignoreErrors: true}); fulltext.js indexPDF(filePath, itemID, allPages)",
-    "binding_record": "per-attachment indexed_pages/total_pages and indexed_chars/total_chars",
-}
+def _reindex_record(mode: str | None, observed: dict | None) -> dict:
+    """The manifest's reindex block: the mode as the plugin reported it, never as typed."""
+    if mode is None:
+        return {"mode": None, "limits": "not applicable: no attachment was reindexed",
+                "binding_record": "per-attachment indexed_pages/total_pages and indexed_chars/total_chars"}
+    return {
+        "mode": mode,
+        "limits": "applied" if mode == "stock" else "ignored",
+        "complete_flag": REINDEX_MODES[mode],
+        "observed_from": "the control plugin's status lastReindexMode after the reindex settled",
+        "plugin_version": (observed or {}).get("codeVersion") or (observed or {}).get("version"),
+        "source": "bench/zotero-fulltext-plugin/bootstrap.js: Zotero.FullText.indexItems(ids, "
+                  "{complete, ignoreErrors: true}); fulltext.js indexPDF(filePath, itemID, allPages)",
+        "binding_record": "per-attachment indexed_pages/total_pages and indexed_chars/total_chars",
+    }
 
 
-def _detected_defects(items: list[dict], attachment_rows: list[dict], source_paths: dict[str, Path]) -> list[dict]:
-    """Defects the export can see for itself.  Today one: a text attachment whose charset
-    Zotero guessed because the injection wrote none, so the text it indexed is the file's
-    bytes decoded one per character -- indexed_chars equals the byte length while a UTF-8
-    reading of the same bytes is shorter."""
+def _plugin_status(client) -> dict:
+    """The plugin's status as the export's provenance: version, the mode of the last
+    reindex, and both extraction preferences read live from the client."""
+    read = getattr(client, "plugin_status", None)
+    if read is None:
+        raise GoldenFixtureError("the client cannot read the control plugin's status; the reindex mode "
+                                 "and the extraction preferences must be observed, not typed")
+    status = read()
+    if not isinstance(status, dict):
+        raise GoldenFixtureError("the control plugin returned a malformed status")
+    prefs = status.get("prefs")
+    if not isinstance(prefs, dict):
+        raise GoldenFixtureError("the control plugin reports no extraction preferences (install 0.2.0 or later)")
+    for name in ("pdfMaxPages", "textMaxLength"):
+        value = prefs.get(name)
+        if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
+            raise GoldenFixtureError(f"the control plugin reports fulltext.{name} as {value!r}, not a positive integer")
+    version = status.get("codeVersion") or status.get("version")
+    if not isinstance(version, str) or not version.strip():
+        raise GoldenFixtureError("the control plugin reports no version")
+    mode = status.get("lastReindexMode")
+    if mode is not None and mode not in REINDEX_MODES:
+        raise GoldenFixtureError(f"the control plugin reports an unknown reindex mode {mode!r}")
+    return {"version": version, "lastReindexMode": mode,
+            "pdfMaxPages": prefs["pdfMaxPages"], "textMaxLength": prefs["textMaxLength"]}
+
+
+def _refuse_counters_over_caps(rows: list[dict], pdf_max_pages: int, text_max_length: int) -> None:
+    """In stock mode a captured counter must agree with the recorded preference: an
+    attachment indexed past the cap, or one over the cap that was not cut exactly
+    at it, means the limits were not the ones recorded (C.7: the export refuses
+    itself when a captured counter contradicts a recorded setting)."""
+    for row in rows:
+        label = row.get("attachment_id", row["recipe_id"])
+        for indexed_name, total_name, cap, setting in (
+            ("indexed_pages", "total_pages", pdf_max_pages, "fulltext.pdfMaxPages"),
+            ("indexed_chars", "total_chars", text_max_length, "fulltext.textMaxLength"),
+        ):
+            indexed, total = row.get(indexed_name), row.get(total_name)
+            if not isinstance(indexed, int) or not isinstance(total, int):
+                continue
+            if indexed > cap:
+                raise GoldenFixtureError(
+                    f"{label}: {indexed_name} {indexed} exceeds the recorded {setting} {cap}; the reindex did not "
+                    "run under the stock limits"
+                )
+            if total > cap and indexed != cap:
+                raise GoldenFixtureError(
+                    f"{label}: {total_name} {total} is over the recorded {setting} {cap} but {indexed_name} is "
+                    f"{indexed}, not the cap; the captured counters contradict the recorded setting"
+                )
+
+
+def _detected_defects(
+    items: list[dict], attachment_rows: list[dict], source_paths: dict[str, Path], sources_by_id: dict[str, dict],
+) -> list[dict]:
+    """Defects the export can see for itself.  Today one: a text attachment indexed
+    one character per byte although the item carries its declared charset --
+    indexed_chars equals the byte length while decoding under that charset is
+    shorter.  An explicitly set charset that Zotero holds unchanged is no defect
+    (drift is refused earlier, by the metadata equality check)."""
     by_key = {_key(item): _data(item) for item in items}
     found = []
     for row in attachment_rows:
-        data = by_key.get(row["attachment_key"], {})
-        content_type = str(data.get("contentType", ""))
-        charset = data.get("charset")
-        if not content_type.startswith("text/") or not charset or charset.lower() in {"utf-8", "utf8"}:
-            continue
         source_id = row.get("attachment_id", row["recipe_id"])
+        source = sources_by_id.get(source_id, {})
+        if source.get("bytes_format", "pdf") not in TEXT_FORMATS:
+            continue
+        data = by_key.get(row["attachment_key"], {})
+        charset = str(data.get("charset") or "") or _attachment_charset(source)
         raw = source_paths[source_id].read_bytes()
-        utf8_chars = len(raw.decode("utf-8", errors="replace"))
+        try:
+            decoded_chars = len(raw.decode(charset, errors="replace"))
+        except LookupError:
+            decoded_chars = len(raw.decode("utf-8", errors="replace"))
         indexed = row.get("indexed_chars")
-        if isinstance(indexed, int) and indexed == len(raw) and utf8_chars < len(raw):
+        if isinstance(indexed, int) and indexed == len(raw) and decoded_chars < len(raw):
             found.append({
                 "recipe_id": row["recipe_id"], "attachment_key": row["attachment_key"],
-                "defect": "charset guessed by Zotero: the injection wrote a bare "
-                          f"{content_type} attachment with no charset, Zotero recorded "
-                          f"{charset}, and the indexed text is the file's bytes decoded one "
-                          "per character (mojibake for non-ASCII text)",
-                "evidence": {"indexed_chars": indexed, "source_bytes": len(raw), "utf8_chars": utf8_chars},
-                "remedy": "re-inject with an explicit charset and re-pin",
+                "defect": f"indexed one character per byte although the item declares charset {charset}: "
+                          "the indexed text is the file's bytes decoded one per character (mojibake for "
+                          "non-ASCII text)",
+                "evidence": {"indexed_chars": indexed, "source_bytes": len(raw), "decoded_chars": decoded_chars,
+                             "charset": charset},
+                "remedy": "check the charset Zotero stored against the bytes, re-inject and re-pin",
             })
     return found
 
@@ -768,14 +1219,20 @@ def export_snapshot(
     destination: Path,
     library: dict,
     zotero_client_version: str,
-    pdf_max_pages: int,
-    text_max_length: int,
     index_max_chars: int,
     cache_dir: Path,
+    reindex_mode: str = "stock",
+    pdf_max_pages: int | None = None,
+    text_max_length: int | None = None,
     known_defects: list[dict] | None = None,
 ) -> Path:
-    """Capture raw items/fulltext into an atomically replaced snapshot directory.
+    """Capture raw items/notes/fulltext into an atomically replaced snapshot directory.
 
+    ``reindex_mode`` is what the plugin is asked for; the manifest records the mode
+    the plugin reports having run, and refuses when the two disagree.  The two
+    extraction preferences are read from the plugin's status; ``pdf_max_pages`` /
+    ``text_max_length``, when given, are cross-checks that refuse on mismatch.  In
+    stock mode every captured counter is checked against the recorded preference.
     ``known_defects`` are declared by the operator (recipe id and a description a
     reader can check against the bytes); the export adds the defects it detects
     itself.  Both are recorded, never repaired: the export is what Zotero holds."""
@@ -783,21 +1240,38 @@ def export_snapshot(
         raise GoldenFixtureError("the fixture export must identify its public Zotero library")
     if not zotero_client_version.strip():
         raise GoldenFixtureError("Zotero client version must be recorded")
-    for name, value in (
-        ("fulltext.pdfMaxPages", pdf_max_pages),
-        ("fulltext.textMaxLength", text_max_length),
-        ("index fulltext max chars", index_max_chars),
-    ):
-        if not isinstance(value, int) or value <= 0:
-            raise GoldenFixtureError(f"{name} must be recorded as a positive integer")
+    if reindex_mode not in REINDEX_MODES:
+        raise GoldenFixtureError(f"reindex mode {reindex_mode!r} is not one of {sorted(REINDEX_MODES)}")
+    if not isinstance(index_max_chars, int) or index_max_chars <= 0:
+        raise GoldenFixtureError("index fulltext max chars must be recorded as a positive integer")
+    for name, value in (("--pdf-max-pages", pdf_max_pages), ("--text-max-length", text_max_length)):
+        if value is not None and (not isinstance(value, int) or value <= 0):
+            raise GoldenFixtureError(f"{name} must be a positive integer when given")
 
     source_paths = verify_source_bytes(recipe, cache_dir)
+    verify_text_bodies(recipe, source_paths)
     settled = _refresh_fulltext_from_pinned_sources(
-        recipe, client, source_paths, collection_key, cache_dir, library_type=library["type"]
+        recipe, client, source_paths, collection_key, cache_dir, library_type=library["type"],
+        reindex_mode=reindex_mode,
     )
-    items, attachment_rows, library_version = _snapshot_rows(
+    observed = _plugin_status(client)
+    reindexed_any = settled is None or bool(settled)
+    observed_mode = observed["lastReindexMode"] if reindexed_any else None
+    if reindexed_any and observed_mode != reindex_mode:
+        raise GoldenFixtureError(
+            f"reindex mode typed {reindex_mode!r} but the plugin reports its last reindex ran {observed_mode!r}"
+        )
+    for name, typed, read in (
+        ("fulltext.pdfMaxPages", pdf_max_pages, observed["pdfMaxPages"]),
+        ("fulltext.textMaxLength", text_max_length, observed["textMaxLength"]),
+    ):
+        if typed is not None and typed != read:
+            raise GoldenFixtureError(f"{name} typed as {typed} but the client reports {read}")
+    items, attachment_rows, parent_rows, library_version = _snapshot_rows(
         recipe, client, source_paths, collection_key, library_type=library["type"], settled=settled,
     )
+    if observed_mode == "stock":
+        _refuse_counters_over_caps(attachment_rows, observed["pdfMaxPages"], observed["textMaxLength"])
     # This is deliberately after the API capture and immediately before staging the
     # snapshot: extraction must still be attributable to the exact pinned source bytes.
     verify_source_bytes(recipe, cache_dir)
@@ -806,6 +1280,7 @@ def export_snapshot(
     temp = Path(tempfile.mkdtemp(prefix=f".{destination.name}-", dir=destination.parent))
     backup = Path(tempfile.mkdtemp(prefix=f".{destination.name}-previous-", dir=destination.parent))
     backup.rmdir()
+    sources_by_id = {source["id"]: source for doc in recipe for source in _sources(doc)}
     try:
         (temp / "fulltext").mkdir()
         public_rows = []
@@ -815,12 +1290,20 @@ def export_snapshot(
                 _write_json(temp / row["fulltext_file"], _portable_fulltext(body))
             public_rows.append(row)
         manifest = {
-            "schema_version": 1,
+            "schema_version": 2,
             "parent_item_count": len(recipe),
             "attachment_count": len(public_rows),
             "indexed_attachment_count": sum(row["terminal_state"] == "indexed" for row in public_rows),
             "indexed_not_served_count": sum(row["terminal_state"] == "indexed-not-served" for row in public_rows),
             "failure_control_count": sum(row["terminal_state"] == "unindexed" for row in public_rows),
+            "note_count": sum(len(row["note_keys"]) for row in parent_rows),
+            "record_only_count": sum(row["record_only"] for row in parent_rows),
+            "strata": _counts(doc.get("stratum", "unspecified") for doc in recipe),
+            "topic_counts": _counts(doc.get("topic", "unspecified") for doc in recipe),
+            "format_counts": _counts(_content_type(source) for doc in recipe for source in _sources(doc)),
+            "language_counts": _counts(
+                source.get("language", doc.get("language", "unspecified")) for doc in recipe for source in _sources(doc)
+            ),
             "source_byte_count": sum(path.stat().st_size for path in source_paths.values()),
             "recipe_sha256": recipe_digest(recipe),
             "library": {
@@ -829,20 +1312,24 @@ def export_snapshot(
             },
             "zotero": {
                 "client_version": zotero_client_version,
-                "fulltext.pdfMaxPages": pdf_max_pages,
-                "fulltext.textMaxLength": text_max_length,
-                "preferences_are": "the injecting profile's values as read at run time; not a "
-                                   "bound on this extraction, see reindex",
+                "fulltext.pdfMaxPages": observed["pdfMaxPages"],
+                "fulltext.textMaxLength": observed["textMaxLength"],
+                "preferences_are": "read live from the client through the control plugin's status; "
+                                   + ("a bound on this extraction (stock reindex), checked against every "
+                                      "captured counter" if observed_mode == "stock" else
+                                      "profile provenance only, not a bound on this extraction (see reindex)"),
+                "plugin_version": observed.get("codeVersion") or observed["version"],
             },
-            "reindex": dict(REINDEX_MODE),
+            "reindex": _reindex_record(observed_mode, observed),
             "known_defects": [dict(defect) for defect in (known_defects or [])]
-                             + _detected_defects(items, public_rows, source_paths),
+                             + _detected_defects(items, public_rows, source_paths, sources_by_id),
             "index_fulltext_max_chars": index_max_chars,
             "items_file": "items.json",
             "normalizations": {
                 "linked_file_path": "absolute API path replaced by attachments:<filename>",
                 "linked_file_enclosure": "file: enclosure removed if present",
             },
+            "parents": parent_rows,
             "attachments": public_rows,
             "library_version": library_version,
         }
@@ -865,6 +1352,13 @@ def export_snapshot(
         if temp.exists():
             shutil.rmtree(temp)
     return destination
+
+
+def _counts(values) -> dict[str, int]:
+    out: dict[str, int] = {}
+    for value in values:
+        out[str(value)] = out.get(str(value), 0) + 1
+    return dict(sorted(out.items()))
 
 
 class ZoteroLocalClient:
@@ -974,7 +1468,8 @@ class ZoteroLocalClient:
         return out
 
     def upload_file(
-        self, key: str, path: Path, content_type: str, *, previous_md5: str | None = None,
+        self, key: str, path: Path, content_type: str, *, charset: str | None = None,
+        previous_md5: str | None = None,
     ) -> None:
         """Store a file on a stored (imported_file) attachment: the local API's own
         3-phase upload flow -- authorize, POST bytes, register. A group library has no
@@ -1002,10 +1497,19 @@ class ZoteroLocalClient:
             "Zotero-Server-ID": self.server_id,
         })
 
-        authorize_body = urllib.parse.urlencode({
+        # A bare MIME type here: Zotero copies the authorization's contentType onto the
+        # attachment item verbatim, so a "type; charset=x" value becomes the item's content
+        # type (padme, 2026-09-06: 'text/plain;+charset=windows-1252'). The charset travels
+        # in its own parameter, which is also what the web API's upload authorization takes.
+        if ";" in content_type:
+            raise GoldenFixtureError(f"upload contentType must be a bare MIME type, got {content_type!r}")
+        authorize_fields = {
             "md5": md5, "filename": path.name, "filesize": str(path.stat().st_size),
             "mtime": str(int(path.stat().st_mtime * 1000)), "contentType": content_type,
-        }).encode("utf-8")
+        }
+        if charset:
+            authorize_fields["charset"] = charset
+        authorize_body = urllib.parse.urlencode(authorize_fields).encode("utf-8")
         authorize_headers = {**common_headers, "Content-Type": "application/x-www-form-urlencoded"}
         request = urllib.request.Request(item_url, data=authorize_body, headers=authorize_headers, method="POST")
         try:
@@ -1076,10 +1580,20 @@ class ZoteroLocalClient:
                 f"{error}"
             ) from error
 
+    def plugin_status(self) -> dict:
+        """The plugin's own status: version, the mode of its last reindex, the two
+        extraction preferences read live.  Provenance for the export manifest."""
+        return self._plugin_request("status")
+
     def reindex_fulltext(
-        self, keys: list[str], *, poll: float = 1.0, max_wait: float = 3600,
+        self, keys: list[str], *, complete: bool = False, poll: float = 1.0, max_wait: float = 3600,
     ) -> dict[str, dict]:
         """Force extraction to run and settle; return the terminal state of every key.
+
+        ``complete`` is handed to the plugin as the reindex mode: False (stock) lets
+        Zotero apply its page and character limits, True ignores them.  The plugin
+        must echo the mode it queued, or the request is refused as running on a
+        plugin that ignores the flag (every version before 0.2.0 did).
 
         A forced reindex is not guaranteed to reach ``indexed``: a document with
         no extractable text (an un-OCR'd scan) or an unsupported container
@@ -1113,9 +1627,15 @@ class ZoteroLocalClient:
             for row in (before.get("items", []) if isinstance(before, dict) else [])
             if isinstance(row, dict)
         }
-        queued = self._plugin_request("reindex", {"keys": keys})
+        queued = self._plugin_request("reindex", {"keys": keys, "complete": bool(complete)})
         if not isinstance(queued, dict):
             raise GoldenFixtureError("the full-text plugin returned a malformed reindex response")
+        expected_mode = "uncapped" if complete else "stock"
+        if queued.get("mode") != expected_mode:
+            raise GoldenFixtureError(
+                f"the full-text plugin queued mode {queued.get('mode')!r}, not {expected_mode!r}; "
+                "install plugin 0.2.0 or later, which honours the complete flag and echoes the mode"
+            )
         queued_keys = {
             row.get("key") for row in queued.get("queued", []) if isinstance(row, dict)
         }
@@ -1187,34 +1707,58 @@ def main() -> int:
     parser.add_argument("--recipe", type=Path, default=Path(__file__).with_name("recipe.json"))
     parser.add_argument("--port", type=int, default=23119)
     parser.add_argument("--library-type", choices=("user", "group"), default="group")
-    parser.add_argument("--library-id", type=int, required=True)
-    parser.add_argument("--collection-key", required=True)
+    parser.add_argument("--library-id", type=int)
+    parser.add_argument("--collection-key")
     commands = parser.add_subparsers(dest="command", required=True)
     inject_parser = commands.add_parser("inject")
     inject_parser.add_argument("--cache-dir", type=Path, required=True)
+    inject_parser.add_argument("--reindex-mode", choices=sorted(REINDEX_MODES), default="stock",
+                               help="stock: Zotero's own page/character limits apply; uncapped: both ignored")
     export_parser = commands.add_parser("export")
     export_parser.add_argument("--cache-dir", type=Path, required=True)
     export_parser.add_argument("--destination", type=Path, required=True)
     export_parser.add_argument("--zotero-client-version", required=True)
-    export_parser.add_argument("--pdf-max-pages", type=int, required=True)
-    export_parser.add_argument("--text-max-length", type=int, required=True)
+    export_parser.add_argument("--reindex-mode", choices=sorted(REINDEX_MODES), default="stock",
+                               help="recorded as the plugin reports it, refused if the two disagree")
+    export_parser.add_argument("--pdf-max-pages", type=int, default=None,
+                               help="optional cross-check against the client's fulltext.pdfMaxPages")
+    export_parser.add_argument("--text-max-length", type=int, default=None,
+                               help="optional cross-check against the client's fulltext.textMaxLength")
     export_parser.add_argument("--index-max-chars", type=int, required=True)
     export_parser.add_argument(
         "--known-defect", action="append", default=[], metavar="RECIPE_ID: DESCRIPTION",
         help="a defect of the injected fixture to record in the manifest, never repaired (repeatable)",
     )
+    retire_parser = commands.add_parser("retire", help="move managed parents out of the collection; no deletion")
+    retire_parser.add_argument("--ids", required=True, help="comma-separated recipe ids")
+    fields_parser = commands.add_parser("item-fields", help="regenerate zotero-item-fields.json from Zotero's schema")
+    fields_parser.add_argument("--schema", type=Path, default=None, help="a downloaded schema.json; fetched when absent")
+    fields_parser.add_argument("--output", type=Path, default=ITEM_FIELDS_FILE)
     args = parser.parse_args()
+    if args.command == "item-fields":
+        reduced = write_item_fields(args.output, args.schema)
+        print(json.dumps({"schema_version": reduced["schema_version"], "item_types": len(reduced["item_types"]),
+                          "output": str(args.output)}, indent=2))
+        return 0
+    if not args.collection_key:
+        parser.error("--collection-key is required")
     known_defects = []
     for entry in getattr(args, "known_defect", []):
         recipe_id, separator, description = entry.partition(":")
         if not separator or not recipe_id.strip() or not description.strip():
             raise GoldenFixtureError(f"--known-defect must read 'RECIPE_ID: DESCRIPTION', got {entry!r}")
         known_defects.append({"recipe_id": recipe_id.strip(), "defect": description.strip(), "declared_by": "operator"})
+    if args.command == "retire":
+        ids = [value.strip() for value in args.ids.split(",") if value.strip()]
+        result = retire(ids, _client(args, writes=True), collection_key=args.collection_key)
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0
     recipe = _load_recipe(args.recipe)
     if args.command == "inject":
         result = inject(
             recipe, args.cache_dir, _client(args, writes=True),
             collection_key=args.collection_key, library_type=args.library_type,
+            reindex_mode=args.reindex_mode,
         )
     else:
         result = {
@@ -1226,10 +1770,11 @@ def main() -> int:
                     destination=args.destination,
                     library={"type": args.library_type, "id": args.library_id},
                     zotero_client_version=args.zotero_client_version,
-                    pdf_max_pages=args.pdf_max_pages,
-                    text_max_length=args.text_max_length,
                     index_max_chars=args.index_max_chars,
                     cache_dir=args.cache_dir,
+                    reindex_mode=args.reindex_mode,
+                    pdf_max_pages=args.pdf_max_pages,
+                    text_max_length=args.text_max_length,
                     known_defects=known_defects,
                 )
             )

@@ -1,0 +1,94 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0246",
+  "need": "Hazard row, figure caption past the page cap. Chapter VII, 'Probabilité du continu', turns the broken-stick problem into a triangle: the three perpendiculars from an interior point sum to the height, so the point represents a division of the stick, and Fig. 6 on printed page 125 carries the construction. Two caps stand between the reader and it — printed 125 is pdf page 135 of a 352-page scan and only the first hundred pages were extracted, so the caption is not merely unindexed but absent from the export. A figure caption is the shortest text on its page and the first thing lost.",
+  "query": "Poincaré Fig. 6 probabilité du continu triangle perpendiculaires abaissées d'un point intérieur somme égale à la hauteur bâton",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "page-cap-crossing",
+    "structural-figure-caption",
+    "answer-past-extraction-cap"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "poincare-1912-calcul-des-probabilites",
+      "recipe_id": "poincare-1912-calcul-des-probabilites",
+      "attachment_id": "poincare-1912-calcul-des-probabilites-pdf",
+      "attachment_key": "26JJF8L4",
+      "section": "Chapitre VII. Probabilité du continu — Fig. 6",
+      "alternates": [
+        {
+          "page_printed": "125",
+          "char_offset": null,
+          "quote": "Fig. 6."
+        },
+        {
+          "page_printed": "125",
+          "char_offset": null,
+          "quote": "La probabilité pour que a: soit comprise entre x e!L a- -i- dx , et pour que y soit comprise entre y el y -\\- dy, est proportionnelle à dxdy."
+        }
+      ],
+      "chain": {
+        "title": "Calcul des probabilités",
+        "author": "Henri Poincaré; rédaction de A. Quiquet",
+        "date": "1912",
+        "identifier": "https://archive.org/details/calculdesprobab00poinuoft",
+        "section_heading": "Probabilité du continu",
+        "page_printed": "125",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "Printed page 125 is pdf page 135 of a 352-page scan and Zotero indexed the first 100 pages only (fulltext.pdfMaxPages = 100), so chapter VII never reached the export's fulltext: the Fig. 6 caption and the surrounding text cannot be located at all.",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": [
+      {
+        "attachment_key": "26JJF8L4",
+        "alternates": [
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "quote not located in the export fulltext",
+            "within_index_cap": null
+          },
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "quote not located in the export fulltext",
+            "within_index_cap": null
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

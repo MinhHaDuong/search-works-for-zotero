@@ -1,0 +1,117 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0154",
+  "need": "Written before opening the document: the invisible-hand sentence — the individual intends only his own gain and is led to promote an end which was no part of his intention. It is in Book IV, deep in a text that crosses Zotero's 500 000-character extraction cap.",
+  "query": "led by an invisible hand to promote an end which was no part of his intention",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "gutenberg-cap-crossing-pair",
+    "fulltext.textMaxLength"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "smith-1776-wealth-of-nations",
+      "recipe_id": "smith-1776-wealth-of-nations",
+      "attachment_id": "smith-1776-wealth-of-nations-html",
+      "attachment_key": "9DLZSRCN",
+      "section": "Book IV, Chapter II (HTML rendering)",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": null,
+          "quote": "he intends only his own gain; and he is in this, as in many other cases, led by an invisible hand to promote an end which was no part of his intention."
+        }
+      ],
+      "chain": {
+        "title": "An Inquiry into the Nature and Causes of the Wealth of Nations",
+        "author": "Adam Smith",
+        "date": "1776",
+        "identifier": "https://www.gutenberg.org/ebooks/3300",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": "CHAPTER II. OF RESTRAINTS UPON IMPORTATION FROM FOREIGN COUNTRIES OF SUCH GOODS AS CAN BE PRODUCED AT HOME."
+      }
+    },
+    {
+      "work_id": "smith-1776-wealth-of-nations",
+      "recipe_id": "smith-1776-wealth-of-nations",
+      "attachment_id": "smith-1776-wealth-of-nations-epub",
+      "attachment_key": "EAM35WCU",
+      "section": "Book IV, Chapter II (EPUB rendering)",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": null,
+          "quote": "he intends only his own gain; and he is in this, as in many other cases, led by an invisible hand to promote an end which was no part of his intention."
+        }
+      ],
+      "chain": {
+        "title": "An Inquiry into the Nature and Causes of the Wealth of Nations",
+        "author": "Adam Smith",
+        "date": "1776",
+        "identifier": "https://www.gutenberg.org/ebooks/3300",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": "CHAPTER II. OF RESTRAINTS UPON IMPORTATION FROM FOREIGN COUNTRIES OF SUCH GOODS AS CAN BE PRODUCED AT HOME."
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "fulltext.textMaxLength: Book IV chapter II lies past the 500 000-character extraction cap (the plain text runs 2 432 722 characters; Book II already opens at character 662 748), so the passage is in neither rendering's export fulltext nor the index",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": [
+      {
+        "attachment_key": "9DLZSRCN",
+        "alternates": [
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "quote not located in the export fulltext",
+            "within_index_cap": null
+          }
+        ]
+      },
+      {
+        "attachment_key": "EAM35WCU",
+        "alternates": [
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "quote not located in the export fulltext",
+            "within_index_cap": null
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": false,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

@@ -414,23 +414,6 @@ def test_an_unstamped_artifact_directory_is_not_a_baseline_claim(tmp_path):
     assert cp.run(build(tmp_path, page=page)) == 0
 
 
-def test_a_plugin_path_under_a_known_root_is_not_an_unaddressed_digit(tmp_path):
-    """No live page cites a digit-bearing plugin path, so force the root roster to work."""
-    page = PAGE.replace(
-        "Landed upstream.",
-        "Landed upstream (`plugins/sdt-sitter/build-42/manifest.json`).",
-    )
-    assert cp.run(build(tmp_path, page=page)) == 0
-
-
-def test_a_path_under_an_unknown_root_is_still_an_unaddressed_digit(tmp_path):
-    page = PAGE.replace(
-        "Landed upstream.",
-        "Landed upstream (`payloads/sdt-sitter/build-42/manifest.json`).",
-    )
-    assert cp.run(build(tmp_path, page=page)) == 1
-
-
 def test_upstream_absent_is_loud(tmp_path):
     """Nothing dates the standing, so the page cannot be believed about any release."""
     assert cp.run(build(tmp_path, upstream=None)) == 1

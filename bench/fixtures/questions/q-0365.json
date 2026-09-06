@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0365",
+  "need": "在打開文獻之前寫下：嚴復譯亞當·斯密之書時，為 economics 一詞自造了一個譯名，而不用日本的「經濟」，也不用中國舊有的「理財」。他給出的理由是什麼？",
+  "query": "嚴復 為何不用經濟 不用理財 而以計學當之 太廓 過陿",
+  "question_language": "zh",
+  "answer_language": "zh",
+  "lane": "zh->zh",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "han-script-no-word-spaces"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "yan-fu-1902-yuanfu-yishi-liyan",
+      "recipe_id": "yan-fu-1902-yuanfu-yishi-liyan",
+      "attachment_id": "yan-fu-1902-yuanfu-yishi-liyan-html",
+      "attachment_key": "IVH9KQRD",
+      "section": "譯事例言，第一則",
+      "alternates": [
+        {
+          "page_printed": null,
+          "quote": "顧必求脗合，則「經濟」旣嫌太廓，而「理財」又爲過陿，自我作故，乃以「計學」當之。",
+          "char_offset": 148
+        }
+      ],
+      "chain": {
+        "title": "原富 · 譯事例言 (Translator's preface to Yuan Fu, Yan Fu's rendering of The Wealth of Nations)",
+        "author": "嚴復 (Yan Fu)",
+        "date": "1902",
+        "identifier": "https://zh.wikisource.org/w/index.php?title=%E5%8E%9F%E5%AF%8C/%E8%AD%AF%E4%BA%8B%E4%BE%8B%E8%A8%80&oldid=2268899",
+        "section_heading": "譯事例言",
+        "page_printed": null,
+        "part_title": "譯事例言",
+        "part_byline": "嚴復"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "IVH9KQRD",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 148,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

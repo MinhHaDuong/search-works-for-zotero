@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0157",
+  "need": "Écrit avant d'ouvrir le document : l'article de la Constitution de 1992 qui fait du Parti communiste la force dirigeante de l'État et de la société.",
+  "query": "Constitution du Vietnam 1992 Parti communiste force dirigeante de l'État et de la société",
+  "question_language": "fr",
+  "answer_language": "en",
+  "lane": "fr->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "compound-statute-article",
+    "cross-lingual-anchor"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "vn-constitution-1992-en",
+      "recipe_id": "vn-constitution-1992-en",
+      "attachment_id": "vn-constitution-1992-en-html",
+      "attachment_key": "R43PLWP2",
+      "section": "Article 4",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 5194,
+          "quote": "acting upon the Marxist-Leninist doctrine and Ho Chi Minh's thought, is the force leading the State and society."
+        }
+      ],
+      "chain": {
+        "title": "Constitution of the Socialist Republic of Vietnam (1992), English text",
+        "author": "Quốc hội Việt Nam (official translation)",
+        "date": "1992",
+        "identifier": "https://en.wikisource.org/w/index.php?title=Constitution_of_Vietnam_%281992%29&oldid=16201311",
+        "page_printed": null,
+        "part_byline": null,
+        "section_heading": "CHAPTER I POLITICAL REGIME",
+        "part_title": "Article 4"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "R43PLWP2",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 5194,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": false,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0353",
+  "need": "Hazard: the Vietnamese climate-change article runs 167 778 characters, of which the body ends at 59 733 and the reference list fills the rest. The section that ties climate to the Sustainable Development Goals begins at character 46 283 — inside the body, outside the 40 000-character cap. So the article is indexed and its policy half is not, which is invisible to any reader who sees the page returned at all.",
+  "query": "how does the Vietnamese Wikipedia article link climate change to Sustainable Development Goal 13",
+  "question_language": "en",
+  "answer_language": "vi",
+  "lane": "en->vi",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "index_fulltext_max_chars",
+    "multibyte-character-offsets"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "wp-climate-change-vi",
+      "recipe_id": "wp-climate-change-vi",
+      "attachment_id": "wp-climate-change-vi-html",
+      "attachment_key": "LKTQGVLI",
+      "section": "Chính sách và chính trị",
+      "alternates": [
+        {
+          "page_printed": null,
+          "quote": "Mối liên kết giữa hai vấn đề được công nhận trong Mục tiêu Phát triển Bền vững 13 đó là \"hành động khẩn cấp để chống lại biến đổi khí hậu và các tác động của nó\".",
+          "char_offset": 46646
+        }
+      ],
+      "chain": {
+        "title": "Biến đổi khí hậu",
+        "author": "Wikipedia tiếng Việt (contributors)",
+        "date": "2026",
+        "identifier": "https://vi.wikipedia.org/w/index.php?title=Bi%E1%BA%BFn_%C4%91%E1%BB%95i_kh%C3%AD_h%E1%BA%ADu&oldid=75450050",
+        "section_heading": "Chính sách và chính trị",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "index_fulltext_max_chars: the 'Chính sách và chính trị' section begins at character 46 283 of a 167 778-character extraction, outside the 40 000-character cap; the body runs to character 59 733, so about two thirds of the article's prose is indexed and the policy sections are not",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "LKTQGVLI",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 46646,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

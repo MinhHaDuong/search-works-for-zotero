@@ -1,0 +1,44 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0446",
+  "need": "Hazard row for a declared failure control — visible, not silent, degradation. The companion statistical plate shows Pas-de-Calais coal output since 1850 as a printed table inside the image; a query for the output series would expect it. The export declares this attachment answer_set_participation = 'none', so the correct behaviour is that it never appears in an answer set and the degradation is legible in the counters rather than showing up as a plausible-looking wrong hit.",
+  "query": "Vuillemin production du bassin houiller du Pas-de-Calais depuis 1850 tableau",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "failure-control",
+    "source-format-raster-image",
+    "visible-not-silent-degradation"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [],
+  "expected_miss": true,
+  "expected_miss_mechanism": "declared failure control, unindexable format: a JPEG raster (1630x925 px) of a printed statistical plate; the full-text indexer reads PDF, HTML, EPUB and plain text only, so the attachment finishes with no full text (attachment vuillemin-1875-production-pas-de-calais-jpg, key CWZ44G2H)",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": []
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

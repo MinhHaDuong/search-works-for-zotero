@@ -4,14 +4,14 @@ The sibling of `sdt_sitter_scheduler_mutants.py`, pointed at the other file. It
 exists because ticket 0695's acceptance asks that each new scenario be shown red
 against a deliberately broken implementation, and a red run recorded once in a
 merge request is a fact nobody can re-derive. This makes it a gate: break
-`plugins/sdt-sitter/bootstrap.js` one edit at a time and report, per mutant, which
+`bench/sdt-sitter/bootstrap.js` one edit at a time and report, per mutant, which
 tests go red. A mutant nothing catches is a regression class the suites leave
 open; a mutant caught only by a test that predates the ticket is a new test
 earning nothing.
 
 Nothing in the repository is written. The whole plugin and the whole test tree
 are copied into a temporary directory and node is run with that directory as its
-working directory, so the tests' own relative paths (`plugins/sdt-sitter/...`, and
+working directory, so the tests' own relative paths (`bench/sdt-sitter/...`, and
 the mock's `./sdt_sitter_zotero_mock.mjs`) resolve to the copies with no path
 rewriting at all -- and an interrupt, a CI timeout or a SIGKILL cannot leave a
 mutated bootstrap behind in a checkout shared between sessions.
@@ -37,8 +37,8 @@ import subprocess
 import sys
 import tempfile
 
-BOOTSTRAP = pathlib.Path("plugins/sdt-sitter/bootstrap.js")
-PLUGIN = pathlib.Path("plugins/sdt-sitter")
+BOOTSTRAP = pathlib.Path("bench/sdt-sitter/bootstrap.js")
+PLUGIN = pathlib.Path("bench/sdt-sitter")
 TESTS = pathlib.Path("tests")
 
 #: The suites that load bootstrap.js. Both report one line per test, so a mutant's

@@ -1,0 +1,86 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0449",
+  "need": "Hazard row on the Arabic monograph's other attachment: the Internet Archive's plain-text rendering of the same 1904 Būlāq print, 660 474 characters of which Zotero indexed 500 000 — the fulltext.textMaxLength cap, a third cap axis beside the 40 000-character index cap and the 100-page PDF cap. Two degradations stack: the text past character 500 000 was never indexed, and text/plain is not a cached MIME type, so the export carries no fulltext file for this attachment at all.",
+  "query": "مقدمة ابن خلدون العصبية والملك النص الكامل ملف نصي",
+  "question_language": "ar",
+  "answer_language": "ar",
+  "lane": "ar->ar",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "deep-body",
+  "stratum": "reserve",
+  "mechanisms": [
+    "source-format-plain-text",
+    "indexed-not-served",
+    "extraction-cap-crossing-past",
+    "fulltext-text-max-length-500000",
+    "rtl-script",
+    "should-language-arabic",
+    "silent-degradation"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "ibn-khaldun-1904-muqaddimah",
+      "recipe_id": "ibn-khaldun-1904-muqaddimah",
+      "attachment_id": "ibn-khaldun-1904-muqaddimah-txt",
+      "attachment_key": "ELM8ZHEW",
+      "section": "المقدمة — النص الكامل (Internet Archive djvu.txt rendering)",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": null,
+          "quote": "ثم يتصل بالبحر في وسط هـذا الاقليم الاول وعلى هذا النيل بلاد النوبة والحبشة"
+        }
+      ],
+      "chain": {
+        "title": "مقدمة ابن خلدون (Al-Muqaddimah)",
+        "author": "عبد الرحمن بن خلدون (Ibn Khaldūn, 1332-1406)",
+        "date": "1904",
+        "identifier": "https://archive.org/details/almuqaddimah00ibnk",
+        "section_heading": "الاقليم الاول",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "two stacked mechanisms: fulltext.textMaxLength = 500 000 truncated the indexing of a 660 474-character file (indexed_chars 500 000 of total_chars 660 474), and text/plain is excluded from Zotero.Fulltext.isCachedMIMEType, so /items/ELM8ZHEW/fulltext answers 404 and the export holds no fulltext for this attachment; nothing in it can be located",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": [
+      {
+        "attachment_key": "ELM8ZHEW",
+        "alternates": [
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "attachment ELM8ZHEW is indexed-not-served in the export: no fulltext to locate in",
+            "within_index_cap": null
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

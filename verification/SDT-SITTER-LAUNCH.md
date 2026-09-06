@@ -1,6 +1,6 @@
 # Experimental native SDT sitter
 
-Ticket 0680. Source: `plugins/sdt-sitter/`; package with
+Ticket 0680. Source: `bench/sdt-sitter/`; package with
 `python3 bench/build_sdt_sitter.py --output /absolute/path/to/new.xpi`.
 
 The extension warms native PDF, EPUB and snapshot SDT caches through the

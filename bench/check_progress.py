@@ -254,11 +254,7 @@ ALLOWED = {
     # paths rooted at a known top-level directory are admitted, so this cannot become a
     # general exemption for a digit that merely sits near a slash: a bare quantity in
     # prose still fails, and so does a path to somewhere this repository does not have.
-    # `plugins/` joined the roster with ticket 0697, which promoted the sitter
-    # out of `bench/`. The roster is hand-listed, so a top-level directory that
-    # arrives and is not added here turns every path into it — `plugins/
-    # sdt-sitter/manifest.json` and its version — into an unaddressed digit.
-    "repo path": re.compile(r"\.{0,2}/?(?:bench|plugins|tickets|verification)/[\w./-]+"),
+    "repo path": re.compile(r"\.{0,2}/?(?:bench|tickets|verification)/[\w./-]+"),
 }
 
 DIGIT = re.compile(r"\d")

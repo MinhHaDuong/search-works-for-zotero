@@ -1,0 +1,78 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0135",
+  "need": "Written before opening the document: I want the mechanism itself, stated in the abstract way an economist would recognise it, without naming any region — how can a pre-industrial society raise what it produces and still leave its people at subsistence?",
+  "query": "how can a pre-industrial society raise what it produces and still leave ordinary people at bare subsistence",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "korotayev-2015-east-africa-malthusian-trap",
+      "recipe_id": "korotayev-2015-east-africa-malthusian-trap",
+      "attachment_id": "korotayev-2015-east-africa-malthusian-trap-pdf",
+      "attachment_key": "2QCUPHJP",
+      "section": "Introduction",
+      "alternates": [
+        {
+          "page_printed": "1",
+          "char_offset": 1211,
+          "quote": "when the growth of output (as it is accompanied by a faster demographic growth) does not lead in the long-range perspective to the increase in per capita output and the improvement of living conditions of the majority of population that remains close to the bare survival level"
+        }
+      ],
+      "chain": {
+        "title": "East Africa in the Malthusian trap? A statistical analysis of financial, economic, and demographic indicators",
+        "author": "Andrey Korotayev; Julia Zinkina",
+        "date": "2015",
+        "identifier": "https://arxiv.org/abs/1503.08441v1",
+        "section_heading": "Introduction",
+        "page_printed": "1",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "2QCUPHJP",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 1211,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

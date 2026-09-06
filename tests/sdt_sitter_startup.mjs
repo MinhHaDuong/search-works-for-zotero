@@ -15,7 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 
-const SITTER = 'plugins/sdt-sitter';
+const SITTER = 'bench/sdt-sitter';
 const manifest = JSON.parse(fs.readFileSync(path.join(SITTER, 'manifest.json'), 'utf8'));
 const HALT = /halt: after the self-check/;
 
@@ -112,33 +112,7 @@ await assert.rejects(context.initialize(`${SITTER}/`, 0), HALT);
 assert.equal(logged.length, 0);
 context.Zotero.debug = message => logged.push(message);
 
-// The version the HOST hands us survives a manifest that cannot be read, which
-// is the case every installed add-on is actually in: `rootURI` is a `jar:` URL
-// and `Zotero.File` cannot parse one, so the read below fails in production on
-// every startup. Until ticket 0727 the record therefore said
-// `version: "unreadable (NS_ERROR_FAILURE)"` in the field whose entire purpose
-// is to name the build that was running when the plugin disappeared — the
-// instrumentation of ticket 0688, defeated by the same defect that made every
-// UI string render as its own id.
-context.Zotero.File.getContentsFromURLAsync = async () => {
-  const error = new Error('jar:file:///…/x.xpi!/manifest.json');
-  error.name = 'NS_ERROR_FAILURE';
-  throw error;
-};
-context.installedVersion = '9.9.9-handed';
-record = await startupRecord();
-assert.equal(record.version, '9.9.9-handed',
-  'the handed version did not survive an unreadable manifest');
-// And it is preferred over a manifest that CAN be read, so the two cannot
-// disagree about which build is running.
-context.Zotero.File.getContentsFromURLAsync = async url => fs.readFileSync(url, 'utf8');
-record = await startupRecord();
-assert.equal(record.version, '9.9.9-handed');
-assert.notEqual(manifest.version, '9.9.9-handed', 'the arm above proves nothing');
-context.installedVersion = null;
-
 console.log(JSON.stringify({ tests: [
   'startup record', 'unreadable manifest carries a class and no path',
   'manifest of the wrong shape', 'Zotero.version throws', 'Zotero.debug throws',
-  'the host-handed version survives an unreadable manifest and wins over a readable one',
 ], result: 'pass' }));

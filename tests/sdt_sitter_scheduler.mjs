@@ -2,18 +2,19 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 
+import { loadSitterLocale } from './fluent_stub.mjs';
 
 const context = {};
 // One read, reused by the phase enumeration below: a second literal copy of this
 // path would give verification/probes/sdt_sitter_scheduler_mutants.py two anchors
 // where it requires exactly one, and its mutants could no longer be loaded.
-const schedulerSource = fs.readFileSync('plugins/sdt-sitter/scheduler.js', 'utf8');
+const schedulerSource = fs.readFileSync('bench/sdt-sitter/scheduler.js', 'utf8');
 vm.runInNewContext(schedulerSource, context);
 // The host half of the journal (emit, heartbeat, shutdown) lives in bootstrap.js;
 // loading it here lets the ring be driven by the real scheduler rather than by hand.
 // Read once for the same reason, and reused by the phase enumeration below.
 const ui = {};
-const bootstrapSource = fs.readFileSync('plugins/sdt-sitter/bootstrap.js', 'utf8');
+const bootstrapSource = fs.readFileSync('bench/sdt-sitter/bootstrap.js', 'utf8');
 // The plugin loads scheduler.js into bootstrap's own global before it renders
 // anything (`Services.scriptloader.loadSubScript(..., globalThis)`), so the census
 // classification is in scope there. Two vm contexts are two realms, so the load
@@ -24,7 +25,12 @@ vm.runInNewContext(bootstrapSource, ui);
 // Ticket 0692: every string below now comes from `locale/fr/sdt-pack-sitter.ftl`
 // rather than from a literal in bootstrap.js, so the French assertions in this
 // file are assertions about the French translation AND about the plugin's own
-// loader — which is the pairing that keeps them meaningful.
+// loader — which is the pairing that keeps them meaningful. Driven in French
+// deliberately: the identifier check further down reads `a-b` as the tell of a
+// leaked internal phase name, and the English label "turn ... off, then on
+// again" carries none while "re-enable" would have.
+const localized = await loadSitterLocale(ui, 'fr-FR');
+assert.equal(localized.locale, 'fr', 'the French locale did not load');
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
 function fixture() {
   const cached = new Set(), calls = [], updates = [];
@@ -929,8 +935,8 @@ await test('a sweep announces the work it did, and an idle one announces nothing
   };
   assert.equal(await announce(), true, 'a sweep that indexed two files said nothing');
   assert.equal(shown.length, 1);
-  assert.equal(shown[0].headline, 'Indexing assistant');
-  assert.deepEqual(shown[0].lines, ['2 files indexed']);
+  assert.equal(shown[0].headline, 'Assistant d’indexation');
+  assert.deepEqual(shown[0].lines, ['2 fichiers indexés']);
   assert(shown[0].closeMS > 0, 'the toast is never dismissed');
   for (let tick = 0; tick < 5; tick++) {
     assert.equal(await announce(), false, `a caught-up library announced on tick ${tick}`);
@@ -940,7 +946,7 @@ await test('a sweep announces the work it did, and an idle one announces nothing
   // this arm a gate that never opens twice would pass everything above.
   f.host.list = async () => [1, 2, 3];
   assert.equal(await announce(), true, 'a newly added file was indexed in silence');
-  assert.deepEqual(shown[1].lines, ['3 files indexed']);
+  assert.deepEqual(shown[1].lines, ['3 fichiers indexés']);
   // And a sitter that has been disabled announces nothing at all: shutdown()
   // clears `alive` while a sweep may still be settling.
   ui.alive = false;
@@ -962,7 +968,8 @@ await test('a changed failure total is announced, in the words the dialog uses',
   // tally accumulated beside it: nothing was indexed, and both files failed.
   assert.equal(f.api.state.failed, 2);
   assert.equal(ui.announceSDTSweep(before), true, 'two failures went unannounced');
-  assert.deepEqual(shown[0].lines[1], '2 files could not be indexed');
+  assert.deepEqual(shown[0].lines,
+    ['0 fichier indexé', '2 fichiers n’ont pas pu être indexés']);
   // The same two files fail again on the next sweep. Nothing changed, so nothing
   // is said — the failure half of the storm the gate exists to stop.
   const again = { completed: f.api.state.completed, failed: f.api.state.failed };
@@ -1005,7 +1012,7 @@ await test('a toast that cannot be shown is journalled, not thrown into the swee
    ensure() and a prompt re-enable leave this closure suspended while a second
    sitter is installed and `alive` goes back to true. Before the guard, the
    resumed closure diffed one sitter's snapshot against another's counters and
-   announced the subtraction: three files indexed, then none.
+   announced the subtraction: three files indexed, then "0 fichier indexé".
 
    The third phase is the control, and the arm is worthless without it: it stages
    the identical suspend-and-resume with no generation change, and requires the
@@ -1061,7 +1068,7 @@ await test('a sweep loop left over from a previous generation announces nothing'
   // Three, not the two the snapshot held: the copy is a copy. A `before` bound
   // to sitter.state by reference would read this same number twice and never
   // open the gate.
-  assert.deepEqual(shown[0].lines, ['3 files indexed']);
+  assert.deepEqual(shown[0].lines, ['3 fichiers indexés']);
   assert.equal(scheduled.length, 1, 'the live loop stopped rescheduling itself');
   assert.equal(scheduled[0].ms, 30000);
   ui.timers = undefined;
@@ -1109,17 +1116,18 @@ const tooltip = state => ui.describeSDTTooltip({ total: 10, scanned: 10,
   counts: { current: 4, excluded: 2, unsupported: 1 }, ...state });
 
 named('Ma bibliothèque');
-const scope = 'Library: Ma bibliothèque — Index 57 % — ';
+const scope = 'Bibliothèque : Ma bibliothèque — Index 57 % — ';
 const idle = tooltip({ phase: 'waiting', completed: 3 });
-assert.equal(idle, `${scope}3 files indexed`);
-assert.equal(tooltip({ phase: 'ready', completed: 1 }), `${scope}1 file indexed`);
+assert.equal(idle, `${scope}3 fichiers indexés`);
+assert.equal(tooltip({ phase: 'ready', completed: 1 }), `${scope}1 fichier indexé`);
+assert.equal(tooltip({ phase: 'waiting', completed: 0 }), `${scope}0 fichier indexé`);
 assert.equal(tooltip({ phase: 'census', completed: 2 }),
-  `${scope}Census — 2 files indexed`);
+  `${scope}Recensement — 2 fichiers indexés`);
 // A group library reads as itself. This is the assertion a "My Library" literal
 // would fail, and the reason the test supplies the names rather than grepping.
 named('Ma bibliothèque', 'Groupe Climat');
 assert.equal(tooltip({ phase: 'waiting', completed: 3 }),
-  'Libraries: Ma bibliothèque, Groupe Climat — Index 57 % — 3 files indexed');
+  'Bibliothèques : Ma bibliothèque, Groupe Climat — Index 57 % — 3 fichiers indexés');
 // A feed is in the library cache getAll() enumerates and holds no attachment, so
 // it is outside the set the census measures. Naming it would state a scope the
 // figure was never measured over — the failure the prefix exists to end.
@@ -1129,7 +1137,7 @@ assert.equal(tooltip({ phase: 'waiting', completed: 3 }), idle);
 // Past three the enumeration stops informing and the count does.
 named('Ma bibliothèque', 'Groupe Climat', 'Groupe Énergie', 'Groupe Transport');
 assert.equal(tooltip({ phase: 'waiting', completed: 3 }),
-  'All libraries (4) — Index 57 % — 3 files indexed');
+  'Toutes les bibliothèques (4) — Index 57 % — 3 fichiers indexés');
 // A group library is loaded lazily and its record can throw from the name getter
 // after a restart. One unreadable record must cost its own name, not the prefix:
 // without the per-record guard the outer guard catches instead and the whole
@@ -1137,7 +1145,7 @@ assert.equal(tooltip({ phase: 'waiting', completed: 3 }),
 withLibraries(() => [{ name: 'Ma bibliothèque' },
   { get name() { throw new Error('library not loaded'); } }]);
 assert.equal(tooltip({ phase: 'waiting', completed: 3 }), idle);
-const unscoped = 'Index 57 % — 3 files indexed';
+const unscoped = 'Index 57 % — 3 fichiers indexés';
 // And when nothing at all can be read, the tooltip degrades to the unscoped
 // form rather than throwing into the render loop.
 withLibraries(() => { throw new Error('libraries unavailable'); });
@@ -1152,12 +1160,12 @@ named('Ma bibliothèque');
 // leaving a bare "Index" between two em dashes; the scope stays, because which
 // libraries the sitter is about is true before any figure exists.
 assert.equal(ui.describeSDTTooltip({ total: 0, scanned: 0, counts: {},
-  phase: 'waiting', completed: 3 }), 'Library: Ma bibliothèque — 3 files indexed');
+  phase: 'waiting', completed: 3 }), 'Bibliothèque : Ma bibliothèque — 3 fichiers indexés');
 // getSDTCoverage defaults `counts` rather than dereferencing it: the tooltip
 // began reading coverage only with the scope prefix, so this shape reaches the
 // render path, where nothing above it catches.
 assert.equal(ui.describeSDTTooltip({ total: 0, scanned: 0, phase: 'waiting', completed: 3 }),
-  'Library: Ma bibliothèque — 3 files indexed');
+  'Bibliothèque : Ma bibliothèque — 3 fichiers indexés');
 // An unlabelled count is reserved for the two healthy idle phases. Mapping any
 // other phase to null would silence it exactly as the raw-name removal once did.
 const silent = [...phases].filter(phase => !ui.SDT_PHASE_LABELS[phase]).sort();
@@ -1172,19 +1180,17 @@ const rendered = new Set();
 // "Ma bibliothèque" would leave the check's new scoping unexercised and green by
 // accident of the fixture -- which is what it was before this line.
 named('Groupe socio-technique');
-const hyphenated = 'Library: Groupe socio-technique — Index 57 % — ';
+const hyphenated = 'Bibliothèque : Groupe socio-technique — Index 57 % — ';
 const hyphenatedIdle = tooltip({ phase: 'waiting', completed: 3 });
-assert.equal(hyphenatedIdle, `${hyphenated}3 files indexed`);
+assert.equal(hyphenatedIdle, `${hyphenated}3 fichiers indexés`);
 for (const phase of stalled) {
   const text = tooltip({ phase, completed: 3 });
   assert(text !== hyphenatedIdle, `'${phase}' is indistinguishable from a healthy idle sitter`);
   assert(!text.includes(phase), `'${phase}' leaks its internal name: ${text}`);
-  assert(text.endsWith('3 files indexed'), `'${phase}' dropped the count: ${text}`);
+  assert(text.endsWith('3 fichiers indexés'), `'${phase}' dropped the count: ${text}`);
   assert(text.startsWith(hyphenated), `'${phase}' dropped the library scope: ${text}`);
-  // The hyphen heuristic that used to sit here read `a-b` as the tell of a
-  // leaked internal phase name. It worked only while the labels were French:
-  // English says "add-on", which matches it and is not an identifier. The
-  // assertion above checks the same invariant directly and in any language.
+  assert(!/[a-z]-[a-z]/.test(text.slice(hyphenated.length)),
+    `'${phase}' reads as an identifier, not a sentence: ${text}`);
   rendered.add(text);
 }
 assert.equal(rendered.size, stalled.length, 'two blocking phases share one tooltip');
@@ -1203,14 +1209,14 @@ assert.equal(ui.describeSDTActiveFile({ active: 7,
 assert.equal(ui.describeSDTActiveFile({ active: 7,
   activeInfo: { parentTitle: 'Sen 1999', title: null } }), 'Sen 1999');
 assert.equal(ui.describeSDTActiveFile({ active: 7, activeInfo: { parentTitle: null, title: null } }),
-  'file no. 7');
-assert.equal(ui.describeSDTActiveFile({ active: 7, activeInfo: null }), 'file no. 7');
+  'fichier n° 7');
+assert.equal(ui.describeSDTActiveFile({ active: 7, activeInfo: null }), 'fichier n° 7');
 // The error line names a file through the same composer, so it cannot drift
 // back to leading with Zotero's auto-generated attachment title.
-assert.equal(ui.describeSDTFile({ parentTitle: 'Sen 1999', title: 'Full Text PDF' }, 'unknown file'),
+assert.equal(ui.describeSDTFile({ parentTitle: 'Sen 1999', title: 'Full Text PDF' }, 'fichier inconnu'),
   'Sen 1999 — Full Text PDF');
-assert.equal(ui.describeSDTFile({}, 'unknown file'), 'unknown file');
-assert.equal(ui.describeSDTFile(null, 'unknown file'), 'unknown file');
+assert.equal(ui.describeSDTFile({}, 'fichier inconnu'), 'fichier inconnu');
+assert.equal(ui.describeSDTFile(null, 'fichier inconnu'), 'fichier inconnu');
 
 let coverage = ui.getSDTCoverage({ total: 10, scanned: 10, phase: 'waiting',
   counts: { current: 4, excluded: 2, unsupported: 1, 'failed-session': 1, 'missing-source': 2 } });

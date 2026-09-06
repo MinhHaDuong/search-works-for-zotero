@@ -1,0 +1,44 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0439",
+  "need": "Hazard row for a declared failure control — visible, not silent, degradation. The 1915 Hindi print is attached twice: once with a text layer, once as the raw image PDF. The image sibling covers the same 265 pages, so a query about any of its pages could plausibly land on it. The export declares this attachment answer_set_participation = 'none', so the correct behaviour is that it never appears in an answer set and the degradation is legible in the counters rather than showing up as a plausible-looking wrong hit.",
+  "query": "अर्थशास्त्र १९१५ झालरापाटन मूल स्कैन पृष्ठ छवि",
+  "question_language": "hi",
+  "answer_language": "hi",
+  "lane": "hi->hi",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "failure-control",
+    "scan-without-text-layer",
+    "visible-not-silent-degradation"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [],
+  "expected_miss": true,
+  "expected_miss_mechanism": "declared failure control, scan without a text layer: 265 pages of CCITT-compressed bitmaps (libtiff tiff2pdf 2015) with no fonts; pdftotext extracts 265 form feeds and nothing else, so Zotero's PDF worker finds no text and leaves the attachment unindexed (attachment dli-1915-arthashastra-hindi-image-pdf, key HK6MKK56)",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": []
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

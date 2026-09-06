@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0166",
+  "need": "Written before opening the document: the figure in chapter 2 whose caption says Vietnam has had a quarter-century of fast, stable, and equitable growth, with panels on GDP per capita and volatility.",
+  "query": "Figure 2.2 Vietnam has had 25 years of fast, stable, and equitable economic growth GDP per capita level and growth volatility",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "deep-body",
+  "stratum": "core",
+  "mechanisms": [
+    "structural-figure-caption",
+    "stock-page-cap"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "wb-2016-vietnam-2035-en",
+      "recipe_id": "wb-2016-vietnam-2035-en",
+      "attachment_id": "wb-2016-vietnam-2035-en-pdf",
+      "attachment_key": "TKLXGCGR",
+      "section": "Chapter 2, Figure 2.2",
+      "alternates": [
+        {
+          "page_printed": "112",
+          "char_offset": null,
+          "quote": "FIGURE 2.2 Vietnam has had 25 years of fast, stable, and equitable economic growth a. GDP per capita level and growth b. Volatility of per capita GDP growth"
+        }
+      ],
+      "chain": {
+        "title": "Vietnam 2035: Toward Prosperity, Creativity, Equity, and Democracy",
+        "author": "World Bank; Ministry of Planning and Investment of Vietnam",
+        "date": "2016",
+        "identifier": "10.1596/978-1-4648-0824-1",
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": "FIGURE 2.2 Vietnam has had 25 years of fast, stable, and equitable economic growth",
+        "page_printed": "112"
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "stock-page-cap: Figure 2.2 sits on printed p. 112 (pdf page 150) past the 100-page reindex cap; its caption survives only as a list-of-figures entry (character 22 920), the figure page itself is in neither export nor index",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": [
+      {
+        "attachment_key": "TKLXGCGR",
+        "alternates": [
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "quote not located in the export fulltext",
+            "within_index_cap": null
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": true,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

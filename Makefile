@@ -16,7 +16,7 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate schema-gate sitter-version sitter-install sitter-verify-install test-fork
+.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate schema-gate sitter-version sitter-install sitter-verify-install golden golden-run menagerie-ris menagerie-package test-fork
 
 # Where the acceptance layer's arenas live: outside the repository, because the
 # residue sweep fills them with a target's derived state and bench/ is scanned
@@ -154,6 +154,10 @@ help:
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
 	@echo "make upstream-catchup  — QUIET or TOUCHED: did upstream move anything of ours"
 	@echo "make upstream-rebaseline — the UPSTREAM block for the current tip, computed, and the recipe"
+	@echo "make golden      — the golden gate: validate the question bank against the committed export, then score bench/results/golden/replies.json (exit 3 not-run when absent)"
+	@echo "make golden-run  — drive the bank through fork/dist/index.js over the replayed export and write bench/results/golden/replies.json"
+	@echo "make menagerie-ris     — regenerate bench/fixtures/export/menagerie.ris from recipe.json and the export (committed; a test holds it regenerable)"
+	@echo "make menagerie-package — MENAGERIE_PACKAGE=/path/out.zip: the RIS beside attachments/, each file sha256-checked against the recipe from MENAGERIE_CACHE (never committed)"
 	@echo "make test-fork   — the fork suite with TMPDIR off the /tmp tmpfs (FORK_TEST_TMPDIR, ticket 0714)"
 
 check: deps lint figures models names progress tickets ticket-logs sitter-version check-fast
@@ -230,7 +234,7 @@ ticket-logs:
 # author's profile would notice two different plugins carrying one manifest
 # version — and four commits already did, all of them 2.2.0. Zotero keys its
 # add-on record on that number. Ticket 0688. Also run by the test suite; kept as
-# its own target because it is the one to run after touching plugins/sdt-sitter/.
+# its own target because it is the one to run after touching bench/sdt-sitter/.
 # Needs real history, and says NOT-RUN rather than green where it has none.
 sitter-version:
 	python3 bench/check_sitter_version.py
@@ -350,6 +354,67 @@ schema-gate:
 	@python3 bench/upstream_catchup.py >/dev/null 2>&1 || true
 	SCHEMA_LEG_STRICT=1 python3 -m pytest tests/test_index_schema_fixtures.py -q \
 	  -k the_declaration_matches_upstreams_own_constant
+
+# The golden gate (SPEC.md §5.2.8, ticket 0722). Deliberately NOT in `check`: the
+# scorer reads a replies file a real build produced, and `check` must stay green on
+# a machine that has never built one — a prerequisite that cannot look would be
+# waived, and a waiver is a green that means "we decided not to look". The bank's
+# own discipline (structure, reachability against the committed export) is in
+# tests/test_golden_gate.py, which needs no build.
+#
+# Exit codes: 0 pass, 1 fail, 2 input error, 3 not-run (no replies file yet: the
+# bank's shape is printed instead, with the reason).
+GOLDEN_BANK ?= bench/fixtures/questions
+GOLDEN_EXPORT ?= bench/fixtures/export
+GOLDEN_REPLIES ?= bench/results/golden/replies.json
+GOLDEN_REPORT ?= bench/results/golden/report.json
+GOLDEN_SERVER ?= fork/dist/index.js
+GOLDEN_DATA_DIR ?= $(HOME)/data/golden-replay-index
+
+golden:
+	python3 bench/golden_gate.py validate --bank "$(GOLDEN_BANK)" --export "$(GOLDEN_EXPORT)"
+	python3 bench/golden_gate.py score --bank "$(GOLDEN_BANK)" --export "$(GOLDEN_EXPORT)" \
+	  --replies "$(GOLDEN_REPLIES)" --output "$(GOLDEN_REPORT)"
+
+# The runner: builds the replay index into an EMPTY $(GOLDEN_DATA_DIR) (created here;
+# refused by the replay if it already holds anything), starts the mock local API
+# again for the query side, and asks every question at k from SPEC §5.2.8 in the
+# lexical mode. Needs a built checkout: `make upstream-checkout && cd fork && npm ci
+# && npm run build`. Pass GOLDEN_PREVIOUS=<earlier replies.json> to embed the
+# previous run for the stability reading.
+GOLDEN_PREVIOUS ?=
+
+golden-run:
+	@test -f "$(GOLDEN_SERVER)" || { echo "No built server at $(GOLDEN_SERVER): make upstream-checkout, then npm ci && npm run build in fork/" >&2; exit 3; }
+	@test ! -e "$(GOLDEN_DATA_DIR)" || { echo "Refusing to build into existing $(GOLDEN_DATA_DIR); remove it or set GOLDEN_DATA_DIR" >&2; exit 2; }
+	mkdir -p "$(GOLDEN_DATA_DIR)"
+	python3 bench/golden_run.py --bank "$(GOLDEN_BANK)" --export "$(GOLDEN_EXPORT)" \
+	  --server "$(GOLDEN_SERVER)" --data-dir "$(GOLDEN_DATA_DIR)" --output "$(GOLDEN_REPLIES)" \
+	  $(if $(GOLDEN_PREVIOUS),--previous "$(GOLDEN_PREVIOUS)",)
+
+# The Menagerie as a colleague imports it (ticket 0721): one RIS record per
+# recipe parent, an L1 link per verified attachment at attachments/<id>.<ext>
+# relative to the file. The RIS is derived data and committed, like
+# recipe-pinned.json: tests/test_export_ris.py holds it byte-identical to what
+# this target writes, so a recipe or export change without a regeneration is
+# red. The bytes are never committed (Malynes alone is 352 MB): the package
+# target lays them out in a zip you name, taking each file from the recipe's
+# verified fetch cache only after its sha256 matches the recipe, and refusing
+# the whole package on the first mismatch or missing file. The package rewrites
+# the RIS on its way, with the same bytes when nothing has changed.
+MENAGERIE_RECIPE ?= bench/fixtures/recipe.json
+MENAGERIE_EXPORT ?= bench/fixtures/export
+MENAGERIE_RIS ?= $(MENAGERIE_EXPORT)/menagerie.ris
+MENAGERIE_CACHE ?= $(HOME)/data/golden-fixture-cache
+MENAGERIE_PACKAGE ?=
+
+menagerie-ris:
+	python3 bench/fixtures/export_ris.py --recipe "$(MENAGERIE_RECIPE)" --export "$(MENAGERIE_EXPORT)" --ris "$(MENAGERIE_RIS)"
+
+menagerie-package:
+	@test -n "$(MENAGERIE_PACKAGE)" || { echo "Name the zip: make menagerie-package MENAGERIE_PACKAGE=/path/out.zip" >&2; exit 2; }
+	python3 bench/fixtures/export_ris.py --recipe "$(MENAGERIE_RECIPE)" --export "$(MENAGERIE_EXPORT)" --ris "$(MENAGERIE_RIS)" \
+	  --cache-dir "$(MENAGERIE_CACHE)" --package "$(MENAGERIE_PACKAGE)"
 
 upstream-checkout:
 	@test ! -e fork || { echo "Refusing to overwrite existing fork/" >&2; exit 1; }

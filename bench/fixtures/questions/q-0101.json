@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0101",
+  "need": "Écrit avant d'ouvrir le document : Keynes soutient-il que toute probabilité peut recevoir une valeur numérique, ou admet-il des probabilités non mesurables et même non comparables entre elles ?",
+  "query": "Keynes toutes les probabilités sont-elles mesurables numériquement ou comparables",
+  "question_language": "fr",
+  "answer_language": "en",
+  "lane": "fr->en",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "index_fulltext_max_chars"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "keynes-1921-treatise-on-probability",
+      "recipe_id": "keynes-1921-treatise-on-probability",
+      "attachment_id": "keynes-1921-treatise-on-probability-pdf",
+      "attachment_key": "AJ7CXVDU",
+      "section": "Part I, Chapter III",
+      "alternates": [
+        {
+          "page_printed": "34",
+          "char_offset": 80980,
+          "quote": "By saying that not all probabilities are measurable, I mean that it is not possible to say of every pair of conclusions, about which we have some knowledge, that the degree of our rational belief in one bears any numerical relation to the degree of our rational belief in the other"
+        }
+      ],
+      "chain": {
+        "title": "A Treatise on Probability",
+        "author": "John Maynard Keynes",
+        "date": "1921",
+        "identifier": "https://archive.org/details/cu31924014110435",
+        "section_heading": "Chapter III. The Measurement of Probabilities",
+        "page_printed": "34",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "index_fulltext_max_chars: the answer paragraph (printed p. 34, character 80 995 of the extraction) lies past the 40 000-character index cap the product applied when the export was built; it is in the export but not in the index",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "AJ7CXVDU",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 80980,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

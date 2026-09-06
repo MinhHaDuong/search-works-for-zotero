@@ -5,9 +5,9 @@ and the discoveries did not survive: a mirror ruled out on an unauthenticated 40
 turned out to publish the full dtype set, and a repo id that no search can resolve
 was recorded as gated. The registry exists so that each of those facts is written
 down once, with the state it was observed in, and read by every child of the study.
-That only holds if nothing else in the source tree names a model — a driver with its
-own default is a second copy of the field, and the second copy is the one that
-goes stale.
+That only holds if nothing else in `bench/` names a model — a driver with its own
+default is a second copy of the field, and the second copy is the one that goes
+stale.
 
 Two checks, failing in opposite directions.
 
@@ -15,12 +15,10 @@ Two checks, failing in opposite directions.
 state is one of exactly three, a candidate is loadable, and a model that fails R7 is
 recorded as rejected rather than benchmarked.
 
-**No model id appears outside it.** Both the ids the registry declares and ones it
-has never heard of: a guard built from the registry's own vocabulary catches a model
-being removed and misses one being added, which is the direction that matters. Every
-directory that ships source is read — `SCANNED_ROOTS`, not `bench/` alone — because
-a payload promoted to another one takes its model names with it, and this guard
-would go on reporting that nothing names a model.
+**No model id appears in `bench/` outside it.** Both the ids the registry declares
+and ones it has never heard of: a guard built from the registry's own vocabulary
+catches a model being removed and misses one being added, which is the direction
+that matters.
 
 R7's language list is read from `SPEC.md`, not restated here. Editing
 R7 moves this guard with it, and a sheet this script cannot parse is an error rather
@@ -43,17 +41,8 @@ REGISTRY = "bench/models.json"
 #: R7's owner. The five languages are its sentence's, not this file's.
 R7_SOURCE = "SPEC.md"
 
-#: Scanned in full, minus the exemptions and the data directory below. Every
-#: directory that ships source, not `bench/` alone: ticket 0697 promoted the
-#: sitter to `plugins/`, and a roster naming only `bench/` would have let two
-#: delivered files leave this gate with nothing going red — the guard says
-#: "nothing else names a model" about a tree it had stopped reading. Probed with
-#: a planted id one directory apart, which is the only way to tell a clean scan
-#: from a scan that no longer looks. Hand-listed, and pinned to the packager's
-#: own `SOURCE` by an adherence test rather than imported from it: this guard is
-#: loaded straight from its path with no `bench/` on `sys.path`, and a top-level
-#: import would make the roster's honesty depend on how the module was loaded.
-SCANNED_ROOTS = ("bench", "plugins")
+#: Scanned in full, minus the exemptions and the data directory below.
+SCANNED_ROOT = "bench"
 
 #: Data, not code. A result record names the model it measured and must: a cell
 #: whose provenance is anonymous cannot be read a month later. Skipping the
@@ -70,7 +59,11 @@ SCANNED_ROOTS = ("bench", "plugins")
 #: from a subdirectory (`bench/fixtures/fetch_recipe.py`, 2026-09-02) writes its
 #: bytecode beside that script, and a prefix-only skip turned the gate red on the
 #: first such import.
-SKIPPED = ("bench/results/",)
+#: `bench/fixtures/export/fulltext/` joins it (ticket 0721): the Menagerie export's files are
+#: Zotero's extracted text of public documents, data the replay serves and never code, and a
+#: document's own prose ("historical/economic", Jevons) is not a model id. The trailing slash
+#: is load-bearing here too, and the manifest and items.json beside it stay scanned.
+SKIPPED = ("bench/results/", "bench/fixtures/export/fulltext/")
 GENERATED_DIR = "__pycache__"
 
 #: Exempt, each for its own reason, and there are only two. The registry is the
@@ -185,6 +178,9 @@ PATH_OWNERS = {
     "bench",
     "spec",
     "tests",
+    # The Menagerie RIS package's L1 links (`attachments/<id>.<ext>`, ticket 0721) open a
+    # path relative to the RIS file; the fixture ids under it read like model names.
+    "attachments",
     "tickets",
     "verification",
     "results",
@@ -256,17 +252,15 @@ def load_registry(root: Path) -> dict:
 
 
 def scanned_files(root: Path) -> list[Path]:
-    """Every file under the scanned roots, minus the data directory and the exemptions."""
+    """Every file under `bench/`, minus the data directory and the two exemptions."""
     files = []
-    for scanned in SCANNED_ROOTS:
-        for path in sorted((root / scanned).rglob("*")):
-            if not path.is_file():
-                continue
-            rel = path.relative_to(root).as_posix()
-            if (rel in EXEMPT or rel.startswith(SKIPPED)
-                    or GENERATED_DIR in path.relative_to(root).parts):
-                continue
-            files.append(path)
+    for path in sorted((root / SCANNED_ROOT).rglob("*")):
+        if not path.is_file():
+            continue
+        rel = path.relative_to(root).as_posix()
+        if rel in EXEMPT or rel.startswith(SKIPPED) or GENERATED_DIR in path.relative_to(root).parts:
+            continue
+        files.append(path)
     return files
 
 
@@ -621,13 +615,9 @@ def run(root: Path) -> int:
     if failures:
         logger.error("%d failure(s)", len(failures))
         return 1
-    # The roster is named in the verdict rather than left implicit: this guard's
-    # whole claim is about a scope, so a reader has to be able to see which
-    # directories it just read without opening the file.
     logger.info(
-        "OK: the registry is well formed, and nothing under %s names a model, "
-        "a pooling mode, a normalize flag, or an input template",
-        ", ".join(f"{scanned}/" for scanned in SCANNED_ROOTS),
+        "OK: the registry is well formed, and nothing else in bench/ names a model, "
+        "a pooling mode, a normalize flag, or an input template"
     )
     return 0
 

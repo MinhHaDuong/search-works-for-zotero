@@ -1,0 +1,12 @@
+{
+  "manifest_version": 2,
+  "name": "SDT Pack Sitter (experimental)",
+  "version": "0.2.11",
+  "description": "Warm native Zotero SDT packs, one attachment at a time; a disposable on-disk cache carries pack-freshness and duration observations across sessions, never an active-job or failure ledger. State transitions go to Zotero's debug output and a volatile in-session ring.",
+  "applications": { "zotero": {
+    "id": "sdt-pack-sitter@search-works-for-zotero.invalid",
+    "strict_min_version": "10.0.1",
+    "strict_max_version": "10.*",
+    "update_url": "https://raw.githubusercontent.com/MinhHaDuong/search-works-for-zotero/main/bench/sdt-sitter/update.json"
+  } }
+}

@@ -23,9 +23,8 @@ each.
 | [`SYNC.md`](SYNC.md) | Live account of Zotero and zoteus upstream movement |
 | [`STATE.md`](STATE.md) | Compact live operational handoff and pointers; owns no requirements, measurements, or history |
 | [`tickets/`](tickets/) | Work train, tracked with [git-erg](https://github.com/MinhHaDuong/git-erg) |
-| [`bench/`](bench/) | Executable probes, one-off measurement scripts, and acceptance-harness work |
+| [`bench/`](bench/) | Executable probes and acceptance-harness work |
 | [`bench/results/`](bench/results/) | Committed raw evidence behind reported figures |
-| [`plugins/`](plugins/) | Zotero plugins this repo ships: source with its own manifest, version and install lifecycle — a probe belongs in `bench/` |
 | [`verification/`](verification/) | Reports that settle a factual question, and the probes that produced them |
 | [`UPSTREAM`](UPSTREAM) | Machine-readable zoteus review baseline |
 
@@ -45,8 +44,7 @@ once, in `SPEC.md` §1. Read it there rather than here.
   interpretations, mechanism substitutions, and choices among consequences
   are decisions, not factual corrections, and still require the ruling first.
 - **`SPEC.md` owns every design number**, and nothing else carries one: gate
-  thresholds §5.2.8, the fixture contract's per-cell minima §5.2.10, experiment
-  decision rules §5.3, budgets §5.2.9. §2
+  thresholds §5.2.8, experiment decision rules §5.3, budgets §5.2.9. §2
   Terminology and §6 Security own none and point at the owner instead, and §6
   discloses rather than decides, so closing a gap it names is a ruling in
   `DECISIONS.md` first and a requirement in §3 second. The header date is the

@@ -38,7 +38,7 @@ import shutil
 import sys
 from pathlib import Path
 
-#: `applications.zotero.id` in `plugins/sdt-sitter/manifest.json`. RFC 2606
+#: `applications.zotero.id` in `bench/sdt-sitter/manifest.json`. RFC 2606
 #: reserves `.invalid` so that nothing resolves it — which is correct for an
 #: id, since Zotero never dereferences one, and was a defect for the
 #: `update_url` beside it, which Zotero does fetch.

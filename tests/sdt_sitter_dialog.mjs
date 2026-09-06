@@ -22,6 +22,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 
+import { loadSitterLocale } from './fluent_stub.mjs';
 
 const XHTML = 'http://www.w3.org/1999/xhtml';
 
@@ -102,16 +103,18 @@ function makeZotero() {
 }
 
 const ui = vm.createContext({});
-vm.runInContext(fs.readFileSync('plugins/sdt-sitter/bootstrap.js', 'utf8'), ui);
+vm.runInContext(fs.readFileSync('bench/sdt-sitter/bootstrap.js', 'utf8'), ui);
 // Loaded second, as `initialize` loads it at runtime: `var` redeclaration
 // without an initializer leaves bootstrap.js's own bindings alone, so the
 // dialog gets the real estimator and the real ring rather than stand-ins.
-vm.runInContext(fs.readFileSync('plugins/sdt-sitter/scheduler.js', 'utf8'), ui);
+vm.runInContext(fs.readFileSync('bench/sdt-sitter/scheduler.js', 'utf8'), ui);
 // Ticket 0692: the window's text comes from `locale/fr/sdt-pack-sitter.ftl`,
 // through the plugin's own loader. Every French assertion below is therefore
 // about the layout, the translation and the load path at once — and the arms
 // that assert what does NOT reach the clipboard are unaffected either way,
 // which is why they still read the same.
+assert.equal((await loadSitterLocale(ui, 'fr')).locale, 'fr',
+  'the French locale did not load, so every assertion below is about message ids');
 
 const DEBUG_PREF = 'extensions.sdt-pack-sitter.debug';
 const INSTALL_PATH = 'file:///home/tester/.zotero/profile/extensions/sdt-pack-sitter/';
@@ -170,21 +173,21 @@ test('the three layers exist, in order, with diagnostics nested inside details',
     'diagnostics is a sibling of Details, not nested inside it');
   assert.equal(doc.getElementById('sdt-index-details').parentNode, layer2);
   // Nothing sets `open`, which is what makes both closed on first paint.
-  assert.equal(layer2.getAttribute('open'), null, 'Details ships expanded');
-  assert.equal(layer3.getAttribute('open'), null, 'Technical diagnostics ships expanded');
+  assert.equal(layer2.getAttribute('open'), null, 'Détails ships expanded');
+  assert.equal(layer3.getAttribute('open'), null, 'Diagnostics techniques ships expanded');
 });
 
 test('layer 1 still carries progress, and layer 2 still carries the counts', () => {
-  assert(doc.getElementById('sdt-status').textContent.startsWith('Files indexed'));
+  assert(doc.getElementById('sdt-status').textContent.startsWith('Fichiers indexés'));
   assert.equal(doc.getElementById('sdt-global-progress').parentNode.id, 'sdt-global-section');
   assert.equal(doc.getElementById('sdt-progress').parentNode.id, 'sdt-document-section');
-  assert(doc.getElementById('sdt-diagnostics').textContent.includes('Census: 3 / 3'));
+  assert(doc.getElementById('sdt-diagnostics').textContent.includes('Recensement : 3 / 3'));
   assert(doc.getElementById('sdt-fulltext').textContent.includes('"indexed": 3'),
     'the native index statistics did not land');
   // The fit the estimates rest on: count and covariate, both in layer 2. Three
   // page counts were observed, so the per-page covariate is the one that carried.
   assert.equal(doc.getElementById('sdt-observations').textContent,
-    'Observed durations: 3 — basis: per page');
+    'Durées observées : 3 — base de calcul : par page');
 });
 
 test('the debug switch is a labelled native checkbox', () => {
@@ -254,20 +257,21 @@ test('versions, admission readings and the install path are on screen', () => {
   assert(environment.includes(INSTALL_PATH), 'the install path is not shown');
   // Absent readings say so rather than printing zeros that read as measurements.
   assert.equal(doc.getElementById('sdt-admission').textContent,
-    'No resource reading since startup.');
+    'Aucune mesure de ressources depuis le démarrage.');
   ui.admission = { at: Date.now(), memoryAvailableBytes: 6.5 * 1024 ** 3, load: 1.5, cpus: 8,
     diskAvailableBytes: 120 * 1024 ** 3 };
   ui.render();
   const readings = doc.getElementById('sdt-admission').textContent;
-  assert(readings.includes('6.5 GiB'), readings);
-  assert(readings.includes('120.0 GiB'), readings);
-  assert(readings.includes('1.5 on 8'), readings);
+  assert(readings.includes('6,5 Gio'), readings);
+  assert(readings.includes('120,0 Gio'), readings);
+  // A decimal comma, like the two byte readings beside it: /proc hands out a point.
+  assert(readings.includes('1,5 sur 8'), readings);
 });
 
 test('the copied journal carries the build and never the install path', () => {
   doc.getElementById('sdt-journal-copy').fire('click');
   assert.equal(doc.getElementById('sdt-journal-copy-status').textContent,
-    'Log copied to the clipboard.');
+    'Journal copié dans le presse-papiers.');
   const report = JSON.parse(state.clipboard);
   assert.equal(report.version, '9.9.9-fixture');
   assert.equal(report.zoteroVersion, '10.0.5-stub');
@@ -287,7 +291,7 @@ test('an unavailable clipboard is reported, not thrown', () => {
   state.clipboard = null;
   doc.getElementById('sdt-journal-copy').fire('click');
   assert.equal(doc.getElementById('sdt-journal-copy-status').textContent,
-    'Copy failed: clipboard unavailable.');
+    'Copie impossible : presse-papiers indisponible.');
   assert.equal(state.clipboard, null);
   state.copyAvailable = true;
 });
@@ -300,7 +304,7 @@ test('a pref that cannot be read does not stop the redraw loop', () => {
   ui.render();
   // Not forced back: an unreadable pref must not fight the control either.
   assert.equal(toggle.checked, true);
-  assert(doc.getElementById('sdt-status').textContent.startsWith('Files indexed'),
+  assert(doc.getElementById('sdt-status').textContent.startsWith('Fichiers indexés'),
     'the rest of the redraw did not run');
   ui.Zotero.Prefs.get = working;
 });
@@ -309,7 +313,7 @@ test('a torn-down ring degrades to a message instead of throwing', () => {
   const ring = ui.journal;
   ui.journal = { tail() { throw new Error('ring gone'); } };
   ui.render();
-  assert.equal(doc.getElementById('sdt-journal').textContent, 'Log unreadable: Error');
+  assert.equal(doc.getElementById('sdt-journal').textContent, 'Journal illisible : Error');
   ui.journal = ring;
 });
 
@@ -322,7 +326,7 @@ test('a torn-down ring degrades to a message instead of throwing', () => {
    Here the real `emit('startup', environment)` runs, from the real
    `initialize()`, into a ring that already exists. That is not a contrived
    state: `journal ??=` keeps the ring across a disable/re-enable, which is
-   exactly what the sitter's own "turn the add-on off, then on again" tells
+   exactly what the sitter's own "désactiver puis réactiver l'extension" tells
    the author to do. Halted at `uiReadyPromise`, the first thing after the
    startup record, as tests/sdt_sitter_startup.mjs halts it. */
 async function driveReinitialisation() {
@@ -337,7 +341,7 @@ async function driveReinitialisation() {
     Prefs: host.Prefs,
     File: { getContentsFromURLAsync: async url => {
       assert.equal(url, `${INSTALL_PATH}manifest.json`, 'the manifest is not read from rootURI');
-      return fs.readFileSync('plugins/sdt-sitter/manifest.json', 'utf8');
+      return fs.readFileSync('bench/sdt-sitter/manifest.json', 'utf8');
     } },
   };
   await assert.rejects(ui.initialize(INSTALL_PATH, 0), /halt: after the self-check/);
