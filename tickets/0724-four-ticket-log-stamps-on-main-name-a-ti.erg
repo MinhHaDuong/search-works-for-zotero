@@ -1,0 +1,35 @@
+%erg 0.1
+Title: Four ticket log stamps on main name a time after the commit that wrote them
+Created: 2026-09-06
+Author: sim
+
+--- log ---
+2026-09-06T17:07Z sim created
+2026-09-06T21:22Z claude note corrected all four stamps to the author time of the introducing commit, found per line with `log -S` on the line text rather than blame, which names the last touch and would push a stamp later than the line was written (DECISIONS.md 2026-09-01). No entry text changed. Scanned the three open merge requests first: none touches either ticket, so no sibling is about to rewrite these lines under me
+
+--- body ---
+## Context
+`make check` on `origin/main` at `cc3def7` (2026-09-06, after PR #397 merged) is red on
+`bench/check_ticket_logs.py`: four log entries are stamped after the commit that
+introduced them, which the 2026-09-01 ruling (DECISIONS.md) forbids. None came from
+PR #397; all four arrived from sibling sessions today. Per line, the introducing
+commit's author time (walked with `git log -S` on the line text, not blame):
+
+| ticket:line | stamped | introduced by | author time |
+|---|---|---|---|
+| 0029:39 | 10:05Z | `f47ba7f` | 09:52Z |
+| 0029:41 | 16:20Z | `b00f500` | 16:00Z |
+| 0029:42 | 17:05Z | `c1b7b58` | 16:14Z |
+| 0719:8 | 17:10Z | `c1b7b58` | 16:14Z |
+
+Found by the raid on ticket 0714 at its wrap-up `make check` against main. The
+same class as the 0714 stamp both PR #395 and #397 corrected: a wall-clock
+time typed into the log ahead of the commit that carried it.
+
+## Actions
+1. Correct each stamp to the author time of its introducing commit, per the
+   ruling's own remedy. No entry text changes.
+
+## Exit criteria
+- [x] `python3 bench/check_ticket_logs.py` reports OK (1527 entries across 278 tickets)
+- [x] `make check` passes (1019 passed, 14 skipped)
