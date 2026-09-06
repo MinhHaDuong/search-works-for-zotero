@@ -2,11 +2,13 @@
 Title: French locale strings need the espace insécable before : and %
 Created: 2026-09-06
 Author: claude
+Closed: author's call: goldplating -- a tooltip line-wrap cosmetic nit in an unreleased plugin, not worth the guard
 
 --- log ---
 2026-09-06T17:43Z claude created
 2026-09-06T17:47Z claude note Filed out of PR #403's doc-propagation review. Not a defect that PR introduced -- the wording predates it (`bootstrap.js` on `origin/main` at db1ea83 already carried "En pause : " six times) and ticket 0692's fourth acceptance criterion forbade it from changing wording. What 0692 did change is that the strings are now data in four files instead of literals in one, which is what makes this mechanizable at all: measured, not estimated, at 41 lines.
 
+2026-09-06T18:25Z sim closed — author's call: goldplating -- a tooltip line-wrap cosmetic nit in an unreleased plugin, not worth the guard
 --- body ---
 ## Context
 
