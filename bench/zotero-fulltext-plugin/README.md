@@ -83,7 +83,11 @@ automatic sync at startup, so items the harness writes headless stay local
 until something asks (padme, 2026-09-06: 103 parents at local version 484 while
 the server still held 17 at version 140). `POST` with `{"libraryID": n}` or
 `{"groupID": n}` starts the sync and returns at once (409 when sync is not set
-up in the profile or one is already running); `GET` reports whether sync is
+up in the profile or one is already running). The stored key sits behind the OS
+key store, which a headless client cannot unlock (padme: the login keyring
+locked, `User canceled OS unlock entry`), so the body may carry `"apiKey"` for
+this one run: it goes through the runner's own in-memory setter, is never
+written or echoed, and is cleared when the run ends; `GET` reports whether sync is
 set up and in progress, the last status and error, and per library its type,
 group id, version, last sync and count of unsynced items — poll it until
 `inProgress` is false and `unsynced` is 0, then confirm against the public API.

@@ -60,8 +60,10 @@ Zotero.Libraries.getAll = () => [
   { libraryID: 3, libraryType: 'group', groupID: 6659303, name: 'Fixture', libraryVersion: 140, lastSync: 9, storageVersion: 0 },
 ];
 Zotero.DB.valueQueryAsync = async (_sql, libraryID) => (libraryID === 3 ? 232 : 0);
+const keysSet = [];
 Zotero.Sync = { Runner: {
   enabled: true, syncInProgress: false, lastSyncStatus: 'idle',
+  set apiKey(value) { keysSet.push(value); },
   sync: async (options) => { syncCalls.push(options); },
 } };
 Zotero.Items.get = (id) => ({ key: 'ATT' + id, attachmentLinkMode: 2, attachmentContentType: 'application/pdf', attachmentPath: 'attachments/x.pdf', fileExists: async () => true });
@@ -86,9 +88,13 @@ vm.runInContext(fs.readFileSync(bootstrapPath, 'utf8'), context, { filename: 'bo
   const syncNoBody = await new Sync().init({ method: 'POST', data: {} });
   Zotero.Sync.Runner.enabled = false;
   const syncDisabled = await new Sync().init({ method: 'POST', data: { libraryID: 3 } });
+  const syncWithKey = await new Sync().init({ method: 'POST', data: { libraryID: 3, apiKey: 'sekrit' } });
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  const syncAfterKey = await new Sync().init({ method: 'GET' });
   console.log(JSON.stringify({
     sync: { before: JSON.parse(syncBefore[2]), start: [syncStart[0], JSON.parse(syncStart[2])],
-            noLibrary: syncNoLibrary[0], noBody: syncNoBody[0], disabled: syncDisabled[0], calls: syncCalls },
+            noLibrary: syncNoLibrary[0], noBody: syncNoBody[0], disabled: syncDisabled[0], calls: syncCalls,
+            withKey: [syncWithKey[0], syncWithKey[2]], afterKey: syncAfterKey[2], keysSet },
     before: JSON.parse(status0[2]), reindex: [reindex[0], JSON.parse(reindex[2])],
     after: JSON.parse(status1[2]), calls, imports,
     imported: [imported[0], JSON.parse(imported[2])], relative: relative[0], unmatched: unmatched[0],
@@ -180,6 +186,11 @@ def test_sync_starts_one_library_through_the_runner_and_reports_where_it_stands(
     group = [row for row in out["before"]["libraries"] if row["libraryType"] == "group"][0]
     assert group == {"libraryID": 3, "libraryType": "group", "groupID": 6659303, "name": "Fixture",
                      "libraryVersion": 140, "lastSync": 9, "storageVersion": 0, "unsynced": 232}
-    assert out["start"] == [202, {"started": True, "libraryID": 3, "groupID": 6659303}]
-    assert out["calls"] == [{"background": False, "libraries": [3]}]
+    assert out["start"] == [202, {"started": True, "libraryID": 3, "groupID": 6659303, "apiKeyOverride": False}]
+    assert out["calls"] == [{"background": False, "libraries": [3]}] * 2, "the plain run and the key run both reach the runner"
     assert out["noLibrary"] == 404 and out["noBody"] == 400 and out["disabled"] == 409
+    # A key handed in for one run goes through the runner's in-memory setter, is never
+    # echoed, and is cleared once the run ends.
+    assert out["withKey"][0] == 202 and "sekrit" not in out["withKey"][1] and "sekrit" not in out["afterKey"]
+    assert '"apiKeyOverride":true' in out["withKey"][1] and '"apiKeyOverride":false' in out["afterKey"]
+    assert out["keysSet"] == ["sekrit", None]

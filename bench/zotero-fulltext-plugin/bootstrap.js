@@ -210,7 +210,7 @@ Import.prototype = {
  * server still held 17 at version 140). Data and, when storage sync is enabled,
  * files, through Zotero's own Sync.Runner; nothing here writes an item.
  *
- *   POST /search-works/fulltext/sync   {"libraryID": 3} or {"groupID": 6659303}
+ *   POST /search-works/fulltext/sync   {"libraryID": 3} or {"groupID": 6659303}, optional "apiKey"
  *     Starts Zotero.Sync.Runner.sync for that library and returns at once.
  *   GET  /search-works/fulltext/sync
  *     Whether sync is set up and in progress, the last status and error, and per
@@ -220,6 +220,7 @@ let syncRuns = 0;
 let lastSyncError = null;
 let lastSyncStarted = null;
 let lastSyncFinished = null;
+let apiKeyOverride = false;
 
 function findLibrary({ libraryID, groupID }) {
   for (const library of Zotero.Libraries.getAll()) {
@@ -259,25 +260,40 @@ Sync.prototype = {
       }
       const library = findLibrary({ libraryID, groupID });
       if (!library) return json(404, { error: 'no such library', libraryID, groupID });
-      if (!runner.enabled) return json(409, { error: 'sync is not set up in this profile (no API key)' });
+      // The stored key sits behind the OS key store, which a headless client cannot
+      // unlock (padme: "User canceled OS unlock entry" with the login keyring locked).
+      // An optional key for this run goes through the runner's own in-memory setter,
+      // is never written anywhere, never echoed, and is cleared when the run ends.
+      const apiKey = typeof data?.apiKey === 'string' && data.apiKey.length > 0 ? data.apiKey : null;
+      if (!runner.enabled && !apiKey) return json(409, { error: 'sync is not set up in this profile (no API key)' });
       if (runner.syncInProgress) return json(409, { error: 'a sync is already in progress' });
       syncRuns += 1;
       lastSyncError = null;
       lastSyncStarted = new Date().toISOString();
       lastSyncFinished = null;
+      if (apiKey) {
+        runner.apiKey = apiKey;
+        apiKeyOverride = true;
+      }
       runner.sync({ background: false, libraries: [library.libraryID] })
         .catch((e) => {
           lastSyncError = String(e?.message ?? e);
           log(`sync failed: ${lastSyncError}`);
         })
         .finally(() => {
+          if (apiKey) {
+            runner.apiKey = null;
+            apiKeyOverride = false;
+          }
           lastSyncFinished = new Date().toISOString();
         });
-      return json(202, { started: true, libraryID: library.libraryID, groupID: library.groupID ?? null });
+      return json(202, {
+        started: true, libraryID: library.libraryID, groupID: library.groupID ?? null, apiKeyOverride,
+      });
     }
     return json(200, {
       enabled: Boolean(runner.enabled), inProgress: Boolean(runner.syncInProgress),
-      lastSyncStatus: runner.lastSyncStatus ?? null, syncRuns, lastSyncError,
+      lastSyncStatus: runner.lastSyncStatus ?? null, syncRuns, lastSyncError, apiKeyOverride,
       lastSyncStarted, lastSyncFinished, libraries: await libraryRows(),
     });
   },
