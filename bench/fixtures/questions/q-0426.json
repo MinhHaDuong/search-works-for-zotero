@@ -1,0 +1,56 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0426",
+  "need": "Written before opening the document: an Arabic reader wants Ibn Khaldūn's description of the Nile's course through the first climate — where it meets the sea, and which lands (Nubia, Abyssinia) lie along it. Printed page ٤٤ read on the page (pdf page 60).",
+  "query": "النيل في وسط الاقليم الاول بلاد النوبة والحبشة أسوان الجنادل",
+  "question_language": "ar",
+  "answer_language": "ar",
+  "lane": "ar->ar",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "deep-body",
+  "stratum": "reserve",
+  "mechanisms": [
+    "degraded-ocr-text-layer",
+    "monster-non-latin-script",
+    "rtl-script",
+    "should-language-arabic",
+    "monster-x-script"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "ibn-khaldun-1904-muqaddimah",
+      "recipe_id": "ibn-khaldun-1904-muqaddimah",
+      "attachment_id": "ibn-khaldun-1904-muqaddimah-pdf",
+      "attachment_key": "ALU3335W",
+      "section": "المقدمة — الاقليم الاول، مجرى النيل",
+      "alternates": [
+        {
+          "page_printed": "٤٤",
+          "char_offset": null,
+          "quote": "ثم يتصل بالبحر في وسط هـذا الاقليم الاول وعلى هذا النيل بلاد النوبة والحبشة"
+        }
+      ],
+      "chain": {
+        "title": "مقدمة ابن خلدون (Al-Muqaddimah)",
+        "author": "عبد الرحمن بن خلدون (Ibn Khaldūn, 1332-1406)",
+        "date": "1904",
+        "identifier": "https://archive.org/details/almuqaddimah00ibnk",
+        "section_heading": "الاقليم الاول",
+        "page_printed": "٤٤",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "degraded OCR text layer: the 1904 Būlāq scan's embedded text is de-joined letter by letter and word boundaries are lost (the extraction of pdf page 60 reads 'ن ي ص ل ا دالاب' where the page reads connected Arabic), so no faithful span of the printed page is locatable in the export's fulltext even though the attachment is indexed",
+  "reachability": null,
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

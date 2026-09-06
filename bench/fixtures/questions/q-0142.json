@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0142",
+  "need": "Hazard row for the multi-attachment mechanism with a silent extraction failure: this record carries three renderings of the same book — a scanned PDF, a plain-text file and an EPUB. Zotero reports the EPUB as indexed, and its extracted content is 27 characters of whitespace, so a reader who is served the EPUB rendering gets a hit with nothing in it. The row pins the EPUB deliberately.",
+  "query": "Jevons preface the contents of the following pages can hardly meet with ready acceptance science of political economy nearly perfect form",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "multi-attachment-parent",
+    "silent-empty-extraction"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "jevons-1871-theory-of-political-economy",
+      "recipe_id": "jevons-1871-theory-of-political-economy",
+      "attachment_id": "jevons-1871-theory-of-political-economy-epub",
+      "attachment_key": "8ZYYSCZ8",
+      "section": "Preface",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": null,
+          "quote": "The contents of the following pages can hardly meet with ready acceptance among those who regard the Science of Political Economy as having already acquired a nearly perfect form."
+        }
+      ],
+      "chain": {
+        "title": "The Theory of Political Economy",
+        "author": "William Stanley Jevons",
+        "date": "1871",
+        "identifier": "https://archive.org/details/theoryofpolitica00jevouoft",
+        "section_heading": "Preface",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "silent empty extraction: attachment 8ZYYSCZ8 (the EPUB rendering) finishes in the export as terminal_state 'indexed' with indexed_chars 27 of 27, and those 27 characters are whitespace; no span of the book can be located in it, and the failure announces itself nowhere in the attachment's state",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": [
+      {
+        "attachment_key": "8ZYYSCZ8",
+        "alternates": [
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "quote not located in the export fulltext",
+            "within_index_cap": null
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

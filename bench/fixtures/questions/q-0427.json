@@ -1,0 +1,55 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0427",
+  "need": "Hazard row: a structural mark — an editorial footnote — in a degraded Arabic scan. The foot of printed page ٤٤ carries note (١) glossing the vocalisation of البجة and the spelling زيلع. A hit would have to locate the footnote apart from the body text above it.",
+  "query": "حاشية البجة بضم الباء وفتح الجيم البجاة زالع زيلع",
+  "question_language": "ar",
+  "answer_language": "ar",
+  "lane": "ar->ar",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "deep-body",
+  "stratum": "reserve",
+  "mechanisms": [
+    "structural-footnote",
+    "structural-marks-x-script",
+    "degraded-ocr-text-layer",
+    "rtl-script"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "ibn-khaldun-1904-muqaddimah",
+      "recipe_id": "ibn-khaldun-1904-muqaddimah",
+      "attachment_id": "ibn-khaldun-1904-muqaddimah-pdf",
+      "attachment_key": "ALU3335W",
+      "section": "المقدمة — حاشية صفحة ٤٤",
+      "alternates": [
+        {
+          "page_printed": "٤٤",
+          "char_offset": null,
+          "quote": "قوله البجة بضم الباء وفتح الجيم ويقال أيضاً البجاة وأما زالع فبي زيلع اه"
+        }
+      ],
+      "chain": {
+        "title": "مقدمة ابن خلدون (Al-Muqaddimah)",
+        "author": "عبد الرحمن بن خلدون (Ibn Khaldūn, 1332-1406)",
+        "date": "1904",
+        "identifier": "https://archive.org/details/almuqaddimah00ibnk",
+        "section_heading": "حاشية (١)",
+        "page_printed": "٤٤",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "degraded OCR text layer: the footnote at the foot of printed page ٤٤ is not recoverable from the scan's embedded text, which renders Arabic letter by letter without word boundaries",
+  "reachability": null,
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

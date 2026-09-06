@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0344",
+  "need": "Viết trước khi mở tài liệu: đâu là lý do môi trường khiến tăng trưởng của Việt Nam khó bền vững trong dài hạn — vùng nào chịu rủi ro khí hậu cao nhất, và nhiệt điện than có nằm trong lập luận không?",
+  "query": "vùng nào của Việt Nam dễ tổn thương nhất trước khí hậu thay đổi, và vì sao mức phát thải lại đang tăng nhanh",
+  "question_language": "vi",
+  "answer_language": "vi",
+  "lane": "vi->vi",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "compound-book-section"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "wb-2016-vietnam-2035-vi-overview",
+      "recipe_id": "wb-2016-vietnam-2035-vi-overview",
+      "attachment_id": "wb-2016-vietnam-2035-vi-overview-pdf",
+      "attachment_key": "WEBKA55Y",
+      "section": "Những thông điệp chính — Thịnh vượng về kinh tế đi đôi với bền vững về môi trường",
+      "alternates": [
+        {
+          "page_printed": "XXV",
+          "quote": "Trong tương lai, Việt Nam cũng là một trong những quốc gia dễ bị tổn thương nhất bởi biến đổi khí hậu, trong đó dân cư và hoạt động kinh tế tập trung tại khu vực Đồng bằng sông Cửu Long phải chịu rủi ro cao nhất.",
+          "char_offset": 34688
+        }
+      ],
+      "chain": {
+        "title": "Việt Nam 2035: Hướng tới Thịnh vượng, Sáng tạo, Công bằng và Dân chủ — Báo cáo tổng quan",
+        "author": "Ngân hàng Thế giới; Bộ Kế hoạch và Đầu tư Việt Nam",
+        "date": "2016",
+        "identifier": "10.1596/978-1-4648-0824-1",
+        "section_heading": "Những thông điệp chính",
+        "page_printed": "XXV",
+        "part_title": "Báo cáo tổng quan",
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "WEBKA55Y",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 34688,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

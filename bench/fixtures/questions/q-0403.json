@@ -1,0 +1,53 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0403",
+  "need": "Written before opening the document: which two twentieth-century episodes does an Arabic reference work cite as the standard illustrations of hyperinflation, and in which years?",
+  "query": "التضخم المفرط ألمانيا جمهورية فايمار 1923 هنغاريا 1945 انهيار العملة الوطنية",
+  "question_language": "ar",
+  "answer_language": "ar",
+  "lane": "ar->ar",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "should-language-arabic",
+    "rtl-script"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "wp-inflation-ar",
+      "recipe_id": "wp-inflation-ar",
+      "attachment_id": "wp-inflation-ar-html",
+      "attachment_key": "4H4FFJA2",
+      "section": "أنواع التضخم",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": null,
+          "quote": "كما حصل في كل من ألمانيا بين عامي 1921 و1923 م إبان فترة حكم جمهورية فايمار، وفي هنغاريا عام 1945 م"
+        }
+      ],
+      "chain": {
+        "title": "تضخم اقتصادي",
+        "author": "Wikipedia contributors",
+        "date": "2026",
+        "identifier": "https://ar.wikipedia.org/w/index.php?title=تضخم_اقتصادي&oldid=76021974",
+        "section_heading": "أنواع التضخم",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": null,
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

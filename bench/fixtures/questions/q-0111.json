@@ -1,0 +1,78 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0111",
+  "need": "Written before opening the document: the mineral-spring example — how does Cournot set up the monopolist's problem before any cost of production enters?",
+  "query": "proprietor of a mineral spring monopoly price per liter maximum pF(p) Cournot",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "cournot-1897-researches-bacon",
+      "recipe_id": "cournot-1897-researches-bacon",
+      "attachment_id": "cournot-1897-researches-bacon-pdf",
+      "attachment_key": "5I938WPW",
+      "section": "Chapter V. Of Monopoly",
+      "alternates": [
+        {
+          "page_printed": "56",
+          "char_offset": 92661,
+          "quote": "For convenience in discussion, suppose that a man finds himself proprietor of a mineral spring which has just been found to possess salutary properties possessed by no other."
+        }
+      ],
+      "chain": {
+        "title": "Researches into the Mathematical Principles of the Theory of Wealth",
+        "author": "Antoine-Augustin Cournot; translated by Nathaniel T. Bacon; essay and bibliography by Irving Fisher",
+        "date": "1897",
+        "identifier": "https://archive.org/details/bub_gb_AGoGpyJY_SAC",
+        "section_heading": "Chapter V. Of Monopoly",
+        "page_printed": "56",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "5I938WPW",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 92661,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

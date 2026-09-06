@@ -1,0 +1,29 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0442",
+  "need": "Hazard row for a declared failure control — visible, not silent, degradation. The Schindler dataset's literature table (77 articles) is the substance of the record; a query about which alien species were linked to human health impacts would be answered from it. The export declares this attachment answer_set_participation = 'none', so the correct behaviour is that it never appears in an answer set and the degradation is legible in the counters rather than showing up as a plausible-looking wrong hit.",
+  "query": "Schindler alien species public health impacts Europe literature table 77 articles",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "failure-control",
+    "source-format-xlsx-container",
+    "visible-not-silent-degradation"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [],
+  "expected_miss": true,
+  "expected_miss_mechanism": "declared failure control, unindexed container: an Office Open XML spreadsheet (12 zip members, xl/workbook.xml); the extractor reads PDF, HTML and plain text only, so the attachment finishes with no full text (attachment schindler-2015-alien-species-health-xlsx, key PPE7BXDQ)",
+  "reachability": null,
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

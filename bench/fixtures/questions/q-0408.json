@@ -1,0 +1,53 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0408",
+  "need": "Written before opening the document: is there a country whose own average temperature is said to be climbing several times faster than the planetary mean, and by what factor? Asked in English against a Russian article.",
+  "query": "country warming two and a half times faster than the global average, Taymyr peninsula heating fastest",
+  "question_language": "en",
+  "answer_language": "ru",
+  "lane": "en->ru",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "should-language-russian",
+    "cross-lingual-en-to-ru"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "wp-climate-change-ru",
+      "recipe_id": "wp-climate-change-ru",
+      "attachment_id": "wp-climate-change-ru-html",
+      "attachment_key": "HVSJUFSL",
+      "section": "Региональные последствия",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": null,
+          "quote": "На территории России среднегодовая температура растёт быстрее в 2,5-2,8 раза, чем в среднем на планете"
+        }
+      ],
+      "chain": {
+        "title": "Глобальное потепление",
+        "author": "Wikipedia contributors",
+        "date": "2026",
+        "identifier": "https://ru.wikipedia.org/w/index.php?title=Глобальное_потепление&oldid=154801640",
+        "section_heading": "Региональные последствия",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": null,
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

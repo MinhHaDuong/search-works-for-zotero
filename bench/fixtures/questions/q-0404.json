@@ -1,0 +1,54 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0404",
+  "need": "Written before opening the document: how did Keynes redefine inflation away from the purely monetary nineteenth-century account — what quantity does he say exceeds what? Asked in English against an Arabic encyclopaedia article.",
+  "query": "Keynes redefinition of inflation as aggregate demand persistently exceeding real productive capacity",
+  "question_language": "en",
+  "answer_language": "ar",
+  "lane": "en->ar",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "should-language-arabic",
+    "cross-lingual-en-to-ar",
+    "rtl-script"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "wp-inflation-ar",
+      "recipe_id": "wp-inflation-ar",
+      "attachment_id": "wp-inflation-ar-html",
+      "attachment_key": "4H4FFJA2",
+      "section": "تاريخ التضخم",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": null,
+          "quote": "وهكذا توصل «كينز» إلى أن التضخم هو: زيادة حجم الطلب الكلي على حجم العرض الحقيقي زيادة محسوسة ومستمرة"
+        }
+      ],
+      "chain": {
+        "title": "تضخم اقتصادي",
+        "author": "Wikipedia contributors",
+        "date": "2026",
+        "identifier": "https://ar.wikipedia.org/w/index.php?title=تضخم_اقتصادي&oldid=76021974",
+        "section_heading": "تاريخ التضخم",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": null,
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

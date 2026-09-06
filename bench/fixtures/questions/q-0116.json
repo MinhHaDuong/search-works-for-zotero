@@ -1,0 +1,78 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0116",
+  "need": "Written before opening the document: for a briefing note I need the report's own headline split of U.S. primary energy — what share is fossil, and where do coal and oil each go?",
+  "query": "share of U.S. primary energy from fossil fuels coal used for power oil used for transport Quadrennial Technology Review",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "doe-2011-quadrennial-technology-review",
+      "recipe_id": "doe-2011-quadrennial-technology-review",
+      "attachment_id": "doe-2011-quadrennial-technology-review-pdf",
+      "attachment_key": "CHSB3HZ9",
+      "section": "Today's Energy Landscape — Different Fuels for Different Uses",
+      "alternates": [
+        {
+          "page_printed": "8",
+          "char_offset": 40610,
+          "quote": "Fossil fuels currently provide 83% of U.S. primary energy, with almost all coal (93%12) used for power and most oil (72%13) used for transport."
+        }
+      ],
+      "chain": {
+        "title": "Report on the First Quadrennial Technology Review",
+        "author": "U.S. Department of Energy",
+        "date": "2011",
+        "identifier": "10.2172/1186659",
+        "section_heading": "Different Fuels for Different Uses",
+        "page_printed": "8",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "CHSB3HZ9",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 40610,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

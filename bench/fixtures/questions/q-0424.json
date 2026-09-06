@@ -1,0 +1,55 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0424",
+  "need": "Hazard row, paired with q-0423 in the same document: the chapter announcing price, cost and productive expenditure sits at character 69 661 of the extraction — past the 40 000-character index cap. Devanagari is three UTF-8 bytes per character, so this row and q-0423 bracket the cap on both sides in a script where byte count and character count diverge by a factor of three. Printed page ४३ (pdf page 61) read on the page.",
+  "query": "मोल, दाम और उत्पादक व्यय मकान किराया तनख्वा धनभंडार",
+  "question_language": "hi",
+  "answer_language": "hi",
+  "lane": "hi->hi",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "deep-body",
+  "stratum": "reserve",
+  "mechanisms": [
+    "extraction-cap-crossing-past",
+    "index-fulltext-max-chars-40000",
+    "devanagari-multibyte-offsets",
+    "monster-non-latin-script"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "dli-1915-arthashastra-hindi",
+      "recipe_id": "dli-1915-arthashastra-hindi",
+      "attachment_id": "dli-1915-arthashastra-hindi-text-pdf",
+      "attachment_key": "JYJ6DZQ4",
+      "section": "तीसरा प्रकरण — मोल, दाम और उत्पादक व्यय",
+      "alternates": [
+        {
+          "page_printed": "४३",
+          "char_offset": null,
+          "quote": "भागमें मोल, दाम और उत्पादक व्यय ( मकान किराया तनख्वाका धनभंडार ) के विपयमें कहेंगे"
+        }
+      ],
+      "chain": {
+        "title": "अर्थशास्त्र (Arthashastra: a Hindi political economy after Mrs Fawcett)",
+        "author": "Millicent Garrett Fawcett (श्रीमती एम. जी. फ़ॉसेट); Hindi adaptation edited at Navaratna Sarasvati Bhavan, Jhalrapatan",
+        "date": "1915",
+        "identifier": "https://archive.org/details/in.ernet.dli.2015.404610",
+        "section_heading": "मोल, दाम और उत्पादक व्यय",
+        "page_printed": "४३",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "past the index cap: the span is located in the export's fulltext at character 69 661, beyond ZOTEUS_INDEX_FULLTEXT_MAX_CHARS = 40 000, so it is in the export but not in the index",
+  "reachability": null,
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0130",
+  "need": "Hazard row for the index-cap mechanism on a short article: this 21-page paper extracts to 50 676 characters, so the Conclusions — printed p. 19 of 21 — fall past the 40 000-character index cap while the abstract and the tables do not. The cap bites the end of a paper, which is where its claims are restated.",
+  "query": "Ormos conclusions entropy combines the advantages of the CAPM risk parameter and the standard deviation",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "index-cap-crossing"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "ormos-2014-entropy-asset-pricing",
+      "recipe_id": "ormos-2014-entropy-asset-pricing",
+      "attachment_id": "ormos-2014-entropy-asset-pricing-plos-pdf",
+      "attachment_key": "6NZDWHVP",
+      "section": "Conclusions",
+      "alternates": [
+        {
+          "page_printed": "19 / 21",
+          "char_offset": 42346,
+          "quote": "Entropy as a novel risk measure combines the advantages of the CAPM's risk parameter (beta) and the standard deviation."
+        }
+      ],
+      "chain": {
+        "title": "Entropy-based financial asset pricing",
+        "author": "Mihály Ormos; Dávid Zibriczky",
+        "date": "2014",
+        "identifier": "10.1371/journal.pone.0115742",
+        "section_heading": "Conclusions",
+        "page_printed": "19 / 21",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "index-cap crossing: the span is located in the export fulltext past 40 000 characters (ZOTEUS_INDEX_FULLTEXT_MAX_CHARS as this export was built), so it is reachable in the export and absent from the index; within_index_cap is false on stamping",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "6NZDWHVP",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 42346,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

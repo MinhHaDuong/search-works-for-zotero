@@ -1,0 +1,53 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0421",
+  "need": "Written before opening the document: which composite indicator adds the inflation rate to the unemployment rate, who proposed it and when?",
+  "query": "痛苦指數 亞瑟·奧肯 1970年代 通貨膨脹與失業率之總合",
+  "question_language": "zh",
+  "answer_language": "zh",
+  "lane": "zh->zh",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "should-language-chinese",
+    "han-script"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "wp-inflation-zh",
+      "recipe_id": "wp-inflation-zh",
+      "attachment_id": "wp-inflation-zh-html",
+      "attachment_key": "U8WE6E53",
+      "section": "痛苦指數",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": null,
+          "quote": "痛苦指數（Misery index）於1970年代由亞瑟·奧肯發表，代表令人不快的經濟狀況，等於通貨膨脹與失業率之總合。"
+        }
+      ],
+      "chain": {
+        "title": "通货膨胀",
+        "author": "Wikipedia contributors",
+        "date": "2026",
+        "identifier": "https://zh.wikipedia.org/w/index.php?title=通货膨胀&oldid=93863360",
+        "section_heading": "痛苦指數",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": null,
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0440",
+  "need": "Hazard row for a declared failure control — visible, not silent, degradation. The EPA inventory's chapter tables are attached as one zip of 308 CSV files. A query for a numbered inventory table is exactly the query this container would answer if it were extractable. The export declares this attachment answer_set_participation = 'none', so the correct behaviour is that it never appears in an answer set and the degradation is legible in the counters rather than showing up as a plausible-looking wrong hit.",
+  "query": "EPA greenhouse gas inventory 1990-2014 chapter tables CSV Table 3-1 energy",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "failure-control",
+    "source-format-zip-container",
+    "visible-not-silent-degradation"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [],
+  "expected_miss": true,
+  "expected_miss_mechanism": "declared failure control, unindexed container: a zip archive of 308 CSV tables; the extractor reads PDF, HTML and plain text only, so the attachment finishes with no full text (attachment epa-2016-ghg-inventory-chapter-tables-zip, key SKP8SYZ8)",
+  "reachability": null,
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

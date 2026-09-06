@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0112",
+  "need": "Écrit avant d'ouvrir le document : de quoi dépend, selon Cournot, la forme de la loi du débit ? Je lis le français, mais la bibliothèque contient à la fois l'original de 1838 et sa traduction anglaise de 1897 : la réponse peut arriver dans l'une ou l'autre langue.",
+  "query": "Cournot : de quoi dépend la forme de la loi du débit — usages, habitudes, richesse moyenne, répartition de la richesse",
+  "question_language": "fr",
+  "answer_language": "en",
+  "lane": "fr->en",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "work-identity-translation",
+    "cross-lingual"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "cournot-1897-researches-bacon",
+      "recipe_id": "cournot-1897-researches-bacon",
+      "attachment_id": "cournot-1897-researches-bacon-pdf",
+      "attachment_key": "5I938WPW",
+      "section": "Chapter IV. Of the Law of Demand",
+      "alternates": [
+        {
+          "page_printed": "47",
+          "char_offset": 78561,
+          "quote": "on the nature of the services it can render or the enjoyments it can procure, on the habits and customs of the people, on the average wealth, and on the scale on which wealth is distributed."
+        }
+      ],
+      "chain": {
+        "title": "Researches into the Mathematical Principles of the Theory of Wealth",
+        "author": "Antoine-Augustin Cournot; translated by Nathaniel T. Bacon; essay and bibliography by Irving Fisher",
+        "date": "1897",
+        "identifier": "https://archive.org/details/bub_gb_AGoGpyJY_SAC",
+        "section_heading": "Chapter IV. Of the Law of Demand",
+        "page_printed": "47",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "5I938WPW",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 78561,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

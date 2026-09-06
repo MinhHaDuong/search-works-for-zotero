@@ -1,0 +1,53 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0435",
+  "need": "Hazard row for the group-library slice: the whole fixture lives in closed Zotero group library 6659303, collection 3AY48MA5, not in a personal library. This row asserts that an ordinary body-text answer is retrievable from the group exactly as it would be from the personal library — the D4 reading that the library is a filter facet over one merged index, not a separate index.",
+  "query": "ИПЦ индекс Ласпейреса фиксированная корзина товаров измерение инфляции",
+  "question_language": "ru",
+  "answer_language": "ru",
+  "lane": "ru->ru",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "group",
+  "stratum": "core",
+  "mechanisms": [
+    "group-library-slice",
+    "should-language-russian"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "wp-inflation-ru",
+      "recipe_id": "wp-inflation-ru",
+      "attachment_id": "wp-inflation-ru-html",
+      "attachment_key": "WDSNEPI9",
+      "section": "Методы измерения инфляции — Индекс потребительских цен",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": null,
+          "quote": "С математической точки зрения, ИПЦ является индексом Ласпейреса."
+        }
+      ],
+      "chain": {
+        "title": "Инфляция",
+        "author": "Wikipedia contributors",
+        "date": "2026",
+        "identifier": "https://ru.wikipedia.org/w/index.php?title=Инфляция&oldid=154827362",
+        "section_heading": "Методы измерения инфляции — Индекс потребительских цен",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": null,
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

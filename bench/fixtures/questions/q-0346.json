@@ -1,0 +1,82 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0346",
+  "need": "Hazard: the Vietnamese twin of the same Foreword, in the full 584-page book. The 40 000-character index cap falls inside this volume's table of contents, so nothing of its body — the Foreword at character 78 190 included — is indexed, while the English twin's Foreword sits at character 5 681 and is. The pair is the cleanest reading of what the cap does to a translation: same paragraph, one language in the index and the other out.",
+  "query": "báo cáo Việt Nam 2035 sáu chuyển đổi quan trọng để trở thành nền kinh tế thu nhập trung bình cao lời giới thiệu",
+  "question_language": "vi",
+  "answer_language": "vi",
+  "lane": "vi->vi",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "cross-lingual-anchor",
+    "index_fulltext_max_chars",
+    "stock-page-cap"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "wb-2016-vietnam-2035-vi",
+      "recipe_id": "wb-2016-vietnam-2035-vi",
+      "attachment_id": "wb-2016-vietnam-2035-vi-pdf",
+      "attachment_key": "VA62AWYN",
+      "section": "Lời giới thiệu",
+      "alternates": [
+        {
+          "page_printed": "xxvii",
+          "quote": "Báo cáo khuyến nghị Việt Nam cần thực hiện sáu chuyển đổi quan trọng để trở thành một nền kinh tế thu nhập trung bình cao.",
+          "char_offset": 78660
+        }
+      ],
+      "chain": {
+        "title": "Việt Nam 2035: Hướng tới Thịnh vượng, Sáng tạo, Công bằng và Dân chủ",
+        "author": "Ngân hàng Thế giới; Bộ Kế hoạch và Đầu tư Việt Nam",
+        "date": "2016",
+        "identifier": "10.1596/978-1-4648-0824-1",
+        "section_heading": "Lời giới thiệu",
+        "page_printed": "xxvii",
+        "part_title": null,
+        "part_byline": "Nguyễn Tấn Dũng; Jim Yong Kim"
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "index_fulltext_max_chars: the Foreword of the full Vietnamese volume lies at character 78 190 of a 224 451-character extraction; the 40 000-character cap falls inside the table of contents, so no body paragraph of this 584-page book reaches the index (its 100-page pdfMaxPages cap bites as well)",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "VA62AWYN",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 78660,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

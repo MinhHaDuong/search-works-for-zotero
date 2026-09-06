@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0343",
+  "need": "Viết trước khi mở tài liệu: báo cáo Việt Nam 2035 đặt mốc năm 2035 vì lý do gì — có phải vì đó là tròn 60 năm ngày thống nhất đất nước — và ba trụ cột của chương trình cải cách là gì?",
+  "query": "Việt Nam 2035 tròn 60 năm tái thống nhất đất nước ba trụ cột thịnh vượng kinh tế bền vững môi trường công bằng hòa nhập xã hội trách nhiệm giải trình",
+  "question_language": "vi",
+  "answer_language": "vi",
+  "lane": "vi->vi",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "compound-book-section"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "wb-2016-vietnam-2035-vi-overview",
+      "recipe_id": "wb-2016-vietnam-2035-vi-overview",
+      "attachment_id": "wb-2016-vietnam-2035-vi-overview-pdf",
+      "attachment_key": "WEBKA55Y",
+      "section": "Những thông điệp chính",
+      "alternates": [
+        {
+          "page_printed": "XXIII",
+          "quote": "Hướng tới năm 2035, tròn 60 năm tái thống nhất đất nước, Việt Nam cần khơi dậy khát vọng xây dựng một đất nước công nghiệp, hiện đại với chất lượng cuộc sống cao hơn.",
+          "char_offset": 29955
+        }
+      ],
+      "chain": {
+        "title": "Việt Nam 2035: Hướng tới Thịnh vượng, Sáng tạo, Công bằng và Dân chủ — Báo cáo tổng quan",
+        "author": "Ngân hàng Thế giới; Bộ Kế hoạch và Đầu tư Việt Nam",
+        "date": "2016",
+        "identifier": "10.1596/978-1-4648-0824-1",
+        "section_heading": "Những thông điệp chính",
+        "page_printed": "XXIII",
+        "part_title": "Báo cáo tổng quan",
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "WEBKA55Y",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 29955,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

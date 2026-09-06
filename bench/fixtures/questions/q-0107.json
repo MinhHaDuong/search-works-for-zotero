@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0107",
+  "need": "Écrit avant d'ouvrir le document : à partir de quelle minceur une houillère victorienne renonce-t-elle à exploiter une veine, et quelles charges fixes du puits décident de cette limite ? Je pose la question en français ; le paragraphe qui répond est en anglais.",
+  "query": "à partir de quelle épaisseur une houillère victorienne renonce à ouvrir une veine, compte tenu des frais fixes d'épuisement et d'entretien du puits",
+  "question_language": "fr",
+  "answer_language": "en",
+  "lane": "fr->en",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "cross-lingual"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "jevons-1865-coal-question",
+      "recipe_id": "jevons-1865-coal-question",
+      "attachment_id": "jevons-1865-coal-question-pdf",
+      "attachment_key": "YFEVR9T3",
+      "section": "Chapter III. Of the Cost of Coal Mining",
+      "alternates": [
+        {
+          "page_printed": "52",
+          "char_offset": 77710,
+          "quote": "found that, at the present price of coal, it is not profitable to work seams of less than 18 or 24 inches thickness."
+        }
+      ],
+      "chain": {
+        "title": "The Coal Question; an enquiry concerning the progress of the Nation, and the probable exhaustion of our coal-mines",
+        "author": "William Stanley Jevons",
+        "date": "1865",
+        "identifier": "https://archive.org/details/bub_gb_gAAKAAAAIAAJ",
+        "section_heading": "Chapter III. Of the Cost of Coal Mining",
+        "page_printed": "52",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "YFEVR9T3",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 77710,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0401",
+  "need": "Written before opening the document: besides carbon dioxide, which farming and waste activities release the second most important heat-trapping gas? The question is asked in English; the answer paragraph is expected to be Arabic and to name none of the English words used in the query.",
+  "query": "livestock, paddy fields, landfill sites and coal mines as sources of the second most important heat-trapping gas",
+  "question_language": "en",
+  "answer_language": "ar",
+  "lane": "en->ar",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "should-language-arabic",
+    "cross-lingual-en-to-ar",
+    "rtl-script"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "wp-climate-change-ar",
+      "recipe_id": "wp-climate-change-ar",
+      "attachment_id": "wp-climate-change-ar-html",
+      "attachment_key": "3I2ZVXN3",
+      "section": "مفعول الدفيئة",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": null,
+          "quote": "غاز الدفيئة المؤثر الآخر هو الميثان المنبعث من مزارع الأرز وتربية البقر ومطامر النفايات وإشغال المناجم وأنابيب الغاز."
+        }
+      ],
+      "chain": {
+        "title": "تغير المناخ",
+        "author": "Wikipedia contributors",
+        "date": "2026",
+        "identifier": "https://ar.wikipedia.org/w/index.php?title=تغير_المناخ&oldid=75703810",
+        "section_heading": "مفعول الدفيئة",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": null,
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0409",
+  "need": "Written before opening the document: which economist illustrated shortage-by-price-control with a grocery example, and what was the commodity and the capped price?",
+  "query": "Милтон Фридман помидоры два цента за фунт закон дефицит",
+  "question_language": "ru",
+  "answer_language": "ru",
+  "lane": "ru->ru",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "should-language-russian"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "wp-inflation-ru",
+      "recipe_id": "wp-inflation-ru",
+      "attachment_id": "wp-inflation-ru-html",
+      "attachment_key": "WDSNEPI9",
+      "section": "Особенности инфляции в СССР",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": null,
+          "quote": "Если вы хотите создать дефицит, например, помидоров, нужно просто принять закон, по которому розничные торговцы не могут продавать помидоры более чем за два цента за фунт."
+        }
+      ],
+      "chain": {
+        "title": "Инфляция",
+        "author": "Wikipedia contributors",
+        "date": "2026",
+        "identifier": "https://ru.wikipedia.org/w/index.php?title=Инфляция&oldid=154827362",
+        "section_heading": "Особенности инфляции в СССР",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": null,
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

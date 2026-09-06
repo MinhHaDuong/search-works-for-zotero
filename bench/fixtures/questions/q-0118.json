@@ -1,0 +1,82 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0118",
+  "need": "Hazard row for the figure-caption mechanism: the caption printed under the Sankey diagram of U.S. energy flows. The recipe expects the caption present; it is on the page, but the small-caps font's ToUnicode map is broken, so extraction writes 'Figure 1. 5 3 %NERGY &LOWS IN' where the page reads 'Figure 1. U.S. Energy Flows in 2010'.",
+  "query": "Figure 1 U.S. Energy Flows in 2010 Sankey diagram quadrillion British thermal units",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "structural-caption",
+    "broken-glyph-mapping",
+    "extraction-mangled-span"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "doe-2011-quadrennial-technology-review",
+      "recipe_id": "doe-2011-quadrennial-technology-review",
+      "attachment_id": "doe-2011-quadrennial-technology-review-pdf",
+      "attachment_key": "CHSB3HZ9",
+      "section": "Today's Energy Landscape, Figure 1 caption",
+      "alternates": [
+        {
+          "page_printed": "8",
+          "char_offset": null,
+          "quote": "Figure 1. U.S. Energy Flows in 2010"
+        }
+      ],
+      "chain": {
+        "title": "Report on the First Quadrennial Technology Review",
+        "author": "U.S. Department of Energy",
+        "date": "2011",
+        "identifier": "10.2172/1186659",
+        "section_heading": "Today's Energy Landscape",
+        "page_printed": "8",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "extraction-mangled span: the caption is printed on p. 8 but its small-caps font has no usable ToUnicode map, so both Zotero and pdftotext render it 'Figure 1. 5 3 %NERGY &LOWS IN'; the span as printed cannot be located in the export fulltext, and no lexical query on the caption's words can reach it",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": [
+      {
+        "attachment_key": "CHSB3HZ9",
+        "alternates": [
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "quote not located in the export fulltext",
+            "within_index_cap": null
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

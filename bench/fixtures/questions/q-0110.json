@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0110",
+  "need": "Hazard row for the page-cap mechanism: Jevons discusses petroleum as a supposed substitute for coal in chapter VII, printed p. 141 — read on the page, but on pdf page 153 of a 366-page scan, past the 100-page extraction cap.",
+  "query": "Jevons on petroleum as a supposed substitute for coal marine steam-engine boilers",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "page-cap-crossing"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "jevons-1865-coal-question",
+      "recipe_id": "jevons-1865-coal-question",
+      "attachment_id": "jevons-1865-coal-question-pdf",
+      "attachment_key": "YFEVR9T3",
+      "section": "Chapter VII. Of Supposed Substitutes for Coal",
+      "alternates": [
+        {
+          "page_printed": "141",
+          "char_offset": null,
+          "quote": "Petroleum has of late years become the matter of a most extensive trade, and has even been proposed by American inventors for use in marine steam-engine boilers."
+        }
+      ],
+      "chain": {
+        "title": "The Coal Question; an enquiry concerning the progress of the Nation, and the probable exhaustion of our coal-mines",
+        "author": "William Stanley Jevons",
+        "date": "1865",
+        "identifier": "https://archive.org/details/bub_gb_gAAKAAAAIAAJ",
+        "section_heading": "Chapter VII. Of Supposed Substitutes for Coal",
+        "page_printed": "141",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "page-cap crossing: Zotero indexed the first 100 pdf pages only (fulltext.pdfMaxPages = 100) of a 366-page scan, so chapter VII (printed p. 141, pdf page 153) is in the file and its bytes are cached, but no span of it exists in the export's fulltext to be located or retrieved",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": [
+      {
+        "attachment_key": "YFEVR9T3",
+        "alternates": [
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "quote not located in the export fulltext",
+            "within_index_cap": null
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

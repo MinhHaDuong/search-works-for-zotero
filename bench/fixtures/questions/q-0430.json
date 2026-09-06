@@ -1,0 +1,55 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0430",
+  "need": "Hazard row paired with q-0429 in the same EPUB: the waggon-versus-ship arithmetic between London and Edinburgh sits at character 42 553, just past the 40 000-character index cap. Latin script, one byte per character — the control arm against the Cyrillic and Devanagari cap pairs, where byte count and character count diverge.",
+  "query": "broad-wheeled waggon two men eight horses six weeks London Edinburgh four ton weight of goods",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "extraction-cap-crossing-past",
+    "index-fulltext-max-chars-40000",
+    "source-format-epub",
+    "latin-single-byte-offsets"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "smith-1776-wealth-of-nations",
+      "recipe_id": "smith-1776-wealth-of-nations",
+      "attachment_id": "smith-1776-wealth-of-nations-epub",
+      "attachment_key": "EAM35WCU",
+      "section": "Book I, Chapter III — That the Division of Labour is limited by the Extent of the Market",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": null,
+          "quote": "A broad-wheeled waggon, attended by two men, and drawn by eight horses, in about six weeks time, carries and brings back between London and Edinburgh near four ton weight of goods."
+        }
+      ],
+      "chain": {
+        "title": "An Inquiry into the Nature and Causes of the Wealth of Nations",
+        "author": "Adam Smith",
+        "date": "1776",
+        "identifier": "https://www.gutenberg.org/ebooks/3300",
+        "section_heading": "CHAPTER III. THAT THE DIVISION OF LABOUR IS LIMITED BY THE EXTENT OF THE MARKET.",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "past the index cap: the span is located in the export's fulltext at character 42 553, beyond ZOTEUS_INDEX_FULLTEXT_MAX_CHARS = 40 000, so it is in the export but not in the index",
+  "reachability": null,
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0444",
+  "need": "Hazard row for a declared failure control — visible, not silent, degradation. Quyển II of the same history is a 347-page PDF; a query about the Lê dynasty would expect it. The export declares this attachment answer_set_participation = 'none', so the correct behaviour is that it never appears in an answer set and the degradation is legible in the counters rather than showing up as a plausible-looking wrong hit.",
+  "query": "Trần Trọng Kim Việt Nam sử lược quyển II nhà Lê Trịnh Nguyễn phân tranh",
+  "question_language": "vi",
+  "answer_language": "vi",
+  "lane": "vi->vi",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "failure-control",
+    "scan-without-text-layer",
+    "visible-not-silent-degradation"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [],
+  "expected_miss": true,
+  "expected_miss_mechanism": "declared failure control, scan without a text layer: an un-OCR'd scan (pdftotext extracts 347 bytes over 347 pages, one page break per page), so indexPDF gets no text, writes no fulltextItems row, and /fulltext has no census entry (attachment tran-trong-kim-1928-viet-nam-su-luoc-q2, key 5MZPTISM)",
+  "reachability": null,
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

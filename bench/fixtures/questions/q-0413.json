@@ -1,0 +1,54 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0413",
+  "need": "Written before opening the document: which of Kuvrat's sons founded the Bulgarian state, in what year, and over which province? Asked in English against an 1818 Russian chronicle.",
+  "query": "which son of Kuvrat founded the Bulgarian state in 679 after conquering Moesia",
+  "question_language": "en",
+  "answer_language": "ru",
+  "lane": "en->ru",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "should-language-russian",
+    "cross-lingual-en-to-ru",
+    "legacy-encoding-windows-1251"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "karamzin-1818-istoriya-gosudarstva-rossiyskogo-t1-gl1",
+      "recipe_id": "karamzin-1818-istoriya-gosudarstva-rossiyskogo-t1-gl1",
+      "attachment_id": "karamzin-1818-istoriya-t1-gl1-magister-1999-cp1251-html",
+      "attachment_key": "TFNYR22R",
+      "section": "Глава I — Болгария, сыновья Куврата",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": null,
+          "quote": "а третий, Аспарух, утвердился сперва между Днестром и Дунаем, но в 679 году, завоевав и всю Мизию, где жили многие Славяне, основал там сильное государство Болгарское."
+        }
+      ],
+      "chain": {
+        "title": "История государства Российского. Том 1, глава I: О народах, издревле обитавших в России",
+        "author": "Николай Михайлович Карамзин",
+        "date": "1818",
+        "identifier": "https://web.archive.org/web/19991010004134/http://www.magister.msk.ru/library/history/karamzin/kar01_01.htm",
+        "section_heading": "Глава I — Болгария, сыновья Куврата",
+        "page_printed": null,
+        "part_title": "Глава I. О народах, издревле обитавших в России. О славянах вообще",
+        "part_byline": "Николай Михайлович Карамзин"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": null,
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

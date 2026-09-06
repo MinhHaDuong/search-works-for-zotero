@@ -1,0 +1,54 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0414",
+  "need": "Written before opening the document: Tolstoy's compilation quotes a figure for the accumulated debt of the European states and says what nearly all of it was borrowed for. What is the figure, and how much of it was contracted in the last hundred years? The source is a 1999 lib.ru mirror in KOI8-R.",
+  "query": "Государства Европы накопили долг в 130 миллиардов расходы на войне Молинари",
+  "question_language": "ru",
+  "answer_language": "ru",
+  "lane": "ru->ru",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "legacy-encoding-koi8-r",
+    "should-language-russian",
+    "extraction-cap-crossing-inside"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "tolstoy-1910-sueverie-gosudarstva",
+      "recipe_id": "tolstoy-1910-sueverie-gosudarstva",
+      "attachment_id": "tolstoy-1910-sueverie-gosudarstva-librue-1999-html",
+      "attachment_key": "6XLZXPPE",
+      "section": "III. Государство основано на насилии — 4 (Молинари)",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": null,
+          "quote": "Государства Европы накопили долг в 130 миллиардов. Из этих 130 около 110 сделано в последние сто лет."
+        }
+      ],
+      "chain": {
+        "title": "Суеверие государства",
+        "author": "Лев Николаевич Толстой (составитель)",
+        "date": "1910",
+        "identifier": "https://web.archive.org/web/19991128173655/http://lib.ru/LITRA/TOLSTOJ/gosudarstwo.txt",
+        "section_heading": "III. Государство основано на насилии — 4 (Молинари)",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": null,
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

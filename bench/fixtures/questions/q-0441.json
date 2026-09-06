@@ -1,0 +1,29 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0441",
+  "need": "Hazard row for a declared failure control — visible, not silent, degradation. Ramsey's Foundations of Mathematics is a 340-page book in the corpus; a reader asking for 'Truth and Probability' would expect it to answer. The export declares this attachment answer_set_participation = 'none', so the correct behaviour is that it never appears in an answer set and the degradation is legible in the counters rather than showing up as a plausible-looking wrong hit.",
+  "query": "Ramsey Truth and Probability degrees of belief Foundations of Mathematics 1931",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "failure-control",
+    "scan-without-text-layer",
+    "visible-not-silent-degradation"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [],
+  "expected_miss": true,
+  "expected_miss_mechanism": "declared failure control, scan without a text layer: an un-OCR'd scan with zero embedded fonts (pdftotext extracts 340 bytes over 340 pages, pdffonts lists none), so indexPDF gets no text, writes no fulltextItems row, and /fulltext has no census entry (attachment ramsey-1931-foundations-of-mathematics, key K6VK5Y68)",
+  "reachability": null,
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

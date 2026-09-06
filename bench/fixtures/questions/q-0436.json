@@ -1,0 +1,53 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0436",
+  "need": "The harness canary. Deliberately trivial and unambiguous: the exact title of the only Karamzin chapter in the corpus, matched against its own heading line at character 49 of the extraction. If this row misses, the replay harness is miswired and every other row in the bank should be distrusted; it is not a statement about the corpus.",
+  "query": "Карамзин История государства Российского глава I О народах, издревле обитавших в России. О славянах вообще",
+  "question_language": "ru",
+  "answer_language": "ru",
+  "lane": "ru->ru",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "harness-canary",
+    "known-item"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "karamzin-1818-istoriya-gosudarstva-rossiyskogo-t1-gl1",
+      "recipe_id": "karamzin-1818-istoriya-gosudarstva-rossiyskogo-t1-gl1",
+      "attachment_id": "karamzin-1818-istoriya-t1-gl1-magister-1999-cp1251-html",
+      "attachment_key": "TFNYR22R",
+      "section": "Глава I — heading line",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": null,
+          "quote": "О НАРОДАХ, ИЗДРЕВЛЕ ОБИТАВШИХ В РОССИИ. О СЛАВЯНАХ ВООБЩЕ"
+        }
+      ],
+      "chain": {
+        "title": "История государства Российского. Том 1, глава I: О народах, издревле обитавших в России",
+        "author": "Николай Михайлович Карамзин",
+        "date": "1818",
+        "identifier": "https://web.archive.org/web/19991010004134/http://www.magister.msk.ru/library/history/karamzin/kar01_01.htm",
+        "section_heading": "Глава I — heading line",
+        "page_printed": null,
+        "part_title": "Глава I. О народах, издревле обитавших в России. О славянах вообще",
+        "part_byline": "Николай Михайлович Карамзин"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": null,
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

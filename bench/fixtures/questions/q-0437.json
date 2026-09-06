@@ -1,0 +1,29 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0437",
+  "need": "Hazard row for a declared failure control — visible, not silent, degradation. Bastiat's Œuvres complètes tome 1 is also attached as Gutenberg's 35390-8.zip, holding the same text file. A reader asking for the Correspondance letters could plausibly be answered from the zip. The export declares this attachment answer_set_participation = 'none', so the correct behaviour is that it never appears in an answer set and the degradation is legible in the counters rather than showing up as a plausible-looking wrong hit.",
+  "query": "Bastiat Œuvres complètes tome 1 correspondance mélanges archive zip Gutenberg 35390",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "failure-control",
+    "source-format-zip-container",
+    "visible-not-silent-degradation"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [],
+  "expected_miss": true,
+  "expected_miss_mechanism": "declared failure control, unindexed container: a zip archive holding 35390-8.txt; Zotero's extraction dispatch handles PDF, EPUB and text/* only, so the archive is never extracted and joins no answer set (attachment bastiat-1862-oeuvres-completes-t1-zip, key E5TSEXCY)",
+  "reachability": null,
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

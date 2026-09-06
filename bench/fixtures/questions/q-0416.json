@@ -1,0 +1,54 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0416",
+  "need": "Written before opening the document: the compilation endorses Pascal's remark that being killed because one lives on the far bank of a river is absurd. Does the page agree with that claim, and where is it attributed? Asked in English against a Russian page.",
+  "query": "the page agrees that it is absurd a man may kill me because he lives across the river and his sovereign quarrels with mine",
+  "question_language": "en",
+  "answer_language": "ru",
+  "lane": "en->ru",
+  "signal": "agreement",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "should-language-russian",
+    "cross-lingual-en-to-ru",
+    "legacy-encoding-koi8-r"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "tolstoy-1910-sueverie-gosudarstva",
+      "recipe_id": "tolstoy-1910-sueverie-gosudarstva",
+      "attachment_id": "tolstoy-1910-sueverie-gosudarstva-librue-1999-html",
+      "attachment_key": "6XLZXPPE",
+      "section": "III. Государство основано на насилии — 5 (Паскаль)",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": null,
+          "quote": "Может ли быть что-нибудь нелепее того, что человек имеет право убить меня потому, что он живет на той стороне реки и что его государь в ссоре с моим, хотя я и не думал ссориться с ним?"
+        }
+      ],
+      "chain": {
+        "title": "Суеверие государства",
+        "author": "Лев Николаевич Толстой (составитель)",
+        "date": "1910",
+        "identifier": "https://web.archive.org/web/19991128173655/http://lib.ru/LITRA/TOLSTOJ/gosudarstwo.txt",
+        "section_heading": "III. Государство основано на насилии — 5 (Паскаль)",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": null,
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

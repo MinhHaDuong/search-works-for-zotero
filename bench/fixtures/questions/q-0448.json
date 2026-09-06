@@ -1,0 +1,30 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0448",
+  "need": "Hazard row for a declared failure control — visible, not silent, degradation. One Zenodo record, Markandya et al.'s rest-of-the-world employment data, carries both of the corpus's remaining Office containers: the workbook holding the employment figures and the word-processing file describing them — the corpus has no ODT, and this .docx is the nearest thing to one. A query for either the figures or their description would expect this record. Both attachments are declared failure controls of the same record, so they are one question with two named containers rather than two questions about one record. The export declares this attachment answer_set_participation = 'none', so the correct behaviour is that it never appears in an answer set and the degradation is legible in the counters rather than showing up as a plausible-looking wrong hit.",
+  "query": "Markandya employment data rest of the world low-carbon technologies European Union workbook and data description",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "failure-control",
+    "source-format-xlsx-container",
+    "visible-not-silent-degradation",
+    "source-format-docx-container"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [],
+  "expected_miss": true,
+  "expected_miss_mechanism": "declared failure controls, unindexed containers: an Office Open XML workbook (zip container, xl/workbook.xml) and an Office Open XML word-processing file (zip container, word/document.xml); the extractor reads PDF, HTML, EPUB and plain text only, so both attachments finish with no full text (attachment zenodo-1246601-green-economy-employment-xlsx + -docx, key QLABMW2R and PLQE2DJH)",
+  "reachability": null,
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}
