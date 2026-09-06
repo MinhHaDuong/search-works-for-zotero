@@ -59,7 +59,11 @@ SCANNED_ROOT = "bench"
 #: from a subdirectory (`bench/fixtures/fetch_recipe.py`, 2026-09-02) writes its
 #: bytecode beside that script, and a prefix-only skip turned the gate red on the
 #: first such import.
-SKIPPED = ("bench/results/",)
+#: `bench/fixtures/export/fulltext/` joins it (ticket 0721): the Menagerie export's files are
+#: Zotero's extracted text of public documents, data the replay serves and never code, and a
+#: document's own prose ("historical/economic", Jevons) is not a model id. The trailing slash
+#: is load-bearing here too, and the manifest and items.json beside it stay scanned.
+SKIPPED = ("bench/results/", "bench/fixtures/export/fulltext/")
 GENERATED_DIR = "__pycache__"
 
 #: Exempt, each for its own reason, and there are only two. The registry is the
