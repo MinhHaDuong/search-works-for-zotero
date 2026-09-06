@@ -45,7 +45,8 @@ once, in `SPEC.md` §1. Read it there rather than here.
   interpretations, mechanism substitutions, and choices among consequences
   are decisions, not factual corrections, and still require the ruling first.
 - **`SPEC.md` owns every design number**, and nothing else carries one: gate
-  thresholds §5.2.8, experiment decision rules §5.3, budgets §5.2.9. §2
+  thresholds §5.2.8, the fixture contract's per-cell minima §5.2.10, experiment
+  decision rules §5.3, budgets §5.2.9. §2
   Terminology and §6 Security own none and point at the owner instead, and §6
   discloses rather than decides, so closing a gap it names is a ruling in
   `DECISIONS.md` first and a requirement in §3 second. The header date is the

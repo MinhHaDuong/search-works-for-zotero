@@ -6,6 +6,7 @@ Author: claude
 --- log ---
 2026-09-06T22:12Z claude created
 
+2026-09-06T22:27Z claude spec §5.2.10 added; §5.2.8 corrected; R29 widened; README reconciled. load_thresholds identical before and after (k=10, 0.8, 5 %, 0.35, 0.2); two positive controls fired on a broken copy. make check-fast, lint, check green.
 --- body ---
 ## Context
 

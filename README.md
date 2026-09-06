@@ -35,7 +35,7 @@ That can be implemented in more than one way. Three work surfaces therefore have
 
 In the near term, I aim to deliver:
 - A more or less formal vision for what I regard as professional-grade.
-- [The multilingual menagerie](https://www.zotero.org/groups/6659303/semantic_search_challenge_fixture), which is a Zotero collection designed as a fixture to test retrieval engines on. Menagerie means there are interesting beasts in it. It comes with a set of questions those answers can be found in the documents (but sometimes inside a table on page 240).
+- [The multilingual menagerie](https://www.zotero.org/groups/6659303/semantic_search_challenge_fixture), which is a Zotero collection designed as a fixture to test retrieval engines on. Menagerie means the beasts are the documents: real ones from public archives, in several languages and several formats, with the truncations, missing text layers and mislabelled types a real library has. It comes with a set of questions whose answers are in those documents — an answer being one paragraph, on one page, in one file — and the recipe pins some of them where they are hard to reach: inside a table, in a footnote, in an appendix, past the page at which Zotero stops extracting.
 - An test suite to verify and score implementations wrt the requirements.
 
 ## Key design constraints for professional-grade Zotero semantic search
