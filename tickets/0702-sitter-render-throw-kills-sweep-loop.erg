@@ -2,11 +2,11 @@
 Title: A throw inside render() must not permanently kill the sweep loop
 Created: 2026-09-06
 Author: claude
-Blocked-by: 0689
 
 --- log ---
 2026-09-06T00:00Z claude created
 
+2026-09-06T10:25Z sim note blocker 0689 closed — Blocked-by removed.
 --- body ---
 ## Context
 

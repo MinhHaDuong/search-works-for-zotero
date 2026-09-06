@@ -2,12 +2,12 @@
 Title: Reorganize sitter dialog into primary/details/diagnostics layers
 Created: 2026-09-06
 Author: claude
-Blocked-by: 0689
 
 --- log ---
 2026-09-06T00:00Z claude created
 2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED. Confirmed the reorg is purely additive over the existing nested <details> (bootstrap.js lines 153-161 already nest sdt-index-details inside sdt-details) -- no restructuring of the section scaffolding implied. Recommended splitting the progress-toast addition into its own ticket (0696) since it is self-initiated (not author-requested, no DECISIONS.md ratification) and adds new accessibility surface on top of 0686's still-open a11y gap; done below. Sequencing: build the reorg skeleton and diagnostics content that's independent of 0689 (versions, admission readings, install path) now; wire 0689's debug checkbox and ring tail into the existing diagnostics disclosure once 0689 merges, with one final a11y re-verification against the completed layout rather than two passes.
 
+2026-09-06T10:25Z sim note blocker 0689 closed — Blocked-by removed.
 --- body ---
 ## Context
 

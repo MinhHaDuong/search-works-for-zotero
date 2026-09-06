@@ -2,12 +2,85 @@
 var createSDTSitter;
 var estimateSDTDuration;
 var createSDTCache;
-let sitter, alive = false, timer, pulse, timers;
-const buttons = new Set(), dialogs = new Set();
+var createSDTJournal;
+// `var`, not `let`: the journal and the sitter are the state the scheduler test
+// drives this file's emit/heartbeat/shutdown against, and only `var` reaches the
+// script global a sandboxed load exposes.
+var sitter, journal, alive = false, sealed = false;
+let timer, pulse, heartbeat, timers;
+const buttons = new Set(), dialogs = new Set(), closeJournalled = new WeakSet();
 const BUTTON = 'sdt-pack-sitter-button';
+const DEBUG_PREF = 'extensions.sdt-pack-sitter.debug';
+// Bootstrap reason constants are numeric here and named elsewhere; accept both.
+const SHUTDOWN_REASONS = { 2: 'app-shutdown', 3: 'enable', 4: 'disable',
+  5: 'install', 6: 'uninstall', 7: 'upgrade', 8: 'downgrade' };
 let generation = 0;
 let lastCompleted = 0;
 let completionBlinkUntil = 0;
+
+/* The sitter's whole diagnostic channel. Until the seal, the ring takes
+   everything; Zotero.debug() takes everything but trace, which waits on the
+   pref. The whole body is guarded: the invariant is that no diagnostic ever
+   throws into the sitter loop, and a `detail` the ring rejects must not
+   either. */
+function emit(kind, detail, level = 'state') {
+  // Sealed at shutdown, so nothing can land behind the shutdown record — an
+  // invariant of the channel rather than a guard each call site has to remember.
+  // Anything that resumes after an await outlives disable: the cache write, the
+  // native promise, a dialog's unload.
+  if (sealed) return;
+  try {
+    journal?.push({ at: Date.now(), kind, level, ...detail });
+    // Fully qualified pref name: `true` stops Zotero prepending `extensions.zotero.`.
+    if (level === 'trace' && !Zotero.Prefs.get(DEBUG_PREF, true)) return;
+    Zotero.debug(`SDT sitter ${kind} ${JSON.stringify(detail ?? {})}`);
+  } catch (_error) { /* Diagnostics must never throw into the sitter loop. */ }
+}
+
+/* The error's class reaches the journal; its message never does. Message text is
+   free prose written by the platform, and it carries whatever it happens to name:
+   a Gecko IO failure carries the file's full path, a parse failure carries the
+   attachment's title. Zotero's debug output is submittable to Zotero's servers,
+   so this is not session-confined. Three successive attempts to scrub that prose
+   token by token each leaked — a stored filename is "Author - Year - Title.pdf",
+   several whitespace-separated words of which a pattern anchored on runs of
+   non-whitespace can only ever redact the one touching the extension. Prose and
+   filenames are not separable by pattern, so the message is not carried at all.
+   describeError still shows the author everything, on screen, locally, where it
+   is his own library he is reading. The name is validated rather than trusted:
+   a name with a space or a separator in it is a message wearing a name's clothes,
+   and the whole body is guarded because a torn-down compartment can throw from
+   a getter — this runs outside emit()'s guard, as its argument. */
+function classifyError(error) {
+  try {
+    const name = error && error.name;
+    return typeof name === 'string' && /^[\w.$-]{1,64}$/.test(name) ? name : 'Error';
+  } catch (_error) {
+    return '<unreadable error>';
+  }
+}
+
+function heartbeatTick() {
+  if (!alive || !sitter || sitter.state.active === null) return;
+  const s = sitter.state;
+  emit('heartbeat', { id: s.active, phase: s.phase, progress: s.progress,
+    elapsedMS: Date.now() - s.startedAt, sinceProgressMS: Date.now() - s.lastProgressAt,
+    pending: s.pending.length }, 'trace');
+}
+
+/* The failure half of settle. It goes to the session ring and Zotero.debug(),
+   never to a file, for the reason createSDTJournal carries. The identity is the
+   opaque cache key, never the attachment's title. */
+function reportSettleFailure(info, error) {
+  emit('settle', { id: info.cacheKey ?? null, ok: false, error: classifyError(error) }, 'error');
+}
+
+function noteDialogClose(dialog) {
+  // `close()` may dispatch unload after shutdown has run; record it once, in order.
+  if (closeJournalled.has(dialog)) return;
+  closeJournalled.add(dialog);
+  emit('dialog-close', {});
+}
 
 function getSDTCoverage(state) {
   return { known: state.scanned === state.total && state.phase !== 'ready',
@@ -157,6 +230,7 @@ function openDialog(window) {
   for (const existing of dialogs) {
     if (!existing.closed) {
       existing.focus();
+      emit('dialog-open', { reused: true });
       render();
       return existing;
     }
@@ -164,6 +238,8 @@ function openDialog(window) {
   }
   const dialog = window.openDialog('about:blank', 'sdt-pack-sitter-status',
     'chrome,dialog=no,resizable,width=700,height=650');
+  emit('dialog-open', { reused: false });
+  dialog.addEventListener('unload', () => { dialogs.delete(dialog); noteDialogClose(dialog); }, { once: true });
   const populate = async () => {
     if (!alive || dialog.closed) return;
     const doc = dialog.document;
@@ -252,6 +328,11 @@ async function initialize(rootURI, token) {
   await Zotero.uiReadyPromise;
   if (token !== generation) return;
   Services.scriptloader.loadSubScript(rootURI + 'scheduler.js', globalThis);
+  // `??=`: a re-initialization within one Zotero session keeps the transitions
+  // that led to it. A real plugin unload tears this scope down and takes the ring
+  // with it; surviving that needs a durable store, which the ruling forbids.
+  journal ??= createSDTJournal();
+  sealed = false;
   const win = Zotero.getMainWindow();
   if (!win || typeof Zotero.SDT?.ensure !== 'function') throw new Error('Zotero 10 native SDT unavailable');
   const SDT = win.require('resource://zotero/document-worker/structured-document-text.js');
@@ -259,7 +340,6 @@ async function initialize(rootURI, token) {
   const versions = JSON.parse(await Zotero.File.getContentsFromURLAsync('resource://zotero/document-worker/metadata.json'));
   if (token !== generation) return;
   const cachePath = PathUtils.join(Zotero.DataDirectory.dir, 'sdt-sitter-cache.jsonl');
-  const errorPath = PathUtils.join(Zotero.DataDirectory.dir, 'sdt-sitter-errors.jsonl');
   await Zotero.SDTPackSitterCacheWrite?.catch(() => {});
   const raw = { format: 1, versions: JSON.stringify(versions), records: Object.create(null) };
   try {
@@ -273,6 +353,7 @@ async function initialize(rootURI, token) {
     }
   } catch (error) { /* Disposable cache. */ }
   const cache = createSDTCache(raw, JSON.stringify(versions));
+  emit('cache-load', { records: Object.keys(raw.records).length });
   let seen = new Set();
   let compact = true;
   const saveCache = async () => {
@@ -285,7 +366,11 @@ async function initialize(rootURI, token) {
       try {
         // Compact once per activation; subsequent writes contain changed rows only.
         await IOUtils.write(cachePath, bytes, compact ? { tmpPath: `${cachePath}.tmp` } : { mode: 'append' });
-        cache.saved(changes); compact = false;
+        cache.saved(changes);
+        // This one resumes after an await, so disable can land under it. The seal
+        // in shutdown() is what keeps it off the far side of the shutdown record.
+        emit('cache-write', { rows: changes.length, compact });
+        compact = false;
       }
       catch (error) { if (alive) sitter.state.cacheWarning = `Cache non enregistré : ${error}`; }
     });
@@ -393,24 +478,18 @@ async function initialize(rootURI, token) {
     censusComplete: async () => { cache.prune(seen); await saveCache(); return cache.samples(); },
     observed: async (info, sample) => { cache.observe(info.cacheKey, info.identity, sample); await saveCache(); },
     inspect, blocked, now: () => Date.now(), changed: render,
+    // 0691's on-screen wording, this ticket's journal: describeError still shows
+    // the author the file and the full error text, locally, and the failure that
+    // reaches the journal is what replaced the retired on-disk error ledger.
     describeError: (info, error) =>
       `Échec de « ${describeSDTFile(info, 'fichier inconnu')} » : ${String(error)}`,
-    reportError: async (info, error) => {
-      const line = JSON.stringify({
-        at: new Date().toISOString(), attachment: info.title || null,
-        parent: info.parentTitle || null, identity: info.identity || null, error: String(error),
-      }) + '\n';
-      try {
-        await IOUtils.write(errorPath, new TextEncoder().encode(line), { mode: 'append' });
-      } catch (writeError) {
-        if (alive) sitter.state.error = `${sitter.state.error} (journal non enregistré : ${writeError})`;
-      }
-    },
+    reportError: reportSettleFailure,
+    emit,
     yield: () => new Promise(resolve => timers.setTimeout(resolve, 0)),
     ensure: (id, onProgress) => Zotero.SDT.ensure(id, { isPriority: false, onProgress }),
   });
   alive = true;
-  Zotero.SDTPackSitter = { state: sitter.state, inspect, blocked };
+  Zotero.SDTPackSitter = { state: sitter.state, inspect, blocked, journal };
   for (const window of Zotero.getMainWindows()) onMainWindowLoad({ window });
   const launch = Services.prompt.confirm(win, 'Assistant d’indexation — expérimental',
     'Indexer toute la bibliothèque cette nuit ?\n\n' +
@@ -427,16 +506,28 @@ async function initialize(rootURI, token) {
     if (alive && token === generation) timer = timers.setTimeout(sweep, 30000);
   };
   pulse = timers.setInterval(render, 100);
+  heartbeat = timers.setInterval(heartbeatTick, 60000);
   timer = timers.setTimeout(sweep, 0);
 }
-function shutdown() {
-  ++generation; alive = false; sitter?.stop();
-  if (timers) { timers.clearTimeout(timer); timers.clearInterval(pulse); }
-  for (const button of buttons) button.remove();
-  buttons.clear();
-  for (const dialog of dialogs) if (!dialog.closed) dialog.close();
-  dialogs.clear();
-  delete Zotero.SDTPackSitter;
+function shutdown(data, reason) {
+  // try/finally, because the teardown between here and the seal calls out to the
+  // platform: dialog.close() during app shutdown is a real throw site, and a
+  // shutdown that throws halfway would otherwise leave the channel open and write
+  // no record — losing the evidence at exactly the moment disable is being used
+  // to recover from a hang. The throw still propagates; the record is not lost.
+  try {
+    ++generation; alive = false; sitter?.stop();
+    if (timers) { timers.clearTimeout(timer); timers.clearInterval(pulse); timers.clearInterval(heartbeat); }
+    for (const button of buttons) button.remove();
+    buttons.clear();
+    for (const dialog of dialogs) if (!dialog.closed) { noteDialogClose(dialog); dialog.close(); }
+    dialogs.clear();
+    delete Zotero.SDTPackSitter;
+  } finally {
+    emit('shutdown', { reason: typeof reason === 'number' ? SHUTDOWN_REASONS[reason] || `reason-${reason}`
+      : reason ? String(reason).toLowerCase().replace(/^addon[_-]/, '').replace(/_/g, '-') : 'unknown' });
+    sealed = true;
+  }
 }
 function install() {}
 function uninstall() {}
