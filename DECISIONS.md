@@ -6571,7 +6571,7 @@ writeup called that mismatch a defect and proposed fixing it with tooltip
 wording, a fix needed in either position, so it does not settle the question
 either.
 
-**2026-09-06 — RULING: the sitter's memoized source hash gets a periodic full
+**2026-09-06 — RULED: the sitter's memoized source hash gets a periodic full
 re-verify.** Ticket 0701 stopped the sitter re-reading and MD5-hashing every
 attachment in the library on every 30-second sweep, by remembering each source
 hash against the file's `(path, size, mtime)` — the fingerprint native Zotero's
