@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0227",
+  "need": "Written before opening the document: Kuznets's inverted-U claims that inequality first rises and then falls as income per head grows. An English-speaking reader wants a review that states the hypothesis and contrasts it with trickle-down. The query is English; the answer paragraph is Spanish.",
+  "query": "Kuznets hypothesis empirical regularity between inequality and income per head contrasted with trickle-down theory",
+  "question_language": "en",
+  "answer_language": "es",
+  "lane": "en->es",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "cross-language"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "macias-2014-crecimiento-desigualdad-pobreza",
+      "recipe_id": "macias-2014-crecimiento-desigualdad-pobreza",
+      "attachment_id": "macias-2014-crecimiento-desigualdad-pobreza-pdf",
+      "attachment_key": "KSQTEU7K",
+      "section": "La interacción entre crecimiento y desigualdad — El impacto del crecimiento sobre la desigualdad",
+      "alternates": [
+        {
+          "page_printed": "106",
+          "char_offset": 13618,
+          "quote": "La hipótesis de Kuznets surge de constatar una regularidad empírica entre la desigualdad y el nivel de ingreso per cápita (Kuznets, 1955). A diferencia de la “teoría del goteo”, se supone que el proceso de crecimiento repercute en la distribución del ingreso"
+        }
+      ],
+      "chain": {
+        "title": "Crecimiento, desigualdad y pobreza: estado de la cuestión",
+        "author": "Alfredo Macías Vázquez",
+        "date": "2014",
+        "identifier": "http://www.scielo.org.co/scielo.php?script=sci_arttext&pid=S0124-59962014000200006",
+        "section_heading": "LA INTERACCIÓN ENTRE CRECIMIENTO Y DESIGUALDAD",
+        "page_printed": "106",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "KSQTEU7K",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 13618,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

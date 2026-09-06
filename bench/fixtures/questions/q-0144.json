@@ -20,7 +20,22 @@
   "pinned": [],
   "expected_miss": true,
   "expected_miss_mechanism": "record-only version of record: parent item 9XH5U5SM carries no attachment (record_only true), so the 2014 Scientific Reports rendering has no fulltext in the export; and because the pair is declared 'near-duplicate-publication' rather than 'same-work', a hit on the arXiv preprint does not score as this work either",
-  "reachability": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": []
+  },
   "provenance": {
     "author": "claude (0722 authoring lane Q1c)",
     "date": "2026-09-06",

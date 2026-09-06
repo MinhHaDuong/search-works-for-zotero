@@ -1,7 +1,7 @@
 {
   "schema": "menagerie-bank/v2",
   "id": "q-0339",
-  "need": "Hazard: the commencement article of the 2010 energy-efficiency law sits at character 41 930 of a 47 822-character page — just 1 930 characters past the 40 000-character index cap. The date is also printed in the infobox table at the head of the page, inside the cap, so the same fact is reachable and unreachable at once depending on which rendering the reply cites.",
+  "need": "Hazard: the commencement article of the 2010 energy-efficiency law sits at character 41 951 of a 47 822-character page — just 1 951 characters past the 40 000-character index cap. The date is also printed in the infobox table at the head of the page, inside the cap, so the same fact is reachable and unreachable at once depending on which rendering the reply cites.",
   "query": "Luật Sử dụng năng lượng tiết kiệm và hiệu quả có hiệu lực thi hành từ ngày nào Điều 47",
   "question_language": "vi",
   "answer_language": "vi",
@@ -43,7 +43,7 @@
     }
   ],
   "expected_miss": true,
-  "expected_miss_mechanism": "index_fulltext_max_chars: Điều 47 lies at character 41 930 of the 47 822-character extraction, 1 930 characters past the 40 000-character index cap; the commencement article is in the export and outside the index",
+  "expected_miss_mechanism": "index_fulltext_max_chars: Điều 47 lies at character 41 951 of the 47 822-character extraction, 1 951 characters past the 40 000-character index cap; the commencement article is in the export and outside the index",
   "reachability": {
     "computed_by": "bench/golden_gate.py validate --stamp",
     "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",

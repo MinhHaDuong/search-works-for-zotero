@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0226",
+  "need": "Written before opening the document: 'pro-poor growth' is used by development agencies as if it had one meaning. I want a review article that says plainly what the competing definitions are and why the ambiguity matters.",
+  "query": "crecimiento pro-pobre definiciones redistribución del ingreso o reducción de la pobreza absoluta concepto útil",
+  "question_language": "es",
+  "answer_language": "es",
+  "lane": "es->es",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "term-of-art-ambiguity"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "macias-2014-crecimiento-desigualdad-pobreza",
+      "recipe_id": "macias-2014-crecimiento-desigualdad-pobreza",
+      "attachment_id": "macias-2014-crecimiento-desigualdad-pobreza-pdf",
+      "attachment_key": "KSQTEU7K",
+      "section": "Introducción",
+      "alternates": [
+        {
+          "page_printed": "101",
+          "char_offset": 1359,
+          "quote": "Unas veces se entiende como el crecimiento que genera cierta redistribución del ingreso y otras como el crecimiento que reduce la pobreza absoluta. Con honestidad, deberíamos preguntarnos si un concepto que puede significar cosas tan diferentes puede llegar a ser útil algún día."
+        }
+      ],
+      "chain": {
+        "title": "Crecimiento, desigualdad y pobreza: estado de la cuestión",
+        "author": "Alfredo Macías Vázquez",
+        "date": "2014",
+        "identifier": "http://www.scielo.org.co/scielo.php?script=sci_arttext&pid=S0124-59962014000200006",
+        "section_heading": null,
+        "page_printed": "101",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "KSQTEU7K",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 1359,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

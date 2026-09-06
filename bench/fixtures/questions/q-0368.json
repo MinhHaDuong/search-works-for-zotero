@@ -1,7 +1,7 @@
 {
   "schema": "menagerie-bank/v2",
   "id": "q-0368",
-  "need": "Hazard: the cap-crossing row in a non-Latin script, where the character-versus-byte arithmetic is at its widest. This article extracts to 121 106 characters, almost every one of them a Han ideograph costing three UTF-8 bytes, so the file is roughly 340 000 bytes. The 40 000-character index cap therefore admits about a third of the characters and about a ninth of what a byte-counted cap of the same nominal size would admit. The free-content attribution in 資料來源, at character 73 736, is on the far side of it — and it is the one statement on the page that a licence audit has to find.",
+  "need": "Hazard: the cap-crossing row in a non-Latin script, where the character-versus-byte arithmetic is at its widest. This article extracts to 121 106 characters, almost every one of them a Han ideograph costing three UTF-8 bytes, so the file is roughly 340 000 bytes. The 40 000-character index cap therefore admits about a third of the characters and about a ninth of what a byte-counted cap of the same nominal size would admit. The free-content attribution in 資料來源, at character 73 716, is on the far side of it — and it is the one statement on the page that a licence audit has to find.",
   "query": "氣候變化 條目 資料來源 自由内容作品 CC BY-SA 3.0 糧農組織 FAO",
   "question_language": "zh",
   "answer_language": "zh",
@@ -44,7 +44,7 @@
     }
   ],
   "expected_miss": true,
-  "expected_miss_mechanism": "index_fulltext_max_chars: the 資料來源 free-content attribution lies at character 73 736 of a 121 106-character extraction, past the 40 000-character cap; the cap counts characters, and this page's Han ideographs are three UTF-8 bytes each, so the indexed prefix is about a third of the characters and about 120 000 of some 340 000 bytes",
+  "expected_miss_mechanism": "index_fulltext_max_chars: the 資料來源 free-content attribution lies at character 73 716 of a 121 106-character extraction, past the 40 000-character cap; the cap counts characters, and this page's Han ideographs are three UTF-8 bytes each, so the indexed prefix is about a third of the characters and about 120 000 of some 340 000 bytes",
   "reachability": {
     "computed_by": "bench/golden_gate.py validate --stamp",
     "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",

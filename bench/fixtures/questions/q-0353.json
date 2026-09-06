@@ -1,7 +1,7 @@
 {
   "schema": "menagerie-bank/v2",
   "id": "q-0353",
-  "need": "Hazard: the Vietnamese climate-change article runs 167 778 characters, of which the body ends at 59 733 and the reference list fills the rest. The section that ties climate to the Sustainable Development Goals begins at character 46 400 — inside the body, outside the 40 000-character cap. So the article is indexed and its policy half is not, which is invisible to any reader who sees the page returned at all.",
+  "need": "Hazard: the Vietnamese climate-change article runs 167 778 characters, of which the body ends at 59 733 and the reference list fills the rest. The section that ties climate to the Sustainable Development Goals begins at character 46 283 — inside the body, outside the 40 000-character cap. So the article is indexed and its policy half is not, which is invisible to any reader who sees the page returned at all.",
   "query": "how does the Vietnamese Wikipedia article link climate change to Sustainable Development Goal 13",
   "question_language": "en",
   "answer_language": "vi",
@@ -43,7 +43,7 @@
     }
   ],
   "expected_miss": true,
-  "expected_miss_mechanism": "index_fulltext_max_chars: the 'Chính sách và chính trị' section lies past character 46 000 of a 167 778-character extraction, outside the 40 000-character cap; the body continues to character 59 733, so roughly a third of the article's prose is indexed",
+  "expected_miss_mechanism": "index_fulltext_max_chars: the 'Chính sách và chính trị' section begins at character 46 283 of a 167 778-character extraction, outside the 40 000-character cap; the body runs to character 59 733, so about two thirds of the article's prose is indexed and the policy sections are not",
   "reachability": {
     "computed_by": "bench/golden_gate.py validate --stamp",
     "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",

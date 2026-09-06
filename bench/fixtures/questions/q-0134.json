@@ -26,7 +26,7 @@
       "alternates": [
         {
           "page_printed": "28",
-          "char_offset": null,
+          "char_offset": 48733,
           "quote": "Appendix 1. Tanzanian case Tanzania constitutes a rather special case, as the stagnation of per capita food consumption was observed in this country against the background of not only the GDP per capita growth"
         }
       ],
@@ -44,7 +44,35 @@
   ],
   "expected_miss": true,
   "expected_miss_mechanism": "index-cap crossing: the appendix is located in the export fulltext beyond the 40 000-character index cap this export was built with, so it is in the export and out of the index; within_index_cap is false on stamping",
-  "reachability": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "2QCUPHJP",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 48733,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
   "provenance": {
     "author": "claude (0722 authoring lane Q1c)",
     "date": "2026-09-06",

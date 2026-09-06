@@ -1,7 +1,7 @@
 {
   "schema": "menagerie-bank/v2",
   "id": "q-0346",
-  "need": "Hazard: the Vietnamese twin of the same Foreword, in the full 584-page book. The 40 000-character index cap falls inside this volume's table of contents, so nothing of its body — the Foreword at character 78 190 included — is indexed, while the English twin's Foreword sits at character 5 681 and is. The pair is the cleanest reading of what the cap does to a translation: same paragraph, one language in the index and the other out.",
+  "need": "Hazard: the Vietnamese twin of the same Foreword, in the full 584-page book. The 40 000-character index cap falls inside this volume's table of contents, so nothing of its body — the Foreword sentence at character 78 660 included — is indexed, while the English twin's Foreword sits at character 5 651 and is. The pair is the cleanest reading of what the cap does to a translation: same paragraph, one language in the index and the other out.",
   "query": "báo cáo Việt Nam 2035 sáu chuyển đổi quan trọng để trở thành nền kinh tế thu nhập trung bình cao lời giới thiệu",
   "question_language": "vi",
   "answer_language": "vi",
@@ -44,7 +44,7 @@
     }
   ],
   "expected_miss": true,
-  "expected_miss_mechanism": "index_fulltext_max_chars: the Foreword of the full Vietnamese volume lies at character 78 190 of a 224 451-character extraction; the 40 000-character cap falls inside the table of contents, so no body paragraph of this 584-page book reaches the index (its 100-page pdfMaxPages cap bites as well)",
+  "expected_miss_mechanism": "index_fulltext_max_chars: the Foreword of the full Vietnamese volume lies at character 78 660 of a 224 451-character extraction; the 40 000-character cap falls inside the table of contents, so no body paragraph of this 584-page book reaches the index (its 100-page pdfMaxPages cap bites as well)",
   "reachability": {
     "computed_by": "bench/golden_gate.py validate --stamp",
     "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",

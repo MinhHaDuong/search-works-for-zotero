@@ -1,12 +1,12 @@
 {
   "schema": "menagerie-bank/v2",
   "id": "q-0131",
-  "need": "Written before opening the document: does the paper find that Uganda, Kenya and Tanzania have left the Malthusian trap, or that they have not?",
-  "query": "main countries of East Africa Uganda Kenya Tanzania have not escaped the Malthusian trap",
+  "need": "Written before opening the document: I have been told this paper concludes that Uganda, Kenya and Tanzania are still inside the Malthusian trap. Does the page agree? The claim is stated twice in the file — in the abstract and again in the conclusion — and the row is pinned on the abstract.",
+  "query": "Uganda, Kenya and Tanzania are still inside the Malthusian trap on this analysis",
   "question_language": "en",
   "answer_language": "en",
   "lane": "en->en",
-  "signal": "exact",
+  "signal": "agreement",
   "mode": "any",
   "facet": "core",
   "stratum": "core",
@@ -23,7 +23,7 @@
       "alternates": [
         {
           "page_printed": "1",
-          "char_offset": null,
+          "char_offset": 286,
           "quote": "the main countries of East Africa (Uganda, Kenya, and Tanzania) have not escaped the Malthusian Trap yet"
         }
       ],
@@ -41,7 +41,35 @@
   ],
   "expected_miss": false,
   "expected_miss_mechanism": null,
-  "reachability": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "2QCUPHJP",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 286,
+            "occurrences": 2,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
   "provenance": {
     "author": "claude (0722 authoring lane Q1c)",
     "date": "2026-09-06",

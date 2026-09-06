@@ -1,0 +1,92 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0228",
+  "need": "Written before opening the document: policy debate often forces a choice — help the poor directly, or grow the economy and let them benefit. I want the passage that puts that dilemma as a dilemma, without knowing whether the author frames it as intervention, empowerment or redistribution.",
+  "query": "hay que escoger entre repartir mejor o producir más para acabar con la miseria",
+  "question_language": "es",
+  "answer_language": "es",
+  "lane": "es->es",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "indirect-description"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "macias-2014-crecimiento-desigualdad-pobreza",
+      "recipe_id": "macias-2014-crecimiento-desigualdad-pobreza",
+      "attachment_id": "macias-2014-crecimiento-desigualdad-pobreza-pdf",
+      "attachment_key": "KSQTEU7K",
+      "section": "Introducción",
+      "alternates": [
+        {
+          "page_printed": "101",
+          "char_offset": 1639,
+          "quote": "Qué es más eficaz en la lucha contra la pobreza: ¿potenciar el crecimiento o “empoderar” a los pobres para que se beneficien en mayor medida del crecimiento?"
+        },
+        {
+          "page_printed": "102",
+          "char_offset": 2949,
+          "quote": "De alguna manera se nos está diciendo que se debe escoger entre reducir la desigualdad o impulsar el crecimiento."
+        }
+      ],
+      "chain": {
+        "title": "Crecimiento, desigualdad y pobreza: estado de la cuestión",
+        "author": "Alfredo Macías Vázquez",
+        "date": "2014",
+        "identifier": "http://www.scielo.org.co/scielo.php?script=sci_arttext&pid=S0124-59962014000200006",
+        "section_heading": null,
+        "page_printed": "101",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "KSQTEU7K",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 1639,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          },
+          {
+            "reachable": true,
+            "char_offset": 2949,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}
