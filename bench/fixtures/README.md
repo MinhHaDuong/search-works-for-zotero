@@ -103,44 +103,65 @@ excerpts, not whole reports.
 
 ## What the recipe holds
 
-As of 2026-09-03, the recipe holds 26 records: 17 with the bytes hashed and 9
-with an identifier and a stated reason the hash is still open. 8 of those
-open records belong to the two represented archives whose document endpoints
-answer scripted clients with a challenge page instead of the file: 4 HAL
-(Anubis proof-of-work) and 4 Gallica (ALTCHA). Those files are fetched once in
-a browser, hashed, and pinned by hand. The ninth is the oversized Malynes scan,
-whose Internet Archive md5 and sha1 remain a cross-check until its first full
-fetch. `fetch_recipe.py` reports a challenged request as `blocked` and an
-unhashed successful fetch as `unpinned`.
+As of 2026-09-06, the recipe holds 42 records: 37 with the bytes hashed and 5
+with an identifier and a stated reason the hash is still open (4 hal, 1 internet-archive). Every record is at the ruled shape of ticket 0721 (topic, stratum, per-attachment
+language and charset, relations labelled truthfully); the disposition of the 26
+pre-build records is in ticket 0721's log.
 
-| id | language | tier | facet | archive | pages | bytes pinned |
-|---|---|---|---|---|---|---|
-| cournot-1838-recherches | fr | MUST | core | gallica | 228 | not yet |
-| walras-1900-elements | fr | MUST | core | internet-archive | 270 | sha256 |
-| porte-1770-science-des-negocians | fr | MUST | core | internet-archive | 788 | sha256 |
-| minkowski-1896-geometrie-der-zahlen | de | SHOULD | core | internet-archive | 274 | sha256 |
-| malynes-1622-lex-mercatoria | en | MUST | deep-body | internet-archive | 515 | archive md5/sha1 |
-| ramsey-1931-foundations-of-mathematics | en | MUST | core | internet-archive | 340 | sha256 |
-| depitre-1908-oeuvres-cournot | fr | MUST | core | gallica | — | not yet |
-| ha-duong-2005-modeles-de-precaution-hdr | fr | MUST | core | hal | 180 | not yet |
-| ha-duong-1998-irreversibilite-these | fr | MUST | deep-body | hal | — | not yet |
-| johnson-1785-dictionary | en | MUST | deep-body | internet-archive | 1 104 | sha256 |
-| baudelaire-1857-fleurs-du-mal | fr | MUST | core | internet-archive | 262 | sha256 |
-| stein-1925-making-of-americans | en | MUST | deep-body | internet-archive | 940 | sha256 |
-| curie-1904-recherches-substances-radioactives | fr | MUST | core | internet-archive | 176 | sha256 |
-| einstein-minkowski-1920-principle-of-relativity | en | MUST | core | internet-archive | 260 | sha256 |
-| tran-trong-kim-1920-viet-nam-su-luoc-q1 | vi | MUST | core | wikimedia-commons | 294 | sha256 |
-| tran-trong-kim-1928-viet-nam-su-luoc-q2 | vi | MUST | deep-body | wikimedia-commons | 347 | sha256 |
-| tran-trong-kim-1920-viet-nam-su-luoc-wikisource | vi | MUST | core | wikisource | — | sha256 |
-| vn-constitution-1992-vi | vi | MUST | core | wikisource | — | sha256 |
-| vn-constitution-1992-en | en | MUST | core | wikisource | — | sha256 |
-| hal-04332519-economies-of-scale | vi | MUST | core | hal | — | not yet |
-| hal-04826774-lich-su-sach-nam-ky | vi | MUST | core | hal | — | not yet |
-| des-michels-1883-luc-van-tien | vi | MUST | core | gallica | 454 | not yet |
-| des-michels-1884-kim-van-kieu-t2p1 | vi | MUST | core | gallica | 309 | not yet |
-| bonet-1899-dictionnaire-annamite-francais-t1 | vi | MUST | core | internet-archive | 488 | sha256 |
-| bonet-1899-dictionnaire-annamite-francais-t2 | vi | MUST | core | internet-archive | 552 | sha256 |
-| vn-decision-11-2017-qdttg-solar-fit-en | en | MUST | core | faolex | 9 | sha256 |
+Shape against the census of `verification/LIBRARY-CENSUS-0029.md` (attachments
+are the unit for formats; records for the rest): 45 attachments, PDF 33
+(73,3 %, census 56,9 %), HTML 4 (8,9 %, census 33,0 %),
+other formats 8 (17,8 %, census 9,2 %); 16 PDFs past the 100-page
+cap (48,5 % of PDFs, census 13,0 %); 6 declared failure controls;
+3 record-only items (7,1 %, census 14,8 %); 7 records with a
+child note (census 8,2 %); the Zotero language field empty on 20 records and
+malformed on 11 (73,8 % together, census about half). Strata:
+core 25, reserve 10. Topics: economics 14, energy 7, legacy 7, hss 5, uncertainty 4, environment 3, development 2. Attachment languages: en 26, vi 8, fr 7, es 2, de 2. Item types: book 17, legacy 7, report 6, journalArticle 5, preprint 3, bookSection 1, presentation 1, dataset 1, statute 1.
+
+| id | topic | stratum | type | language(s) | format(s) | archive(s) | pages | pinned |
+|---|---|---|---|---|---|---|---|---|
+| bastiat-1862-oeuvres-completes-t1 | economics | reserve | book | fr | txt | project-gutenberg | — | sha256 |
+| bettencourt-2012-professional-diversity-cities-arxiv | economics | core | preprint | en | pdf tgz | arxiv | 19 | sha256 |
+| bettencourt-2014-professional-diversity-cities-scirep | economics | core | journalArticle | en | — (record only) | — | — | n/a |
+| bonet-1899-dictionnaire-annamite-francais-t1 | hss | reserve | book | vi | pdf | internet-archive | 488 | sha256 |
+| bonet-1899-dictionnaire-annamite-francais-t2 | hss | reserve | book | vi | pdf | internet-archive | 552 | sha256 |
+| cournot-1838-recherches-ia | economics | core | book | fr | pdf | internet-archive | 230 | sha256 |
+| cournot-1897-researches-bacon | economics | core | book | en | pdf | internet-archive | 229 | sha256 |
+| doe-2011-quadrennial-technology-review | energy | core | report | en | pdf | osti | 168 | sha256 |
+| epa-2016-ghg-inventory-1990-2014 | environment | core | report | en | pdf pdf zip | zenodo | 93 | sha256 |
+| gutierrez-2014-diagnostico-ambiental-trevelez | environment | core | report | es | pdf | zenodo | 615 | sha256 |
+| ha-duong-1998-irreversibilite-these | legacy | legacy | legacy | fr | pdf | hal | — | open |
+| ha-duong-2005-modeles-de-precaution-hdr | legacy | legacy | legacy | fr | pdf | hal | 180 | open |
+| hal-04332519-economies-of-scale | legacy | legacy | legacy | vi | pdf | hal | — | open |
+| hal-04826774-lich-su-sach-nam-ky | legacy | legacy | legacy | vi | pdf | hal | — | open |
+| ibanez-2015-desarrollo-humano-sustentable | development | core | journalArticle | es | pdf | zenodo | 28 | sha256 |
+| jevons-1865-coal-question | energy | core | book | en | pdf | internet-archive | 366 | sha256 |
+| johnson-1785-dictionary | hss | reserve | book | en | pdf | internet-archive | 1104 | sha256 |
+| keynes-1921-application-of-probability-to-conduct | uncertainty | core | bookSection | en | — (record only) | — | — | n/a |
+| keynes-1921-treatise-on-probability | uncertainty | core | book | en | pdf | internet-archive | 492 | sha256 |
+| korotayev-2015-east-africa-malthusian-trap | development | core | preprint | en | pdf | arxiv | 30 | sha256 |
+| malynes-1622-lex-mercatoria | economics | reserve | book | en | pdf | internet-archive | 515 | open |
+| menger-1871-grundsaetze | economics | reserve | book | de | pdf | internet-archive | 307 | sha256 |
+| ormos-2014-entropy-asset-pricing | economics | core | journalArticle | en | pdf | europe-pmc | 21 | sha256 |
+| ormos-2015-entropy-asset-pricing-arxiv | economics | reserve | preprint | en | — (record only) | — | — | n/a |
+| pei-2015-climate-macroeconomic-preindustrial-europe | economics | core | journalArticle | en | pdf | europe-pmc | 17 | sha256 |
+| poincare-1912-calcul-des-probabilites | uncertainty | core | book | fr | pdf | internet-archive | 352 | sha256 |
+| porte-1770-science-des-negocians | economics | core | book | fr | pdf | internet-archive | 788 | sha256 |
+| ramsey-1931-foundations-of-mathematics | uncertainty | reserve | book | en | pdf | internet-archive | 340 | sha256 |
+| rethore-2013-wind-farm-optimization | energy | core | presentation | en | pdf | zenodo | 24 | sha256 |
+| satw-2011-erneuerbare-energien | energy | core | report | de | pdf | zenodo | 32 | sha256 |
+| schindler-2015-alien-species-health-dataset | environment | core | dataset | en | xlsx | zenodo | — | sha256 |
+| smith-1776-wealth-of-nations | economics | core | book | en | txt html epub | project-gutenberg | — | sha256 |
+| tran-trong-kim-1920-viet-nam-su-luoc-q1 | hss | reserve | book | vi | djvu | wikimedia-commons | 294 | sha256 |
+| tran-trong-kim-1920-viet-nam-su-luoc-wikisource | legacy | legacy | legacy | vi | wikitext | wikisource | — | sha256 |
+| tran-trong-kim-1928-viet-nam-su-luoc-q2 | hss | reserve | book | vi | pdf | wikimedia-commons | 347 | sha256 |
+| vn-constitution-1992-en | legacy | legacy | legacy | en | wikitext | wikisource | — | sha256 |
+| vn-constitution-1992-vi | legacy | legacy | legacy | vi | wikitext | wikisource | — | sha256 |
+| vn-decision-11-2017-qdttg-solar-fit-en | energy | core | statute | en | pdf | faolex | 9 | sha256 |
+| walras-1900-elements | economics | core | book | fr | pdf | internet-archive | 270 | sha256 |
+| wittkopf-2016-bipv-methodological-framework | energy | core | journalArticle | en | pdf | zenodo | 24 | sha256 |
+| worldbank-2009-vietnam-energy-mitigation | energy | core | report | en | pdf txt | world-bank-okr | 33 | sha256 |
+| worldbank-2015-state-trends-carbon-pricing | economics | core | report | en | pdf | world-bank-okr | 92 | sha256 |
 
 ## Dropped from the closed PR #151, and why
 

@@ -3,7 +3,9 @@
   "archives": [
     {
       "name": "internet-archive",
-      "hosts": ["archive.org"],
+      "hosts": [
+        "archive.org"
+      ],
       "identifier": "item identifier (archive.org/details/<id>); web.archive.org captures are dated snapshot URLs",
       "version": "none; hash pins the bytes",
       "admission": {
@@ -17,7 +19,10 @@
     },
     {
       "name": "wikimedia-commons",
-      "hosts": ["upload.wikimedia.org", "commons.wikimedia.org"],
+      "hosts": [
+        "upload.wikimedia.org",
+        "commons.wikimedia.org"
+      ],
       "identifier": "file page (File:<name>); the file history holds every version",
       "version": "file history; hash pins the version",
       "admission": {
@@ -31,7 +36,9 @@
     },
     {
       "name": "wikisource",
-      "hosts": ["wikisource.org"],
+      "hosts": [
+        "wikisource.org"
+      ],
       "identifier": "page title plus permanent revision id (oldid); fetched as raw wikitext (action=raw)",
       "version": "the revision is the version",
       "admission": {
@@ -45,7 +52,9 @@
     },
     {
       "name": "wikipedia",
-      "hosts": ["wikipedia.org"],
+      "hosts": [
+        "wikipedia.org"
+      ],
       "identifier": "<lang>:<Title>@<oldid> (article namespace, permanent revision id), fetched as raw wikitext (index.php?title=<Title>&oldid=<oldid>&action=raw)",
       "identifier_pattern": "^[a-z]{2,3}(?:-[a-z0-9]+)*:[^@\\s]+@[1-9][0-9]*$",
       "version": "the revision is the version",
@@ -60,7 +69,10 @@
     },
     {
       "name": "hal",
-      "hosts": ["hal.science", "archives-ouvertes.fr"],
+      "hosts": [
+        "hal.science",
+        "archives-ouvertes.fr"
+      ],
       "identifier": "hal-NNNNNNNN or tel-NNNNNNNN, with a version",
       "version": "required, vN",
       "version_rule": "vN",
@@ -76,7 +88,9 @@
     },
     {
       "name": "arxiv",
-      "hosts": ["arxiv.org"],
+      "hosts": [
+        "arxiv.org"
+      ],
       "identifier": "NNNN.NNNNN with a version",
       "version": "required, vN; the PDF may be regenerated from source, so a hash mismatch is a text diff to inspect",
       "version_rule": "vN",
@@ -91,7 +105,9 @@
     },
     {
       "name": "zenodo",
-      "hosts": ["zenodo.org"],
+      "hosts": [
+        "zenodo.org"
+      ],
       "identifier": "version DOI (10.5281/zenodo.NNNNNNN), never the concept DOI",
       "version": "required; the version DOI is the version",
       "version_rule": "vN",
@@ -106,10 +122,14 @@
     },
     {
       "name": "faolex",
-      "hosts": ["faolex.fao.org"],
+      "hosts": [
+        "faolex.fao.org"
+      ],
       "identifier": "LEX-FAOC... ; the docs/pdf/ address, hash and Wayback capture date are pinned because the database is unversioned",
       "version": "none; a hash mismatch is a diff to inspect (a corrected translation may replace the file under the same identifier)",
-      "identifier_allowlist": ["LEX-FAOC179224"],
+      "identifier_allowlist": [
+        "LEX-FAOC179224"
+      ],
       "narrow": "pre-existing exception (ruling 2026-09-02): Decision 11/2017/QD-TTg and its official English translation only; the sourcing lane may add the Vietnamese original of the same decision if FAOLEX holds it, nothing else without a ruling",
       "admission": {
         "date": "2026-09-06",
@@ -122,7 +142,9 @@
     },
     {
       "name": "uk-government-web-archive",
-      "hosts": ["webarchive.nationalarchives.gov.uk"],
+      "hosts": [
+        "webarchive.nationalarchives.gov.uk"
+      ],
       "identifier": "dated snapshot URL (ukgwa/<timestamp>/<url>)",
       "version": "the timestamp is the version",
       "admission": {
@@ -136,7 +158,9 @@
     },
     {
       "name": "project-gutenberg",
-      "hosts": ["gutenberg.org"],
+      "hosts": [
+        "gutenberg.org"
+      ],
       "identifier": "numeric ebook number; each official distribution file is hash-pinned separately because Gutenberg corrects files in place",
       "version": "none, and no version may be written on the identifier; a hash mismatch is a content diff to review",
       "version_rule": "unversioned",
@@ -152,12 +176,88 @@
     },
     {
       "name": "gallica",
-      "hosts": ["gallica.bnf.fr"],
+      "hosts": [
+        "gallica.bnf.fr"
+      ],
       "identifier": "ark:/12148/...",
       "version": "none; hash pins the bytes",
       "dropped": true,
       "dropped_reason": "2026-09-04, author's ruling: every Gallica fetch attempted for this fixture answered a scripted client with an ALTCHA challenge, the archive's standing behaviour toward scripts, which unlike HAL's Anubis cannot be solved once and cached across a re-pin; fails leg 1 (robot-open) of the five-part test outright. Re-probed 2026-09-06: GET https://gallica.bnf.fr/ark:/12148/bpt6k54602432/f1.pdf with a browser User-Agent answered 429 'Trop de requêtes'. Its four records (cournot-1838-recherches, depitre-1908-oeuvres-cournot, des-michels-1883-luc-van-tien, des-michels-1884-kim-van-kieu-t2p1) need a replacement from an admitted archive or a drop with a stated reason",
       "admission": null
+    },
+    {
+      "name": "europe-pmc",
+      "hosts": [
+        "europepmc.org",
+        "ebi.ac.uk"
+      ],
+      "identifier": "PMCID (PMC-prefixed); the PDF is the publisher PDF stored in PMC, served by Europe PMC's getPdf API",
+      "version": "none; hash pins the bytes (the record also carries the DOI)",
+      "admission": {
+        "date": "2026-09-06",
+        "robot_open": "GET https://europepmc.org/articles/PMC4454689?pdf=render with the Firefox UA → 302 to https://europepmc.org/api/getPdf?pmcid=PMC4454689 → 200 application/pdf, 2 740 638 bytes, %PDF-1.4; GET https://www.ebi.ac.uk/europepmc/webservices/rest/PMC4454689/fullTextXML → 200 application/xml (113 332 bytes); no challenge, no rate limit met over about 15 requests",
+        "licence": "per article, read from the article XML <license> element: PMC4454689 and PMC4278763 CC BY 4.0 / CC BY (PLoS ONE); the REST search field `license` gives 'cc by'. Counter-example met and dropped: PMC4066264 (Sci Rep) is 'cc by-nc-nd', so the leg is per article, never per archive",
+        "reputable": "EMBL-EBI (Hinxton), the European mirror of PubMed Central; funded by Europe PMC Funders' Group; the canonical open-access biomedical full-text archive in Europe",
+        "byte_exact": "PMCID resolves to one stored publisher PDF; two fetches of PMC4278763 an hour apart returned the same sha256 (891a940b…), which is also byte-identical to arXiv 1501.01155v1's PDF",
+        "age": "launched January 2007 as UK PubMed Central, renamed Europe PMC in 2012 — 19 years"
+      },
+      "notes": "NCBI's own PMC OA web service (www.ncbi.nlm.nih.gov/pmc/utils/oa/oa.fcgi) answered 404 and the new pmc.ncbi.nlm.nih.gov/tools/oa-service/ answered an HTML app shell, so the NCBI side was not admitted; Europe PMC serves the same PMC deposit."
+    },
+    {
+      "name": "osti",
+      "hosts": [
+        "osti.gov"
+      ],
+      "identifier": "OSTI ID (numeric); DOI 10.2172/<OSTI ID> for reports; bytes at https://www.osti.gov/servlets/purl/<id>",
+      "version": "none; hash pins the bytes",
+      "admission": {
+        "date": "2026-09-06",
+        "robot_open": "HEAD/GET https://www.osti.gov/servlets/purl/1186659 → 200 application/pdf 11 433 987 bytes from osti.gov; purl/1220813 → 200 application/pdf 1 340 017 bytes; purl/1223012, 1172695, 1060845, 3017315 likewise 200 from osti.gov. Caveat: some purls redirect off-archive (1252134 → energy.gov, 936769 → pnnl.gov, 1136572 → docs.nlr.gov), so a record is admitted only when the bytes come from osti.gov itself. The JSON API https://www.osti.gov/api/v1/records?q=… answers 200 without a key",
+        "licence": "per record: US federal government works (17 U.S.C. §105) when the author/research org is a DOE office (DOE/S-, DOE/EE- report numbers with a DOE author) — public domain in the United States. NOT admitted for the majority DOE-contractor reports (LBNL-, NREL/TP-, PNNL-, ANL-…), whose copyright stays with the contractor under a government-use licence: free to read, not licence-open",
+        "reputable": "US Department of Energy Office of Scientific and Technical Information, the statutory repository of DOE research results (Energy Policy Act; Sec. 982 of EPACT 2005)",
+        "byte_exact": "OSTI ID → one full-text file; the API record gives no checksum, so the sha256 in the recipe is the only pin",
+        "age": "OSTI founded 1947; OSTI.GOV online since 1997 (as EnergyFiles/Information Bridge) — 29 years"
+      },
+      "notes": "Only the federally authored subset is licence-open; a contractor report served from osti.gov would pass legs 1, 3, 4 and 5 and fail leg 2."
+    },
+    {
+      "name": "world-bank-okr",
+      "hosts": [
+        "openknowledge.worldbank.org"
+      ],
+      "identifier": "Handle 10986/<n> (also DOI 10.1596/…); bytes at a DSpace 7 bitstream URL https://openknowledge.worldbank.org/server/api/core/bitstreams/<uuid>/content, the bitstream uuid recorded beside the handle",
+      "version": "none; hash pins the bytes; DSpace publishes an MD5 per bitstream (checkSum.value)",
+      "admission": {
+        "date": "2026-09-06",
+        "robot_open": "GET https://openknowledge.worldbank.org/server/api/discover/search/objects?query=… → 200 application/hal+json; GET …/api/core/items/<uuid>/bundles and …/bundles/<uuid>/bitstreams → 200; GET …/api/core/bitstreams/418ae592-0448-516d-a0bc-6289c8290288/content → 200 application/pdf 1 126 126 bytes, md5 271150290096a46d33b5b0f954a92aaa equal to the DSpace checkSum; three record fetches (af8b14f9…, 69acd1e8…, 961666ba…) all 200 with md5 matching the published checksum. No challenge",
+        "licence": "per item, dc.rights and dc.rights.uri: 'CC BY 3.0 IGO' / http://creativecommons.org/licenses/by/3.0/igo on 10986/28215 and 10986/22630 (rights holder World Bank). Counter-examples met: the Turn Down the Heat reports are CC BY-NC-ND 3.0 IGO, so the leg is per item",
+        "reputable": "The World Bank's Open Knowledge Repository, the Bank's official open-access repository (DSpace)",
+        "byte_exact": "bitstream uuid → one file; DSpace publishes the MD5, matched on every fetch; the same item also serves the Bank's own plain-text rendition as a second bitstream",
+        "age": "OKR launched April 2012 — 14 years"
+      },
+      "notes": "Another lane has also cached World Bank items (wb-2016-vietnam-2035-*); the archive entry should be merged, not duplicated."
+    },
+    {
+      "name": "scielo",
+      "hosts": [
+        "scielo.org",
+        "scielo.br",
+        "scielo.org.mx",
+        "scielo.isciii.es"
+      ],
+      "identifier": "S-prefixed PID",
+      "version": "none",
+      "admission": {
+        "date": "2026-09-06",
+        "robot_open": "FAILED at the front door: GET https://search.scielo.org/?q=… → 403 with a bunny-shield JavaScript challenge ('Establishing a secure connection'). Article pages and PDFs on the national sites answered 200 (scielo.org.mx scielo.php?script=sci_arttext&pid=S0301-70362012000200002 → 200 text/html 88 KB with real body text; /pdf/prode/v43n169/v43n169a2.pdf → 200 application/pdf 635 604 bytes; scielo.isciii.es → 200), so the challenge covers discovery, not the documents",
+        "licence": "per journal, and the probed journal fails: Problemas del Desarrollo (UNAM) is CC BY-NC 3.0 per the article page. No CC BY journal was identified within this lane's budget",
+        "reputable": "yes (FAPESP/BIREME network since 1997)",
+        "byte_exact": "PID + PDF path; no published checksum",
+        "age": "1997 — 29 years"
+      },
+      "verdict": "NOT ADMITTED by this lane: leg 1 is mixed (search walled, documents open) and leg 2 was not met on the probed journal. Spanish coverage was taken from Zenodo instead (two CC BY 4.0 records). A future lane could admit a specific CC BY SciELO journal with a direct-PDF probe.",
+      "dropped": true,
+      "dropped_reason": "NOT ADMITTED by this lane: leg 1 is mixed (search walled, documents open) and leg 2 was not met on the probed journal. Spanish coverage was taken from Zenodo instead (two CC BY 4.0 records). A future lane could admit a specific CC BY SciELO journal with a direct-PDF probe."
     }
   ]
 }

@@ -253,14 +253,21 @@ def test_failure_control_declares_state_degradation_and_no_answer_part(control, 
 
 def test_live_recipe_declares_the_three_ruled_failure_controls():
     """Author, 2026-09-04 and 2026-09-06: the two Vietnamese dead-text volumes and the
-    Ramsey scan stay, exported and scored as failure controls."""
+    Ramsey scan stay, exported and scored as failure controls. At the ruled shape
+    (ticket 0721) a control is declared on the attachment; further controls (the
+    unindexable office, image and archive formats of the census) may join them."""
     recipe = json.loads((FIXTURES / "recipe.json").read_text(encoding="utf-8"))
-    declared = {doc["id"]: doc["failure_control"] for doc in recipe if "failure_control" in doc}
-    assert set(declared) == {
+    declared = {
+        source["id"]: source["failure_control"]
+        for doc in recipe
+        for source in doc.get("attachments", [doc])
+        if "failure_control" in source
+    }
+    assert {
         "tran-trong-kim-1920-viet-nam-su-luoc-q1",
         "tran-trong-kim-1928-viet-nam-su-luoc-q2",
         "ramsey-1931-foundations-of-mathematics",
-    }
+    } <= set(declared)
     assert all(control["expected_state"] == "unindexed" for control in declared.values())
     assert all(control["answer_set_participation"] == "none" for control in declared.values())
 
@@ -278,19 +285,14 @@ def test_live_recipe_covers_the_must_tier_languages():
 
 
 def test_live_recipe_tally_is_swept_into_its_documentation():
+    """The README's dated tally sentence is machine-checkable against the recipe: record
+    count, hashed count and open count. The per-record table beside it is regenerated
+    from the recipe by hand (ruling 10 of 2026-09-06: checklists, no prose guards)."""
     recipe = json.loads((FIXTURES / "recipe.json").read_text(encoding="utf-8"))
-    hashed = sum(bool(doc["sha256"]) for doc in recipe)
-    open_by_archive = {
-        archive: sum(doc["sha256"] is None and doc["archive"] == archive for doc in recipe)
-        for archive in {doc["archive"] for doc in recipe}
-        if any(doc["sha256"] is None and doc["archive"] == archive for doc in recipe)
-    }
-    assert (len(recipe), hashed, open_by_archive) == (
-        26,
-        17,
-        {"gallica": 4, "internet-archive": 1, "hal": 4},
+    hashed = sum(
+        all(isinstance(source.get("sha256"), str) for source in doc.get("attachments", [doc]))
+        for doc in recipe
     )
-
     readme = (FIXTURES / "README.md").read_text(encoding="utf-8")
     tally = re.search(
         r"As of (\d{4}-\d{2}-\d{2}), the recipe holds (\d+) records: "
@@ -299,19 +301,6 @@ def test_live_recipe_tally_is_swept_into_its_documentation():
     )
     assert tally, "README must carry a dated, machine-checkable recipe tally"
     assert tuple(map(int, tally.groups()[1:])) == (len(recipe), hashed, len(recipe) - hashed)
-    challenge_split = re.search(
-        r"(\d+) of those\s+open records belong to the two represented archives.*?: "
-        r"(\d+) HAL\s+.*?and (\d+) Gallica",
-        readme,
-        re.DOTALL,
-    )
-    assert challenge_split, "README must account for the open hashes by source"
-    assert tuple(map(int, challenge_split.groups())) == (
-        open_by_archive["hal"] + open_by_archive["gallica"],
-        open_by_archive["hal"],
-        open_by_archive["gallica"],
-    )
-    assert "The ninth is the oversized Malynes scan" in readme
 
 
 def test_fetch_script_has_argparse_and_no_extraction():

@@ -1,182 +1,739 @@
 [
  {
-  "id": "cournot-1838-recherches",
+  "id": "bastiat-1862-oeuvres-completes-t1",
+  "title": "Œuvres complètes de Frédéric Bastiat, tome 1 : Correspondance, mélanges",
+  "author": "Frédéric Bastiat; mises en ordre, revues et annotées par Prosper Paillottet",
+  "year": 1862,
+  "language": "fr",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "book",
+  "type_fidelity": "correct",
+  "work_id": "bastiat-1862-oeuvres-completes-t1",
+  "work_relations": [],
+  "structural_features": [],
+  "topic": "economics",
+  "stratum": "reserve",
+  "language_field": "fr",
+  "mechanisms": [
+   "legacy-charset-iso-8859-1"
+  ],
+  "citation": {
+   "url": "https://www.gutenberg.org/ebooks/35390"
+  },
+  "notes": [],
+  "page_count": null,
+  "license_basis": "Public domain: Bastiat died 1850; editor Paillottet died 1891; Guillaumin 2nd edition 1862. Gutenberg eBook #35390, released 2011-02-24.",
+  "provenance_check": "Header read: 'Oeuvres Complètes de Frédéric Bastiat, tome 1, mises en ordre, revues et annotées d'après les manuscrits de l'auteur … Editor: Prosper Paillottet, Release Date: February 24, 2011 [EBook #35390], Language: French, Character set encoding: ISO-8859-1'; produced by Distributed Proofreaders from BnF/Gallica images. Title page in the text: 'Guillaumin et Cie, libraires … 1862' (deuxième édition).",
+  "sourcing_note": "Authentic archive-issued 8-bit file: Gutenberg serves only 35390-8.txt for this ebook (no -0.txt UTF-8 twin exists in files/35390/). The bytes are not valid UTF-8 (first offending byte at the 'è' of 'Complètes'); 1 085 504 bytes = 1 085 504 characters in ISO-8859-1, which crosses the 500 000-character cap.",
+  "attachments": [
+   {
+    "id": "bastiat-oeuvres-completes-t1-latin1-txt",
+    "language": "fr",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "does-not-cross",
+     "chars": "crosses",
+     "combined": "char-only",
+     "locators": {
+      "before_char_cap": "Correspondance: letter 'Rome, 8 décembre 1850' (character 480 391) and 'Premiers écrits: Aux électeurs du département des Landes (novembre 1830)' (character 497 317)",
+      "after_char_cap": "'Réflexions' (character 524 162) and 'Le fisc et la vigne' (character 545 855)"
+     }
+    },
+    "archive": "project-gutenberg",
+    "identifier": "35390",
+    "bytes_url": "https://www.gutenberg.org/files/35390/35390-8.txt",
+    "bytes_format": "txt",
+    "sha256": "e15465c5ddf56fff021908286c632e29adfc80697973752d234ff2f34c8860c3",
+    "archive_checksums": {
+     "size": 1085504
+    },
+    "license_basis": "same as parent",
+    "charset": "iso-8859-1",
+    "encoding_note": "Gutenberg's -8 distribution: ISO-8859-1 declared in the header and confirmed on the bytes (accented letters as single bytes 0xE8, 0xE9, 0xE0; UTF-8 decoding fails). CRLF line endings. Served with Content-Type text/plain and no charset parameter, so a reader that assumes UTF-8 produces mojibake."
+   }
+  ]
+ },
+ {
+  "id": "bettencourt-2012-professional-diversity-cities-arxiv",
+  "title": "Professional diversity and the productivity of cities",
+  "author": "Luís M. A. Bettencourt; Horacio Samaniego; HyeJin Youn",
+  "year": 2012,
+  "language": "en",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "preprint",
+  "type_fidelity": "correct",
+  "work_id": "bettencourt-2012-professional-diversity-cities-arxiv",
+  "work_relations": [
+   {
+    "type": "near-duplicate-publication",
+    "target": "bettencourt-2014-professional-diversity-cities-scirep"
+   }
+  ],
+  "structural_features": [
+   {
+    "feature": "figure-caption",
+    "attachment_id": "bettencourt-2012-professional-diversity-cities-arxiv-pdf",
+    "locator": "printed p. 10: 'Fig. 1. The number of distinct occupations in US Metropolitan Statistical Areas vs. total employment…'",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "equation-heavy-prose",
+    "attachment_id": "bettencourt-2012-professional-diversity-cities-arxiv-pdf",
+    "locator": "printed pp. 4-6: D(N_e) = D_0 N_e^γ and the frequency-distribution derivation",
+    "extraction_expectation": "present"
+   }
+  ],
+  "topic": "economics",
+  "stratum": "core",
+  "language_field": "",
+  "mechanisms": [],
+  "citation": {
+   "url": "https://arxiv.org/abs/1210.7335v3"
+  },
+  "notes": [],
+  "page_count": 19,
+  "license_basis": "CC public domain dedication: arXiv licence field http://creativecommons.org/licenses/publicdomain/ on 1210.7335 (OAI record read 2026-09-06); v3 dated 2014-06-23.",
+  "provenance_check": "First page read: 'Professional diversity and the productivity of cities, Luís M. A. Bettencourt, Horacio Samaniego, HyeJin Youn', stamp 'arXiv:1210.7335v3 [physics.soc-ph] 23 Jun 2014'; pdfTeX build of the authors' source.",
+  "sourcing_note": "Near-duplicate pair: the published version (Scientific Reports 4:5393, 2014) differs in layout and length (6 pages, two columns) and is CC BY-NC-ND 4.0, so its bytes are not licence-open and its twin is a record-only item.",
+  "attachments": [
+   {
+    "id": "bettencourt-2012-professional-diversity-cities-arxiv-pdf",
+    "language": "en",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "does-not-cross",
+     "chars": "does-not-cross",
+     "combined": "neither",
+     "locators": {}
+    },
+    "archive": "arxiv",
+    "identifier": "1210.7335",
+    "bytes_url": "https://arxiv.org/pdf/1210.7335v3",
+    "bytes_format": "pdf",
+    "sha256": "5ce11bfe9d9df4929d3c4d23db20cb83b74c4896f6c63401f49d8d3d4e06d3dc",
+    "archive_checksums": {
+     "size": 590038
+    },
+    "license_basis": "same as parent",
+    "charset": null,
+    "version": "v3"
+   },
+   {
+    "id": "bettencourt-2012-professional-diversity-cities-source-tgz",
+    "language": "en",
+    "role": "alternate-format",
+    "relation": "same-text-different-format",
+    "selection_expectation": "skipped-first-with-text",
+    "cap_expectations": {
+     "pages": "does-not-cross",
+     "chars": "does-not-cross",
+     "combined": "neither",
+     "locators": {}
+    },
+    "archive": "arxiv",
+    "identifier": "1210.7335",
+    "bytes_url": "https://arxiv.org/e-print/1210.7335v3",
+    "bytes_format": "tgz",
+    "sha256": "dd81ae8c5ed051f8961505ba92fe36ea89519597a697c6616b548ddb61fbe7f1",
+    "archive_checksums": {
+     "size": 2027183
+    },
+    "license_basis": "same as parent",
+    "charset": null,
+    "version": "v3",
+    "skip_reason": "an archive container, never extracted; declared failure control",
+    "failure_control": {
+     "expected_state": "unindexed",
+     "expected_degradation": "a gzip-compressed tar archive of the TeX source and figure files (14 members); Zotero's extractor reads PDF, HTML and plain text only, so the attachment finishes with no full text",
+     "answer_set_participation": "none"
+    }
+   }
+  ]
+ },
+ {
+  "id": "bettencourt-2014-professional-diversity-cities-scirep",
+  "title": "Professional diversity and the productivity of cities",
+  "author": "Luís M. A. Bettencourt; Horacio Samaniego; Hyejin Youn",
+  "year": 2014,
+  "language": "en",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "journalArticle",
+  "type_fidelity": "correct",
+  "work_id": "bettencourt-2014-professional-diversity-cities-scirep",
+  "work_relations": [
+   {
+    "type": "near-duplicate-publication",
+    "target": "bettencourt-2012-professional-diversity-cities-arxiv"
+   }
+  ],
+  "structural_features": [],
+  "topic": "economics",
+  "stratum": "core",
+  "language_field": "en",
+  "mechanisms": [],
+  "citation": {
+   "doi": "10.1038/srep05393",
+   "url": "https://europepmc.org/article/PMC/PMC4066264"
+  },
+  "journal": "Scientific Reports",
+  "volume": "4",
+  "pages": "5393",
+  "notes": [],
+  "record_only": true,
+  "page_count": null,
+  "license_basis": "Record only, no bytes: the published PDF (PMC4066264) is CC BY-NC-ND 4.0 per the article XML, which fails the licence-open leg; metadata is not copyrightable.",
+  "provenance_check": "Europe PMC core record read: PMC4066264, Sci Rep 4:5393, published 2014-06-23, licence 'cc by-nc-nd'.",
+  "attachments": []
+ },
+ {
+  "id": "bonet-1899-dictionnaire-annamite-francais-t1",
+  "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 1",
+  "author": "Jean Bonet",
+  "year": 1899,
+  "language": "vi",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "book",
+  "type_fidelity": "correct",
+  "work_id": "bonet-1899-dictionnaire-annamite-francais-t1",
+  "work_relations": [
+   {
+    "type": "same-work",
+    "target": "bonet-1899-dictionnaire-annamite-francais-t2"
+   }
+  ],
+  "structural_features": [],
+  "topic": "hss",
+  "stratum": "reserve",
+  "language_field": "VN",
+  "mechanisms": [
+   "multilingual-document",
+   "compound-document-entries",
+   "page-cap-crossing"
+  ],
+  "citation": {
+   "url": "https://archive.org/details/dictionnaireanna01bone"
+  },
+  "notes": [],
+  "page_count": 488,
+  "license_basis": "Published 1899; public domain by age everywhere.",
+  "provenance_check": "Downloaded and hashed; md5 matches Internet Archive's own item metadata.",
+  "attachments": [
+   {
+    "id": "bonet-1899-dictionnaire-annamite-francais-t1",
+    "language": "vi",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "crosses",
+     "chars": "does-not-cross",
+     "combined": "page-only",
+     "locators": {
+      "before_page_cap": "printed pages of the front matter and first chapters (below scan page 100)",
+      "after_page_cap": "printed pages beyond scan page 100 (the scan has 488 pages)"
+     }
+    },
+    "archive": "internet-archive",
+    "identifier": "dictionnaireanna01bone",
+    "bytes_url": "https://archive.org/download/dictionnaireanna01bone/dictionnaireanna01bone.pdf",
+    "bytes_format": "pdf",
+    "sha256": "f1745ecc53c9b6e01de984ee0da6bb84e029520f5b39bdd3a502091f33d43c2e",
+    "license_basis": "same as parent",
+    "charset": null,
+    "archive_checksums": {
+     "md5": "9a59857fc53883dbc1a6191ecbb58698",
+     "sha1": "fc8bb94d22a1068736f7761209b6b6f9a76ab8dd"
+    }
+   }
+  ],
+  "sourcing_note": "A Vietnamese–French dictionary: the VN–FR cross-lingual anchor, and the dictionary genre beside Johnson."
+ },
+ {
+  "id": "bonet-1899-dictionnaire-annamite-francais-t2",
+  "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 2",
+  "author": "Jean Bonet",
+  "year": 1899,
+  "language": "vi",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "book",
+  "type_fidelity": "correct",
+  "work_id": "bonet-1899-dictionnaire-annamite-francais-t2",
+  "work_relations": [
+   {
+    "type": "same-work",
+    "target": "bonet-1899-dictionnaire-annamite-francais-t1"
+   }
+  ],
+  "structural_features": [],
+  "topic": "hss",
+  "stratum": "reserve",
+  "language_field": "",
+  "mechanisms": [
+   "multilingual-document",
+   "compound-document-entries",
+   "page-cap-crossing"
+  ],
+  "citation": {
+   "url": "https://archive.org/details/dictionnaireanna02bone"
+  },
+  "notes": [],
+  "page_count": 552,
+  "license_basis": "Published 1899; public domain by age everywhere.",
+  "provenance_check": "Downloaded and hashed; md5 matches Internet Archive's own item metadata.",
+  "attachments": [
+   {
+    "id": "bonet-1899-dictionnaire-annamite-francais-t2",
+    "language": "vi",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "crosses",
+     "chars": "does-not-cross",
+     "combined": "page-only",
+     "locators": {
+      "before_page_cap": "printed pages of the front matter and first chapters (below scan page 100)",
+      "after_page_cap": "printed pages beyond scan page 100 (the scan has 552 pages)"
+     }
+    },
+    "archive": "internet-archive",
+    "identifier": "dictionnaireanna02bone",
+    "bytes_url": "https://archive.org/download/dictionnaireanna02bone/dictionnaireanna02bone.pdf",
+    "bytes_format": "pdf",
+    "sha256": "d0753fb79521d20c78ad48e473bb70b2d899e479f9e172098d87121c4bba31dd",
+    "license_basis": "same as parent",
+    "charset": null,
+    "archive_checksums": {
+     "md5": "51f4ccfbd5ede419b7ee61710616b883",
+     "sha1": "ea671e64809606e886e0ee56a0c57aa989afbee0"
+    }
+   }
+  ],
+  "sourcing_note": "Second volume of the same dictionary."
+ },
+ {
+  "id": "cournot-1838-recherches-ia",
   "title": "Recherches sur les principes mathématiques de la théorie des richesses",
   "author": "Antoine-Augustin Cournot",
   "year": 1838,
   "language": "fr",
   "tier": "MUST",
   "facet": "core",
-  "archive": "gallica",
-  "identifier": "ark:/12148/bpt6k6117257c",
-  "bytes_url": "https://gallica.bnf.fr/ark:/12148/bpt6k6117257c.pdf",
-  "bytes_format": "pdf",
-  "sha256": null,
-  "sha256_reason": "Gallica redirects scripted PDF requests to its ALTCHA challenge (HTTP 302). Fetch once in a browser, hash, and pin.",
-  "page_count": 228,
-  "license_basis": "Public domain everywhere: Cournot died 1877, life+70 expired 1947; also clear under the pre-1931 US bright-line (published 1838).",
-  "provenance_check": "Not verified from embedded PDF metadata (bytes unreachable); Gallica's own catalogue record identifies this as the L. Hachette (Paris), 1838 first printing held at BnF shelfmark R-32536, with no reprint/reissue language.",
-  "notes": "No Internet Archive copy of the French original exists (English translations only). The closed PR's copy was fetched by Zotero key; whether it was this same BnF digitization is settled once the bytes are hashed."
+  "item_type": "book",
+  "type_fidelity": "correct",
+  "work_id": "cournot-1838-recherches",
+  "work_relations": [
+   {
+    "type": "translation",
+    "target": "cournot-1897-researches-bacon"
+   }
+  ],
+  "structural_features": [
+   {
+    "feature": "footnote",
+    "attachment_id": "cournot-1838-recherches-ia-pdf",
+    "locator": "ch. II, printed p. 17 (pdf page 38): footnote 2 'Voyez Newton, Principes, Liv. I, à la fin des définitions préliminaires'",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "equation-heavy-prose",
+    "attachment_id": "cournot-1838-recherches-ia-pdf",
+    "locator": "ch. III, printed p. 40 (pdf page 61): system of r(r-1)/2 coefficients, équations (b), (d)",
+    "extraction_expectation": "present"
+   }
+  ],
+  "topic": "economics",
+  "stratum": "core",
+  "language_field": "fr",
+  "mechanisms": [],
+  "citation": {
+   "url": "https://archive.org/details/AugustinCournotRecherches"
+  },
+  "notes": [],
+  "page_count": 230,
+  "license_basis": "Public domain everywhere: published 1838; Cournot died 1877, life+70 expired 1947. Uploader marked the item Public Domain Mark 1.0.",
+  "provenance_check": "Title page read (pdf page 5): 'Recherches sur les principes mathématiques de la théorie des richesses, par Augustin Cournot … Paris, chez L. Hachette, libraire de l'Université royale de France, 1838'. The PDF is Gallica's own rendering (producer iText 4.2.0, first page carries the BnF/Gallica provenance banner naming Cournot 1801-1877 and the shelfmark) re-uploaded to the Internet Archive on 2015-10-09 by Prof. Darcy Carvalho (São Paulo) under the identifier AugustinCournotRecherches. Same edition as the dropped Gallica record cournot-1838-recherches (ark:/12148/bpt6k6117257c).",
+  "sourcing_note": "REPLACES the Gallica record cournot-1838-recherches, which lost its source when Gallica was dropped (2026-09-04). The README's sentence 'No Internet Archive copy of the French original exists' is wrong in one respect: an IA copy exists, but it is a user re-upload of the Gallica scan, not an institutional scan. Whether a user-uploaded IA item passes the 'reputable' leg is for the author to rule; the identifier is byte-exact (IA md5/sha1 published and matched) and the bytes are Gallica's.",
+  "attachments": [
+   {
+    "id": "cournot-1838-recherches-ia-pdf",
+    "language": "fr",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "crosses",
+     "chars": "does-not-cross",
+     "combined": "page-only",
+     "locators": {
+      "before_page_cap": "ch. II, printed p. 17 (pdf page 38)",
+      "after_page_cap": "ch. XI, printed p. 150 (pdf page 171)"
+     }
+    },
+    "archive": "internet-archive",
+    "identifier": "AugustinCournotRecherches",
+    "bytes_url": "https://archive.org/download/AugustinCournotRecherches/Augustin%20Cournot%20Recherches.pdf",
+    "bytes_format": "pdf",
+    "sha256": "590edc453d872e67cd846046b6f134f467abfd8275b2f04639cdc82aa36171a9",
+    "archive_checksums": {
+     "md5": "50ee572bd3d32a593e11822685a9fdcc",
+     "sha1": "f6fa2be287fc858f43ccb895871b793f7bae2e82",
+     "size": 6095108
+    },
+    "license_basis": "same as parent",
+    "charset": null
+   }
+  ]
  },
  {
-  "id": "walras-1900-elements",
-  "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale (4e éd.)",
-  "author": "Léon Walras",
-  "year": 1900,
-  "language": "fr",
+  "id": "cournot-1897-researches-bacon",
+  "title": "Researches into the Mathematical Principles of the Theory of Wealth",
+  "author": "Antoine-Augustin Cournot; translated by Nathaniel T. Bacon; essay and bibliography by Irving Fisher",
+  "year": 1897,
+  "language": "en",
   "tier": "MUST",
   "facet": "core",
-  "archive": "internet-archive",
-  "identifier": "elementsdeconomi00walr",
-  "bytes_url": "https://archive.org/download/elementsdeconomi00walr/elementsdeconomi00walr.pdf",
-  "bytes_format": "pdf",
-  "sha256": "ff4856f196bdcfb1fa24b1c40a3207157e7dfd5ce26c5882a4ab8679d9d6a409",
-  "archive_checksums": {
-   "md5": "7c0ed287459a5ecac6b2d02b5986638a",
-   "sha1": "64feadc94c2abecde9752c0d0d15c0f3615ccad9",
-   "size": 28425050
+  "item_type": "book",
+  "type_fidelity": "correct",
+  "work_id": "cournot-1897-researches-bacon",
+  "work_relations": [
+   {
+    "type": "translation",
+    "target": "cournot-1838-recherches"
+   }
+  ],
+  "structural_features": [
+   {
+    "feature": "equation-heavy-prose",
+    "attachment_id": "cournot-1897-researches-bacon-pdf",
+    "locator": "ch. VII, printed p. 84 (pdf page 96): equations (5) f(p)+p f'(p)=0 and the competition-of-producers derivation",
+    "extraction_expectation": "present"
+   }
+  ],
+  "topic": "economics",
+  "stratum": "core",
+  "language_field": "en-US",
+  "mechanisms": [],
+  "citation": {
+   "url": "https://archive.org/details/bub_gb_AGoGpyJY_SAC"
   },
-  "page_count": 270,
-  "license_basis": "Public domain everywhere: Walras died 1910, life+70 expired 1980; also clear under the pre-1931 US bright-line.",
-  "provenance_check": "IA metadata: publisher 'Lausanne : F. Rouge; Paris : F. Pichon', date 1900 -- matches the known publisher/date of the 4th edition; a Columbia University Libraries microfilm digitization (CIHM master negative 98-84447-2), no modern-reprint markings.",
-  "notes": "Byte-identical to the closed PR's library copy: the library held the archive.org scan."
+  "notes": [],
+  "page_count": 229,
+  "license_basis": "Public domain: published 1897 (before the 1931 US bright line); Cournot died 1877; translator Nathaniel T. Bacon died 1926 (life+70 expired 1997); Irving Fisher (introductory essay, bibliography) died 1947, life+70 expired 2018.",
+  "provenance_check": "Title page read (pdf pages 9-11): 'Researches into the Mathematical Principles of the Theory of Wealth by Augustin Cournot, 1838. Translated by Nathaniel T. Bacon, with a bibliography of mathematical economics by Irving Fisher. New York: Macmillan Company; London: Macmillan & Co., Ltd., 1897'; 'Copyright, 1897, by The Macmillan Company'. Google Books scan (Harvard College Library copy per the bookplate), 'Digitized by Google' footers; no reprint wording.",
+  "attachments": [
+   {
+    "id": "cournot-1897-researches-bacon-pdf",
+    "language": "en",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "crosses",
+     "chars": "does-not-cross",
+     "combined": "page-only",
+     "locators": {
+      "before_page_cap": "ch. VII, printed p. 82 (pdf page 94)",
+      "after_page_cap": "ch. XII, printed p. 150 (pdf page 162)"
+     }
+    },
+    "archive": "internet-archive",
+    "identifier": "bub_gb_AGoGpyJY_SAC",
+    "bytes_url": "https://archive.org/download/bub_gb_AGoGpyJY_SAC/bub_gb_AGoGpyJY_SAC.pdf",
+    "bytes_format": "pdf",
+    "sha256": "97abeddc8ee622eab5224131658a013bcb58c3df5e33c343899c2e1bd4fe7bad",
+    "archive_checksums": {
+     "md5": "abf11e22d361ead5811ea52808266a23",
+     "sha1": "8e231cefd4d4ea8ad4c9079b3d3207b295456f97",
+     "size": 13768434
+    },
+    "license_basis": "same as parent",
+    "charset": null
+   }
+  ]
  },
  {
-  "id": "porte-1770-science-des-negocians",
-  "title": "La Science des négocians et teneurs de livres",
-  "author": "Mathieu de La Porte",
-  "year": 1770,
-  "language": "fr",
+  "id": "doe-2011-quadrennial-technology-review",
+  "title": "Report on the First Quadrennial Technology Review",
+  "author": "U.S. Department of Energy",
+  "year": 2011,
+  "language": "en",
   "tier": "MUST",
   "facet": "core",
-  "archive": "internet-archive",
-  "identifier": "lasciencedesnego00lapo",
-  "bytes_url": "https://archive.org/download/lasciencedesnego00lapo/lasciencedesnego00lapo.pdf",
-  "bytes_format": "pdf",
-  "sha256": "982a562a41515cb511907c3fea8f803442b75350e14b4fa70c37770b2841537e",
-  "archive_checksums": {
-   "md5": "9a088d72d4afb7b557bbb6e6b7765bca",
-   "sha1": "3233d44c87209fb0dff0672332b6dd9a752fb158",
-   "size": 25338356
+  "item_type": "report",
+  "type_fidelity": "correct",
+  "work_id": "doe-2011-quadrennial-technology-review",
+  "work_relations": [],
+  "structural_features": [
+   {
+    "feature": "table",
+    "attachment_id": "doe-2011-quadrennial-technology-review-pdf",
+    "locator": "Vehicle Electrification, printed p. 46 (pdf page 60): 'Table 2. Current Electric Vehicle Types'",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "figure-caption",
+    "attachment_id": "doe-2011-quadrennial-technology-review-pdf",
+    "locator": "Today's Energy Landscape, printed p. 8 (pdf page 22): 'Figure 1.' (Different fuels for different uses)",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "endnote",
+    "attachment_id": "doe-2011-quadrennial-technology-review-pdf",
+    "locator": "Endnotes, printed p. 138 (pdf page 152): numbered endnotes 1 ff.",
+    "extraction_expectation": "present"
+   }
+  ],
+  "topic": "energy",
+  "stratum": "core",
+  "language_field": "",
+  "mechanisms": [],
+  "citation": {
+   "doi": "10.2172/1186659",
+   "url": "https://www.osti.gov/biblio/1186659"
   },
-  "page_count": 788,
-  "license_basis": "Public domain everywhere: published 1770; author's exact death date unattested but centuries past life+70 under any reading; clear under the pre-1931 US bright-line too.",
-  "provenance_check": "IA description 'xvi, 760 p.', date 1770 -- matches an 18th-century printing of this repeatedly-reissued manual; no reprint-edition markings found.",
-  "notes": "Byte-identical to the closed PR's library copy. 788 pages, a bookkeeping manual: genre variety."
+  "report_number": "DOE/S-0001",
+  "notes": [],
+  "page_count": 168,
+  "license_basis": "US federal government work: authored by the US Department of Energy, Office of the Secretary (OSTI research org and sponsor fields), public domain in the United States under 17 U.S.C. §105. Not a contractor report.",
+  "provenance_check": "Cover and first pages read: 'QTR — Report on the First Quadrennial Technology Review, September 2011, Message from the Secretary of Energy'; OSTI record 1186659, report number DOE/S-0001, publication date 2011-09-30, served from osti.gov as application/pdf (11 433 987 bytes).",
+  "attachments": [
+   {
+    "id": "doe-2011-quadrennial-technology-review-pdf",
+    "language": "en",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "crosses",
+     "chars": "does-not-cross",
+     "combined": "page-only",
+     "locators": {
+      "before_page_cap": "Vehicle Efficiency, printed p. 42 (pdf page 56, Table 1)",
+      "after_page_cap": "Conclusions and Next Steps, printed p. 120 (pdf page 134); Endnotes printed p. 138 (pdf page 152)"
+     }
+    },
+    "archive": "osti",
+    "identifier": "1186659",
+    "bytes_url": "https://www.osti.gov/servlets/purl/1186659",
+    "bytes_format": "pdf",
+    "sha256": "fd580230bb6fb58138cacbe4a6fcbfa7ad4b495e81f22a66b55168ac9d752989",
+    "archive_checksums": {
+     "size": 11433987
+    },
+    "license_basis": "same as parent",
+    "charset": null
+   }
+  ]
  },
  {
-  "id": "minkowski-1896-geometrie-der-zahlen",
-  "title": "Geometrie der Zahlen",
-  "author": "Hermann Minkowski",
-  "year": 1896,
-  "language": "de",
+  "id": "epa-2016-ghg-inventory-1990-2014",
+  "title": "Inventory of U.S. Greenhouse Gas Emissions and Sinks: 1990-2014",
+  "author": "U.S. Environmental Protection Agency",
+  "year": 2016,
+  "language": "en",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "report",
+  "type_fidelity": "correct",
+  "work_id": "epa-2016-ghg-inventory-1990-2014",
+  "work_relations": [],
+  "structural_features": [
+   {
+    "feature": "table",
+    "attachment_id": "epa-2016-ghg-inventory-chapter-3-energy-pdf",
+    "locator": "printed p. 3-3: 'Table 3-2: CO2, CH4, and N2O Emissions from Energy (kt)'; printed p. 3-5: 'Table 3-4: CO2, CH4, and N2O Emissions from Fossil Fuel Combustion (kt)'",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "figure-caption",
+    "attachment_id": "epa-2016-ghg-inventory-chapter-3-energy-pdf",
+    "locator": "printed p. 3-2: 'Figure 3-2: 2014 U.S. Fossil Carbon Flows (MMT CO2 Eq.)'",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "footnote",
+    "attachment_id": "epa-2016-ghg-inventory-chapter-3-energy-pdf",
+    "locator": "printed p. 3-1: footnote 1 'Estimates are presented in units of million metric tons of carbon dioxide equivalent…'",
+    "extraction_expectation": "present"
+   }
+  ],
+  "topic": "environment",
+  "stratum": "core",
+  "language_field": "en-US",
+  "mechanisms": [],
+  "citation": {
+   "doi": "10.5281/zenodo.259515",
+   "url": "https://zenodo.org/records/259515"
+  },
+  "report_number": "EPA 430-R-16-002",
+  "notes": [],
+  "page_count": 93,
+  "license_basis": "US federal government work (EPA), public domain in the United States under 17 U.S.C. §105; the Zenodo mirror record 259515 additionally declares CC BY 4.0 (read 2026-09-06).",
+  "provenance_check": "Chapter 3 first page read: '3. Energy — Energy-related activities were the primary sources of U.S. anthropogenic greenhouse gas emissions…', running foot 'Inventory of U.S. Greenhouse Gas Emissions and Sinks: 1990–2014', Word 2013 PDFs; executive summary first page 'Executive Summary — An emissions inventory that identifies and quantifies…'. Zenodo record: 27 files, publication date 2016-04-15, creator U.S. Environmental Protection Agency.",
+  "sourcing_note": "Three of the record's 27 files are carried: the energy chapter (primary), the executive summary (same language, skipped) and the chapter-tables zip (failure control). The full main text (10.5 MB, several hundred pages) is on the same record for a later scale slice.",
+  "attachments": [
+   {
+    "id": "epa-2016-ghg-inventory-chapter-3-energy-pdf",
+    "language": "en",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "does-not-cross",
+     "chars": "does-not-cross",
+     "combined": "neither",
+     "locators": {}
+    },
+    "archive": "zenodo",
+    "identifier": "10.5281/zenodo.259515",
+    "bytes_url": "https://zenodo.org/api/records/259515/files/us-ghg-inventory-2016-chapter-3-energy.pdf/content",
+    "bytes_format": "pdf",
+    "sha256": "c1414c1a7af2bcbc9a238bedc1531e9ffaf1fc63bda1e22037a922edb7e12612",
+    "archive_checksums": {
+     "md5": "a15c2539d445d79a2795c80e86e9d22c",
+     "size": 2234948
+    },
+    "license_basis": "same as parent",
+    "charset": null,
+    "version": "v1"
+   },
+   {
+    "id": "epa-2016-ghg-inventory-executive-summary-pdf",
+    "language": "en",
+    "role": "alternate-format",
+    "relation": "same-text-different-format",
+    "selection_expectation": "skipped-first-with-text",
+    "cap_expectations": {
+     "pages": "does-not-cross",
+     "chars": "does-not-cross",
+     "combined": "neither",
+     "locators": {}
+    },
+    "archive": "zenodo",
+    "identifier": "10.5281/zenodo.259515",
+    "bytes_url": "https://zenodo.org/api/records/259515/files/us-ghg-inventory-2016-chapter-executive-summary.pdf/content",
+    "bytes_format": "pdf",
+    "sha256": "7554aa7da34b7103c9a8f0cc9c6ba489e41380ad66ca84244bb669df3fec2ac4",
+    "archive_checksums": {
+     "md5": "3d0039426e18ff151718f51dbf275946",
+     "size": 1175198
+    },
+    "license_basis": "same as parent",
+    "charset": null,
+    "version": "v1",
+    "skip_reason": "same language (en) as the chapter PDF, which comes first; a different chapter of the same report"
+   },
+   {
+    "id": "epa-2016-ghg-inventory-chapter-tables-zip",
+    "language": "en",
+    "role": "alternate-format",
+    "relation": "same-text-different-format",
+    "selection_expectation": "skipped-first-with-text",
+    "cap_expectations": {
+     "pages": "does-not-cross",
+     "chars": "does-not-cross",
+     "combined": "neither",
+     "locators": {}
+    },
+    "archive": "zenodo",
+    "identifier": "10.5281/zenodo.259515",
+    "bytes_url": "https://zenodo.org/api/records/259515/files/2016_chapter_tables_1.zip/content",
+    "bytes_format": "zip",
+    "sha256": "24de50df82114679fed65d5fa7671793ba702f19c3fc1ffac56adfa71f25fa23",
+    "archive_checksums": {
+     "md5": "515d47a258a3a2039a82027316d1fa4f",
+     "size": 270877
+    },
+    "license_basis": "same as parent",
+    "charset": null,
+    "version": "v1",
+    "skip_reason": "an archive container, never extracted; declared failure control",
+    "failure_control": {
+     "expected_state": "unindexed",
+     "expected_degradation": "a zip archive of 308 CSV tables (Chapter Tables/…/Table N-M.csv); Zotero's extractor reads PDF, HTML and plain text only, so the attachment finishes with no full text",
+     "answer_set_participation": "none"
+    }
+   }
+  ]
+ },
+ {
+  "id": "gutierrez-2014-diagnostico-ambiental-trevelez",
+  "title": "Diagnóstico ambiental de las Agendas 21 de Trevélez y Busquístar",
+  "author": "Esther Gutiérrez Rueda; Ruben Alba-Ruiz",
+  "year": 2014,
+  "language": "es",
   "tier": "SHOULD",
-  "facet": "core",
-  "archive": "internet-archive",
-  "identifier": "geometriederzahl00minkuoft",
-  "bytes_url": "https://archive.org/download/geometriederzahl00minkuoft/geometriederzahl00minkuoft.pdf",
-  "bytes_format": "pdf",
-  "sha256": "34d7be9cfa51bec4913f77851af498bf8a9462d522ced5c1813f2890f851d616",
-  "archive_checksums": {
-   "md5": "a683cd8b5154dc7cd2d8ba52f1dbbbea",
-   "sha1": "1d402aafa22f351bbc9db62637c74e47466a8261",
-   "size": 17773389
-  },
-  "page_count": 274,
-  "license_basis": "Public domain everywhere: Minkowski died 1909, life+70 expired 1979; the digitized copy is the 1910 second printing, still pre-1931 under the US bright-line.",
-  "provenance_check": "University of Toronto digitization (via archive.org), scanned copy of the 1910 B.G. Teubner printing; no reprint/reissue markings. A second IA copy exists (geometriederzahl00minkrich, 278 pages) that does NOT match the previous sha256 -- this uoft copy is confirmed as the one actually used before.",
-  "notes": "Byte-identical to the closed PR's library copy. Pure mathematics, deliberately off-topic. A sibling item geometriederzahl00minkrich is a different scan and was rejected."
- },
- {
-  "id": "malynes-1622-lex-mercatoria",
-  "title": "Consuetudo, vel Lex Mercatoria, or The Ancient Law-Merchant (1622 first edition)",
-  "author": "Gerard de Malynes",
-  "year": 1622,
-  "language": "en",
-  "tier": "MUST",
   "facet": "deep-body",
-  "archive": "internet-archive",
-  "identifier": "bim_early-english-books-1475-1640_consuetudo-vel-lex-merc_malynes-gerard-de_1622",
-  "bytes_url": "https://archive.org/download/bim_early-english-books-1475-1640_consuetudo-vel-lex-merc_malynes-gerard-de_1622/bim_early-english-books-1475-1640_consuetudo-vel-lex-merc_malynes-gerard-de_1622.pdf",
-  "bytes_format": "pdf",
-  "sha256": null,
-  "sha256_reason": "352 593 392 bytes, above the sourcing run's 300 MB cap; Internet Archive's own md5 and sha1 recorded instead. Hash on the first full fetch and pin.",
-  "archive_checksums": {
-   "md5": "ca9c2bfe0b4659d7ed85ee740230e428",
-   "sha1": "9e2f8b6dcef7b60159b9c1c27959a28f3bb4f783",
-   "size": 352593392
+  "item_type": "report",
+  "type_fidelity": "correct",
+  "work_id": "gutierrez-2014-diagnostico-ambiental-trevelez",
+  "work_relations": [],
+  "structural_features": [
+   {
+    "feature": "table",
+    "attachment_id": "gutierrez-2014-diagnostico-ambiental-trevelez-pdf",
+    "locator": "Documento 1, printed p. 17: 'tabla 1' — municipios, población, km2, densidad",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "figure-caption",
+    "attachment_id": "gutierrez-2014-diagnostico-ambiental-trevelez-pdf",
+    "locator": "printed p. 11: 'Figura 1.' in 'Presentación del documento y metodología de trabajo'",
+    "extraction_expectation": "present"
+   }
+  ],
+  "topic": "environment",
+  "stratum": "core",
+  "language_field": "Spanish",
+  "mechanisms": [],
+  "citation": {
+   "doi": "10.5281/zenodo.573310",
+   "url": "https://zenodo.org/records/573310"
   },
-  "page_count": 515,
-  "license_basis": "Public domain everywhere: published 1622; author died c. 1641 (life+70 expired centuries ago).",
-  "provenance_check": "This is the true first (1622) edition -- distinct from archive.org's other Malynes item (consuetudovellex00maly), which is the later 1686 printing bound with additional matter. Confirmed via advancedsearch by year: 1622/1629/1636/1656/1686 editions are all separately catalogued on IA; this record's own metadata gives date 1622 explicitly. Not a modern reprint (early-English-books microfilm collection scan).",
-  "notes": "Replaces the closed PR's 45-page private excerpt with the whole treatise. Early-modern typography (long s, black letter) makes noisy extraction."
- },
- {
-  "id": "ramsey-1931-foundations-of-mathematics",
-  "title": "The Foundations of Mathematics and other Logical Essays",
-  "author": "Frank Plumpton Ramsey (ed. R. B. Braithwaite)",
-  "year": 1931,
-  "language": "en",
-  "tier": "MUST",
-  "facet": "core",
-  "archive": "internet-archive",
-  "identifier": "dli.ministry.13166",
-  "bytes_url": "https://archive.org/download/dli.ministry.13166/E00026_The_Foundations_of_Mathematics.pdf",
-  "bytes_format": "pdf",
-  "sha256": "926dcc1487bae1080c6680187f9e1f3a559b12a79d939e9a3331f76965910e26",
-  "archive_checksums": {
-   "md5": "4d72f8c23377f703f5da7cf8b7ad299e",
-   "sha1": "55a0fa6fc9230acad55b9d738f45c45a29ef7457",
-   "size": 3407096
-  },
-  "page_count": 340,
-  "license_basis": "Public domain everywhere: Ramsey died 1930, life+70 expired 2000. NOT via the pre-1931 US bright-line -- published 1931 (95 years ago only as of 2026, so it enters US public domain 2027-01-01, not yet). Age (life+70) carries this one cleanly regardless.",
-  "provenance_check": "Rendered and visually inspected the title page and table of contents (pages 8 and 10 of the scan): 'The Foundations of Mathematics and other Logical Essays ... By Frank Plumpton Ramsey, M.A. ... Edited by R. B. Braithwaite ... With a Preface by G. E. Moore ... London: Kegan Paul, Trench, Trubner & Co., Ltd. / New York: Harcourt, Brace and Company. 1931.' Table of contents confirms 'VII. Truth and Probability (1926) ... 156', with subsections A. Reasonable Degree of Belief, B. Statistics, C. Chance. This is the genuine first (1931) Kegan Paul edition, not a later reprint -- 'Printed in Great Britain' colophon, no reprint or 'Electronic Edition' language anywhere.",
-  "notes": "Replaces the closed PR's private 'Electronic Edition' of the essay. 'Truth and Probability' is chapter VII, from p. 156 of the printed volume: a pinned page range inside a longer book, which is what R24's locator needs.",
-  "failure_control": {
-   "expected_state": "unindexed",
-   "expected_degradation": "no full text: an un-OCR'd scan with no text layer and zero embedded fonts (pdftotext extracts 340 bytes over 340 pages, pdffonts lists none), so indexPDF gets no text, writes no fulltextItems row, and /fulltext has no census entry",
-   "answer_set_participation": "none"
-  }
- },
- {
-  "id": "depitre-1908-oeuvres-cournot",
-  "title": "Les œuvres de Cournot (Revue d'histoire des doctrines économiques et sociales, 1908, pp. 187–196)",
-  "author": "Edgard Depitre",
-  "year": 1908,
-  "language": "fr",
-  "tier": "MUST",
-  "facet": "core",
-  "archive": "gallica",
-  "identifier": "ark:/12148/bpt6k15614q",
-  "bytes_url": "https://gallica.bnf.fr/ark:/12148/bpt6k15614q.pdf",
-  "bytes_format": "pdf",
-  "sha256": null,
-  "sha256_reason": "Gallica redirects scripted PDF requests to its ALTCHA challenge (HTTP 302). Fetch once in a browser, hash, and pin.",
-  "page_count": null,
-  "license_basis": "Public domain everywhere: published 1908; pre-1931 US bright-line; Depitre (1881-1914) life+70 expired 1984 under any reading.",
-  "provenance_check": "Gallica OAIRecord for ark:/12148/bpt6k15614q confirms: title 'Revue d'histoire des doctrines économiques et sociales / publiée sous la direction de A. Deschamps et A. Dubois', date 1908 (A1, i.e. Année 1), publisher Librairie Paul Geuthner (Paris), and -- notably -- lists 'Depitre, Edgar (1881-1914). Directeur de publication' among the journal's own editorial directors, confirming the identity match. Original periodical printing, not a reprint.",
-  "notes": "The archive unit is the bound annual volume; the article is ten pages inside it. Another pinned page range for R24, and an entry-inside-a-volume case for the segmenter."
- },
- {
-  "id": "ha-duong-2005-modeles-de-precaution-hdr",
-  "title": "Modèles de précaution en économie : introduction aux probabilités imprécises",
-  "author": "Minh Ha-Duong",
-  "year": 2005,
-  "language": "fr",
-  "tier": "MUST",
-  "facet": "core",
-  "archive": "hal",
-  "identifier": "halshs-00007520",
-  "version": "v1",
-  "bytes_url": "https://theses.hal.science/halshs-00007520/file/HaDuong-20051223-ModelesDePrecautionEnEconomieIntroductionAuxProbabilitesImprecises.pdf",
-  "bytes_format": "pdf",
-  "sha256": null,
-  "sha256_reason": "HAL serves an Anubis proof-of-work challenge to scripted clients (HTTP 200 with a challenge page, not the PDF). Fetch once in a browser, hash, and pin.",
-  "page_count": 180,
-  "license_basis": "Author-owned, deposited by the author on HAL under CC0 1.0 per the deposit's TEI metadata; authorized for this corpus directly.",
-  "provenance_check": "HAL record confirmed live, one version.",
-  "notes": "Moves from the author's homepage (not an archive) to its HAL deposit. The homepage copy hashed d7fde84a8f79…; whether HAL's file is byte-identical is settled at first fetch."
+  "notes": [],
+  "page_count": 615,
+  "license_basis": "CC BY 4.0 declared on the Zenodo record 573310 (licence id cc-by-4.0, read 2026-09-06).",
+  "provenance_check": "Cover read: 'Ayuntamiento de Trevélez, Ayuntamiento de Busquístar, Agenda Local 21. Diagnóstico ambiental conjunto de los municipios de Trevélez y Busquístar'; running foot 'N | Página' gives printed folios equal to the pdf page index.",
+  "attachments": [
+   {
+    "id": "gutierrez-2014-diagnostico-ambiental-trevelez-pdf",
+    "language": "es",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "crosses",
+     "chars": "does-not-cross",
+     "combined": "page-only",
+     "locators": {
+      "before_page_cap": "Documento 1, printed p. 17 (tabla 1)",
+      "after_page_cap": "Documento 2, §15.2.3 'Movilidad en bicicleta dentro de los núcleos', printed p. 400"
+     }
+    },
+    "archive": "zenodo",
+    "identifier": "10.5281/zenodo.573310",
+    "bytes_url": "https://zenodo.org/api/records/573310/files/DIAC%20BUSQU%C3%8DSTAR%20Y%20TREV%C3%89LEZ%20DOCUMENTO%20DEFINITIVO.pdf/content",
+    "bytes_format": "pdf",
+    "sha256": "f09dc9b71ad12fb202b36e8bc9cb3aa3ad08b2b75c8d8315989c976bff238a2a",
+    "archive_checksums": {
+     "md5": "f01f3757e8351fef60f525f73a23547d",
+     "size": 11339010
+    },
+    "license_basis": "same as parent",
+    "charset": null,
+    "version": "v1"
+   }
+  ]
  },
  {
   "id": "ha-duong-1998-irreversibilite-these",
@@ -199,228 +756,24 @@
   "notes": "Requested with the Habilitation in the closed PR and never obtained there: HAL's web front end sits behind the same challenge."
  },
  {
-  "id": "johnson-1785-dictionary",
-  "title": "A Dictionary of the English Language, Vol. 1 (6th ed.)",
-  "author": "Samuel Johnson",
-  "year": 1785,
-  "language": "en",
-  "tier": "MUST",
-  "facet": "deep-body",
-  "archive": "internet-archive",
-  "identifier": "dictionaryofengl01johnuoft",
-  "bytes_url": "https://archive.org/download/dictionaryofengl01johnuoft/dictionaryofengl01johnuoft.pdf",
-  "bytes_format": "pdf",
-  "sha256": "46841d2419829feea437249fba603e65377bb51e26931422d42844c8c28f99ab",
-  "archive_checksums": {
-   "md5": "b8b64386c2f5028d4d4e3da0d85175b9",
-   "sha1": "5667f7140af8c5c9320857478ee9af53baa978a3",
-   "size": 129900387
-  },
-  "page_count": 1104,
-  "license_basis": "Public domain everywhere: Johnson died 1784, life+70 expired 1854; also clear under the pre-1931 US bright-line.",
-  "provenance_check": "IA item confirmed live via /metadata/dictionaryofengl01johnuoft (HTTP 200); title matches ('A dictionary of the English language : in which the words are deduced from their originals, and illustrated in their different significations by examples from the best writers : to which are prefixed, a history of the language, and an English grammar'). Not re-examined for reprint markings this session (already-compliant, not re-downloaded).",
-  "notes": "1 104 pages, the largest document: the Latin-script monster. 129 900 387 bytes."
- },
- {
-  "id": "baudelaire-1857-fleurs-du-mal",
-  "title": "Les Fleurs du Mal (1re éd.)",
-  "author": "Charles Baudelaire",
-  "year": 1857,
+  "id": "ha-duong-2005-modeles-de-precaution-hdr",
+  "title": "Modèles de précaution en économie : introduction aux probabilités imprécises",
+  "author": "Minh Ha-Duong",
+  "year": 2005,
   "language": "fr",
   "tier": "MUST",
   "facet": "core",
-  "archive": "internet-archive",
-  "identifier": "lesfleursdum00baud",
-  "bytes_url": "https://archive.org/download/lesfleursdum00baud/lesfleursdum00baud.pdf",
+  "archive": "hal",
+  "identifier": "halshs-00007520",
+  "version": "v1",
+  "bytes_url": "https://theses.hal.science/halshs-00007520/file/HaDuong-20051223-ModelesDePrecautionEnEconomieIntroductionAuxProbabilitesImprecises.pdf",
   "bytes_format": "pdf",
-  "sha256": "cb5e157bd3cd87a70e437138dd51fb5c64ad0d46b64260d2be2de6e817e77f33",
-  "archive_checksums": {
-   "md5": "7c14e4cd6c0677196cbade2ab6c6b80d",
-   "sha1": "44b75db365d99a1c04d236c013d97df6ded97a44",
-   "size": 7268631
-  },
-  "page_count": 262,
-  "license_basis": "Public domain everywhere: Baudelaire died 1867, life+70 expired 1937; also clear under the pre-1931 US bright-line.",
-  "provenance_check": "IA item confirmed live via /metadata/lesfleursdum00baud (HTTP 200); title matches ('Les fleurs du mal'). Not re-examined for reprint markings this session (already-compliant, not re-downloaded).",
-  "notes": "Verse: short lines, stanza breaks, no paragraph structure, for the segmenter."
- },
- {
-  "id": "stein-1925-making-of-americans",
-  "title": "The Making of Americans",
-  "author": "Gertrude Stein",
-  "year": 1925,
-  "language": "en",
-  "tier": "MUST",
-  "facet": "deep-body",
-  "archive": "internet-archive",
-  "identifier": "makingofamerican0000unse_j2t9",
-  "bytes_url": "https://archive.org/download/makingofamerican0000unse_j2t9/makingofamerican0000unse_j2t9.pdf",
-  "bytes_format": "pdf",
-  "sha256": "f897590a030d571f07888ae3bf8119b7a586c67bc74fc3cc57a32b36fc93acc2",
-  "archive_checksums": {
-   "md5": "1b8f9b26ec12b9444893e974cfaf24ac",
-   "sha1": "828a8eb27724d59c09779a950db6620a4c236654",
-   "size": 62703765
-  },
-  "page_count": 940,
-  "license_basis": "Public domain in the US under the pre-1931 (actually pre-1930, so already cleared) bright-line: published 1925.",
-  "provenance_check": "IA item confirmed live via /metadata/makingofamerican0000unse_j2t9 (HTTP 200); title matches ('The Making of Americans'). Not re-examined for reprint markings this session (already-compliant, not re-downloaded).",
-  "notes": "940 pages of continuous narrative with no chapter divisions: no section boundary for a segmenter to key on."
- },
- {
-  "id": "curie-1904-recherches-substances-radioactives",
-  "title": "Recherches sur les substances radioactives",
-  "author": "Marie Curie",
-  "year": 1904,
-  "language": "fr",
-  "tier": "MUST",
-  "facet": "core",
-  "archive": "internet-archive",
-  "identifier": "recherchessurles00curi",
-  "bytes_url": "https://archive.org/download/recherchessurles00curi/recherchessurles00curi.pdf",
-  "bytes_format": "pdf",
-  "sha256": "6a59304e26142e750b6402ee057605d7976cb1c1112ff912b740dcbf7541d554",
-  "archive_checksums": {
-   "md5": "02b199f19c5f5a0a3544e71d8777ba6a",
-   "sha1": "cb6343a98d3f9bbcfb653852193b6409abd76f5a",
-   "size": 12311323
-  },
-  "page_count": 176,
-  "license_basis": "Public domain everywhere: Marie Curie died 1934, life+70 expired 2004; also clear under the pre-1931 US bright-line (published 1904).",
-  "provenance_check": "IA item confirmed live via /metadata/recherchessurles00curi (HTTP 200); title matches ('Recherches sur les substances radioactives'). Not re-examined for reprint markings this session (already-compliant, not re-downloaded).",
-  "notes": "Curie's doctoral thesis, the basis of her 1903 Physics Nobel (shared with Pierre Curie and Becquerel) and her 1911 Chemistry Nobel -- a seminal-research-article addition, requested by the author, and the corpus's second Nobel-linked document alongside the Einstein/Minkowski entry below."
- },
- {
-  "id": "einstein-minkowski-1920-principle-of-relativity",
-  "title": "The Principle of Relativity: Original Papers by A. Einstein and H. Minkowski",
-  "author": "Albert Einstein and Hermann Minkowski, translated by M. N. Saha and S. N. Bose",
-  "year": 1920,
-  "language": "en",
-  "tier": "MUST",
-  "facet": "core",
-  "archive": "internet-archive",
-  "identifier": "theprincipleofre00einsuoft",
-  "bytes_url": "https://archive.org/download/theprincipleofre00einsuoft/theprincipleofre00einsuoft.pdf",
-  "bytes_format": "pdf",
-  "sha256": "3a2a66db4171e304cf71a005aa6877e6357f24a58b1c72698d978db9b8d8d923",
-  "archive_checksums": {
-   "md5": "a2c96db2093ac5b6e80034b130aafff3",
-   "sha1": "c3c0d8af1f75349f0d7bb71ca56ef99eddac3f2c",
-   "size": 10906974
-  },
-  "page_count": 260,
-  "license_basis": "Public domain in the United States: published 1920, before 1931. The volume is the University of Calcutta edition translated by M. N. Saha (died 1956) and S. N. Bose (died 1974), with an introduction by P. C. Mahalanobis (died 1972); under life+70 the translation clears at the end of 2044, under India’s life+60 at the end of 2034. Redistribution from a US archive is lawful; treat the entry as US-only until then.",
-  "provenance_check": "IA item confirmed live via /metadata/theprincipleofre00einsuoft (HTTP 200); title matches ('The principle of relativity; original papers by A. Einstein and H. Minkowski. Translated into English by M.N. Saha and S.N. Bose; with a historical introd. by P.C. Mahalanobis'). Not re-examined for reprint markings this session (already-compliant, not re-downloaded).",
-  "notes": "The weakest licence basis among the age-based entries, flagged rather than glossed: Einstein’s and Minkowski’s originals are clear everywhere, the 1920 English translation is not. The German originals (Annalen der Physik 1905–1916) are the replacement if this is a problem."
- },
- {
-  "id": "tran-trong-kim-1920-viet-nam-su-luoc-q1",
-  "title": "Việt Nam sử lược, quyển I",
-  "author": "Trần Trọng Kim",
-  "year": 1920,
-  "language": "vi",
-  "tier": "MUST",
-  "facet": "core",
-  "archive": "wikimedia-commons",
-  "identifier": "File:Viet Nam Su Luoc 1.djvu",
-  "bytes_url": "https://upload.wikimedia.org/wikipedia/commons/7/73/Viet_Nam_Su_Luoc_1.djvu",
-  "bytes_format": "djvu",
-  "sha256": "510b97ad806c07db203e130cfad1a4158323f8b4ebedc575b8dafe74b7aa3067",
-  "archive_checksums": {
-   "sha1": "bc6be18f39011ed625f24e6fd11a724e10e8bc1e"
-  },
-  "page_count": 294,
-  "license_basis": "Author died 1953; life+70 expired 2024. Public domain.",
-  "provenance_check": "Commons file page carries a PD-old tag; scan of a colonial-era printing, no reprint publisher in the file metadata.",
-  "notes": "Scan shape of the same work whose transcription is tran-trong-kim-1920-viet-nam-su-luoc-wikisource; the pair lets the gate compare the DjVu path against the HTML path on identical content.",
-  "failure_control": {
-   "expected_state": "unindexed",
-   "expected_degradation": "no full text: image/vnd.djvu is never eligible for extraction -- Zotero's own dispatch (fulltext.js, indexItem) handles application/pdf, application/epub+zip and text/* only, so no fulltextItems row is ever written and /fulltext has no census entry",
-   "answer_set_participation": "none"
-  }
- },
- {
-  "id": "tran-trong-kim-1928-viet-nam-su-luoc-q2",
-  "title": "Việt Nam sử lược, quyển II (1928 printing)",
-  "author": "Trần Trọng Kim",
-  "year": 1928,
-  "language": "vi",
-  "tier": "MUST",
-  "facet": "deep-body",
-  "archive": "wikimedia-commons",
-  "identifier": "File:Viet Nam Su Luoc, Quyen 2, 1928.pdf",
-  "bytes_url": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Viet_Nam_Su_Luoc%2C_Quyen_2%2C_1928.pdf",
-  "bytes_format": "pdf",
-  "sha256": "c46f2439b6e639497281d62ca44f440f96ed6f876b7ee3cd7f5b3da4a746d528",
-  "archive_checksums": {
-   "sha1": "7b62ff6683dd5f000024c686ede1f3a1180edbe4"
-  },
-  "page_count": 347,
-  "license_basis": "Author died 1953; life+70 expired 2024. Public domain.",
-  "provenance_check": "1928 printing per the file's own title; pdfinfo page count matches the Commons API count.",
-  "notes": "347 pages of Vietnamese prose: the deep-body probe for the 100-page client cap in a MUST-tier language.",
-  "failure_control": {
-   "expected_state": "unindexed",
-   "expected_degradation": "no full text: an un-OCR'd scan with no text layer (pdftotext extracts 347 bytes over 347 pages, one page break per page), so indexPDF gets no text, writes no fulltextItems row, and /fulltext has no census entry",
-   "answer_set_participation": "none"
-  }
- },
- {
-  "id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource",
-  "title": "Việt Nam sử lược (Wikisource transcription, index page)",
-  "author": "Trần Trọng Kim",
-  "year": 1920,
-  "language": "vi",
-  "tier": "MUST",
-  "facet": "core",
-  "archive": "wikisource",
-  "identifier": "vi.wikisource.org oldid=106527 (pageid 5125)",
-  "bytes_url": "https://vi.wikisource.org/w/index.php?title=Vi%E1%BB%87t_Nam_s%E1%BB%AD_l%C6%B0%E1%BB%A3c&action=raw&oldid=106527",
-  "bytes_format": "wikitext",
-  "min_size": 500,
-  "sha256": "5bf05fa7da6bbde6396e87ab716920cbfcf6a4844c134a2c11304e02041bac81",
-  "page_count": null,
-  "license_basis": "Author died 1953; life+70 expired 2024. Transcription released by Wikisource contributors under CC BY-SA 4.0, which permits redistribution with attribution.",
-  "provenance_check": "Index page of 1 176 bytes pointing at 191 subpages across four editions; the injection step chooses one edition and pins each subpage's revision.",
-  "notes": "HTML/wikitext shape of the same work as the two Commons scans."
- },
- {
-  "id": "vn-constitution-1992-vi",
-  "title": "Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992 (original text)",
-  "author": "Quốc hội Việt Nam",
-  "year": 1992,
-  "language": "vi",
-  "tier": "MUST",
-  "facet": "core",
-  "archive": "wikisource",
-  "identifier": "vi.wikisource.org oldid=110942 (pageid 4807)",
-  "bytes_url": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992&action=raw&oldid=110942",
-  "bytes_format": "wikitext",
-  "min_size": 500,
-  "sha256": "0a3318b5f6703e1d0031f1db9df9e990e5952d78a4f3bc720d0e07b50e008629",
-  "page_count": null,
-  "license_basis": "Vietnam Law on Intellectual Property, Article 15.2: legal normative documents are excluded from copyright.",
-  "provenance_check": "Index page (2 628 bytes) of the unamended 1992 text, chosen over the 2001-amended variant; 14 subpages, each pinned by revision at injection.",
-  "notes": "The Vietnamese administrative register, replacing the three ministerial circulars of PR #151 (its fourth Vietnamese document, the Decision 11/2017 original, is a separate open item): Wikisource holds no circular as text, only Official Gazette scans that list them. Cross-lingual pair of vn-constitution-1992-en."
- },
- {
-  "id": "vn-constitution-1992-en",
-  "title": "Constitution of Vietnam (1992), English text",
-  "author": "Quốc hội Việt Nam (official translation)",
-  "year": 1992,
-  "language": "en",
-  "tier": "MUST",
-  "facet": "core",
-  "archive": "wikisource",
-  "identifier": "en.wikisource.org oldid=16201311 (pageid 5192388)",
-  "bytes_url": "https://en.wikisource.org/w/index.php?title=Constitution_of_Vietnam_(1992)&action=raw&oldid=16201311",
-  "bytes_format": "wikitext",
-  "min_size": 5000,
-  "sha256": "c4926a9c1da45e963ca27e3344862530763979b60a2d1bd4da9cd7c180cdd8e9",
-  "page_count": null,
-  "license_basis": "Vietnam Law on Intellectual Property, Article 15.2 excludes official translations of legal normative documents; en.wikisource files it under its edict-of-government rationale.",
-  "provenance_check": "Single page carrying the whole text; no scan backing, so the translation's issuing body is taken from the page's own header.",
-  "notes": "EN side of the cross-lingual pair with vn-constitution-1992-vi: an English query against Vietnamese content with a known-aligned answer (R29)."
+  "sha256": null,
+  "sha256_reason": "HAL serves an Anubis proof-of-work challenge to scripted clients (HTTP 200 with a challenge page, not the PDF). Fetch once in a browser, hash, and pin.",
+  "page_count": 180,
+  "license_basis": "Author-owned, deposited by the author on HAL under CC0 1.0 per the deposit's TEI metadata; authorized for this corpus directly.",
+  "provenance_check": "HAL record confirmed live, one version.",
+  "notes": "Moves from the author's homepage (not an archive) to its HAL deposit. The homepage copy hashed d7fde84a8f79…; whether HAL's file is byte-identical is settled at first fetch."
  },
  {
   "id": "hal-04332519-economies-of-scale",
@@ -463,86 +816,1338 @@
   "notes": "Recent Vietnamese conference communication (history of books and printing in Cochinchina)."
  },
  {
-  "id": "des-michels-1883-luc-van-tien",
-  "title": "Lục Vân Tiên ca diễn : les poèmes de l'Annam, texte en caractères figuratifs, transcription en caractères latins et traduction",
-  "author": "Nguyễn Đình Chiểu; Abel des Michels (ed., transl.)",
-  "year": 1883,
-  "language": "vi",
-  "tier": "MUST",
+  "id": "ibanez-2015-desarrollo-humano-sustentable",
+  "title": "Hacia la cuantificación del desarrollo humano sustentable",
+  "author": "Neyda Ibáñez; Ruben Castillo",
+  "year": 2015,
+  "language": "es",
+  "tier": "SHOULD",
   "facet": "core",
-  "archive": "gallica",
-  "identifier": "ark:/12148/bpt6k54602432",
-  "bytes_url": "https://gallica.bnf.fr/ark:/12148/bpt6k54602432.pdf",
-  "bytes_format": "pdf",
-  "sha256": null,
-  "sha256_reason": "Gallica redirects scripted PDF requests to its ALTCHA challenge (HTTP 302). Fetch once in a browser, hash, and pin.",
-  "page_count": 454,
-  "license_basis": "Nguyễn Đình Chiểu died 1888, Abel des Michels died 1899; Gallica marks the record domaine public.",
-  "provenance_check": "Gallica landing page and IIIF manifest read: 454 views, BnF digitization of the 1883 Leroux printing.",
-  "notes": "Bilingual VN/FR in one scan: the FR–VN anchor for R29. Nôm characters, quốc ngữ transcription and French translation on facing pages."
- },
- {
-  "id": "des-michels-1884-kim-van-kieu-t2p1",
-  "title": "Kim Vân Kiều tân truyện (Les poèmes de l'Annam, tome II, partie 1)",
-  "author": "Nguyễn Du; Abel des Michels (ed., transl.)",
-  "year": 1884,
-  "language": "vi",
-  "tier": "MUST",
-  "facet": "core",
-  "archive": "gallica",
-  "identifier": "ark:/12148/bpt6k54394659",
-  "bytes_url": "https://gallica.bnf.fr/ark:/12148/bpt6k54394659.pdf",
-  "bytes_format": "pdf",
-  "sha256": null,
-  "sha256_reason": "Gallica redirects scripted PDF requests to its ALTCHA challenge (HTTP 302). Fetch once in a browser, hash, and pin.",
-  "page_count": 309,
-  "license_basis": "Nguyễn Du died 1820, Abel des Michels died 1899; Gallica marks the record domaine public.",
-  "provenance_check": "Gallica record reads Tome II, Partie 1 of a multi-volume set; Tome I is ark:/12148/bpt6k5439461n; a Partie 2 was not located.",
-  "notes": "Second FR–VN bilingual anchor. Add Tome I once its PDF is hashed."
- },
- {
-  "id": "bonet-1899-dictionnaire-annamite-francais-t1",
-  "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 1",
-  "author": "Jean Bonet",
-  "year": 1899,
-  "language": "vi",
-  "tier": "MUST",
-  "facet": "core",
-  "archive": "internet-archive",
-  "identifier": "dictionnaireanna01bone",
-  "bytes_url": "https://archive.org/download/dictionnaireanna01bone/dictionnaireanna01bone.pdf",
-  "bytes_format": "pdf",
-  "sha256": "f1745ecc53c9b6e01de984ee0da6bb84e029520f5b39bdd3a502091f33d43c2e",
-  "archive_checksums": {
-   "md5": "9a59857fc53883dbc1a6191ecbb58698",
-   "sha1": "fc8bb94d22a1068736f7761209b6b6f9a76ab8dd"
+  "item_type": "journalArticle",
+  "type_fidelity": "correct",
+  "work_id": "ibanez-2015-desarrollo-humano-sustentable",
+  "work_relations": [],
+  "structural_features": [],
+  "topic": "development",
+  "stratum": "core",
+  "language_field": "es",
+  "mechanisms": [],
+  "citation": {
+   "doi": "10.5281/zenodo.4917256",
+   "url": "https://zenodo.org/records/4917256"
   },
-  "page_count": 488,
-  "license_basis": "Published 1899; public domain by age everywhere.",
-  "provenance_check": "Downloaded and hashed; md5 matches Internet Archive's own item metadata.",
-  "notes": "A Vietnamese–French dictionary: the VN–FR cross-lingual anchor, and the dictionary genre beside Johnson."
+  "journal": "Negotium",
+  "volume": "10",
+  "issue": "30",
+  "pages": "163-190",
+  "notes": [],
+  "page_count": 28,
+  "license_basis": "CC BY 4.0 declared on the Zenodo record 4917256 (licence id cc-by-4.0, read 2026-09-06).",
+  "provenance_check": "First page read: 'Negotium, Revista Científica Electrónica de Ciencias Gerenciales, ISSN 1856-180 … Neyda Ibáñez, Ruben Castillo (2015) Hacia la cuantificación del desarrollo humano sustentable, núm 30 (año 10) pág 163-190', Universidad de Carabobo.",
+  "attachments": [
+   {
+    "id": "ibanez-2015-desarrollo-humano-sustentable-pdf",
+    "language": "es",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "does-not-cross",
+     "chars": "does-not-cross",
+     "combined": "neither",
+     "locators": {}
+    },
+    "archive": "zenodo",
+    "identifier": "10.5281/zenodo.4917256",
+    "bytes_url": "https://zenodo.org/api/records/4917256/files/art10.pdf/content",
+    "bytes_format": "pdf",
+    "sha256": "b451d0347a101cd637952d59110d4471501aeb26496470320bbedc69daaebcf8",
+    "archive_checksums": {
+     "md5": "d32a4b6cd516290fdf8f6018289fb9e2",
+     "size": 269047
+    },
+    "license_basis": "same as parent",
+    "charset": null,
+    "version": "v1"
+   }
+  ]
  },
  {
-  "id": "bonet-1899-dictionnaire-annamite-francais-t2",
-  "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 2",
-  "author": "Jean Bonet",
-  "year": 1899,
+  "id": "jevons-1865-coal-question",
+  "title": "The Coal Question; an enquiry concerning the progress of the Nation, and the probable exhaustion of our coal-mines",
+  "author": "William Stanley Jevons",
+  "year": 1865,
+  "language": "en",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "book",
+  "type_fidelity": "correct",
+  "work_id": "jevons-1865-coal-question",
+  "work_relations": [],
+  "structural_features": [
+   {
+    "feature": "table",
+    "attachment_id": "jevons-1865-coal-question-pdf",
+    "locator": "ch. I, printed p. 4 (pdf page 24): table 'Estimates of the duration of the Northumberland and Durham coal-field' (columns: square miles, millions of tons, tons, years)",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "footnote",
+    "attachment_id": "jevons-1865-coal-question-pdf",
+    "locator": "ch. I, printed p. 6 (pdf page 26): footnote 1 'A History and Description of Fossil Fuel: London, 1835, chap. xxiv.'",
+    "extraction_expectation": "present"
+   }
+  ],
+  "topic": "energy",
+  "stratum": "core",
+  "language_field": "",
+  "mechanisms": [],
+  "citation": {
+   "url": "https://archive.org/details/bub_gb_gAAKAAAAIAAJ"
+  },
+  "notes": [],
+  "page_count": 366,
+  "license_basis": "Public domain: published 1865; Jevons died 1882, life+70 expired 1952.",
+  "provenance_check": "Title page read (pdf page 9): 'The Coal Question … by W. Stanley Jevons … London: Macmillan and Co., 1865' (first edition). Google Books scan of the New York Public Library copy; 'Digitized by Google' footers; no reprint wording.",
+  "attachments": [
+   {
+    "id": "jevons-1865-coal-question-pdf",
+    "language": "en",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "crosses",
+     "chars": "does-not-cross",
+     "combined": "page-only",
+     "locators": {
+      "before_page_cap": "ch. I, printed p. 15 (pdf page 35)",
+      "after_page_cap": "ch. XV, printed p. 310 (pdf page 320)"
+     }
+    },
+    "archive": "internet-archive",
+    "identifier": "bub_gb_gAAKAAAAIAAJ",
+    "bytes_url": "https://archive.org/download/bub_gb_gAAKAAAAIAAJ/bub_gb_gAAKAAAAIAAJ.pdf",
+    "bytes_format": "pdf",
+    "sha256": "2cf75cfd528be06a0fa8e4b242c6456451c3122700f083cd1cde4a1fc95e1f90",
+    "archive_checksums": {
+     "md5": "80a4a289733245854463a24e953993d6",
+     "sha1": "550711092e627722677ddcb0512da67261fd5539",
+     "size": 11184200
+    },
+    "license_basis": "same as parent",
+    "charset": null
+   }
+  ]
+ },
+ {
+  "id": "johnson-1785-dictionary",
+  "title": "A Dictionary of the English Language, Vol. 1 (6th ed.)",
+  "author": "Samuel Johnson",
+  "year": 1785,
+  "language": "en",
+  "tier": "MUST",
+  "facet": "deep-body",
+  "item_type": "book",
+  "type_fidelity": "correct",
+  "work_id": "johnson-1785-dictionary",
+  "work_relations": [],
+  "structural_features": [],
+  "topic": "hss",
+  "stratum": "reserve",
+  "language_field": "",
+  "mechanisms": [
+   "compound-document-entries",
+   "latin-script-monster",
+   "page-cap-crossing"
+  ],
+  "citation": {
+   "url": "https://archive.org/details/dictionaryofengl01johnuoft"
+  },
+  "notes": [],
+  "page_count": 1104,
+  "license_basis": "Public domain everywhere: Johnson died 1784, life+70 expired 1854; also clear under the pre-1931 US bright-line.",
+  "provenance_check": "IA item confirmed live via /metadata/dictionaryofengl01johnuoft (HTTP 200); title matches ('A dictionary of the English language : in which the words are deduced from their originals, and illustrated in their different significations by examples from the best writers : to which are prefixed, a history of the language, and an English grammar'). Not re-examined for reprint markings this session (already-compliant, not re-downloaded).",
+  "attachments": [
+   {
+    "id": "johnson-1785-dictionary",
+    "language": "en",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "crosses",
+     "chars": "does-not-cross",
+     "combined": "page-only",
+     "locators": {
+      "before_page_cap": "printed pages of the front matter and first chapters (below scan page 100)",
+      "after_page_cap": "printed pages beyond scan page 100 (the scan has 1104 pages)"
+     }
+    },
+    "archive": "internet-archive",
+    "identifier": "dictionaryofengl01johnuoft",
+    "bytes_url": "https://archive.org/download/dictionaryofengl01johnuoft/dictionaryofengl01johnuoft.pdf",
+    "bytes_format": "pdf",
+    "sha256": "46841d2419829feea437249fba603e65377bb51e26931422d42844c8c28f99ab",
+    "license_basis": "same as parent",
+    "charset": null,
+    "archive_checksums": {
+     "md5": "b8b64386c2f5028d4d4e3da0d85175b9",
+     "sha1": "5667f7140af8c5c9320857478ee9af53baa978a3",
+     "size": 129900387
+    }
+   }
+  ],
+  "sourcing_note": "1 104 pages, the largest document: the Latin-script monster. 129 900 387 bytes."
+ },
+ {
+  "id": "keynes-1921-application-of-probability-to-conduct",
+  "title": "The application of probability to conduct",
+  "author": "John Maynard Keynes",
+  "year": 1921,
+  "language": "en",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "bookSection",
+  "type_fidelity": "correct",
+  "work_id": "keynes-1921-application-of-probability-to-conduct",
+  "work_relations": [
+   {
+    "type": "book-chapter",
+    "target": "keynes-1921-treatise-on-probability"
+   }
+  ],
+  "structural_features": [],
+  "topic": "uncertainty",
+  "stratum": "core",
+  "language_field": "",
+  "mechanisms": [],
+  "citation": {
+   "url": "https://archive.org/details/cu31924014110435"
+  },
+  "notes": [],
+  "record_only": true,
+  "page_count": null,
+  "book_title": "A Treatise on Probability",
+  "pages": "307-323",
+  "section": "Part IV, Chapter XXVI",
+  "license_basis": "Record only, no bytes; the chapter's text is inside keynes-1921-treatise-on-probability (public domain).",
+  "provenance_check": "Chapter heading and page range read on the parent scan: 'Chapter XXVI, The application of probability to conduct' opens at printed p. 307 (pdf page 327) and ends p. 323 (pdf page 343).",
+  "attachments": []
+ },
+ {
+  "id": "keynes-1921-treatise-on-probability",
+  "title": "A Treatise on Probability",
+  "author": "John Maynard Keynes",
+  "year": 1921,
+  "language": "en",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "book",
+  "type_fidelity": "correct",
+  "work_id": "keynes-1921-treatise-on-probability",
+  "work_relations": [
+   {
+    "type": "book-chapter",
+    "target": "keynes-1921-application-of-probability-to-conduct"
+   }
+  ],
+  "structural_features": [
+   {
+    "feature": "footnote",
+    "attachment_id": "keynes-1921-treatise-on-probability-pdf",
+    "locator": "Part I, ch. I, printed p. 5 (pdf page 25): footnote 1 'Except in those chapters (Chap. XVII., for example)…'",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "equation-heavy-prose",
+    "attachment_id": "keynes-1921-treatise-on-probability-pdf",
+    "locator": "Part I, ch. VI, printed p. 73 (pdf page 93): comparisons of weight in symbolic notation",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "multi-column",
+    "attachment_id": "keynes-1921-treatise-on-probability-pdf",
+    "locator": "Index, printed p. 460 (pdf page 480), two-column index",
+    "extraction_expectation": "present"
+   }
+  ],
+  "topic": "uncertainty",
+  "stratum": "core",
+  "language_field": "en",
+  "mechanisms": [],
+  "citation": {
+   "url": "https://archive.org/details/cu31924014110435"
+  },
+  "notes": [],
+  "page_count": 492,
+  "license_basis": "Public domain: published 1921 (before the 1931 US bright line); Keynes died 1946, life+70 expired 2017.",
+  "provenance_check": "Title page read (pdf pages 5-6): 'A Treatise on Probability, by John Maynard Keynes, Fellow of King's College, Cambridge. Macmillan and Co., Limited, St. Martin's Street, London, 1921.' Cornell University Library scan (MSN sponsor); no reprint wording; verso 'Copyright' with 1921 only.",
+  "attachments": [
+   {
+    "id": "keynes-1921-treatise-on-probability-pdf",
+    "language": "en",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "crosses",
+     "chars": "does-not-cross",
+     "combined": "page-only",
+     "locators": {
+      "before_page_cap": "Part I, ch. IV, printed p. 55 (pdf page 75)",
+      "after_page_cap": "Part IV, printed p. 300 (pdf page 320)"
+     }
+    },
+    "archive": "internet-archive",
+    "identifier": "cu31924014110435",
+    "bytes_url": "https://archive.org/download/cu31924014110435/cu31924014110435.pdf",
+    "bytes_format": "pdf",
+    "sha256": "5c1f1093603ed20a7781caa0510c5db2a7a7b0130ea643c6c3bbe0c9f8ad50ce",
+    "archive_checksums": {
+     "md5": "37a9e725e76aa48fefe94fa221471e0d",
+     "sha1": "c455884577effb5e5b77b6bedff04612d4ed0ae3",
+     "size": 20033200
+    },
+    "license_basis": "same as parent",
+    "charset": null
+   }
+  ]
+ },
+ {
+  "id": "korotayev-2015-east-africa-malthusian-trap",
+  "title": "East Africa in the Malthusian trap? A statistical analysis of financial, economic, and demographic indicators",
+  "author": "Andrey Korotayev; Julia Zinkina",
+  "year": 2015,
+  "language": "en",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "preprint",
+  "type_fidelity": "correct",
+  "work_id": "korotayev-2015-east-africa-malthusian-trap",
+  "work_relations": [],
+  "structural_features": [
+   {
+    "feature": "figure-caption",
+    "attachment_id": "korotayev-2015-east-africa-malthusian-trap-pdf",
+    "locator": "printed p. 3: 'Fig. 1. Average per capita food consumption dynamics (kcal per capita per day) in North and East Africa, 1961-2009'",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "appendix",
+    "attachment_id": "korotayev-2015-east-africa-malthusian-trap-pdf",
+    "locator": "printed p. 28: 'Appendix 1. Tanzanian case'",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "footnote",
+    "attachment_id": "korotayev-2015-east-africa-malthusian-trap-pdf",
+    "locator": "printed p. 1: footnote 1 'Using the terminology of non-linear dynamics…'",
+    "extraction_expectation": "present"
+   }
+  ],
+  "topic": "development",
+  "stratum": "core",
+  "language_field": "en",
+  "mechanisms": [],
+  "citation": {
+   "url": "https://arxiv.org/abs/1503.08441v1"
+  },
+  "notes": [],
+  "page_count": 30,
+  "license_basis": "CC BY 3.0: arXiv licence field http://creativecommons.org/licenses/by/3.0/ on 1503.08441 (OAI record read 2026-09-06).",
+  "provenance_check": "First page read: 'ARXIV.ORG — EAST AFRICA IN THE MALTHUSIAN TRAP? A statistical analysis of financial, economic, and demographic indicators, Andrey Korotayev & Julia Zinkina'; Word-generated PDF; arXiv comments '30 pages, 29 figures'.",
+  "sourcing_note": "PDF-only submission: https://arxiv.org/e-print/1503.08441v1 serves the same PDF bytes (sha256 2616b47a…), so there is no source tarball for this record.",
+  "attachments": [
+   {
+    "id": "korotayev-2015-east-africa-malthusian-trap-pdf",
+    "language": "en",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "does-not-cross",
+     "chars": "does-not-cross",
+     "combined": "neither",
+     "locators": {}
+    },
+    "archive": "arxiv",
+    "identifier": "1503.08441",
+    "bytes_url": "https://arxiv.org/pdf/1503.08441v1",
+    "bytes_format": "pdf",
+    "sha256": "2616b47a524c83d018cdaf05ec8aa1e9fbc241c78f4bc078e2ae5df6b4605464",
+    "archive_checksums": {
+     "size": 1040072
+    },
+    "license_basis": "same as parent",
+    "charset": null,
+    "version": "v1"
+   }
+  ]
+ },
+ {
+  "id": "malynes-1622-lex-mercatoria",
+  "title": "Consuetudo, vel Lex Mercatoria, or The Ancient Law-Merchant (1622 first edition)",
+  "author": "Gerard de Malynes",
+  "year": 1622,
+  "language": "en",
+  "tier": "MUST",
+  "facet": "deep-body",
+  "item_type": "book",
+  "type_fidelity": "correct",
+  "work_id": "malynes-1622-lex-mercatoria",
+  "work_relations": [],
+  "structural_features": [],
+  "topic": "economics",
+  "stratum": "reserve",
+  "language_field": "English",
+  "mechanisms": [
+   "early-modern-typography",
+   "page-cap-crossing",
+   "oversized-source-file"
+  ],
+  "citation": {
+   "url": "https://archive.org/details/bim_early-english-books-1475-1640_consuetudo-vel-lex-merc_malynes-gerard-de_1622"
+  },
+  "notes": [],
+  "page_count": 515,
+  "license_basis": "Public domain everywhere: published 1622; author died c. 1641 (life+70 expired centuries ago).",
+  "provenance_check": "This is the true first (1622) edition -- distinct from archive.org's other Malynes item (consuetudovellex00maly), which is the later 1686 printing bound with additional matter. Confirmed via advancedsearch by year: 1622/1629/1636/1656/1686 editions are all separately catalogued on IA; this record's own metadata gives date 1622 explicitly. Not a modern reprint (early-English-books microfilm collection scan).",
+  "attachments": [
+   {
+    "id": "malynes-1622-lex-mercatoria",
+    "language": "en",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "crosses",
+     "chars": "does-not-cross",
+     "combined": "page-only",
+     "locators": {
+      "before_page_cap": "printed pages of the front matter and first chapters (below scan page 100)",
+      "after_page_cap": "printed pages beyond scan page 100 (the scan has 515 pages)"
+     }
+    },
+    "archive": "internet-archive",
+    "identifier": "bim_early-english-books-1475-1640_consuetudo-vel-lex-merc_malynes-gerard-de_1622",
+    "bytes_url": "https://archive.org/download/bim_early-english-books-1475-1640_consuetudo-vel-lex-merc_malynes-gerard-de_1622/bim_early-english-books-1475-1640_consuetudo-vel-lex-merc_malynes-gerard-de_1622.pdf",
+    "bytes_format": "pdf",
+    "sha256": null,
+    "license_basis": "same as parent",
+    "charset": null,
+    "sha256_reason": "352 593 392 bytes, above the sourcing run's 300 MB cap; Internet Archive's own md5 and sha1 recorded instead. Hash on the first full fetch and pin.",
+    "archive_checksums": {
+     "md5": "ca9c2bfe0b4659d7ed85ee740230e428",
+     "sha1": "9e2f8b6dcef7b60159b9c1c27959a28f3bb4f783",
+     "size": 352593392
+    }
+   }
+  ],
+  "sourcing_note": "Replaces the closed PR's 45-page private excerpt with the whole treatise. Early-modern typography (long s, black letter) makes noisy extraction."
+ },
+ {
+  "id": "menger-1871-grundsaetze",
+  "title": "Grundsätze der Volkswirthschaftslehre",
+  "author": "Carl Menger",
+  "year": 1871,
+  "language": "de",
+  "tier": "SHOULD",
+  "facet": "core",
+  "item_type": "book",
+  "type_fidelity": "correct",
+  "work_id": "menger-1871-grundsaetze",
+  "work_relations": [],
+  "structural_features": [],
+  "topic": "economics",
+  "stratum": "reserve",
+  "language_field": "",
+  "mechanisms": [
+   "boilerplate-only-text-layer"
+  ],
+  "citation": {
+   "url": "https://archive.org/details/grundstzedervol01menggoog"
+  },
+  "notes": [],
+  "page_count": 307,
+  "license_basis": "Public domain: published 1871; Menger died 1921, life+70 expired 1992.",
+  "provenance_check": "Google Books 'Image Container PDF' of the University of California copy: pages 1-2 are Google's usage notice; the scanned pages carry no text layer (pdftotext extracts 11 bytes over pages 100-110, pdffonts reports 'xref num 0 not found', page images are JBIG2 bitmaps). Title page could not be read by text; the IA metadata gives 1871, German, Google/University of California. Edition identity rests on the IA record, not on a page read.",
+  "sourcing_note": "Reserve member, not a schema failure control: Zotero will extract the 2 976 characters of Google's notice and mark the attachment indexed while the book's text is absent, so `expected_state: unindexed` would be false. The mechanism is 'the only text layer is archive boilerplate'. An IA-issued OCR text of the same item (grundstzedervol01menggoog_djvu.txt) exists and another lane has cached it as menger-1871-grundsaetze-txt.txt; the integrator may prefer that as the German book with real text and keep this PDF as the pathology.",
+  "attachments": [
+   {
+    "id": "menger-1871-grundsaetze-pdf",
+    "language": "de",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "crosses",
+     "chars": "does-not-cross",
+     "combined": "page-only",
+     "locators": {
+      "before_page_cap": "Google notice, pdf page 1 (the only text)",
+      "after_page_cap": "no text after page 2; body pages are images"
+     }
+    },
+    "archive": "internet-archive",
+    "identifier": "grundstzedervol01menggoog",
+    "bytes_url": "https://archive.org/download/grundstzedervol01menggoog/grundstzedervol01menggoog.pdf",
+    "bytes_format": "pdf",
+    "sha256": "91686337cf2a88b1bbc439456e7dda4cd0998fd8744394139945318596e9bbbd",
+    "archive_checksums": {
+     "md5": "709d6ec5434312b58dcb2d836ace07fa",
+     "sha1": "314c6a7c77545befa15040feef688c0739f194cd",
+     "size": 10423993
+    },
+    "license_basis": "same as parent",
+    "charset": null
+   }
+  ]
+ },
+ {
+  "id": "ormos-2014-entropy-asset-pricing",
+  "title": "Entropy-based financial asset pricing",
+  "author": "Mihály Ormos; Dávid Zibriczky",
+  "year": 2014,
+  "language": "en",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "journalArticle",
+  "type_fidelity": "correct",
+  "work_id": "ormos-2014-entropy-asset-pricing",
+  "work_relations": [
+   {
+    "type": "metadata-conflicting-duplicate",
+    "target": "ormos-2015-entropy-asset-pricing-arxiv"
+   }
+  ],
+  "structural_features": [
+   {
+    "feature": "table",
+    "attachment_id": "ormos-2014-entropy-asset-pricing-plos-pdf",
+    "locator": "printed p. 17/21: 'Table 1. Efficiency of explaining and predicting risk premium in different samples' (doi:10.1371/journal.pone.0115742.t001)",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "figure-caption",
+    "attachment_id": "ormos-2014-entropy-asset-pricing-plos-pdf",
+    "locator": "printed p. 11/21: 'Fig. 1.' caption; printed p. 16/21 'Fig. 6. Explanatory power of risk measures in bearish sample'",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "equation-heavy-prose",
+    "attachment_id": "ormos-2014-entropy-asset-pricing-plos-pdf",
+    "locator": "printed p. 7/21: entropy estimators as displayed equations",
+    "extraction_expectation": "present"
+   }
+  ],
+  "topic": "economics",
+  "stratum": "core",
+  "language_field": "eng",
+  "mechanisms": [],
+  "citation": {
+   "doi": "10.1371/journal.pone.0115742",
+   "url": "https://europepmc.org/article/PMC/PMC4278763"
+  },
+  "journal": "PLoS ONE",
+  "volume": "9",
+  "issue": "12",
+  "pages": "e115742",
+  "notes": [],
+  "page_count": 21,
+  "license_basis": "CC BY: Europe PMC records the licence as 'cc by' and the article XML carries 'open-access article distributed under the terms of the Creative Commons Attribution License' (PLoS ONE policy, CC BY 4.0), read 2026-09-06.",
+  "provenance_check": "First page read: 'RESEARCH ARTICLE Entropy-Based Financial Asset Pricing, Mihály Ormos, Dávid Zibriczky, Department of Finance, Budapest University of Technology and Economics'; running foot 'PLOS ONE | DOI:10.1371/journal.pone.0115742 December 29, 2014'.",
+  "sourcing_note": "The arXiv deposit 1501.01155v1 of this paper is byte-identical to the PMC PDF (same sha256 891a940b…), so it is not carried as a second attachment; it supplies the conflicting-metadata twin below instead.",
+  "attachments": [
+   {
+    "id": "ormos-2014-entropy-asset-pricing-plos-pdf",
+    "language": "en",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "does-not-cross",
+     "chars": "does-not-cross",
+     "combined": "neither",
+     "locators": {}
+    },
+    "archive": "europe-pmc",
+    "identifier": "PMC4278763",
+    "bytes_url": "https://europepmc.org/articles/PMC4278763?pdf=render",
+    "bytes_format": "pdf",
+    "sha256": "891a940ba567fdb966575ed4402e378d8f17373d381050aab25535c0a79aeaf6",
+    "archive_checksums": {
+     "size": 1069084
+    },
+    "license_basis": "same as parent",
+    "charset": null
+   }
+  ]
+ },
+ {
+  "id": "ormos-2015-entropy-asset-pricing-arxiv",
+  "title": "Entropy-Based Financial Asset Pricing",
+  "author": "Ormos, Mihaly; Zibriczky, D.",
+  "year": 2015,
+  "language": "en",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "preprint",
+  "type_fidelity": "correct",
+  "work_id": "ormos-2015-entropy-asset-pricing-arxiv",
+  "work_relations": [
+   {
+    "type": "metadata-conflicting-duplicate",
+    "target": "ormos-2014-entropy-asset-pricing"
+   }
+  ],
+  "structural_features": [],
+  "topic": "economics",
+  "stratum": "reserve",
+  "language_field": "",
+  "mechanisms": [
+   "metadata-conflicting-duplicate"
+  ],
+  "citation": {
+   "url": "https://arxiv.org/abs/1501.01155v1"
+  },
+  "notes": [],
+  "record_only": true,
+  "page_count": null,
+  "license_basis": "Record only, no bytes. (The arXiv v1 bytes are CC BY 3.0 per the arXiv licence field and byte-identical to the PLoS PDF carried by ormos-2014-entropy-asset-pricing.)",
+  "provenance_check": "arXiv OAI record read: 1501.01155, submitted 2015-01-06, licence http://creativecommons.org/licenses/by/3.0/, journal-ref 'PLoS ONE 9(12): e115742', doi 10.1371/journal.pone.0115742.",
+  "sourcing_note": "Deliberate conflicts against its twin: year 2015 (arXiv submission) vs 2014 (journal), author spelling 'Ormos, Mihaly; Zibriczky, D.' vs 'Mihály Ormos; Dávid Zibriczky', Title Case vs sentence case, item type preprint vs journalArticle, no DOI on this record.",
+  "attachments": []
+ },
+ {
+  "id": "pei-2015-climate-macroeconomic-preindustrial-europe",
+  "title": "Climate change and the macroeconomic structure in pre-industrial Europe: new evidence from wavelet analysis",
+  "author": "Qing Pei; David D. Zhang; Guodong Li; Harry F. Lee",
+  "year": 2015,
+  "language": "en",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "journalArticle",
+  "type_fidelity": "correct",
+  "work_id": "pei-2015-climate-macroeconomic-preindustrial-europe",
+  "work_relations": [],
+  "structural_features": [
+   {
+    "feature": "table",
+    "attachment_id": "pei-2015-climate-macroeconomic-preindustrial-europe-pdf",
+    "locator": "printed p. 6/17: 'Table 1. Correlation results on climate change and macro-economy' (grain yield ratio, grain price, CPI, real wage, population columns)",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "figure-caption",
+    "attachment_id": "pei-2015-climate-macroeconomic-preindustrial-europe-pdf",
+    "locator": "printed p. 4/17: 'Fig 1. Variables considered in this study. A, temperature; B, grain yield ratio; C, grain price; D, CPI; E, real wage…'",
+    "extraction_expectation": "present"
+   }
+  ],
+  "topic": "economics",
+  "stratum": "core",
+  "language_field": "",
+  "mechanisms": [],
+  "citation": {
+   "doi": "10.1371/journal.pone.0126480",
+   "url": "https://europepmc.org/article/PMC/PMC4454689"
+  },
+  "journal": "PLoS ONE",
+  "volume": "10",
+  "issue": "6",
+  "pages": "e0126480",
+  "notes": [],
+  "page_count": 17,
+  "license_basis": "CC BY 4.0: the article XML served by Europe PMC carries <license> https://creativecommons.org/licenses/by/4.0/ ('open-access article distributed under the terms of the Creative Commons Attribution License'), read 2026-09-06.",
+  "provenance_check": "First page read: 'RESEARCH ARTICLE Climate Change and the Macroeconomic Structure in Pre-Industrial Europe: New Evidence from Wavelet Analysis', running foot 'PLOS ONE | DOI:10.1371/journal.pone.0126480 June 3, 2015'. Publisher PDF as stored in PMC.",
+  "attachments": [
+   {
+    "id": "pei-2015-climate-macroeconomic-preindustrial-europe-pdf",
+    "language": "en",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "does-not-cross",
+     "chars": "does-not-cross",
+     "combined": "neither",
+     "locators": {}
+    },
+    "archive": "europe-pmc",
+    "identifier": "PMC4454689",
+    "bytes_url": "https://europepmc.org/articles/PMC4454689?pdf=render",
+    "bytes_format": "pdf",
+    "sha256": "8c3358f42be035644130219b3c919a4b2e8e147dc03b787d165cb432309309fa",
+    "archive_checksums": {
+     "size": 2740638
+    },
+    "license_basis": "same as parent",
+    "charset": null
+   }
+  ]
+ },
+ {
+  "id": "poincare-1912-calcul-des-probabilites",
+  "title": "Calcul des probabilités",
+  "author": "Henri Poincaré; rédaction de A. Quiquet",
+  "year": 1912,
+  "language": "fr",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "book",
+  "type_fidelity": "correct",
+  "work_id": "poincare-1912-calcul-des-probabilites",
+  "work_relations": [],
+  "structural_features": [
+   {
+    "feature": "figure-caption",
+    "attachment_id": "poincare-1912-calcul-des-probabilites-pdf",
+    "locator": "ch. VII 'Probabilité du continu', printed p. 125 (pdf page 135): 'Fig. 6.' caption beside the triangle construction",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "equation-heavy-prose",
+    "attachment_id": "poincare-1912-calcul-des-probabilites-pdf",
+    "locator": "Chapitre II, printed p. 36 (pdf page 46): probabilités (A), (A et B') as displayed formulae",
+    "extraction_expectation": "present"
+   }
+  ],
+  "topic": "uncertainty",
+  "stratum": "core",
+  "language_field": "Français",
+  "mechanisms": [],
+  "citation": {
+   "url": "https://archive.org/details/calculdesprobab00poinuoft"
+  },
+  "notes": [],
+  "page_count": 352,
+  "license_basis": "Public domain: published 1912; Poincaré died 1912 (life+70 expired 1983); the editor Albert Quiquet died 1942 (life+70 expired 2013).",
+  "provenance_check": "Title page read (pdf pages 5-7): 'Calcul des probabilités, par H. Poincaré … Deuxième édition, revue et augmentée par l'auteur. Paris, Gauthier-Villars, imprimeur-libraire, 1912'. University of Toronto (Gerstein) scan; no reprint wording.",
+  "attachments": [
+   {
+    "id": "poincare-1912-calcul-des-probabilites-pdf",
+    "language": "fr",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "crosses",
+     "chars": "does-not-cross",
+     "combined": "page-only",
+     "locators": {
+      "before_page_cap": "Chapitre II, printed p. 36 (pdf page 46)",
+      "after_page_cap": "Chapitre XIII, printed p. 250 (pdf page 260)"
+     }
+    },
+    "archive": "internet-archive",
+    "identifier": "calculdesprobab00poinuoft",
+    "bytes_url": "https://archive.org/download/calculdesprobab00poinuoft/calculdesprobab00poinuoft.pdf",
+    "bytes_format": "pdf",
+    "sha256": "463f00f84066bc040d4f12045c022927d421e189090fd6420b18991b4eb8ec81",
+    "archive_checksums": {
+     "md5": "8484dba7c4a073e2bc9e561614663205",
+     "sha1": "b8fbed5ec5b04bad3cfbec8a75b7d8e64b2ecae4",
+     "size": 11891665
+    },
+    "license_basis": "same as parent",
+    "charset": null
+   }
+  ]
+ },
+ {
+  "id": "porte-1770-science-des-negocians",
+  "title": "La Science des négocians et teneurs de livres",
+  "author": "Mathieu de La Porte",
+  "year": 1770,
+  "language": "fr",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "book",
+  "type_fidelity": "correct",
+  "work_id": "porte-1770-science-des-negocians",
+  "work_relations": [],
+  "structural_features": [],
+  "topic": "economics",
+  "stratum": "core",
+  "language_field": "Français",
+  "mechanisms": [],
+  "citation": {
+   "url": "https://archive.org/details/lasciencedesnego00lapo"
+  },
+  "notes": [],
+  "page_count": 788,
+  "license_basis": "Public domain everywhere: published 1770; author's exact death date unattested but centuries past life+70 under any reading; clear under the pre-1931 US bright-line too.",
+  "provenance_check": "IA description 'xvi, 760 p.', date 1770 -- matches an 18th-century printing of this repeatedly-reissued manual; no reprint-edition markings found.",
+  "attachments": [
+   {
+    "id": "porte-1770-science-des-negocians",
+    "language": "fr",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "crosses",
+     "chars": "does-not-cross",
+     "combined": "page-only",
+     "locators": {
+      "before_page_cap": "printed pages of the front matter and first chapters (below scan page 100)",
+      "after_page_cap": "printed pages beyond scan page 100 (the scan has 788 pages)"
+     }
+    },
+    "archive": "internet-archive",
+    "identifier": "lasciencedesnego00lapo",
+    "bytes_url": "https://archive.org/download/lasciencedesnego00lapo/lasciencedesnego00lapo.pdf",
+    "bytes_format": "pdf",
+    "sha256": "982a562a41515cb511907c3fea8f803442b75350e14b4fa70c37770b2841537e",
+    "license_basis": "same as parent",
+    "charset": null,
+    "archive_checksums": {
+     "md5": "9a088d72d4afb7b557bbb6e6b7765bca",
+     "sha1": "3233d44c87209fb0dff0672332b6dd9a752fb158",
+     "size": 25338356
+    }
+   }
+  ],
+  "sourcing_note": "Byte-identical to the closed PR's library copy. 788 pages, a bookkeeping manual: genre variety."
+ },
+ {
+  "id": "ramsey-1931-foundations-of-mathematics",
+  "title": "The Foundations of Mathematics and other Logical Essays",
+  "author": "Frank Plumpton Ramsey (ed. R. B. Braithwaite)",
+  "year": 1931,
+  "language": "en",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "book",
+  "type_fidelity": "correct",
+  "work_id": "ramsey-1931-foundations-of-mathematics",
+  "work_relations": [],
+  "structural_features": [],
+  "topic": "uncertainty",
+  "stratum": "reserve",
+  "language_field": "en",
+  "mechanisms": [
+   "no-text-layer-scan"
+  ],
+  "citation": {
+   "url": "https://archive.org/details/dli.ministry.13166"
+  },
+  "notes": [],
+  "page_count": 340,
+  "license_basis": "Public domain everywhere: Ramsey died 1930, life+70 expired 2000. NOT via the pre-1931 US bright-line -- published 1931 (95 years ago only as of 2026, so it enters US public domain 2027-01-01, not yet). Age (life+70) carries this one cleanly regardless.",
+  "provenance_check": "Rendered and visually inspected the title page and table of contents (pages 8 and 10 of the scan): 'The Foundations of Mathematics and other Logical Essays ... By Frank Plumpton Ramsey, M.A. ... Edited by R. B. Braithwaite ... With a Preface by G. E. Moore ... London: Kegan Paul, Trench, Trubner & Co., Ltd. / New York: Harcourt, Brace and Company. 1931.' Table of contents confirms 'VII. Truth and Probability (1926) ... 156', with subsections A. Reasonable Degree of Belief, B. Statistics, C. Chance. This is the genuine first (1931) Kegan Paul edition, not a later reprint -- 'Printed in Great Britain' colophon, no reprint or 'Electronic Edition' language anywhere.",
+  "attachments": [
+   {
+    "id": "ramsey-1931-foundations-of-mathematics",
+    "language": "en",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "crosses",
+     "chars": "does-not-cross",
+     "combined": "page-only",
+     "locators": {
+      "before_page_cap": "printed pages of the front matter and first chapters (below scan page 100)",
+      "after_page_cap": "printed pages beyond scan page 100 (the scan has 340 pages)"
+     }
+    },
+    "archive": "internet-archive",
+    "identifier": "dli.ministry.13166",
+    "bytes_url": "https://archive.org/download/dli.ministry.13166/E00026_The_Foundations_of_Mathematics.pdf",
+    "bytes_format": "pdf",
+    "sha256": "926dcc1487bae1080c6680187f9e1f3a559b12a79d939e9a3331f76965910e26",
+    "license_basis": "same as parent",
+    "charset": null,
+    "archive_checksums": {
+     "md5": "4d72f8c23377f703f5da7cf8b7ad299e",
+     "sha1": "55a0fa6fc9230acad55b9d738f45c45a29ef7457",
+     "size": 3407096
+    },
+    "failure_control": {
+     "expected_state": "unindexed",
+     "expected_degradation": "no full text: an un-OCR'd scan with no text layer and zero embedded fonts (pdftotext extracts 340 bytes over 340 pages, pdffonts lists none), so indexPDF gets no text, writes no fulltextItems row, and /fulltext has no census entry",
+     "answer_set_participation": "none"
+    }
+   }
+  ],
+  "sourcing_note": "Replaces the closed PR's private 'Electronic Edition' of the essay. 'Truth and Probability' is chapter VII, from p. 156 of the printed volume: a pinned page range inside a longer book, which is what R24's locator needs."
+ },
+ {
+  "id": "rethore-2013-wind-farm-optimization",
+  "title": "Wind Farm Optimization and Multi-Fidelity Wake Modelling: Presentation of TOPFARM I & II, FUSED-Wake",
+  "author": "Pierre-Elouan Réthoré",
+  "year": 2013,
+  "language": "en",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "presentation",
+  "type_fidelity": "correct",
+  "work_id": "rethore-2013-wind-farm-optimization",
+  "work_relations": [],
+  "structural_features": [],
+  "topic": "energy",
+  "stratum": "core",
+  "language_field": "",
+  "mechanisms": [],
+  "citation": {
+   "doi": "10.5281/zenodo.12386",
+   "url": "https://zenodo.org/records/12386"
+  },
+  "notes": [],
+  "page_count": 24,
+  "license_basis": "CC BY-SA 4.0 declared on the Zenodo record 12386 (licence id cc-by-sa-4.0, read 2026-09-06).",
+  "provenance_check": "Slide 1 read: 'Wind Farm Optimization and Multi-Fidelity Wake Modelling, Presentation of TOPFARM I & II, FUSED-Wake, Pierre-Elouan Réthoré et al., DTU Wind Energy, Risø'; Zenodo description: WindInspire workshop, DTU Lyngby, 24 June 2013. Slides PDF (Quartz), sparse text (1 633 characters over the first 5 pages).",
+  "attachments": [
+   {
+    "id": "rethore-2013-wind-farm-optimization-slides-pdf",
+    "language": "en",
+    "role": "presentation",
+    "relation": "presentation",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "does-not-cross",
+     "chars": "does-not-cross",
+     "combined": "neither",
+     "locators": {}
+    },
+    "archive": "zenodo",
+    "identifier": "10.5281/zenodo.12386",
+    "bytes_url": "https://zenodo.org/api/records/12386/files/rethore_Wind_Farm_Optimization_and_Multi_fidelity_wake_modelling.pdf/content",
+    "bytes_format": "pdf",
+    "sha256": "506dccd158b3367064522c55d69c39e825b18f3e3c6cded2325c13e24c231e36",
+    "archive_checksums": {
+     "md5": "a6107d51757c37c382b027e308c5118c",
+     "size": 4813492
+    },
+    "license_basis": "same as parent",
+    "charset": null,
+    "version": "v1"
+   }
+  ]
+ },
+ {
+  "id": "satw-2011-erneuerbare-energien",
+  "title": "Erneuerbare Energien – Herausforderungen auf dem Weg zur Vollversorgung",
+  "author": "Silvia Banfi Frost; Marco Berg; Jean-François Dupont; Matthias Gysler; Eduard Kiener; Jürg Minsch; Alexander Wokaun (Schweizerische Akademie der Technischen Wissenschaften)",
+  "year": 2011,
+  "language": "de",
+  "tier": "SHOULD",
+  "facet": "core",
+  "item_type": "report",
+  "type_fidelity": "correct",
+  "work_id": "satw-2011-erneuerbare-energien",
+  "work_relations": [],
+  "structural_features": [
+   {
+    "feature": "figure-caption",
+    "attachment_id": "satw-2011-erneuerbare-energien-pdf",
+    "locator": "printed p. 9: 'Abb. 1: Endverbrauch der erneuerbaren Energien in der Schweiz im Jahr 2009 (BFE …)'",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "multi-column",
+    "attachment_id": "satw-2011-erneuerbare-energien-pdf",
+    "locator": "printed p. 9: two-column body text throughout the report",
+    "extraction_expectation": "present"
+   }
+  ],
+  "topic": "energy",
+  "stratum": "core",
+  "language_field": "de",
+  "mechanisms": [],
+  "citation": {
+   "doi": "10.5281/zenodo.1160834",
+   "url": "https://zenodo.org/records/1160834"
+  },
+  "notes": [],
+  "page_count": 32,
+  "license_basis": "CC BY 4.0 declared on the Zenodo record 1160834 (licence id cc-by-4.0, read 2026-09-06); publisher SATW.",
+  "provenance_check": "Cover and page 2 read: 'Erneuerbare Energien – Herausforderungen auf dem Weg zur Vollversorgung, Schweizerische Akademie der Technischen Wissenschaften'; Zenodo publication date 2011-02-01.",
+  "attachments": [
+   {
+    "id": "satw-2011-erneuerbare-energien-pdf",
+    "language": "de",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "does-not-cross",
+     "chars": "does-not-cross",
+     "combined": "neither",
+     "locators": {}
+    },
+    "archive": "zenodo",
+    "identifier": "10.5281/zenodo.1160834",
+    "bytes_url": "https://zenodo.org/api/records/1160834/files/SATW-Erneuerbare_Energien-DE.pdf/content",
+    "bytes_format": "pdf",
+    "sha256": "83f628450d83eabc51d85596fe7f94fc9416043e4157f3a3ca243dee5025deab",
+    "archive_checksums": {
+     "md5": "da4945a753150bd791f86188baeac3c9",
+     "size": 704351
+    },
+    "license_basis": "same as parent",
+    "charset": null,
+    "version": "v1"
+   }
+  ]
+ },
+ {
+  "id": "schindler-2015-alien-species-health-dataset",
+  "title": "Supplementary material 1 from: Alien species and public health impacts in Europe: a literature review (literature table, n=77 articles)",
+  "author": "Stefan Schindler; Bernadette Staska; Mildren Adam; Wolfgang Rabitsch; Franz Essl",
+  "year": 2015,
+  "language": "en",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "dataset",
+  "type_fidelity": "correct",
+  "work_id": "schindler-2015-alien-species-health-dataset",
+  "work_relations": [],
+  "structural_features": [],
+  "topic": "environment",
+  "stratum": "core",
+  "language_field": "",
+  "mechanisms": [],
+  "citation": {
+   "doi": "10.3897/neobiota.27.5007.suppl1",
+   "url": "https://zenodo.org/records/902296"
+  },
+  "notes": [],
+  "page_count": null,
+  "license_basis": "CC BY 4.0 declared on the Zenodo record 902296 (licence id cc-by-4.0, read 2026-09-06); the parent article NeoBiota 27:1-23 is CC BY (Pensoft).",
+  "provenance_check": "Zenodo record read: dataset, publication date 2015-09-15, creators Schindler et al., DOI 10.3897/neobiota.27.5007.suppl1 (Pensoft supplementary-material DOI, not a Zenodo DOI); the file oo_56954.xlsx is a valid OOXML workbook (zip with [Content_Types].xml, xl/workbook.xml).",
+  "sourcing_note": "The record's DOI is external (Pensoft); the Zenodo identifier is the record number 902296. `version` is set to v1 because the validator requires vN for Zenodo, but there is no Zenodo version DOI — open question for the integrator.",
+  "attachments": [
+   {
+    "id": "schindler-2015-alien-species-health-xlsx",
+    "language": "en",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "does-not-cross",
+     "chars": "does-not-cross",
+     "combined": "neither",
+     "locators": {}
+    },
+    "archive": "zenodo",
+    "identifier": "902296",
+    "bytes_url": "https://zenodo.org/api/records/902296/files/oo_56954.xlsx/content",
+    "bytes_format": "xlsx",
+    "sha256": "6f5a8de5340cb342a91b95e564a51ee0d371564a7fb04166437d1db5afb887f4",
+    "archive_checksums": {
+     "md5": "3cec9eb76e96c4644e8b51cc82b61598",
+     "size": 31077
+    },
+    "license_basis": "same as parent",
+    "charset": null,
+    "version": "v1",
+    "failure_control": {
+     "expected_state": "unindexed",
+     "expected_degradation": "an Office Open XML spreadsheet (12 zip members, xl/workbook.xml); Zotero's extractor reads PDF, HTML and plain text only, so the attachment finishes with no full text",
+     "answer_set_participation": "none"
+    }
+   }
+  ]
+ },
+ {
+  "id": "smith-1776-wealth-of-nations",
+  "title": "An Inquiry into the Nature and Causes of the Wealth of Nations",
+  "author": "Adam Smith",
+  "year": 1776,
+  "language": "en",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "book",
+  "type_fidelity": "correct",
+  "work_id": "smith-1776-wealth-of-nations",
+  "work_relations": [],
+  "structural_features": [],
+  "topic": "economics",
+  "stratum": "core",
+  "language_field": "EN",
+  "mechanisms": [],
+  "citation": {
+   "url": "https://www.gutenberg.org/ebooks/3300"
+  },
+  "notes": [],
+  "page_count": null,
+  "license_basis": "Public domain: first published 1776; Smith died 1790. Project Gutenberg eBook #3300, released 2002-06-01, most recently updated 2025-07-03 (header read).",
+  "provenance_check": "Gutenberg header read on all three files: 'Title: An Inquiry into the Nature and Causes of the Wealth of Nations, Author: Adam Smith, Release date: June 1, 2002 [eBook #3300], Most recently updated: July 3, 2025, Language: English, Credits: Colin Muir and David Widger'. The edition transcribed is not stated in the header.",
+  "sourcing_note": "Three official Gutenberg distributions of one text under one parent (same-text-different-format). The plain text is 2 432 722 characters (2 468 951 bytes UTF-8), crossing the 500 000-character cap; the HTML carries about 2.23 M visible characters. Gutenberg's files/3300/old/ also holds the original 2002 ASCII release wltnt10.txt and a Latin-1 3300-8.txt, not fetched.",
+  "attachments": [
+   {
+    "id": "smith-1776-wealth-of-nations-txt",
+    "language": "en",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "does-not-cross",
+     "chars": "crosses",
+     "combined": "char-only",
+     "locators": {
+      "before_char_cap": "Book I, ch. X (Of wages and profit in the different employments of labour and stock), heading at character 243 854 of the file",
+      "after_char_cap": "Book II, ch. I (Of the division of stock), heading at character 662 748 of the file; the 500 000th character falls inside Book I, ch. XI, the digression on the bounty on corn"
+     }
+    },
+    "archive": "project-gutenberg",
+    "identifier": "3300",
+    "bytes_url": "https://www.gutenberg.org/cache/epub/3300/pg3300.txt",
+    "bytes_format": "txt",
+    "sha256": "e91d52dca43fd0fd69baf7776b00a5d8e74b69675b6b608ca8a0378aaf3ae58d",
+    "archive_checksums": {
+     "size": 2468951
+    },
+    "license_basis": "same as parent",
+    "charset": "utf-8"
+   },
+   {
+    "id": "smith-1776-wealth-of-nations-html",
+    "language": "en",
+    "role": "alternate-format",
+    "relation": "same-text-different-format",
+    "selection_expectation": "skipped-first-with-text",
+    "cap_expectations": {
+     "pages": "does-not-cross",
+     "chars": "crosses",
+     "combined": "char-only",
+     "locators": {
+      "before_char_cap": "Book I, ch. X",
+      "after_char_cap": "Book II, ch. I"
+     }
+    },
+    "archive": "project-gutenberg",
+    "identifier": "3300",
+    "bytes_url": "https://www.gutenberg.org/cache/epub/3300/pg3300-images.html",
+    "bytes_format": "html",
+    "sha256": "a28c43ad868ff48f8b022b1ab58f6e626600031c098b90580c1d70830881aa66",
+    "archive_checksums": {
+     "size": 2312950
+    },
+    "license_basis": "same as parent",
+    "charset": "utf-8",
+    "skip_reason": "same language (en) as the plain-text attachment, which comes first"
+   },
+   {
+    "id": "smith-1776-wealth-of-nations-epub",
+    "language": "en",
+    "role": "alternate-format",
+    "relation": "same-text-different-format",
+    "selection_expectation": "skipped-first-with-text",
+    "cap_expectations": {
+     "pages": "does-not-cross",
+     "chars": "crosses",
+     "combined": "char-only",
+     "locators": {
+      "before_char_cap": "Book I, ch. X",
+      "after_char_cap": "Book II, ch. I"
+     }
+    },
+    "archive": "project-gutenberg",
+    "identifier": "3300",
+    "bytes_url": "https://www.gutenberg.org/cache/epub/3300/pg3300-images.epub",
+    "bytes_format": "epub",
+    "sha256": "95257838dd5b3b03344d7e8cd47a8f20362d551b7ddadcef0cc7b7422bbd4c8b",
+    "archive_checksums": {
+     "size": 969648
+    },
+    "license_basis": "same as parent",
+    "charset": "utf-8",
+    "skip_reason": "same language (en) as the plain-text attachment, which comes first"
+   }
+  ]
+ },
+ {
+  "id": "tran-trong-kim-1920-viet-nam-su-luoc-q1",
+  "title": "Việt Nam sử lược, quyển I",
+  "author": "Trần Trọng Kim",
+  "year": 1920,
   "language": "vi",
   "tier": "MUST",
   "facet": "core",
-  "archive": "internet-archive",
-  "identifier": "dictionnaireanna02bone",
-  "bytes_url": "https://archive.org/download/dictionnaireanna02bone/dictionnaireanna02bone.pdf",
-  "bytes_format": "pdf",
-  "sha256": "d0753fb79521d20c78ad48e473bb70b2d899e479f9e172098d87121c4bba31dd",
-  "archive_checksums": {
-   "md5": "51f4ccfbd5ede419b7ee61710616b883",
-   "sha1": "ea671e64809606e886e0ee56a0c57aa989afbee0"
+  "item_type": "book",
+  "type_fidelity": "correct",
+  "work_id": "tran-trong-kim-1920-viet-nam-su-luoc-q1",
+  "work_relations": [
+   {
+    "type": "same-work",
+    "target": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource"
+   }
+  ],
+  "structural_features": [],
+  "topic": "hss",
+  "stratum": "reserve",
+  "language_field": "vi",
+  "mechanisms": [
+   "djvu-never-dispatched"
+  ],
+  "citation": {
+   "url": "https://commons.wikimedia.org/wiki/File:Viet_Nam_Su_Luoc_1.djvu"
   },
-  "page_count": 552,
-  "license_basis": "Published 1899; public domain by age everywhere.",
-  "provenance_check": "Downloaded and hashed; md5 matches Internet Archive's own item metadata.",
-  "notes": "Second volume of the same dictionary."
+  "notes": [],
+  "page_count": 294,
+  "license_basis": "Author died 1953; life+70 expired 2024. Public domain.",
+  "provenance_check": "Commons file page carries a PD-old tag; scan of a colonial-era printing, no reprint publisher in the file metadata.",
+  "attachments": [
+   {
+    "id": "tran-trong-kim-1920-viet-nam-su-luoc-q1",
+    "language": "vi",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "crosses",
+     "chars": "does-not-cross",
+     "combined": "page-only",
+     "locators": {
+      "before_page_cap": "printed pages of the front matter and first chapters (below scan page 100)",
+      "after_page_cap": "printed pages beyond scan page 100 (the scan has 294 pages)"
+     }
+    },
+    "archive": "wikimedia-commons",
+    "identifier": "File:Viet Nam Su Luoc 1.djvu",
+    "bytes_url": "https://upload.wikimedia.org/wikipedia/commons/7/73/Viet_Nam_Su_Luoc_1.djvu",
+    "bytes_format": "djvu",
+    "sha256": "510b97ad806c07db203e130cfad1a4158323f8b4ebedc575b8dafe74b7aa3067",
+    "license_basis": "same as parent",
+    "charset": null,
+    "archive_checksums": {
+     "sha1": "bc6be18f39011ed625f24e6fd11a724e10e8bc1e"
+    },
+    "failure_control": {
+     "expected_state": "unindexed",
+     "expected_degradation": "no full text: image/vnd.djvu is never eligible for extraction -- Zotero's own dispatch (fulltext.js, indexItem) handles application/pdf, application/epub+zip and text/* only, so no fulltextItems row is ever written and /fulltext has no census entry",
+     "answer_set_participation": "none"
+    }
+   }
+  ],
+  "sourcing_note": "Scan shape of the same work whose transcription is tran-trong-kim-1920-viet-nam-su-luoc-wikisource; the pair lets the gate compare the DjVu path against the HTML path on identical content."
+ },
+ {
+  "id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource",
+  "title": "Việt Nam sử lược (Wikisource transcription, index page)",
+  "author": "Trần Trọng Kim",
+  "year": 1920,
+  "language": "vi",
+  "tier": "MUST",
+  "facet": "core",
+  "archive": "wikisource",
+  "identifier": "vi.wikisource.org oldid=106527 (pageid 5125)",
+  "bytes_url": "https://vi.wikisource.org/w/index.php?title=Vi%E1%BB%87t_Nam_s%E1%BB%AD_l%C6%B0%E1%BB%A3c&action=raw&oldid=106527",
+  "bytes_format": "wikitext",
+  "min_size": 500,
+  "sha256": "5bf05fa7da6bbde6396e87ab716920cbfcf6a4844c134a2c11304e02041bac81",
+  "page_count": null,
+  "license_basis": "Author died 1953; life+70 expired 2024. Transcription released by Wikisource contributors under CC BY-SA 4.0, which permits redistribution with attribution.",
+  "provenance_check": "Index page of 1 176 bytes pointing at 191 subpages across four editions; the injection step chooses one edition and pins each subpage's revision.",
+  "notes": "HTML/wikitext shape of the same work as the two Commons scans."
+ },
+ {
+  "id": "tran-trong-kim-1928-viet-nam-su-luoc-q2",
+  "title": "Việt Nam sử lược, quyển II (1928 printing)",
+  "author": "Trần Trọng Kim",
+  "year": 1928,
+  "language": "vi",
+  "tier": "MUST",
+  "facet": "deep-body",
+  "item_type": "book",
+  "type_fidelity": "correct",
+  "work_id": "tran-trong-kim-1928-viet-nam-su-luoc-q2",
+  "work_relations": [
+   {
+    "type": "same-work",
+    "target": "tran-trong-kim-1920-viet-nam-su-luoc-q1"
+   }
+  ],
+  "structural_features": [],
+  "topic": "hss",
+  "stratum": "reserve",
+  "language_field": "VN",
+  "mechanisms": [
+   "no-text-layer-scan"
+  ],
+  "citation": {
+   "url": "https://commons.wikimedia.org/wiki/File:Viet_Nam_Su_Luoc_2.pdf"
+  },
+  "notes": [],
+  "page_count": 347,
+  "license_basis": "Author died 1953; life+70 expired 2024. Public domain.",
+  "provenance_check": "1928 printing per the file's own title; pdfinfo page count matches the Commons API count.",
+  "attachments": [
+   {
+    "id": "tran-trong-kim-1928-viet-nam-su-luoc-q2",
+    "language": "vi",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "crosses",
+     "chars": "does-not-cross",
+     "combined": "page-only",
+     "locators": {
+      "before_page_cap": "printed pages of the front matter and first chapters (below scan page 100)",
+      "after_page_cap": "printed pages beyond scan page 100 (the scan has 347 pages)"
+     }
+    },
+    "archive": "wikimedia-commons",
+    "identifier": "File:Viet Nam Su Luoc, Quyen 2, 1928.pdf",
+    "bytes_url": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Viet_Nam_Su_Luoc%2C_Quyen_2%2C_1928.pdf",
+    "bytes_format": "pdf",
+    "sha256": "c46f2439b6e639497281d62ca44f440f96ed6f876b7ee3cd7f5b3da4a746d528",
+    "license_basis": "same as parent",
+    "charset": null,
+    "archive_checksums": {
+     "sha1": "7b62ff6683dd5f000024c686ede1f3a1180edbe4"
+    },
+    "failure_control": {
+     "expected_state": "unindexed",
+     "expected_degradation": "no full text: an un-OCR'd scan with no text layer (pdftotext extracts 347 bytes over 347 pages, one page break per page), so indexPDF gets no text, writes no fulltextItems row, and /fulltext has no census entry",
+     "answer_set_participation": "none"
+    }
+   }
+  ],
+  "sourcing_note": "347 pages of Vietnamese prose: the deep-body probe for the 100-page client cap in a MUST-tier language."
+ },
+ {
+  "id": "vn-constitution-1992-en",
+  "title": "Constitution of Vietnam (1992), English text",
+  "author": "Quốc hội Việt Nam (official translation)",
+  "year": 1992,
+  "language": "en",
+  "tier": "MUST",
+  "facet": "core",
+  "archive": "wikisource",
+  "identifier": "en.wikisource.org oldid=16201311 (pageid 5192388)",
+  "bytes_url": "https://en.wikisource.org/w/index.php?title=Constitution_of_Vietnam_(1992)&action=raw&oldid=16201311",
+  "bytes_format": "wikitext",
+  "min_size": 5000,
+  "sha256": "c4926a9c1da45e963ca27e3344862530763979b60a2d1bd4da9cd7c180cdd8e9",
+  "page_count": null,
+  "license_basis": "Vietnam Law on Intellectual Property, Article 15.2 excludes official translations of legal normative documents; en.wikisource files it under its edict-of-government rationale.",
+  "provenance_check": "Single page carrying the whole text; no scan backing, so the translation's issuing body is taken from the page's own header.",
+  "notes": "EN side of the cross-lingual pair with vn-constitution-1992-vi: an English query against Vietnamese content with a known-aligned answer (R29)."
+ },
+ {
+  "id": "vn-constitution-1992-vi",
+  "title": "Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992 (original text)",
+  "author": "Quốc hội Việt Nam",
+  "year": 1992,
+  "language": "vi",
+  "tier": "MUST",
+  "facet": "core",
+  "archive": "wikisource",
+  "identifier": "vi.wikisource.org oldid=110942 (pageid 4807)",
+  "bytes_url": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992&action=raw&oldid=110942",
+  "bytes_format": "wikitext",
+  "min_size": 500,
+  "sha256": "0a3318b5f6703e1d0031f1db9df9e990e5952d78a4f3bc720d0e07b50e008629",
+  "page_count": null,
+  "license_basis": "Vietnam Law on Intellectual Property, Article 15.2: legal normative documents are excluded from copyright.",
+  "provenance_check": "Index page (2 628 bytes) of the unamended 1992 text, chosen over the 2001-amended variant; 14 subpages, each pinned by revision at injection.",
+  "notes": "The Vietnamese administrative register, replacing the three ministerial circulars of PR #151 (its fourth Vietnamese document, the Decision 11/2017 original, is a separate open item): Wikisource holds no circular as text, only Official Gazette scans that list them. Cross-lingual pair of vn-constitution-1992-en."
  },
  {
   "id": "vn-decision-11-2017-qdttg-solar-fit-en",
@@ -552,15 +2157,345 @@
   "language": "en",
   "tier": "MUST",
   "facet": "core",
-  "archive": "faolex",
-  "identifier": "LEX-FAOC179224",
-  "bytes_url": "https://faolex.fao.org/docs/pdf/vie179224.pdf",
-  "bytes_format": "pdf",
-  "sha256": "e126af312c687fec26206c1f8f34b9c32fe2a4d45a44811a1e7350666406a773",
+  "item_type": "statute",
+  "type_fidelity": "correct",
+  "work_id": "vn-decision-11-2017-qdttg-solar-fit-en",
+  "work_relations": [],
+  "structural_features": [],
+  "topic": "energy",
+  "stratum": "core",
+  "language_field": "en",
+  "mechanisms": [],
+  "citation": {
+   "url": "https://www.fao.org/faolex/results/details/en/c/LEX-FAOC179224/"
+  },
+  "notes": [],
   "page_count": 9,
-  "wayback_capture": "20250203013925",
   "license_basis": "Vietnam Law on Intellectual Property, Article 15.2: legal normative documents and their official translations are excluded from copyright.",
   "provenance_check": "pdftotext of the first page confirms the English translation; FAOLEX admitted for this document by ruling of 2026-09-02 with URL, hash, LEX id and Wayback date pinned.",
-  "notes": "The Vietnamese original is not yet in an admitted archive: FAOLEX's record page is closed to scripted clients, so whether it holds the VN text is unknown. Until it is found, this is the EN half of a pair whose VN half PR #151 held only from the author's library."
+  "attachments": [
+   {
+    "id": "vn-decision-11-2017-qdttg-solar-fit-en",
+    "language": "en",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "does-not-cross",
+     "chars": "does-not-cross",
+     "combined": "neither",
+     "locators": {}
+    },
+    "archive": "faolex",
+    "identifier": "LEX-FAOC179224",
+    "bytes_url": "https://faolex.fao.org/docs/pdf/vie179224.pdf",
+    "bytes_format": "pdf",
+    "sha256": "e126af312c687fec26206c1f8f34b9c32fe2a4d45a44811a1e7350666406a773",
+    "license_basis": "same as parent",
+    "charset": null,
+    "wayback_capture": "20250203013925"
+   }
+  ],
+  "sourcing_note": "The Vietnamese original is not yet in an admitted archive: FAOLEX's record page is closed to scripted clients, so whether it holds the VN text is unknown. Until it is found, this is the EN half of a pair whose VN half PR #151 held only from the author's library."
+ },
+ {
+  "id": "walras-1900-elements",
+  "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale (4e éd.)",
+  "author": "Léon Walras",
+  "year": 1900,
+  "language": "fr",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "book",
+  "type_fidelity": "correct",
+  "work_id": "walras-1900-elements",
+  "work_relations": [],
+  "structural_features": [],
+  "topic": "economics",
+  "stratum": "core",
+  "language_field": "",
+  "mechanisms": [],
+  "citation": {
+   "url": "https://archive.org/details/elementsdeconomi00walr"
+  },
+  "notes": [],
+  "page_count": 270,
+  "license_basis": "Public domain everywhere: Walras died 1910, life+70 expired 1980; also clear under the pre-1931 US bright-line.",
+  "provenance_check": "IA metadata: publisher 'Lausanne : F. Rouge; Paris : F. Pichon', date 1900 -- matches the known publisher/date of the 4th edition; a Columbia University Libraries microfilm digitization (CIHM master negative 98-84447-2), no modern-reprint markings.",
+  "attachments": [
+   {
+    "id": "walras-1900-elements",
+    "language": "fr",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "crosses",
+     "chars": "does-not-cross",
+     "combined": "page-only",
+     "locators": {
+      "before_page_cap": "printed pages of the front matter and first chapters (below scan page 100)",
+      "after_page_cap": "printed pages beyond scan page 100 (the scan has 270 pages)"
+     }
+    },
+    "archive": "internet-archive",
+    "identifier": "elementsdeconomi00walr",
+    "bytes_url": "https://archive.org/download/elementsdeconomi00walr/elementsdeconomi00walr.pdf",
+    "bytes_format": "pdf",
+    "sha256": "ff4856f196bdcfb1fa24b1c40a3207157e7dfd5ce26c5882a4ab8679d9d6a409",
+    "license_basis": "same as parent",
+    "charset": null,
+    "archive_checksums": {
+     "md5": "7c0ed287459a5ecac6b2d02b5986638a",
+     "sha1": "64feadc94c2abecde9752c0d0d15c0f3615ccad9",
+     "size": 28425050
+    }
+   }
+  ],
+  "sourcing_note": "Byte-identical to the closed PR's library copy: the library held the archive.org scan."
+ },
+ {
+  "id": "wittkopf-2016-bipv-methodological-framework",
+  "title": "Common methodological framework to assess energy, climate and economic impacts of BIPV",
+  "author": "Walter Ott; Meta Lehmann; Stephen Wittkopf (ed.)",
+  "year": 2016,
+  "language": "en",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "journalArticle",
+  "type_fidelity": "intentionally-wrong",
+  "type_fidelity_reason": "canonical type is report (Report 1/3 of SNF project 153849 'Active Interfaces', NRP 70, published by econcept AG, dated 30 June 2016, no journal); filed as a journalArticle to test that a wrong item type neither hides the document nor breaks the citation chain",
+  "work_id": "wittkopf-2016-bipv-methodological-framework",
+  "work_relations": [],
+  "structural_features": [
+   {
+    "feature": "table",
+    "attachment_id": "wittkopf-2016-bipv-methodological-framework-pdf",
+    "locator": "printed p. 8 (folio '/ 8'): 'Table 1: Energy prices 2016 and basic energy price scenario until 2050' (CHF/kWh rows)",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "appendix",
+    "attachment_id": "wittkopf-2016-bipv-methodological-framework-pdf",
+    "locator": "printed p. 18 (folio '/ 18'): 'Appendix — A-1 Global cost method'",
+    "extraction_expectation": "present"
+   }
+  ],
+  "topic": "energy",
+  "stratum": "core",
+  "language_field": "English",
+  "mechanisms": [],
+  "citation": {
+   "doi": "10.5281/zenodo.1405881",
+   "url": "https://zenodo.org/records/1405881"
+  },
+  "notes": [],
+  "page_count": 24,
+  "license_basis": "CC BY 4.0 declared on the Zenodo record 1405881 (licence id cc-by-4.0, read 2026-09-06).",
+  "provenance_check": "Cover read: 'National Research Programme Energy Turnaround (NRP 70), ACTIVE INTERFACES … SNF project 153849, Common methodological framework to assess energy, climate and economic impacts of BIPV, Report 1/3, 30 June 2016, econcept AG Zürich; Authors Walter Ott, Meta Lehmann'.",
+  "attachments": [
+   {
+    "id": "wittkopf-2016-bipv-methodological-framework-pdf",
+    "language": "en",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "does-not-cross",
+     "chars": "does-not-cross",
+     "combined": "neither",
+     "locators": {}
+    },
+    "archive": "zenodo",
+    "identifier": "10.5281/zenodo.1405881",
+    "bytes_url": "https://zenodo.org/api/records/1405881/files/Common_Methodological_Framework.pdf/content",
+    "bytes_format": "pdf",
+    "sha256": "f693d080c0381eaa09d96939da2219ee9a96665b7d5abb27933a04ddc4dae54f",
+    "archive_checksums": {
+     "md5": "cdf911cfa3b75acb8f7ecce8be4a6369",
+     "size": 569561
+    },
+    "license_basis": "same as parent",
+    "charset": null,
+    "version": "v1"
+   }
+  ]
+ },
+ {
+  "id": "worldbank-2009-vietnam-energy-mitigation",
+  "title": "Potential Climate Change Mitigation Opportunities in the Energy Sector in Vietnam: Background Paper",
+  "author": "RCEE Energy and Environment JSC; Full Advantage Co., Ltd. (for the World Bank Carbon Finance Assist Program)",
+  "year": 2009,
+  "language": "en",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "report",
+  "type_fidelity": "correct",
+  "work_id": "worldbank-2009-vietnam-energy-mitigation",
+  "work_relations": [],
+  "structural_features": [
+   {
+    "feature": "table",
+    "attachment_id": "worldbank-2009-vietnam-energy-mitigation-pdf",
+    "locator": "printed p. 8: 'Table 1. Coal Supply and Demand Balance in the Period 2005 to 2025 (kt)'",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "annex",
+    "attachment_id": "worldbank-2009-vietnam-energy-mitigation-pdf",
+    "locator": "printed p. 29: 'Annex 1: Selected Bibliography'; Annex 3 'Potentially Feasible Sector Wide Interventions' printed p. 31",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "footnote",
+    "attachment_id": "worldbank-2009-vietnam-energy-mitigation-pdf",
+    "locator": "printed p. 9: footnote 4 'PetroVietnam reported a discovery in the Hac Long field…'",
+    "extraction_expectation": "present"
+   }
+  ],
+  "topic": "energy",
+  "stratum": "core",
+  "language_field": "en",
+  "mechanisms": [],
+  "citation": {
+   "doi": "10.1596/28215",
+   "url": "https://hdl.handle.net/10986/28215"
+  },
+  "report_number": "58104",
+  "notes": [],
+  "page_count": 33,
+  "license_basis": "CC BY 3.0 IGO: dc.rights 'CC BY 3.0 IGO', dc.rights.uri http://creativecommons.org/licenses/by/3.0/igo, rights holder World Bank (item metadata read 2026-09-06).",
+  "provenance_check": "First page read: 'Public Disclosure Authorized 58104 — POTENTIAL CLIMATE CHANGE MITIGATION OPPORTUNITIES IN THE ENERGY SECTOR IN VIETNAM, Background Paper, prepared by RCEE Energy and Environment JSC (Vietnam) and Full Advantage Co., Ltd., World Bank Carbon Finance Assist Program, Vietnam, May 2009'.",
+  "sourcing_note": "Two archive-issued renditions under one parent: the PDF and the World Bank's own plain-text rendition of the same document (a DSpace ORIGINAL-bundle bitstream, not a local conversion). The text file is windows-1252 (0x96 en dash, 0xA0), CRLF, with 'Page N' markers.",
+  "attachments": [
+   {
+    "id": "worldbank-2009-vietnam-energy-mitigation-pdf",
+    "language": "en",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "does-not-cross",
+     "chars": "does-not-cross",
+     "combined": "neither",
+     "locators": {}
+    },
+    "archive": "world-bank-okr",
+    "identifier": "10986/28215",
+    "bytes_url": "https://openknowledge.worldbank.org/server/api/core/bitstreams/af8b14f9-3bfe-533f-b9d0-3415fa0aeae4/content",
+    "bytes_format": "pdf",
+    "sha256": "990a2a7c1d136870652a724f99c4fcc031f93677f9bd0a12539f0afb887ee9e4",
+    "archive_checksums": {
+     "md5": "a68295721f9e837b42b03e0be9ea25f5",
+     "size": 928481
+    },
+    "license_basis": "same as parent",
+    "charset": null
+   },
+   {
+    "id": "worldbank-2009-vietnam-energy-mitigation-txt",
+    "language": "en",
+    "role": "alternate-format",
+    "relation": "same-text-different-format",
+    "selection_expectation": "skipped-first-with-text",
+    "cap_expectations": {
+     "pages": "does-not-cross",
+     "chars": "does-not-cross",
+     "combined": "neither",
+     "locators": {}
+    },
+    "archive": "world-bank-okr",
+    "identifier": "10986/28215",
+    "bytes_url": "https://openknowledge.worldbank.org/server/api/core/bitstreams/69acd1e8-16d9-5d3d-9d9d-d9f6b3638d5f/content",
+    "bytes_format": "txt",
+    "sha256": "8f3726b5400731f9f00e6741bb31d68ea19f77ba7658dd6738dd74148cb2cc06",
+    "archive_checksums": {
+     "md5": "39be035cac63724dd8c89e2c1b32f7ae",
+     "size": 73372
+    },
+    "license_basis": "same as parent",
+    "charset": "windows-1252",
+    "skip_reason": "same language (en) as the PDF, which comes first",
+    "encoding_note": "Served as text/plain;charset=UTF-8 but the bytes are not UTF-8 (132 non-ASCII bytes: 0x96 en dash, 0x91-0x94 quotes, 0xA0 no-break space); a windows-1252 file mislabelled by the server — the lying-charset case."
+   }
+  ]
+ },
+ {
+  "id": "worldbank-2015-state-trends-carbon-pricing",
+  "title": "State and Trends of Carbon Pricing 2015",
+  "author": "Alexandre Kossoy; Grzegorz Peszko; Klaus Oppermann; Nicolai Prytz; Noémie Klein; Kornelis Blok; Long Lam; Lindee Wong; Bram Borkent",
+  "year": 2015,
+  "language": "en",
+  "tier": "MUST",
+  "facet": "core",
+  "item_type": "report",
+  "type_fidelity": "correct",
+  "work_id": "worldbank-2015-state-trends-carbon-pricing",
+  "work_relations": [],
+  "structural_features": [
+   {
+    "feature": "figure-caption",
+    "attachment_id": "worldbank-2015-state-trends-carbon-pricing-pdf",
+    "locator": "printed p. 11: 'Figure 1 Overview of existing, emerging, and potential regional, national, and subnational carbon pricing instruments (ETS and tax)'",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "table",
+    "attachment_id": "worldbank-2015-state-trends-carbon-pricing-pdf",
+    "locator": "printed p. 36: 'Table 1 Market and policy update of mechanisms under the Kyoto Protocol and new mechanisms under the UNFCCC'",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "annex",
+    "attachment_id": "worldbank-2015-state-trends-carbon-pricing-pdf",
+    "locator": "printed p. 73: 'Annex I Conversion rates — Table 3 Currency conversion rates as of August 1, 2015'",
+    "extraction_expectation": "present"
+   },
+   {
+    "feature": "footnote",
+    "attachment_id": "worldbank-2015-state-trends-carbon-pricing-pdf",
+    "locator": "printed p. 16: footnote 1 'Temperature record keeping began in 1880 (source: NOAA…)'",
+    "extraction_expectation": "present"
+   }
+  ],
+  "topic": "economics",
+  "stratum": "core",
+  "language_field": "",
+  "mechanisms": [],
+  "citation": {
+   "doi": "10.1596/978-1-4648-0725-1",
+   "isbn": "978-1-4648-0725-1",
+   "url": "https://hdl.handle.net/10986/22630"
+  },
+  "notes": [],
+  "page_count": 92,
+  "license_basis": "CC BY 3.0 IGO: dc.rights 'CC BY 3.0 IGO', dc.rights.uri http://creativecommons.org/licenses/by/3.0/igo, rights holder World Bank (item metadata read 2026-09-06); the item also carries a CC-LICENSE bundle.",
+  "provenance_check": "Cover read: 'State and Trends of Carbon Pricing, Washington DC, September 2015'; OKR item dc.type 'Serial', issued 2015-09-20, ISBN 978-1-4648-0725-1.",
+  "attachments": [
+   {
+    "id": "worldbank-2015-state-trends-carbon-pricing-pdf",
+    "language": "en",
+    "role": "primary",
+    "relation": "primary",
+    "selection_expectation": "indexed",
+    "cap_expectations": {
+     "pages": "does-not-cross",
+     "chars": "does-not-cross",
+     "combined": "neither",
+     "locators": {}
+    },
+    "archive": "world-bank-okr",
+    "identifier": "10986/22630",
+    "bytes_url": "https://openknowledge.worldbank.org/server/api/core/bitstreams/961666ba-3dd1-50e0-8298-66ca430d911e/content",
+    "bytes_format": "pdf",
+    "sha256": "190f62c62d252d8da0682f9d6539399db5ed2c97be28c0a4629b8cd12dd15c73",
+    "archive_checksums": {
+     "md5": "227ba680557ed59c432e71da3b5b7db2",
+     "size": 6897034
+    },
+    "license_basis": "same as parent",
+    "charset": null
+   }
+  ]
  }
 ]
