@@ -44,12 +44,25 @@ REPORTING_HARNESS = (
     " catch (e) { results.push(['FAIL', name, e.message.split('\\n')[0]]); } }")
 TAIL = "console.log(JSON.stringify({ tests: results"
 
-# `M7` reads a binding the real loop does not have, so it ships its own setup edit.
-HOIST_SETUP = (
-    "        for (const { id, before, status } of candidates) {",
-    "        const hoisted = candidates.length ? await host.blocked(candidates[0].before) : null;\n"
-    "        for (const { id, before, status } of candidates) {",
-)
+# A mutant that restores an older shape needs more than one edit: the shape has a
+# second half elsewhere in the file. Keyed by the mutant's label prefix, applied
+# before the mutant's own edit, and anchored under the same replace_once rule -- a
+# setup that silently matched nothing would leave a mutant that means something
+# else entirely and still print a verdict.
+SETUPS = {
+    # `M7` reads a binding the real loop does not have.
+    "M7": (
+        "        for (const { id, before, status } of candidates) {",
+        "        const hoisted = candidates.length ? await host.blocked(candidates[0].before) : null;\n"
+        "        for (const { id, before, status } of candidates) {",
+    ),
+    # `M11` restores the increment that used to sit beside the census; its own edit
+    # then removes the derivation, reconstituting the pre-0699 running total.
+    "M11": (
+        "            failed.add(before.identity);\n",
+        "            failed.add(before.identity); state.failed++;\n",
+    ),
+}
 
 MUTANTS = [
     ("M1 failure path does not decrement the document's original bucket",
@@ -66,18 +79,8 @@ MUTANTS = [
      "if (reason) { state.phase = reason; publish(); break; }",
      "if (reason) { state.phase = reason; publish(); continue; }"),
     ("M5 success path stops accumulating duration samples",
-     "            state.samples.push({ sourceBytes: before.sourceBytes, pages: before.pages,\n"
-     "              milliseconds: host.now() - (extractingSince ?? state.startedAt) });\n",
+     "            if (measured) state.samples.push(measured);\n",
      ""),
-    # Ticket 0704's defect, kept as a mutant rather than only as a test: the
-    # sample is the one number here that is wrong rather than absent when it
-    # regresses, and a wrong duration is invisible in every count the other
-    # mutants move. It reads state.startedAt, which is still right there and
-    # still legitimately used two lines above — the easiest edit in the file to
-    # make by accident.
-    ("M9 duration sample measures from submission again, not from first progress",
-     "              milliseconds: host.now() - (extractingSince ?? state.startedAt) });",
-     "              milliseconds: host.now() - state.startedAt });"),
     ("M6 host.reportError is never called",
      "            if (host.reportError) await host.reportError(before, error);\n",
      ""),
@@ -86,12 +89,64 @@ MUTANTS = [
      "          const reason = hoisted;"),
     ("M8 per-candidate catch deleted, so a rejection ends the whole sweep",
      "          } catch (error) {\n            if (!state.enabled) break;\n"
-     "            failed.add(before.identity); state.failed++;\n"
+     "            failed.add(before.identity);\n"
      "            state.error = host.describeError ? host.describeError(before, error) : String(error);\n"
      "            if (host.reportError) await host.reportError(before, error);\n"
      "            state.counts[status]--; state.counts['failed-session'] = "
      "(state.counts['failed-session'] || 0) + 1;\n",
      ""),
+    # M9 and M10 are ticket 0699's two halves. The classification is now the single
+    # owner of what "not indexed" means, so a status dropped from it is exactly the
+    # under-report the ticket was filed for -- and the one that leaves every other
+    # assertion in the suite green, because nothing throws and every bucket still
+    # sums to the census.
+    ("M9 inspection-error falls out of the failure classification (the 0699 under-report)",
+     "  failed: ['failed-session', 'inspection-error', 'unsupported-pack', 'missing-source'],",
+     "  failed: ['failed-session'],"),
+    ("M10 a throwing duration observation reaches the verdict again (the 0699 false failure)",
+     "              try { await host.observed(before, measured); }\n",
+     "              await host.observed(before, measured);\n"
+     "              try { /* the catch below is now unreachable */ }\n"),
+    # The banner used to be incremented beside the census instead of derived from
+    # it, so it grew by one sweep's failures every pass over an unchanged library.
+    # Paired with the SETUPS["M11"] edit, this is exactly the pre-0699 shape.
+    ("M11 the failure total accumulates across sweeps instead of reading this census",
+     "    if (state.scanned === state.total) {\n"
+     "      state.failed = SDT_STATUS_CLASSES.failed\n"
+     "        .reduce((n, key) => n + (state.counts[key] || 0), 0);\n"
+     "    }\n",
+     ""),
+    # The other half of the derivation, and the one only a mid-census observer can
+    # see: an ungated recompute reads a `counts` the census has not finished
+    # filling, so the banner empties at the top of every sweep and refills as the
+    # scan runs. Every assertion taken after `sweep()` resolves is blind to it.
+    ("M12 the failure total is recomputed from a half-filled census",
+     "    if (state.scanned === state.total) {\n"
+     "      state.failed = SDT_STATUS_CLASSES.failed\n"
+     "        .reduce((n, key) => n + (state.counts[key] || 0), 0);\n"
+     "    }\n",
+     "    state.failed = SDT_STATUS_CLASSES.failed\n"
+     "      .reduce((n, key) => n + (state.counts[key] || 0), 0);\n"),
+    # Ticket 0704's two shapes, and the pair is the point: the duration is the one
+    # number in this loop that regresses to a WRONG value rather than a missing
+    # one, so no count moves and no record disappears when either lands.
+    # M13 is the original defect. `state.startedAt` is still in scope and still
+    # correct a few lines above, which makes it the easiest edit in the file to
+    # make by accident.
+    ("M13 duration sample measures from submission again, not from first progress",
+     "                milliseconds: host.now() - extractingSince };",
+     "                milliseconds: host.now() - state.startedAt };"),
+    # M14 is the defect the FIRST fix carried, found by red team on PR #389 and
+    # invisible to every test that had progress ticks in its fixture: falling back
+    # to the submission clock when no tick ever fired reinstates the whole of M13
+    # for exactly the documents too small or too cached to report progress. A
+    # mutant rather than only a test, because the fallback is the reflex fix and
+    # will be proposed again by whoever next reads a null here as a bug.
+    ("M14 no-progress extraction falls back to the submission clock instead of withholding",
+     "            const measured = extractingSince === null ? null\n",
+     "            const measured = extractingSince === null\n"
+     "              ? { sourceBytes: before.sourceBytes, pages: before.pages,\n"
+     "                milliseconds: host.now() - state.startedAt }\n"),
 ]
 
 
@@ -142,7 +197,10 @@ def failing_tests(runner: pathlib.Path) -> list[str]:
 
 
 def mutate(pristine: str, label: str, old: str, new: str) -> str:
-    source = replace_once(pristine, *HOIST_SETUP, "hoist setup") if label.startswith("M7") else pristine
+    source = pristine
+    for prefix, (setup_old, setup_new) in SETUPS.items():
+        if label.split()[0] == prefix:
+            source = replace_once(source, setup_old, setup_new, f"{prefix} setup")
     return replace_once(source, old, new, label)
 
 

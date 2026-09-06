@@ -558,3 +558,88 @@ def test_scheduler_threads_both_titles_to_the_ui():
         site = _site(anchor, ';', SCHEDULER)
         assert 'title:' in site
         assert 'parentTitle:' in site
+
+
+def test_a_cache_that_cannot_be_written_reaches_a_surface_and_is_cleared():
+    """The warning existed as state and was read by nothing.
+
+    `saveCache` set `state.cacheWarning` on a failed write and no render site
+    ever mentioned it, so an unwritable data directory was a silence -- the
+    data was there, the sentence was not. It belongs in the disclosure rather
+    than beside the totals: the cache is derived and disposable, and a failed
+    write changes nothing about what is indexed. The clear is the other half; a
+    warning that is only ever set survives the condition that raised it and
+    ends the session on screen after the disk was emptied.
+    """
+    site = _site("getElementById('sdt-diagnostics').textContent", '.filter(Boolean)')
+    assert 'cacheWarning' in site, 'the cache warning is still rendered nowhere'
+    write = _site('await IOUtils.write(cachePath', 'catch (error)')
+    assert 'cacheWarning = null' in write, 'a transient cache failure would stick for the session'
+
+
+def test_the_census_classification_has_exactly_one_owner():
+    """Ticket 0699. The four admissible statuses were written out in two files.
+
+    The scheduler's admission whitelist and the dialog's own remaining-work
+    tally each carried their own copy of the same four strings, and three other
+    statuses (`inspection-error`, `unsupported-pack`, `missing-source`) belonged
+    to no list at all -- which is how a library could report zero failures while
+    none of those attachments was indexed. `SDT_STATUS_CLASSES` is now the one
+    place that decides what each status means; a second copy is what lets a
+    status be added to admission and forgotten by the banner.
+    """
+    scheduler = SCHEDULER.read_text(encoding='utf-8')
+    bootstrap = BOOTSTRAP.read_text(encoding='utf-8')
+    quartet = "'missing-pack', 'stale-source', 'stale-processor', 'invalid-pack'"
+    assert scheduler.count(quartet) == 1, 'the admissible statuses are spelt out twice'
+    assert quartet not in bootstrap, 'the dialog keeps a second copy of the whitelist'
+    assert 'SDT_STATUS_CLASSES.queued.includes(status)' in scheduler, \
+        'admission no longer reads the classification'
+    # Every status the classification names, and nothing else, may be produced by
+    # the census -- a status the census emits and no class claims is invisible in
+    # both user-facing totals, which is the defect this ticket is about.
+    classes = _site('var SDT_STATUS_CLASSES = {', '\n};', SCHEDULER)
+    classified = set(re.findall(r"'([a-z-]+)'", classes))
+    emitted = set(re.findall(r"status: '([a-z-]+)'", scheduler + bootstrap))
+    emitted |= set(re.findall(r"result\.status = '([a-z-]+)'", bootstrap))
+    emitted |= set(re.findall(r"status = '([a-z-]+)'", scheduler))
+    assert emitted, 'the census-status extraction matched nothing'
+    assert emitted <= classified, f'unclassified census statuses: {sorted(emitted - classified)}'
+
+
+def test_the_coverage_denominator_reads_the_classification():
+    """The other half of the same fact, and the one a reader sees as a percentage.
+
+    `emitted <= classified` above forces a new status into *some* class; it
+    cannot force the coverage line to agree about which. A second copy of the
+    out-of-scope pair here is how 'admitted but not counted' would come back at
+    reduced scale -- the coverage denominator silently keeping the old meaning
+    of a status the scheduler has since reclassified.
+    """
+    site = _site('function getSDTCoverage', '\n}')
+    # Asserted on the two members, not on the literal `SDT_STATUS_CLASSES.x`:
+    # binding the object to a local first is a legitimate shape (it is what the
+    # merge with the library-scope work produced, so that an absent
+    # classification can make the figure unsayable rather than throw), and an
+    # anchor on the dotted spelling would have failed that refactor while the
+    # fact it guards was intact.
+    assert 'SDT_STATUS_CLASSES' in site, \
+        'the coverage line no longer reads the census classification at all'
+    assert '.outOfScope' in site, \
+        'the coverage denominator keeps its own copy of the out-of-scope statuses'
+    assert '.indexed' in site, \
+        'the coverage numerator keeps its own copy of what "indexed" means'
+    for status in ("'excluded'", "'unsupported'", "'current'"):
+        assert status not in site, f'{status} is spelt out a second time'
+
+
+def test_the_session_clause_names_only_session_counters():
+    """`completed` accumulates over the session; `failed` is read off the last
+    census and includes attachments this session never touched. One 'cette
+    session' governing both halves would call the second something it is not."""
+    lines = [line for line in BOOTSTRAP.read_text(encoding='utf-8').splitlines()
+             if 'cette session' in line]
+    assert lines, "the diagnostics no longer name the session's own counter"
+    for line in lines:
+        assert 's.failed' not in line, \
+            'a census-derived total is rendered under a "cette session" clause'
