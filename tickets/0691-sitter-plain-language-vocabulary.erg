@@ -1,0 +1,50 @@
+%erg 0.1
+Title: Replace SDT jargon with plain-language sitter vocabulary
+Created: 2026-09-06
+Author: claude
+Blocked-by: github.com/MinhHaDuong/search-works-for-zotero#365
+
+--- log ---
+2026-09-06T00:00Z claude created
+
+--- body ---
+## Context
+
+Author, 2026-09-06: "SDT ca dit rien, 'Index 43%' on comprend" -- SDT means
+nothing to a reader, "Index 43%" is immediately understood. Ticket 0686
+already asked for "human-readable states" and to "move technical
+diagnostics below primary progress information"; this ticket supplies the
+actual wording 0686 should adopt, so the two are not solved twice with
+different vocabularies.
+
+## Vocabulary
+
+| Internal | User-facing (en) | fr |
+|---|---|---|
+| SDT pack sitter | Index assistant | Assistant d'indexation |
+| SDT pack | index (of a document) | index (du document) |
+| coverage | Index 43 % | Index 43 % |
+| native full-text index (Zotero's own) | text search index | index de recherche textuelle |
+| active document | Indexing: <title> | Indexation : <titre> |
+| finished with exceptions | 12 documents could not be indexed | 12 documents n'ont pas pu etre indexes |
+
+"SDT", "pack", "processor", "fingerprint" survive only inside the
+diagnostics disclosure (see 0693), where a reader has explicitly asked for
+them.
+
+One naming conflict to resolve, not just translate around: Zotero already
+has its own "full-text index" panel. The sitter's object keeps the word
+"index"; Zotero's older one is relabeled "text search index" and confined
+to the disclosure, so the two are never both called "index" in view at
+once.
+
+## Acceptance
+
+- [ ] Toolbar, dialog, and all user-facing prompts use only the
+      user-facing column above; "SDT" does not appear outside the
+      diagnostics disclosure.
+- [ ] The two "index" concepts are never both visible under the same
+      unqualified label in one view.
+- [ ] Wording lands before 0692 (i18n) externalizes it -- do not bundle a
+      wording change and a string-externalization change in one PR; they
+      cannot be diffed against each other.

@@ -1,0 +1,53 @@
+%erg 0.1
+Title: Localize the sitter with Fluent, extensible past EN/FR/ES/VI
+Created: 2026-09-06
+Author: claude
+Blocked-by: 0691
+
+--- log ---
+2026-09-06T00:00Z claude created
+
+--- body ---
+## Context
+
+Author, 2026-09-06: wants multilingual EN/FR/ES/VN, extensible. Every
+user-facing string in the current sitter is hard-coded French.
+
+## Design
+
+- **Mechanism: Fluent `.ftl`**, the Zotero 7+/Firefox convention --
+  `locale/<lang>/sdt-pack-sitter.ftl`, registered from `bootstrap.js` via
+  `Localization`/`document.l10n`. Reasons over a plain JSON dictionary:
+  plurals differ across all four target languages, and Vietnamese has no
+  plural inflection at all -- Fluent handles this per locale without
+  touching code. Dates and durations format through `Intl` per locale,
+  replacing the current hard-coded `fr-FR`.
+- **Extensible as data, not code.** A locale is a directory listing --
+  adding a fifth language later is one `.ftl` file plus one manifest line.
+  Fallback chain: requested locale -> its language without region -> `en`,
+  the source of truth every string id must exist in.
+- **Language selection** follows Zotero's own UI locale; no separate
+  in-plugin setting.
+
+## Sequencing note -- open question for the author
+
+The plugin is still labeled "(experimental)" in its own manifest, and a
+separate proposal is pending on whether its permanent home should move out
+of this workshop repo into its own repository (mirroring zoteus). Building
+a full Fluent pipeline here, then re-wiring it after an extraction, is
+strictly more work than doing it once in the eventual home. This ticket
+can proceed regardless -- the `.ftl` files travel with a `git mv` either
+way -- but flag the sequencing choice to the author rather than assuming
+"build it now" is free.
+
+## Acceptance
+
+- [ ] All four locales (en, fr, es, vi) complete for every string in the
+      primary and details dialog layers (see 0693); the diagnostics layer
+      may stay English.
+- [ ] A missing-id fallback test, run with a deliberately truncated
+      `fr.ftl`, shows English text where the id is missing and raises no
+      exception.
+- [ ] No locale literal (e.g. `'fr-FR'`) remains in code -- grep test.
+- [ ] Wording from 0691 lands first; this ticket externalizes it, it does
+      not also change it.

@@ -1,0 +1,56 @@
+%erg 0.1
+Title: Add adversarial smoke tests for the sitter scheduler and bootstrap
+Created: 2026-09-06
+Author: claude
+Blocked-by: github.com/MinhHaDuong/search-works-for-zotero#365
+Blocked-by: 0689
+
+--- log ---
+2026-09-06T00:00Z claude created
+
+--- body ---
+## Context
+
+The author wants adversarial smoke testing of the plugin, not just the
+happy-path DOM/style smoke that already exists (per ticket 0686's own
+note: "the existing DOM/style smoke does not establish keyboard or
+screen-reader behavior" -- the same gap applies to the scheduler's
+failure handling). This is the raison d'etre theme: the sitter is a
+supervisor, so its resilience to its own dependencies misbehaving is the
+thing worth testing, more than its happy path.
+
+Each scenario asserts against the journal from 0689 (the ring buffer /
+`Zotero.debug()` stream), not against UI state -- so these tests inherit
+0689's trustworthiness rather than duplicating a second assertion surface.
+
+## Scenarios (drive the scheduler and bootstrap seams with hostile fakes)
+
+| Scenario | Fake | Expected |
+|---|---|---|
+| Worker promise never settles | `ensure()` pends forever | No 2nd submission; heartbeat continues; no hang verdict rendered |
+| Worker rejects mid-job | rejects after 3 progress ticks | Suppressed by identity; next doc admitted; error line logged |
+| Worker resolves, pack absent/corrupt | `inspect` finds nothing | Not counted as coverage; "finished with exception" |
+| RAM/disk reading unavailable | stat throws | Admission refused; refusal logged; no busy loop |
+| Disk crosses threshold mid-job | 9 GiB -> 2 GiB | Current job continues (check, not cap); next admission refused |
+| Cache file corrupt / partial line | crafted cache | Falls back to inspection; drops bad rows; counts them |
+| Cache directory unwritable | write throws | One log line; estimates still computed in memory |
+| Dialog closed & reopened mid-job | open/close/open | One instance, no duplicated listeners, state preserved |
+| Two windows, two `startup()` calls | double call | One global object; one active submission |
+| Disable during active job | `shutdown` while pending | `shutdown(disable)` last; no further `submit` |
+| Quit during cache write | reject write chain at quit | No partial line, or dropped on next load |
+| Clock jump backwards | `Date.now` steps back 1h | Elapsed uses monotonic time; finish shows "unavailable" |
+| Empirical upper bound exceeded | duration > p95 | Finish time "unavailable, not now" |
+
+Worker-process death itself (kill the worker, not just reject a promise)
+is out of scope here -- that is ticket 0681's crash-recovery detection.
+These tests only assert that 0681's absence degrades to "no further
+submissions," never to a retry loop.
+
+## Acceptance
+
+- [ ] Each row is one test, shown red once against a deliberately broken
+      scheduler -- record the red commit hash in this ticket's log.
+- [ ] No test uses sleep-based timing; the scheduler takes an injectable
+      clock (confirm `tests/sdt_sitter_scheduler.mjs` already supports
+      this, or add it).
+- [ ] Tests run from `make check`'s integration tier, not only by hand.
