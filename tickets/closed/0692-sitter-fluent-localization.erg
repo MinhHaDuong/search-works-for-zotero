@@ -2,6 +2,7 @@
 Title: Localize the sitter with Fluent, extensible past EN/FR/ES/VI
 Created: 2026-09-06
 Author: claude
+Closed: autoclosed — PR #403
 
 --- log ---
 2026-09-06T00:00Z claude created
@@ -20,6 +21,7 @@ Author: claude
 
 2026-09-06T18:14Z claude note Version set to 0.2.11 per the author's ruling (DECISIONS.md 2026-09-06, PR #405). Checked rather than assumed, because the instruction as relayed said the guard "should say OK" and the guard's surviving no-reuse rule is unconditional: had #405 also set main's manifest to 0.2.11, my differing payload under the same number would have been refused. It did not -- #405 retired the no-regression check and left main at 2.11.0 -- so 0.2.11 has never existed in this history and the reset is this PR's to make. Guard run: OK against 56 earlier revisions.
 
+2026-09-06T18:16Z sim closed — autoclosed — PR #403
 --- body ---
 ## Context
 
