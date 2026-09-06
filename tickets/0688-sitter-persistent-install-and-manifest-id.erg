@@ -7,9 +7,11 @@ Author: claude
 2026-09-06T00:00Z claude created
 2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED. Reuse bench/acceptance/adapters/beaver.py's existing extensions.json install/verify pattern (lines ~338, 614, 913-941) instead of hand-rolling it -- it already does persistent XPI install + present/absent/version/active/location reporting for a different plugin, defensively (missing/unreadable file reported "unknown", never coerced false). Don't block the startup self-check on 0689 landing first: emit it via one direct Zotero.debug() call now (no such call exists yet in bootstrap.js), let 0689 fold it into its vocabulary later. Add explicit acceptance checkboxes for the startup self-check and version-bump-test Work items, or justify why the existing three cover them.
 
-2026-09-06T08:54Z claude note Execute phase: PR opened. Persistent install (bench/sdt_sitter_install.py, make sitter-install/sitter-verify-install), update_url now names a committed bench/sdt-sitter/update.json served raw from main, a startup Zotero.debug() self-check in initialize(), and a version guard (bench/check_sitter_version.py, in make check). Version bumped 2.2.0 -> 2.3.0.
+2026-09-06T08:54Z claude note Execute phase implemented on t0688-sitter-persistent-install. Persistent install (bench/sdt_sitter_install.py, make sitter-install/sitter-verify-install), update_url now names a committed bench/sdt-sitter/update.json served raw from main, a startup Zotero.debug() self-check in initialize(), and a version guard (bench/check_sitter_version.py, in make check). Version bumped 2.2.0 -> 2.3.0.
 2026-09-06T08:54Z claude note Finding while writing the version guard: four commits (0715d2d, c383556, fb0239f, ef59cb1) each shipped a DIFFERENT bench/sdt-sitter payload under manifest version 2.2.0. Zotero keys its add-on record on that number, so the author has had several distinct plugins answering to one version -- a third candidate mechanism for the disappearance, alongside the two the body names, and the one this ticket's guard now prevents.
 2026-09-06T08:54Z claude note Zotero docs read (zotero.org/support/dev/zotero_7_for_developers): update_url appears in the example manifest but is nowhere stated as required, and only applications.zotero itself 'must be present'. Removing it was therefore permitted but changes two variables at once on a plugin already disappearing, so it is KEPT and made resolvable. STILL OPEN: the discriminating question in the body (did it vanish right after a Zotero update, and was it installed via Tools -> Add-ons -> Install Add-on From File) is unanswered; the acceptance box stays unticked. The work covers both mechanisms, so the answer is no longer a precondition for the code -- only for closing.
+2026-09-06T09:03Z author answered The plugin disappeared with NO Zotero update in between, and it had been installed via Tools -> Add-ons -> Install Add-on From File -- the persistent path, not a temporary/dev sideload.
+2026-09-06T09:03Z claude note Both named mechanisms are RULED OUT by that answer: no Zotero update happened (kills 'administrative incompatibility'), and Install Add-on From File is the persistent path that copies into the profile's extensions/ (kills the temporary-add-on lifecycle). The cause is therefore OPEN -- deliberately not replaced with a third guess. What this PR changes is that the next occurrence leaves evidence: the startup Zotero.debug() line says which build was running, and 'make sitter-verify-install' distinguishes the three states that currently look alike -- entry present but active:false (the host disabled it), entry gone but the XPI still in extensions/ (the host rejected or dropped the record), and the XPI itself gone (something removed the file). Closing this box as answered-and-recorded, cause open, needs live reproduction.
 --- body ---
 ## Context
 
@@ -92,7 +94,15 @@ between mechanism 1 and 2 above before more effort is spent chasing either.
       shipped twice under one manifest version, and a version that goes
       backwards. Its own controls are in `tests/test_check_sitter_version.py`,
       including a shallow clone, where it reports NOT-RUN rather than green.
-- [ ] Author has answered the discriminating question above, and the
+- [x] Author has answered the discriminating question above, and the
       answer is recorded in this ticket's log before closing it.
-      **Still open** — see the log. The implementation covers both mechanisms,
-      so the answer no longer gates the work, only the close.
+      He answered: no Zotero update in between, and installed via Tools ->
+      Add-ons -> Install Add-on From File. That rules out **both** mechanisms
+      the Context names — the persistent install path was already in use, and
+      no version change occurred for an administrative incompatibility to fire
+      on. **The cause is open**, and is left open rather than replaced with a
+      third guess. What changes is that a repeat leaves evidence: the startup
+      line names the build, and `verify-install` separates three states that
+      look identical today — recorded but `active: false`, record gone with the
+      XPI still in `extensions/`, and the XPI itself gone. Settling it needs a
+      live reproduction, which no code here can perform.

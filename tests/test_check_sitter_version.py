@@ -129,3 +129,15 @@ def test_guard_reports_not_run_on_a_shallow_clone(tmp_path):
     result = guard(shallow)
     assert result.returncode != 0
     assert "NOT-RUN" in result.stdout + result.stderr, result.stdout + result.stderr
+
+    # And from a LINKED worktree of that shallow clone, which is the layout every
+    # lane in this repository actually runs in. The `shallow` marker lives in the
+    # common git dir, so a check reading `--absolute-git-dir` finds nothing here
+    # and answers green while blind — this arm is what caught that, and a clone
+    # alone never reaches it because `git clone` yields a primary checkout.
+    linked = tmp_path / "linked"
+    subprocess.run(["git", "worktree", "add", "-q", str(linked), "-b", "side"],
+                   cwd=shallow, check=True, capture_output=True)
+    result = guard(linked)
+    assert result.returncode != 0, result.stdout + result.stderr
+    assert "NOT-RUN" in result.stdout + result.stderr, result.stdout + result.stderr

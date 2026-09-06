@@ -120,6 +120,20 @@ def test_install_refuses_a_profile_that_does_not_exist(tmp_path):
         install(tmp_path / "no-such-profile", xpi)
 
 
+def test_the_addon_id_is_the_one_the_manifest_declares():
+    """The second copy is the one that goes stale, and this one fails silently.
+
+    `install` names the file `<ADDON_ID>.xpi` and `verify` looks the same string
+    up in `extensions.json`. Let it drift from the manifest and the install
+    lands under a filename the host attributes to nothing, while verify reports
+    ABSENT — indistinguishable from the disappearance this ticket is about.
+    """
+    manifest = json.loads((SITTER / "manifest.json").read_text(encoding="utf-8"))
+    assert ADDON_ID == manifest["applications"]["zotero"]["id"]
+    update = json.loads((SITTER / "update.json").read_text(encoding="utf-8"))
+    assert ADDON_ID in update["addons"]
+
+
 def test_manifest_names_no_unresolvable_host():
     """RFC 2606 reserves `.invalid` so that it never resolves. An id is not a URL.
 

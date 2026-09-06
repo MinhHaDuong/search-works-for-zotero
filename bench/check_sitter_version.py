@@ -160,8 +160,13 @@ def main() -> int:
         log.error("NOT-RUN: %s is not a git checkout, so no earlier payload can be read. "
                   "This guard compares the working tree against history and has none.", root)
         return 1
-    git_dir = git(root, "rev-parse", "--absolute-git-dir").stdout.decode().strip()
-    if (Path(git_dir) / "shallow").exists():
+    # `--is-shallow-repository`, and not the `shallow` marker under
+    # `--absolute-git-dir`: that marker lives in the COMMON git dir, so a linked
+    # worktree — which is how every lane in this repository works — looks for it
+    # in its own per-worktree dir, never finds it, and answers green while blind.
+    # Probed three ways (full clone, shallow primary, shallow linked worktree);
+    # only this form is right in all three.
+    if git(root, "rev-parse", "--is-shallow-repository").stdout.decode().strip() == "true":
         log.error("NOT-RUN: this checkout is shallow, so a payload older than its boundary "
                   "is invisible and a reused version would read as unused. Run "
                   "`git fetch --unshallow` before trusting a verdict here.")
