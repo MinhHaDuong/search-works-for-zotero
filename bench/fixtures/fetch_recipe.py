@@ -55,33 +55,55 @@ DEFAULT_CACHE = REPO / "corpus-cache"
 USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) Firefox/128.0"
 
 #: First bytes each format must open with. An HTML error page served with a
-#: 200 fails this check instead of poisoning the cache.
-MAGIC = {"pdf": b"%PDF", "djvu": b"AT&T", "wikitext": None, "txt": None, "html": None, "epub": b"PK"}
+#: 200 fails this check instead of poisoning the cache. The office formats,
+#: ODT and a plain zip all open as a ZIP container (`PK`); a gzip'd tarball
+#: opens with the gzip magic. Text formats (wikitext, txt, md, html) carry no
+#: magic; their charset is declared on the recipe and checked by decoding.
+MAGIC = {
+    "pdf": b"%PDF", "djvu": b"AT&T", "wikitext": None, "txt": None, "html": None, "md": None,
+    "epub": b"PK", "docx": b"PK", "xlsx": b"PK", "odt": b"PK", "zip": b"PK",
+    "rtf": b"{\\rtf", "jpg": b"\xff\xd8", "png": b"\x89PNG", "tgz": b"\x1f\x8b",
+}
+#: The formats Zotero reads as text, and for which the recipe must declare the
+#: file's charset (ticket 0721): Zotero guesses when the attachment carries none,
+#: and guessed windows-1252 for UTF-8 Vietnamese on ticket 0632's real run.
+TEXT_FORMATS = frozenset({"txt", "wikitext", "html", "md"})
 
 
-def validate_download_format(path: Path, fmt: str) -> str | None:
+def validate_download_format(path: Path, fmt: str, charset: str | None = None) -> str | None:
     """Return a native-format defect, or ``None`` when the bytes are plausible.
 
-    Prefix magic is sufficient for PDF and DjVu. Text must really be UTF-8,
-    HTML must contain HTML markup rather than arbitrary UTF-8, and an EPUB is
-    a ZIP whose first, uncompressed member declares the EPUB media type.
+    Prefix magic is sufficient for PDF and DjVu. Text must decode under the
+    charset the recipe declares (UTF-8 when it declares none: the legacy
+    encodings of the 1990s are a corpus dimension, and an authentic
+    windows-1258 or koi8-r file is checked against its own declaration, never
+    converted), HTML must contain HTML markup rather than arbitrary text, and
+    an EPUB is a ZIP whose first, uncompressed member declares the EPUB media
+    type.
     """
-    if fmt in {"txt", "wikitext"}:
-        decoder = codecs.getincrementaldecoder("utf-8-sig")()
+    codec = "utf-8-sig" if charset is None or charset.lower() in {"utf-8", "utf8"} else charset
+    shown = "UTF-8" if codec == "utf-8-sig" else charset
+    if fmt in {"txt", "wikitext", "md"}:
+        try:
+            decoder = codecs.getincrementaldecoder(codec)()
+        except LookupError:
+            return f"unknown charset {charset!r}"
         try:
             with open(path, "rb") as fh:
                 for chunk in iter(lambda: fh.read(1 << 20), b""):
                     if b"\x00" in chunk:
-                        return "expected UTF-8 text, got NUL bytes"
+                        return f"expected {shown} text, got NUL bytes"
                     decoder.decode(chunk)
                 decoder.decode(b"", final=True)
         except UnicodeDecodeError:
-            return "expected UTF-8 text"
+            return f"expected {shown} text"
     elif fmt == "html":
         try:
-            head = path.read_bytes()[:16_384].decode("utf-8-sig")
+            head = path.read_bytes()[:16_384].decode(codec, errors="strict" if codec == "utf-8-sig" else "replace")
+        except LookupError:
+            return f"unknown charset {charset!r}"
         except UnicodeDecodeError:
-            return "expected UTF-8 HTML"
+            return f"expected {shown} HTML"
         if not re.search(r"<!doctype\s+html|<html(?:\s|>)", head, re.IGNORECASE):
             return "expected HTML document markup"
     elif fmt == "epub":
@@ -106,7 +128,7 @@ def sha256_of(path: Path) -> str:
 
 
 def download_atomic(url: str, dest: Path, timeout: float, magic: bytes | None, min_size: int,
-                    fmt: str | None = None) -> None:
+                    fmt: str | None = None, charset: str | None = None) -> None:
     """Fetch `url` to `dest` through a temp file and a rename."""
     tmp = dest.with_suffix(dest.suffix + ".partial")
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
@@ -122,7 +144,7 @@ def download_atomic(url: str, dest: Path, timeout: float, magic: bytes | None, m
         if head != magic:
             tmp.unlink()
             raise RuntimeError(f"{url}: expected {magic!r} at file start, got {head!r}")
-    defect = validate_download_format(tmp, fmt) if fmt else None
+    defect = validate_download_format(tmp, fmt, charset) if fmt else None
     if defect:
         tmp.unlink()
         raise RuntimeError(f"{url}: {defect}")
@@ -155,10 +177,17 @@ def fetch_one(doc: dict, cache_dir: Path, timeout: float) -> dict:
     fmt = doc.get("bytes_format", "pdf")
     dest = cache_dir / f"{doc['id']}.{fmt}"
     row = {"id": doc["id"], "archive": doc["archive"], "path": str(dest)}
+    if doc["archive"] in DROPPED_ARCHIVES and not dest.exists():
+        # Not fetched: the archive fails the admission test, and the bytes are not
+        # in hand. Reported as its own status so a run never counts it as an outage.
+        row["status"] = "dropped-archive"
+        row["reason"] = DROPPED_ARCHIVES[doc["archive"]]
+        return row
     if not dest.exists():
         log.info("fetching %s from %s", doc["id"], doc["bytes_url"])
         try:
-            download_atomic(doc["bytes_url"], dest, timeout, MAGIC.get(fmt), doc.get("min_size", 1_000), fmt)
+            download_atomic(doc["bytes_url"], dest, timeout, MAGIC.get(fmt), doc.get("min_size", 1_000), fmt,
+                            doc.get("charset"))
         except Exception as exc:  # noqa: BLE001 — one dead archive must not stop the others
             row["status"] = classify_failure(exc)
             row["reason"] = str(exc)
@@ -175,25 +204,38 @@ def fetch_one(doc: dict, cache_dir: Path, timeout: float) -> dict:
     return row
 
 
-#: The archives a fixture document may come from (DECISIONS.md, 2026-09-02,
-#: rulings 2, 3 and the FAOLEX entry). A public, third-party-hosted, persistent
-#: identifier naming one fixed set of bytes; a personal library or homepage is
-#: not one. The three open archives need a version on the identifier.
-ADMITTED_ARCHIVES = frozenset(
-    {
-        "internet-archive",
-        "gallica",
-        "wikimedia-commons",
-        "wikisource",
-        "hal",
-        "arxiv",
-        "zenodo",
-        "faolex",
-        "uk-government-web-archive",
-        "project-gutenberg",
-    }
-)
-VERSIONED_ARCHIVES = frozenset({"hal", "arxiv", "zenodo"})
+#: The archives a fixture document may come from are data, not code
+#: (`archives.json`, beside this script): each entry carries its hosts, its
+#: identifier form, its version rule and the admission probe under the five-part
+#: test ratified 2026-09-04 (robot-open, licence-open, reputable, byte-exact
+#: identifier, ten years old). A new archive is admitted by recording a real
+#: probe there, never by editing a set here. The module-level names below are
+#: derived views, kept because the tests and the README read them by name.
+ARCHIVES_FILE = HERE / "archives.json"
+
+
+def load_archives(path: Path = ARCHIVES_FILE) -> dict[str, dict]:
+    with open(path, encoding="utf-8") as fh:
+        entries = json.load(fh)["archives"]
+    archives: dict[str, dict] = {}
+    for entry in entries:
+        name = entry["name"]
+        assert name not in archives, f"{path}: duplicate archive {name}"
+        assert entry.get("hosts"), f"{path}: {name} names no host"
+        assert entry.get("dropped") or entry.get("admission"), f"{path}: {name} records no admission probe"
+        if entry.get("dropped"):
+            assert entry.get("dropped_reason"), f"{path}: {name} is dropped with no reason"
+        archives[name] = entry
+    return archives
+
+
+ARCHIVES = load_archives()
+ADMITTED_ARCHIVES = frozenset(name for name, entry in ARCHIVES.items() if not entry.get("dropped"))
+#: Dropped archives, by name, with the ruling that dropped them: an attachment
+#: naming one is refused, and `fetch_recipe.py` never fetches from it.
+DROPPED_ARCHIVES = {name: entry["dropped_reason"] for name, entry in ARCHIVES.items() if entry.get("dropped")}
+VERSIONED_ARCHIVES = frozenset(name for name, entry in ARCHIVES.items() if entry.get("version_rule") == "vN")
+UNVERSIONED_ARCHIVES = frozenset(name for name, entry in ARCHIVES.items() if entry.get("version_rule") == "unversioned")
 #: A version on an open-archive identifier is `vN`, the form HAL and arXiv print
 #: and Zenodo's version DOIs stand in for; "final" or "latest" names a lineage.
 VERSION = re.compile(r"^v\d+$")
@@ -201,26 +243,23 @@ VERSION = re.compile(r"^v\d+$")
 #: label but on some other host is the closed PR's defect in miniature — a
 #: personal or unaudited host wearing an archive's name — so the host must
 #: belong to the archive declared. Matched on the hostname's suffix, lowercased.
-ARCHIVE_HOSTS = {
-    "internet-archive": ("archive.org",),
-    "gallica": ("gallica.bnf.fr",),
-    "wikimedia-commons": ("upload.wikimedia.org", "commons.wikimedia.org"),
-    "wikisource": ("wikisource.org",),
-    "hal": ("hal.science", "archives-ouvertes.fr"),
-    "arxiv": ("arxiv.org",),
-    "zenodo": ("zenodo.org",),
-    "faolex": ("faolex.fao.org",),
-    "uk-government-web-archive": ("webarchive.nationalarchives.gov.uk",),
-    "project-gutenberg": ("gutenberg.org",),
+ARCHIVE_HOSTS = {name: tuple(entry["hosts"]) for name, entry in ARCHIVES.items()}
+IDENTIFIER_PATTERNS = {
+    name: re.compile(entry["identifier_pattern"])
+    for name, entry in ARCHIVES.items() if entry.get("identifier_pattern")
+}
+IDENTIFIER_ALLOWLISTS = {
+    name: frozenset(entry["identifier_allowlist"])
+    for name, entry in ARCHIVES.items() if entry.get("identifier_allowlist")
 }
 #: FAOLEX is admitted for one document by the ruling of 2026-09-02, not as an
 #: archive in general; a second FAOLEX record needs its own ruling.
-FAOLEX_ADMITTED = frozenset({"LEX-FAOC179224"})
+FAOLEX_ADMITTED = IDENTIFIER_ALLOWLISTS.get("faolex", frozenset())
 #: Hosts that are publishers or personal sites, never archives. Listed because
 #: each one appeared as a source in the closed PR #151. Compared lowercased.
 REFUSED_HOSTS = ("minh.haduong.com", "zotero.org", "www.gov.uk", "chinhphu.vn", "vbpl.vn", "thuvienphapluat.vn")
 LEGACY_REQUIRED = ("id", "title", "author", "year", "language", "tier", "facet", "archive", "identifier", "bytes_url", "sha256", "license_basis")
-PARENT_REQUIRED = ("id", "title", "author", "year", "language", "tier", "facet", "item_type", "type_fidelity", "work_id", "work_relations", "structural_features", "attachments")
+PARENT_REQUIRED = ("id", "title", "author", "year", "language", "tier", "facet", "item_type", "type_fidelity", "work_id", "work_relations", "structural_features", "attachments", "topic", "stratum")
 ATTACHMENT_REQUIRED = ("id", "language", "role", "relation", "selection_expectation", "cap_expectations", "archive", "identifier", "bytes_url", "sha256", "license_basis")
 LANGUAGES = frozenset({"en", "fr", "de", "vi", "zh", "ar", "ru", "hi", "es", "la", "pt"})
 TIERS = frozenset({"MUST", "SHOULD"})
@@ -228,7 +267,16 @@ FACETS = frozenset({"core", "notes", "group", "deep-body"})
 TYPE_FIDELITY = frozenset({"correct", "intentionally-wrong"})
 ATTACHMENT_RELATIONS = frozenset({"primary", "same-text-different-format", "translation", "article", "presentation"})
 ATTACHMENT_ROLES = frozenset({"primary", "article", "presentation", "translation", "alternate-format"})
-WORK_RELATIONS = frozenset({"translation", "same-work", "near-duplicate-publication", "book-chapter", "metadata-conflicting-duplicate"})
+#: `same-subject` is a Wikipedia interlanguage link (ruling 2026-09-06): the same
+#: subject in another language is never recorded as a translation.
+WORK_RELATIONS = frozenset({"translation", "same-work", "near-duplicate-publication", "book-chapter", "metadata-conflicting-duplicate", "same-subject"})
+#: The author's library's topics (ruling 2026-09-06); a record kept off-topic
+#: says why in `retained_reason`.
+TOPICS = frozenset({"economics", "uncertainty", "energy", "environment", "development", "sts", "hss"})
+#: The two sampled strata: a representative core following the census
+#: marginals, an adversarial reserve whose members each name their mechanisms.
+STRATA = frozenset({"core", "reserve"})
+CITATION_FIELDS = frozenset({"doi", "isbn", "url"})
 EXTRACTION_EXPECTATIONS = frozenset({"indexed", "skipped-first-with-text"})
 CAP_RESULTS = frozenset({"crosses", "does-not-cross"})
 COMBINED_CAP_RESULTS = frozenset({"both", "page-only", "char-only", "neither"})
@@ -257,6 +305,7 @@ def validate(recipe: list[dict]) -> list[str]:
     found: list[str] = []
     seen: set[str] = set()
     seen_attachment_ids: set[str] = set()
+    seen_note_ids: set[str] = set()
     for doc in recipe:
         did = doc.get("id", "<no id>")
         legacy = "attachments" not in doc
@@ -299,8 +348,48 @@ def validate(recipe: list[dict]) -> list[str]:
                         found.append(f"{did}: work relation type {relation.get('type')!r} unknown")
                     if not SLUG.match(str(relation.get("target", ""))):
                         found.append(f"{did}: work relation target is not a lowercase slug")
-            if not isinstance(doc.get("attachments"), list) or not doc.get("attachments"):
-                found.append(f"{did}: attachments must be a non-empty list")
+            record_only = doc.get("record_only", False)
+            if not isinstance(record_only, bool):
+                found.append(f"{did}: record_only must be a boolean")
+            if not isinstance(doc.get("attachments"), list):
+                found.append(f"{did}: attachments must be a list")
+            elif not doc["attachments"] and not record_only:
+                found.append(f"{did}: attachments must be a non-empty list unless the record is record_only")
+            elif doc["attachments"] and record_only:
+                found.append(f"{did}: a record_only record carries no attachments")
+            if doc.get("topic") not in TOPICS:
+                found.append(f"{did}: topic {doc.get('topic')!r} is not one of {sorted(TOPICS)}")
+            if doc.get("stratum") not in STRATA:
+                found.append(f"{did}: stratum {doc.get('stratum')!r} is not one of {sorted(STRATA)}")
+            mechanisms = doc.get("mechanisms", [])
+            if not isinstance(mechanisms, list) or any(not isinstance(m, str) or not m.strip() for m in mechanisms):
+                found.append(f"{did}: mechanisms must be a list of non-empty strings")
+            elif doc.get("stratum") == "reserve" and not mechanisms:
+                found.append(f"{did}: a reserve member names the mechanisms it carries")
+            if "language_field" in doc and not isinstance(doc["language_field"], str):
+                found.append(f"{did}: language_field is the exact string written to Zotero, so it must be a string")
+            if "retained_reason" in doc and (not isinstance(doc["retained_reason"], str) or not doc["retained_reason"].strip()):
+                found.append(f"{did}: retained_reason is empty")
+            citation = doc.get("citation", {})
+            if not isinstance(citation, dict) or not set(citation) <= CITATION_FIELDS:
+                found.append(f"{did}: citation must be an object with keys among {sorted(CITATION_FIELDS)}")
+            elif any(not isinstance(value, str) or not value.strip() for value in citation.values()):
+                found.append(f"{did}: citation values must be non-empty strings")
+            notes = doc.get("notes", [])
+            if not isinstance(notes, list):
+                found.append(f"{did}: notes must be a list")
+            else:
+                for note in notes:
+                    if not isinstance(note, dict) or set(note) != {"id", "html"}:
+                        found.append(f"{did}: each note is an object with exactly id and html")
+                        continue
+                    if not SLUG.match(str(note["id"])):
+                        found.append(f"{did}: note id {note['id']!r} is not a lowercase slug")
+                    elif note["id"] in seen_note_ids:
+                        found.append(f"{did}: note id {note['id']!r} is not globally unique")
+                    seen_note_ids.add(note["id"])
+                    if not isinstance(note["html"], str) or not note["html"].strip():
+                        found.append(f"{did}: note {note['id']!r} has no html")
             features = doc.get("structural_features")
             if not isinstance(features, list):
                 found.append(f"{did}: structural_features must be a list")
@@ -370,8 +459,25 @@ def validate(recipe: list[dict]) -> list[str]:
                             required = {f"before_{boundary}_cap", f"after_{boundary}_cap"} if result == "crosses" else set()
                             if any(not isinstance(locators.get(key), str) or not locators[key].strip() for key in required):
                                 found.append(f"{label}: crossing {boundary} cap needs before/after locators")
-            if source.get("bytes_format", "pdf") not in MAGIC:
+            fmt = source.get("bytes_format", "pdf")
+            if fmt not in MAGIC:
                 found.append(f"{label}: bytes_format {source.get('bytes_format')!r} is not one of {sorted(MAGIC)}")
+            charset = source.get("charset")
+            if charset is not None and (not isinstance(charset, str) or not charset.strip()):
+                found.append(f"{label}: charset must be a non-empty string when given")
+            elif charset is not None and not _known_charset(charset):
+                found.append(f"{label}: charset {charset!r} is not a codec Python knows")
+            elif not legacy and fmt in TEXT_FORMATS and charset is None:
+                found.append(f"{label}: a {fmt} attachment declares its charset (Zotero guesses when the item carries none)")
+            if "content_type_declared" in source and (
+                    not isinstance(source["content_type_declared"], str) or "/" not in source["content_type_declared"]):
+                found.append(f"{label}: content_type_declared must be a MIME type")
+            if "min_body_chars" in source and (
+                    not isinstance(source["min_body_chars"], int) or isinstance(source["min_body_chars"], bool)
+                    or source["min_body_chars"] < 0):
+                found.append(f"{label}: min_body_chars must be a non-negative integer")
+            if "encoding_note" in source and not isinstance(source["encoding_note"], str):
+                found.append(f"{label}: encoding_note must be a string")
             if "failure_control" in source:
                 control = source["failure_control"]
                 if not isinstance(control, dict) or set(control) != FAILURE_CONTROL_FIELDS:
@@ -385,7 +491,7 @@ def validate(recipe: list[dict]) -> list[str]:
                         found.append(f"{label}: a failure control takes no part in golden answer sets")
             if source.get("language", doc.get("language")) not in LANGUAGES:
                 found.append(f"{label}: language {source.get('language')!r} unknown")
-            _validate_source(source, label, found)
+            _validate_source(source, label, found, legacy=legacy)
         if not legacy:
             by_language: dict[str, list[dict]] = {}
             for source in sources:
@@ -398,19 +504,34 @@ def validate(recipe: list[dict]) -> list[str]:
     return found
 
 
-def _validate_source(source: dict, label: str, found: list[str]) -> None:
+def _known_charset(charset: str) -> bool:
+    try:
+        codecs.lookup(charset)
+    except LookupError:
+        return False
+    return True
+
+
+def _validate_source(source: dict, label: str, found: list[str], *, legacy: bool = False) -> None:
     archive = source.get("archive")
-    if archive not in ADMITTED_ARCHIVES:
+    if archive in DROPPED_ARCHIVES:
+        # A legacy-shape record (no `attachments`) on a dropped archive is tolerated
+        # until the recipe lane retires it; it is never fetched (see fetch_one).
+        if not legacy:
+            found.append(f"{label}: archive {archive!r} was dropped: {DROPPED_ARCHIVES[archive]}")
+    elif archive not in ADMITTED_ARCHIVES:
         found.append(f"{label}: archive {archive!r} is not admitted")
     if archive in VERSIONED_ARCHIVES and not VERSION.match(str(source.get("version") or "")):
         found.append(f"{label}: {archive} identifier carries no version of the form vN")
-    if archive == "project-gutenberg":
-        if not re.fullmatch(r"[1-9][0-9]*", str(source.get("identifier") or "")):
-            found.append(f"{label}: Project Gutenberg identifier is not a numeric ebook number")
-        if source.get("version") is not None:
-            found.append(f"{label}: Project Gutenberg ebook number is unversioned")
-    if archive == "faolex" and source.get("identifier") not in FAOLEX_ADMITTED:
-        found.append(f"{label}: FAOLEX is admitted for {sorted(FAOLEX_ADMITTED)} only, not {source.get('identifier')!r}")
+    if archive in UNVERSIONED_ARCHIVES and source.get("version") is not None:
+        found.append(f"{label}: {archive} identifier is unversioned")
+    pattern = IDENTIFIER_PATTERNS.get(archive)
+    if pattern is not None and not pattern.match(str(source.get("identifier") or "")):
+        found.append(f"{label}: {archive} identifier {source.get('identifier')!r} does not match {pattern.pattern}"
+                     + (" (Project Gutenberg identifier is not a numeric ebook number)" if archive == "project-gutenberg" else ""))
+    allowlist = IDENTIFIER_ALLOWLISTS.get(archive)
+    if allowlist is not None and source.get("identifier") not in allowlist:
+        found.append(f"{label}: {archive.upper()} is admitted for {sorted(allowlist)} only, not {source.get('identifier')!r}")
     url = source.get("bytes_url") or ""
     host = (urllib.parse.urlparse(url).hostname or "").lower()
     if any(host == h or host.endswith("." + h) for h in REFUSED_HOSTS):

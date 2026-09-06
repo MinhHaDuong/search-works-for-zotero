@@ -79,3 +79,16 @@ def test_committed_pinned_recipe_is_exactly_the_hashed_subset():
     recipe = fr.load_recipe(FIXTURES / "recipe.json")
     expected = json.dumps(sh.select_hashed(recipe), ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     assert (FIXTURES / "recipe-pinned.json").read_text(encoding="utf-8") == expected
+
+
+def test_record_only_parent_is_hashed_vacuously_and_new_fields_pass_through():
+    """Ticket 0721: a record-only parent (14,8 % of the census) has no bytes to pin, so
+    it is kept as-is -- an empty attachment list is hashed vacuously -- and the ruled
+    fields (topic, stratum, notes, citation, language_field) ride along untouched."""
+    record_only = {
+        "id": "record-only", "attachments": [], "record_only": True, "topic": "energy",
+        "stratum": "core", "language_field": "", "citation": {"doi": "10.1000/x"},
+        "notes": [{"id": "record-only-note", "html": "<p>a</p>"}],
+    }
+    partial = {"id": "one-missing", "attachments": [{"id": "b1", "sha256": None}], "topic": "energy"}
+    assert sh.select_hashed([record_only, partial]) == [record_only]

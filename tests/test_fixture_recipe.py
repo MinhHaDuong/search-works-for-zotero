@@ -59,9 +59,10 @@ def representative(**over) -> dict:
         "id": "example-work", "title": "An example", "author": "Someone", "year": 1900,
         "language": "en", "tier": "MUST", "facet": "core", "item_type": "journalArticle",
         "type_fidelity": "correct", "work_id": "example-work", "work_relations": [], "structural_features": [],
+        "topic": "economics", "stratum": "core",
         "attachments": [
             {key: first[key] for key in fr.ATTACHMENT_REQUIRED if key in first} | {"bytes_format": "pdf"},
-            {key: second[key] for key in fr.ATTACHMENT_REQUIRED if key in second} | {"bytes_format": "html"},
+            {key: second[key] for key in fr.ATTACHMENT_REQUIRED if key in second} | {"bytes_format": "html", "charset": "utf-8"},
         ],
     }
     caps = {"pages": "does-not-cross", "chars": "does-not-cross", "combined": "neither", "locators": {}}
@@ -318,3 +319,133 @@ def test_fetch_script_has_argparse_and_no_extraction():
     assert "ArgumentParser" in src and "--cache-dir" in src and "--only" in src
     for tool in ("pdftotext", "pandoc", "tesseract"):
         assert tool not in src, f"the recipe fetcher must not extract text ({tool})"
+
+
+# --- Ticket 0721: the ruled shape (topics, strata, charsets, notes, record-only
+# --- parents, same-subject links, archives as data). One test per new offence.
+
+def offences(*docs):
+    return fr.validate(list(docs))
+
+
+def test_topic_and_stratum_are_required_from_the_ruled_vocabularies():
+    assert any("topic 'animals'" in o for o in offences(representative(topic="animals")))
+    assert any("topic None" in o for o in offences(_without(representative(), "topic")))
+    assert any("stratum 'extra'" in o for o in offences(representative(stratum="extra")))
+    assert any("names the mechanisms" in o for o in offences(representative(stratum="reserve")))
+    assert offences(representative(stratum="reserve", mechanisms=["page-cap-crossing"])) == []
+    assert any("mechanisms must be a list" in o for o in offences(representative(mechanisms=["", 3])))
+
+
+def _without(doc, key):
+    del doc[key]
+    return doc
+
+
+def test_text_attachments_declare_a_charset_python_can_name_and_legacy_records_are_exempt():
+    bare = representative()
+    del bare["attachments"][1]["charset"]
+    assert any("html attachment declares its charset" in o for o in offences(bare))
+    unknown = representative()
+    unknown["attachments"][1]["charset"] = "windows-9999"
+    assert any("not a codec Python knows" in o for o in offences(unknown))
+    legacy_1990s = representative()
+    legacy_1990s["attachments"][1]["charset"] = "windows-1258"
+    assert offences(legacy_1990s) == [], "an authentic legacy encoding is declared, never converted"
+    assert offences(good(bytes_format="wikitext", bytes_url="https://archive.org/download/x/x.wikitext")) == [], \
+        "a legacy-shape record carries no charset until the recipe lane rewrites it"
+    assert any("charset must be a non-empty" in o for o in offences(good(charset=""))), \
+        "an empty charset is the bare-text/plain defect written down"
+
+
+def test_same_subject_is_a_work_relation_and_translation_is_not_its_synonym():
+    linked = representative(work_relations=[{"type": "same-subject", "target": "other-work"}])
+    assert offences(linked) == []
+    assert any("unknown" in o for o in offences(representative(work_relations=[{"type": "interlanguage", "target": "other-work"}])))
+
+
+def test_record_only_parents_carry_no_attachment_and_empty_attachment_lists_need_the_flag():
+    assert any("unless the record is record_only" in o for o in offences(representative(attachments=[])))
+    assert offences(representative(attachments=[], record_only=True)) == []
+    assert any("carries no attachments" in o for o in offences(representative(record_only=True)))
+    assert any("record_only must be a boolean" in o for o in offences(representative(attachments=[], record_only="yes")))
+
+
+def test_citation_language_field_retained_reason_and_notes_have_their_shapes():
+    assert offences(representative(citation={"doi": "10.1000/x", "isbn": "978-0", "url": "https://example.org"},
+                                   language_field="", retained_reason="carries the only DjVu")) == []
+    assert any("citation must be an object" in o for o in offences(representative(citation={"pmid": "1"})))
+    assert any("citation values" in o for o in offences(representative(citation={"doi": ""})))
+    assert any("language_field is the exact string" in o for o in offences(representative(language_field=None)))
+    assert any("retained_reason is empty" in o for o in offences(representative(retained_reason=" ")))
+    assert offences(representative(notes=[{"id": "note-a", "html": "<p>a</p>"}])) == []
+    assert any("exactly id and html" in o for o in offences(representative(notes=[{"id": "note-a"}])))
+    assert any("not a lowercase slug" in o for o in offences(representative(notes=[{"id": "Note A", "html": "<p>a</p>"}])))
+    twin = representative(id="other-work", work_id="other-work", notes=[{"id": "note-a", "html": "<p>b</p>"}])
+    twin["attachments"] = []
+    twin["record_only"] = True
+    assert any("not globally unique" in o for o in offences(representative(notes=[{"id": "note-a", "html": "<p>a</p>"}]), twin))
+
+
+def test_content_type_declared_min_body_chars_and_encoding_note_are_checked_when_present():
+    lying = representative()
+    lying["attachments"][0]["content_type_declared"] = "text/html"
+    assert offences(lying) == []
+    lying["attachments"][0]["content_type_declared"] = "html"
+    assert any("content_type_declared must be a MIME type" in o for o in offences(lying))
+    short = representative()
+    short["attachments"][1]["min_body_chars"] = -1
+    assert any("min_body_chars" in o for o in offences(short))
+    short["attachments"][1]["min_body_chars"] = 200
+    short["attachments"][1]["encoding_note"] = "served as-is by the archive"
+    assert offences(short) == []
+
+
+def test_archives_are_data_and_a_dropped_archive_is_refused_on_the_ruled_shape():
+    entries = json.loads((FIXTURES / "archives.json").read_text(encoding="utf-8"))["archives"]
+    by_name = {entry["name"]: entry for entry in entries}
+    assert set(by_name) == fr.ADMITTED_ARCHIVES | set(fr.DROPPED_ARCHIVES)
+    assert by_name["gallica"]["dropped"] is True and "2026-09-04" in by_name["gallica"]["dropped_reason"]
+    for name in fr.ADMITTED_ARCHIVES:
+        probe = by_name[name]["admission"]
+        assert {"date", "robot_open", "licence", "reputable", "byte_exact", "age"} <= set(probe), name
+        assert all(isinstance(probe[leg], str) and probe[leg].strip() for leg in probe), name
+    assert fr.FAOLEX_ADMITTED == frozenset({"LEX-FAOC179224"})
+    assert fr.VERSIONED_ARCHIVES == frozenset({"hal", "arxiv", "zenodo"})
+    gallica = representative()
+    gallica["attachments"][0].update(archive="gallica", identifier="ark:/12148/bpt6k1",
+                                     bytes_url="https://gallica.bnf.fr/ark:/12148/bpt6k1.pdf")
+    assert any("archive 'gallica' was dropped" in o for o in offences(gallica))
+    legacy = good(archive="gallica", identifier="ark:/12148/bpt6k1", bytes_url="https://gallica.bnf.fr/ark:/12148/bpt6k1.pdf",
+                  sha256=None, sha256_reason="ALTCHA challenge")
+    assert offences(legacy) == [], "tolerated on the legacy shape until the recipe lane retires it"
+
+
+def test_a_dropped_archive_is_never_fetched(tmp_path):
+    row = fr.fetch_one({"id": "old-gallica", "archive": "gallica", "bytes_url": "https://gallica.bnf.fr/x.pdf",
+                        "sha256": None}, tmp_path, timeout=1)
+    assert row["status"] == "dropped-archive" and "2026-09-04" in row["reason"]
+    assert fr.exit_status([row]) == 0 and not list(tmp_path.iterdir())
+
+
+def test_wikipedia_is_an_admitted_archive_pinned_by_language_title_and_oldid():
+    article = dict(archive="wikipedia", identifier="vi:Kinh_tế_học@12345678", bytes_format="wikitext",
+                   bytes_url="https://vi.wikipedia.org/w/index.php?title=Kinh_t%E1%BA%BF_h%E1%BB%8Dc&oldid=12345678&action=raw")
+    assert offences(good(**article)) == []
+    assert any("does not match" in o for o in offences(good(**(article | {"identifier": "Kinh_tế_học"}))))
+    assert any("does not match" in o for o in offences(good(**(article | {"identifier": "vi:Kinh_tế_học"}))))
+    assert any("does not belong to archive" in o for o in offences(good(**(article | {"bytes_url": "https://vi.wikisource.org/x"}))))
+
+
+def test_widened_formats_carry_their_magic_and_text_decodes_under_its_declared_charset(tmp_path):
+    assert {"docx", "xlsx", "odt", "zip"} <= {f for f, m in fr.MAGIC.items() if m == b"PK"}
+    assert (fr.MAGIC["rtf"], fr.MAGIC["jpg"], fr.MAGIC["png"], fr.MAGIC["tgz"], fr.MAGIC["md"]) == (
+        b"{\\rtf", b"\xff\xd8", b"\x89PNG", b"\x1f\x8b", None)
+    legacy = tmp_path / "legacy.txt"
+    legacy.write_bytes("\u042d\u043a\u043e\u043d\u043e\u043c\u0438\u043a\u0430 \u0440\u0438\u0441\u043a\u0430".encode("koi8-r"))
+    assert fr.validate_download_format(legacy, "txt", "koi8-r") is None
+    assert "UTF-8" in fr.validate_download_format(legacy, "txt")
+    assert "unknown charset" in fr.validate_download_format(legacy, "txt", "windows-9999")
+    md = tmp_path / "note.md"
+    md.write_text("# heading\n", encoding="utf-8")
+    assert fr.validate_download_format(md, "md") is None

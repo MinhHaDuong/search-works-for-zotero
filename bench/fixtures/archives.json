@@ -1,0 +1,163 @@
+{
+  "_about": "The archives a fixture document may come from, as data (ticket 0721). fetch_recipe.py reads this file: an attachment's `archive` must name an entry that is not dropped, its bytes_url host must end in one of the entry's hosts, and the entry's version and identifier rules apply. A new archive is admitted by recording a real probe under the five-part test ratified 2026-09-04 (robot-open, licence-open, reputable, byte-exact identifier, ten years old), never by editing a frozenset. `robot_open` records one scripted fetch: date, URL, status, content type, first bytes.",
+  "archives": [
+    {
+      "name": "internet-archive",
+      "hosts": ["archive.org"],
+      "identifier": "item identifier (archive.org/details/<id>); web.archive.org captures are dated snapshot URLs",
+      "version": "none; hash pins the bytes",
+      "admission": {
+        "date": "2026-09-06",
+        "robot_open": "GET https://archive.org/download/elementsdeconomi00walr/elementsdeconomi00walr.pdf with a browser User-Agent, Range 0-256: 206 application/pdf from ia600105.us.archive.org, bytes open %PDF-1.5; 12 of the recipe's records fetched and matched by fetch_recipe.py since 2026-09-03",
+        "licence": "per document: age (pre-1931 printings) or the item's declared licence; the scan's container is checked for a modern reprint notice (provenance_check)",
+        "reputable": "Internet Archive, San Francisco, digital library since 1996",
+        "byte_exact": "an item identifier plus the file name names one file; the sha256 pins it",
+        "age": "founded 1996"
+      }
+    },
+    {
+      "name": "wikimedia-commons",
+      "hosts": ["upload.wikimedia.org", "commons.wikimedia.org"],
+      "identifier": "file page (File:<name>); the file history holds every version",
+      "version": "file history; hash pins the version",
+      "admission": {
+        "date": "2026-09-06",
+        "robot_open": "GET https://commons.wikimedia.org/w/index.php?title=Special:Redirect/file/Example.jpg with a browser User-Agent, Range 0-256: 206 image/jpeg from upload.wikimedia.org, bytes open FFD8 JFIF; the recipe's two DjVu/PDF scans fetched and matched on 2026-09-03",
+        "licence": "per file: public domain by age or the file page's declared licence (CC BY-SA, CC0)",
+        "reputable": "Wikimedia Foundation media repository",
+        "byte_exact": "a file page names one current file and lists every previous version; the sha256 pins one of them",
+        "age": "founded 2004"
+      }
+    },
+    {
+      "name": "wikisource",
+      "hosts": ["wikisource.org"],
+      "identifier": "page title plus permanent revision id (oldid); fetched as raw wikitext (action=raw)",
+      "version": "the revision is the version",
+      "admission": {
+        "date": "2026-09-06",
+        "robot_open": "GET https://en.wikisource.org/w/index.php?title=Constitution_of_Vietnam_(1992)&action=raw with a browser User-Agent: 200 text/x-wiki; charset=UTF-8, bytes open {{no scan}}; the recipe's three wikitext records fetched and matched on 2026-09-03. Caution recorded from ticket 0632's run: a work page can be a transclusion skeleton (header templates only); the body text lives on the transcluded subpages, and golden_fixture.py refuses a text attachment whose body is under min_body_chars",
+        "licence": "public domain texts or CC BY-SA transcriptions, per page",
+        "reputable": "Wikimedia Foundation library",
+        "byte_exact": "title plus oldid names one revision's wikitext; the sha256 pins it",
+        "age": "founded 2003"
+      }
+    },
+    {
+      "name": "wikipedia",
+      "hosts": ["wikipedia.org"],
+      "identifier": "<lang>:<Title>@<oldid> (article namespace, permanent revision id), fetched as raw wikitext (index.php?title=<Title>&oldid=<oldid>&action=raw)",
+      "identifier_pattern": "^[a-z]{2,3}(?:-[a-z0-9]+)*:[^@\\s]+@[1-9][0-9]*$",
+      "version": "the revision is the version",
+      "admission": {
+        "date": "2026-09-06",
+        "robot_open": "GET https://en.wikipedia.org/w/index.php?title=Economics&oldid=1200000000&action=raw with a browser User-Agent: 200 text/x-wiki; charset=UTF-8; same on vi.wikipedia.org (Kinh_tế_học, action=raw): 200 text/x-wiki, bytes open {{1000 bài cơ bản}}",
+        "licence": "CC BY-SA 4.0 on every article (Wikimedia terms of use)",
+        "reputable": "Wikimedia Foundation encyclopedia; admitted by the author's ruling of 2026-09-04 (the Wikipedia constellation, article namespace, pinned by permanent revision id like Wikisource). An interlanguage link is recorded as a same-subject work relation, never as a translation",
+        "byte_exact": "language, title and oldid name one revision's wikitext; the sha256 pins it",
+        "age": "founded 2001"
+      }
+    },
+    {
+      "name": "hal",
+      "hosts": ["hal.science", "archives-ouvertes.fr"],
+      "identifier": "hal-NNNNNNNN or tel-NNNNNNNN, with a version",
+      "version": "required, vN",
+      "version_rule": "vN",
+      "narrow": "pre-existing exception (rulings 2026-09-02 and 2026-09-04): the existing Vietnamese-language and habilitation records only; not reopened by the five-part test",
+      "admission": {
+        "date": "2026-09-06",
+        "robot_open": "GET https://hal.science/hal-04332519v1/file/document.pdf with a browser User-Agent: 200 text/html -- the Anubis proof-of-work challenge page in place of the PDF. Tolerated as the narrow exception because the challenge is solved once in a browser and the pinned bytes are stable across a re-pin; fetch_recipe.py reports such a record as blocked and the hash is pinned by hand",
+        "licence": "per deposit: the Creative Commons licence declared on the deposit, else not admitted (HAL-04214661 dropped 2026-09-03 for carrying no reusable licence)",
+        "reputable": "CNRS/CCSD open archive",
+        "byte_exact": "identifier plus vN names one deposit's file; the hash is a cross-check",
+        "age": "founded 2001"
+      }
+    },
+    {
+      "name": "arxiv",
+      "hosts": ["arxiv.org"],
+      "identifier": "NNNN.NNNNN with a version",
+      "version": "required, vN; the PDF may be regenerated from source, so a hash mismatch is a text diff to inspect",
+      "version_rule": "vN",
+      "admission": {
+        "date": "2026-09-06",
+        "robot_open": "GET https://arxiv.org/pdf/1706.03762v7 with a browser User-Agent, Range 0-256: 206 application/pdf, bytes open %PDF-1.5; admitted by ruling 3 of 2026-09-02, unused in the recipe so far",
+        "licence": "per paper: the licence the submitter chose (CC BY, CC BY-SA, CC0); arXiv's non-exclusive licence alone is not redistribution",
+        "reputable": "Cornell University open archive",
+        "byte_exact": "identifier plus vN names one version; the PDF can be regenerated from the version's source, so the hash is a cross-check",
+        "age": "founded 1991"
+      }
+    },
+    {
+      "name": "zenodo",
+      "hosts": ["zenodo.org"],
+      "identifier": "version DOI (10.5281/zenodo.NNNNNNN), never the concept DOI",
+      "version": "required; the version DOI is the version",
+      "version_rule": "vN",
+      "admission": {
+        "date": "2026-09-06",
+        "robot_open": "GET https://zenodo.org/records/3233986/files/README.md?download=1 with a browser User-Agent: a plain 404 text/html (no such file on that record), no challenge page; a fetch of a real record's file is still owed before a Zenodo record is pinned. Admitted by ruling 3 of 2026-09-02, unused in the recipe so far",
+        "licence": "per record: the licence declared on the deposit",
+        "reputable": "CERN open repository",
+        "byte_exact": "a version DOI names one deposit's files; the hash is a cross-check",
+        "age": "founded 2013"
+      }
+    },
+    {
+      "name": "faolex",
+      "hosts": ["faolex.fao.org"],
+      "identifier": "LEX-FAOC... ; the docs/pdf/ address, hash and Wayback capture date are pinned because the database is unversioned",
+      "version": "none; a hash mismatch is a diff to inspect (a corrected translation may replace the file under the same identifier)",
+      "identifier_allowlist": ["LEX-FAOC179224"],
+      "narrow": "pre-existing exception (ruling 2026-09-02): Decision 11/2017/QD-TTg and its official English translation only; the sourcing lane may add the Vietnamese original of the same decision if FAOLEX holds it, nothing else without a ruling",
+      "admission": {
+        "date": "2026-09-06",
+        "robot_open": "GET https://faolex.fao.org/docs/pdf/vie179224.pdf with a browser User-Agent, Range 0-256: 206 application/pdf, bytes open %PDF-1.4 (a bare urllib agent is answered 403; the browser agent string is the difference)",
+        "licence": "statutory exclusion: Vietnam's Law on Intellectual Property, Article 15.2, excludes legal normative documents and their official translations from copyright",
+        "reputable": "FAO legal database, thirty-year record, the only third-party public host of this document",
+        "byte_exact": "the docs/pdf/ address names one file; unversioned, so the hash and the Wayback capture date pin it",
+        "age": "online since the 1990s"
+      }
+    },
+    {
+      "name": "uk-government-web-archive",
+      "hosts": ["webarchive.nationalarchives.gov.uk"],
+      "identifier": "dated snapshot URL (ukgwa/<timestamp>/<url>)",
+      "version": "the timestamp is the version",
+      "admission": {
+        "date": "2026-09-06",
+        "robot_open": "GET https://webarchive.nationalarchives.gov.uk/ukgwa/20200101000000/https://www.gov.uk/guidance/the-highway-code with a browser User-Agent: 405 text/html, a WAF refusal; consistent with 2026-09-03 (every request answered with a captcha). Admitted for a snapshot pinned once by hand in a browser, the HAL treatment; unused in the recipe so far",
+        "licence": "Open Government Licence on Crown material",
+        "reputable": "The National Archives",
+        "byte_exact": "a timestamped capture names one snapshot; the hash pins it",
+        "age": "captures since 1996"
+      }
+    },
+    {
+      "name": "project-gutenberg",
+      "hosts": ["gutenberg.org"],
+      "identifier": "numeric ebook number; each official distribution file is hash-pinned separately because Gutenberg corrects files in place",
+      "version": "none, and no version may be written on the identifier; a hash mismatch is a content diff to review",
+      "version_rule": "unversioned",
+      "identifier_pattern": "^[1-9][0-9]*$",
+      "admission": {
+        "date": "2026-09-06",
+        "robot_open": "GET https://www.gutenberg.org/cache/epub/2701/pg2701.txt with a browser User-Agent, Range 0-256: 206 text/plain; charset=utf-8, bytes open 'The Project Gutenberg eB'; admitted 2026-09-03 for authentic format twins (txt, html, epub, all archive-issued)",
+        "licence": "public domain texts under the Project Gutenberg licence notice, retained",
+        "reputable": "Project Gutenberg Literary Archive Foundation",
+        "byte_exact": "ebook number plus the distribution file name names one file at a time; the hash pins the bytes in hand",
+        "age": "founded 1971"
+      }
+    },
+    {
+      "name": "gallica",
+      "hosts": ["gallica.bnf.fr"],
+      "identifier": "ark:/12148/...",
+      "version": "none; hash pins the bytes",
+      "dropped": true,
+      "dropped_reason": "2026-09-04, author's ruling: every Gallica fetch attempted for this fixture answered a scripted client with an ALTCHA challenge, the archive's standing behaviour toward scripts, which unlike HAL's Anubis cannot be solved once and cached across a re-pin; fails leg 1 (robot-open) of the five-part test outright. Re-probed 2026-09-06: GET https://gallica.bnf.fr/ark:/12148/bpt6k54602432/f1.pdf with a browser User-Agent answered 429 'Trop de requêtes'. Its four records (cournot-1838-recherches, depitre-1908-oeuvres-cournot, des-michels-1883-luc-van-tien, des-michels-1884-kim-van-kieu-t2p1) need a replacement from an admitted archive or a drop with a stated reason",
+      "admission": null
+    }
+  ]
+}

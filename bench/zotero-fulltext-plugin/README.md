@@ -29,23 +29,37 @@ updates, so the periodic check is a no-op.
 
 ```bash
 uv run python bench/zotero_fulltext.py status 65F79PTJ TD45RDD6
-uv run python bench/zotero_fulltext.py reindex 65F79PTJ TD45RDD6 --wait
+uv run python bench/zotero_fulltext.py reindex 65F79PTJ TD45RDD6 --wait             # stock limits
+uv run python bench/zotero_fulltext.py reindex 65F79PTJ TD45RDD6 --wait --complete  # limits ignored
 ```
 
 Or by hand:
 
 ```bash
 curl -s -X POST -H 'Content-Type: application/json' \
-  --data '{"keys":["TD45RDD6"]}' http://localhost:23119/search-works/fulltext/reindex
+  --data '{"keys":["TD45RDD6"], "complete": false}' http://localhost:23119/search-works/fulltext/reindex
 curl -s 'http://localhost:23119/search-works/fulltext/status?keys=TD45RDD6'
 ```
 
-`reindex` answers 202 at once with what it queued; extraction runs in Zotero's
-own queue with page and character limits ignored. `status` reports, per key,
-the library, the indexing state (unindexed, partial, indexed, queued,
-unavailable), pages and characters indexed against totals, and the full-text
-version; plus the library-wide statistics and `busy`, true while a reindex this
-plugin queued is still running.
+`reindex` answers 202 at once with what it queued and the mode it queued it in.
+Extraction runs in Zotero's own queue. The body's `"complete"` (boolean,
+default `false`) chooses the mode: `false` is **stock**, the client's own
+`fulltext.pdfMaxPages` and `fulltext.textMaxLength` apply exactly as they would
+to Zotero's own extraction; `true` is **uncapped**, both limits ignored
+(`Zotero.FullText.indexItems(ids, {complete: true})`, which `fulltext.js`
+documents as passing no page bound to `indexPDF`). Until version 0.2.0 the
+plugin always passed `complete: true`, so an export recording the stock
+preferences was not bounded by them (ticket 0632's real run, 2026-09-06);
+the default is now the stock arm and the mode is reported, never assumed.
+
+`status` reports, per key, the library, the indexing state (unindexed,
+partial, indexed, queued, unavailable), pages and characters indexed against
+totals, and the full-text version; plus the library-wide statistics, `busy`
+(true while a reindex this plugin queued is still running), `version` (the
+plugin's own), `lastReindexMode` (`stock`, `uncapped`, or `null` before any
+reindex since startup), and `prefs` — `pdfMaxPages` and `textMaxLength` read
+live from `Zotero.Prefs` on every call, so an export can record the values the
+extraction actually ran under instead of typing them.
 
 ## What it can reach
 
