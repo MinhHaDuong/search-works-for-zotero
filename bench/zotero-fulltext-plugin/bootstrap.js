@@ -34,7 +34,7 @@ let pluginVersion = null;
 //: The version of this file, kept equal to manifest.json's. The add-on manager hands
 //: startup() the version it REGISTERED, which lags a replaced xpi until the profile
 //: re-reads the manifest (padme, 2026-09-06: new code ran under a 0.1.1 label).
-const CODE_VERSION = '0.3.0';
+const CODE_VERSION = '0.4.0';
 
 function reindexMode(complete) {
   return complete ? 'uncapped' : 'stock';
@@ -202,6 +202,87 @@ Import.prototype = {
   },
 };
 
+/**
+ * Sync one library with zotero.org, as the toolbar button would, and report where
+ * the sync stands. A headless client has no pane, and the pane is what runs the
+ * automatic sync at startup, so items the harness writes headless stay local until
+ * something asks (padme, 2026-09-06: 103 parents at local version 484 while the
+ * server still held 17 at version 140). Data and, when storage sync is enabled,
+ * files, through Zotero's own Sync.Runner; nothing here writes an item.
+ *
+ *   POST /search-works/fulltext/sync   {"libraryID": 3} or {"groupID": 6659303}
+ *     Starts Zotero.Sync.Runner.sync for that library and returns at once.
+ *   GET  /search-works/fulltext/sync
+ *     Whether sync is set up and in progress, the last status and error, and per
+ *     library: type, group id, version, last sync, unsynced item count.
+ */
+let syncRuns = 0;
+let lastSyncError = null;
+let lastSyncStarted = null;
+let lastSyncFinished = null;
+
+function findLibrary({ libraryID, groupID }) {
+  for (const library of Zotero.Libraries.getAll()) {
+    if (libraryID !== undefined && library.libraryID === libraryID) return library;
+    if (groupID !== undefined && library.libraryType === 'group' && library.groupID === groupID) return library;
+  }
+  return null;
+}
+
+async function libraryRows() {
+  const rows = [];
+  for (const library of Zotero.Libraries.getAll()) {
+    const unsynced = await Zotero.DB.valueQueryAsync(
+      'SELECT COUNT(*) FROM items WHERE libraryID=? AND synced=0', library.libraryID,
+    );
+    rows.push({
+      libraryID: library.libraryID, libraryType: library.libraryType,
+      groupID: library.groupID ?? null, name: library.name ?? null,
+      libraryVersion: library.libraryVersion ?? null, lastSync: library.lastSync ?? null,
+      storageVersion: library.storageVersion ?? null, unsynced,
+    });
+  }
+  return rows;
+}
+
+function Sync() {}
+Sync.prototype = {
+  supportedMethods: ['GET', 'POST'],
+  supportedDataTypes: ['application/json'],
+  init: async function ({ method, data }) {
+    const runner = Zotero.Sync.Runner;
+    if (method === 'POST') {
+      const libraryID = Number.isInteger(data?.libraryID) ? data.libraryID : undefined;
+      const groupID = Number.isInteger(data?.groupID) ? data.groupID : undefined;
+      if (libraryID === undefined && groupID === undefined) {
+        return json(400, { error: 'body must be {"libraryID": n} or {"groupID": n}' });
+      }
+      const library = findLibrary({ libraryID, groupID });
+      if (!library) return json(404, { error: 'no such library', libraryID, groupID });
+      if (!runner.enabled) return json(409, { error: 'sync is not set up in this profile (no API key)' });
+      if (runner.syncInProgress) return json(409, { error: 'a sync is already in progress' });
+      syncRuns += 1;
+      lastSyncError = null;
+      lastSyncStarted = new Date().toISOString();
+      lastSyncFinished = null;
+      runner.sync({ background: false, libraries: [library.libraryID] })
+        .catch((e) => {
+          lastSyncError = String(e?.message ?? e);
+          log(`sync failed: ${lastSyncError}`);
+        })
+        .finally(() => {
+          lastSyncFinished = new Date().toISOString();
+        });
+      return json(202, { started: true, libraryID: library.libraryID, groupID: library.groupID ?? null });
+    }
+    return json(200, {
+      enabled: Boolean(runner.enabled), inProgress: Boolean(runner.syncInProgress),
+      lastSyncStatus: runner.lastSyncStatus ?? null, syncRuns, lastSyncError,
+      lastSyncStarted, lastSyncFinished, libraries: await libraryRows(),
+    });
+  },
+};
+
 function install() {
   log('installed');
 }
@@ -212,6 +293,7 @@ async function startup({ version }) {
   Zotero.Server.Endpoints[`${PREFIX}reindex`] = Reindex;
   Zotero.Server.Endpoints[`${PREFIX}status`] = Status;
   Zotero.Server.Endpoints[`${PREFIX}import`] = Import;
+  Zotero.Server.Endpoints[`${PREFIX}sync`] = Sync;
   log(`started ${version}: endpoints registered under ${PREFIX}`);
 }
 
@@ -219,6 +301,7 @@ function shutdown() {
   delete Zotero.Server.Endpoints[`${PREFIX}reindex`];
   delete Zotero.Server.Endpoints[`${PREFIX}status`];
   delete Zotero.Server.Endpoints[`${PREFIX}import`];
+  delete Zotero.Server.Endpoints[`${PREFIX}sync`];
   log('shut down: endpoints removed');
 }
 

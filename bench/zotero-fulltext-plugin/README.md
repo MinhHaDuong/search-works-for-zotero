@@ -76,6 +76,24 @@ curl -s -X POST -H 'Content-Type: application/json' \
   --data '{"path":"/abs/path/to/menagerie.ris"}' http://localhost:23119/search-works/fulltext/import
 ```
 
+`sync` (version 0.4.0) syncs one library with zotero.org through Zotero's own
+`Sync.Runner`, as the toolbar button would — data, then files when storage sync
+is enabled. A headless client has no pane, and the pane is what runs the
+automatic sync at startup, so items the harness writes headless stay local
+until something asks (padme, 2026-09-06: 103 parents at local version 484 while
+the server still held 17 at version 140). `POST` with `{"libraryID": n}` or
+`{"groupID": n}` starts the sync and returns at once (409 when sync is not set
+up in the profile or one is already running); `GET` reports whether sync is
+set up and in progress, the last status and error, and per library its type,
+group id, version, last sync and count of unsynced items — poll it until
+`inProgress` is false and `unsynced` is 0, then confirm against the public API.
+
+```bash
+curl -s -X POST -H 'Content-Type: application/json' \
+  --data '{"groupID":6659303}' http://localhost:23119/search-works/fulltext/sync
+curl -s http://localhost:23119/search-works/fulltext/sync
+```
+
 ## What it can reach
 
 Zotero binds the server to the loopback interface, refuses any `Host` header
