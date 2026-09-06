@@ -654,10 +654,22 @@ export function validateGoldenBuildResult(fixture, result, requests, dataDirecto
   if (!Number.isInteger(indexSize) || indexSize <= 0 || !existsSync(indexPath) || statSync(indexPath).size <= 0) {
     throw new Error('golden replay did not produce a non-empty search-index.sqlite');
   }
-  const failed = requests.find((request) => request.status !== 200);
-  if (failed) throw new Error(`golden replay received ${failed.status} for ${failed.method} ${failed.url}`);
   const library = fixture.manifest.library;
   const prefix = library.type === 'group' ? `/api/groups/${library.id}` : '/api/users/0';
+  // Zotero answers 404 on the fulltext route of a key its census lists without a body
+  // (an empty missing-marked row, an unserved content type); the product asks and is
+  // told no. That exchange is the captured behaviour, so it is the one 404 allowed.
+  const unservedRoutes = new Set(
+    [...(fixture.censusOnly ?? new Map()).keys()].map((key) => `${prefix}/items/${encodeURIComponent(key)}/fulltext`),
+  );
+  const failed = requests.find((request) => request.status !== 200 &&
+    !(request.status === 404 && request.method === 'GET' && unservedRoutes.has(new URL(request.url, 'http://replay').pathname)));
+  if (failed) throw new Error(`golden replay received ${failed.status} for ${failed.method} ${failed.url}`);
+  for (const route of unservedRoutes) {
+    const asked = requests.some((request) => request.method === 'GET' && request.status === 404 &&
+      new URL(request.url, 'http://replay').pathname === route);
+    if (!asked) throw new Error(`golden replay did not exercise the unserved fulltext route ${route}`);
+  }
   const required = [
     ['local capability probe', (url) => url.pathname === '/api/users/0/items'],
     ['library item listing', (url) => url.pathname.startsWith(`${prefix}/`) && /\/items(?:\/top)?$/.test(url.pathname)],
@@ -667,6 +679,7 @@ export function validateGoldenBuildResult(fixture, result, requests, dataDirecto
     required.push(['local group discovery', (url) => url.pathname === '/api/users/0/groups']);
   }
   for (const row of fixture.manifest.attachments) {
+    if (row.terminal_state !== 'indexed') continue;
     required.push([
       `fulltext body ${row.attachment_key}`,
       (url) => url.pathname === `${prefix}/items/${encodeURIComponent(row.attachment_key)}/fulltext`,

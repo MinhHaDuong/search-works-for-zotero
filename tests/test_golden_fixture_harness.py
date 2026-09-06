@@ -641,11 +641,13 @@ def test_export_is_raw_complete_atomic_and_bound_to_recipe(tmp_path):
     fulltext = json.loads((dest / "fulltext" / f"{attachment}.json").read_text())
 
     assert manifest["recipe_sha256"] == gf.recipe_digest(recipe)
-    assert manifest["zotero"] == {
+    assert {key: manifest["zotero"][key] for key in ("client_version", "fulltext.pdfMaxPages", "fulltext.textMaxLength")} == {
         "client_version": "10.0.0-test",
         "fulltext.pdfMaxPages": 100,
         "fulltext.textMaxLength": 500000,
     }
+    assert manifest["reindex"]["mode"] == "complete"
+    assert manifest["known_defects"] == []
     assert manifest["index_fulltext_max_chars"] == 40000
     assert manifest["attachments"] == [{
         "recipe_id": "invented-1900-control",
@@ -1657,6 +1659,101 @@ def test_export_captures_an_indexed_text_attachment_the_local_api_never_serves(t
     )
     assert done.returncode == 0, done.stderr
     assert json.loads(done.stdout) == {"census": {key: 0}, "body": 404}
+
+
+def test_export_records_the_reindex_mode_and_detects_a_guessed_charset(tmp_path):
+    """The plugin reindexes with complete:true, so the two recorded preferences never
+    bound the extraction; the manifest says so beside them. And a text attachment the
+    injection wrote without a charset is decoded byte per character by Zotero's guess:
+    indexed_chars equals the byte length while UTF-8 would be shorter -- detected,
+    recorded, never repaired (coordinator, 2026-09-06)."""
+    payload = "== Đầu đề ==\nvăn bản tiếng Việt\n".encode("utf-8")
+    recipe = recipe_for(payload)
+    recipe[0].update({"id": "invented-1903-vi-wikitext", "title": "Invented Vietnamese wikitext",
+                      "year": 1903, "language": "vi", "bytes_format": "wikitext",
+                      "bytes_url": "https://archive.org/download/invented-control/vi.wikitext"})
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "invented-1903-vi-wikitext.wikitext").write_bytes(payload)
+    zotero = MemoryZotero()
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+    key = next(key for key, item in zotero.items.items() if item["data"]["itemType"] == "attachment")
+    zotero.items[key]["data"]["charset"] = "windows-1252"
+    original_census = zotero.fulltext_since
+    zotero.fulltext_since = lambda since=0: {**original_census(since), key: 0}
+    zotero.reindex_fulltext = lambda keys: {key: {
+        "state": "indexed", "indexedPages": None, "totalPages": None, "indexedChars": len(payload),
+        "totalChars": len(payload), "version": 0, "previous_version": None,
+    }}
+    destination = tmp_path / "charset"
+    gf.export_snapshot(
+        recipe, zotero, collection_key="COLLECT1", destination=destination,
+        library={"type": "group", "id": 4321}, zotero_client_version="10.0.0-test",
+        pdf_max_pages=100, text_max_length=500000, index_max_chars=40000, cache_dir=cache,
+        known_defects=[{"recipe_id": "invented-1903-vi-wikitext", "defect": "declared by the operator"}],
+    )
+    manifest = json.loads((destination / "manifest.json").read_text())
+    assert manifest["reindex"]["mode"] == "complete" and manifest["reindex"]["limits"] == "ignored"
+    assert manifest["zotero"]["fulltext.pdfMaxPages"] == 100
+    assert "not a bound" in manifest["zotero"]["preferences_are"]
+    declared, detected = manifest["known_defects"]
+    assert declared == {"recipe_id": "invented-1903-vi-wikitext", "defect": "declared by the operator"}
+    assert detected["attachment_key"] == key and "charset guessed" in detected["defect"]
+    assert detected["evidence"] == {"indexed_chars": len(payload), "source_bytes": len(payload),
+                                    "utf8_chars": len(payload.decode("utf-8"))}
+    items = json.loads((destination / "items.json").read_text())
+    assert next(item["data"]["charset"] for item in items if item["data"]["itemType"] == "attachment") == "windows-1252"
+    recipe_path = tmp_path / "vi-recipe.json"
+    recipe_path.write_text(json.dumps(recipe), encoding="utf-8")
+    assert run_loader(destination, recipe_path).returncode == 0
+
+
+def test_build_validation_allows_the_404_zotero_gives_for_a_census_key_without_a_body(tmp_path):
+    """The product asks for every census key's body; a control or unserved key answers
+    404, as Zotero does, and that exchange is required rather than refused. A 404 on an
+    indexed key stays a failure."""
+    recipe, cache, zotero, indexed, control = injected_control_fixture(tmp_path)
+    zotero.reindex_fulltext = lambda keys: settled_rows(indexed, control)
+    original_census = zotero.fulltext_since
+    zotero.fulltext_since = lambda since=0: {**original_census(since), control: 0}
+    destination = tmp_path / "validate-404"
+    export_again(recipe, zotero, cache, destination)
+    recipe_path = tmp_path / "control-recipe.json"
+    recipe_path.write_text(json.dumps(recipe), encoding="utf-8")
+    data_dir = tmp_path / "build"
+    data_dir.mkdir()
+    (data_dir / "search-index.sqlite").write_bytes(b"sqlite-control")
+    probe = """
+      import { loadGoldenExport, validateGoldenBuildResult } from './bench/fixtures/make_index_fixture.mjs';
+      const fx = loadGoldenExport(process.argv[1], { recipePath: process.argv[2] });
+      const [data, indexed, control] = process.argv.slice(3);
+      const prefix = '/api/groups/4321';
+      const result = { status: { state: 'done', itemsFetched: 2, passages: 4, fulltextPassages: 2 },
+                       files: { 'search-index.sqlite': 14 } };
+      const base = [
+        '/api/users/0/items?limit=1', '/api/users/0/groups?limit=100', `${prefix}/items/top?limit=100`,
+        `${prefix}/fulltext?since=0`, `${prefix}/items/${indexed}/fulltext`,
+      ].map((url) => ({ method: 'GET', url, status: 200 }));
+      const cases = [
+        [...base, { method: 'GET', url: `${prefix}/items/${control}/fulltext`, status: 404 }],
+        base,
+        [...base.slice(0, -1), { method: 'GET', url: `${prefix}/items/${indexed}/fulltext`, status: 404 },
+         { method: 'GET', url: `${prefix}/items/${control}/fulltext`, status: 404 }],
+      ];
+      for (const requests of cases) {
+        try { validateGoldenBuildResult(fx, result, requests, data); console.log('OK'); }
+        catch (error) { console.log(`NO:${error.message}`); }
+      }
+    """
+    done = subprocess.run(
+        ["node", "--input-type=module", "--eval", probe, str(destination), str(recipe_path),
+         str(data_dir), indexed, control],
+        cwd=REPO, text=True, capture_output=True, timeout=30, check=True,
+    )
+    lines = done.stdout.splitlines()
+    assert lines[0] == "OK"
+    assert lines[1].startswith("NO:") and "did not exercise the unserved fulltext route" in lines[1]
+    assert lines[2].startswith("NO:") and "received 404" in lines[2]
 
 
 def test_export_refuses_a_404_on_a_served_content_type_as_vanished_text(tmp_path):

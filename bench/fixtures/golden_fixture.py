@@ -657,7 +657,7 @@ def _portable_item(item: dict) -> dict:
     data = _data(item)
     common = {"key", "version", "itemType", "title", "tags"}
     if data.get("itemType") == "attachment":
-        allowed = common | {"parentItem", "linkMode", "contentType", "path", "filename", "extra"}
+        allowed = common | {"parentItem", "linkMode", "contentType", "charset", "path", "filename", "extra"}
     else:
         allowed = common | {
             "creators", "date", "language", "url", "archive", "archiveLocation",
@@ -715,6 +715,51 @@ def _safe_export_destination(destination: Path) -> tuple[Path, bool]:
     return candidate, True
 
 
+#: What the control plugin asks of Zotero.  bench/zotero-fulltext-plugin/bootstrap.js
+#: calls Zotero.FullText.indexItems(ids, {complete: true, ignoreErrors: true}), and
+#: fulltext.js documents `complete` as "ignore page/character limits" (indexPDF passes
+#: null for maxPages when allPages is set).  The two preferences the manifest records
+#: therefore describe the injecting profile, not a bound on this extraction; the
+#: per-attachment counters are the binding record.
+REINDEX_MODE = {
+    "mode": "complete",
+    "limits": "ignored",
+    "source": "bench/zotero-fulltext-plugin/bootstrap.js: Zotero.FullText.indexItems(ids, "
+              "{complete: true, ignoreErrors: true}); fulltext.js indexPDF(filePath, itemID, allPages)",
+    "binding_record": "per-attachment indexed_pages/total_pages and indexed_chars/total_chars",
+}
+
+
+def _detected_defects(items: list[dict], attachment_rows: list[dict], source_paths: dict[str, Path]) -> list[dict]:
+    """Defects the export can see for itself.  Today one: a text attachment whose charset
+    Zotero guessed because the injection wrote none, so the text it indexed is the file's
+    bytes decoded one per character -- indexed_chars equals the byte length while a UTF-8
+    reading of the same bytes is shorter."""
+    by_key = {_key(item): _data(item) for item in items}
+    found = []
+    for row in attachment_rows:
+        data = by_key.get(row["attachment_key"], {})
+        content_type = str(data.get("contentType", ""))
+        charset = data.get("charset")
+        if not content_type.startswith("text/") or not charset or charset.lower() in {"utf-8", "utf8"}:
+            continue
+        source_id = row.get("attachment_id", row["recipe_id"])
+        raw = source_paths[source_id].read_bytes()
+        utf8_chars = len(raw.decode("utf-8", errors="replace"))
+        indexed = row.get("indexed_chars")
+        if isinstance(indexed, int) and indexed == len(raw) and utf8_chars < len(raw):
+            found.append({
+                "recipe_id": row["recipe_id"], "attachment_key": row["attachment_key"],
+                "defect": "charset guessed by Zotero: the injection wrote a bare "
+                          f"{content_type} attachment with no charset, Zotero recorded "
+                          f"{charset}, and the indexed text is the file's bytes decoded one "
+                          "per character (mojibake for non-ASCII text)",
+                "evidence": {"indexed_chars": indexed, "source_bytes": len(raw), "utf8_chars": utf8_chars},
+                "remedy": "re-inject with an explicit charset and re-pin",
+            })
+    return found
+
+
 def export_snapshot(
     recipe: list[dict],
     client,
@@ -727,8 +772,13 @@ def export_snapshot(
     text_max_length: int,
     index_max_chars: int,
     cache_dir: Path,
+    known_defects: list[dict] | None = None,
 ) -> Path:
-    """Capture raw items/fulltext into an atomically replaced snapshot directory."""
+    """Capture raw items/fulltext into an atomically replaced snapshot directory.
+
+    ``known_defects`` are declared by the operator (recipe id and a description a
+    reader can check against the bytes); the export adds the defects it detects
+    itself.  Both are recorded, never repaired: the export is what Zotero holds."""
     if library.get("type") not in {"user", "group"} or not isinstance(library.get("id"), int):
         raise GoldenFixtureError("the fixture export must identify its public Zotero library")
     if not zotero_client_version.strip():
@@ -781,7 +831,12 @@ def export_snapshot(
                 "client_version": zotero_client_version,
                 "fulltext.pdfMaxPages": pdf_max_pages,
                 "fulltext.textMaxLength": text_max_length,
+                "preferences_are": "the injecting profile's values as read at run time; not a "
+                                   "bound on this extraction, see reindex",
             },
+            "reindex": dict(REINDEX_MODE),
+            "known_defects": [dict(defect) for defect in (known_defects or [])]
+                             + _detected_defects(items, public_rows, source_paths),
             "index_fulltext_max_chars": index_max_chars,
             "items_file": "items.json",
             "normalizations": {
@@ -1144,7 +1199,17 @@ def main() -> int:
     export_parser.add_argument("--pdf-max-pages", type=int, required=True)
     export_parser.add_argument("--text-max-length", type=int, required=True)
     export_parser.add_argument("--index-max-chars", type=int, required=True)
+    export_parser.add_argument(
+        "--known-defect", action="append", default=[], metavar="RECIPE_ID: DESCRIPTION",
+        help="a defect of the injected fixture to record in the manifest, never repaired (repeatable)",
+    )
     args = parser.parse_args()
+    known_defects = []
+    for entry in getattr(args, "known_defect", []):
+        recipe_id, separator, description = entry.partition(":")
+        if not separator or not recipe_id.strip() or not description.strip():
+            raise GoldenFixtureError(f"--known-defect must read 'RECIPE_ID: DESCRIPTION', got {entry!r}")
+        known_defects.append({"recipe_id": recipe_id.strip(), "defect": description.strip(), "declared_by": "operator"})
     recipe = _load_recipe(args.recipe)
     if args.command == "inject":
         result = inject(
@@ -1165,6 +1230,7 @@ def main() -> int:
                     text_max_length=args.text_max_length,
                     index_max_chars=args.index_max_chars,
                     cache_dir=args.cache_dir,
+                    known_defects=known_defects,
                 )
             )
         }

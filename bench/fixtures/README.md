@@ -223,6 +223,18 @@ An indexed attachment is refused when the reindex left its fulltext version
 unchanged, since Zotero resets that version on every local extraction and an
 unchanged one means the client held the item but never read the file.
 
+The manifest's two extraction preferences describe the injecting profile,
+not a bound on the extraction: the control plugin reindexes with
+`complete: true`, which Zotero documents as ignoring the page and character
+limits, and the manifest says so under `reindex` beside them. The binding
+record is each row's observed `indexed_pages`/`total_pages` and
+`indexed_chars`/`total_chars`. `known_defects` lists what the export knows is
+wrong with the fixture as injected — declared by the operator with
+`--known-defect`, or detected by the export itself (a text attachment whose
+charset Zotero guessed, so its indexed text is one character per byte) — and
+records them without repairing anything, because the export is what Zotero
+holds.
+
 A third row shape, `indexed-not-served`, records a fact of the local API
 found on the first real run: `/items/<key>/fulltext` answers 404 for every
 content type outside `Zotero.Fulltext.isCachedMIMEType` (PDF, HTML, EPUB), so
