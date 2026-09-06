@@ -43,12 +43,23 @@ process, never a fallback — where the account is absent or does not work.
 container, a throwaway VM) and skips the account; the harness does not probe
 for this, the operator states it. Every artifact records which posture the run
 had.
+
+**A base arena is bounded, not reused (ticket 0720).** Every run allocates
+fresh per-check arenas under `<base>/<date>/<HHMMSS>-<check>`, and reuse is
+unsafe — a residue sweep needs a clean baseline. What bounds the base arena is
+retention applied at that allocation: before a run makes its own directories
+it removes every completed previous run beyond the `--keep-runs` most recent
+(`DEFAULT_KEEP_RUNS` unless said otherwise), and nothing else — never the
+current run, never a run whose in-progress marker is present, never a
+directory outside the run layout, never anything outside the base arena.
 """
 
 import argparse
 import json
 import logging
 import os
+import re
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -138,8 +149,98 @@ def _started() -> str:
     return _STARTED
 
 
+#: How many completed previous runs a base arena keeps beside the current one.
+#: Three is enough to compare a run against the one it re-measures and the one
+#: before that, and small enough that a real target's model copies — three per
+#: run — stay under a gigabyte per base arena. `--keep-runs` overrides it.
+DEFAULT_KEEP_RUNS = 3
+
+#: The run layout `arena_for` writes, and the ONLY shape retention will remove.
+#: A hand-made probe directory, the tracer's `trace/`, a stray file: none match,
+#: none are candidates. The date and time components sort chronologically as
+#: strings, which is how "most recent" is decided without reading mtimes.
+_DATE_DIR = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+_RUN_DIR = re.compile(r"^(\d{6})-[A-Za-z0-9][A-Za-z0-9-]*$")
+_MARKER_SUFFIX = ".in-progress"
+
+
+def in_progress_marker(base_arena: Path, date: str, started: str) -> Path:
+    """The file that says a run on this base arena has not finished.
+
+    Written by `assess` before its first arena and removed when it returns,
+    however it returns. Retention never removes a run whose marker is present,
+    so two runs sharing one base arena cannot prune each other's baselines mid-
+    sweep. A crashed run leaves its marker and is therefore kept forever, and
+    said so at every later run; that is a leak the operator can see and remove
+    by hand, where the alternative is a running sweep losing its arena.
+    """
+    return base_arena / date / f"{started}{_MARKER_SUFFIX}"
+
+
+def previous_runs(base_arena: Path) -> dict[tuple[str, str], list[Path]]:
+    """Every run in the layout under `base_arena`, keyed by (date, started).
+
+    Symlinks are not descended: a date-shaped link pointing outside the base
+    arena would otherwise make a removal land outside it.
+    """
+    runs: dict[tuple[str, str], list[Path]] = {}
+    if not base_arena.is_dir():
+        return runs
+    for date_dir in base_arena.iterdir():
+        if date_dir.is_symlink() or not date_dir.is_dir() or not _DATE_DIR.match(date_dir.name):
+            continue
+        for run_dir in date_dir.iterdir():
+            if run_dir.is_symlink() or not run_dir.is_dir():
+                continue
+            hit = _RUN_DIR.match(run_dir.name)
+            if hit:
+                runs.setdefault((date_dir.name, hit.group(1)), []).append(run_dir)
+    return runs
+
+
+def retain(base_arena: Path, *, keep: int, current: tuple[str, str]) -> None:
+    """Remove every completed previous run beyond the `keep` most recent.
+
+    Kept unconditionally: the current run, and any run whose in-progress marker
+    is present. Everything the layout does not describe is not a candidate
+    (`previous_runs`). A removal that fails is logged with the path and the run
+    goes on: this exists because a disk filled up, and a pruner that could end
+    a run would turn a full disk into a red gate about nothing.
+    """
+    assert keep >= 0
+    root = base_arena.resolve()
+    candidates: list[tuple[tuple[str, str], list[Path]]] = []
+    for key, dirs in sorted(previous_runs(base_arena).items()):
+        if key == current:
+            continue
+        if in_progress_marker(base_arena, *key).exists():
+            log.info("retention: run %s-%s carries an in-progress marker; kept", *key)
+            continue
+        candidates.append((key, dirs))
+    doomed = candidates[:max(0, len(candidates) - keep)]
+    removed = 0
+    for key, dirs in doomed:
+        for run_dir in dirs:
+            # Belt and braces over the layout match: never outside the base.
+            if root not in run_dir.resolve().parents:
+                log.warning("retention: %s resolves outside %s; left alone", run_dir, root)
+                continue
+            try:
+                shutil.rmtree(run_dir)
+                removed += 1
+            except OSError as why:
+                log.warning("retention: could not remove %s (%s); left in place", run_dir, why)
+        try:
+            (base_arena / key[0]).rmdir()  # only an emptied date directory can go
+        except OSError:
+            pass
+    if doomed:
+        log.info("retention: removed %d arena(s) of %d previous run(s) under %s; "
+                 "keeping the %d most recent", removed, len(doomed), base_arena, keep)
+
+
 def assess(make_target, *, base_arena: Path, log_dir: Path, drive_argv_for,
-           under=None) -> Run:
+           under=None, keep_runs: int = DEFAULT_KEEP_RUNS) -> Run:
     """Every assertion the layer offers, each against a fresh target in a clean arena.
 
     **Why one arena per assertion and not one per run.** The first version of
@@ -158,8 +259,27 @@ def assess(make_target, *, base_arena: Path, log_dir: Path, drive_argv_for,
     a reader audits a verdict against — the unsupported verbs, the transport,
     the process, what is argued not to be derived state — is identical across
     them.
+
+    **What bounds the base arena.** Before this run's first arena, `retain`
+    removes completed previous runs beyond `keep_runs`, and this run's marker
+    goes down so a concurrent run on the same base arena leaves this one alone
+    (module docstring; ticket 0720).
     """
     run = Run(target=make_target(base_arena).declaration, date=time.strftime("%Y-%m-%d"))
+    retain(base_arena, keep=keep_runs, current=(run.date, _started()))
+    marker = in_progress_marker(base_arena, run.date, _started())
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text("")
+    try:
+        return _assess(run, make_target, base_arena=base_arena, log_dir=log_dir,
+                       drive_argv_for=drive_argv_for, under=under)
+    finally:
+        marker.unlink(missing_ok=True)
+
+
+def _assess(run: Run, make_target, *, base_arena: Path, log_dir: Path, drive_argv_for,
+            under) -> Run:
+    """`assess` proper: every assertion, each in its own arena, appended to `run`."""
 
     def record(check_id: str, requirement: str, produce):
         """Append one assertion's verdict, or the `not-run` saying it never reached one.
@@ -212,9 +332,12 @@ def assess(make_target, *, base_arena: Path, log_dir: Path, drive_argv_for,
         Unique per run, because a re-run into a previous run's directory is the
         second way a residue sweep loses its baseline — and it is the one a gate
         hits, since a gate runs repeatedly against a fixed path. Nothing is
-        deleted to achieve this: an old arena is left where it is and a new one
-        is made beside it. The sweeps additionally refuse a dirty arena, so a
-        caller who supplies one gets `not-run` rather than a false green.
+        reused to achieve this: a new arena is made beside the old ones, and
+        what keeps "beside the old ones" from meaning "without bound" is
+        `retain`, which ran before the first of these was made and removed only
+        completed runs beyond the keep count. The sweeps additionally refuse a
+        dirty arena, so a caller who supplies one gets `not-run` rather than a
+        false green.
         """
         arena = base_arena / run.date / f"{_started():s}-{check_id}"
         arena.mkdir(parents=True, exist_ok=True)
@@ -332,7 +455,7 @@ def adapter_options(pairs: list[str]) -> dict[str, str]:
     return options
 
 
-def run_fixtures(arena: Path, output: Path) -> int:
+def run_fixtures(arena: Path, output: Path, *, keep_runs: int = DEFAULT_KEEP_RUNS) -> int:
     """Drive every fail-control and record which state each assertion reached.
 
     This is the gate's own positive control, and it inverts the usual reading:
@@ -358,7 +481,7 @@ def run_fixtures(arena: Path, output: Path) -> int:
                      drive_argv_for=lambda at, _name=name: [
                          sys.executable or "python3", str(Path(__file__).resolve()),
                          "--adapter", _name, "--arena", str(at), "--drive",
-                     ])
+                     ], keep_runs=keep_runs)
         for check in run.checks:
             row = {"fixture": check.target, "check": check.check,
                    "requirement": check.requirement, "verb": check.verb,
@@ -413,6 +536,15 @@ def main() -> int:
     ap.add_argument("--adapter-option", action="append", default=[], metavar="KEY=VALUE",
                     help="an input this adapter needs; repeatable, passed through uninterpreted")
     ap.add_argument(
+        "--keep-runs", type=int, default=DEFAULT_KEEP_RUNS, metavar="N",
+        help=(
+            f"how many completed previous runs to keep under the base arena beside "
+            f"this one (default {DEFAULT_KEEP_RUNS}); older ones are removed before "
+            "this run allocates. Never the current run, never a run in progress, "
+            "never anything outside the run layout (ticket 0720)"
+        ),
+    )
+    ap.add_argument(
         "--posture", choices=posture_mod.POSTURES, default=posture_mod.ACCOUNT_POSTURE,
         help=(
             "the identity boundary this run has (DECISIONS.md, ratified 2026-09-03; "
@@ -435,6 +567,8 @@ def main() -> int:
         ),
     )
     a = ap.parse_args()
+    if a.keep_runs < 0:
+        ap.error(f"--keep-runs must be 0 or more, got {a.keep_runs}")
     options = adapter_options(a.adapter_option)
     if a.spawned_under and not a.drive:
         # The flag claims a parent already crossed the boundary. The outer
@@ -456,7 +590,7 @@ def main() -> int:
     if a.fixtures:
         if not a.arena or not a.output:
             ap.error("--fixtures needs --arena and --output")
-        return run_fixtures(Path(a.arena).resolve(), Path(a.output))
+        return run_fixtures(Path(a.arena).resolve(), Path(a.output), keep_runs=a.keep_runs)
     if not a.adapter or not a.arena:
         ap.error("--adapter and --arena are required unless --list-adapters is given")
 
@@ -533,7 +667,8 @@ def main() -> int:
         return resolved_posture.wrap(command, forwarded)
 
     run = assess(make_target, base_arena=arena, log_dir=log_dir,
-                 drive_argv_for=drive_argv_for, under=None if fixture else under)
+                 drive_argv_for=drive_argv_for, under=None if fixture else under,
+                 keep_runs=a.keep_runs)
     run.posture = resolved_posture.as_json()
     run.write(Path(a.output))
 

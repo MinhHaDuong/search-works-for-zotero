@@ -149,12 +149,22 @@ def read_pack(path: Path) -> dict:
 
 
 def block_text(block: dict) -> str:
-    """Concatenate a block's text runs."""
-    return " ".join(
-        run.get("text", "")
-        for run in block.get("content", [])
-        if isinstance(run, dict)
-    )
+    """Concatenate a block's text runs, descending into nested blocks.
+
+    A `list` block's `content` holds `listitem` blocks, each with its own
+    `content` runs; a flat read of the top level sees no text at all. On the
+    author's library that hid every bibliography (typed as lists) and put the
+    pack at 0,87 of the flat cache where it is 1,00 (hotfix, 2026-09-06).
+    """
+    parts = []
+    for run in block.get("content", []):
+        if not isinstance(run, dict):
+            continue
+        if isinstance(run.get("text"), str):
+            parts.append(run["text"])
+        elif isinstance(run.get("content"), list):
+            parts.append(block_text(run))
+    return " ".join(p for p in parts if p)
 
 
 def block_page(block: dict) -> int | None:
