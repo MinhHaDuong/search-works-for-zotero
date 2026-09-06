@@ -1,0 +1,95 @@
+%erg 0.1
+Title: bootstrap.js cannot be loaded twice into one scope
+Created: 2026-09-07
+Author: sim
+
+--- log ---
+2026-09-06T22:34Z sim created
+2026-09-06T22:34Z claude note Found while probing why the shipped 0.3.0 still showed message ids in the author's window. It was NOT the cause -- that was a stale toolbar button in a Zotero process which had been up three and a half hours across six install/remove cycles, and a clean restart rendered English immediately. The probe is kept because it reddens on something real that nothing else here watches.
+
+--- body ---
+## Context
+
+Loading `plugins/sdt-sitter/bootstrap.js` a second time into a scope that has
+already evaluated it throws at parse time:
+
+    SyntaxError: Identifier 'closeJournalled' has already been declared
+
+Reproduced with the same `vm` loading `tests/sdt_sitter_bootstrap.mjs` uses:
+
+    const ctx = vm.createContext({ Zotero: {}, Services: {} });
+    vm.runInContext(src, ctx);   // OK
+    vm.runInContext(src, ctx);   // SyntaxError
+
+`var` and `function` declarations tolerate redeclaration; `const`, `let` and
+`class` do not. The file mixes all of them, so it is single-load-only by
+accident rather than by decision. `closeJournalled` is simply the first such
+binding the parser reaches — it is not special, and fixing that one name would
+only move the error.
+
+## What is NOT established, and it is the whole question
+
+**Whether Zotero ever re-runs `bootstrap.js` into a scope it has already used.**
+A bootstrapped add-on is normally given a fresh scope per install/enable, in
+which case this is latent and harmless. Nothing measured tonight says
+otherwise, and the symptom that prompted the probe turned out to have another
+cause entirely.
+
+It is filed anyway because the failure mode is silent and total: a parse error
+takes the whole file, so `startup()` never runs, no journal record is written,
+and the window keeps whatever the previous instance left on screen. That is
+indistinguishable from the stale-button case that actually happened tonight,
+which is precisely why it is worth being able to rule out rather than argue
+about. Ticket 0688 spent weeks on a disappearance whose cause stayed open
+because nobody could tell two silent failures apart.
+
+## Relevant files
+
+- `plugins/sdt-sitter/bootstrap.js` — the mixed declarations
+- `tests/sdt_sitter_bootstrap.mjs` — already loads the file through `vm`, so
+  the second load is one line away from being a driven arm
+
+## Actions
+
+1. Settle the open question first, because it decides whether this is a fix or
+   a note: instrument a build to record its own load count in the journal
+   (`emit('startup', …)` already fires once per `initialize()`), install it,
+   and disable/re-enable a few times in one Zotero session. If the record
+   count rises without a restart, Zotero reuses the scope and this is a real
+   defect on the recovery path the plugin's own UI recommends
+   ("turn the add-on off, then on again").
+2. If it reuses the scope: make the top-level bindings `var`, the way
+   `sitter`, `journal`, `generation`, `timer`, `pulse`, `heartbeat` and
+   `timers` already are — ticket 0695 converted those for the sandbox-exposure
+   reason, and this is the second, independent reason to prefer `var` in this
+   one file.
+3. If it does not: keep the arm from the Test section as a regression guard and
+   close, recording the answer. A "cannot happen" that nothing checks is how it
+   starts happening.
+
+## Test
+
+Add an arm to `tests/sdt_sitter_bootstrap.mjs` that loads the source twice into
+one context and asserts the second load succeeds. It reddens today, against the
+file as it stands, which is what makes it worth adding before the fix rather
+than after.
+
+## Verification
+
+- [ ] The double-load arm reddens against current `bootstrap.js`
+- [ ] It greens once the declarations are converted
+- [ ] The load-count question of action 1 is answered in this log, from a real
+      Zotero session rather than from reading Gecko's source
+- [ ] `make check` passes
+
+## Invariants
+
+- Ticket 0695's `var` bindings stay `var`: the sandbox-exposure reason for them
+  is independent of this one, and a future reader tidying them back to `const`
+  would break the driven suites.
+
+## Exit criteria
+
+Either the declarations are converted and the double load is guarded, or the
+question is answered against a real Zotero and the answer is recorded here with
+the guard kept.

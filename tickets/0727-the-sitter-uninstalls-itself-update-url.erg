@@ -1,0 +1,125 @@
+%erg 0.1
+Title: The sitter uninstalls itself: update_url advertises zero versions
+Created: 2026-09-06
+Author: sim
+
+--- log ---
+2026-09-06T21:42Z sim created
+2026-09-06T21:44Z claude note Filed from a live reproduction on doudou, the first this defect has had. Ticket 0688 closed with the cause explicitly OPEN and "needs live reproduction, which no code here can perform"; this is that reproduction, with a mechanism that fits every observation 0688 recorded and was not among the three it considered.
+
+2026-09-06T22:34Z claude note THE update_url MECHANISM IN THIS TICKET'S TITLE IS NOT SUPPORTED BY THE EVENING'S EVIDENCE, and the title is left standing only so the id stays greppable. Two things refuted it. First, the fix built on it did not work: 0.2.15 shipped with update.json advertising a compatible version and was disabled at +20 s and deleted at +40 s, exactly as 0.2.13 had been with the empty list. Second, the timing never fit — `extensions.update.interval` is 86400, a daily check, against a disable that arrived 20 seconds after every install. That was visible before the fix was written and was not weighed heavily enough.
+2026-09-06T22:34Z claude note What the watcher actually recorded (scratchpad/sitter-watch.log, six cycles): every disable-then-delete happened inside ONE Zotero process, pid 635164, up since 20:56, into which the add-on had already been installed and force-removed at least once. The first install into a FRESH process — pid 1057602, started 00:30:04 — went active at 00:30:43 and stayed. The author's own reading of the same window agrees: with the stale process he saw a frozen toolbar button showing message ids and not pulsing, which is an orphaned button from a dead instance rather than anything the running build rendered; after the restart the strings were English immediately.
+2026-09-06T22:34Z claude note So the candidate to test is process state, not the update manifest: a Zotero session that has already had this add-on installed and removed under it appears unable to keep it. That is a sharper claim than the one this ticket opened with, it explains the author's original report (the add-on disappearing "on its own" during long sessions), and it is falsifiable — install into a fresh process and leave it, then install into a session that has already removed it once, and compare. Neither arm was run deliberately tonight; both happened by accident, which is why this is a candidate and not a finding.
+2026-09-06T22:34Z claude note Also settled tonight, with a control, and independent of all the above: update_url is REQUIRED. A build identical but for its removal (0.2.14) is refused at install with "peut-etre incompatible avec cette version de Zotero", which corrects ticket 0688's docs-based reading that only applications.zotero must be present. The update.json entry added on this ticket stays for that reason, and the guard keeping it in step with manifest.json stays with it.
+2026-09-06T22:53Z claude note REFINED, and this is the sharpest evidence the ticket has. 0.3.1 was installed at 00:50:48 into pid 1057602 -- the same process that had held 0.3.0 active for forty minutes -- and was gone, record and file, at 00:51:08. Twenty seconds, in the process the previous note called a survivor. So "a fresh process survives" is wrong as stated. What fits every cycle recorded tonight is narrower: the FIRST install into a Zotero process survives, and a REPLACEMENT into the same process does not. pid 635164 took six installs and lost all six, every one of them a second-or-later install in that process; pid 1057602 kept its first (0.3.0, forty minutes and counting when it was replaced) and lost its second (0.3.1, twenty seconds). It also explains the author's original report without needing update_url at all: he updates builds inside a long-running Zotero, which is exactly the replacement case. The prediction is falsifiable and cheap -- quit Zotero, start it, install as the FIRST install, and it should stick; then install anything over it in the same session and it should die. Neither arm has been run deliberately yet.
+--- body ---
+## Context
+
+The author has reported for weeks that the sitter "tends to disappear on its
+own from the installed-plugins list". Ticket 0688 investigated, ruled out both
+mechanisms it had named (no Zotero update happened; the install used Tools ->
+Add-ons -> Install Add-on From File, the persistent path), declined to invent
+a third, and closed with the cause open and instrumentation added so the next
+occurrence would leave evidence.
+
+It occurred twice on the evening of 2026-09-06, during live verification, and
+this time the evidence was collected while it was happening.
+
+## What was observed
+
+One Zotero session, started 20:56:31, never restarted:
+
+- 23:0x  `verify` reports `present, version 0.2.13, active False, location app-profile`
+- 23:35:59  `extensions/` and `extensions.json` both mtime-stamped; the record
+  is gone and `extensions/sdt-pack-sitter@....xpi` is deleted from disk
+- The running instance kept working from memory throughout -- the author could
+  still open and close the dialog, and the toolbar spinner still animated.
+
+So: registered, then DISABLED, then REMOVED, file and all, mid-session, with no
+Zotero update and no user action. Disable-then-remove is what Gecko's
+AddonManager does to an add-on whose update/compatibility check concludes there
+is no compatible version of it.
+
+## The mechanism this points at
+
+`manifest.json` carries `applications.zotero.update_url`, and Zotero fetches it
+on a timer after startup -- which is the one thing in this plugin that happens
+minutes into a session, unprompted, matching the observed timing.
+
+That URL resolves (HTTP 200) and returns a well-formed Mozilla update manifest
+naming this add-on with an EMPTY updates array:
+
+    "addons": { "sdt-pack-sitter@search-works-for-zotero.invalid": { "updates": [] } }
+
+The reading to test is that Zotero takes "your id is listed, and it has no
+versions" as "there is no compatible version of you", disables, and cleans up.
+
+**This is why 0688's fix did not stop it.** 0688 changed `update_url` from
+`https://example.invalid/...` (unreachable -> no version information) to a
+reachable manifest carrying an empty list (-> still no version information).
+Both hand Zotero the same answer. The change was a real fix to a real defect --
+a URL chosen to never resolve -- and it did not touch this mechanism, which
+nobody had identified. `update.json`'s own comment says as much and says it
+honestly: "No claim is made either way about what an empty list or an
+unreachable update_url does to an installed add-on -- that was not established
+against Zotero's own fork."
+
+## Relevant files
+
+- `plugins/sdt-sitter/manifest.json` - carries `applications.zotero.update_url`
+- `plugins/sdt-sitter/update.json` - the empty-updates manifest it names
+- `bench/sdt_sitter_install.py` - `verify` reads the host's own record, and is
+  what distinguishes the three states this defect passes through
+- `tickets/closed/0688-sitter-persistent-install-and-manifest-id.erg` - the
+  investigation this continues; read its log before adding a fourth guess
+
+## Actions
+
+1. Isolate, one variable. Build the current payload with `update_url` REMOVED
+   and nothing else changed, install it, and leave Zotero running past the
+   window in which the removal has been seen (~40 min). Zotero's own developer
+   docs list only `applications.zotero` itself as required; 0688 read them and
+   recorded that `update_url` "is nowhere stated as required". 0688 deliberately
+   kept it rather than change two variables at once on a plugin already
+   disappearing -- correct then, and the live reproduction is what now justifies
+   testing the other arm.
+   Probe build: 0.2.14, `update_url` removed, identical otherwise.
+2. If it survives, that is the mechanism. Decide the permanent shape: drop
+   `update_url` (no update channel exists, so it advertises nothing anyone can
+   install), or publish a real entry per release with `update_link` and version
+   bounds. Do not leave an empty list.
+3. If it does NOT survive, the mechanism is elsewhere and this ticket has
+   narrowed it by one: record that, and do not close the ticket with a guess.
+   The next candidate to examine is the `.invalid` id under a host that may
+   validate ids it never dereferences.
+
+## Test
+
+`scratchpad/sitter-watch.sh` polls the three facts 0688's three-state model
+separates -- record present, record active, XPI on disk -- plus Zotero's pid,
+and appends a line ONLY on a change. A quiet log is "nothing moved"; a line is
+the transition, stamped. It was started at 23:42 and is what should carry the
+verdict for action 1 rather than anyone's recollection of when the icon went.
+
+## Verification
+
+- [ ] The probe build (no `update_url`) survives a Zotero session longer than
+      any build carrying one has
+- [ ] `sitter-watch.log` shows the survival as an absence of transitions, over
+      a window that previously contained one
+- [ ] A build WITH `update_url` restored disappears again -- the control that
+      makes the survival mean something rather than a quiet evening
+
+## Invariants
+
+- Do not "fix" this by having the installer reinstall the plugin on a timer.
+  That hides a host decision the plugin should not be arguing with, and would
+  make the next occurrence invisible again.
+- `bench/check_sitter_version.py`'s guard stands: any payload change needs its
+  own version number, probe builds included.
+
+## Exit criteria
+
+The disappearance has a named, demonstrated mechanism and a fix whose control
+arm has been run in both directions -- or, if `update_url` is exonerated, this
+ticket records that with its evidence and hands on the next candidate.

@@ -1,0 +1,18 @@
+{
+  "_comment": "Mozilla-style JSON update manifest, served raw from this repository's main branch and named by manifest.json's applications.zotero.update_url. Ticket 0727: the updates list used to be EMPTY, on the reading that an empty list is the idiom for 'no update available'. Measured against Zotero 10.0.1, that reading is the suspected cause of the plugin uninstalling itself -- an add-on whose update manifest lists it with zero versions has no version the host can find compatible, and the host was seen to disable it and then delete it mid-session. So the list now carries the shipped version, with the same bounds manifest.json declares. An entry equal to the installed version is never downloaded: the host compares and finds nothing newer, which is the intended steady state, and update_link is therefore absent rather than pointed at a release that does not exist. Ticket 0727 also established, with a control, that update_url itself is REQUIRED: a build identical but for its removal is refused at install with 'peut-etre incompatible avec cette version de Zotero', which corrects ticket 0688's docs-based reading that only applications.zotero must be present. Keep this version in step with manifest.json on every bump.",
+  "addons": {
+    "sdt-pack-sitter@search-works-for-zotero.invalid": {
+      "updates": [
+        {
+          "version": "0.3.1",
+          "applications": {
+            "zotero": {
+              "strict_min_version": "10.0.1",
+              "strict_max_version": "10.*"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

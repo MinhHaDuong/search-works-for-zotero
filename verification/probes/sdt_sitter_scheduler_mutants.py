@@ -1,7 +1,7 @@
 """Which sitter-scheduler regressions does tests/sdt_sitter_scheduler.mjs actually detect?
 
 A green suite says nothing about the defects it would catch. This breaks
-`bench/sdt-sitter/scheduler.js` one edit at a time and reports, per mutant, which
+`plugins/sdt-sitter/scheduler.js` one edit at a time and reports, per mutant, which
 tests go red. A mutant nothing catches is a regression class the suite does not
 close; a mutant caught only by a test that already existed is a new test earning
 nothing. Ticket 0690 used it both ways.
@@ -34,10 +34,10 @@ import subprocess
 import sys
 import tempfile
 
-SCHEDULER = pathlib.Path("bench/sdt-sitter/scheduler.js")
+SCHEDULER = pathlib.Path("plugins/sdt-sitter/scheduler.js")
 TESTS = pathlib.Path("tests/sdt_sitter_scheduler.mjs")
 
-SCHEDULER_LOAD = "fs.readFileSync('bench/sdt-sitter/scheduler.js', 'utf8')"
+SCHEDULER_LOAD = "fs.readFileSync('plugins/sdt-sitter/scheduler.js', 'utf8')"
 TEST_HARNESS = "async function test(name, body) { await body(); results.push(name); }"
 REPORTING_HARNESS = (
     "async function test(name, body) { try { await body(); results.push(['PASS', name]); }"

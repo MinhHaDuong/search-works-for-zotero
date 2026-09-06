@@ -4264,7 +4264,125 @@ changes. The verification note `verification/SDT-CAPS-0483.md` §4 measured
 bytes, not words, and is unaffected. Ticket 0606's stated size ratio is
 likewise bytes and stands.
 
+### 2026-09-06 — The structured-text source is a service behind a contract, not a pack read (ruled in session)
+
+The author will write a Zotero plugin that serves the full text Zotero's
+structured-document route produces, and chunks made by #6012's chunker,
+repackaged. Ruled in the same session: the plugin is not bound by zoteus's
+licence. That re-cuts the 2026-09-02 mechanism — which had the shim reading
+`.zotero-sdt-cache` from disk — onto an HTTP read of a versioned contract.
+
+**What the re-cut buys, and each item is why it was taken over the
+alternatives below.** It keeps copyleft out of zoteus by construction: #6012
+is Zotero source, AGPL, and running it inside a separately licensed program
+whose HTTP output zoteus consumes dissolves the "reimplement the chunker from
+observed behaviour" question the old ticket carried rather than answering it.
+It removes the internal-format coupling C2 objects to — no pack-version gate,
+no truncated-pack case, no schema tracking in this tree. And it is the only
+route by which #6012's actual chunker can ever run against this library.
+
+**What it does not change.** Source identity, per-source reporting under R17,
+the tier-0 structure signal, the block-anchored locator under R24, and the
+structural fallback to `/fulltext` are all as the 2026-09-02 ruling fixed
+them. One attachment still has one source.
+
+**Two clauses the contract must carry from the first line, each from a
+constraint already ratified.** The response is paged, never one body: C3
+bounds peak memory to a section batch and the conductor materializes no
+document whole, so a contract that answers a 2 913-page volume at once cannot
+be made streaming later without changing every consumer. And every response
+names what produced it — processor and source hash, and where chunks are
+served, the chunker's identity and geometry — because §5.2.2 keys a chunk on
+the chunker, and a chunker outside this tree can otherwise move a boundary
+under a plugin upgrade with nothing in the ledger noticing. A response that
+serves chunks without naming its chunker is a fallback trigger, not a default.
+
+**Two premises of the old deferral were already obsolete, independent of the
+plugin.** It rested on 2 packs among 13 630 flat caches; the sitter has since
+warmed 7 781 on the author's library (doudou, 2026-09-06), so the coverage
+argument for deferring has evaporated on its own. And it waited on #6012
+shipping, a checkpoint outside anyone's control here; the plugin replaces it
+with one the author holds.
+
+**Alternatives rejected, with the reason each fails.** Keeping the disk read
+couples this design to an internal unversioned format and still leaves the
+AGPL question unanswered, so it buys the coupling without buying the chunker.
+Waiting for #6012 to open an endpoint waits for something not on its path:
+the PR touches no file under `xpcom/server/` at all, verified at source with
+a positive control (`verification/BRIDGE-0496.md`). Producing packs ourselves
+(ticket 0606) answered a coverage gap the sitter has since closed by another
+route, at roughly 9x the flat extraction's time for nothing where a native
+pack exists.
+
+Consequence analysis: `SPEC.md` §5.2.4 is re-cut to source selection against
+a service rather than a pack, at the level of the capability rather than of
+any one product, so the platform serving structured text natively would
+satisfy the same clause; §5.2.2's segmenter interface and §5.2.7's conductor
+signal order follow. No requirement moves and `README.md` is untouched.
+Ticket 0572 becomes the consumer and is blocked by the new contract ticket
+0726; 0557's tier 0 changes provenance; 0606 loses its motivating gap and is
+put to the author. Implementation waits for the feature freeze to lift on
+2026-09-21.
+
 ## Awaiting ratification
+
+- **Whether zoteus consumes the structured-text service's chunks as final,
+  or takes its blocks and chunks them here (claude, 2026-09-06, from the
+  author's plugin premise; ticket 0726).** The service can serve both, so
+  this is a consumption decision, not a capability one. **The first version
+  of this question recommended keeping the chunking here, on the ground that
+  #6012's chunker folds a section below its token minimum forward into its
+  neighbour where this design's ruling never merges. Measurement partly
+  reverses that recommendation, and the reversal is the useful part.**
+
+  Measured on doudou 2026-09-06 over the 4 873 packed PDFs, cutting at
+  heading blocks — the boundary #6012 chunks on — and approximating its
+  120-token minimum at ~92 words: **272 172 sections, of which 92 552 (34,0 %)
+  are sub-minimum, holding 2 915 111 words, or 2,52 % of the text.** So the
+  merge rule fires on a third of all boundaries and touches a fortieth of the
+  words. Per document the sub-minimum share runs 7,1 % / 26,1 % / 57,1 % at
+  the p10 / p50 / p90.
+
+  What those sections are decides the question, and they are not one thing.
+  Of 93 686 classified: **34,0 % carry zero words** — a heading immediately
+  followed by another heading, a stack rather than content — and a further
+  8,0 % carry ten words or fewer. Merging those is *correct*, and this
+  design's never-merge rule is wrong about them: it would orphan some 39 000
+  headings onto near-empty passages, each one embedded and each one able to
+  win a query. The remaining **40,7 % carry 31 to 92 words** and are real
+  short sections — an acknowledgements block, a task-force roster, a numbered
+  subsection of 31 words — about 38 000 of them, 14 % of all sections. Those
+  are the ones that lose their own heading path to a neighbour under the
+  platform's rule, and the cost is R24's locator rather than retrieval: a hit
+  in such a section reports the next section's heading.
+
+  **So both rules are wrong, in opposite directions, and neither side of the
+  original question was the right question.** The evidence points at a merge
+  threshold well below 120 tokens and well above zero — the 10-to-30-word
+  band is where the stacks end and real sections begin. **Recommendation:
+  consume the service's chunks, and make the merge threshold a parameter of
+  the contract rather than a constant inside the chunker.** That takes the
+  platform's chunker whole, which is the licence-clean way to run its actual
+  code, and still lets this design set the boundary its own ruling cares
+  about. It also retires the second argument the first version made — that
+  geometry experiments would become plugin releases — which was weak anyway,
+  since the plugin is the author's own code and not a third party's.
+
+  Consequence if adopted: the never-merge clause of the boundary ruling is
+  amended rather than kept, and the amendment is what the numbers above
+  support. The chunk key records which chunker cut a passage, so a later
+  change of mind re-embeds only what actually moved.
+
+- **How the embedder's token budget crosses the service boundary (claude,
+  2026-09-06; ticket 0726).** #6012's chunk ceiling is not a constant: it is
+  the minimum of its own 768 and the live model's maximum, less special
+  tokens and the heading prefix. A service cannot know the consumer's
+  embedder, so either the consumer passes its budget with the request or the
+  service fixes a geometry the consumer must then check. **Recommendation:
+  pass it.** A chunk that overflows the embedder's window is silently
+  truncated at embed time, which is the failure this design already guards
+  against for the heading prefix, and a fixed geometry would have to be
+  re-pinned in the plugin every time the embedder registry moves.
 
 - **Whether zoteus serves its own extraction in place of a platform full-text
   cache flagged old-generation, and under what consent (raised 2026-09-03,

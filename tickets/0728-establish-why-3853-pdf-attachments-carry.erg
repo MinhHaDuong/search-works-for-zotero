@@ -1,0 +1,109 @@
+%erg 0.1
+Title: Establish why 3853 PDF attachments carry no pack, since 0606's decision rests on it
+Created: 2026-09-06
+Author: claude
+
+--- log ---
+2026-09-06T21:53Z claude created
+2026-09-06T21:53Z claude note found while measuring ticket 0606's residue, not by a sitter sweep. The residue turned out to be this defect rather than documents native extraction cannot handle, which is what decides 0606 — so the measurement is recorded there too.
+2026-09-06T22:05Z claude note THE CAUSE THIS TICKET WAS FILED ON IS RETRACTED, found by the roar sweep of the change that filed it, before anyone worked on it. The 12 673-entry `sdt-sitter-errors.jsonl` is a STALE ARTIFACT: `bench/results/sdt-sitter-launch-2026-09-05/2.4.1-debug-journal.json` records that file retired at sitter revision 2.4.1 — "no code path writes that file" — and a grep of `plugins/sdt-sitter/` confirms none does. So it cannot evidence anything about the sitter that runs today, and the note above it, which says the residue is our defect rather than the platform's limit, is withdrawn. The title and body are rewritten to the observation, which is unaffected. One real defect did come out of the same read, verified at source; it is small and is recorded below rather than dropped.
+
+--- body ---
+## Context
+
+Ticket 0606 asks whether producing structured-text packs ourselves is worth
+it. That turns entirely on what the packless documents are: documents native
+extraction cannot handle argue for a producer of our own, and documents
+nothing has yet asked about argue for finishing the asking. **Nothing
+established which**, and this ticket exists to close that gap rather than to
+assert an answer.
+
+**The observation, firm.** Doudou, 2026-09-06, counted over
+`~/data/Zotero/storage`: **9 108 PDF attachments, 5 255 carrying a
+`.zotero-sdt-cache`, 3 853 without.** That is a 42 % residue, and it is a
+filesystem count, not an inference.
+
+**What was retracted, and why the retraction is recorded rather than tidied
+away.** The first version of this ticket read
+`~/data/Zotero/sdt-sitter-errors.jsonl` — 12 673 entries dated 2026-09-06,
+12 611 of them one `UnloadedDataException` on group-library items — and
+concluded the residue was the sitter's own defect. That file was retired at
+sitter revision 2.4.1, and no path in `plugins/sdt-sitter/` writes it.
+Whichever build produced it is not the one in the tree, so it is evidence
+about a version nobody runs and cannot carry a claim about today's coverage.
+**A stale artifact reads exactly like a live one** — same shape, same
+plausible content, today's dates — which is why the retraction stays visible
+here.
+
+**The one verified defect from the same read**, kept because it was checked
+at source rather than inferred. `plugins/sdt-sitter/bootstrap.js` guards its
+title read with
+
+    if (typeof item.loadData === 'function') await item.loadData();
+
+`Zotero.DataObject` has `loadAllData` and `loadDataType`; it has **no**
+`loadData` (read in the installed build's
+`chrome/content/zotero/xpcom/data/dataObject.js`). So the guard never fires,
+and the `getField('title')` after it throws for any item whose data is not
+loaded — caught by the surrounding `try`, which returns `null`. The visible
+consequence is a **label**, not a coverage failure: the record falls back to
+the source filename. Worth fixing, worth nobody treating as the cause of the
+residue.
+
+## Relevant files
+
+- `plugins/sdt-sitter/bootstrap.js` — `getItemTitle` and `inspect`; other
+  sessions have been editing this file all day, so coordinate before touching
+  it.
+- `plugins/sdt-sitter/scheduler.js` — where an inspection error becomes a
+  status.
+- `bench/results/sdt-sitter-launch-2026-09-05/2.4.1-debug-journal.json` — the
+  record that retires the error file.
+- Ticket 0606 (the decision that needs this number), 0699 (failure
+  accounting).
+
+## Actions
+
+1. Run the current sitter over the library and capture its own account of
+   every attachment it does not cover, from the channel it actually writes
+   today — `Zotero.debug()` and the in-session ring, not the retired file.
+2. Classify the 3 853 by the sitter's own vocabulary: not yet attempted,
+   missing source file, unsupported attachment type, read failure, and
+   genuine extraction failure. The first and the last argue opposite ways
+   about 0606, which is the point of separating them.
+3. Fix the `loadData` guard to `loadAllData`, with the coordination note
+   above. One line; it does not need a ticket of its own.
+
+## Test
+
+- Red first for the guard: an item whose data is not loaded, put through
+  `getItemTitle`. It must return the filename fallback against the unfixed
+  tree and the real title after — and note that the unfixed behaviour is
+  silent, so a test asserting "no exception is raised" passes either way and
+  proves nothing. Assert the title.
+- The classification is a count, so its control is arithmetic: the classes
+  must sum to 3 853, and a class that quietly swallows the remainder is the
+  failure mode to watch for.
+
+## Verification
+
+- [ ] The 3 853 are classified, and the classes sum to it.
+- [ ] The count in the "genuine extraction failure" class is stated as a
+      number, since that is the only class arguing for 0606's producer.
+- [ ] The stale `sdt-sitter-errors.jsonl` is deleted from the author's data
+      directory, so nobody reads it as live a second time.
+
+## Invariants
+
+- The sitter still never writes to `storage/`, never changes extraction
+  preferences and never replaces a source attachment.
+- No claim about coverage is made from an artifact whose writer is not in the
+  tree.
+
+## Exit criteria
+
+- [ ] The residue is classified from a live channel, with the classes summing
+      to the measured total.
+- [ ] Ticket 0606 has the one number its decision needs: how many documents
+      native extraction genuinely cannot handle.
+- [ ] The `loadData` guard is corrected.
