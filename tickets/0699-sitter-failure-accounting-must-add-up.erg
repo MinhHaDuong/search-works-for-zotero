@@ -1,0 +1,83 @@
+%erg 0.1
+Title: Fix sitter failure accounting to count every non-indexed document
+Created: 2026-09-06
+Author: claude
+Blocked-by: github.com/MinhHaDuong/search-works-for-zotero#365
+
+--- log ---
+2026-09-06T00:00Z claude created
+
+--- body ---
+## Context
+
+Author, 2026-09-06: "Accounting must add up to the correct totals." Two
+independent reviewers (correctness and red-team) found real gaps in
+`bench/sdt-sitter/scheduler.js`'s failure counting while reviewing PR #369
+(ticket 0691's "N documents could not be indexed" summary line), which
+surfaces this existing counting logic into a first-class, trusted UI
+element for the first time. The counting logic itself predates 0691 and
+is in scope here, not there.
+
+## The two gaps
+
+1. **Over-report.** `scheduler.js`'s failure branch is
+   `if (!ok || after.status !== 'current') throw ...` -- a native
+   `ensure()` that returns `true` but whose post-hoc re-`inspect()` does
+   not show `status === 'current'` increments `state.failed`. That is a
+   *postcondition-verification mismatch*, not necessarily proof the
+   document was never extracted. Confirmed reachable by the existing test
+   `native success without current persisted cache counts as failure`.
+2. **Under-report.** `inspect()` throwing during census maps to
+   `status: 'inspection-error'` (scheduler.js census loop), which sits
+   outside the four-status whitelist that populates `candidates`. A
+   document whose attachment is genuinely broken/inaccessible at
+   inspection time never becomes a candidate, never reaches `ensure()`,
+   and never touches `state.failed` -- it is invisible in the new banner,
+   surfacing only as a `counts['inspection-error']` entry inside the
+   collapsed diagnostics block. The banner can read "0 documents n'ont
+   pas pu etre indexes" while real inspection failures exist unreported.
+
+These pull in opposite directions and must both be fixed together --
+fixing only one without the other trades one wrong total for another.
+
+## What "adds up" means here
+
+Every document that is not currently, verifiably indexed must be
+accounted for in exactly one bucket, and the buckets' total must equal
+the library's non-indexed count. Concretely:
+- `inspection-error` documents must be counted as not-indexed (join the
+  failure tally, or an explicit adjacent category -- pick one and make
+  the UI honest about which), not silently dropped from every count.
+- The "native success but not persisted" case should stay counted as a
+  failure for accounting purposes (the document genuinely has no current
+  index, regardless of subtlety in cause) -- the fix is not to stop
+  counting it, but to make sure the *other* gap (inspection-error) is
+  counted too, so the total is complete rather than selectively wrong.
+- If the sitter cannot distinguish some failure subtypes cleanly, the UI
+  may show one honest combined total rather than a false precision split
+  -- do not invent a distinction the code cannot actually verify.
+
+## Work
+
+- Read the current census/candidate logic in `scheduler.js` (the
+  four-status whitelist and the `inspection-error` status path) before
+  changing anything.
+- Include `inspection-error` in whatever total feeds the user-facing
+  failure count, without breaking the existing `failed-session`
+  suppression-by-identity behavior for genuine extraction failures.
+- Add a test that independently sums every `counts[*]` bucket against
+  the library's total item count and asserts they reconcile -- this is
+  the actual "add up to the correct totals" property, not per-scenario
+  spot checks.
+- Do not change what counts as "indexed" (`status === 'current'`) --
+  only fix what happens to documents that are not.
+
+## Acceptance
+
+- [ ] A document that throws during `inspect()` is reflected in the
+      user-facing failure total, not just in collapsed diagnostics.
+- [ ] A reconciliation test: sum of all `counts[*]` buckets equals the
+      total candidate/library count, for a fixture exercising all
+      branches (current, missing-pack, stale-source, stale-processor,
+      invalid-pack, inspection-error, failed-session).
+- [ ] No existing passing test regresses.
