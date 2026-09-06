@@ -37,12 +37,15 @@ the extension is disabled; it will be rebuilt without deleting native packs.
 
 To read what the sitter itself is doing, open Zotero's Help → Debug Output
 Logging → View Output with logging enabled; the same transitions are also held
-in a volatile in-session ring, readable as
-`Zotero.SDTPackSitter.journal.tail()` from Tools → Developer → Run JavaScript.
-Neither is a file, and the ring dies with the session, so the no-private-ledger
-promise above stands. What a record may and may not carry, and what the trace
-level adds, are owned by SPEC.md's R22 design paragraph; the on-screen failure
-line remains the place the whole error text appears. To widen the debug output,
+in a volatile in-session ring, readable as `Zotero.SDTPackSitter.journal.tail()`
+from Tools → Developer → Run JavaScript. That object exists only while the
+sitter is running, so the command throws before startup completes, on a build
+where native SDT is unavailable, and after the extension is disabled — which is
+exactly when the debug output is the only copy left. The ring dies with the
+session, so the no-private-ledger promise above stands. What a record may and
+may not carry, and what the trace level adds, are owned by SPEC.md's R22 design
+paragraph; the on-screen failure line remains the place the whole error text
+appears. To widen the debug output,
 create `extensions.sdt-pack-sitter.debug` and set it true in the Config Editor
 (Settings → Advanced → Config Editor); errors and state transitions are logged
 whether or not it is set.

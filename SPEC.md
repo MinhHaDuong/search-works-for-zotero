@@ -2240,21 +2240,25 @@ only the latest observation per attachment. An active document exceeding its
 empirical upper duration makes the displayed finish time unavailable, not now.
 
 The sitter records its own state transitions to the host's debug output and to
-a volatile in-session ring. A record carries a timestamp, a kind, a level and a
-few scalars: the attachment's identity — its numeric item id, or for a failure
-the opaque library-and-item-key pair the cache is addressed by — its byte size
-and page count, a progress fraction, elapsed and since-progress milliseconds, a
-phase or refusal reason, and for a failure the error's class name alone. The
-message text never travels. Platform error prose names whatever it happens to
-name — a full file path, an attachment's title — and is not separable from it
-by pattern, while debug output is submittable to the vendor and so not
-session-confined; the on-screen failure line still shows the author the file and
-the whole error, locally. Neither sink receives extracted text, attachment or
-parent titles, or library source paths, the same privacy rule the cache
-paragraph states. The one path-bearing record is the startup self-check, and
-the path is the plugin's own install location, recorded beside its manifest and
-host versions so a build that vanishes from the extension list stays
-identifiable; on a first initialization it reaches the debug output alone, the
+a volatile in-session ring. A record carries a timestamp, a kind, a level and
+scalars only, among them the attachment's identity — its numeric item id, or for
+a failure the opaque library-and-item-key pair the cache is addressed by — its
+byte size and page count, a progress fraction, elapsed and since-progress
+milliseconds, a phase or refusal reason, and for a failure the error's class
+name alone. No error message text enters the channel. Platform error prose names
+whatever it happens to name — a full file path, an attachment's title — and is
+not separable from it by pattern, while debug output is submittable to the
+vendor and so not session-confined; the on-screen failure line still shows the
+author the file and the whole error, locally. The channel's reach is what is
+specified here and not the host's own: an initialization that rejects is handed
+whole to the host error console, the ordinary fate of an unhandled plugin
+failure, which this rule neither widens nor claims to narrow. Neither sink
+receives extracted text, attachment or parent titles, or library source paths —
+the cache paragraph's privacy rule, scoped here to library and document content.
+The one path-bearing record is the startup self-check, and the path is the
+plugin's own install location, recorded beside its manifest and host versions
+so a build that vanishes from the extension list stays identifiable; on a
+first initialization it reaches the debug output alone, the
 ring not existing yet. The ring keeps the last 2 000 records, discarding the
 oldest, and is never written to disk: it makes a hang readable within the
 session that suffered it and nothing beyond. This is not an exception to the
