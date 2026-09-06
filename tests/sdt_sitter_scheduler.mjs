@@ -184,15 +184,19 @@ await test('one sweep journals admit, submit, progress and settle, carrying no t
   await f.api.sweep();
   const seen = Array.from(ring.tail(50));
   assert.deepEqual(seen.map(record => record.kind),
-    ['admit', 'submit', 'progress', 'settle', 'admit', 'submit', 'settle']);
+    ['sweep-start', 'admit', 'submit', 'progress', 'settle', 'admit', 'submit', 'settle', 'sweep-end']);
   for (const record of seen) assert(Number.isFinite(record.at));
-  assert.deepEqual({ ...seen[0], at: 0 }, { at: 0, kind: 'admit', level: 'state', id: 1, sourceBytes: 100, pages: 1 });
-  assert.deepEqual({ ...seen[1], at: 0 }, { at: 0, kind: 'submit', level: 'state', id: 1 });
-  assert.deepEqual({ ...seen[2], at: 0 }, { at: 0, kind: 'progress', level: 'trace', id: 1, progress: 90 });
-  assert.equal(seen[3].kind, 'settle'); assert.equal(seen[3].ok, true);
-  assert.equal(seen[3].id, 1); assert(Number.isFinite(seen[3].ms));
-  assert.equal(seen[6].level, 'error'); assert.equal(seen[6].ok, false);
-  assert.equal(seen[6].id, '1/2'); assert.equal(seen[6].error, 'Error');
+  assert.deepEqual({ ...seen[1], at: 0 }, { at: 0, kind: 'admit', level: 'state', id: 1, sourceBytes: 100, pages: 1 });
+  assert.deepEqual({ ...seen[2], at: 0 }, { at: 0, kind: 'submit', level: 'state', id: 1 });
+  assert.deepEqual({ ...seen[3], at: 0 }, { at: 0, kind: 'progress', level: 'trace', id: 1, progress: 90 });
+  assert.equal(seen[4].kind, 'settle'); assert.equal(seen[4].ok, true);
+  assert.equal(seen[4].id, 1); assert(Number.isFinite(seen[4].ms));
+  assert.equal(seen[7].level, 'error'); assert.equal(seen[7].ok, false);
+  assert.equal(seen[7].id, '1/2'); assert.equal(seen[7].error, 'Error');
+  // The sweep closes on the ring saying how it ended, so a sweep that stopped
+  // being scheduled is distinguishable from one that never came back.
+  assert.equal(seen[8].level, 'trace'); assert.equal(seen[8].phase, 'waiting');
+  assert.equal(seen[8].scanned, 2); assert.equal(seen[8].completed, 1); assert.equal(seen[8].failed, 1);
   // The whitelist is the privacy rule: spreading `before` wholesale would leak these.
   assert(!JSON.stringify(seen).includes('Secret'));
   assert(!JSON.stringify(seen).includes('/secret/storage'));
@@ -204,7 +208,10 @@ await test('a blocked gate journals its reason once, idle waits at trace level',
     f.host.emit = (emitted, detail, emittedLevel = 'state') => seen.push({ kind: emitted, level: emittedLevel, ...detail });
     f.host.blocked = async () => reason;
     await f.api.sweep();
-    assert.deepEqual(seen, [{ kind, level, reason }]);
+    // The sweep boundaries bracket it; the reason itself still appears exactly once.
+    assert.deepEqual(seen.map(record => record.kind), ['sweep-start', kind, 'sweep-end']);
+    assert.deepEqual(seen[1], { kind, level, reason });
+    assert.equal(seen[2].phase, reason);
   }
 });
 await test('Zotero.debug and pref failures never reach the sitter loop', async () => {
@@ -346,7 +353,7 @@ await test('after a hang the ring names the active document, its last progress a
   for (let tick = 0; tick < 3; tick++) ui.heartbeatTick();
   const tail = Array.from(ring.tail(50));
   assert.deepEqual(tail.map(record => record.kind),
-    ['admit', 'submit', 'progress', 'heartbeat', 'heartbeat', 'heartbeat']);
+    ['sweep-start', 'admit', 'submit', 'progress', 'heartbeat', 'heartbeat', 'heartbeat']);
   const beat = tail[tail.length - 1];
   assert.equal(beat.level, 'trace'); assert.equal(beat.id, 1); assert.equal(beat.progress, 42);
   assert.equal(beat.phase, 'extracting'); assert(beat.elapsedMS >= 0); assert(beat.sinceProgressMS >= 0);
@@ -356,6 +363,47 @@ await test('after a hang the ring names the active document, its last progress a
   const settled = ring.tail(50).length;
   ui.heartbeatTick();
   assert.equal(ring.tail(50).length, settled);
+});
+/* Ticket 0702's trigger, reproduced rather than described: a dialog whose window
+   has gone, so one getElementById comes back null halfway through the render.
+   render() is reached from publish(), which the scheduler calls from inside its
+   own finally, so before the guard this throw rejected sweep() itself and the
+   wrapper that reschedules the next sweep never ran — the sitter stopped for the
+   session with `phase` still reading 'waiting'. */
+await test('a torn-down dialog cannot throw out of render, and says so once', async () => {
+  const f = fixture();
+  const ring = context.createSDTJournal(50);
+  ui.journal = ring; ui.sealed = false; ui.alive = true; ui.sitter = f.api;
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => true } };
+  ui.renderFailing = false;
+  ui.dialogs.clear();
+  ui.dialogs.add({ closed: false,
+    document: { getElementById: id => (id === 'sdt-status' ? {} : null) } });
+  ui.render(); ui.render(); ui.render();
+  ui.dialogs.clear();
+  const failures = Array.from(ring.tail(50)).filter(record => record.kind === 'render-error');
+  // Once, not three times: the pulse renders at 10 Hz, and a beat per tick would
+  // evict the whole ring in minutes — losing the evidence 0703 exists to keep.
+  assert.equal(failures.length, 1);
+  assert.equal(failures[0].level, 'error');
+  assert.equal(failures[0].error, 'TypeError');
+});
+/* The scheduler still rejects when the UI it publishes to throws — that is by
+   design, and it is why the guard belongs in bootstrap.js rather than here. What
+   this pins is that the ring records how the sweep ended even then: sweep-end is
+   emitted before the last publish, so the record cannot be lost to the very call
+   that ends the sweep. */
+await test('the sweep-end record survives a publish that throws', async () => {
+  const f = fixture(), seen = [];
+  f.host.emit = (kind, detail, level = 'state') => seen.push({ kind, level, ...detail });
+  f.host.list = async () => [];
+  f.host.changed = () => { throw new Error('render died'); };
+  await assert.rejects(() => f.api.sweep(), /render died/);
+  assert.deepEqual(seen.map(record => record.kind), ['sweep-start', 'sweep-end']);
+  assert.equal(seen[1].phase, 'error');
+  // And the loop is left re-entrant: a sweep that threw must not lock the sitter
+  // out of every later sweep as well.
+  assert.equal(f.api.state.busy, false);
 });
 /* The other half of the heartbeat, and the half ticket 0703 filed. The test above
    hangs the worker, where `active` names a document; this one hangs the census,
@@ -434,8 +482,10 @@ await test('shutdown is the last record even with a submission still in flight',
   assert.deepEqual(f.calls, [1]);
   const tail = Array.from(ring.tail(50));
   assert.equal(tail.length, closed);
+  // sweep-end is absent by the seal, not by omission: the sweep it belongs to
+  // finishes on the far side of shutdown, which is where nothing may land.
   assert.deepEqual(tail.map(record => record.kind),
-    ['admit', 'submit', 'dialog-close', 'shutdown']);
+    ['sweep-start', 'admit', 'submit', 'dialog-close', 'shutdown']);
   assert.equal(tail[tail.length - 1].reason, 'disable');
   assert.equal(ui.Zotero.SDTPackSitter, undefined);
 });

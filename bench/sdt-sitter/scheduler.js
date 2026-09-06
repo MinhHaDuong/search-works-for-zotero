@@ -18,6 +18,10 @@ var createSDTSitter = function (host) {
     async sweep() {
       if (!state.enabled || state.busy) return;
       state.busy = true;
+      // The sweep's own boundaries. Without them a sweep that died silently and a
+      // sweep that never started again look identical in the ring, which is the
+      // trace ticket 0702's failure mode left behind: none at all.
+      if (host.emit) host.emit('sweep-start', {}, 'trace');
       try {
         state.phase = 'census'; state.scanned = 0; state.counts = {};
         const ids = await host.list();
@@ -106,7 +110,16 @@ var createSDTSitter = function (host) {
         else if (state.enabled && state.phase === 'census') state.phase = 'waiting';
       } catch (error) {
         if (state.enabled) { state.phase = 'error'; state.error = String(error); }
-      } finally { state.busy = false; publish(); }
+      // sweep-end goes out BEFORE the last publish, because publish is the one
+      // call in this finally that can still throw out of sweep(): the record of
+      // how the sweep ended must not be lost to the thing that ended it.
+      } finally {
+        state.busy = false;
+        if (host.emit) host.emit('sweep-end',
+          { phase: state.phase, scanned: state.scanned, completed: state.completed,
+            failed: state.failed, pending: state.pending.length }, 'trace');
+        publish();
+      }
     },
   };
 };

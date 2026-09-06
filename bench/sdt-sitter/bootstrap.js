@@ -7,9 +7,13 @@ var createSDTJournal;
 // drives this file's emit/heartbeat/shutdown against, and only `var` reaches the
 // script global a sandboxed load exposes.
 var sitter, journal, alive = false, sealed = false;
-let timer, pulse, heartbeat, timers;
-const buttons = new Set(), dialogs = new Set(), closeJournalled = new WeakSet();
+// Same reason: the render guard's test drives a torn-down dialog through this
+// set, and a `const` at script top level never reaches the sandbox global.
+var buttons = new Set(), dialogs = new Set();
+let timer, pulse, heartbeat, timers, renderFailing = false;
+const closeJournalled = new WeakSet();
 const BUTTON = 'sdt-pack-sitter-button';
+const SWEEP_INTERVAL_MS = 30000;
 const DEBUG_PREF = 'extensions.sdt-pack-sitter.debug';
 // Bootstrap reason constants are numeric here and named elsewhere; accept both.
 const SHUTDOWN_REASONS = { 2: 'app-shutdown', 3: 'enable', 4: 'disable',
@@ -141,7 +145,29 @@ function describeSDTActiveFile(state) {
   return describeSDTFile(state.activeInfo, `fichier n° ${state.active}`);
 }
 
+/* Ticket 0702. renderState() runs unguarded DOM work over `dialogs`, and it is
+   reached from publish(), which the scheduler calls from inside its own finally.
+   A throw there — a dead XUL dialog after its window closed, getElementById
+   returning null mid-render — rejected sitter.sweep(), so the wrapper that
+   reschedules the next sweep never ran and the sitter stopped for the rest of
+   the session while `phase` still read 'waiting'. Indistinguishable from working.
+
+   The failure is recorded on its transition, not on its tick: the pulse calls
+   this at 10 Hz, and a persistent broken dialog emitting every time would evict
+   the whole 2000-record ring in under four minutes — destroying exactly the
+   evidence ticket 0703 keeps. */
 function render() {
+  try {
+    renderState();
+    renderFailing = false;
+  } catch (error) {
+    if (renderFailing) return;
+    renderFailing = true;
+    emit('render-error', { error: classifyError(error) }, 'error');
+  }
+}
+
+function renderState() {
   if (!alive || !sitter) return;
   const s = sitter.state;
   const coverage = getSDTCoverage(s);
@@ -552,9 +578,18 @@ async function initialize(rootURI, token) {
     'Les erreurs restent propres à la session. Un cache local jetable conserve les vérifications et durées ; il ne contient ni texte ni tâche active.');
   if (token !== generation) return;
   if (!launch) { sitter.state.phase = 'launch-declined; disable/re-enable to launch'; render(); return; }
+  // Defence in depth behind render()'s own guard. The reschedule is the single
+  // point whose loss stops the sitter for the session, so it does not depend on
+  // the sweep having returned normally — nor on this file being the only place a
+  // throw can come from.
   const sweep = async () => {
-    await sitter.sweep();
-    if (alive && token === generation) timer = timers.setTimeout(sweep, 30000);
+    try {
+      await sitter.sweep();
+    } catch (error) {
+      emit('sweep-error', { error: classifyError(error) }, 'error');
+    } finally {
+      if (alive && token === generation) timer = timers.setTimeout(sweep, SWEEP_INTERVAL_MS);
+    }
   };
   pulse = timers.setInterval(render, 100);
   heartbeat = timers.setInterval(heartbeatTick, 60000);
