@@ -1,0 +1,765 @@
+{
+ "chain_in_reply": {
+  "answer_rows_found": 26,
+  "carried": {
+   "date": 0,
+   "entry_creators": 0,
+   "entry_title": 26,
+   "identifier": 0,
+   "page_label": 0,
+   "section": 0
+  }
+ },
+ "identity": {
+  "census": "bench/results/0029-library-census/census.json",
+  "date": "2026-09-06T18:11:32+00:00",
+  "extraction": {
+   "target_fulltext_cap_chars": 40000,
+   "text_source": "Zotero's own extraction, over the local API's /fulltext"
+  },
+  "host": "doudou",
+  "library": {
+   "base_url": "http://localhost:23119/api/",
+   "last_modified_version": "1257",
+   "zotero_version": "10.0.1"
+  },
+  "platform": "Linux-7.0.0-31-generic-x86_64-inconnu-with-glibc2.43",
+  "posture": "none: the process runs unwrapped under the operator, since the run's subject is the operator's own library",
+  "python": "3.14.4",
+  "query": {
+   "mode": "combined",
+   "top_k": 10
+  },
+  "question_writer": {
+   "model": "onnx-community/Qwen2.5-1.5B-Instruct (q4, transformers.js at /home/haduong/CNRS/projets/actifs/zoteus-fts5/fork/node_modules/@huggingface/transformers)",
+   "other_language_share": 0.3333,
+   "writer": "tjs"
+  },
+  "scope": {
+   "build": {
+    "elapsed_s": 1014.4,
+    "limit": 300,
+    "status": {
+     "builtFromVersion": 300,
+     "embedder": "local",
+     "embedderActive": true,
+     "fulltextItems": 260,
+     "fulltextPassages": 8649,
+     "fulltextVersion": 25157,
+     "items": 300,
+     "itemsAvailable": 7553,
+     "itemsTotal": 300,
+     "libraryBackend": "local",
+     "libraryVersion": 1257,
+     "localApiDegradedAt": "2026-09-06T17:10:01.994Z",
+     "ownWordsPassages": 24,
+     "passages": 9032,
+     "phase": "fulltext",
+     "state": "done",
+     "vectors": 9032
+    },
+    "timed_out": false
+   },
+   "built_in_this_run": false,
+   "index_file": "search-index.sqlite",
+   "items_in_index": 300
+  },
+  "seed": 1,
+  "target": {
+   "default_configuration": "the local on-device embedder, the SQLite index backend, no automatic refresh, full text on, read-only against the library. The one input that is not a default is the path to the on-device model runtime, which the built checkout does not vendor: it is passed in, and recorded here, as /home/haduong/CNRS/projets/actifs/zoteus-fts5/fork/node_modules/@huggingface/transformers",
+   "derived_state_roots": [
+    "/home/haduong/data/generator-0719/arena-main/data"
+   ],
+   "not_derived_state": [
+    {
+     "path": "/home/haduong/data/Zotero",
+     "why": "the user's own library, which R15 excludes from derived state"
+    }
+   ],
+   "process": "node runs the built entrypoint as a child process, spoken to over stdio; it is started before the verbs and terminated after them; the data directory starts empty, so any clause about an index already in service has nothing to read",
+   "query_transport": "an MCP server over stdio JSON-RPC; the semantic-search tool is called with the mode the harness asked for, mapped onto this target's mode names",
+   "revision": "1.14.0",
+   "target": "zoteus",
+   "unsupported": [
+    {
+     "verb": "resume",
+     "why": "nothing maps onto it. The only action that continues an interrupted build is also the full rebuild and the repair — on a damaged index it deletes the unreadable file first — so mapping resume onto it would smuggle a destructive rebuild into the one verb the ruling says never rebuilds, invisibly, because on a healthy checkpointed index it really does just resume"
+    },
+    {
+     "verb": "uninstall",
+     "why": "this target has no uninstall surface. SPEC.md §5.2.7 says in as many words that its maintenance purge is not a stand-in the harness may call to manufacture a clean result, so nothing is substituted for it"
+    }
+   ],
+   "unsupported_verbs": [
+    "resume",
+    "uninstall"
+   ]
+  },
+  "ticket": "0719"
+ },
+ "index_after_run": {
+  "embedder": "local",
+  "items": 300,
+  "passages": 9032,
+  "state": "idle",
+  "vectors": 9032
+ },
+ "ladder": {
+  "by_cross_lingual": {
+   "all": {
+    "miss": 38,
+    "miss_rate": 0.38,
+    "n": 100,
+    "near_win": 62,
+    "near_win_rate": 0.62,
+    "row_in_top10": 26,
+    "row_mrr": 0.197,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 62,
+    "work_mrr": 0.464
+   },
+   "cross-lingual": {
+    "miss": 21,
+    "miss_rate": 0.677,
+    "n": 31,
+    "near_win": 10,
+    "near_win_rate": 0.323,
+    "row_in_top10": 2,
+    "row_mrr": 0.048,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 10,
+    "work_mrr": 0.269
+   },
+   "same-language": {
+    "miss": 17,
+    "miss_rate": 0.246,
+    "n": 69,
+    "near_win": 52,
+    "near_win_rate": 0.754,
+    "row_in_top10": 24,
+    "row_mrr": 0.264,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 52,
+    "work_mrr": 0.551
+   }
+  },
+  "by_format": {
+   "all": {
+    "miss": 38,
+    "miss_rate": 0.38,
+    "n": 100,
+    "near_win": 62,
+    "near_win_rate": 0.62,
+    "row_in_top10": 26,
+    "row_mrr": 0.197,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 62,
+    "work_mrr": 0.464
+   },
+   "html": {
+    "miss": 0,
+    "miss_rate": 0.0,
+    "n": 1,
+    "near_win": 1,
+    "near_win_rate": 1.0,
+    "row_in_top10": 1,
+    "row_mrr": 1.0,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 1,
+    "work_mrr": 1.0
+   },
+   "pdf": {
+    "miss": 38,
+    "miss_rate": 0.384,
+    "n": 99,
+    "near_win": 61,
+    "near_win_rate": 0.616,
+    "row_in_top10": 25,
+    "row_mrr": 0.189,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 61,
+    "work_mrr": 0.458
+   }
+  },
+  "by_lane": {
+   "all": {
+    "miss": 38,
+    "miss_rate": 0.38,
+    "n": 100,
+    "near_win": 62,
+    "near_win_rate": 0.62,
+    "row_in_top10": 26,
+    "row_mrr": 0.197,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 62,
+    "work_mrr": 0.464
+   },
+   "de->de": {
+    "miss": 0,
+    "miss_rate": 0.0,
+    "n": 3,
+    "near_win": 3,
+    "near_win_rate": 1.0,
+    "row_in_top10": 1,
+    "row_mrr": 0.333,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 3,
+    "work_mrr": 0.733
+   },
+   "en->en": {
+    "miss": 16,
+    "miss_rate": 0.254,
+    "n": 63,
+    "near_win": 47,
+    "near_win_rate": 0.746,
+    "row_in_top10": 23,
+    "row_mrr": 0.273,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 47,
+    "work_mrr": 0.557
+   },
+   "en->fr": {
+    "miss": 0,
+    "miss_rate": 0.0,
+    "n": 1,
+    "near_win": 1,
+    "near_win_rate": 1.0,
+    "row_in_top10": 0,
+    "row_mrr": 0.0,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 1,
+    "work_mrr": 1.0
+   },
+   "en->ru": {
+    "miss": 1,
+    "miss_rate": 1.0,
+    "n": 1,
+    "near_win": 0,
+    "near_win_rate": 0.0,
+    "row_in_top10": 0,
+    "row_mrr": 0.0,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 0,
+    "work_mrr": 0.0
+   },
+   "en->und": {
+    "miss": 1,
+    "miss_rate": 1.0,
+    "n": 1,
+    "near_win": 0,
+    "near_win_rate": 0.0,
+    "row_in_top10": 0,
+    "row_mrr": 0.0,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 0,
+    "work_mrr": 0.0
+   },
+   "fr->en": {
+    "miss": 12,
+    "miss_rate": 0.923,
+    "n": 13,
+    "near_win": 1,
+    "near_win_rate": 0.077,
+    "row_in_top10": 0,
+    "row_mrr": 0.0,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 1,
+    "work_mrr": 0.038
+   },
+   "fr->es": {
+    "miss": 1,
+    "miss_rate": 1.0,
+    "n": 1,
+    "near_win": 0,
+    "near_win_rate": 0.0,
+    "row_in_top10": 0,
+    "row_mrr": 0.0,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 0,
+    "work_mrr": 0.0
+   },
+   "fr->fr": {
+    "miss": 1,
+    "miss_rate": 0.333,
+    "n": 3,
+    "near_win": 2,
+    "near_win_rate": 0.667,
+    "row_in_top10": 0,
+    "row_mrr": 0.0,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 2,
+    "work_mrr": 0.25
+   },
+   "vi->de": {
+    "miss": 0,
+    "miss_rate": 0.0,
+    "n": 1,
+    "near_win": 1,
+    "near_win_rate": 1.0,
+    "row_in_top10": 0,
+    "row_mrr": 0.0,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 1,
+    "work_mrr": 1.0
+   },
+   "vi->en": {
+    "miss": 6,
+    "miss_rate": 0.462,
+    "n": 13,
+    "near_win": 7,
+    "near_win_rate": 0.538,
+    "row_in_top10": 2,
+    "row_mrr": 0.115,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 7,
+    "work_mrr": 0.449
+   }
+  },
+  "by_length": {
+   "all": {
+    "miss": 38,
+    "miss_rate": 0.38,
+    "n": 100,
+    "near_win": 62,
+    "near_win_rate": 0.62,
+    "row_in_top10": 26,
+    "row_mrr": 0.197,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 62,
+    "work_mrr": 0.464
+   },
+   "long": {
+    "miss": 5,
+    "miss_rate": 0.5,
+    "n": 10,
+    "near_win": 5,
+    "near_win_rate": 0.5,
+    "row_in_top10": 5,
+    "row_mrr": 0.383,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 5,
+    "work_mrr": 0.383
+   },
+   "medium": {
+    "miss": 3,
+    "miss_rate": 0.333,
+    "n": 9,
+    "near_win": 6,
+    "near_win_rate": 0.667,
+    "row_in_top10": 3,
+    "row_mrr": 0.244,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 6,
+    "work_mrr": 0.667
+   },
+   "short": {
+    "miss": 3,
+    "miss_rate": 0.333,
+    "n": 9,
+    "near_win": 6,
+    "near_win_rate": 0.667,
+    "row_in_top10": 5,
+    "row_mrr": 0.426,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 6,
+    "work_mrr": 0.537
+   },
+   "very-long": {
+    "miss": 27,
+    "miss_rate": 0.375,
+    "n": 72,
+    "near_win": 45,
+    "near_win_rate": 0.625,
+    "row_in_top10": 13,
+    "row_mrr": 0.137,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 45,
+    "work_mrr": 0.44
+   }
+  },
+  "by_reachability": {
+   "all": {
+    "miss": 38,
+    "miss_rate": 0.38,
+    "n": 100,
+    "near_win": 62,
+    "near_win_rate": 0.62,
+    "row_in_top10": 26,
+    "row_mrr": 0.197,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 62,
+    "work_mrr": 0.464
+   },
+   "beyond-cap": {
+    "miss": 16,
+    "miss_rate": 0.552,
+    "n": 29,
+    "near_win": 13,
+    "near_win_rate": 0.448,
+    "row_in_top10": 0,
+    "row_mrr": 0.0,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 13,
+    "work_mrr": 0.312
+   },
+   "within-cap": {
+    "miss": 22,
+    "miss_rate": 0.31,
+    "n": 71,
+    "near_win": 49,
+    "near_win_rate": 0.69,
+    "row_in_top10": 26,
+    "row_mrr": 0.277,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 49,
+    "work_mrr": 0.526
+   }
+  },
+  "by_type": {
+   "all": {
+    "miss": 38,
+    "miss_rate": 0.38,
+    "n": 100,
+    "near_win": 62,
+    "near_win_rate": 0.62,
+    "row_in_top10": 26,
+    "row_mrr": 0.197,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 62,
+    "work_mrr": 0.464
+   },
+   "book": {
+    "miss": 5,
+    "miss_rate": 0.417,
+    "n": 12,
+    "near_win": 7,
+    "near_win_rate": 0.583,
+    "row_in_top10": 0,
+    "row_mrr": 0.0,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 7,
+    "work_mrr": 0.359
+   },
+   "bookSection": {
+    "miss": 2,
+    "miss_rate": 0.2,
+    "n": 10,
+    "near_win": 8,
+    "near_win_rate": 0.8,
+    "row_in_top10": 1,
+    "row_mrr": 0.05,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 8,
+    "work_mrr": 0.453
+   },
+   "conferencePaper": {
+    "miss": 3,
+    "miss_rate": 0.3,
+    "n": 10,
+    "near_win": 7,
+    "near_win_rate": 0.7,
+    "row_in_top10": 4,
+    "row_mrr": 0.3,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 7,
+    "work_mrr": 0.5
+   },
+   "journalArticle": {
+    "miss": 16,
+    "miss_rate": 0.39,
+    "n": 41,
+    "near_win": 25,
+    "near_win_rate": 0.61,
+    "row_in_top10": 16,
+    "row_mrr": 0.298,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 25,
+    "work_mrr": 0.47
+   },
+   "other": {
+    "miss": 4,
+    "miss_rate": 0.364,
+    "n": 11,
+    "near_win": 7,
+    "near_win_rate": 0.636,
+    "row_in_top10": 1,
+    "row_mrr": 0.045,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 7,
+    "work_mrr": 0.523
+   },
+   "report": {
+    "miss": 8,
+    "miss_rate": 0.5,
+    "n": 16,
+    "near_win": 8,
+    "near_win_rate": 0.5,
+    "row_in_top10": 4,
+    "row_mrr": 0.219,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 8,
+    "work_mrr": 0.469
+   }
+  },
+  "by_writer": {
+   "all": {
+    "miss": 38,
+    "miss_rate": 0.38,
+    "n": 100,
+    "near_win": 62,
+    "near_win_rate": 0.62,
+    "row_in_top10": 26,
+    "row_mrr": 0.197,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 62,
+    "work_mrr": 0.464
+   },
+   "tjs": {
+    "miss": 38,
+    "miss_rate": 0.38,
+    "n": 100,
+    "near_win": 62,
+    "near_win_rate": 0.62,
+    "row_in_top10": 26,
+    "row_mrr": 0.197,
+    "win": 0,
+    "win_rate": 0.0,
+    "work_in_top10": 62,
+    "work_mrr": 0.464
+   }
+  }
+ },
+ "questions": {
+  "cross_lingual": 31,
+  "elapsed_ms_total": 1271289,
+  "lanes": {
+   "de->de": 3,
+   "en->en": 63,
+   "en->fr": 1,
+   "en->ru": 1,
+   "en->und": 1,
+   "fr->en": 13,
+   "fr->es": 1,
+   "fr->fr": 3,
+   "vi->de": 1,
+   "vi->en": 13
+  },
+  "model": "onnx-community/Qwen2.5-1.5B-Instruct (q4, transformers.js at /home/haduong/CNRS/projets/actifs/zoteus-fts5/fork/node_modules/@huggingface/transformers)",
+  "n": 100,
+  "other_language_share_declared": 0.3333,
+  "question_language": {
+   "de": 3,
+   "en": 66,
+   "fr": 17,
+   "vi": 14
+  },
+  "writer": "tjs",
+  "written_by": {
+   "tjs": 100
+  }
+ },
+ "readings": {
+  "n": 100,
+  "query_wall_ms": {
+   "first": 1403.6,
+   "max": 1403.6,
+   "median_after_first": 27.2
+  },
+  "reply_errors": 0
+ },
+ "sample": {
+  "beyond_default_cap": 29,
+  "census": {
+   "library_version": "1257",
+   "measured_at": "2026-09-06T10:05:21+00:00"
+  },
+  "chain_measured": {
+   "compound_container": 18,
+   "date": 100,
+   "entry_creators": 100,
+   "entry_title": 100,
+   "identifier": 79,
+   "page_index": 94,
+   "page_label": 26,
+   "section": 76
+  },
+  "chain_not_measured": {
+   "date": 0,
+   "entry_creators": 0,
+   "entry_title": 0,
+   "identifier": 21,
+   "page_index": 6,
+   "page_label": 74,
+   "section": 24
+  },
+  "compound_documents": 20,
+  "default_cap_chars": 40000,
+  "frame_pairs": 264,
+  "identifier_kind": {
+   "doi": 51,
+   "isbn": 1,
+   "none": 21,
+   "url": 27
+  },
+  "language": {
+   "answer": {
+    "de": 4,
+    "en": 89,
+    "es": 1,
+    "fr": 4,
+    "ru": 1,
+    "und": 1
+   },
+   "answer_language_source": {
+    "none": 1,
+    "text": 99
+   },
+   "record_field": {
+    "de": 6,
+    "empty": 59,
+    "en": 28,
+    "fr": 4,
+    "ru": 2,
+    "sv": 1
+   }
+  },
+  "n": 100,
+  "n_requested": 100,
+  "page_label_source": {
+   "no-page-labels": 68,
+   "not-measured": 6,
+   "pdf-page-labels": 26
+  },
+  "rejected": {
+   "length-over-quota": 202,
+   "length-quota-released": 202,
+   "no-eligible-paragraph": 1
+  },
+  "scope_items": 300,
+  "seed": 1,
+  "strata": {
+   "format": {
+    "html": {
+     "achieved": 1,
+     "target": 35.5
+    },
+    "other": {
+     "achieved": 0,
+     "target": 0.2
+    },
+    "pdf": {
+     "achieved": 99,
+     "target": 64.3
+    }
+   },
+   "length": {
+    "long": {
+     "achieved": 10,
+     "target": 25.0
+    },
+    "medium": {
+     "achieved": 9,
+     "target": 25.0
+    },
+    "short": {
+     "achieved": 9,
+     "target": 25.0
+    },
+    "very-long": {
+     "achieved": 72,
+     "target": 25.0
+    }
+   },
+   "length_cuts_chars": [
+    4162,
+    8141,
+    15200
+   ],
+   "type": {
+    "blogPost": {
+     "achieved": 0,
+     "target": 2.5
+    },
+    "book": {
+     "achieved": 12,
+     "target": 6.7
+    },
+    "bookSection": {
+     "achieved": 10,
+     "target": 3.7
+    },
+    "conferencePaper": {
+     "achieved": 10,
+     "target": 3.8
+    },
+    "document": {
+     "achieved": 0,
+     "target": 2.4
+    },
+    "journalArticle": {
+     "achieved": 41,
+     "target": 33.3
+    },
+    "magazineArticle": {
+     "achieved": 0,
+     "target": 2.9
+    },
+    "newspaperArticle": {
+     "achieved": 0,
+     "target": 3.4
+    },
+    "other": {
+     "achieved": 11,
+     "target": 4.2
+    },
+    "presentation": {
+     "achieved": 0,
+     "target": 3.6
+    },
+    "report": {
+     "achieved": 16,
+     "target": 25.4
+    },
+    "webpage": {
+     "achieved": 0,
+     "target": 8.0
+    }
+   }
+  },
+  "within_default_cap": 71
+ },
+ "self_consistency_note": "every question was written from the paragraph it must retrieve, so this is a self-consistency probe, closer to a recall check than to a user need; need-driven questions are the Menagerie's (ticket 0029)"
+}

@@ -13,6 +13,8 @@ Author: Minh Ha-Duong
 2026-09-06T17:04Z claude note README deliverables row added as 'Library-level bench' (the author's name, relayed by the coordinator), with a section beside the two other unfinished deliverables; bench/check_progress.py now expects four public rows
 2026-09-06T17:04Z claude note two clients on Zotero 10's local API at once (the sampler's item listing beside the target's body-text crawl) saturated it within minutes: zoteus logged the port as not answering and fell back to the Zotero Web API, exactly the degradation its limits.ts documents. The build was stopped and restarted alone; the runner already serialises the stages, and a run must not share the API with anything else
 2026-09-06T17:42Z claude note index built alone over the newest 300 items with body text on, reviewed build 34d6c26 (v1.14.0), default local embedder: 1 014 s, 9 032 passages and 9 032 vectors, 260 of 288 items with text. The status still reports localApiDegradedAt four minutes in, so part of the crawl went through the target's Web API fallback; recorded in the run identity as a stated limit, cause not isolated (a sibling agent works against the same Zotero)
+2026-09-06T18:14Z claude note first run, seed 1, 100 questions over the newest 300 items against 34d6c26 (v1.14.0): 0 win, 62 near-win, 38 miss; the answer row within the first ten for 26, the work for 62; row MRR 0,197, work MRR 0,464. Same-language 52 near-wins of 69, cross-lingual 10 of 31 (fr->en 1 of 13, vi->en 7 of 13). No win is possible against this target: its hit carries item key, title, snippet and score, so of the 26 answer rows found all carried the title and none any other chain element. Beyond the 40 000-character body-text cap the answer row was found 0 times of 29, within it 26 of 71. Questions: 100 of 100 from Qwen2.5-1.5B-Instruct q4 through transformers.js, 1 271 s, no template fallback. Report verification/GENERATOR-0719.md, artifact bench/results/0719-generator/run.json (aggregates only, swept for paragraph, title, key and question text)
+2026-09-06T18:14Z claude note the artifact's sample.frame_pairs was corrected from 505 to 264 by hand after the run: the summariser double-counted deferred draws, the fix is in the same commit, and the run's own log line reads 'frame: 264 pairs in 7 cells'
 --- body ---
 ## Context
 
@@ -74,11 +76,11 @@ part's title and byline for a compound document).
   rulings that define the answer and the score
 
 ## Exit criteria
-- [ ] a generator that produces about a hundred questions from the real
+- [x] a generator that produces about a hundred questions from the real
       library in one run, stratified against the census marginals, with the
       full citation chain per answer
-- [ ] a scorer reading win, near-win and miss on rank and chain completeness
-- [ ] a run against the reviewed zoteus build reported in `verification/`,
+- [x] a scorer reading win, near-win and miss on rank and chain completeness
+- [x] a run against the reviewed zoteus build reported in `verification/`,
       aggregates only, with its seed and library version
 - [x] README's deliverables table gains the row, once the author confirms
       the name

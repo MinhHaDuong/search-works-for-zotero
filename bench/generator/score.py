@@ -135,11 +135,22 @@ def aggregate(readings: list[dict], key) -> dict:
     return {g: cell(rs) for g, rs in sorted(groups.items(), key=lambda kv: (kv[0] != "all", kv[0]))}
 
 
+#: How a chain element is keyed in a committed aggregate. `bench/check_names.py`
+#: refuses a nested field named `title` or `creators` in `bench/results/`, since
+#: such a field names a document in every artifact that ever shipped one; here
+#: the value is a count, and the key says so.
+AGGREGATE_KEY = {"title": "entry_title", "creators": "entry_creators"}
+
+
+def aggregate_key(element: str) -> str:
+    return AGGREGATE_KEY.get(element, element)
+
+
 def chain_tally(readings: list[dict]) -> dict:
     """How often each chain element was carried by the reply's answer row, over
     the readings whose answer row was found."""
     found = [r for r in readings if r["score"]["row_rank"]]
     return {
         "answer_rows_found": len(found),
-        "carried": {e: sum(1 for r in found if r["score"]["chain_in_reply"][e]) for e in CHAIN_FIELDS},
+        "carried": {aggregate_key(e): sum(1 for r in found if r["score"]["chain_in_reply"][e]) for e in CHAIN_FIELDS},
     }

@@ -138,7 +138,7 @@ def test_frame_holds_only_extracted_child_attachments_of_records(tmp_path):
     rows, summary, headers = S.sample(args(tmp_path, n=10), fetch=route)
     keys = {r["attachment_key"] for r in rows}
     assert keys == {"AAAAAAA1", "AAAAAAA2", "AAAAAAA3"}
-    assert summary["n"] == 3 and summary["n_requested"] == 10
+    assert summary["n"] == 3 and summary["n_requested"] == 10 and summary["frame_pairs"] == 3
     assert headers["last-modified-version"] == "1257"
 
 
@@ -172,6 +172,7 @@ def test_the_chain_flags_each_element_honestly(tmp_path):
     assert summary["chain_measured"]["page_index"] == 1 and summary["chain_not_measured"]["page_index"] == 2
     assert summary["chain_not_measured"]["page_label"] == 3
     assert summary["compound_documents"] == 1 and summary["chain_measured"]["compound_container"] == 1
+    assert summary["chain_measured"]["entry_title"] == 3 and "title" not in summary["chain_measured"]
 
 
 def test_reachability_reads_the_offset_against_the_cap(tmp_path):

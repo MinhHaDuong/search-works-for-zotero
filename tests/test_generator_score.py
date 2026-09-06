@@ -81,4 +81,5 @@ def test_aggregate_counts_beside_rates_with_misses_at_zero():
     assert agg["fr->en"]["n"] == 1 and agg["fr->en"]["row_mrr"] == 0.0
     tally = SC.chain_tally(readings)
     assert tally["answer_rows_found"] == 2
-    assert tally["carried"]["title"] == 2 and tally["carried"]["page_label"] == 1
+    assert tally["carried"]["entry_title"] == 2 and tally["carried"]["page_label"] == 1
+    assert "title" not in tally["carried"] and "creators" not in tally["carried"]

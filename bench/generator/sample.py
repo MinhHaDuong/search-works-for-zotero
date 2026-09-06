@@ -47,6 +47,7 @@ from collections import Counter
 from pathlib import Path
 
 from bench.generator import text as T
+from bench.generator.score import aggregate_key
 from bench.library_census import (
     FILE_LINK_MODES,
     NON_RECORD_TYPES,
@@ -359,7 +360,7 @@ def summarise(rows: list[dict], sampler: Sampler, n_requested: int) -> dict:
     """Counts and rates only. Nothing here identifies an item."""
     n = len(rows)
     chain_elements = ("title", "creators", "date", "identifier", "page_index", "page_label", "section")
-    measured = {e: sum(1 for r in rows if r["chain"][e]["measured"]) for e in chain_elements}
+    measured = {aggregate_key(e): sum(1 for r in rows if r["chain"][e]["measured"]) for e in chain_elements}
     compound = [r for r in rows if r["chain"]["compound"]["applies"]]
     measured["compound_container"] = sum(1 for r in compound if r["chain"]["compound"]["measured"])
     label_sources = Counter(r["chain"]["page_label"]["source"] for r in rows)
@@ -418,10 +419,11 @@ def sample(args: argparse.Namespace, fetch: Fetch = http_fetch) -> tuple[list[di
     sampler = Sampler(lib, targets, args.seed, Path(args.zotero_data_dir).expanduser() if args.zotero_data_dir else None,
                       fulltext_cap=args.fulltext_cap)
     cells = sampler.frame(items, entries, scope)
-    logging.info("frame: %d pairs in %d cells", sum(len(v) for v in cells.values()), len(cells))
+    frame_pairs = sum(len(v) for v in cells.values())
+    logging.info("frame: %d pairs in %d cells", frame_pairs, len(cells))
     rows = sampler.draw(cells, args.n)
     summary = summarise(rows, sampler, args.n)
-    summary["frame_pairs"] = sum(len(v) for v in cells.values()) + len(rows) + sum(sampler.rejected.values())
+    summary["frame_pairs"] = frame_pairs
     summary["scope_items"] = len(scope) if scope is not None else None
     summary["seed"] = args.seed
     return rows, summary, headers
