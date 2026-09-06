@@ -623,3 +623,18 @@ def test_cli_exit_codes_not_run_pass_fail_and_input_error(tmp_path, export):
         cwd=REPO, capture_output=True, text=True,
     )
     assert stamp.returncode == 0 and "1/1 alternate(s) reachable" in stamp.stdout
+
+
+def test_a_previous_run_against_another_export_makes_stability_not_run_not_fail(export, thresholds):
+    """B.6: a re-pin moves item keys and the passage distribution, so a Jaccard against the
+    old run measures the re-pin. The first run on a re-exported fixture read 0.029 and
+    failed the gate for that reason alone (2026-09-06); it is not-run with the reason."""
+    q = question("q-0001", [alpha_row("Article 2", ALPHA_QUOTE_ART2)])
+    now = [reply("q-0001", [result(1, "P1ALPHA1", evidence=ALPHA_QUOTE_ART2), result(2, "P3BETA33")])]
+    payload = bundle(export, now, previous=[reply("q-0001", [result(1, "OLDKEY01")])])
+    payload["previous_run"]["run"]["export_sha256"] = "e" * 64
+    report = evaluate([q], load_replies(payload), load_export(export), thresholds)
+    stability = report["readings"]["stability"]
+    assert stability["state"] == NOT_RUN and "re-pin" in stability["reason"]
+    assert report["readings"]["r34"]["state"] == PASS
+    assert report["state"] == NOT_RUN

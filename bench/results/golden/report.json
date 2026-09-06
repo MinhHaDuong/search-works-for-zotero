@@ -11,86 +11,86 @@
     "unexpected_hit": 0
   },
   "expected_miss_count": 1,
-  "export_sha256": "014cf144a55d2810759ac8100a6c50d9fd98a6ccbbef2034d2fe2dd35ab6aa74",
+  "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
   "k": 10,
   "ladder": {
     "all_strata_macro_by_lane": {
       "lanes": 3,
-      "mrr": 1.0,
+      "mrr": 0.7083333333333334,
       "near_or_better_rate": 1.0,
-      "win_rate": 0.3333333333333333
+      "win_rate": 0.0
     },
     "all_strata_weighted": {
       "chain_completeness": {
-        "mean": 0.7666666666666667,
+        "mean": 0.42500000000000004,
         "measured": 4
       },
       "count": 4,
       "miss": 0,
-      "mrr": 1.0,
+      "mrr": 0.78125,
       "near_or_better_rate": 1.0,
-      "near_win": 3,
+      "near_win": 4,
       "r34": {
         "absent": 0,
         "present": 4
       },
       "ranks": {
         "q-0001": 1,
-        "q-0002": 1,
+        "q-0002": 8,
         "q-0003": 1,
         "q-0004": 1
       },
-      "win": 1,
-      "win_rate": 0.25
+      "win": 0,
+      "win_rate": 0.0
     },
     "by_stratum": {
       "core": {
         "all": {
           "chain_completeness": {
-            "mean": 0.7666666666666667,
+            "mean": 0.42500000000000004,
             "measured": 4
           },
           "count": 4,
           "miss": 0,
-          "mrr": 1.0,
+          "mrr": 0.78125,
           "near_or_better_rate": 1.0,
-          "near_win": 3,
+          "near_win": 4,
           "r34": {
             "absent": 0,
             "present": 4
           },
           "ranks": {
             "q-0001": 1,
-            "q-0002": 1,
+            "q-0002": 8,
             "q-0003": 1,
             "q-0004": 1
           },
-          "win": 1,
-          "win_rate": 0.25
+          "win": 0,
+          "win_rate": 0.0
         },
         "by_facet": {
           "core": {
             "chain_completeness": {
-              "mean": 0.7666666666666667,
+              "mean": 0.42500000000000004,
               "measured": 4
             },
             "count": 4,
             "miss": 0,
-            "mrr": 1.0,
+            "mrr": 0.78125,
             "near_or_better_rate": 1.0,
-            "near_win": 3,
+            "near_win": 4,
             "r34": {
               "absent": 0,
               "present": 4
             },
             "ranks": {
               "q-0001": 1,
-              "q-0002": 1,
+              "q-0002": 8,
               "q-0003": 1,
               "q-0004": 1
             },
-            "win": 1,
-            "win_rate": 0.25
+            "win": 0,
+            "win_rate": 0.0
           },
           "deep-body": {
             "count": 0,
@@ -116,32 +116,32 @@
           },
           "pdf": {
             "chain_completeness": {
-              "mean": 0.7666666666666667,
+              "mean": 0.42500000000000004,
               "measured": 4
             },
             "count": 4,
             "miss": 0,
-            "mrr": 1.0,
+            "mrr": 0.78125,
             "near_or_better_rate": 1.0,
-            "near_win": 3,
+            "near_win": 4,
             "r34": {
               "absent": 0,
               "present": 4
             },
             "ranks": {
               "q-0001": 1,
-              "q-0002": 1,
+              "q-0002": 8,
               "q-0003": 1,
               "q-0004": 1
             },
-            "win": 1,
-            "win_rate": 0.25
+            "win": 0,
+            "win_rate": 0.0
           }
         },
         "by_lane": {
           "en->en": {
             "chain_completeness": {
-              "mean": 0.8,
+              "mean": 0.4,
               "measured": 2
             },
             "count": 2,
@@ -162,7 +162,27 @@
           },
           "fr->en": {
             "chain_completeness": {
-              "mean": 0.8,
+              "mean": 0.4,
+              "measured": 1
+            },
+            "count": 1,
+            "miss": 0,
+            "mrr": 0.125,
+            "near_or_better_rate": 1.0,
+            "near_win": 1,
+            "r34": {
+              "absent": 0,
+              "present": 1
+            },
+            "ranks": {
+              "q-0002": 8
+            },
+            "win": 0,
+            "win_rate": 0.0
+          },
+          "fr->fr": {
+            "chain_completeness": {
+              "mean": 0.5,
               "measured": 1
             },
             "count": 1,
@@ -175,30 +195,10 @@
               "present": 1
             },
             "ranks": {
-              "q-0002": 1
+              "q-0004": 1
             },
             "win": 0,
             "win_rate": 0.0
-          },
-          "fr->fr": {
-            "chain_completeness": {
-              "mean": 0.6666666666666666,
-              "measured": 1
-            },
-            "count": 1,
-            "miss": 0,
-            "mrr": 1.0,
-            "near_or_better_rate": 1.0,
-            "near_win": 0,
-            "r34": {
-              "absent": 0,
-              "present": 1
-            },
-            "ranks": {
-              "q-0004": 1
-            },
-            "win": 1,
-            "win_rate": 1.0
           }
         },
         "by_mode": {
@@ -209,26 +209,26 @@
           },
           "lexical": {
             "chain_completeness": {
-              "mean": 0.7666666666666667,
+              "mean": 0.42500000000000004,
               "measured": 4
             },
             "count": 4,
             "miss": 0,
-            "mrr": 1.0,
+            "mrr": 0.78125,
             "near_or_better_rate": 1.0,
-            "near_win": 3,
+            "near_win": 4,
             "r34": {
               "absent": 0,
               "present": 4
             },
             "ranks": {
               "q-0001": 1,
-              "q-0002": 1,
+              "q-0002": 8,
               "q-0003": 1,
               "q-0004": 1
             },
-            "win": 1,
-            "win_rate": 0.25
+            "win": 0,
+            "win_rate": 0.0
           },
           "semantic": {
             "count": 0,
@@ -239,7 +239,7 @@
         "by_set_kind": {
           "all-of": {
             "chain_completeness": {
-              "mean": 0.8,
+              "mean": 0.4,
               "measured": 1
             },
             "count": 1,
@@ -259,25 +259,25 @@
           },
           "any-of": {
             "chain_completeness": {
-              "mean": 0.7555555555555555,
+              "mean": 0.43333333333333335,
               "measured": 3
             },
             "count": 3,
             "miss": 0,
-            "mrr": 1.0,
+            "mrr": 0.7083333333333334,
             "near_or_better_rate": 1.0,
-            "near_win": 2,
+            "near_win": 3,
             "r34": {
               "absent": 0,
               "present": 3
             },
             "ranks": {
               "q-0001": 1,
-              "q-0002": 1,
+              "q-0002": 8,
               "q-0004": 1
             },
-            "win": 1,
-            "win_rate": 0.3333333333333333
+            "win": 0,
+            "win_rate": 0.0
           }
         },
         "by_signal": {
@@ -287,14 +287,14 @@
           },
           "exact": {
             "chain_completeness": {
-              "mean": 0.7555555555555555,
+              "mean": 0.43333333333333335,
               "measured": 3
             },
             "count": 3,
             "miss": 0,
             "mrr": 1.0,
             "near_or_better_rate": 1.0,
-            "near_win": 2,
+            "near_win": 3,
             "r34": {
               "absent": 0,
               "present": 3
@@ -304,17 +304,17 @@
               "q-0003": 1,
               "q-0004": 1
             },
-            "win": 1,
-            "win_rate": 0.3333333333333333
+            "win": 0,
+            "win_rate": 0.0
           },
           "paraphrase": {
             "chain_completeness": {
-              "mean": 0.8,
+              "mean": 0.4,
               "measured": 1
             },
             "count": 1,
             "miss": 0,
-            "mrr": 1.0,
+            "mrr": 0.125,
             "near_or_better_rate": 1.0,
             "near_win": 1,
             "r34": {
@@ -322,7 +322,7 @@
               "present": 1
             },
             "ranks": {
-              "q-0002": 1
+              "q-0002": 8
             },
             "win": 0,
             "win_rate": 0.0
@@ -432,10 +432,13 @@
     },
     "q-0001/lexical": {
       "chain": {
-        "fraction": 0.8,
-        "matched": 4,
-        "mismatched": [],
+        "fraction": 0.4,
+        "matched": 2,
+        "mismatched": [
+          "title"
+        ],
         "missing": [
+          "date",
           "section_heading"
         ],
         "of": 5
@@ -452,12 +455,15 @@
       "reciprocal_rank": 1.0,
       "rows": [
         {
-          "attachment_key": "L68LPREA",
+          "attachment_key": "R74WLCBB",
           "chain": {
-            "fraction": 0.8,
-            "matched": 4,
-            "mismatched": [],
+            "fraction": 0.4,
+            "matched": 2,
+            "mismatched": [
+              "title"
+            ],
             "missing": [
+              "date",
               "section_heading"
             ],
             "of": 5
@@ -485,11 +491,9 @@
       "state": "scored",
       "stratum": "core",
       "top_k_item_keys": [
-        "GEWEZPJ4",
-        "VSN32JSP",
-        "R3YNUA6N",
-        "HYI6JTZ8",
-        "G3IXLJC6"
+        "RIIGM2EC",
+        "7HTWWGXF",
+        "3XXJ3TJ9"
       ]
     },
     "q-0001/semantic": {
@@ -520,10 +524,13 @@
     },
     "q-0002/lexical": {
       "chain": {
-        "fraction": 0.8,
-        "matched": 4,
-        "mismatched": [],
+        "fraction": 0.4,
+        "matched": 2,
+        "mismatched": [
+          "title"
+        ],
         "missing": [
+          "date",
           "section_heading"
         ],
         "of": 5
@@ -536,16 +543,19 @@
       "level": "near-win",
       "mode": "lexical",
       "r34_present": true,
-      "rank": 1,
-      "reciprocal_rank": 1.0,
+      "rank": 8,
+      "reciprocal_rank": 0.125,
       "rows": [
         {
-          "attachment_key": "L68LPREA",
+          "attachment_key": "R74WLCBB",
           "chain": {
-            "fraction": 0.8,
-            "matched": 4,
-            "mismatched": [],
+            "fraction": 0.4,
+            "matched": 2,
+            "mismatched": [
+              "title"
+            ],
             "missing": [
+              "date",
               "section_heading"
             ],
             "of": 5
@@ -553,12 +563,12 @@
           "evidence": {
             "how": null,
             "matched": false,
-            "overlap": 0.158,
+            "overlap": 0.053,
             "why": "item-without-evidence"
           },
           "level": "near-win",
-          "rank": 1,
-          "reciprocal_rank": 1.0,
+          "rank": 8,
+          "reciprocal_rank": 0.125,
           "section": "Article 3",
           "work_id": "vn-decision-11-2017-qdttg-solar-fit-en"
         }
@@ -573,16 +583,15 @@
       "state": "scored",
       "stratum": "core",
       "top_k_item_keys": [
-        "GEWEZPJ4",
+        "HVXRRJDQ",
+        "YRAUIIKD",
+        "LBW7QYN2",
+        "XMP2QFDN",
+        "8598JF8K",
         "WDHDGA89",
-        "VSN32JSP",
-        "NXIPLWTH",
-        "UDI7E8I2",
-        "5F9HCZ8B",
-        "R3YNUA6N",
-        "HIQIHFD2",
-        "4AZTUVYF",
-        "6J5AEUMZ"
+        "WNZ9822H",
+        "RIIGM2EC",
+        "E6IJRR2H"
       ]
     },
     "q-0002/semantic": {
@@ -613,8 +622,8 @@
     },
     "q-0003/lexical": {
       "chain": {
-        "fraction": 0.8,
-        "matched": 8,
+        "fraction": 0.4,
+        "matched": 4,
         "of": 10
       },
       "expected_miss": false,
@@ -629,12 +638,15 @@
       "reciprocal_rank": 1.0,
       "rows": [
         {
-          "attachment_key": "L68LPREA",
+          "attachment_key": "R74WLCBB",
           "chain": {
-            "fraction": 0.8,
-            "matched": 4,
-            "mismatched": [],
+            "fraction": 0.4,
+            "matched": 2,
+            "mismatched": [
+              "title"
+            ],
             "missing": [
+              "date",
               "section_heading"
             ],
             "of": 5
@@ -652,12 +664,15 @@
           "work_id": "vn-decision-11-2017-qdttg-solar-fit-en"
         },
         {
-          "attachment_key": "L68LPREA",
+          "attachment_key": "R74WLCBB",
           "chain": {
-            "fraction": 0.8,
-            "matched": 4,
-            "mismatched": [],
+            "fraction": 0.4,
+            "matched": 2,
+            "mismatched": [
+              "title"
+            ],
             "missing": [
+              "date",
               "section_heading"
             ],
             "of": 5
@@ -684,11 +699,15 @@
       "state": "scored",
       "stratum": "core",
       "top_k_item_keys": [
-        "GEWEZPJ4",
-        "R3YNUA6N",
-        "HYI6JTZ8",
-        "5F9HCZ8B",
-        "NXIPLWTH"
+        "RIIGM2EC",
+        "ATPYH5U8",
+        "3XXJ3TJ9",
+        "A87PTDEU",
+        "7HTWWGXF",
+        "5M4ZPLBP",
+        "BP5QW5GR",
+        "AUF4XPPJ",
+        "6XGITDAY"
       ]
     },
     "q-0003/semantic": {
@@ -719,9 +738,11 @@
     },
     "q-0004/lexical": {
       "chain": {
-        "fraction": 0.6666666666666666,
-        "matched": 4,
-        "mismatched": [],
+        "fraction": 0.5,
+        "matched": 3,
+        "mismatched": [
+          "identifier"
+        ],
         "missing": [
           "section_heading",
           "page_printed"
@@ -733,7 +754,7 @@
       "format": "pdf",
       "id": "q-0004",
       "lane": "fr->fr",
-      "level": "win",
+      "level": "near-win",
       "mode": "lexical",
       "r34_present": true,
       "rank": 1,
@@ -742,9 +763,11 @@
         {
           "attachment_key": "3A2CSURL",
           "chain": {
-            "fraction": 0.6666666666666666,
-            "matched": 4,
-            "mismatched": [],
+            "fraction": 0.5,
+            "matched": 3,
+            "mismatched": [
+              "identifier"
+            ],
             "missing": [
               "section_heading",
               "page_printed"
@@ -752,11 +775,12 @@
             "of": 6
           },
           "evidence": {
-            "how": "evidence-overlap",
-            "matched": true,
-            "overlap": 0.87
+            "how": null,
+            "matched": false,
+            "overlap": 0.13,
+            "why": "item-without-evidence"
           },
-          "level": "win",
+          "level": "near-win",
           "rank": 1,
           "reciprocal_rank": 1.0,
           "section": "Préface de la quatrième édition",
@@ -774,10 +798,12 @@
       "stratum": "core",
       "top_k_item_keys": [
         "WDHDGA89",
-        "UDI7E8I2",
-        "NXIPLWTH",
-        "6J5AEUMZ",
-        "HIQIHFD2"
+        "HVXRRJDQ",
+        "YRAUIIKD",
+        "R7Z3HR4C",
+        "8598JF8K",
+        "E6IJRR2H",
+        "M87F6NJF"
       ]
     },
     "q-0004/semantic": {
@@ -821,14 +847,14 @@
       "state": "expected-miss",
       "stratum": "core",
       "top_k_item_keys": [
-        "GEWEZPJ4",
-        "VSN32JSP",
-        "HYI6JTZ8",
-        "5F9HCZ8B",
-        "WDHDGA89",
-        "G3IXLJC6",
-        "UDI7E8I2",
-        "R3YNUA6N"
+        "RIIGM2EC",
+        "7HTWWGXF",
+        "FUMT38SR",
+        "6XGITDAY",
+        "3XXJ3TJ9",
+        "EZRNSMR8",
+        "5M4ZPLBP",
+        "AUF4XPPJ"
       ]
     },
     "q-0005/semantic": {
@@ -852,53 +878,8 @@
       "state": "pass"
     },
     "stability": {
-      "below_cutoff_count": 0,
-      "below_cutoff_fraction": 0.0,
-      "failed_rules": [],
-      "mean_jaccard": 1.0,
-      "minimum_jaccard": 1.0,
-      "per_query": {
-        "q-0001/lexical": 1.0,
-        "q-0002/lexical": 1.0,
-        "q-0003/lexical": 1.0,
-        "q-0004/lexical": 1.0,
-        "q-0005/lexical": 1.0
-      },
       "previous_run": {
-        "build": {
-          "elapsed_s": 3,
-          "exit_code": 0,
-          "status": {
-            "builtFromVersion": 17,
-            "documents": 415,
-            "embedder": "none (keyword-only)",
-            "embedderActive": false,
-            "embedderConfigured": "off",
-            "fulltextEnabled": true,
-            "fulltextItems": 11,
-            "fulltextItemsScanned": 16,
-            "fulltextItemsTotal": 16,
-            "fulltextPassages": 398,
-            "fulltextVersion": 0,
-            "items": 17,
-            "itemsAvailable": 17,
-            "itemsFetched": 17,
-            "itemsRemoved": 0,
-            "itemsTotal": 17,
-            "library": "user",
-            "libraryBackend": "local",
-            "libraryVersion": 84,
-            "operation": "build",
-            "ownWordsEnabled": true,
-            "ownWordsItems": 0,
-            "ownWordsPassages": 0,
-            "passages": 415,
-            "phase": "fulltext",
-            "state": "done",
-            "storage": "sqlite",
-            "vectors": 0
-          }
-        },
+        "build": null,
         "build_sha": "34d6c2681b1452aeaa2f8e8e90abe6e6b0f8df41",
         "chunker": "not-reported by zotero_index status",
         "date": "2026-09-06",
@@ -979,61 +960,94 @@
         },
         "tool": "zotero_semantic_search"
       },
-      "query_count": 5,
-      "state": "pass"
+      "reason": "previous_run was produced against export 014cf144a55d, this run against 579ab8dd24d6: a re-pin invalidates the stability comparison (B.6); the first run on a new export has no stability reading",
+      "state": "not-run"
     }
   },
   "reply_count": 15,
   "run": {
-    "build": null,
-    "build_sha": "34d6c2681b1452aeaa2f8e8e90abe6e6b0f8df41",
+    "build": {
+      "elapsed_s": 0.8,
+      "exit_code": 0,
+      "status": {
+        "builtFromVersion": 103,
+        "documents": 2379,
+        "embedder": "none (keyword-only)",
+        "embedderActive": false,
+        "embedderConfigured": "off",
+        "fulltextEnabled": true,
+        "fulltextItems": 89,
+        "fulltextItemsScanned": 93,
+        "fulltextItemsTotal": 93,
+        "fulltextPassages": 2276,
+        "fulltextVersion": 0,
+        "items": 103,
+        "itemsAvailable": 103,
+        "itemsFetched": 103,
+        "itemsRemoved": 0,
+        "itemsTotal": 103,
+        "library": "user",
+        "libraryBackend": "local",
+        "libraryVersion": 484,
+        "operation": "build",
+        "ownWordsEnabled": true,
+        "ownWordsItems": 0,
+        "ownWordsPassages": 0,
+        "passages": 2379,
+        "phase": "fulltext",
+        "state": "done",
+        "storage": "sqlite",
+        "vectors": 0
+      }
+    },
+    "build_sha": "b0e0bc872b5727d21ea83aba8bfe834293013264",
     "chunker": "not-reported by zotero_index status",
     "date": "2026-09-06",
     "embedder": "none (keyword-only)",
-    "export_sha256": "014cf144a55d2810759ac8100a6c50d9fd98a6ccbbef2034d2fe2dd35ab6aa74",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
     "extraction": {
       "caps": {
         "fulltext.pdfMaxPages": 100,
         "fulltext.textMaxLength": 500000
       },
       "index_fulltext_max_chars": 40000,
-      "recipe_sha256": "23980113a777c3ecec90692ee12c5b6205a95279dec61876c3ff13cc69f23716",
-      "reindex_limits": "ignored",
-      "reindex_mode": "complete"
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1",
+      "reindex_limits": "applied",
+      "reindex_mode": "stock"
     },
     "index_schema": "2",
     "index_status": {
-      "builtFromVersion": 17,
-      "documents": 415,
+      "builtFromVersion": 103,
+      "documents": 2379,
       "embedder": "none (keyword-only)",
       "embedderActive": false,
       "embedderConfigured": "off",
       "fulltextEnabled": true,
-      "fulltextItems": 11,
+      "fulltextItems": 89,
       "fulltextItemsScanned": 0,
       "fulltextItemsTotal": 0,
-      "fulltextPassages": 398,
+      "fulltextPassages": 2276,
       "fulltextVersion": 0,
-      "items": 17,
-      "itemsAvailable": 17,
+      "items": 103,
+      "itemsAvailable": 103,
       "itemsFetched": 0,
       "itemsRemoved": 0,
-      "itemsTotal": 17,
+      "itemsTotal": 103,
       "library": "user",
       "libraryBackend": "local",
-      "libraryVersion": 84,
+      "libraryVersion": 484,
       "operation": "build",
       "ownWordsEnabled": false,
       "ownWordsItems": 0,
       "ownWordsPassages": 0,
-      "passages": 415,
+      "passages": 2379,
       "phase": "metadata",
       "state": "idle",
       "storage": "sqlite",
       "vectors": 0
     },
     "k": 10,
-    "recipe_sha256": "23980113a777c3ecec90692ee12c5b6205a95279dec61876c3ff13cc69f23716",
+    "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1",
     "reply_shape": {
       "attachment_key_carried": false,
       "chain_from_replay_items_by_item_key": [
@@ -1062,13 +1076,13 @@
     "retrieval_mode": "keyword (BM25 over passages) reported as lexical; semantic and hybrid not-run",
     "server_info": {
       "name": "zoteus",
-      "version": "1.14.0"
+      "version": "1.13.0"
     },
     "tool": "zotero_semantic_search"
   },
   "schema": "golden-gate-report/v2",
   "scored_count": 4,
-  "state": "pass",
+  "state": "not-run",
   "threshold_source": "SPEC.md §5.2.8",
   "unanswered_questions": []
 }

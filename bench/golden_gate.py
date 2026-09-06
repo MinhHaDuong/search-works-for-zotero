@@ -1111,6 +1111,18 @@ def stability_reading(
     previous = replies["previous_run"]
     if previous is None:
         return {"state": NOT_RUN, "reason": "no previous_run in the replies file; the stability reading needs two runs"}
+    previous_export = (previous.get("run") or {}).get("export_sha256")
+    current_export = (replies.get("run") or {}).get("export_sha256")
+    if previous_export and current_export and previous_export != current_export:
+        # A re-pin (conception note B.6): the export changed, so item keys and the passage
+        # distribution moved with it, and a Jaccard against the old run measures the re-pin.
+        return {
+            "state": NOT_RUN,
+            "reason": (f"previous_run was produced against export {previous_export[:12]}, this run against "
+                       f"{current_export[:12]}: a re-pin invalidates the stability comparison (B.6); "
+                       "the first run on a new export has no stability reading"),
+            "previous_run": previous["run"],
+        }
     previous_sets = {
         (reply["id"], reply["mode"]): [r["item_key"] for r in reply["results"][: thresholds.k]]
         for reply in previous["replies"]

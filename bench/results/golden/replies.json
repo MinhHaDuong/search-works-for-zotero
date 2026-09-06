@@ -788,40 +788,7 @@
       }
     ],
     "run": {
-      "build": {
-        "elapsed_s": 3,
-        "exit_code": 0,
-        "status": {
-          "builtFromVersion": 17,
-          "documents": 415,
-          "embedder": "none (keyword-only)",
-          "embedderActive": false,
-          "embedderConfigured": "off",
-          "fulltextEnabled": true,
-          "fulltextItems": 11,
-          "fulltextItemsScanned": 16,
-          "fulltextItemsTotal": 16,
-          "fulltextPassages": 398,
-          "fulltextVersion": 0,
-          "items": 17,
-          "itemsAvailable": 17,
-          "itemsFetched": 17,
-          "itemsRemoved": 0,
-          "itemsTotal": 17,
-          "library": "user",
-          "libraryBackend": "local",
-          "libraryVersion": 84,
-          "operation": "build",
-          "ownWordsEnabled": true,
-          "ownWordsItems": 0,
-          "ownWordsPassages": 0,
-          "passages": 415,
-          "phase": "fulltext",
-          "state": "done",
-          "storage": "sqlite",
-          "vectors": 0
-        }
-      },
+      "build": null,
       "build_sha": "34d6c2681b1452aeaa2f8e8e90abe6e6b0f8df41",
       "chunker": "not-reported by zotero_index status",
       "date": "2026-09-06",
@@ -912,16 +879,16 @@
           "attachment_key": null,
           "chain": {
             "author": "Thủ tướng Chính phủ (Prime Minister of Vietnam)",
-            "date": "2017",
-            "identifier": "https://faolex.fao.org/docs/pdf/vie179224.pdf",
+            "date": null,
+            "identifier": "https://www.fao.org/faolex/results/details/en/c/LEX-FAOC179224/",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
-            "title": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation)"
+            "title": "(untitled)"
           },
           "evidence": "r projects shall be the same as those granted to projects eligible for investment incentives in accordance with effective regulations Article 11. Land incentives 1. Grid-connected solar power projects, transmission lines and substations …",
-          "item_key": "GEWEZPJ4",
+          "item_key": "RIIGM2EC",
           "page": null,
           "rank": 1,
           "score": 0.01639344262295082,
@@ -931,82 +898,42 @@
         {
           "attachment_key": null,
           "chain": {
-            "author": "Quốc hội Việt Nam (official translation)",
-            "date": "1992",
-            "identifier": "https://en.wikisource.org/w/index.php?title=Constitution_of_Vietnam_(1992)&action=raw&oldid=16201311",
+            "author": "RCEE Energy and Environment JSC; Full Advantage Co., Ltd. (for the World Bank Carbon Finance Assist Program)",
+            "date": "2009",
+            "identifier": "10.1596/28215",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
-            "title": "Constitution of Vietnam (1992), English text"
+            "title": "Potential Climate Change Mitigation Opportunities in the Energy Sector in Vietnam: Background Paper"
           },
-          "evidence": "Constitution of Vietnam (1992), English text. Quốc hội Việt Nam (official translation). zoteus-golden-source:vn-constitution-1992-en. 1992",
-          "item_key": "VSN32JSP",
+          "evidence": "DM. This includes many small hydropower projects: more than 30 have been proposed for CDM financing. A wind-power generation project with an installed capacity of 27 MW is also being developed by the Vietnam Renewable Energy Joint stock …",
+          "item_key": "7HTWWGXF",
           "page": null,
           "rank": 2,
-          "score": 0.012658227848101266,
-          "source": null,
-          "work_id": "vn-constitution-1992-en"
+          "score": 0.013333333333333334,
+          "source": "fulltext",
+          "work_id": "worldbank-2009-vietnam-energy-mitigation"
         },
         {
           "attachment_key": null,
           "chain": {
-            "author": "Albert Einstein and Hermann Minkowski, translated by M. N. Saha and S. N. Bose",
-            "date": "1920",
-            "identifier": "https://archive.org/download/theprincipleofre00einsuoft/theprincipleofre00einsuoft.pdf",
+            "author": "Walter Ott; Meta Lehmann; Stephen Wittkopf (ed.)",
+            "date": "2016",
+            "identifier": "10.5281/zenodo.1405881",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
-            "title": "The Principle of Relativity: Original Papers by A. Einstein and H. Minkowski"
+            "title": "Common methodological framework to assess energy, climate and economic impacts of BIPV"
           },
-          "evidence": "… displacement of the Praunhofer lines is a necessary and fundamental condition for the acceptance of his theory. But Eddington has pointed out that even if this test fails, the logical conclusion would seem to be that while Einstein's law of …",
-          "item_key": "R3YNUA6N",
+          "evidence": "… between 3 and 25 ct./kWh (Fischer D., 2016). BE Netz AG has developed a tool, for calculating the share ofsioten- generated PV electricity which can be self-consumed on-site in the building. It has to be clarified under which conditions …",
+          "item_key": "3XXJ3TJ9",
           "page": null,
           "rank": 3,
-          "score": 0.0125,
+          "score": 0.011904761904761904,
           "source": "fulltext",
-          "work_id": "einstein-minkowski-1920-principle-of-relativity"
-        },
-        {
-          "attachment_key": null,
-          "chain": {
-            "author": "Gertrude Stein",
-            "date": "1925",
-            "identifier": "https://archive.org/download/makingofamerican0000unse_j2t9/makingofamerican0000unse_j2t9.pdf",
-            "page_printed": null,
-            "part_byline": null,
-            "part_title": null,
-            "section_heading": null,
-            "title": "The Making of Americans"
-          },
-          "evidence": "ading, I say, you know I like to know just what I am getting for my money and you children do certainly cost a great deal of my money, now I say, tell me, I am glad to listen to you, I say you tell me just what you are going to do, to make …",
-          "item_key": "HYI6JTZ8",
-          "page": null,
-          "rank": 4,
-          "score": 0.012345679012345678,
-          "source": "fulltext",
-          "work_id": "stein-1925-making-of-americans"
-        },
-        {
-          "attachment_key": null,
-          "chain": {
-            "author": "Samuel Johnson",
-            "date": "1785",
-            "identifier": "https://archive.org/download/dictionaryofengl01johnuoft/dictionaryofengl01johnuoft.pdf",
-            "page_printed": null,
-            "part_byline": null,
-            "part_title": null,
-            "section_heading": null,
-            "title": "A Dictionary of the English Language, Vol. 1 (6th ed.)"
-          },
-          "evidence": "… churches. It is, however, my opinion, that the French generally fupplied us j for we hav^ few Latin words, among the terms of domeftick ufe, which are not French; but many French, which are very remote from Latin. Even in words of Jwhich …",
-          "item_key": "G3IXLJC6",
-          "page": null,
-          "rank": 5,
-          "score": 0.012048192771084338,
-          "source": "fulltext",
-          "work_id": "johnson-1785-dictionary"
+          "work_id": "wittkopf-2016-bipv-methodological-framework"
         }
       ],
       "tool_reply": {
@@ -1036,202 +963,182 @@
         {
           "attachment_key": null,
           "chain": {
-            "author": "Thủ tướng Chính phủ (Prime Minister of Vietnam)",
-            "date": "2017",
-            "identifier": "https://faolex.fao.org/docs/pdf/vie179224.pdf",
+            "author": "Antoine-Augustin Cournot",
+            "date": "1838",
+            "identifier": "https://archive.org/details/AugustinCournotRecherches",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
-            "title": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation)"
+            "title": "Recherches sur les principes mathématiques de la théorie des richesses"
           },
-          "evidence": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation). Thủ tướng Chính phủ (Prime Minister of Vietnam). …",
-          "item_key": "GEWEZPJ4",
+          "evidence": "à chaque utilisateur de vérifier la conformité de son projet avec le droit de ce pays. 6/ L'utilisateur s'engage à respecter les présentes conditions d'utilisation ainsi que la législation en vigueur, notamment en matière de propriété …",
+          "item_key": "HVXRRJDQ",
           "page": null,
           "rank": 1,
           "score": 0.01639344262295082,
-          "source": null,
-          "work_id": "vn-decision-11-2017-qdttg-solar-fit-en"
+          "source": "fulltext",
+          "work_id": "cournot-1838-recherches"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Wikipedia contributors",
+            "date": "2026",
+            "identifier": "https://fr.wikipedia.org/w/index.php?title=Changement_climatique&oldid=239281043",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Changement climatique"
+          },
+          "evidence": "1],[88]. En plus de leurs effets directs (diffusion et absorption du rayonnement solaire), les aérosols ont des effets indirects sur le bilan radiatif de la Terre. Les aérosols de sulfate agissent comme noyaux de condensation pour certains …",
+          "item_key": "YRAUIIKD",
+          "page": null,
+          "rank": 2,
+          "score": 0.016129032258064516,
+          "source": "fulltext",
+          "work_id": "wp-climate-change-fr"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Minh Ha-Duong",
+            "date": "2005",
+            "identifier": "https://theses.hal.science/halshs-00007520v1",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Modèles de précaution en économie : introduction aux probabilités imprécises"
+          },
+          "evidence": "de la précaution est le modèle de décision séquentielle. Dans ce cadre, ce texte présente les résultats du modèle intégré DIAM résolu en programmation dynamique stochastique concernant la question du tempo de l’action contre le changement …",
+          "item_key": "LBW7QYN2",
+          "page": null,
+          "rank": 3,
+          "score": 0.015873015873015872,
+          "source": "fulltext",
+          "work_id": "ha-duong-2005-modeles-de-precaution-hdr"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Minh Ha-Duong",
+            "date": "1998",
+            "identifier": "https://theses.hal.science/tel-00003505v1",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Comment tenir compte de l'irréversibilité dans l'évaluation intégrée du changement climatique ?"
+          },
+          "evidence": "ONDITIONS DU PROBLÈME DU CHANGEMENT CLIMATIQUE 37 CHAPITRE 3. DU CHANGEMENT CLIMATIQUE AU PROBLÈME DE DÉCISION 77 CHAPITRE 4. DES MODÈLES D’ÉVALUATION INTÉGRÉE 105 CHAPITRE 5. DIAM - MODÈLE DYNAMIQUE INERTIE-ADAPTABILITÉ 135 CHAPITRE 6. …",
+          "item_key": "XMP2QFDN",
+          "page": null,
+          "rank": 4,
+          "score": 0.015625,
+          "source": "fulltext",
+          "work_id": "ha-duong-1998-irreversibilite-these"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Henri Poincaré; rédaction de A. Quiquet",
+            "date": "1912",
+            "identifier": "https://archive.org/details/calculdesprobab00poinuoft",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Calcul des probabilités"
+          },
+          "evidence": "… pas d'être vrais le jour où ces phénomènes seront mieux connus. Le directeur d'un« compagnie d'assurances sur la vie ignore quand mourra chacun de ses assurés, mais II compte sur le calcul des probabilités et sur la loi des grands nom bres …",
+          "item_key": "8598JF8K",
+          "page": null,
+          "rank": 5,
+          "score": 0.014925373134328358,
+          "source": "fulltext",
+          "work_id": "poincare-1912-calcul-des-probabilites"
         },
         {
           "attachment_key": null,
           "chain": {
             "author": "Léon Walras",
             "date": "1900",
-            "identifier": "https://archive.org/download/elementsdeconomi00walr/elementsdeconomi00walr.pdf",
+            "identifier": "https://archive.org/details/elementsdeconomi00walr",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
             "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale (4e éd.)"
           },
-          "evidence": "… pour s’accorder avec leurs substantifs, je me suis incliné devant leur décision, la supposant fondée sur 1 usage. I ï' mî IX par un individu de .son revenu entre ses diverses esiièces de besoins, que j’appelle problème de l'utilité maxima …",
+          "evidence": "au lieu de la poser empiriquement; et j’ai établi, dans un théorème nouveau, que la condition d’égalité du taux du revenu net était aussi la condition d’utilité maxima pour les capitaux neufs. Quand je publiai ma première édition, je …",
           "item_key": "WDHDGA89",
           "page": null,
-          "rank": 2,
-          "score": 0.015384615384615385,
+          "rank": 6,
+          "score": 0.014705882352941176,
           "source": "fulltext",
           "work_id": "walras-1900-elements"
         },
         {
           "attachment_key": null,
           "chain": {
-            "author": "Quốc hội Việt Nam (official translation)",
-            "date": "1992",
-            "identifier": "https://en.wikisource.org/w/index.php?title=Constitution_of_Vietnam_(1992)&action=raw&oldid=16201311",
+            "author": "Silvia Banfi Frost; Marco Berg; Jean-François Dupont; Matthias Gysler; Eduard Kiener; Jürg Minsch; Alexander Wokaun (Schweizerische Akademie der Technischen Wissenschaften)",
+            "date": "2011",
+            "identifier": "10.5281/zenodo.1160834",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
-            "title": "Constitution of Vietnam (1992), English text"
+            "title": "Erneuerbare Energien – Herausforderungen auf dem Weg zur Vollversorgung"
           },
-          "evidence": "Constitution of Vietnam (1992), English text. Quốc hội Việt Nam (official translation). zoteus-golden-source:vn-constitution-1992-en. 1992",
-          "item_key": "VSN32JSP",
-          "page": null,
-          "rank": 3,
-          "score": 0.015151515151515152,
-          "source": null,
-          "work_id": "vn-constitution-1992-en"
-        },
-        {
-          "attachment_key": null,
-          "chain": {
-            "author": "Jean Bonet",
-            "date": "1899",
-            "identifier": "https://archive.org/download/dictionnaireanna01bone/dictionnaireanna01bone.pdf",
-            "page_printed": null,
-            "part_byline": null,
-            "part_title": null,
-            "section_heading": null,
-            "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 1"
-          },
-          "evidence": "… toute confusion impossible. Pour le sens de chaque mot, nous donnons une définition complète, quoique brève. Les termes les plus usités sont suivis de nombreux exemples sous forme d'expressions composées, de phrases dialoguées, de …",
-          "item_key": "NXIPLWTH",
-          "page": null,
-          "rank": 4,
-          "score": 0.014925373134328358,
-          "source": "fulltext",
-          "work_id": "bonet-1899-dictionnaire-annamite-francais-t1"
-        },
-        {
-          "attachment_key": null,
-          "chain": {
-            "author": "Marie Curie",
-            "date": "1904",
-            "identifier": "https://archive.org/download/recherchessurles00curi/recherchessurles00curi.pdf",
-            "page_printed": null,
-            "part_byline": null,
-            "part_title": null,
-            "section_heading": null,
-            "title": "Recherches sur les substances radioactives"
-          },
-          "evidence": ". 11 devenait dès lors très probable que si la pechblende, la chalcolite, l'autunite ont une activité si forte, c'est que ces substances renferment en petite quantité une matière fortement radioactive, diilerente de l'uranium, du thorium …",
-          "item_key": "UDI7E8I2",
-          "page": null,
-          "rank": 5,
-          "score": 0.014705882352941176,
-          "source": "fulltext",
-          "work_id": "curie-1904-recherches-substances-radioactives"
-        },
-        {
-          "attachment_key": null,
-          "chain": {
-            "author": "Hermann Minkowski",
-            "date": "1896",
-            "identifier": "https://archive.org/download/geometriederzahl00minkuoft/geometriederzahl00minkuoft.pdf",
-            "page_printed": null,
-            "part_byline": null,
-            "part_title": null,
-            "section_heading": null,
-            "title": "Geometrie der Zahlen"
-          },
-          "evidence": "… von Strahldistanzen. S. 9, — 8. Der Aichkörper einhelliger Strahldistanzen. S. 11. — 9. Die einfachsten, durch Ebenen bestimmten Bereiche. S. 14. — 10. Zellen im Aichkörper. S. 17. — 11. Die Aichfläche als Begrenzung des Aichkörpers. S. 18. …",
-          "item_key": "5F9HCZ8B",
-          "page": null,
-          "rank": 6,
-          "score": 0.013157894736842105,
-          "source": "fulltext",
-          "work_id": "minkowski-1896-geometrie-der-zahlen"
-        },
-        {
-          "attachment_key": null,
-          "chain": {
-            "author": "Albert Einstein and Hermann Minkowski, translated by M. N. Saha and S. N. Bose",
-            "date": "1920",
-            "identifier": "https://archive.org/download/theprincipleofre00einsuoft/theprincipleofre00einsuoft.pdf",
-            "page_printed": null,
-            "part_byline": null,
-            "part_title": null,
-            "section_heading": null,
-            "title": "The Principle of Relativity: Original Papers by A. Einstein and H. Minkowski"
-          },
-          "evidence": "… succeeded in obtaining a \\alne for Fresnelian co-efficient equal to 1 — 11^- , and consequently stood totally condemned from the optical point of view. Certain direct electromagnetic experiments involvingrelative motion of polarised …",
-          "item_key": "R3YNUA6N",
+          "evidence": "pour couvrir les besoins. Cependant, la densité d’énergie de ces sources d’énergie est le plus souvent faible; par ailleurs, les éner gies solaire et éolienne en particulier sont de production irrégulière. Les potentiels des différentes …",
+          "item_key": "WNZ9822H",
           "page": null,
           "rank": 7,
-          "score": 0.012345679012345678,
+          "score": 0.014492753623188406,
           "source": "fulltext",
-          "work_id": "einstein-minkowski-1920-principle-of-relativity"
+          "work_id": "satw-2011-erneuerbare-energien"
         },
         {
           "attachment_key": null,
           "chain": {
-            "author": "Charles Baudelaire",
-            "date": "1857",
-            "identifier": "https://archive.org/download/lesfleursdum00baud/lesfleursdum00baud.pdf",
+            "author": "Thủ tướng Chính phủ (Prime Minister of Vietnam)",
+            "date": null,
+            "identifier": "https://www.fao.org/faolex/results/details/en/c/LEX-FAOC179224/",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
-            "title": "Les Fleurs du Mal (1re éd.)"
+            "title": "(untitled)"
           },
-          "evidence": "… Les parfums, les couleurs et les sons se répondent. iO LES FLEURS DU MAL 11 est des parfums frais comme des chairs d'enfants , Doux comme les hautbois, verts comme les prairies , Et d'autres, corrompus, riches et triomphants , Ayant …",
-          "item_key": "HIQIHFD2",
+          "evidence": "Thủ tướng Chính phủ (Prime Minister of Vietnam). zoteus-golden-source:vn-decision-11-2017-qdttg-solar-fit-en",
+          "item_key": "RIIGM2EC",
           "page": null,
           "rank": 8,
-          "score": 0.011764705882352941,
-          "source": "fulltext",
-          "work_id": "baudelaire-1857-fleurs-du-mal"
+          "score": 0.012345679012345678,
+          "source": null,
+          "work_id": "vn-decision-11-2017-qdttg-solar-fit-en"
         },
         {
           "attachment_key": null,
           "chain": {
-            "author": "Jean Bonet",
-            "date": "1899",
-            "identifier": "https://archive.org/download/dictionnaireanna02bone/dictionnaireanna02bone.pdf",
+            "author": "Nguyễn Du; Abel des Michels (ed., transl.)",
+            "date": "1884",
+            "identifier": "https://archive.org/details/kim-van-kieu-tan-truyen-1",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
-            "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 2"
+            "title": "Kim Vân Kiều tân truyện — Les poèmes de l'Annam, tome I"
           },
-          "evidence": "… Nà tôt câij trài o ^ . vallée S(; U'anscrit aussi par le car. fi? . 11. lurniuenu !«atioralc. fertile et bien exposée. — Rmng nh un o , rizière de vallée. — Bàu na ^O, où cela? où est-il? faites voir? — Qm m o, tancer d'impor tance, …",
-          "item_key": "4AZTUVYF",
+          "evidence": "sistera seule; (car) d'un premier regard elle renverse une » ville, d'un second elle cause la chute d'un royaume ! f— SS -4jf A * ï*6 \\ PT 8S TH yv Bl Nktet co khuynh nhan thành, tài co khuynh xnhvn qicô'c!»); satire' qui lui valut son …",
+          "item_key": "E6IJRR2H",
           "page": null,
           "rank": 9,
-          "score": 0.011494252873563218,
+          "score": 0.011764705882352941,
           "source": "fulltext",
-          "work_id": "bonet-1899-dictionnaire-annamite-francais-t2"
-        },
-        {
-          "attachment_key": null,
-          "chain": {
-            "author": "Mathieu de La Porte",
-            "date": "1770",
-            "identifier": "https://archive.org/download/lasciencedesnego00lapo/lasciencedesnego00lapo.pdf",
-            "page_printed": null,
-            "part_byline": null,
-            "part_title": null,
-            "section_heading": null,
-            "title": "La Science des négocians et teneurs de livres"
-          },
-          "evidence": "… tenir au moins un Livre Journal , fuivant qu'il eft preferit par l'Ordonnance. 11 ne doit pas y avoir la même rigueur , & on s'eft relâché fur la forme preferire par l'Article III de l'Or icnr.ance , qui porte que les Livres feront cottes & …",
-          "item_key": "6J5AEUMZ",
-          "page": null,
-          "rank": 10,
-          "score": 0.011363636363636364,
-          "source": "fulltext",
-          "work_id": "porte-1770-science-des-negocians"
+          "work_id": "des-michels-1884-kim-van-kieu-t1"
         }
       ],
       "tool_reply": {
@@ -1262,16 +1169,16 @@
           "attachment_key": null,
           "chain": {
             "author": "Thủ tướng Chính phủ (Prime Minister of Vietnam)",
-            "date": "2017",
-            "identifier": "https://faolex.fao.org/docs/pdf/vie179224.pdf",
+            "date": null,
+            "identifier": "https://www.fao.org/faolex/results/details/en/c/LEX-FAOC179224/",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
-            "title": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation)"
+            "title": "(untitled)"
           },
           "evidence": "… projects, the contracts for which are signed before the effective date of this Decision, the parties are responsible for signing contract revisions in accordance with this Decision. Article 16. Effect 1. This Decision takes effect from 01 …",
-          "item_key": "GEWEZPJ4",
+          "item_key": "RIIGM2EC",
           "page": null,
           "rank": 1,
           "score": 0.01639344262295082,
@@ -1281,82 +1188,162 @@
         {
           "attachment_key": null,
           "chain": {
-            "author": "Albert Einstein and Hermann Minkowski, translated by M. N. Saha and S. N. Bose",
-            "date": "1920",
-            "identifier": "https://archive.org/download/theprincipleofre00einsuoft/theprincipleofre00einsuoft.pdf",
+            "author": "Wikipedia contributors",
+            "date": "2026",
+            "identifier": "https://zh.wikipedia.org/w/index.php?title=氣候變化&oldid=93590833",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
-            "title": "The Principle of Relativity: Original Papers by A. Einstein and H. Minkowski"
+            "title": "氣候變化"
           },
-          "evidence": "… succeeded in obtaining a \\alne for Fresnelian co-efficient equal to 1 — 11^- , and consequently stood totally condemned from the optical point of view. Certain direct electromagnetic experiments involvingrelative motion of polarised …",
-          "item_key": "R3YNUA6N",
+          "evidence": "… ↑ Kennedy et al. 2010，第S26頁. Figure 2.5. ↑ Loeb et al. 2021. ↑ . NASA JPL. 3 June 2010 [11 September 2020]. （原始内容存档于2022-08-14）. Satellite measurements show warming in the troposphere but cooling in the stratosphere. This vertical pattern …",
+          "item_key": "ATPYH5U8",
           "page": null,
           "rank": 2,
-          "score": 0.0136986301369863,
+          "score": 0.015151515151515152,
           "source": "fulltext",
-          "work_id": "einstein-minkowski-1920-principle-of-relativity"
+          "work_id": "wp-climate-change-zh"
         },
         {
           "attachment_key": null,
           "chain": {
-            "author": "Gertrude Stein",
-            "date": "1925",
-            "identifier": "https://archive.org/download/makingofamerican0000unse_j2t9/makingofamerican0000unse_j2t9.pdf",
+            "author": "Walter Ott; Meta Lehmann; Stephen Wittkopf (ed.)",
+            "date": "2016",
+            "identifier": "10.5281/zenodo.1405881",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
-            "title": "The Making of Americans"
+            "title": "Common methodological framework to assess energy, climate and economic impacts of BIPV"
           },
-          "evidence": "… ever show that you can work hard to deserve it. Well you got your literary effect and your new fangled notions and all kinds of education and you all always explain to me how well you know how to do it, I say it will be soon now when I can …",
-          "item_key": "HYI6JTZ8",
+          "evidence": "h/piled meter) CHF/pm 80.0 105.0 125.0 140.0 145.0 CHF/kWh 0.053 0.070 0.083 0.093 0.100 Wood chips (975 kWh/m3 chips) CHF/srm 47.50 56.00 73.00 84.00 91.00 CHF/kWh 0.049 0.057 0.075 0.086 0.093 Wood pellets (5000 kWh/tonne) CHF/ton 380 415 …",
+          "item_key": "3XXJ3TJ9",
           "page": null,
           "rank": 3,
-          "score": 0.011627906976744186,
+          "score": 0.014925373134328358,
           "source": "fulltext",
-          "work_id": "stein-1925-making-of-americans"
+          "work_id": "wittkopf-2016-bipv-methodological-framework"
         },
         {
           "attachment_key": null,
           "chain": {
-            "author": "Hermann Minkowski",
-            "date": "1896",
-            "identifier": "https://archive.org/download/geometriederzahl00minkuoft/geometriederzahl00minkuoft.pdf",
+            "author": "Wikipedia contributors",
+            "date": "2026",
+            "identifier": "https://en.wikipedia.org/w/index.php?title=Climate_change&oldid=1372428406",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
-            "title": "Geometrie der Zahlen"
+            "title": "Climate change"
           },
-          "evidence": "… ihres Volumens mehr als einen Punkt mit ganzzahligen Coordinaten enthalten. 30. Arithmetischer Satz über die nirgends concaven Körper mit Mittelpunkt. S. 73. — 31. Stuteu im Zahlengitter. S. 77. — 32. Stufen grössten Volumenb. S. 81. — 33. …",
-          "item_key": "5F9HCZ8B",
+          "evidence": "148] The effect of decreasing sulfur content of fuel oil for ships since 2020[149] is estimated to cause an additional 0.05 °C increase in global mean temperature by 2050.[150] Solar and volcanic activity Further information: Solar activity …",
+          "item_key": "A87PTDEU",
           "page": null,
           "rank": 4,
-          "score": 0.011363636363636364,
+          "score": 0.014492753623188406,
           "source": "fulltext",
-          "work_id": "minkowski-1896-geometrie-der-zahlen"
+          "work_id": "wp-climate-change-en"
         },
         {
           "attachment_key": null,
           "chain": {
-            "author": "Jean Bonet",
-            "date": "1899",
-            "identifier": "https://archive.org/download/dictionnaireanna01bone/dictionnaireanna01bone.pdf",
+            "author": "RCEE Energy and Environment JSC; Full Advantage Co., Ltd. (for the World Bank Carbon Finance Assist Program)",
+            "date": "2009",
+            "identifier": "10.1596/28215",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
-            "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 1"
+            "title": "Potential Climate Change Mitigation Opportunities in the Energy Sector in Vietnam: Background Paper"
           },
-          "evidence": "… 15 Quinze 16 Seize 17 Dix-sept 18 Dix-huit 19 Dix-neuf 20 Vingt 21 Vingt et un 30 Trente àO Quarante 50 Cinquante 60 Soi.xante 70 Soixante-dix. . . 80 Quatre-vingts . . 90 Quatre-vingt-dix Mwon lam. Mwon sàu. Mwo'i bày. Mwon tàm. Mwon chin. …",
-          "item_key": "NXIPLWTH",
+          "evidence": "r hydropower is about 83 billion kWh (IE 2006). About 1,050 potential sites for small hydropower facilities (ranging from 0.1 to less than 30 MW) have been identified, for a total capacity of 4,044.5 MW, equivalent to 16.7 million …",
+          "item_key": "7HTWWGXF",
           "page": null,
           "rank": 5,
-          "score": 0.011111111111111112,
+          "score": 0.014084507042253521,
           "source": "fulltext",
-          "work_id": "bonet-1899-dictionnaire-annamite-francais-t1"
+          "work_id": "worldbank-2009-vietnam-energy-mitigation"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Wikipedia contributors",
+            "date": "2026",
+            "identifier": "https://ru.wikipedia.org/w/index.php?title=Инфляция&oldid=154827362",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Инфляция"
+          },
+          "evidence": "… придумали термин «агфляция». Дата обращения: 17 апреля 2008. Архивировано 11 января 2012 года. ↑ Максим Буев. Рост цен по-новому. Электронное периодическое издание «Ведомости» (17 апреля 2017). Дата обращения: 25 июля 2017. Архивировано 21 …",
+          "item_key": "5M4ZPLBP",
+          "page": null,
+          "rank": 6,
+          "score": 0.013888888888888888,
+          "source": "fulltext",
+          "work_id": "wp-inflation-ru"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Wikipedia contributors",
+            "date": "2025",
+            "identifier": "https://hi.wikipedia.org/w/index.php?title=जलवायु_परिवर्तन&oldid=6404164",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "जलवायु परिवर्तन"
+          },
+          "evidence": "… डीओआई:10.1130/0091-7613(1997)025<0039:MTPVCA>2.3.CO;2. 1 2 \"संग्रहीत प्रति\". 11 फ़रवरी 2017 को मूल से पुरालेखित. अभिगमन तिथि: 10 फ़रवरी 2017. ↑ Brown, Dwayne; Cabbage, Michael; McCarthy, Leslie; Norton, Karen (20 January 2016). \"NASA, NOAA …",
+          "item_key": "BP5QW5GR",
+          "page": null,
+          "rank": 7,
+          "score": 0.011904761904761904,
+          "source": "fulltext",
+          "work_id": "wp-climate-change-hi"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Nguyễn Hoài Sơn; Minh Ha-Duong; Nguyễn Xuân Thắng",
+            "date": "2023",
+            "identifier": "https://enpc.hal.science/hal-04332519v1",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Tính kinh tế theo quy mô trong tiêu dùng điện của các hộ gia đình tại Việt Nam (Economy of Scale in Electricity Consumption of Households in Vietnam)"
+          },
+          "evidence": "… or may be erroneous. This is because as household sizes increase, the total kWh consumed by the household also increases, leading to higher prices. At that point, the reduction in per capita consumption may be due to the higher prices and …",
+          "item_key": "AUF4XPPJ",
+          "page": null,
+          "rank": 8,
+          "score": 0.011627906976744186,
+          "source": "fulltext",
+          "work_id": "hal-04332519-economies-of-scale"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Pierre-Elouan Réthoré",
+            "date": "2013",
+            "identifier": "10.5281/zenodo.12386",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Wind Farm Optimization and Multi-Fidelity Wake Modelling: Presentation of TOPFARM I & II, FUSED-Wake"
+          },
+          "evidence": "to baseline design (right). 9 P-E Réthoré. pire@dtu.dk 24 June 2013 TOPFARM Demonstration example Disclaimer: We are not suggesting that building this ugly wind farm is a good idea DTU Wind Energy Add Presentation Title in Footer via …",
+          "item_key": "6XGITDAY",
+          "page": null,
+          "rank": 9,
+          "score": 0.011235955056179775,
+          "source": "fulltext",
+          "work_id": "rethore-2013-wind-farm-optimization"
         }
       ],
       "tool_reply": {
@@ -1388,14 +1375,14 @@
           "chain": {
             "author": "Léon Walras",
             "date": "1900",
-            "identifier": "https://archive.org/download/elementsdeconomi00walr/elementsdeconomi00walr.pdf",
+            "identifier": "https://archive.org/details/elementsdeconomi00walr",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
             "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale (4e éd.)"
           },
-          "evidence": "… un régime hypothétique de libre i currence absolue '. L’ensemble de toutes les choses, matérielles ou immatérielles, qui sont susceptibles d’avoir un prix parce qu’elles sont rares, c’est-à-dire à la fois utiles et limitées en quantité, …",
+          "evidence": "… telle que l’ont parfaitement comprise quehiues mathémati ciens qui étaient en même temps économistes. Elle peut se lesu mer de la façon suivante. XI L’économie politique pure est essentiellement la théorie de li tcnninatioii des prix sous …",
           "item_key": "WDHDGA89",
           "page": null,
           "rank": 1,
@@ -1406,82 +1393,122 @@
         {
           "attachment_key": null,
           "chain": {
-            "author": "Marie Curie",
-            "date": "1904",
-            "identifier": "https://archive.org/download/recherchessurles00curi/recherchessurles00curi.pdf",
+            "author": "Antoine-Augustin Cournot",
+            "date": "1838",
+            "identifier": "https://archive.org/details/AugustinCournotRecherches",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
-            "title": "Recherches sur les substances radioactives"
+            "title": "Recherches sur les principes mathématiques de la théorie des richesses"
           },
-          "evidence": "… des éléments répandus, j'ai étudié plusieurs composés; dans le cas des corps rares, jai étudié les composés que j'ai pu me procurer. Voici la liste des substances qui ont fait partie de mon étude sous forme d'élément ou de condjinaison : …",
-          "item_key": "UDI7E8I2",
+          "evidence": "naturel, et pour ainsi dire instinctif, il y a loin à l'idée abstraite d'une valeur d'échange, —3 qui suppose que les objets auxquels on attribue une telle valeur sont dans le commerce; c'est-à-dire qu'on peut toujours trouver à les …",
+          "item_key": "HVXRRJDQ",
           "page": null,
           "rank": 2,
           "score": 0.014705882352941176,
           "source": "fulltext",
-          "work_id": "curie-1904-recherches-substances-radioactives"
+          "work_id": "cournot-1838-recherches"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Wikipedia contributors",
+            "date": "2026",
+            "identifier": "https://fr.wikipedia.org/w/index.php?title=Changement_climatique&oldid=239281043",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Changement climatique"
+          },
+          "evidence": "… pourrait être de 380 comme de 1 400 ppm, selon le scénario socio-économique et le scénario d'atténuation[144],[147]. Le budget restant pour les émissions de carbone est déterminé par la modélisation du cycle du carbone et de la sensibilité …",
+          "item_key": "YRAUIIKD",
+          "page": null,
+          "rank": 3,
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "work_id": "wp-climate-change-fr"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Nguyễn Du; Abel des Michels (ed., transl.)",
+            "date": "1885",
+            "identifier": "https://archive.org/details/kim-van-kieu-tan-truyen-2",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Kim Vân Kiều tân truyện — Les poèmes de l'Annam, tome II"
+          },
+          "evidence": "… genre de torture n'eût pu la faire parler 7! Elle laissait traîner l'affaire en longueur, de peur qu'en tirant sur une seule liane, toute la forêt ne s'ébranlât et que tout ne fût perdu 8. Parfois elle semblait goûter les plaisanteries et …",
+          "item_key": "R7Z3HR4C",
+          "page": null,
+          "rank": 4,
+          "score": 0.012345679012345678,
+          "source": "fulltext",
+          "work_id": "des-michels-1885-kim-van-kieu-t2"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Henri Poincaré; rédaction de A. Quiquet",
+            "date": "1912",
+            "identifier": "https://archive.org/details/calculdesprobab00poinuoft",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Calcul des probabilités"
+          },
+          "evidence": "… varier, peut-être de^go\" on de i8o°, la direction de sa vitesse après le choc. Et ce n'est pas tout, il suffit, nous venons de le voir, de dévier la molécule avant le choc d'une quantité infiniment petite, pour qu'elle soit déviée, après le …",
+          "item_key": "8598JF8K",
+          "page": null,
+          "rank": 5,
+          "score": 0.011904761904761904,
+          "source": "fulltext",
+          "work_id": "poincare-1912-calcul-des-probabilites"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Nguyễn Du; Abel des Michels (ed., transl.)",
+            "date": "1884",
+            "identifier": "https://archive.org/details/kim-van-kieu-tan-truyen-1",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Kim Vân Kiều tân truyện — Les poèmes de l'Annam, tome I"
+          },
+          "evidence": "… INTRODUCTION. traduction, non seulement de notes explicatives des métaphores et des citations, mais encore d'un grand nombre d'interprétations littérales des-vers dont la construction semble obscure. J'avais déjà- adopté cette méthode pour …",
+          "item_key": "E6IJRR2H",
+          "page": null,
+          "rank": 6,
+          "score": 0.011235955056179775,
+          "source": "fulltext",
+          "work_id": "des-michels-1884-kim-van-kieu-t1"
         },
         {
           "attachment_key": null,
           "chain": {
             "author": "Jean Bonet",
             "date": "1899",
-            "identifier": "https://archive.org/download/dictionnaireanna01bone/dictionnaireanna01bone.pdf",
+            "identifier": "https://archive.org/details/dictionnaireanna01bone",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
-            "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 1"
+            "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 1 (A–M)"
           },
-          "evidence": "… toute confusion impossible. Pour le sens de chaque mot, nous donnons une définition complète, quoique brève. Les termes les plus usités sont suivis de nombreux exemples sous forme d'expressions composées, de phrases dialoguées, de …",
-          "item_key": "NXIPLWTH",
+          "evidence": "… ces deux langues. Les termes provenant de l'idiome primitif sont transcrits en ca ractères vulgaires formés au moyen des clefs chinoises et étymologi quement décomposés; les autres sont transcrits en caractères chinois, sans aucune …",
+          "item_key": "M87F6NJF",
           "page": null,
-          "rank": 3,
-          "score": 0.013513513513513514,
+          "rank": 7,
+          "score": 0.011111111111111112,
           "source": "fulltext",
           "work_id": "bonet-1899-dictionnaire-annamite-francais-t1"
-        },
-        {
-          "attachment_key": null,
-          "chain": {
-            "author": "Mathieu de La Porte",
-            "date": "1770",
-            "identifier": "https://archive.org/download/lasciencedesnego00lapo/lasciencedesnego00lapo.pdf",
-            "page_printed": null,
-            "part_byline": null,
-            "part_title": null,
-            "section_heading": null,
-            "title": "La Science des négocians et teneurs de livres"
-          },
-          "evidence": "… cette Science efl: une des plus néceflaires, des plus importantes &: des plus utiles: Se un de mes étonnemens efl , que non-feulement en France ou le Commerce efl: conlidérable , mais même dans d'autres Etats ou il efl d'une plus grande …",
-          "item_key": "6J5AEUMZ",
-          "page": null,
-          "rank": 4,
-          "score": 0.013333333333333334,
-          "source": "fulltext",
-          "work_id": "porte-1770-science-des-negocians"
-        },
-        {
-          "attachment_key": null,
-          "chain": {
-            "author": "Charles Baudelaire",
-            "date": "1857",
-            "identifier": "https://archive.org/download/lesfleursdum00baud/lesfleursdum00baud.pdf",
-            "page_printed": null,
-            "part_byline": null,
-            "part_title": null,
-            "section_heading": null,
-            "title": "Les Fleurs du Mal (1re éd.)"
-          },
-          "evidence": "… prendre en faute, M'a dit : « Je voudrais bien savoir, Parmi toutes les belles choses Dont est fait son enchantement. Parmi les objets noirs ou roses Qui composent son corps charmant. Sli LES FLEURS DU MAL Quel est le.plus doux. » —- mon …",
-          "item_key": "HIQIHFD2",
-          "page": null,
-          "rank": 5,
-          "score": 0.011764705882352941,
-          "source": "fulltext",
-          "work_id": "baudelaire-1857-fleurs-du-mal"
         }
       ],
       "tool_reply": {
@@ -1512,161 +1539,161 @@
           "attachment_key": null,
           "chain": {
             "author": "Thủ tướng Chính phủ (Prime Minister of Vietnam)",
-            "date": "2017",
-            "identifier": "https://faolex.fao.org/docs/pdf/vie179224.pdf",
+            "date": null,
+            "identifier": "https://www.fao.org/faolex/results/details/en/c/LEX-FAOC179224/",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
-            "title": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation)"
+            "title": "(untitled)"
           },
-          "evidence": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation). Thủ tướng Chính phủ (Prime Minister of Vietnam). …",
-          "item_key": "GEWEZPJ4",
+          "evidence": "THE PRIME MINISTER ------- SOCIALIST REPUBLIC OF VIETNAM Independence – Freedom - Happiness --------------- No.11/2017/QĐ-TTg Hanoi, 11 April , 2017 DECISION ON MECHANISM FOR ENCOURAGEMENT OF DEVELOPMENT OF SOLAR POWER IN VIETNAM Pursuant …",
+          "item_key": "RIIGM2EC",
           "page": null,
           "rank": 1,
           "score": 0.01639344262295082,
-          "source": null,
+          "source": "fulltext",
           "work_id": "vn-decision-11-2017-qdttg-solar-fit-en"
         },
         {
           "attachment_key": null,
           "chain": {
-            "author": "Quốc hội Việt Nam (official translation)",
-            "date": "1992",
-            "identifier": "https://en.wikisource.org/w/index.php?title=Constitution_of_Vietnam_(1992)&action=raw&oldid=16201311",
+            "author": "RCEE Energy and Environment JSC; Full Advantage Co., Ltd. (for the World Bank Carbon Finance Assist Program)",
+            "date": "2009",
+            "identifier": "10.1596/28215",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
-            "title": "Constitution of Vietnam (1992), English text"
+            "title": "Potential Climate Change Mitigation Opportunities in the Energy Sector in Vietnam: Background Paper"
           },
-          "evidence": "Constitution of Vietnam (1992), English text. Quốc hội Việt Nam (official translation). zoteus-golden-source:vn-constitution-1992-en. 1992",
-          "item_key": "VSN32JSP",
+          "evidence": "… hydropower projects: more than 30 have been proposed for CDM financing. A wind-power generation project with an installed capacity of 27 MW is also being developed by the Vietnam Renewable Energy Joint stock company (REVN) and is expected …",
+          "item_key": "7HTWWGXF",
           "page": null,
           "rank": 2,
-          "score": 0.0136986301369863,
-          "source": null,
-          "work_id": "vn-constitution-1992-en"
+          "score": 0.015384615384615385,
+          "source": "fulltext",
+          "work_id": "worldbank-2009-vietnam-energy-mitigation"
         },
         {
           "attachment_key": null,
           "chain": {
-            "author": "Gertrude Stein",
-            "date": "1925",
-            "identifier": "https://archive.org/download/makingofamerican0000unse_j2t9/makingofamerican0000unse_j2t9.pdf",
+            "author": "World Bank; Ministry of Planning and Investment of Vietnam",
+            "date": "2016",
+            "identifier": "10.1596/978-1-4648-0824-1",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
-            "title": "The Making of Americans"
+            "title": "Vietnam 2035: Toward Prosperity, Creativity, Equity, and Democracy — Overview"
           },
-          "evidence": "… under vast skies, and always here and there was a great tree waving in the wind and wading knee deep in the rough radiant leafy tide. Yes the Dehnings in the country were simple pleasant people. There they were a contented joyous household. …",
-          "item_key": "HYI6JTZ8",
+          "evidence": "… and find ways to tap more clean energy sources, including through regional power trade. Such a sustainable, inclusive, and resilient growth path calls for strong policies and institutions to coordinate actions and investments, smart …",
+          "item_key": "FUMT38SR",
           "page": null,
           "rank": 3,
-          "score": 0.01282051282051282,
+          "score": 0.012658227848101266,
           "source": "fulltext",
-          "work_id": "stein-1925-making-of-americans"
+          "work_id": "wb-2016-vietnam-2035-en-overview"
         },
         {
           "attachment_key": null,
           "chain": {
-            "author": "Hermann Minkowski",
-            "date": "1896",
-            "identifier": "https://archive.org/download/geometriederzahl00minkuoft/geometriederzahl00minkuoft.pdf",
+            "author": "Pierre-Elouan Réthoré",
+            "date": "2013",
+            "identifier": "10.5281/zenodo.12386",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
-            "title": "Geometrie der Zahlen"
+            "title": "Wind Farm Optimization and Multi-Fidelity Wake Modelling: Presentation of TOPFARM I & II, FUSED-Wake"
           },
-          "evidence": "… von Strahldistanzen. S. 9, — 8. Der Aichkörper einhelliger Strahldistanzen. S. 11. — 9. Die einfachsten, durch Ebenen bestimmten Bereiche. S. 14. — 10. Zellen im Aichkörper. S. 17. — 11. Die Aichfläche als Begrenzung des Aichkörpers. S. 18. …",
-          "item_key": "5F9HCZ8B",
+          "evidence": "… – System Overview • Conclusions 4 P-E Réthoré. pire@dtu.dk 24 June 2013 DTU Wind Energy Add Presentation Title in Footer via ”Insert”; ”Header & Footer” TOPFARM Main Idea • TOPFARM = Topology OPtimization of wind FARM • EU-FP6 Funded …",
+          "item_key": "6XGITDAY",
           "page": null,
           "rank": 4,
-          "score": 0.012345679012345678,
+          "score": 0.0125,
           "source": "fulltext",
-          "work_id": "minkowski-1896-geometrie-der-zahlen"
+          "work_id": "rethore-2013-wind-farm-optimization"
         },
         {
           "attachment_key": null,
           "chain": {
-            "author": "Léon Walras",
-            "date": "1900",
-            "identifier": "https://archive.org/download/elementsdeconomi00walr/elementsdeconomi00walr.pdf",
+            "author": "Walter Ott; Meta Lehmann; Stephen Wittkopf (ed.)",
+            "date": "2016",
+            "identifier": "10.5281/zenodo.1405881",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
-            "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale (4e éd.)"
+            "title": "Common methodological framework to assess energy, climate and economic impacts of BIPV"
           },
-          "evidence": "… déjà exis ce taux les prix des services de ces capitaux salaires et intérêts. 11 reste seulement a trou circulants, et à savoir ce que deviennent luméraire est en même temps monnaie. ' de la circulation et de la monnaie. MU- Pdition, …",
-          "item_key": "WDHDGA89",
+          "evidence": "… corresponding to the savings the utility can achieve due to the fed -back BIPV power. /9 The Swiss Federal Office of Energy (SFOE) issued guidelines regarding grid feed- in of renew able power production (SFOE/BFE 2015). For regular (not …",
+          "item_key": "3XXJ3TJ9",
           "page": null,
           "rank": 5,
-          "score": 0.012195121951219513,
+          "score": 0.012345679012345678,
           "source": "fulltext",
-          "work_id": "walras-1900-elements"
+          "work_id": "wittkopf-2016-bipv-methodological-framework"
         },
         {
           "attachment_key": null,
           "chain": {
-            "author": "Samuel Johnson",
-            "date": "1785",
-            "identifier": "https://archive.org/download/dictionaryofengl01johnuoft/dictionaryofengl01johnuoft.pdf",
+            "author": "U.S. Environmental Protection Agency",
+            "date": "2016",
+            "identifier": "10.5281/zenodo.259515",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
-            "title": "A Dictionary of the English Language, Vol. 1 (6th ed.)"
+            "title": "Inventory of U.S. Greenhouse Gas Emissions and Sinks: 1990-2014"
           },
-          "evidence": "… repeat 4f>d repetition. ' Some combinations of letters having the fame power, are ufed indifirrently without any difcoverable reafon of choice, as in choak, choke ; /oap,fope ; fewel, fuel, and many others; which I have fomctimes infcrted …",
-          "item_key": "G3IXLJC6",
+          "evidence": "… the United States (1950–2014, Index Normal = 100) Although no new U.S. nuclear power plants have been constructed in recent years, the utilization (i.e., capacity factors)10 of existing plants in 2014 remained high at 92 percent. …",
+          "item_key": "EZRNSMR8",
           "page": null,
           "rank": 6,
-          "score": 0.012048192771084338,
+          "score": 0.011904761904761904,
           "source": "fulltext",
-          "work_id": "johnson-1785-dictionary"
+          "work_id": "epa-2016-ghg-inventory-1990-2014"
         },
         {
           "attachment_key": null,
           "chain": {
-            "author": "Marie Curie",
-            "date": "1904",
-            "identifier": "https://archive.org/download/recherchessurles00curi/recherchessurles00curi.pdf",
+            "author": "Wikipedia contributors",
+            "date": "2026",
+            "identifier": "https://ru.wikipedia.org/w/index.php?title=Инфляция&oldid=154827362",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
-            "title": "Recherches sur les substances radioactives"
+            "title": "Инфляция"
           },
-          "evidence": "… l'uranium et ses composés émettent des rayons particuliers : rayons uraniqucs. 11 prouva que ces rayons peuvent traverser des écrans iné talliques minces et qu'ils déchargent les corps électrisés. Il fit aussi des expériences d'après …",
-          "item_key": "UDI7E8I2",
+          "evidence": "… придумали термин «агфляция». Дата обращения: 17 апреля 2008. Архивировано 11 января 2012 года. ↑ Максим Буев. Рост цен по-новому. Электронное периодическое издание «Ведомости» (17 апреля 2017). Дата обращения: 25 июля 2017. Архивировано 21 …",
+          "item_key": "5M4ZPLBP",
           "page": null,
           "rank": 7,
           "score": 0.011764705882352941,
           "source": "fulltext",
-          "work_id": "curie-1904-recherches-substances-radioactives"
+          "work_id": "wp-inflation-ru"
         },
         {
           "attachment_key": null,
           "chain": {
-            "author": "Albert Einstein and Hermann Minkowski, translated by M. N. Saha and S. N. Bose",
-            "date": "1920",
-            "identifier": "https://archive.org/download/theprincipleofre00einsuoft/theprincipleofre00einsuoft.pdf",
+            "author": "Nguyễn Hoài Sơn; Minh Ha-Duong; Nguyễn Xuân Thắng",
+            "date": "2023",
+            "identifier": "https://enpc.hal.science/hal-04332519v1",
             "page_printed": null,
             "part_byline": null,
             "part_title": null,
             "section_heading": null,
-            "title": "The Principle of Relativity: Original Papers by A. Einstein and H. Minkowski"
+            "title": "Tính kinh tế theo quy mô trong tiêu dùng điện của các hộ gia đình tại Việt Nam (Economy of Scale in Electricity Consumption of Households in Vietnam)"
           },
-          "evidence": "… succeeded in obtaining a \\alne for Fresnelian co-efficient equal to 1 — 11^- , and consequently stood totally condemned from the optical point of view. Certain direct electromagnetic experiments involvingrelative motion of polarised …",
-          "item_key": "R3YNUA6N",
+          "evidence": "… Ha-Duong, M. (2018a): Assigning Official National Administration Unit Code to Vietnam GADM Shapefile 2018 at Ward Level. Research Report 2018–70. CIRED CNRS. Available at: https://hal.science/hal-01917034 (Accessed: 30 October 2023). …",
+          "item_key": "AUF4XPPJ",
           "page": null,
           "rank": 8,
           "score": 0.011494252873563218,
           "source": "fulltext",
-          "work_id": "einstein-minkowski-1920-principle-of-relativity"
+          "work_id": "hal-04332519-economies-of-scale"
         }
       ],
       "tool_reply": {
@@ -1691,55 +1718,88 @@
     }
   ],
   "run": {
-    "build": null,
-    "build_sha": "34d6c2681b1452aeaa2f8e8e90abe6e6b0f8df41",
+    "build": {
+      "elapsed_s": 0.8,
+      "exit_code": 0,
+      "status": {
+        "builtFromVersion": 103,
+        "documents": 2379,
+        "embedder": "none (keyword-only)",
+        "embedderActive": false,
+        "embedderConfigured": "off",
+        "fulltextEnabled": true,
+        "fulltextItems": 89,
+        "fulltextItemsScanned": 93,
+        "fulltextItemsTotal": 93,
+        "fulltextPassages": 2276,
+        "fulltextVersion": 0,
+        "items": 103,
+        "itemsAvailable": 103,
+        "itemsFetched": 103,
+        "itemsRemoved": 0,
+        "itemsTotal": 103,
+        "library": "user",
+        "libraryBackend": "local",
+        "libraryVersion": 484,
+        "operation": "build",
+        "ownWordsEnabled": true,
+        "ownWordsItems": 0,
+        "ownWordsPassages": 0,
+        "passages": 2379,
+        "phase": "fulltext",
+        "state": "done",
+        "storage": "sqlite",
+        "vectors": 0
+      }
+    },
+    "build_sha": "b0e0bc872b5727d21ea83aba8bfe834293013264",
     "chunker": "not-reported by zotero_index status",
     "date": "2026-09-06",
     "embedder": "none (keyword-only)",
-    "export_sha256": "014cf144a55d2810759ac8100a6c50d9fd98a6ccbbef2034d2fe2dd35ab6aa74",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
     "extraction": {
       "caps": {
         "fulltext.pdfMaxPages": 100,
         "fulltext.textMaxLength": 500000
       },
       "index_fulltext_max_chars": 40000,
-      "recipe_sha256": "23980113a777c3ecec90692ee12c5b6205a95279dec61876c3ff13cc69f23716",
-      "reindex_limits": "ignored",
-      "reindex_mode": "complete"
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1",
+      "reindex_limits": "applied",
+      "reindex_mode": "stock"
     },
     "index_schema": "2",
     "index_status": {
-      "builtFromVersion": 17,
-      "documents": 415,
+      "builtFromVersion": 103,
+      "documents": 2379,
       "embedder": "none (keyword-only)",
       "embedderActive": false,
       "embedderConfigured": "off",
       "fulltextEnabled": true,
-      "fulltextItems": 11,
+      "fulltextItems": 89,
       "fulltextItemsScanned": 0,
       "fulltextItemsTotal": 0,
-      "fulltextPassages": 398,
+      "fulltextPassages": 2276,
       "fulltextVersion": 0,
-      "items": 17,
-      "itemsAvailable": 17,
+      "items": 103,
+      "itemsAvailable": 103,
       "itemsFetched": 0,
       "itemsRemoved": 0,
-      "itemsTotal": 17,
+      "itemsTotal": 103,
       "library": "user",
       "libraryBackend": "local",
-      "libraryVersion": 84,
+      "libraryVersion": 484,
       "operation": "build",
       "ownWordsEnabled": false,
       "ownWordsItems": 0,
       "ownWordsPassages": 0,
-      "passages": 415,
+      "passages": 2379,
       "phase": "metadata",
       "state": "idle",
       "storage": "sqlite",
       "vectors": 0
     },
     "k": 10,
-    "recipe_sha256": "23980113a777c3ecec90692ee12c5b6205a95279dec61876c3ff13cc69f23716",
+    "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1",
     "reply_shape": {
       "attachment_key_carried": false,
       "chain_from_replay_items_by_item_key": [
@@ -1768,7 +1828,7 @@
     "retrieval_mode": "keyword (BM25 over passages) reported as lexical; semantic and hybrid not-run",
     "server_info": {
       "name": "zoteus",
-      "version": "1.14.0"
+      "version": "1.13.0"
     },
     "tool": "zotero_semantic_search"
   },
