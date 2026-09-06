@@ -252,6 +252,20 @@ branch, the SHA and the measurements throughout.
   `make upstream-checkout` recreates the git-ignored `fork/` at the reviewed
   SHA with both `origin` and `upstream` remotes. Do not overwrite an existing
   checkout.
+- **Throwaway probe state gets a lifecycle before it gets a path.** The
+  acceptance runner allocates a fresh arena per run under
+  `$ACCEPTANCE_ARENA/<date>/<time>-<check>` and, since ticket 0720, keeps
+  only the three most recent runs per base. Nothing else under `~/data`
+  is ever swept: not by version control, not by the `/tmp` wipe at
+  reboot, not by the job directory's deletion. So a hand-made directory
+  beside the run layout (`seed/`, `ladder/`, `r23-iso/`: five of them
+  from one afternoon on 2026-09-03, 613 MB, each carrying its own copy of
+  the model weights) is invisible to every cleanup that exists, and a
+  subagent's report naming it dies with `/tmp`. Put an ad-hoc probe under
+  a job's `tmp/` (deleted with the job), or under the run layout so
+  retention bounds it; when a probe must live beside the arena, name it
+  in the ticket or verification note that consumes it, with a line saying
+  when it can go.
 - Zotero's local API cannot request extraction, and Zotero 10 has no bulk
   reindex button, so the author's Zotero carries a small plugin of ours,
   `bench/zotero-fulltext-plugin/`: two endpoints on Zotero's own server that
