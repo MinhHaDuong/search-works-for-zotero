@@ -8,6 +8,8 @@ Blocked-by: github.com/MinhHaDuong/search-works-for-zotero#365
 2026-09-06T00:00Z claude created
 2026-09-06T00:00Z claude note Imagine phase (raid, model sonnet) ESCALATEd the original combined ticket: ~7 of 13 scenarios needed a Zotero-environment mock harness that does not exist anywhere in this repo's test tree, one scenario (clock jump backwards) asked for monotonic-time behavior that does not exist in the code -- a design decision, not a test -- and one row referenced an uncoded counter. Split per its recommendation: this ticket keeps only the scenarios testable today with the existing `host` mock pattern in `tests/sdt_sitter_scheduler.mjs`; the rest moved to 0695.
 
+2026-09-06T08:46Z claude note Execute phase: 2 tests written, not 4. Row 2 (pack absent/corrupt after a resolving ensure) IS the existing test "native success without current persisted cache counts as failure" -- scheduler.js line 62 folds !ok and after.status !== current into one throw, so both rows drive the same branch. Row 4 (disable during active job) IS the existing test "disable during ensure leaves completion but no UI callbacks or next admission". Neither was re-added.
+2026-09-06T08:47Z claude note Red control arms against tests-commit 535abd9, scheduler broken in the working tree one break at a time, each run reporting per-test verdicts instead of aborting on the first failure. (a) Drop the host.reportError call at scheduler.js:73 -- 9 of 10 PASS, only "native rejection mid-job is reported once and the next document is still admitted" FAILs. (b) Hoist host.blocked out of the per-candidate loop into one pre-loop check -- 9 of 10 PASS, only "resources crossing the threshold between admissions refuse the next, not the running job" FAILs, the existing constant-blocked test staying green. Each break isolates exactly its new test: the overlap criterion executed rather than asserted. A third, coarser break (deleting the per-candidate catch so the throw escapes to the outer catch) also reddens the new rejection test, and two existing ones with it, which is why the sharper breaks above are the ones recorded.
 --- body ---
 ## Context
 
@@ -40,12 +42,17 @@ is out of scope -- that is ticket 0681's crash-recovery detection.
 
 ## Acceptance
 
-- [ ] Each row is one test, shown red once against a deliberately broken
+- [x] Each row is one test, shown red once against a deliberately broken
       scheduler -- record the red commit hash in this ticket's log.
-- [ ] Tests run under this repo's existing `make check` (no separate
+      Two rows, not four: the overlap check below retired the other two.
+      Red commit 535abd9, one break per run, logged above.
+- [x] Tests run under this repo's existing `make check` (no separate
       "integration tier" selector exists in this project's Makefile/
       conftest -- tag with the registered `integration` marker for
       classification only, it is not a gate).
-- [ ] Each test is checked against the existing seven in
+      `tests/test_sdt_sitter.py` is the pytest wrapper that spawns node;
+      both of its functions now carry the marker.
+- [x] Each test is checked against the existing seven in
       `tests/sdt_sitter_scheduler.mjs` for overlap before being counted as
-      new coverage.
+      new coverage. Two rows failed that check and were dropped; the two
+      kept rows each have a break that reddens them and nothing else.
