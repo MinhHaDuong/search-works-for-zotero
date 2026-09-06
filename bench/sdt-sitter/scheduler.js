@@ -9,7 +9,7 @@ var createSDTSitter = function (host) {
   const state = { enabled: true, busy: false, phase: 'ready', active: null, progress: null,
     lastProgressAt: null, startedAt: null, completed: 0, failed: 0,
     scanned: 0, total: 0, counts: {}, serviceMS: 0, samples: [], activeInfo: null,
-    fittedSamples: [], pending: [], error: null };
+    fittedSamples: [], pending: [], candidates: 0, error: null };
   const failed = new Set();
   const publish = () => { if (state.enabled) host.changed(state); };
   return {
@@ -47,6 +47,10 @@ var createSDTSitter = function (host) {
         // Both titles travel with the queue. The attachment's own title is usually
         // auto-generated ('Full Text PDF'), so the UI needs the parent reference to
         // name anything a reader recognises.
+        // Kept apart from state.pending, which drains as documents settle. What
+        // the caller's poll interval needs is what this census FOUND, and by the
+        // end of the sweep pending says nothing about it (ticket 0701).
+        state.candidates = candidates.length;
         state.pending = candidates.map(({ id, before }) => ({ id, title: before.title ?? null,
           parentTitle: before.parentTitle ?? null, sourceBytes: before.sourceBytes, pages: before.pages }));
         if (state.enabled && host.censusComplete) {
@@ -164,6 +168,36 @@ var createSDTCache = function (raw, versions) {
     saved(changes) { for (const { key } of changes) dirty.delete(key); },
     samples() { return Object.values(records).filter(r => validSample(r.sample)).map(r => r.sample); },
     data() { return { format: 1, versions, records }; },
+  };
+};
+
+/* The source MD5, remembered against the file's (path, size, mtime).
+
+   The sitter's cache key embeds the source hash, so `inspect()` had to hash the
+   file before it could consult the cache — and `sweep()` inspects the whole
+   library every time. Net effect: a full-library MD5 read every 30 seconds, all
+   night, from a plugin whose stated design is a quiet supervisor with a minimal
+   footprint (ticket 0701). Native Zotero's own SDT code keys a fingerprint on
+   exactly these three values for exactly this reason.
+
+   In memory only, and derived: it is not a claim about job state, and the worst
+   a stale entry costs is one recomputed identity. Nothing here is persisted, so
+   the disposable-cache-only ruling stands untouched. */
+var createSDTSourceHashes = function () {
+  const records = new Map();
+  return {
+    async hash(key, path, stat, compute) {
+      // The path is in the fingerprint because a file moved between attachments
+      // can carry a byte-identical size and mtime.
+      const fingerprint = JSON.stringify([path, stat.size, stat.lastModified]);
+      const known = records.get(key);
+      if (known && known.fingerprint === fingerprint) return known.hash;
+      const hash = await compute();
+      records.set(key, { fingerprint, hash });
+      return hash;
+    },
+    prune(keys) { for (const key of records.keys()) if (!keys.has(key)) records.delete(key); },
+    size() { return records.size; },
   };
 };
 

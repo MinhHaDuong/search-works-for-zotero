@@ -364,6 +364,66 @@ await test('after a hang the ring names the active document, its last progress a
   ui.heartbeatTick();
   assert.equal(ring.tail(50).length, settled);
 });
+/* Ticket 0701. The census hashed every attachment on every 30 s sweep, because
+   the cache key embeds the source MD5 and so the hash had to be taken before the
+   cache could be consulted. Counted across two consecutive sweeps of a library
+   nothing has touched, and then across a third where one file has changed — the
+   third arm is what separates "skips the hash" from "never hashes again". */
+await test('an unchanged library is not re-hashed, a changed file still is', async () => {
+  const hashes = context.createSDTSourceHashes();
+  const stats = { 1: { size: 10, lastModified: 5 }, 2: { size: 20, lastModified: 7 } };
+  let hashed = 0;
+  const f = fixture();
+  f.host.inspect = async id => ({
+    status: 'current',
+    identity: await hashes.hash(`1/${id}`, `/store/${id}/file.pdf`, stats[id],
+      async () => { hashed++; return `md5-${id}-${stats[id].lastModified}`; }),
+  });
+  await f.api.sweep();
+  assert.equal(hashed, 2);
+  await f.api.sweep();
+  assert.equal(hashed, 2, 'an untouched library was hashed again on the second sweep');
+  stats[2] = { size: 20, lastModified: 9 };
+  await f.api.sweep();
+  assert.equal(hashed, 3, 'a changed file must be hashed again');
+  assert.equal(f.api.state.counts.current, 2);
+  // Same bytes, different file: the path is in the fingerprint because an
+  // attachment can be repointed at a byte-identical size and mtime.
+  await hashes.hash('1/1', '/store/1/other.pdf', stats[1], async () => { hashed++; return 'x'; });
+  assert.equal(hashed, 4);
+  assert.equal(hashes.size(), 2);
+  hashes.prune(new Set(['1/1']));
+  assert.equal(hashes.size(), 1, 'a deleted attachment keeps its hash forever');
+});
+await test('an idle library backs off; anything left to do keeps the 30 s cadence', async () => {
+  const idle = fixture();
+  idle.host.inspect = async () => ({ status: 'current' });
+  await idle.api.sweep();
+  assert.equal(idle.api.state.phase, 'waiting'); assert.equal(idle.api.state.candidates, 0);
+  assert(ui.nextSweepDelayMS(idle.api.state) >= 30000 * 10,
+    `an idle census still polls every ${ui.nextSweepDelayMS(idle.api.state)} ms`);
+  // A sweep that did work ends 'waiting' with an empty queue too — pending
+  // cannot tell the two apart, which is why `candidates` exists.
+  const worked = fixture();
+  await worked.api.sweep();
+  assert.equal(worked.api.state.phase, 'waiting');
+  assert.equal(worked.api.state.pending.length, 0);
+  assert.equal(worked.api.state.candidates, 2);
+  assert.equal(ui.nextSweepDelayMS(worked.api.state), 30000);
+  // And a sweep halted by a resource gate has work waiting: look again soon.
+  const held = fixture(); held.host.blocked = async () => 'low-disk';
+  await held.api.sweep();
+  assert.equal(ui.nextSweepDelayMS(held.api.state), 30000);
+  // A census that threw also found no candidate, and it is the case the count
+  // alone cannot tell from a finished library. Only the phase separates them,
+  // and a broken census must be retried in seconds, not in ten minutes.
+  const broken = fixture();
+  broken.host.list = async () => { throw new Error('the item table is unreadable'); };
+  await broken.api.sweep();
+  assert.equal(broken.api.state.phase, 'error');
+  assert.equal(broken.api.state.candidates, 0);
+  assert.equal(ui.nextSweepDelayMS(broken.api.state), 30000);
+});
 /* Ticket 0702's trigger, reproduced rather than described: a dialog whose window
    has gone, so one getElementById comes back null halfway through the render.
    render() is reached from publish(), which the scheduler calls from inside its

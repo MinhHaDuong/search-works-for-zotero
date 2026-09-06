@@ -3,6 +3,7 @@ var createSDTSitter;
 var estimateSDTDuration;
 var createSDTCache;
 var createSDTJournal;
+var createSDTSourceHashes;
 // `var`, not `let`: the journal and the sitter are the state the scheduler test
 // drives this file's emit/heartbeat/shutdown against, and only `var` reaches the
 // script global a sandboxed load exposes.
@@ -14,6 +15,7 @@ let timer, pulse, heartbeat, timers, renderFailing = false;
 const closeJournalled = new WeakSet();
 const BUTTON = 'sdt-pack-sitter-button';
 const SWEEP_INTERVAL_MS = 30000;
+const IDLE_SWEEP_INTERVAL_MS = 10 * 60 * 1000;
 const DEBUG_PREF = 'extensions.sdt-pack-sitter.debug';
 // Bootstrap reason constants are numeric here and named elsewhere; accept both.
 const SHUTDOWN_REASONS = { 2: 'app-shutdown', 3: 'enable', 4: 'disable',
@@ -80,6 +82,21 @@ function heartbeatTick() {
   emit('heartbeat', { id: s.active, phase: s.phase, progress: s.progress,
     elapsedMS: age(s.startedAt), sinceProgressMS: age(s.lastProgressAt),
     pending: s.pending.length }, 'trace');
+}
+
+/* How long before the next census. Ticket 0701: a library with nothing left to
+   index was re-censused every 30 seconds, all night, and every census walked the
+   whole item table. A sweep that ended `waiting` having found no candidate found
+   nothing to react to, so the next look is a floor poll rather than a work queue.
+
+   A floor rather than a notifier subscription, deliberately: the poll is the
+   robust half either way, and 10 minutes is 20x fewer wake-ups while still
+   picking up a newly added attachment within one coffee. `candidates`, not
+   `pending`: pending drains as documents settle, so by the end of a productive
+   sweep it is empty too, and the two cases are not the same one. */
+function nextSweepDelayMS(state) {
+  return state.phase === 'waiting' && state.candidates === 0
+    ? IDLE_SWEEP_INTERVAL_MS : SWEEP_INTERVAL_MS;
 }
 
 /* The failure half of settle. It goes to the session ring and Zotero.debug(),
@@ -430,6 +447,9 @@ async function initialize(rootURI, token) {
     }
   } catch (error) { /* Disposable cache. */ }
   const cache = createSDTCache(raw, JSON.stringify(versions));
+  // In memory, never on disk: the pack cache above carries claims worth keeping
+  // across sessions, and a source hash is reconstructible from the file itself.
+  const sourceHashes = createSDTSourceHashes();
   emit('cache-load', { records: Object.keys(raw.records).length });
   let seen = new Set();
   let compact = true;
@@ -474,8 +494,15 @@ async function initialize(rootURI, token) {
     const processor = item.isPDFAttachment() ? 'pdf' : item.isEPUBAttachment() ? 'epub' : item.isSnapshotAttachment() ? 'snapshot' : null;
     if (!processor) return { status: 'unsupported' };
     const sourcePath = await item.getFilePathAsync();
-    if (!sourcePath || !(await IOUtils.exists(sourcePath))) return { status: 'missing-source' };
-    const hash = await item.attachmentHash;
+    if (!sourcePath) return { status: 'missing-source' };
+    // One stat where there were an exists() and a stat(): it answers both
+    // questions at once, and its (size, lastModified) is what lets the MD5 below
+    // be skipped on a file nothing has touched since the last census.
+    let source;
+    try { source = await IOUtils.stat(sourcePath); }
+    catch (_error) { return { status: 'missing-source' }; }
+    const cacheKey = `${item.libraryID}/${item.key}`;
+    const hash = await sourceHashes.hash(cacheKey, sourcePath, source, () => item.attachmentHash);
     const directory = Zotero.Attachments.getStorageDirectory(item).path;
     const path = PathUtils.join(directory, '.zotero-sdt-cache');
     const [title, parentTitle] = await Promise.all([getItemTitle(item), getItemTitle(parent)]);
@@ -483,9 +510,9 @@ async function initialize(rootURI, token) {
       title: title || sourcePath.split(/[\\/]/).pop(),
       parentTitle: parentTitle || null,
       identity: `${item.libraryID}/${item.key}/${hash}/${JSON.stringify(versions)}` };
-    result.cacheKey = `${item.libraryID}/${item.key}`;
+    result.cacheKey = cacheKey;
     seen.add(result.cacheKey);
-    result.sourceBytes = (await IOUtils.stat(sourcePath)).size;
+    result.sourceBytes = source.size;
     result.pages = processor === 'pdf' ? await Zotero.DB.valueQueryAsync(
       'SELECT totalPages FROM fulltextItems WHERE itemID = ?', [id]) : null;
     if (!(await IOUtils.exists(path))) { cache.drop(result.cacheKey); return result; }
@@ -552,7 +579,9 @@ async function initialize(rootURI, token) {
 
   sitter = createSDTSitter({
     list: () => { seen = new Set(); return Zotero.DB.columnQueryAsync('SELECT itemID FROM itemAttachments ORDER BY itemID'); },
-    censusComplete: async () => { cache.prune(seen); await saveCache(); return cache.samples(); },
+    censusComplete: async () => {
+      cache.prune(seen); sourceHashes.prune(seen); await saveCache(); return cache.samples();
+    },
     observed: async (info, sample) => { cache.observe(info.cacheKey, info.identity, sample); await saveCache(); },
     inspect, blocked, now: () => Date.now(), changed: render,
     // 0691's on-screen wording, this ticket's journal: describeError still shows
@@ -588,7 +617,9 @@ async function initialize(rootURI, token) {
     } catch (error) {
       emit('sweep-error', { error: classifyError(error) }, 'error');
     } finally {
-      if (alive && token === generation) timer = timers.setTimeout(sweep, SWEEP_INTERVAL_MS);
+      if (alive && token === generation) {
+        timer = timers.setTimeout(sweep, nextSweepDelayMS(sitter.state));
+      }
     }
   };
   pulse = timers.setInterval(render, 100);
