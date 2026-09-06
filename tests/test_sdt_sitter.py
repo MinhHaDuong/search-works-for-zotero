@@ -89,6 +89,15 @@ UI_SITES = (
     ("getElementById('sdt-fulltext').textContent", ';'),
     ('Services.prompt.confirm(', 'if (token !== generation) return;'),
     ('describeError: (info, error) =>', 'reportError:'),
+    # The disclosure layers of ticket 0693. A site added to the dialog and not
+    # added here is a site the vocabulary ban stops covering, which is the
+    # asymmetry this list fails on: removing a site is loud, arriving is silent.
+    ('function describeSDTEnvironment() {', '\n}'),
+    ('function describeSDTAdmission() {', '\n}'),
+    ('function describeSDTJournalTail(limit = 50) {', '\n}'),
+    ('function composeSDTJournalReport() {', '\n}'),
+    ('function buildSDTDiagnostics(doc, element) {', '\n}'),
+    ("getElementById('sdt-observations').textContent", ';'),
 )
 
 # "document" is the trap: Zotero's own French UI renders *item* as "document",
@@ -121,6 +130,18 @@ def _ui_strings(site: str) -> list[str]:
 @pytest.mark.integration
 def test_sdt_sitter_scheduler():
     subprocess.run(['node', 'tests/sdt_sitter_scheduler.mjs'], cwd=ROOT,
+                   check=True, capture_output=True, text=True, timeout=30)
+
+
+@pytest.mark.integration
+def test_sdt_sitter_dialog():
+    """The disclosure layers, driven against a stub document rather than read.
+
+    Nesting, closed-by-default, the debug switch's two directions, the ring tail
+    with the pref off, and what the copy action may carry are all behaviour; the
+    source says nothing about any of them.
+    """
+    subprocess.run(['node', 'tests/sdt_sitter_dialog.mjs'], cwd=ROOT,
                    check=True, capture_output=True, text=True, timeout=30)
 
 
@@ -453,6 +474,27 @@ def test_native_fulltext_panel_is_the_text_search_index():
     assert 'Index de recherche textuelle' in body
     assert 'Index texte natif' not in body
     assert 'packs SDT' not in body
+
+
+def test_admission_readings_are_recorded_where_they_are_read():
+    """The diagnostics layer shows the numbers behind the gate's verdict.
+
+    Read here rather than driven: `blocked()` closes over `initialize`'s Zotero
+    handles, and standing those up would test the stub. What a reading of the
+    source CAN settle is the placement that decides whether the layer is ever
+    populated — a reading recorded on the refusing branch alone is blank exactly
+    when the sitter is healthy, which is most of the time it is looked at. So
+    each assertion pairs the field with the line that must precede its threshold.
+    The rendering of these readings is driven, in tests/sdt_sitter_dialog.mjs.
+    """
+    site = _site('async function blocked(info) {', '\n  }')
+    for field, threshold in (('memoryAvailableBytes', "return 'low-memory'"),
+                             ('load', "return 'cpu-busy'"),
+                             ('cpus', "return 'cpu-busy'"),
+                             ('diskAvailableBytes', "return 'low-disk'")):
+        assert 'admission' in site and field in site, field
+        assert site.index(field) < site.index(threshold), \
+            f'{field} is recorded after the refusal it explains'
 
 
 def test_scheduler_threads_both_titles_to_the_ui():
