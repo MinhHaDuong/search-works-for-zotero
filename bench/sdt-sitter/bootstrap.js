@@ -17,6 +17,10 @@ let timer, pulse, heartbeat, timers;
 const buttons = new Set(), dialogs = new Set(), closeJournalled = new WeakSet();
 const BUTTON = 'sdt-pack-sitter-button';
 const DEBUG_PREF = 'extensions.sdt-pack-sitter.debug';
+// SPEC.md owns these two numbers; this file needs them to compare against, and
+// the diagnostics layer needs to print them. One statement each, so a threshold
+// moved in the gate cannot leave a stale figure on screen beside the reading.
+const MIN_FREE_MEMORY = 4 * 1024 ** 3, MIN_FREE_DISK = 8 * 1024 ** 3;
 // Bootstrap reason constants are numeric here and named elsewhere; accept both.
 const SHUTDOWN_REASONS = { 2: 'app-shutdown', 3: 'enable', 4: 'disable',
   5: 'install', 6: 'uninstall', 7: 'upgrade', 8: 'downgrade' };
@@ -167,11 +171,13 @@ function describeSDTEnvironment() {
 function describeSDTAdmission() {
   if (!admission) return 'Aucune mesure de ressources depuis le démarrage.';
   return [
-    `Mémoire disponible : ${formatSDTBytes(admission.memoryAvailableBytes)} (seuil 4,0 Gio)`,
+    `Mémoire disponible : ${formatSDTBytes(admission.memoryAvailableBytes)} (seuil ${formatSDTBytes(MIN_FREE_MEMORY)})`,
     admission.load === undefined ? ''
-      : `Charge processeur : ${admission.load} sur ${admission.cpus} cœurs`,
+      // The load average is a bare number from /proc and would otherwise print a
+      // decimal point beside two readings that carry a comma.
+      : `Charge processeur : ${String(admission.load).replace('.', ',')} sur ${admission.cpus} cœurs`,
     admission.diskAvailableBytes === undefined ? ''
-      : `Espace disque : ${formatSDTBytes(admission.diskAvailableBytes)} (seuil 8,0 Gio)`,
+      : `Espace disque : ${formatSDTBytes(admission.diskAvailableBytes)} (seuil ${formatSDTBytes(MIN_FREE_DISK)})`,
   ].filter(Boolean).join('\n');
 }
 
@@ -646,7 +652,7 @@ async function initialize(rootURI, token) {
       // sitter is healthy — which is most of the time it is looked at.
       admission = { at: Date.now(), memoryAvailableBytes: available };
       if (!Number.isFinite(available)) return 'resources-unavailable';
-      if (available < 4 * 1024 ** 3) return 'low-memory';
+      if (available < MIN_FREE_MEMORY) return 'low-memory';
       const load = Number(Zotero.File.getContents('/proc/loadavg').split(' ')[0]);
       const cpus = win.navigator.hardwareConcurrency;
       admission.load = load; admission.cpus = cpus;
@@ -661,7 +667,7 @@ async function initialize(rootURI, token) {
       const file = Zotero.File.pathToFile(directory);
       if (!file.isWritable()) return 'storage-unavailable';
       admission.diskAvailableBytes = file.diskSpaceAvailable;
-      if (file.diskSpaceAvailable < 8 * 1024 ** 3) return 'low-disk';
+      if (file.diskSpaceAvailable < MIN_FREE_DISK) return 'low-disk';
     } catch (error) {
       if (alive && sitter) sitter.state.error = `Lecture des ressources : ${error}`;
       return 'resources-unavailable';

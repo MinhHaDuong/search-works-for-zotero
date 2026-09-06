@@ -151,6 +151,22 @@ def test_sdt_sitter_bootstrap_syntax():
                    check=True, capture_output=True, text=True, timeout=30)
 
 
+@pytest.mark.integration
+def test_probe_javascript_parses():
+    """The Makefile puts `verification/probes/` in the lint gate on the ground
+    that a probe which produced committed evidence is code we depend on. Ruff is
+    Python-only, so the JavaScript probes were in scope by intent and covered by
+    nothing -- a syntax error in the in-app harness stays invisible until someone
+    boots a real Zotero, which is the one run that costs an evening. Discovered
+    while adding the layer assertions of ticket 0693 to that harness.
+    """
+    probes = sorted((ROOT / 'verification' / 'probes').rglob('*.js'))
+    assert probes, 'no JavaScript probe found: the glob, not the tree, is what changed'
+    for probe in probes:
+        subprocess.run(['node', '--check', str(probe)], cwd=ROOT,
+                       check=True, capture_output=True, text=True, timeout=30)
+
+
 def test_read_addon_record_discriminates_present_absent_and_someone_else(tmp_path):
     """Three arms, because two would pass on a check that matches the wrong field.
 

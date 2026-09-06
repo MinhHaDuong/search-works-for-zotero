@@ -252,7 +252,8 @@ test('versions, admission readings and the install path are on screen', () => {
   const readings = doc.getElementById('sdt-admission').textContent;
   assert(readings.includes('6,5 Gio'), readings);
   assert(readings.includes('120,0 Gio'), readings);
-  assert(readings.includes('1.5 sur 8'), readings);
+  // A decimal comma, like the two byte readings beside it: /proc hands out a point.
+  assert(readings.includes('1,5 sur 8'), readings);
 });
 
 test('the copied journal carries the build and never the install path', () => {
