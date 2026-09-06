@@ -35,7 +35,11 @@ var createSDTSitter = function (host) {
           if (!['missing-pack', 'stale-source', 'stale-processor', 'invalid-pack'].includes(status)) continue;
           candidates.push({ id, before, status });
         }
-        state.pending = candidates.map(({ id, before }) => ({ id, sourceBytes: before.sourceBytes, pages: before.pages }));
+        // Both titles travel with the queue. The attachment's own title is usually
+        // auto-generated ('Full Text PDF'), so the UI needs the parent reference to
+        // name anything a reader recognises.
+        state.pending = candidates.map(({ id, before }) => ({ id, title: before.title ?? null,
+          parentTitle: before.parentTitle ?? null, sourceBytes: before.sourceBytes, pages: before.pages }));
         if (state.enabled && host.censusComplete) {
           state.samples = await host.censusComplete();
           state.fittedSamples = state.samples.slice();
@@ -48,7 +52,8 @@ var createSDTSitter = function (host) {
           if (!state.enabled) break;
           if (reason) { state.phase = reason; publish(); break; }
           state.active = id; state.startedAt = host.now();
-          state.activeInfo = { sourceBytes: before.sourceBytes, pages: before.pages };
+          state.activeInfo = { title: before.title ?? null, parentTitle: before.parentTitle ?? null,
+            sourceBytes: before.sourceBytes, pages: before.pages };
           state.lastProgressAt = state.startedAt; state.progress = null;
           state.phase = 'extracting'; publish();
           try {

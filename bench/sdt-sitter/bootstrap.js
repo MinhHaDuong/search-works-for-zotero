@@ -15,6 +15,49 @@ function getSDTCoverage(state) {
     total: Math.max(0, state.total - (state.counts.excluded || 0) - (state.counts.unsupported || 0)) };
 }
 
+/* Every phase a reader can meet on hover, in the user's vocabulary. A blocked or
+   failed sitter must be distinguishable from a healthy idle one at zero clicks,
+   so each blocking reason gets its own plain sentence; the raw internal name
+   stays in the diagnostics disclosure. `null` is the deliberate no-label case:
+   the two healthy idle phases, where the count already says everything. An
+   unlisted phase falls back to the bare count rather than leaking its name. */
+var SDT_PHASE_LABELS = {
+  ready: null,
+  waiting: null,
+  census: 'Recensement',
+  extracting: 'Indexation en cours',
+  error: 'Erreur',
+  disabled: 'Désactivé',
+  'native-worker-busy': 'En attente : indexation native en cours',
+  'cpu-busy': 'En pause : processeur occupé',
+  'low-memory': 'En pause : mémoire insuffisante',
+  'low-disk': 'En pause : espace disque insuffisant',
+  'storage-unavailable': 'En pause : stockage indisponible',
+  'resources-unavailable': 'En pause : ressources système illisibles',
+  'launch-declined; disable/re-enable to launch': 'Non lancé : désactiver puis réactiver l’extension',
+};
+
+function describeSDTTooltip(state) {
+  const indexed = state.completed > 1
+    ? `${state.completed} fichiers indexés` : `${state.completed} fichier indexé`;
+  const label = SDT_PHASE_LABELS[state.phase];
+  return label ? `${label} — ${indexed}` : indexed;
+}
+
+/* The unit of work is one attachment, and Zotero names attachments for us
+   ('Full Text PDF', 'Snapshot'), so the attachment title alone identifies
+   nothing. Lead with the reference that owns it. One composer, so the progress
+   line and the error line cannot drift into naming the same file two ways. */
+function describeSDTFile(info, fallback) {
+  const { parentTitle, title } = info || {};
+  if (parentTitle && title) return `${parentTitle} — ${title}`;
+  return parentTitle || title || fallback;
+}
+
+function describeSDTActiveFile(state) {
+  return describeSDTFile(state.activeInfo, `fichier n° ${state.active}`);
+}
+
 function render() {
   if (!alive || !sitter) return;
   const s = sitter.state;
@@ -31,12 +74,12 @@ function render() {
     const spinning = s.active !== null;
     const blinking = !working && now < completionBlinkUntil;
     button.setAttribute('label', spinning
-      ? `${['◐', '◓', '◑', '◒'][Math.floor(now / 140) % 4]} SDT${coverageLabel}` : `SDT${coverageLabel}`);
+      ? `${['◐', '◓', '◑', '◒'][Math.floor(now / 140) % 4]} Index${coverageLabel}` : `Index${coverageLabel}`);
     const opacity = s.phase === 'census'
       ? 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(now / 450))
       : blinking ? ((Math.floor(now / 180) % 2) ? 0.2 : 1) : 1;
     button.style.setProperty('opacity', String(opacity), 'important');
-    button.setAttribute('tooltiptext', `${s.phase === 'census' ? 'Recensement' : s.phase} — ${s.completed} packs créés`);
+    button.setAttribute('tooltiptext', describeSDTTooltip(s));
   }
   for (const dialog of dialogs) {
     if (dialog.closed) { dialogs.delete(dialog); continue; }
@@ -82,17 +125,21 @@ function render() {
     globalProgress.max = Math.max(1, coverage.total);
     if (coverage.known) globalProgress.value = coverage.current;
     else globalProgress.removeAttribute('value');
-    status.textContent = coverage.known ? `Packs à jour : ${coverage.current} / ${coverage.total}` : `Packs à jour : ${coverage.current}`;
-    const documentMessage = s.active === null ? 'Aucun document en cours' :
-      `Document ${s.active} — ${s.progress ?? '?'} % — ${formatDocumentDuration(elapsed * 1000)} écoulées`;
+    status.textContent = coverage.known ? `Fichiers indexés : ${coverage.current} / ${coverage.total}` : `Fichiers indexés : ${coverage.current}`;
+    const activeMessage = s.active === null ? 'Aucune indexation en cours' :
+      `Indexation : ${describeSDTActiveFile(s)} — ${s.progress ?? '?'} % — ${formatDocumentDuration(elapsed * 1000)} écoulées`;
     const quietMessage = s.active !== null && Number(s.progress) >= 90 && silence >= 60
       ? (Number(s.progress) >= 95 ? 'Finalisation…' : 'Analyse des références…') : '';
-    doc.getElementById('sdt-document-status').textContent = [documentMessage, quietMessage].filter(Boolean).join('\n');
+    doc.getElementById('sdt-document-status').textContent = [activeMessage, quietMessage].filter(Boolean).join('\n');
     doc.getElementById('sdt-document-estimate').textContent = activePrediction
       ? `Durée estimée : ${formatDocumentDuration(activePrediction.median)} (entre ${formatDocumentDuration(activePrediction.low)} et ${formatDocumentDuration(activePrediction.high)})` : '';
     const globalEstimate = !overrun && s.scanned === s.total && s.fittedSamples.length >= 3
       ? `Fin estimée vers ${finishAt(total.median)} (entre ${finishAt(total.low)} et ${finishAt(total.high)})` : '';
     doc.getElementById('sdt-global-estimate').textContent = globalEstimate;
+    // Failures were reachable only by opening the diagnostics. Surface the count.
+    doc.getElementById('sdt-failures').textContent = s.failed === 0 ? ''
+      : s.failed > 1 ? `${s.failed} fichiers n’ont pas pu être indexés`
+        : `${s.failed} fichier n’a pas pu être indexé`;
     doc.getElementById('sdt-diagnostics').textContent = [
       `État : ${s.phase}`, `Recensement : ${s.scanned} / ${s.total}`,
       ...Object.entries(s.counts).map(([key, n]) => `${key} : ${n}`),
@@ -120,7 +167,7 @@ function openDialog(window) {
   const populate = async () => {
     if (!alive || dialog.closed) return;
     const doc = dialog.document;
-    doc.title = 'SDT Pack Sitter';
+    doc.title = 'Assistant d’indexation';
     const body = doc.body || doc.documentElement;
     body.replaceChildren();
     // A bare chrome about:blank window does not inherit Zotero's opaque surface.
@@ -147,8 +194,9 @@ function openDialog(window) {
       body.append(group);
     };
     section('sdt-global-section', 'Progression globale — bibliothèque', [
-      ['pre', 'sdt-status'], ['progress', 'sdt-global-progress'], ['pre', 'sdt-global-estimate']]);
-    section('sdt-document-section', 'Document en cours', [
+      ['pre', 'sdt-status'], ['progress', 'sdt-global-progress'], ['pre', 'sdt-global-estimate'],
+      ['pre', 'sdt-failures']]);
+    section('sdt-document-section', 'Indexation en cours', [
       ['pre', 'sdt-document-status'], ['progress', 'sdt-progress'], ['pre', 'sdt-document-estimate']]);
     const details = element('details', 'sdt-details');
     const summary = element('summary', 'sdt-details-title');
@@ -156,14 +204,14 @@ function openDialog(window) {
     details.append(summary, element('pre', 'sdt-diagnostics'));
     const indexDetails = element('details', 'sdt-index-details');
     const indexSummary = element('summary', 'sdt-index-title');
-    indexSummary.textContent = 'Index texte natif';
+    indexSummary.textContent = 'Index de recherche textuelle';
     indexDetails.append(indexSummary, element('pre', 'sdt-fulltext'));
     details.append(indexDetails); body.append(details);
     dialogs.add(dialog); render();
     try {
       const stats = await Zotero.Fulltext.getIndexStats();
       if (alive && !dialog.closed) doc.getElementById('sdt-fulltext').textContent =
-        `Index texte natif (distinct des packs SDT) :\n${JSON.stringify(stats, null, 2)}`;
+        `Index de recherche textuelle de Zotero (distinct de l’index préparé par l’assistant) :\n${JSON.stringify(stats, null, 2)}`;
     } catch (error) {
       if (alive && !dialog.closed) doc.getElementById('sdt-fulltext').textContent = `Statistiques indisponibles : ${error}`;
     }
@@ -345,10 +393,8 @@ async function initialize(rootURI, token) {
     censusComplete: async () => { cache.prune(seen); await saveCache(); return cache.samples(); },
     observed: async (info, sample) => { cache.observe(info.cacheKey, info.identity, sample); await saveCache(); },
     inspect, blocked, now: () => Date.now(), changed: render,
-    describeError: (info, error) => {
-      const parent = info.parentTitle ? ` — élément : « ${info.parentTitle} »` : '';
-      return `Échec de « ${info.title || 'pièce jointe inconnue'} »${parent} : ${String(error)}`;
-    },
+    describeError: (info, error) =>
+      `Échec de « ${describeSDTFile(info, 'fichier inconnu')} » : ${String(error)}`,
     reportError: async (info, error) => {
       const line = JSON.stringify({
         at: new Date().toISOString(), attachment: info.title || null,
@@ -366,13 +412,13 @@ async function initialize(rootURI, token) {
   alive = true;
   Zotero.SDTPackSitter = { state: sitter.state, inspect, blocked };
   for (const window of Zotero.getMainWindows()) onMainWindowLoad({ window });
-  const launch = Services.prompt.confirm(win, 'SDT Pack Sitter — expérimental',
-    'Préparer les packs SDT de toute la bibliothèque cette nuit ?\n\n' +
-    'Un document à la fois, avec au moins 4 Gio de RAM disponible et 8 Gio de disque libre. ' +
-    'Les PDF et les préférences d’indexation texte restent inchangés.\n\n' +
+  const launch = Services.prompt.confirm(win, 'Assistant d’indexation — expérimental',
+    'Indexer toute la bibliothèque cette nuit ?\n\n' +
+    'Un fichier à la fois, avec au moins 4 Gio de RAM disponible et 8 Gio de disque libre. ' +
+    'Les PDF et les préférences de l’index de recherche textuelle restent inchangés.\n\n' +
     'Le worker partagé ne peut être interrompu ni recevoir une priorité système indépendante. ' +
-    'Un gros document peut retarder un travail natif arrivé ensuite. Les seuils ne plafonnent pas sa consommation.\n\n' +
-    'Désactiver l’extension arrête les admissions ; le document en cours finit. ' +
+    'Un gros fichier peut retarder un travail natif arrivé ensuite. Les seuils ne plafonnent pas sa consommation.\n\n' +
+    'Désactiver l’extension arrête les admissions ; le fichier en cours finit. ' +
     'Les erreurs restent propres à la session. Un cache local jetable conserve les vérifications et durées ; il ne contient ni texte ni tâche active.');
   if (token !== generation) return;
   if (!launch) { sitter.state.phase = 'launch-declined; disable/re-enable to launch'; render(); return; }
