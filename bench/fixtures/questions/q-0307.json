@@ -1,0 +1,78 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0307",
+  "need": "Viết trước khi mở tài liệu: truyền thuyết nỏ thần — thần Kim Quy cho An Dương Vương vật gì để làm lẫy nỏ và nỏ ấy mạnh thế nào?",
+  "query": "thần Kim Quy cho An Dương Vương cái móng chân làm lẫy nỏ, bắn một phát giặc chết hàng vạn",
+  "question_language": "vi",
+  "answer_language": "vi",
+  "lane": "vi->vi",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch2",
+      "recipe_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch2",
+      "attachment_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch2-html",
+      "attachment_key": "Q98VLEJA",
+      "section": "4. Nhà Thục mất nước",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 3458,
+          "quote": "Thần Kim-qui lại cho An-dương-vương một cái móng chân, để làm cái lẫy-nỏ. Lúc nào có giặc thì đem cái nỏ ấy ra bắn một phát, giặc chết hàng vạn người."
+        }
+      ],
+      "chain": {
+        "title": "Việt Nam sử lược, Quyển I, Phần I, Chương II: Nhà Thục",
+        "author": "Trần Trọng Kim",
+        "date": "1920",
+        "identifier": "https://vi.wikisource.org/w/index.php?title=Vi%E1%BB%87t_Nam_s%E1%BB%AD_l%C6%B0%E1%BB%A3c%2FQuy%E1%BB%83n_I%2FPh%E1%BA%A7n_I%2FCh%C6%B0%C6%A1ng_II&oldid=100835",
+        "section_heading": "4. NHÀ THỤC MẤT NƯỚC",
+        "page_printed": null,
+        "part_title": "Chương II: Nhà Thục",
+        "part_byline": "Trần Trọng Kim"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "Q98VLEJA",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 3458,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}
