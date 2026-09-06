@@ -6,6 +6,7 @@ directions: the derivation fires on a known-positive string, and it stays
 silent on a string that carries nothing to derive from.
 """
 
+import importlib
 import sys
 from pathlib import Path
 
@@ -13,7 +14,7 @@ REPO = Path(__file__).resolve().parent.parent
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from bench.generator import text as T  # noqa: E402
+T = importlib.import_module("bench.generator.text")
 
 PROSE = ("The carbon tax was introduced in two thousand and fourteen under the name of the climate "
          "energy contribution, at a rate that rose every year until the protests of two thousand and "

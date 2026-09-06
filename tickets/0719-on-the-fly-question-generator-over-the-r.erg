@@ -5,8 +5,13 @@ Author: Minh Ha-Duong
 
 --- log ---
 2026-09-06T16:13Z sim created
-2026-09-06T17:10Z claude note filed on the author's naming of a fifth deliverable while ruling on the panel's point 8 (DECISIONS.md 2026-09-06, second round): a system that generates about a hundred questions on the fly from the author's real library and benches the search engine against them. Distinct from the Menagerie (ticket 0029), which stays pinned, public, adversarial and hand-judged; this is the library level of SPEC.md 5.2.8 made routine
+2026-09-06T16:14Z claude note filed on the author's naming of a fifth deliverable while ruling on the panel's point 8 (DECISIONS.md 2026-09-06, second round): a system that generates about a hundred questions on the fly from the author's real library and benches the search engine against them. Distinct from the Menagerie (ticket 0029), which stays pinned, public, adversarial and hand-judged; this is the library level of SPEC.md 5.2.8 made routine
 
+2026-09-06T17:03Z claude note runtime discovery on doudou: no ollama, no llama.cpp, no torch or transformers in any Python env; the one local generation runtime on the host is transformers.js 4.2.0 (the package zoteus embeds with, at ~/CNRS/projets/actifs/zoteus-fts5/fork/node_modules/@huggingface/transformers), which runs onnx-community/Qwen2.5-1.5B-Instruct q4 on CPU at about 20 s per short prompt (0.5B: 4 s). padme carries Qwen3-8B on two GPUs but is another machine, so under R10's letter it is not used; reported to the author as the alternative
+2026-09-06T17:03Z claude note Zotero was not running at session start (no process, port 23119 closed); started it from the session so the local API answers, the sampler and the target both need it. The API's /fulltext content keeps the form feeds Zotero's extractor writes between pages: 4 728 of 13 653 caches carry them, so the PDF page index is derivable for about a third of the library and not measured for the rest; printed page labels come from the PDF's /PageLabels through pikepdf where the tree exists
+2026-09-06T17:03Z claude note index scope: no schema-2 index over the library exists on this host (the local full indexes are schema 1, keyword-only, from 0120), and the reviewed build embeds at 3 to 8 passages per second on this CPU (Xenova/all-MiniLM-L6-v2 through transformers.js), so a full-library build with vectors is 15 to 40 hours; the run's scope is the newest 300 items, built with body text on, a stated limit
+2026-09-06T17:04Z claude note README deliverables row added as 'Library-level bench' (the author's name, relayed by the coordinator), with a section beside the two other unfinished deliverables; bench/check_progress.py now expects four public rows
+2026-09-06T17:04Z claude note two clients on Zotero 10's local API at once (the sampler's item listing beside the target's body-text crawl) saturated it within minutes: zoteus logged the port as not answering and fell back to the Zotero Web API, exactly the degradation its limits.ts documents. The build was stopped and restarted alone; the runner already serialises the stages, and a run must not share the API with anything else
 --- body ---
 ## Context
 
@@ -74,5 +79,5 @@ part's title and byline for a compound document).
 - [ ] a scorer reading win, near-win and miss on rank and chain completeness
 - [ ] a run against the reviewed zoteus build reported in `verification/`,
       aggregates only, with its seed and library version
-- [ ] README's deliverables table gains the row, once the author confirms
+- [x] README's deliverables table gains the row, once the author confirms
       the name

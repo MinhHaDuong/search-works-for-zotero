@@ -9,6 +9,7 @@ the argument parser, whose two shared options (`--transformers-path`,
 run; `build_parser()` is now built here on every test.
 """
 
+import importlib
 import json
 import sqlite3
 import sys
@@ -18,7 +19,7 @@ REPO = Path(__file__).resolve().parent.parent
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from bench.generator import run as R  # noqa: E402
+R = importlib.import_module("bench.generator.run")
 
 PARA = ("The carbon tax was introduced in two thousand and fourteen under the name of the climate energy "
         "contribution, at a rate that rose every year until the protests froze it, and the freeze has held.")

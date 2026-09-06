@@ -7,6 +7,7 @@ returning what a model would print, including the blank reply the fallback
 exists for.
 """
 
+import importlib
 import json
 import subprocess
 import sys
@@ -16,7 +17,7 @@ REPO = Path(__file__).resolve().parent.parent
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from bench.generator import questions as Q  # noqa: E402
+Q = importlib.import_module("bench.generator.questions")
 
 PARA = ("The carbon tax was introduced in two thousand and fourteen under the name of the climate energy "
         "contribution, at a rate that rose every year until the protests froze it, and the freeze has held.")

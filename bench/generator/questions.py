@@ -2,7 +2,7 @@
 """Write one question per sampled paragraph, on a local model, in a declared lane.
 
     python3 -m bench.generator.questions --work-dir /path/private \\
-        --writer tjs --transformers-path <dir> --model onnx-community/Qwen2.5-1.5B-Instruct \\
+        --writer tjs --transformers-path <dir> --model <hub id of an instruct model, ONNX weights> \\
         --cache-dir ~/data/cache/transformersjs --other-language-share 0.33 --seed 1
 
 **Lanes.** A lane is the pair (question language, answer-paragraph language),

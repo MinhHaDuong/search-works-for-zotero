@@ -4,7 +4,7 @@
     python3 -m bench.generator.run --entrypoint fork/dist/index.js --arena ~/data/generator-0719/arena \\
         --transformers-path <dir> --zotero-data-dir ~/data/Zotero --build-limit 1200 \\
         --census bench/results/0029-library-census/census.json --n 100 --seed 1 \\
-        --writer tjs --model onnx-community/Qwen2.5-1.5B-Instruct --cache-dir ~/data/cache/transformersjs \\
+        --writer tjs --model <hub id of an instruct model, ONNX weights> --cache-dir ~/data/cache/transformersjs \\
         --work-dir ~/data/generator-0719/work --output bench/results/0719-generator/run.json
 
 The engine under test is reached through the acceptance harness's adapter and

@@ -13,6 +13,7 @@ Three properties beyond the counts, each tested apart:
 """
 
 import argparse
+import importlib
 import json
 import sys
 import urllib.parse
@@ -24,7 +25,7 @@ REPO = Path(__file__).resolve().parent.parent
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from bench.generator import sample as S  # noqa: E402
+S = importlib.import_module("bench.generator.sample")
 
 PROSE_EN = ("The carbon tax was introduced in two thousand and fourteen under the name of the climate "
             "energy contribution, at a rate that rose every year until the protests of two thousand and "
