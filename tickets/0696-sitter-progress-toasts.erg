@@ -2,12 +2,14 @@
 Title: Add sitter progress toasts on job start, completion, and failure
 Created: 2026-09-06
 Author: claude
+Blocked-by: 0699
 
 --- log ---
 2026-09-06T00:00Z claude created
 2026-09-06T00:00Z author decided Proceed -- add the toasts. Cadence: one per overnight sweep, not per document.
 
 2026-09-06T10:11Z sim note blocker 0691 closed — Blocked-by removed.
+2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED WITH CHANGES. As originally worded this ticket would have shipped a real regression: the sweep wrapper reschedules on a fixed 30s timer forever, so a toast fired on every sweep() call (not gated on real work done) would repeat every 30s once the library is caught up -- the same class of incident the author already hit once this session (a stuck census loop producing a "toast storm"). Rewrote Design/Acceptance to gate on an actual completed/failed delta, dropped the per-document "job start" toast (redundant with the already-shipped toolbar ambient indicators, and unworded for a per-sweep cadence anyway), and added `Blocked-by: 0699` since the failure count this ticket would display is currently known-buggy in both directions.
 --- body ---
 ## Context
 
@@ -36,21 +38,38 @@ the same primitive the toolkit wraps.
 
 ## Design
 
-Add toasts for: job start ("Indexing: <title>", per 0691's vocabulary),
-job completion, and a terminal failure (one that will not be retried) --
-not on every progress tick, and not once per document in an overnight
-sweep of many documents (that would mean dozens of toasts per run, which
-cuts against the sitter's "supervise quietly" design). Pin down before
-writing acceptance tests: does "job completion" mean per-document or
-per-sweep? Default to per-sweep (one completion toast when the whole
-overnight run finishes, or goes idle) unless the author says otherwise --
-per-document toasts do not match unattended overnight operation.
+One completion/exceptions toast, gated on the sweep having actually
+processed something -- diff `state.completed`/`state.failed` before and
+after the `await sitter.sweep()` call (mirroring the existing
+`lastCompleted`/`completionBlinkUntil` diffing pattern already in
+bootstrap.js), and skip the toast entirely on an empty/idle sweep. The
+sweep wrapper reschedules on a fixed 30s timer for the life of the
+plugin -- it is not a bounded "overnight sweep" -- so a toast fired
+unconditionally on every call would repeat every 30 seconds forever once
+the library is caught up: strictly worse than the "dozens of toasts per
+run" this ticket already set out to avoid.
+
+No separate "job start" toast: it cannot be worded per-document (a sweep
+call can touch zero, one, or many files, so there is no single `<title>`
+to name "at sweep start"), and it is redundant with the toolbar's own
+already-shipped ambient indicators (spinning glyph while a file is
+active, opacity pulse during census).
+
+Text for the failure count depends on `state.failed`, which ticket 0699
+(open, reopened, zero acceptance boxes checked) documents as currently
+both over- and under-reporting. Land this ticket after 0699, or scope
+its first cut to a completion-only toast ("N fichiers indexes") and defer
+the failure-inclusive wording until 0699's fix lands.
 
 ## Acceptance
 
 - [ ] Toasts use `Zotero.ProgressWindow`; no new dependency added.
 - [x] Author has confirmed this ticket should proceed (recorded in the log).
-- [ ] Toast cadence is per-sweep, not per-document, unless the author's
-      answer says otherwise.
+- [ ] The toast fires only when a sweep call actually processed
+      candidates (completed/failed count changed), never on a bare timer
+      tick with nothing to report.
+- [ ] No per-document or per-sweep-start toast; only a completion/
+      exceptions toast.
 - [ ] Toast text uses only the vocabulary from ticket 0691 -- no internal
-      jargon.
+      jargon -- and the failure count it displays is the one 0699 fixes,
+      not the pre-fix count.

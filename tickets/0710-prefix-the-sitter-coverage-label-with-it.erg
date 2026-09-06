@@ -2,12 +2,12 @@
 Title: Prefix the sitter coverage label with its library scope
 Created: 2026-09-06
 Author: claude
-Blocked-by: 0691
 
 --- log ---
 2026-09-06T09:10Z claude created
 2026-09-06T09:10Z claude note Filed out of 0694's placement review. 0694 asked for the scoped form and 0691 does not carry it; without this ticket the requirement would close with 0691 and lose its owner. Scoped to the wording only -- placement is settled by the same-day ruling in DECISIONS.md.
 2026-09-06T10:06Z claude note Re-verification of PR #376 caught this ticket's Context quoting a DECISIONS.md sentence that the same PR's second commit had already reworded away -- "to be fixed in the tooltip rather than by moving the icon" exists nowhere in the ledger, and it contradicted Action 1 four lines below. Requoted verbatim from the ledger as it now stands, which leaves the surface to this ticket. Lesson for the next quoting ticket: a quotation and its source are only safe when the quote is exact, so the pair can be checked mechanically; this one was checked by normalizing whitespace and em dashes and asserting substring containment.
+2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED, no changes. Blocked-by 0691 now closed. Confirmed no separate aria-label exists in bootstrap.js today (the toolbar `label` attribute doubles as visible text and accessible name), so the tooltip/accessible-name/both surface choice is still genuinely open as the ticket states. `Zotero.Libraries.get(libraryID).name` is an established, simple API already used elsewhere in this repo -- no over-engineering risk. Ready to execute as written.
 
 --- body ---
 ## Context

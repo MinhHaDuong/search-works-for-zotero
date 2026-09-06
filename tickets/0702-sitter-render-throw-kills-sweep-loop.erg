@@ -7,6 +7,7 @@ Author: claude
 2026-09-06T00:00Z claude created
 
 2026-09-06T10:25Z sim note blocker 0689 closed — Blocked-by removed.
+2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED. Confirmed unchanged against current code -- render()/publish() still unguarded, no sweep-start/sweep-end emits exist. Implementation guidance: wrap render()'s whole body in bootstrap.js (covers all ~8 call sites at once) rather than each publish() site individually in scheduler.js, and add the sweep-start/sweep-end emits at the top/bottom of scheduler.js's sweep() -- a different region from the `if (reason) { state.phase = reason; publish(); break; }` line the mutation probe (verification/probes/sdt_sitter_scheduler_mutants.py, mutant M4) anchors on; do not touch that line. Land this ticket BEFORE 0701 -- both edit the sweep reschedule wrapper, and 0701's idle-backoff logic should build on this ticket's already-guarded wrapper, not the other way around.
 --- body ---
 ## Context
 

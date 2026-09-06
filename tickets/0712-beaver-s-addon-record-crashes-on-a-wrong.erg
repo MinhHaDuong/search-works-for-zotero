@@ -6,6 +6,7 @@ Author: sim
 --- log ---
 2026-09-06T11:35Z sim created
 2026-09-06T11:35Z claude note Filed from PR #373's red-team round. Reproduced by transcribing _host_addon_record verbatim and running it: two controls pass (present, absent) and three inputs raise. Not fixed there because #373 is ticket 0688 and this is a different file with different call sites; the same three defects were fixed in bench/sdt_sitter_install.py, whose read_addon_record was modelled on this function.
+2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED, no changes. Divergence confirmed live on both files. Extracting a shared helper is mechanically possible now (sdt's read_addon_record is already a free function parametrized on profile+addon_id, unlike the "bound to self.profile" framing this ticket's own filing used) but would create an odd cross-plugin coupling (beaver depending on the sitter's own installer script) -- porting the fix, not extracting a shared module, matches PR #373's own review, which explicitly deferred that larger refactor as a separate decision. No blocking relationship with anything in the sitter wave; unrelated file, ready to execute independently.
 
 --- body ---
 ## Context

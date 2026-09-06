@@ -5,9 +5,10 @@ Author: claude
 
 --- log ---
 2026-09-06T00:00Z claude created
-2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED. Confirmed the reorg is purely additive over the existing nested <details> (bootstrap.js lines 153-161 already nest sdt-index-details inside sdt-details) -- no restructuring of the section scaffolding implied. Recommended splitting the progress-toast addition into its own ticket (0696) since it is self-initiated (not author-requested, no DECISIONS.md ratification) and adds new accessibility surface on top of 0686's still-open a11y gap; done below. Sequencing: build the reorg skeleton and diagnostics content that's independent of 0689 (versions, admission readings, install path) now; wire 0689's debug checkbox and ring tail into the existing diagnostics disclosure once 0689 merges, with one final a11y re-verification against the completed layout rather than two passes.
+2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED. Confirmed the reorg is purely additive over the existing nested <details> (bootstrap.js lines 153-161 already nest sdt-index-details inside sdt-details) -- no restructuring of the section scaffolding implied. Recommended splitting the progress-toast addition into its own ticket (0696) since it is self-initiated (not author-requested, no DECISIONS.md ratification) and adds new accessibility surface on top of 0686's still-open a11y gap; done below. Sequencing: build the reorg skeleton and diagnostics content that's independent of 0689 (versions, admission readings, install path) now; wire a debug checkbox (new UI, bound to the existing `extensions.sdt-pack-sitter.debug` pref) and ring tail into the existing diagnostics disclosure once 0689 merges, with one final a11y re-verification against the completed layout rather than two passes.
 
 2026-09-06T10:25Z sim note blocker 0689 closed — Blocked-by removed.
+2026-09-06T00:00Z claude note Imagine phase round 2 (raid, sonnet): PROCEED WITH CHANGES. 0689 has now actually merged (it was still open at the prior Imagine pass), so the two-phase sequencing note is moot -- collapsed to one pass. Corrected "0689's debug checkbox" wording: 0689 shipped only the pref and trace-level gating, no checkbox UI exists anywhere in shipped code -- the checkbox is this ticket's own work to build, not a pre-built component to wire in.
 --- body ---
 ## Context
 
@@ -31,15 +32,15 @@ skeleton: two existing `<details>` disclosures (`sdt-details`,
    records, auto-refreshed), a "copy journal" action, versions (plugin,
    Zotero, pack/schema/processor), admission readings, install path.
 
-Nothing already shown is removed -- this is ordering, not deletion. The
-diagnostics-layer skeleton and the content that doesn't depend on 0689
-(versions, admission readings, install path) can be built now; the debug
-checkbox and ring-buffer tail slot in once 0689 merges.
+Nothing already shown is removed -- this is ordering, not deletion. 0689
+has merged, so this is one build pass, not two: the debug checkbox and
+ring-buffer tail (`Zotero.SDTPackSitter.journal.tail(50)`, already wired)
+land in the same pass as the rest of the diagnostics layer.
 
 ## Acceptance
 
-- [ ] Diagnostics disclosure hosts 0689's debug checkbox and ring tail
-      once available; opening the disclosure does not require debug mode
+- [ ] Diagnostics disclosure hosts a debug checkbox (new UI, bound to the existing `extensions.sdt-pack-sitter.debug` pref) and ring tail;
+      opening the disclosure does not require debug mode
       to already be on.
 - [ ] 0686's still-open accessibility items (keyboard open/focus/close/
       Escape/focus-return, reduced-motion, transition-only announcements)

@@ -7,6 +7,7 @@ Author: claude
 2026-09-06T00:00Z claude created
 
 2026-09-06T10:25Z sim note blocker 0689 closed — Blocked-by removed.
+2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED, second work item deferred. Confirmed unchanged. Implementation guidance: leave `state.startedAt` untouched -- it's legitimately used for the user-facing "elapsed since submission" display, the overrun check, and prediction math; disturbing it would regress those. Instead capture a second, extraction-only timestamp at the first `onProgress` call, used only for the `state.samples.push(...)` calculation -- a small, localized change confined to the inner per-candidate admission/extraction block. Defer the "discard a sample if workerBusy() was true before first progress" item (already hedged "Consider" in Work, not required by Acceptance) -- detecting mid-window contention races needs new polling infrastructure for marginal benefit, disproportionate to this ticket's scope. No line-level conflict with 0701/0702/0703 (touches scheduler.js's inner extraction block, a different region from 0702's outer sweep-start/sweep-end additions) -- low conflict, sequence via rebase, can slot in anywhere after 0702.
 --- body ---
 ## Context
 
