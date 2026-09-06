@@ -1,10 +1,13 @@
 """`bench/check_sitter_version.py` — and its own positive controls.
 
 The guard is silent on this repository today, and a silent guard proves nothing
-until it has been seen red. Three controls make it say something: a payload
-changed without a bump, a version walked backwards, and a checkout with no
-history at all. The last is the one that would otherwise pass as green — a gate
-that cannot look must not answer as though it had.
+until it has been seen red. Two controls make it say something: a payload
+changed without a bump, and a checkout with no history at all. The last is the
+one that would otherwise pass as green — a gate that cannot look must not
+answer as though it had. A third control locks in a deliberate design choice
+rather than a defect: the no-regression check was removed 2026-09-06 (author's
+ruling, this ticket's DECISIONS.md entry) for the sitter's unreleased-software
+version-scheme reset, so a version that goes backwards is now expected to pass.
 """
 import json
 import os
@@ -97,27 +100,31 @@ def test_guard_reddens_on_a_payload_shipped_twice_under_one_version(tmp_path):
 
 
 @pytest.mark.integration
-def test_guard_reddens_on_a_version_that_goes_backwards(tmp_path):
-    """A number that shrinks makes the newer artifact look older to the host."""
+def test_guard_is_silent_on_a_version_that_goes_backwards(tmp_path):
+    """A deliberate, once-only scheme reset (0.2.11) is a numeric decrease.
+
+    The no-regression check was removed for exactly this case: unreleased
+    software has no installed base an older-looking number could confuse, and
+    the reset is a one-time author's ruling, not a recurring risk. What must
+    still fire is the reuse check — a DIFFERENT payload may never share a
+    version with an earlier one, backwards or not.
+    """
     root = tmp_path / "repo"
     root.mkdir()
     sitter = seed(root, "2.4.0")
-    set_version(sitter, "2.3.0")
+    set_version(sitter, "0.2.11")
     (sitter / "bootstrap.js").write_text("// another payload\n", encoding="utf-8")
-    commit(root, "regress")
-    result = guard(root)
-    assert result.returncode != 0, result.stdout + result.stderr
-    assert "2.4.0" in result.stdout + result.stderr
+    commit(root, "reset the version scheme")
+    assert guard(root).returncode == 0, "a backwards scheme reset must not redden"
 
 
 @pytest.mark.integration
 def test_guard_reddens_when_a_leading_zero_hides_the_reuse(tmp_path):
     """`2.03.0` and `2.3.0` are one version to any dotted-number comparator.
 
-    String equality called them two, so the reuse check missed the collision
-    while the regression check — which already parsed numerically — saw nothing
-    ahead of the tip either. A changed payload went out green through the gap
-    between two checks that disagreed about what a version is.
+    String equality calls them two, which would let the reuse check miss the
+    collision entirely. A changed payload must not go out green just because
+    the manifest wrote its version with a leading zero.
     """
     root = tmp_path / "repo"
     root.mkdir()
