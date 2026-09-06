@@ -8,6 +8,7 @@ Author: claude
 
 2026-09-06T10:11Z sim note blocker 0691 closed — Blocked-by removed.
 2026-09-06T10:25Z sim note blocker 0689 closed — Blocked-by removed.
+2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED WITH CHANGES. Confirmed unchanged against current bootstrap.js/scheduler.js -- inspect() still hashes unconditionally at line 435, sweep wrapper still reschedules on a fixed 30s timer regardless of outcome. Not incidentally fixed by Wave A. Line-level conflict with ticket 0702: both edit the sweep reschedule wrapper in bootstrap.js. Land 0702 first (it turns the wrapper into a try/finally); rebase this ticket's idle-backoff-interval logic onto 0702's already-guarded wrapper. The hash-avoidance half (source fingerprint cache) is independent and can land in the same PR as the interval change.
 --- body ---
 ## Context
 
