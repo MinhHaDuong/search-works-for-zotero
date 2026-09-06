@@ -1,0 +1,46 @@
+%erg 0.1
+Title: Set the minimum question count per MUST cell that SPEC 5.2.10 leaves without a number
+Created: 2026-09-07
+Author: claude
+
+--- log ---
+2026-09-07T09:12Z claude created
+
+--- body ---
+## Context
+
+SPEC.md §5.2.10, landed in PR #418, requires a minimum question count per
+MUST cell of the lane matrix and deliberately states no number. The pass that
+wrote it judged, and said so, that inventing one would be a floor authored to
+clear rather than a floor derived from anything.
+
+The reason the rule exists: a cell with one or two questions cannot decide
+anything, and a floor of "100 % of pinned answers in the first ten" over a
+two-question cell is a coin flip on a single authoring accident. The review
+panel of 2026-09-06 raised it twice, from the evaluation seat and the red
+team, as the gap between a gate and a benchmark.
+
+The number cannot be set from the armchair. It follows from what the bank
+actually holds once the authoring lanes finish (ticket 0722): the per-cell
+counts, and how unevenly they fall across the lane pairs R7 and R29 bind.
+
+## Actions
+
+1. When the bank is complete, count the questions per MUST cell of the lane
+   matrix, per stratum and per mode, and report the distribution.
+2. Propose a minimum from that distribution, with the reasoning: what a cell
+   at that count can and cannot distinguish.
+3. The author sets the number; record it in `DECISIONS.md` and write it into
+   SPEC.md §5.2.10.
+4. State what happens to a MUST cell below the minimum: per R7's own
+   set-aside mechanism it reports not-evaluated with a stated reason, rather
+   than passing or failing on too few questions.
+
+## Blocked-by
+Waits on ticket 0722's bank being complete enough to count.
+
+## Exit criteria
+- [ ] the bank's per-cell counts measured and reported
+- [ ] a minimum proposed with its reasoning, and ruled by the author
+- [ ] the number written into SPEC.md §5.2.10 and recorded in DECISIONS.md
+- [ ] the below-minimum behaviour stated, as not-evaluated with a reason
