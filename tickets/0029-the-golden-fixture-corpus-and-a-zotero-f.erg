@@ -317,6 +317,6 @@ created.
 
 | child | scope | state |
 |---|---|---|
-| 0632 | harness triplet (injection script, export snapshot, Zotero-free replay), against the 17 already-hashed documents | stored-attachment ruling implemented and 17/17 injected; export now blocked on representing genuinely unindexable failure controls without accepting vanished full text; Ramsey's disposition and the proposed RDF/full-text split remain open in 0632 |
+| 0632 | harness triplet (injection script, export snapshot, Zotero-free replay), against the 17 already-hashed documents | stored-attachment ruling implemented and 17/17 injected; the three failure controls (two Vietnamese volumes, Ramsey — all ruled to stay) are declared in the recipe and the export accepts them on the reindex's own settled observation, never on census absence (2026-09-06); the real export run waits for the injecting client (padme's Zotero) to be started by hand; the proposed RDF/full-text split remains open in 0632 |
 | — | re-sourcing bounded by the 200-question tally (ruling, 2026-09-04): close the 4 HAL + 1 Malynes browser-only fetches, replace the 4 dropped Gallica records including the FR-VN cross-lingual anchor pair, rebalance the mix toward articles, draw on Gutenberg/arXiv/the Wikipedia constellation as the tally needs them | browser-only fetches are human-hands work; the rest is open research, not a raid candidate as a whole |
 | — | question-bank authoring per the tally above | not yet filed; blocked on the harness child existing to test against |
