@@ -6,7 +6,9 @@ Author: claude
 --- log ---
 2026-09-06T00:00Z claude created
 2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED, with a scope correction -- drop the bootstrap.js tooltip-fix step entirely. Grepped DECISIONS.md, SPEC.md and bootstrap.js on origin/main: no "Index NN%" or "Library: ..." wording exists anywhere yet (that's ticket 0691's prospective work, itself still unimplemented and blocked). This ticket has no code to correct; it resolves to a pure documentation PR -- one DECISIONS.md entry adapting the ticket's own "What changes the picture"/"Recommendation" text near-verbatim, and either closing the SPEC.md criterion as "nothing to change" or adding one generic system-only-prose sentence for future implementers, matching SPEC.md's existing register (no literal UI copy strings). Flag in the DECISIONS.md entry that this affirms the status-quo position and only revises the justification, so a skimming reader doesn't mistake the pros/cons discussion for authorization to move the button.
-
+2026-09-06T08:46Z claude note Execute phase: appended the correction entry to DECISIONS.md (icon position and label visibility are separate decisions; host coupling and precedent, not label-fitting, are why the items toolbar stays). SPEC.md unchanged -- grepped it for placement and toolbar wording and found none, so the second acceptance item resolves to nothing to change. Note that the Imagine-phase claim above, that SPEC.md holds no literal UI copy strings, is false: R18 pins three empty-result sentences verbatim and R22 pins "paused since <date>". The conclusion survives because the scoped string is a wording ticket's work, not because SPEC.md refuses literal copy. Docs-only PR: no code test applies; the gate is erg check plus the full make check.
+2026-09-06T09:00Z claude note Adherence round 2: corrected two stale cross-references in the appended entry -- the ProgressWindow/zotero-plugin-toolkit toast pattern is ticket 0696, not 0693, which the same day's raid split out of it after 0694's body was written, here and in the body above.
+2026-09-06T09:12Z claude note Adherence round 3, on the coordinator's relay of the author's decision. The single entry was wrong in register: a corrected premise that leaves two legitimate options open is a decision under the 2026-09-02 ruling, and an executor may not resolve it. Split into the ledger's own precedent shape -- a FINDING recording the false premise and both remaining cases, and a RULED entry above it carrying the author's actual choice to keep the button in the items toolbar. Header token CORRECTION dropped; it appears nowhere else in DECISIONS.md. Rebased onto origin/main, whose same-day permahome ruling foreclosed this entry's second revisit trigger; the union of both tail entries is preserved. The bare log note on 0691 is reverted -- 0691 closes with PR #369 on criteria that never asked for the scope prefix, so a note there could not own it; ticket 0710 is filed for the wording instead (0699 was taken by a sibling PR that merged mid-flight; renumbered clear of the frontier).
 --- body ---
 ## Context
 
@@ -27,7 +29,8 @@ decision, when the ecosystem's own convention treats them as separate.
 ## What changes the picture
 
 Zotero's sync spinner, and the `ProgressWindow` toast pattern most
-widely-adopted plugins use (`zotero-plugin-toolkit` -- see 0693), both
+widely-adopted plugins use (`zotero-plugin-toolkit` -- see 0696, split out
+of 0693 the same day, after this body was written), both
 show state through an icon plus an on-demand disclosure (tooltip, toast,
 or the plugin's own dialog), not through permanent on-canvas text. That is
 also the desktop-wide convention for background-job indicators (Dropbox,
@@ -61,15 +64,27 @@ table:
 Keep the current position for now -- host coupling and precedent are the
 decisive, durable arguments, not the label-fitting argument that turns out
 not to hold. Revisit only if the plugin moves toward icon+toast as its
-primary interface (0693) and the extraction to its own repo (pending,
+primary interface (0696) and the extraction to its own repo (pending,
 separate proposal) changes what "stable host coupling" even means for a
-plugin no longer built as an in-tree experiment.
+plugin no longer built as an in-tree experiment. That second trigger is
+gone: the same-day ruling keeps the sitter in this repo and promotes it to
+`plugins/sdt-sitter/` instead.
 
 ## Acceptance
 
-- [ ] DECISIONS.md records this reasoning, explicitly superseding the
+- [x] DECISIONS.md records this reasoning, explicitly superseding the
       earlier "only A can carry the label" justification with the
-      host-coupling/precedent one.
-- [ ] SPEC.md's placement wording (if any) reflects the corrected tooltip/
+      host-coupling/precedent one. Recorded as a FINDING, not a ruling,
+      matching the ledger's own precedent for a premise correction that
+      leaves two legitimate options open.
+- [x] The author rules. Since the corrected finding leaves both positions
+      legitimate, the outcome could not be self-authorized: the author was
+      asked and kept the current position. DECISIONS.md carries the ruling
+      as a separate RULED entry above the finding.
+- [x] SPEC.md's placement wording (if any) reflects the corrected tooltip/
       scope fix: "Library: My Library -- Index 43 %", not "Index 43 %"
-      alone.
+      alone. There is none: grepped SPEC.md for placement, toolbar and
+      button wording and it carries none, so nothing to correct there. The
+      scoped string is UI copy and belongs to a wording ticket; 0691 ships
+      the unscoped form and closes on criteria that never asked for the
+      prefix, so 0710 is filed to carry it.

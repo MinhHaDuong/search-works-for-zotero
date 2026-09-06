@@ -6499,3 +6499,62 @@ implementations... plugins, and future adapters"), leaving room for a second
 plugin later without contradicting "not the home of a single product." The
 move is a plain `git mv`, tracked in a dedicated ticket, executed once no
 in-flight work is touching `bench/sdt-sitter/` paths.
+
+**2026-09-06 — RULED (formalized from the same-day finding below): the sitter
+button stays where it is, in the items toolbar beside the search box.** Asked
+to choose once the label-fitting argument had fallen away, the author kept the
+current position. The ruling rests on host coupling and precedent, not on
+label fitting: the items-toolbar id is stable across Zotero 7-10 where the
+sync button's internals changed between 6 and 7, other index and full-text
+plugins already inject there, and a button that is already in place costs
+nothing to keep. The scope mismatch the finding records is real and survives
+this ruling as a wording problem, to be fixed in the tooltip rather than by
+moving the icon. Revisit only if the plugin moves toward icon+toast as its
+primary interface (ticket 0696); ticket 0694 named a second trigger,
+extraction to a repo of its own, which the ruling above forecloses, and the
+promotion to `plugins/sdt-sitter/` it orders instead changes no host coupling
+at all.
+
+SPEC.md needs no addition: it carries no placement or toolbar wording to
+correct. Not because the specification refuses literal UI copy — R18 pins its
+three empty-result sentences verbatim and R22 pins "paused since <date>" — but
+because it pins a string only where the specification itself requires that
+disclosure, and placement requires none. The scoped tooltip ("Library: My
+Library — Index 43 %") is a separate wording fix: ticket 0691 ships the
+unscoped "Index 43 %" and closes on its own criteria, which never asked for
+the prefix, so ticket 0710 carries it. The finding as originally recorded
+follows, unedited, as the record of how the question was reasoned through
+before the author ruled.
+
+**2026-09-06 — FINDING, not a ruling: "only the items toolbar can carry the
+label" is a false premise, so both toolbar positions stay legitimate and the
+author's decision is needed.** The author asked for a pros/cons on toolbar
+placement (ticket 0694): beside the sync spinner, which reports global
+background activity, or beside the search box, where the button sits today and
+where the index it measures lives. An earlier synthesis (the sitter wave's
+Imagine pass, kept in ticket 0694 rather than in this ledger, and named
+"Sitter's Ledger" there) recommended keeping the current position because only
+the items toolbar can carry a text label like "Index 43 %" (ticket 0691's
+wording fix), and the sync area is icon-only "by design." That premise
+conflates icon position with label visibility, which the ecosystem treats as
+separate: Zotero's own sync spinner, and the ProgressWindow toast pattern most
+zotero-plugin-toolkit-based plugins use (ticket 0696), show state through an
+icon plus on-demand disclosure — tooltip, toast, or dialog — not permanent
+on-canvas text, the same convention desktop background-job indicators use
+generally (Dropbox, iCloud, Time Machine menu-bar icons). Under that
+convention "Index 43 %" does not need to live in the toolbar chrome to satisfy
+0691: a tooltip, an aria-label (also serving 0686's stable-accessible-name
+requirement), or a dialog's first line carries it in either toolbar position.
+
+With label-fitting out of the argument, each position keeps a legitimate case
+and the choice is the author's to make. Favoring the items toolbar: host
+coupling (the items-toolbar id is stable across Zotero 7-10; the sync button's
+internals changed between 6 and 7, so injecting beside it depends on more
+private layout), precedent (other index/full-text plugins already use the
+items toolbar; no known plugin injects beside the sync spinner), and zero
+migration cost, the button being already there. Favoring the sync area:
+semantic fit, genuinely closer there, since the sitter reports global
+background work while the items toolbar carries per-library, per-collection
+scope. The earlier writeup called that mismatch a defect and proposed fixing
+it with tooltip wording, a fix needed in either position, so it does not
+settle the question either.
