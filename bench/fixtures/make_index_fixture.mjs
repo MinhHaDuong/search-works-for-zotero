@@ -869,6 +869,9 @@ export function validateGoldenBuildResult(fixture, result, requests, dataDirecto
   }
   for (const row of fixture.manifest.attachments) {
     if (row.terminal_state !== 'indexed') continue;
+    // The product fetches the attachment D6 selects per language; a same-language sibling
+    // it skips (a second rendering) is never requested, and that silence is the behaviour.
+    if (row.selection_expectation === 'skipped-first-with-text') continue;
     required.push([
       `fulltext body ${row.attachment_key}`,
       (url) => url.pathname === `${prefix}/items/${encodeURIComponent(row.attachment_key)}/fulltext`,
