@@ -10,6 +10,7 @@ Blocked-by: github.com/MinhHaDuong/search-works-for-zotero#365
 
 2026-09-06T08:46Z claude note Execute phase: 2 tests written, not 4. Row 2 (pack absent/corrupt after a resolving ensure) IS the existing test "native success without current persisted cache counts as failure" -- scheduler.js line 62 folds !ok and after.status !== current into one throw, so both rows drive the same branch. Row 4 (disable during active job) IS the existing test "disable during ensure leaves completion but no UI callbacks or next admission". Neither was re-added.
 2026-09-06T08:47Z claude note Red control arms against tests-commit 535abd9, scheduler broken in the working tree one break at a time, each run reporting per-test verdicts instead of aborting on the first failure. (a) Drop the host.reportError call at scheduler.js:73 -- 9 of 10 PASS, only "native rejection mid-job is reported once and the next document is still admitted" FAILs. (b) Hoist host.blocked out of the per-candidate loop into one pre-loop check -- 9 of 10 PASS, only "resources crossing the threshold between admissions refuse the next, not the running job" FAILs, the existing constant-blocked test staying green. Each break isolates exactly its new test: the overlap criterion executed rather than asserted. A third, coarser break (deleting the per-candidate catch so the throw escapes to the outer catch) also reddens the new rejection test, and two existing ones with it, which is why the sharper breaks above are the ones recorded.
+2026-09-06T08:58Z claude note Adherence pass caught a stale count: this ticket said "the existing seven tests" where origin/main has eight. The count was decorative -- the overlap claim it sat beside is proven by the control arms, not by the number -- so both occurrences now name the file instead of counting it, per the AGENTS.md convention that a duplicated number drifts.
 --- body ---
 ## Context
 
@@ -23,7 +24,7 @@ failure handling).
 `host.now()` for every timestamp, and `tests/sdt_sitter_scheduler.mjs`'s
 fixture already injects a fake clock -- confirmed in code, not to-add.
 The four scenarios below are testable today, in the same style as the
-existing seven tests in that file, with no new harness and no dependency
+tests already in that file, with no new harness and no dependency
 on ticket 0689's journal (assert against `host.reportError` calls and
 scheduler state directly; do not invent a dependency on an unbuilt
 journal for scenarios that don't need one).
@@ -52,7 +53,7 @@ is out of scope -- that is ticket 0681's crash-recovery detection.
       classification only, it is not a gate).
       `tests/test_sdt_sitter.py` is the pytest wrapper that spawns node;
       both of its functions now carry the marker.
-- [x] Each test is checked against the existing seven in
+- [x] Each test is checked against every test already in
       `tests/sdt_sitter_scheduler.mjs` for overlap before being counted as
       new coverage. Two rows failed that check and were dropped; the two
       kept rows each have a break that reddens them and nothing else.
