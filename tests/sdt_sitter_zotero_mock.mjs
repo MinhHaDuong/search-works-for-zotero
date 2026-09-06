@@ -40,6 +40,11 @@ const SITTER = 'plugins/sdt-sitter';
 const decoder = new TextDecoder();
 
 export const ROOT_URI = 'file:///home/tester/.zotero/profile/extensions/sdt-pack-sitter/';
+/** What the host hands `startup()`. A real installed add-on is given its
+    version from the record Zotero already holds; a harness that omitted it
+    modelled a host nobody runs, which is how the version field went unnoticed
+    reading "unreadable" in production for the life of ticket 0688. */
+export const INSTALLED_VERSION = '9.9.9-test';
 export const DATA_DIR = '/home/tester/Zotero';
 export const CACHE_PATH = `${DATA_DIR}/sdt-sitter-cache.jsonl`;
 export const STORAGE = '/home/tester/Zotero/storage';
@@ -523,10 +528,10 @@ export function createHarness(options = {}) {
     /** Every toast shown, in order, with the lines it carried. */
     toasts,
     /** Run the real `startup()` and let `initialize()` reach its first sweep. */
-    async start() { context.startup({ rootURI: ROOT_URI }); await quiet(); assertStarted(); },
+    async start() { context.startup({ rootURI: ROOT_URI, version: INSTALLED_VERSION }); await quiet(); assertStarted(); },
     /** The same, for a fixture whose `ensure` never settles. */
     async startHanging(times = 12) {
-      context.startup({ rootURI: ROOT_URI });
+      context.startup({ rootURI: ROOT_URI, version: INSTALLED_VERSION });
       await turn(times);
       assertStarted();
     },
