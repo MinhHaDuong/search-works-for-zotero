@@ -6752,6 +6752,25 @@ are exactly two — a journal record's timestamp, which the ring renders as a ti
 of day, and the projected completion date and time, which is precisely what a
 monotonic clock cannot name.
 
+**2026-09-06 — RULED: the sitter's manifest version scheme is reset to 0.2.11.**
+The sitter's version had climbed through `2.2.0` … `2.11.0` across this raid's
+wave of tickets (0692, 0695, 0696), each landing on the last number a sibling
+PR had already spent. Told of the climb, the author ruled: **"Correct version
+to 0.2.11, we did not release yet."** The plugin has never shipped through any
+release channel — no auto-update feed, no installer, nothing but the author's
+own hand-delivered XPI — so nothing external reads the old numbers as meaningful,
+and the reset costs no one currency.
+
+This makes the manifest version numerically go backwards against every commit
+already in history, which `bench/check_sitter_version.py`'s own "no regression"
+check exists to catch. Asked how to reconcile the two, the author chose:
+**"Just set 0.2.11 and disable the no-regression check entirely."** The
+no-reuse check — no two different payloads may ever answer to one version
+number — is unconditional and stays; it is what actually protects the
+hand-delivered XPI from being confused with itself, and a scheme reset does
+not touch it. `check_sitter_version.py` and its tests were updated accordingly
+(this session, no separate ticket).
+
 One consequence is worth stating rather than discovering: a monotonic clock does
 not advance while the machine is suspended, so the 24-hour hash re-verify window
 ruled on ticket 0701 now bounds 24 hours of running time, not of calendar time.
