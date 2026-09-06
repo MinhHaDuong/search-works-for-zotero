@@ -461,9 +461,23 @@ export function createHarness(options = {}) {
     Services: {
       prompt: { confirm: () => { calls.prompt++; return options.launch !== false; } },
       scriptloader: {
+        // Two scripts now, and the second is why the locales work at all: a
+        // `.ftl` inside a packed XPI cannot be read at runtime, so the packager
+        // generates `locales.js` and this loader is the road it travels
+        // (ticket 0727). Generated here the same way `bench/build_sdt_sitter.py`
+        // generates it, from the same files, so the harness cannot rehearse a
+        // delivery the packager does not actually make.
         loadSubScript: url => {
-          assert.equal(url, `${ROOT_URI}scheduler.js`, 'the scheduler is not loaded from rootURI');
-          vm.runInContext(fs.readFileSync(`${SITTER}/scheduler.js`, 'utf8'), context);
+          if (url === `${ROOT_URI}scheduler.js`) {
+            vm.runInContext(fs.readFileSync(`${SITTER}/scheduler.js`, 'utf8'), context);
+            return;
+          }
+          assert.equal(url, `${ROOT_URI}locales.js`,
+            'a script was loaded from somewhere other than rootURI');
+          const sources = Object.fromEntries(['en', 'fr', 'es', 'vi'].map(tag =>
+            [tag, fs.readFileSync(`${SITTER}/locale/${tag}/sdt-pack-sitter.ftl`, 'utf8')]));
+          vm.runInContext(
+            `var SDT_LOCALE_SOURCES = ${JSON.stringify(sources)};`, context);
         },
       },
     },

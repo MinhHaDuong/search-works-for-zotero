@@ -39,16 +39,15 @@ function host(files) {
   // the shipped window rendering as its own id.
   ui.FluentBundle = FluentModule.FluentBundle;
   ui.FluentResource = FluentModule.FluentResource;
-  ui.Zotero = { debug: () => {}, Prefs: { get: () => false }, File: {
-    getContentsFromURLAsync: async url => {
-      if (!(url in files)) {
-        const error = new Error(`${url} is not there`);
-        error.name = 'NotFoundError';
-        throw error;
-      }
-      return files[url];
-    },
-  } };
+  // Delivered as `locales.js` assigns them, not fetched. A `.ftl` inside an
+  // installed XPI is unreadable at runtime — `rootURI` is a `jar:` URL and
+  // every read API refuses it (ticket 0727) — so a host serving them over
+  // `Zotero.File` was modelling a delivery that has never worked. The arms
+  // below still name files by URL, because "which locale is present" is what
+  // they are about; only the road changed.
+  ui.SDT_LOCALE_SOURCES = Object.fromEntries(
+    Object.entries(files).map(([url, text]) => [url.split('/').at(-2), text]));
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => false } };
   return ui;
 }
 
@@ -61,7 +60,7 @@ function test(name, body) { body(); results.push(name); }
 /* ---- the chain: a regional tag falls back to its language, then to English ---- */
 
 const complete = host({ [locale('en')]: english, [locale('fr')]: french });
-const loaded = await complete.loadSDTLocalization(ROOT, 'fr-FR');
+const loaded = await complete.loadSDTLocalization('fr-FR');
 
 test('a regional tag with no file of its own resolves to its language', () => {
   // `fr-FR` is served by nothing here, so a loader that demanded an exact match
@@ -108,7 +107,7 @@ test('the truncation removed messages that were really there', () => {
 });
 
 const partial = host({ [locale('en')]: english, [locale('fr')]: truncated });
-await partial.loadSDTLocalization(ROOT, 'fr');
+await partial.loadSDTLocalization('fr');
 
 test('a missing id falls back to English rather than throwing', () => {
   assert.equal(partial.sdtText('dialog-title'), 'Indexing assistant');
@@ -168,7 +167,7 @@ const MALFORMED = [
 
 for (const [what, source] of MALFORMED) {
   const broken = host({ [locale('en')]: english, [locale('fr')]: source });
-  const result = await broken.loadSDTLocalization(ROOT, 'fr');
+  const result = await broken.loadSDTLocalization('fr');
   test(`${what} degrades to English instead of throwing`, () => {
     // The positive control is the mutation itself: each string above differs
     // from the file on disk, and `String.replace` is a no-op on a miss, so the
@@ -196,7 +195,7 @@ for (const [what, source] of MALFORMED) {
 
 test('no locale file at all leaves the window naming its ids', () => {
   const bare = host({});
-  return bare.loadSDTLocalization(ROOT, 'fr').then(result => {
+  return Promise.resolve(bare.loadSDTLocalization('fr')).then(result => {
     assert.equal(result.bundles, 0);
     assert.equal(bare.sdtText('dialog-title'), 'dialog-title');
   });
@@ -210,7 +209,7 @@ delete noFluent.FluentBundle;
 delete noFluent.FluentResource;
 
 test('a host with no Fluent global degrades instead of stopping startup', async () => {
-  const result = await noFluent.loadSDTLocalization(ROOT, 'en');
+  const result = await noFluent.loadSDTLocalization('en');
   assert.equal(result.bundles, 0);
   assert.equal(noFluent.sdtText('dialog-title'), 'dialog-title');
 });
@@ -224,7 +223,7 @@ test('a host with no Fluent global degrades instead of stopping startup', async 
 for (const tag of fs.readdirSync(`${ROOT}locale`).sort()) {
   const source = fs.readFileSync(locale(tag), 'utf8');
   const one = host({ [locale(tag)]: source });
-  await one.loadSDTLocalization(ROOT, tag);
+  await one.loadSDTLocalization(tag);
   test(`${tag} parses and answers with no English behind it`, () => {
     assert.equal(one.sdtText('dialog-title') === 'dialog-title', false,
       `${tag}.ftl carries no dialog-title`);

@@ -164,6 +164,14 @@ export const FluentModule = { FluentBundle, FluentResource };
    they are held in the context's own `SDT_BUNDLES`, not on the host. */
 export async function loadSitterLocale(ui, requested = 'fr') {
   const previous = ui.Zotero;
+  // The sources arrive the way the packed XPI delivers them: as the object
+  // `locales.js` assigns, not as files fetched from a rootURI. A `.ftl` inside
+  // an installed XPI cannot be read at runtime at all (ticket 0727), so a test
+  // that served them over `Zotero.File` was rehearsing a delivery that has
+  // never once worked in production.
+  ui.SDT_LOCALE_SOURCES = Object.fromEntries(
+    ['en', 'fr', 'es', 'vi'].map(tag => [tag,
+      fs.readFileSync(`plugins/sdt-sitter/locale/${tag}/sdt-pack-sitter.ftl`, 'utf8')]));
   // The globals, not a mocked import: privileged JS in Zotero 10.0.1 carries
   // `FluentBundle` and `FluentResource` ambiently and serves no
   // `resource://gre/modules/Fluent*.sys.mjs` at all. Assigning `ui.ChromeUtils`
@@ -172,12 +180,9 @@ export async function loadSitterLocale(ui, requested = 'fr') {
   // below.
   ui.FluentBundle = FluentModule.FluentBundle;
   ui.FluentResource = FluentModule.FluentResource;
-  ui.Zotero = { debug: () => {}, Prefs: { get: () => false },
-    // The loader builds `<rootURI>locale/<tag>/sdt-pack-sitter.ftl`, which under
-    // the repository root is the path on disk. A tag with no file throws here,
-    // exactly as an unshipped locale does against a real rootURI.
-    File: { getContentsFromURLAsync: async url => fs.readFileSync(url, 'utf8') } };
-  const loaded = await ui.loadSDTLocalization('plugins/sdt-sitter/', requested);
+  // Only what `emit` needs: the loader no longer touches `Zotero.File` at all.
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => false } };
+  const loaded = ui.loadSDTLocalization(requested);
   if (previous !== undefined) ui.Zotero = previous;
   return loaded;
 }
