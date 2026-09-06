@@ -107,7 +107,7 @@ The cache uses the same creation-capable append mode, and cache write failures
 are visible in the panel. Native ensure failures include its boolean result
 and the post-extraction inspection status.
 
-This corrects the release metadata to the author's version `0.2.2`.
+This correction release uses version `0.2.3`; `0.2.2` was the preceding build.
 It does not establish the cause of inspection failures discarded by the old
 build or prevent OS suspend. Verification for this correction is recorded in
 `verification/SDT-SITTER-RESUME-0688.md`.

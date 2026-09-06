@@ -31,7 +31,7 @@ remain the source of truth and no active queue is persisted.
 Inspection exception details reach the diagnostics panel and journal. Journal
 and cache append writes can create a missing file. Cache warnings are displayed.
 Native failure messages include ensure's result and the observed pack status.
-The manifest uses the author's corrected release version `0.2.2`.
+The correction release uses version `0.2.3`; `0.2.2` was the preceding build.
 
 ## Validation
 
