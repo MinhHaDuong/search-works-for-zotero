@@ -2,11 +2,13 @@
 Title: Library census: sampling frame for the Menagerie's representative core
 Created: 2026-09-06
 Author: claude
+Closed: autoclosed — PR #380
 
 --- log ---
 2026-09-06T09:51Z claude created
 
 2026-09-06T10:02Z claude note census run on doudou against Zotero 10.0.1 (library version 1257): 17 532 items, 3 min 42 s wall, counters from the control plugin; artifact bench/results/0029-library-census/census.json
+2026-09-06T16:24Z sim closed — autoclosed — PR #380
 --- body ---
 
 ## Context
