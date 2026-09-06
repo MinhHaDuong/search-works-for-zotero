@@ -175,7 +175,6 @@ function createFiles() {
       const entry = files.get(path);
       return entry === undefined ? null : decoder.decode(entry.bytes);
     },
-    touch(path, lastModified) { files.get(path).lastModified = lastModified; },
     stat(path) {
       const entry = files.get(path);
       if (!entry) throw Object.assign(new Error('no such file'), { name: 'NotFoundError' });
@@ -216,7 +215,7 @@ export function createHarness(options = {}) {
   // Counted rather than merely observed: several scenarios turn on HOW MANY
   // times a reading was taken, which is the difference between one check per
   // admission and a poll, and between a cache hit and a native re-inspection.
-  const calls = { meminfo: 0, loadavg: 0, openPack: [], ensure: [], prompt: 0, writes: [] };
+  const calls = { meminfo: 0, loadavg: 0, openPack: [], ensure: [], prompt: 0, writes: [], hash: [] };
 
   // Two clocks, moving independently. `mono` is what ChromeUtils.now() answers
   // and every span in bootstrap.js is measured on; `wall` is the calendar.
@@ -238,7 +237,10 @@ export function createHarness(options = {}) {
   const item = row => ({
     id: row.id, key: row.key, libraryID: row.libraryID, deleted: row.deleted,
     parentItemID: row.parentTitle ? row.id + 1000 : null,
-    attachmentHash: row.hash,
+    // A getter, because the whole point of the memoized hash is that it is NOT
+    // read: in Zotero this property computes an MD5 over the file, so a test
+    // about the re-verify window has to count reads rather than compare values.
+    get attachmentHash() { calls.hash.push(row.key); return row.hash; },
     isAttachment: () => !row.notAnAttachment,
     isPDFAttachment: () => row.kind === 'pdf',
     isEPUBAttachment: () => row.kind === 'epub',
@@ -469,14 +471,26 @@ export function createHarness(options = {}) {
     if (timers.pending.has('crash')) throw timers.pending.get('crash');
   }
 
+  /* `initialize()` runs behind `.catch(error => Zotero.logError(error))`, so a
+     throw anywhere inside it is swallowed by the plugin exactly as it would be
+     in Zotero -- and a test asserting on a sitter that was never built passes
+     vacuously against an empty journal and a null state. Every entry point
+     therefore reads this before handing the harness back. */
+  function assertStarted() {
+    assert.deepEqual(logged, [], 'initialize() threw; nothing below is testing what it means to');
+  }
+
   return {
-    context, Zotero, IOUtils, PathUtils, files, timers, calls, windows, rows, library,
-    prefs, clipboard, clock, advance, quiet, turn, persistPack,
-    debugged, logged,
+    context, Zotero, files, timers, calls, windows,
+    clock, advance, quiet, turn, persistPack, debugged, logged,
     /** Run the real `startup()` and let `initialize()` reach its first sweep. */
-    async start() { context.startup({ rootURI: ROOT_URI }); await quiet(); },
+    async start() { context.startup({ rootURI: ROOT_URI }); await quiet(); assertStarted(); },
     /** The same, for a fixture whose `ensure` never settles. */
-    async startHanging(times = 12) { context.startup({ rootURI: ROOT_URI }); await turn(times); },
+    async startHanging(times = 12) {
+      context.startup({ rootURI: ROOT_URI });
+      await turn(times);
+      assertStarted();
+    },
     /* Run the sweep the sitter armed for itself, through bootstrap.js's own
        wrapper rather than by calling the scheduler directly — the reschedule
        lives in that wrapper's `finally`, so a test that bypasses it is blind to

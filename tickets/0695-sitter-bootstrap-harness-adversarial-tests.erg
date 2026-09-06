@@ -10,6 +10,7 @@ Author: claude
 2026-09-06T10:25Z sim note blocker 0689 closed — Blocked-by removed.
 2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED WITH CHANGES. Premise confirmed current against origin/main bootstrap.js. Dropped row 1 (worker-hang) as already covered by an existing test at tests/sdt_sitter_scheduler.mjs:333. Narrowed the "disable during active job" row to the timer/generation half only, since the shutdown-record half is already covered -- extend that existing test rather than duplicate it. Reworded the resource-reading row to name the real blocked() implementation as the target, distinct from the already-tested scheduler contract. Removed the "open question for the author" section: the author already answered it in this ticket's own second log line ("Add a monotonic clock now") before this Imagine pass ran; replaced with an explicit sub-task since it's real production work, not test-writing.
 2026-09-06T16:27Z claude note Harness and scenarios landed. tests/sdt_sitter_zotero_mock.mjs is the mock host (Zotero/IOUtils/PathUtils/Services/ChromeUtils, one main window, one dialog, a split clock and a controllable timer module); tests/sdt_sitter_bootstrap.mjs holds eleven tests covering every remaining scenario row. The narrowed disable-during-active-job row extends 'shutdown is the last record even with a submission still in flight' in tests/sdt_sitter_scheduler.mjs with timers/timer/pulse/heartbeat/generation assertions, as the Imagine pass directed. Monotonic clock added to bootstrap.js (ChromeUtils.now, then performance.now, then a ratcheted wall clock); every span reads it, only the journal record's 'at' and the projected finish time stay on the calendar. A failed cache write now emits a latched 'cache-error' record through 0689's channel. Red-against-broken evidence is mechanical and re-derivable rather than a one-off commit hash: verification/probes/sdt_sitter_bootstrap_mutants.py breaks bootstrap.js seventeen ways, one per defect class these tests exist for, and reports 17/17 caught. Nothing is caught by a pre-existing assertion: fifteen mutants are caught only by tests this ticket wrote, and the two shutdown mutants (timers left armed, generation token unburned) were run against origin/main's own copy of tests/sdt_sitter_scheduler.mjs and came out GREEN there, so the narrowed row's extension is what catches them.
+2026-09-06T17:03Z claude note Review round 1 (PR #402). Manifest bumped 2.9.1 -> 2.10.0: bench/check_sitter_version.py refuses two payloads under one version, and this PR changes bootstrap.js, so the bump is forced by ticket 0688's guard rather than chosen -- recorded here because the closed ticket is where a later reader asks why manifest.json was touched. Also from the panel: the clock's middle tier (performance.now) and its throwing-source guard were unexercised, and the source-hash re-verify window and the admission-age tooltip had no dedicated test; all four now have one, and the probe grew to 22 mutants, 22/22 caught. Mutant M21 (a throwing ChromeUtils.now) exposed a probe-level defect in the tests themselves: an unbounded 'await entered.promise' turns 'the sitter admits nothing' into node exit 13, which reads as a crashed harness rather than as a caught mutant -- the five waits are now bounded and named. DECISIONS.md gained the ratchet's other half (it pins to the highest reading, so a forward excursion floors later durations at zero until the wall clock catches up).
 --- body ---
 ## Context
 
@@ -58,12 +59,25 @@ for. Recording here rather than silently re-adding it.
 
 ## Acceptance
 
-- [ ] A minimal `Zotero`/`IOUtils`/`PathUtils`/`Services`/`ChromeUtils` mock
+- [x] A minimal `Zotero`/`IOUtils`/`PathUtils`/`Services`/`ChromeUtils` mock
       surface exists for testing `bootstrap.js`'s `initialize()` and
       `openDialog`, scoped to what these scenarios need -- not a general
       Zotero-environment simulator.
-- [ ] Each row is one test, shown red once against a deliberately broken
+      `tests/sdt_sitter_zotero_mock.mjs`.
+- [x] Each row is one test, shown red once against a deliberately broken
       implementation -- record the red commit hash in this ticket's log.
-- [ ] A monotonic clock source is added to bootstrap.js's timing
+      DEVIATION, for the merge gate to ratify: the red commit hash is
+      substituted by `verification/probes/sdt_sitter_bootstrap_mutants.py`,
+      which breaks bootstrap.js twenty-two ways and reports which tests notice
+      (22/22 caught). A hash is a fact recorded once and re-derivable by nobody;
+      the probe is a gate that reddens if a suite silently stops detecting a
+      defect class. Precedented by ticket 0690's sibling probe for scheduler.js.
+      Two of the nine table rows are not tests here, per this ticket's own
+      Imagine log: the worker-hang row was dropped as already covered, and the
+      disable-during-active-job row was narrowed to its timer/generation half
+      and extends an existing scheduler test.
+- [x] A monotonic clock source is added to bootstrap.js's timing
       computations, and the clock-jump-backwards test exercises it.
-- [ ] Tests run under this repo's existing `make check`.
+      Ruled in DECISIONS.md 2026-09-06 and stated in SPEC.md §5.
+- [x] Tests run under this repo's existing `make check`.
+      `tests/test_sdt_sitter.py::test_sdt_sitter_bootstrap`.

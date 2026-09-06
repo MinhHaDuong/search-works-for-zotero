@@ -140,6 +140,41 @@ MUTANTS = [
     ("M17 the wall-clock fallback is not ratcheted, so it can be read backwards",
      "  monotonicFloor = Math.max(monotonicFloor, Date.now());\n  return monotonicFloor;",
      "  return Date.now();"),
+    # The two spans a reader never sees as a stopwatch, and so the two most
+    # likely to drift back to the calendar unnoticed. SPEC.md advertises a
+    # behavioural consequence for the first: 0701's window bounds RUNNING time.
+    ("M18 the source-hash re-verify window reads the wall clock again",
+     "    const hash = await sourceHashes.hash(cacheKey, sourcePath, source, monotonic(),",
+     "    const hash = await sourceHashes.hash(cacheKey, sourcePath, source, Date.now(),"),
+    ("M19 the admission panel ages its reading on the wall clock again",
+     "    `Dernière mesure il y a ${formatSDTAge(monotonic() - admission.at)}",
+     "    `Dernière mesure il y a ${formatSDTAge(Date.now() - admission.at)}"),
+    # The three tiers of the clock, and the guards that decide which one answers.
+    # Each of these changes the clock the whole sitter runs on and moves nothing
+    # else, which is what makes them the hardest edits in this file to notice.
+    ("M20 a non-numeric ChromeUtils.now reading is believed instead of skipped",
+     "      const reading = ChromeUtils.now();\n      if (Number.isFinite(reading)) return reading;",
+     "      return ChromeUtils.now();"),
+    # A torn-down compartment can throw from a getter, and this call is made ten
+    # times a second from the render loop. Absent and throwing are not the same
+    # host, and only the guard makes them behave the same way.
+    ("M21 a throwing ChromeUtils.now escapes instead of falling through",
+     "  try {\n"
+     "    if (typeof ChromeUtils === 'object' && typeof ChromeUtils.now === 'function') {\n"
+     "      const reading = ChromeUtils.now();\n"
+     "      if (Number.isFinite(reading)) return reading;\n"
+     "    }\n"
+     "  } catch (_error) { /* Fall through to the next source. */ }\n",
+     "  if (typeof ChromeUtils === 'object' && typeof ChromeUtils.now === 'function') {\n"
+     "    const reading = ChromeUtils.now();\n"
+     "    if (Number.isFinite(reading)) return reading;\n"
+     "  }\n"),
+    ("M22 the performance.now tier is never consulted",
+     "    if (typeof performance === 'object' && typeof performance.now === 'function') {\n"
+     "      const reading = performance.now();\n"
+     "      if (Number.isFinite(reading)) return reading;\n"
+     "    }\n",
+     ""),
 ]
 
 

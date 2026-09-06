@@ -28,6 +28,22 @@ async function test(name, body) { await body(); results.push(name); }
 
 const pdf = (id, key, extra = {}) => ({ id, key, kind: 'pdf', pages: 12, sourceBytes: 4096, ...extra });
 
+/* Wait for a document to reach the extractor, bounded.
+ *
+ * `await entered.promise` is the obvious way to write this and it is wrong under
+ * a probe: a mutant that stops the sitter admitting anything leaves that await
+ * unsettled, node exits 13, and the run reads as "the harness crashed" rather
+ * than as "this test caught it" -- which is exactly the silence the mutants
+ * probe is built to refuse. A bounded wait turns the same defect into a named
+ * failure. Discovered by mutant M21, which makes ChromeUtils.now() throw out of
+ * the admission gate and so refuses every document. */
+async function admitted(harness, entered, label) {
+  let arrived = false;
+  entered.promise.then(() => { arrived = true; });
+  for (let n = 0; n < 60 && !arrived; n++) await harness.turn(1);
+  assert(arrived, `${label}: no document ever reached the extractor`);
+}
+
 /* --------------------------------------------------------------------------
    The real blocked(): what happens when the readings it is built on are gone.
 
@@ -266,7 +282,7 @@ await test('a dialog closed and reopened mid-job is one instance, one listener, 
     },
   });
   await harness.startHanging();
-  await entered.promise;
+  await admitted(harness, entered, 'the reopened dialog');
 
   const window = harness.windows[0];
   harness.context.openDialog(window);
@@ -373,7 +389,7 @@ await test('a document past its empirical upper bound withdraws the finish time,
     ensure: async (_id, onProgress) => { onProgress(20); entered.resolve(); await finish.promise; return false; },
   });
   await harness.startHanging();
-  await entered.promise;
+  await admitted(harness, entered, 'the empirical upper bound');
   const state = harness.context.sitter.state;
   assert.equal(state.fittedSamples.length, 3, 'the estimator was not given its three observations');
   assert.equal(state.active, 4);
@@ -415,7 +431,7 @@ await test('a wall clock stepped backwards mid-job never produces a negative dur
 
   const harness = createHarness(fixture());
   await harness.startHanging();
-  await entered.promise;
+  await admitted(harness, entered, 'the backwards clock step');
   harness.context.openDialog(harness.windows[0]);
   await harness.turn();
   const doc = harness.windows[0].dialogs[0].document;
@@ -444,6 +460,70 @@ await test('a wall clock stepped backwards mid-job never produces a negative dur
   await harness.quiet();
 });
 
+/* The clock has three tiers and the test above exercises the first and the
+   last. The middle one is not decoration: `ChromeUtils` is Gecko-specific, and
+   the guards around each tier are exactly the code that decides which one
+   answers — a `Number.isFinite` check dropped, or a `catch` removed, changes
+   which clock the sitter runs on and nothing else moves. Each arm below fixes
+   one host shape and asserts the reading that shape must produce. */
+await test('the clock falls through its tiers: ChromeUtils, then performance, then the wall clock', async () => {
+  const arms = [
+    // The web API is present and runs at double rate, so this arm fails if the
+    // two tiers are consulted in the other order — a constant offset would not
+    // have discriminated them, since a span cancels it.
+    { label: 'ChromeUtils.now answers', reading: '5 s',
+      host: (context, clock) => { context.performance = { now: () => clock.mono * 2 }; } },
+    // A host with no ChromeUtils.now at all: the web API is the same clock, and
+    // it is the only source left before the fallback.
+    { label: 'performance.now answers', reading: '5 s',
+      host: (context, clock) => {
+        delete context.ChromeUtils.now;
+        context.performance = { now: () => clock.mono };
+      } },
+    // A reading that is not a number is not a clock. The tier is skipped rather
+    // than believed, which is the difference between 5 s and NaN on screen.
+    { label: 'ChromeUtils.now returns something that is not a reading', reading: '5 s',
+      host: (context, clock) => {
+        context.ChromeUtils.now = () => 'soon';
+        context.performance = { now: () => clock.mono };
+      } },
+    // And a source that THROWS is not the same as one that is absent: a
+    // torn-down compartment can throw from a call this file makes ten times a
+    // second, and the guard is what keeps that out of the render loop.
+    { label: 'ChromeUtils.now throws', reading: '5 s',
+      host: (context, clock) => {
+        context.ChromeUtils.now = () => { throw new Error('the compartment is gone'); };
+        context.performance = { now: () => clock.mono };
+      } },
+    { label: 'no monotonic source at all', reading: '0 s',
+      host: context => { delete context.ChromeUtils.now; } },
+  ];
+  for (const arm of arms) {
+    const entered = deferred(), finish = deferred();
+    const harness = createHarness({
+      attachments: [pdf(1, 'AAAA1111')],
+      ensure: async (_id, onProgress) => { onProgress(30); entered.resolve(); await finish.promise; return false; },
+    });
+    arm.host(harness.context, harness.clock);
+    await harness.startHanging();
+    await admitted(harness, entered, arm.label);
+    harness.context.openDialog(harness.windows[0]);
+    await harness.turn();
+    const doc = harness.windows[0].dialogs[0].document;
+
+    // Five seconds of work across an hour-long backwards correction. Every arm
+    // but the last has a monotonic source and must read 5 s; the last has none
+    // and must read 0 s rather than a negative.
+    harness.clock.mono += 5000;
+    harness.clock.wall -= 60 * 60 * 1000;
+    harness.context.render();
+    assert(doc.getElementById('sdt-document-status').textContent.includes(`${arm.reading} écoulées`),
+      `${arm.label}: ${doc.getElementById('sdt-document-status').textContent}`);
+    finish.resolve();
+    await harness.quiet();
+  }
+});
+
 await test('with no platform monotonic clock the wall clock is ratcheted, never read backwards', async () => {
   const entered = deferred(), finish = deferred();
   const harness = createHarness({
@@ -458,7 +538,7 @@ await test('with no platform monotonic clock the wall clock is ratcheted, never 
     'the sandbox has a second monotonic source, so this arm proves nothing');
 
   await harness.startHanging();
-  await entered.promise;
+  await admitted(harness, entered, 'the ratcheted fallback');
   harness.context.openDialog(harness.windows[0]);
   await harness.turn();
   const doc = harness.windows[0].dialogs[0].document;
@@ -481,6 +561,50 @@ await test('with no platform monotonic clock the wall clock is ratcheted, never 
 
   finish.resolve();
   await harness.quiet();
+});
+
+/* The two spans a reader never sees as a stopwatch, and so the two most likely
+   to drift back to the calendar. Both are asserted through a divergence between
+   the clocks rather than through a value, which is the only way to tell them
+   apart at all. */
+await test('the memoized source hash is re-verified on running time, not on the calendar', async () => {
+  const attachments = [pdf(1, 'AAAA1111', { pack: { lastModified: 900 } }),
+    pdf(2, 'BBBB2222', { pack: { lastModified: 900 } })];
+  const harness = createHarness({ attachments });
+  await harness.start();
+  assert.deepEqual(harness.calls.hash, ['AAAA1111', 'BBBB2222'],
+    'the census did not hash the library it had never seen');
+  await harness.nextSweep();
+  assert.equal(harness.calls.hash.length, 2, 'an untouched library was re-hashed on the next sweep');
+
+  // The author corrects his clock 25 hours backwards. On the calendar the
+  // memoized entry's age goes negative, falls outside [0, 24 h), and every
+  // attachment in the library is re-read and re-hashed; on the running clock
+  // nothing has aged at all. Ticket 0701's whole point was to stop that pass.
+  harness.clock.wall -= 25 * 60 * 60 * 1000;
+  await harness.nextSweep();
+  assert.equal(harness.calls.hash.length, 2, 'a clock correction cost a full-library re-hash');
+
+  // And it is still a bound: 24 hours of running time expires it, which is what
+  // ticket 0701's ruling bought and what this must not quietly undo.
+  harness.clock.mono += 24 * 60 * 60 * 1000;
+  await harness.nextSweep();
+  assert.deepEqual(harness.calls.hash,
+    ['AAAA1111', 'BBBB2222', 'AAAA1111', 'BBBB2222']);
+});
+
+await test('the admission panel ages its reading on running time too', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  await harness.start();
+  assert(harness.context.admission, 'no reading was taken, so the age says nothing');
+  // One second, which is what the extractor's own clock step cost between the
+  // reading and now.
+  assert(harness.context.describeSDTAdmission().startsWith('Dernière mesure il y a 1 s '),
+    harness.context.describeSDTAdmission());
+  harness.clock.mono += 120_000;
+  harness.clock.wall -= 60 * 60 * 1000;
+  assert(harness.context.describeSDTAdmission().startsWith('Dernière mesure il y a 2 min '),
+    harness.context.describeSDTAdmission());
 });
 
 /* One arm nothing above would notice: the manifest and the pack metadata are

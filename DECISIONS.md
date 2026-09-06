@@ -6733,7 +6733,13 @@ platform measures itself with — falling back to `performance.now()`, and last 
 all to the wall clock ratcheted to its own highest reading. The ratchet cannot
 say how long a backwards step lasted, since nothing without a monotonic source
 can; it can refuse to answer a negative duration, which is the failure at issue.
-The alternative considered and rejected was to clamp each subtraction at zero:
+Its other half is worth stating with the same plainness: the ratchet pins to the
+HIGHEST reading it has seen, so a single forward excursion — a clock corrected an
+hour ahead and then back — floors every later duration at zero for as long as the
+wall clock takes to catch up. That is the price of refusing the negative, and it
+is paid only where the platform offers no monotonic clock at all, which in Gecko
+is nowhere. The alternative considered and rejected was to clamp each
+subtraction at zero:
 that hides the step instead of measuring across it, and leaves every duration
 sample taken over the step silently short while looking exactly like a fast
 document.
