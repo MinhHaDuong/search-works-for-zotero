@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0156",
+  "need": "Viết trước khi mở tài liệu: Hiến pháp 1992 (bản tiếng Anh) nói Quốc hội là cơ quan gì — cơ quan đại biểu cao nhất của nhân dân và cơ quan quyền lực nhà nước cao nhất?",
+  "query": "Hiến pháp 1992 Quốc hội là cơ quan quyền lực nhà nước cao nhất",
+  "question_language": "vi",
+  "answer_language": "en",
+  "lane": "vi->en",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "compound-statute-article",
+    "cross-lingual-anchor"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "vn-constitution-1992-en",
+      "recipe_id": "vn-constitution-1992-en",
+      "attachment_id": "vn-constitution-1992-en-html",
+      "attachment_key": "R43PLWP2",
+      "section": "Article 83",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 37417,
+          "quote": "The National Assembly is the highest representative organ of the people and the highest organ of State power of the Socialist Republic of Vietnam."
+        }
+      ],
+      "chain": {
+        "title": "Constitution of the Socialist Republic of Vietnam (1992), English text",
+        "author": "Quốc hội Việt Nam (official translation)",
+        "date": "1992",
+        "identifier": "https://en.wikisource.org/w/index.php?title=Constitution_of_Vietnam_%281992%29&oldid=16201311",
+        "page_printed": null,
+        "part_byline": null,
+        "section_heading": "CHAPTER VI THE NATIONAL ASSEMBLY",
+        "part_title": "Article 83"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "R43PLWP2",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 37417,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": false,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}
