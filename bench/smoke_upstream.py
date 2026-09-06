@@ -534,7 +534,10 @@ def main() -> None:
         s.p.terminate()
 
     if a.index:
-        with tempfile.TemporaryDirectory(prefix="zoteus-smoke-") as tmp:
+        # dir=data_dir.parent, not the default /tmp (a quota'd tmpfs here): this
+        # scratch holds a copy of a.index, hundreds of MB for a real library — see
+        # tests/test_smoke_upstream_scratch_dir.py (ticket 0714).
+        with tempfile.TemporaryDirectory(prefix="zoteus-smoke-", dir=data_dir.parent) as tmp:
             checks.append(check_previous_schema_migrates_in_place(
                 a, Path(tmp), a.queries, a.limit))
             checks.append(check_foreign_schema_is_sidelined(a, Path(tmp)))

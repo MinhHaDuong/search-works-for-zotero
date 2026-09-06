@@ -1,7 +1,11 @@
 # Gates for this repo's own harness code.
 #
 # The TypeScript under test lives in `fork/`, a separate checkout with its own
-# suite (`npx vitest run` there) — nothing here runs it. What this covers is the
+# suite (`npx vitest run` there) — `check`/`check-fast` don't run it, only
+# `test-fork` does (ticket 0714: the fork suite's own test files leak
+# `mkdtempSync` directories under `tmpdir()` with no cleanup — 116 of them,
+# 16 MB, in one `npx vitest run` — and vitest's default TMPDIR is /tmp, which
+# on this host is a quota'd tmpfs). What `check`/`check-fast` cover is the
 # measurement harness in `bench/` and the figure guard that keeps the prose
 # honest about it.
 #
@@ -12,12 +16,18 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate schema-gate sitter-version sitter-install sitter-verify-install
+.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate schema-gate sitter-version sitter-install sitter-verify-install test-fork
 
 # Where the acceptance layer's arenas live: outside the repository, because the
 # residue sweep fills them with a target's derived state and bench/ is scanned
-# by the guards above. Override to put them elsewhere.
+# by the guards above. Override to put them elsewhere. A base arena is bounded
+# by the driver itself, not by a clean target: each run removes completed
+# previous runs beyond `--keep-runs` (run.py's DEFAULT_KEEP_RUNS) before it
+# allocates its own, and touches nothing outside the run layout (ticket 0720).
 ACCEPTANCE_ARENA ?= $(HOME)/data/acceptance-arena
+
+# Disk-backed scratch for `test-fork` (ticket 0714 — see the header above).
+FORK_TEST_TMPDIR ?= $(HOME)/data/fork-test-tmp
 
 # A real run against a real target (not `make acceptance-fixtures`, which only
 # drives the in-process stub adapters below and needs none of this) MUST run
@@ -144,6 +154,7 @@ help:
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
 	@echo "make upstream-catchup  — QUIET or TOUCHED: did upstream move anything of ours"
 	@echo "make upstream-rebaseline — the UPSTREAM block for the current tip, computed, and the recipe"
+	@echo "make test-fork   — the fork suite with TMPDIR off the /tmp tmpfs (FORK_TEST_TMPDIR, ticket 0714)"
 
 check: deps lint figures models names progress tickets ticket-logs sitter-version check-fast
 
@@ -347,3 +358,11 @@ upstream-checkout:
 	git -C fork fetch upstream "$(UPSTREAM_BRANCH)"
 	git -C fork checkout --detach "$(UPSTREAM_REVIEWED_SHA)"
 	@echo "fork/ recreated at $(UPSTREAM_REVIEWED_SHA); origin is the author fork, upstream is oscardvs/zoteus"
+
+# Ticket 0714 mitigation (see the header above) until the globalSetup teardown
+# drafted there lands upstream. Does not remove the leftovers itself — that is
+# the upstream fix's job — only keeps them off the tmpfs meanwhile.
+test-fork:
+	@test -d fork/.git || { echo "fork/ absent — run 'make upstream-checkout' first" >&2; exit 1; }
+	mkdir -p "$(FORK_TEST_TMPDIR)"
+	cd fork && TMPDIR="$(FORK_TEST_TMPDIR)" npx vitest run

@@ -392,6 +392,15 @@ EXCUSED: dict[str, Excuse] = {
         "case seen from the server side — and it runs before the servers start, so a rename "
         "costs seconds rather than the hour the roster exists to protect"
     ),
+    "bench/library_census.py": Excuse(
+        frozenset({"items"}),
+        "not an index at all. The `sqlite3` handle it opens is Zotero's own `zotero.sqlite` "
+        "(immutable, read-only), and the `items` table it joins is Zotero's item table, "
+        "for the two marginals the local API does not expose — annotations by type and "
+        "feed libraries (ticket 0711). Nothing zoteus builds is read, so there is no "
+        "generation to pin it to; the roster's substrate is upstream's index file and this "
+        "probe never touches one"
+    ),
     "bench/acceptance/adapters/zoteus.py": Excuse(
         frozenset({"meta"}),
         "the fourth file — it crossed into the class on `main` in `97d1490` (0 -> 4 "
