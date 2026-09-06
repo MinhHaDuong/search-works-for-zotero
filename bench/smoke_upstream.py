@@ -534,7 +534,12 @@ def main() -> None:
         s.p.terminate()
 
     if a.index:
-        with tempfile.TemporaryDirectory(prefix="zoteus-smoke-") as tmp:
+        # dir=data_dir.parent, not the default tempfile.gettempdir(): this scratch
+        # holds a COPY of a.index (a real index can run to hundreds of MB), and the
+        # default temp root is /tmp, a quota'd tmpfs on this host — a killed run
+        # would leak a copy that size into RAM (ticket 0714). data_dir.parent is
+        # disk-backed and already guaranteed to exist, since data_dir itself does.
+        with tempfile.TemporaryDirectory(prefix="zoteus-smoke-", dir=data_dir.parent) as tmp:
             checks.append(check_previous_schema_migrates_in_place(
                 a, Path(tmp), a.queries, a.limit))
             checks.append(check_foreign_schema_is_sidelined(a, Path(tmp)))

@@ -4,7 +4,11 @@ Created: 2026-09-06
 Author: sim
 
 --- log ---
-2026-09-06T15:40Z sim created
+2026-09-06T15:33Z sim created
+2026-09-06T16:19Z claude note reproduced the positive control fresh against fork-0091 (116 leftover, 16 MB — matches the ticket's own table); drafted the globalSetup teardown and verified it green (0 leftover zoteus-* dirs, 949/949 tests unchanged) against a disposable rsync copy, never the working checkout; wrote verification/UPSTREAM-PR-0714-TMPDIR-TEARDOWN.md, staged not sent, per this raid's own instruction to stop before submitting to upstream
+2026-09-06T16:19Z claude note action 2: chose the `make test-fork` wrapper over ad-hoc TMPDIR instructions — a target is discoverable and enforceable, a convention repeated in a chat is not; added FORK_TEST_TMPDIR ?= $(HOME)/data/fork-test-tmp and the `test-fork` target, smoke-tested end to end against the same disposable copy (symlinked at fork/, since fork/ is absent in this checkout)
+2026-09-06T16:19Z claude note action 3: bench/smoke_upstream.py's schema-migration scratch copies a.index (measured 300-700+ MB for real indexes under ~/data/projets/zoteus-bench/) into the tempfile.TemporaryDirectory default, same /tmp tmpfs — worse than the vitest leak in absolute size on a killed run. Fixed with dir=data_dir.parent (already disk-backed, already required to exist); added tests/test_smoke_upstream_scratch_dir.py, proved red on the unfixed line then green on the fix
+2026-09-06T16:19Z claude note also corrected this ticket's own log stamp (was 15:40Z, 7 minutes after the 15:33Z commit that wrote it) per check_ticket_logs.py's own remedy: correct the stamp to the time the record evidences
 
 --- body ---
 ## Context
@@ -65,15 +69,19 @@ host became unresponsive before the quota error even appeared.
   green with the teardown.
 
 ## Verification
-- [ ] Positive control recorded: leftover count on the unfixed tree
-- [ ] The teardown test is green on the fixed tree
-- [ ] `ls /tmp | grep -c zoteus-` stays at 0 across a day of sessions
+- [x] Positive control recorded: leftover count on the unfixed tree (116, 16 MB, reproduced fresh)
+- [x] The teardown test is green on the fixed tree (0 leftover `zoteus-*`, 949/949 unchanged)
+- [ ] `ls /tmp | grep -c zoteus-` stays at 0 across a day of sessions — cannot be evidenced in one
+      session; the drafted fix has not landed upstream (this raid stopped short of that), so
+      `fork-0091`'s own suite is still unfixed and this will read nonzero until it does
 
 ## Invariants
 - The 949 upstream tests still pass
 - The acceptance harness's arena-scoped `TMPDIR` is unchanged
 
 ## Exit criteria
-- [ ] Upstream teardown drafted and listed in the upstream PR candidates
-- [ ] Local mitigation in place, or a written reason it is unnecessary
-- [ ] `make check` passes
+- [x] Upstream teardown drafted and listed in the upstream PR candidates
+      (`verification/UPSTREAM-PR-0714-TMPDIR-TEARDOWN.md`, `SYNC.md` 2026-09-06 entry;
+      staged, not sent — this raid stopped short of upstream by instruction)
+- [x] Local mitigation in place: `make test-fork` (`FORK_TEST_TMPDIR ?= $(HOME)/data/fork-test-tmp`)
+- [x] `make check` passes (944 passed, 14 skipped)

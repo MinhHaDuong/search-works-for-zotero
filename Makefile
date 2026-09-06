@@ -1,7 +1,11 @@
 # Gates for this repo's own harness code.
 #
 # The TypeScript under test lives in `fork/`, a separate checkout with its own
-# suite (`npx vitest run` there) — nothing here runs it. What this covers is the
+# suite (`npx vitest run` there) — `check`/`check-fast` don't run it, only
+# `test-fork` does (ticket 0714: the fork suite's own test files leak
+# `mkdtempSync` directories under `tmpdir()` with no cleanup — 116 of them,
+# 16 MB, in one `npx vitest run` — and vitest's default TMPDIR is /tmp, which
+# on this host is a quota'd tmpfs). What `check`/`check-fast` cover is the
 # measurement harness in `bench/` and the figure guard that keeps the prose
 # honest about it.
 #
@@ -12,12 +16,16 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate schema-gate sitter-version sitter-install sitter-verify-install
+.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate schema-gate sitter-version sitter-install sitter-verify-install test-fork
 
 # Where the acceptance layer's arenas live: outside the repository, because the
 # residue sweep fills them with a target's derived state and bench/ is scanned
 # by the guards above. Override to put them elsewhere.
 ACCEPTANCE_ARENA ?= $(HOME)/data/acceptance-arena
+
+# Disk-backed, not the quota'd /tmp tmpfs (ticket 0714) — a killed or leaking
+# vitest run fills memory, not just space, before the quota error even fires.
+FORK_TEST_TMPDIR ?= $(HOME)/data/fork-test-tmp
 
 # A real run against a real target (not `make acceptance-fixtures`, which only
 # drives the in-process stub adapters below and needs none of this) MUST run
@@ -347,3 +355,14 @@ upstream-checkout:
 	git -C fork fetch upstream "$(UPSTREAM_BRANCH)"
 	git -C fork checkout --detach "$(UPSTREAM_REVIEWED_SHA)"
 	@echo "fork/ recreated at $(UPSTREAM_REVIEWED_SHA); origin is the author fork, upstream is oscardvs/zoteus"
+
+# Local mitigation for ticket 0714, until the globalSetup teardown drafted
+# there lands upstream: every `mkdtempSync(tmpdir())` the fork's own test
+# files leave behind goes under a disk-backed directory instead of /tmp, so a
+# leaking or killed run fills neither the quota nor RAM. Does not remove the
+# leftovers itself — that is the upstream fix's job — only keeps them off the
+# tmpfs meanwhile.
+test-fork:
+	@test -d fork || { echo "fork/ absent — run 'make upstream-checkout' first" >&2; exit 1; }
+	mkdir -p "$(FORK_TEST_TMPDIR)"
+	cd fork && TMPDIR="$(FORK_TEST_TMPDIR)" npx vitest run
