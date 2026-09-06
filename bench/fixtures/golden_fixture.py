@@ -26,6 +26,7 @@ import re
 import shutil
 import tempfile
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -338,12 +339,26 @@ def _last_item_page_versions(client) -> list[int]:
     return list(versions) if versions is not None else [_observed_item_version(client)]
 
 
-def _control_row(doc: dict, source: dict, parent_key: str, attachment_key: str, observed: dict) -> dict:
+def _fulltext_or_none(client, key: str):
+    """The /fulltext body, or None when Zotero has none to serve (404; the in-memory
+    control raises a lookup error).  Any other failure still propagates."""
+    try:
+        return client.get_fulltext(key)
+    except (KeyError, LookupError):
+        return None
+
+
+def _control_row(
+    doc: dict, source: dict, parent_key: str, attachment_key: str, observed: dict,
+    census_version: int | None,
+) -> dict:
     """The export row of a declared failure control: no full text, its declared
-    expectation copied from the recipe, and the state the reindex just observed."""
+    expectation copied from the recipe, the state the reindex just observed, and
+    the census version Zotero listed it at (0 for an empty missing-marked row,
+    None when it has no row), so the replay answers the census as Zotero did."""
     row = {
         "recipe_id": doc["id"], "parent_key": parent_key, "attachment_key": attachment_key,
-        "terminal_state": "unindexed", "fulltext_file": None, "fulltext_version": None,
+        "terminal_state": "unindexed", "fulltext_file": None, "fulltext_version": census_version,
         "body": None, "failure_control": copy.deepcopy(source["failure_control"]),
         "observed_state": observed.get("state"),
     }
@@ -449,13 +464,25 @@ def _snapshot_rows(
                         f"{source['id']}: failure control expected {control['expected_state']}, "
                         f"the reindex settled at {observed.get('state')!r}"
                     )
-                if attachment_key in census:
+                # Zotero records a PDF it found no text in through recordMissingContent
+                # (fulltext.js): an empty fulltextItems row at version 0, marked missing,
+                # listed by the census at 0 while the fulltext route answers 404.  A
+                # container it never dispatches (DjVu) gets no row at all.  Both are
+                # unindexed; a census version above 0, or a body served, is not.
+                census_version = census.get(attachment_key)
+                if census_version is not None and census_version != 0:
                     raise GoldenFixtureError(
-                        f"{source['id']}: failure control has a /fulltext census entry; "
-                        "it is not unindexed"
+                        f"{source['id']}: failure control has a /fulltext census entry at "
+                        f"version {census_version}; it is not unindexed"
+                    )
+                if _fulltext_or_none(client, attachment_key) is not None:
+                    raise GoldenFixtureError(
+                        f"{source['id']}: failure control serves full text; it is not unindexed"
                     )
                 items.append(child)
-                attachments.append(_control_row(doc, source, parent_key, attachment_key, observed))
+                attachments.append(
+                    _control_row(doc, source, parent_key, attachment_key, observed, census_version)
+                )
                 continue
             if observed is not None:
                 if observed.get("state") != "indexed":
@@ -471,10 +498,9 @@ def _snapshot_rows(
                     )
             if attachment_key not in census:
                 raise GoldenFixtureError(f"{source['id']}: attachment has no /fulltext census entry")
-            try:
-                fulltext = client.get_fulltext(attachment_key)
-            except (KeyError, LookupError) as error:
-                raise GoldenFixtureError(f"{source['id']}: attachment has no /fulltext response") from error
+            fulltext = _fulltext_or_none(client, attachment_key)
+            if fulltext is None:
+                raise GoldenFixtureError(f"{source['id']}: attachment has no /fulltext response")
             if not isinstance(census[attachment_key], int) or census[attachment_key] < 0:
                 raise GoldenFixtureError(f"{source['id']}: invalid /fulltext census version")
             if not isinstance(fulltext, dict) or not isinstance(fulltext.get("content"), str) or not fulltext["content"].strip():
@@ -917,7 +943,15 @@ class ZoteroLocalClient:
         return result
 
     def get_fulltext(self, key):
-        result, headers = self._request(f"/items/{urllib.parse.quote(key, safe='')}/fulltext")
+        """The /fulltext body, or None on Zotero's 404 for an attachment with no
+        content (an empty missing-marked row, or no row).  Other failures raise."""
+        try:
+            result, headers = self._request(f"/items/{urllib.parse.quote(key, safe='')}/fulltext")
+        except GoldenFixtureError as error:
+            cause = error.__cause__
+            if isinstance(cause, urllib.error.HTTPError) and cause.code == 404:
+                return None
+            raise
         version = headers.get("Last-Modified-Version")
         if not version or not version.isdigit():
             raise GoldenFixtureError("Zotero fulltext response omitted Last-Modified-Version")

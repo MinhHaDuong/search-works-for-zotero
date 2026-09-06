@@ -252,6 +252,7 @@ export function loadGoldenExport(directory, options = {}) {
   const attachmentIds = new Set();
   const consumedItemKeys = new Set();
   const fulltext = new Map();
+  const censusOnly = new Map();
   const expectedAttachmentOrder = recipe.flatMap((doc) => sources(doc).map((source) => source.id));
   const observedAttachmentOrder = [];
   for (const row of manifest.attachments) {
@@ -338,7 +339,10 @@ export function loadGoldenExport(directory, options = {}) {
       if (!source.failure_control) {
         throw new Error(`${attachmentId}: exported without full text but not declared a failure control`);
       }
-      if (row.fulltext_file !== null || row.fulltext_version !== null ||
+      // fulltext_version is 0 when Zotero kept an empty, missing-marked row for the
+      // attachment (recordMissingContent, a PDF with no text) and null when it never
+      // wrote one (a DjVu it does not dispatch); the census replays it accordingly.
+      if (row.fulltext_file !== null || ![null, 0].includes(row.fulltext_version) ||
           JSON.stringify(canonicalJson(row.failure_control)) !== JSON.stringify(canonicalJson(source.failure_control)) ||
           row.observed_state !== source.failure_control.expected_state ||
           [row.indexed_pages, row.total_pages, row.indexed_chars, row.total_chars].some((v) => v !== null)) {
@@ -347,6 +351,7 @@ export function loadGoldenExport(directory, options = {}) {
       if (existsSync(resolve(root, `fulltext/${key}.json`))) {
         throw new Error(`${attachmentId}: failure control must not carry a fulltext file`);
       }
+      if (row.fulltext_version === 0) censusOnly.set(key, 0);
       consumedItemKeys.add(parent);
       consumedItemKeys.add(key);
       continue;
@@ -396,7 +401,7 @@ export function loadGoldenExport(directory, options = {}) {
   if (consumedItemKeys.size !== itemByKey.size || [...itemByKey.keys()].some((key) => !consumedItemKeys.has(key))) {
     throw new Error('items export contains a row not consumed by the recipe attachment mapping');
   }
-  return { root, manifest, items, itemByKey, fulltext };
+  return { root, manifest, items, itemByKey, fulltext, censusOnly };
 }
 
 /** Sort object keys recursively to match `golden_fixture.py`'s canonical recipe hash. */
@@ -460,6 +465,11 @@ export function goldenReplayResponse(fixture, method, rawUrl) {
     const body = {};
     for (const [key, value] of fixture.fulltext) {
       if (since === 0 || value.version > since) body[key] = value.version;
+    }
+    // Zotero lists an empty missing-marked row at version 0 in a since=0 census and
+    // still answers 404 on its fulltext route; the replay does the same.
+    for (const [key, version] of fixture.censusOnly ?? []) {
+      if (since === 0) body[key] = version;
     }
     return answer(200, body);
   }

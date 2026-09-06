@@ -211,10 +211,14 @@ record. A declared failure control is exported with `terminal_state`
 `unindexed`, no fulltext file, its declaration copied from the recipe and the
 state the reindex observed. It is accepted on evidence from the run itself:
 the reindex must have watched Zotero go idle and leave the attachment at the
-declared state, and the `/fulltext` census must have no row for it. Mere
-absence from the census is refused, because absence also describes text that
-was indexed once and vanished. The replay answers for a control as Zotero
-did: no census entry, 404 on its fulltext route, the item itself still served.
+declared state, and Zotero must hold no text for it — either no `/fulltext`
+census row (a DjVu, never dispatched) or the empty, missing-marked row at
+version 0 that Zotero's `recordMissingContent` writes for a PDF with no text,
+with the fulltext route answering 404. Mere absence from the census is
+refused, because absence also describes text that was indexed once and
+vanished. The replay answers for a control as Zotero did: the census entry
+at 0 when Zotero kept one, 404 on its fulltext route, the item itself still
+served.
 An indexed attachment is refused when the reindex left its fulltext version
 unchanged, since Zotero resets that version on every local extraction and an
 unchanged one means the client held the item but never read the file.

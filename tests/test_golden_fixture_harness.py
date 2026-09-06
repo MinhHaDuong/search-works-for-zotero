@@ -1548,6 +1548,59 @@ def test_export_accepts_a_declared_control_the_reindex_watched_settle_unindexed(
     assert replay == {"census": {indexed: 17}, "control": 404, "item": 200, "top": 2}
 
 
+def test_export_accepts_a_control_zotero_recorded_as_missing_content_at_version_zero(tmp_path):
+    """Found on the real run (padme, 2026-09-06): Zotero records a PDF it found no text
+    in through recordMissingContent -- an empty fulltextItems row at version 0, marked
+    missing -- so the census lists it at 0 while its fulltext route answers 404. The
+    export keeps that version so the replay answers the census as Zotero did."""
+    recipe, cache, zotero, indexed, control = injected_control_fixture(tmp_path)
+    zotero.reindex_fulltext = lambda keys: settled_rows(indexed, control)
+    original_census = zotero.fulltext_since
+    zotero.fulltext_since = lambda since=0: {**original_census(since), control: 0}
+    destination = tmp_path / "missing-content"
+    export_again(recipe, zotero, cache, destination)
+
+    rows = {row["recipe_id"]: row for row in json.loads((destination / "manifest.json").read_text())["attachments"]}
+    assert rows["invented-1901-scan"]["fulltext_version"] == 0
+    assert rows["invented-1901-scan"]["terminal_state"] == "unindexed"
+    recipe_path = tmp_path / "control-recipe.json"
+    recipe_path.write_text(json.dumps(recipe), encoding="utf-8")
+    probe = """
+      import { loadGoldenExport, goldenReplayResponse } from './bench/fixtures/make_index_fixture.mjs';
+      const fx = loadGoldenExport(process.argv[1], { recipePath: process.argv[2] });
+      const base = '/api/groups/4321';
+      const census = goldenReplayResponse(fx, 'GET', `${base}/fulltext?since=0`);
+      const later = goldenReplayResponse(fx, 'GET', `${base}/fulltext?since=5`);
+      const control = goldenReplayResponse(fx, 'GET', `${base}/items/${process.argv[3]}/fulltext`);
+      console.log(JSON.stringify({ census: census.body, later: later.body, control: control.status }));
+    """
+    done = subprocess.run(
+        ["node", "--input-type=module", "--eval", probe, str(destination), str(recipe_path), control],
+        cwd=REPO, text=True, capture_output=True, timeout=30,
+    )
+    assert done.returncode == 0, done.stderr
+    assert json.loads(done.stdout) == {"census": {indexed: 17, control: 0}, "later": {indexed: 17}, "control": 404}
+
+
+@pytest.mark.parametrize("defect, message", [
+    ("census_version", "census entry at version 3"),
+    ("serves_content", "serves full text"),
+])
+def test_export_refuses_a_declared_control_that_zotero_still_holds_text_for(tmp_path, defect, message):
+    recipe, cache, zotero, indexed, control = injected_control_fixture(tmp_path)
+    zotero.reindex_fulltext = lambda keys: settled_rows(indexed, control)
+    if defect == "census_version":
+        original_census = zotero.fulltext_since
+        zotero.fulltext_since = lambda since=0: {**original_census(since), control: 3}
+    else:
+        original_census = zotero.fulltext_since
+        zotero.fulltext_since = lambda since=0: {**original_census(since), control: 0}
+        zotero.fulltexts[control] = {"content": "leftover text", "indexedPages": 1, "totalPages": 1, "version": 0}
+        zotero.fulltext_since = lambda since=0: {**original_census(since), control: 0}
+    with pytest.raises(gf.GoldenFixtureError, match=message):
+        export_again(recipe, zotero, cache, tmp_path / defect)
+
+
 def test_export_refuses_vanished_fulltext_even_when_the_reindex_settles_unindexed(tmp_path):
     """The real regression the 2026-09-04 loosening could not tell apart: full text that
     existed and vanished. Zotero reports the same settled 'unindexed' for a file it
@@ -1608,6 +1661,7 @@ def test_export_refuses_a_reindex_that_settled_only_part_of_the_recipe(tmp_path)
     ("control_with_fulltext_file", "must not carry a fulltext file"),
     ("control_counts", "failure-control, or source-byte count"),
     ("control_declaration_drift", "does not match its declaration"),
+    ("control_synced_version", "does not match its declaration"),
 ])
 def test_loader_refuses_control_rows_that_disagree_with_the_recipe(tmp_path, mutation, message):
     recipe, cache, zotero, indexed, control = injected_control_fixture(tmp_path)
@@ -1637,6 +1691,8 @@ def test_loader_refuses_control_rows_that_disagree_with_the_recipe(tmp_path, mut
         manifest["indexed_attachment_count"] = 2
     elif mutation == "control_declaration_drift":
         rows["invented-1901-scan"]["failure_control"]["answer_set_participation"] = "pinned"
+    elif mutation == "control_synced_version":
+        rows["invented-1901-scan"]["fulltext_version"] = 5
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
     recipe_path.write_text(json.dumps(recipe), encoding="utf-8")
 
