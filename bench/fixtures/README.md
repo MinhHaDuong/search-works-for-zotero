@@ -103,45 +103,58 @@ excerpts, not whole reports.
 
 ## What the recipe holds
 
-As of 2026-09-06, the recipe holds 42 records: 37 with the bytes hashed and 5
-with an identifier and a stated reason the hash is still open (4 hal, 1 internet-archive). Every record is at the ruled shape of ticket 0721 (topic, stratum, per-attachment
+As of 2026-09-06, the recipe holds 104 records: 103 with the bytes hashed and 1
+with an identifier and a stated reason the hash is still open (1 internet-archive). Every record is at the ruled shape of ticket 0721 (topic, stratum, per-attachment
 language and charset, relations labelled truthfully); the disposition of the 26
 pre-build records is in ticket 0721's log.
 
 Shape against the census of `verification/LIBRARY-CENSUS-0029.md` (attachments
-are the unit for formats; records for the rest): 45 attachments, PDF 33
-(73,3 %, census 56,9 %), HTML 4 (8,9 %, census 33,0 %),
-other formats 8 (17,8 %, census 9,2 %); 16 PDFs past the 100-page
-cap (48,5 % of PDFs, census 13,0 %); 6 declared failure controls;
-3 record-only items (7,1 %, census 14,8 %); 7 records with a
-child note (census 8,2 %); the Zotero language field empty on 20 records and
-malformed on 11 (73,8 % together, census about half). Strata:
-core 25, reserve 10. Topics: economics 14, energy 7, legacy 7, hss 5, uncertainty 4, environment 3, development 2. Attachment languages: en 26, vi 8, fr 7, es 2, de 2. Item types: book 17, legacy 7, report 6, journalArticle 5, preprint 3, bookSection 1, presentation 1, dataset 1, statute 1.
+are the unit for formats; records for the rest): 115 attachments, PDF 45
+(39,1 %, census 56,9 %), HTML 51 (44,3 %, census 33,0 %),
+other formats 19 (16,5 %, census 9,2 %); 29 PDFs past the 100-page
+cap (64,4 % of PDFs, census 13,0 %); 13 declared failure controls;
+4 record-only items (3,8 %, census 14,8 %); 4 records with a
+child note (census 8,2 %); the Zotero language field empty on 40 records and
+malformed on 26 (63,5 % together, census about half). Strata:
+core 86, reserve 18. Topics: hss 36, economics 28, energy 13, environment 13, development 8, uncertainty 6. Attachment languages: en 37, vi 35, fr 13, zh 8, hi 5, de 5, es 4, ar 4, ru 4. Item types: book 29, statute 18, encyclopediaArticle 15, bookSection 11, journalArticle 8, report 6, webpage 4, preprint 3, dataset 3, thesis 2, map 2, conferencePaper 1, newspaperArticle 1, presentation 1.
 
 | id | topic | stratum | type | language(s) | format(s) | archive(s) | pages | pinned |
 |---|---|---|---|---|---|---|---|---|
-| bastiat-1862-oeuvres-completes-t1 | economics | reserve | book | fr | txt | project-gutenberg | — | sha256 |
+| bastiat-1862-oeuvres-completes-t1 | economics | reserve | book | fr | txt zip | project-gutenberg | — | sha256 |
 | bettencourt-2012-professional-diversity-cities-arxiv | economics | core | preprint | en | pdf tgz | arxiv | 19 | sha256 |
 | bettencourt-2014-professional-diversity-cities-scirep | economics | core | journalArticle | en | — (record only) | — | — | n/a |
-| bonet-1899-dictionnaire-annamite-francais-t1 | hss | reserve | book | vi | pdf | internet-archive | 488 | sha256 |
-| bonet-1899-dictionnaire-annamite-francais-t2 | hss | reserve | book | vi | pdf | internet-archive | 552 | sha256 |
+| bonet-1899-dictionnaire-annamite-francais-t1 | hss | core | book | vi | pdf | internet-archive | 488 | sha256 |
+| bonet-1899-dictionnaire-annamite-francais-t2 | hss | core | book | vi | pdf | internet-archive | 552 | sha256 |
 | cournot-1838-recherches-ia | economics | core | book | fr | pdf | internet-archive | 230 | sha256 |
 | cournot-1897-researches-bacon | economics | core | book | en | pdf | internet-archive | 229 | sha256 |
+| dai-viet-su-ky-toan-thu-ngoai-ky-1-zh | hss | core | bookSection | zh | html | wikisource | — | sha256 |
+| dai-viet-su-ky-toan-thu-quyen-thu-zh | hss | core | book | zh | html | wikisource | — | sha256 |
+| des-michels-1884-kim-van-kieu-t1 | hss | core | book | fr | pdf | internet-archive | 316 | sha256 |
+| des-michels-1885-kim-van-kieu-t2 | hss | core | book | fr | pdf | internet-archive | 305 | sha256 |
+| dli-1915-arthashastra-hindi | economics | reserve | book | hi | pdf pdf txt | internet-archive | 265 | sha256 |
 | doe-2011-quadrennial-technology-review | energy | core | report | en | pdf | osti | 168 | sha256 |
 | epa-2016-ghg-inventory-1990-2014 | environment | core | report | en | pdf pdf zip | zenodo | 93 | sha256 |
 | gutierrez-2014-diagnostico-ambiental-trevelez | environment | core | report | es | pdf | zenodo | 615 | sha256 |
-| ha-duong-1998-irreversibilite-these | legacy | legacy | legacy | fr | pdf | hal | — | open |
-| ha-duong-2005-modeles-de-precaution-hdr | legacy | legacy | legacy | fr | pdf | hal | 180 | open |
-| hal-04332519-economies-of-scale | legacy | legacy | legacy | vi | pdf | hal | — | open |
-| hal-04826774-lich-su-sach-nam-ky | legacy | legacy | legacy | vi | pdf | hal | — | open |
+| ha-duong-1998-irreversibilite-these | uncertainty | core | thesis | fr | pdf | hal | 256 | sha256 |
+| ha-duong-2005-modeles-de-precaution-hdr | uncertainty | core | thesis | fr | pdf | hal | 180 | sha256 |
+| hal-04332519-economies-of-scale | economics | core | journalArticle | en | pdf | hal | 7 | sha256 |
+| hal-04826774-lich-su-sach-nam-ky | hss | core | conferencePaper | vi | pdf | hal | 2 | sha256 |
 | ibanez-2015-desarrollo-humano-sustentable | development | core | journalArticle | es | pdf | zenodo | 28 | sha256 |
+| ibn-khaldun-1904-muqaddimah | hss | reserve | book | ar | pdf txt | internet-archive | 528 | sha256 |
 | jevons-1865-coal-question | energy | core | book | en | pdf | internet-archive | 366 | sha256 |
+| jevons-1871-theory-of-political-economy | economics | core | book | en | pdf txt epub | internet-archive | 296 | sha256 |
 | johnson-1785-dictionary | hss | reserve | book | en | pdf | internet-archive | 1104 | sha256 |
+| karamzin-1818-istoriya-gosudarstva-rossiyskogo-t1-gl1 | hss | reserve | bookSection | ru | html | internet-archive | — | sha256 |
 | keynes-1921-application-of-probability-to-conduct | uncertainty | core | bookSection | en | — (record only) | — | — | n/a |
 | keynes-1921-treatise-on-probability | uncertainty | core | book | en | pdf | internet-archive | 492 | sha256 |
 | korotayev-2015-east-africa-malthusian-trap | development | core | preprint | en | pdf | arxiv | 30 | sha256 |
+| macias-2014-crecimiento-desigualdad-pobreza | development | reserve | journalArticle | es | pdf | scielo | 26 | sha256 |
+| makarov-2013-climate-change-challenge-world-economy | economics | core | journalArticle | ru | — (record only) | — | — | n/a |
 | malynes-1622-lex-mercatoria | economics | reserve | book | en | pdf | internet-archive | 515 | open |
-| menger-1871-grundsaetze | economics | reserve | book | de | pdf | internet-archive | 307 | sha256 |
+| menger-1871-grundsaetze | economics | reserve | book | de | txt pdf | internet-archive | 307 | sha256 |
+| menger-1884-irrthuemer-des-historismus | economics | reserve | book | de | pdf | internet-archive | 106 | sha256 |
+| nguyen-du-truyen-kieu-vi-wikisource | hss | core | book | vi | html | wikisource | — | sha256 |
+| nhandan-1998-06-21-tin-kinh-te | economics | reserve | newspaperArticle | vi | html | internet-archive | — | sha256 |
 | ormos-2014-entropy-asset-pricing | economics | core | journalArticle | en | pdf | europe-pmc | 21 | sha256 |
 | ormos-2015-entropy-asset-pricing-arxiv | economics | reserve | preprint | en | — (record only) | — | — | n/a |
 | pei-2015-climate-macroeconomic-preindustrial-europe | economics | core | journalArticle | en | pdf | europe-pmc | 17 | sha256 |
@@ -149,19 +162,68 @@ core 25, reserve 10. Topics: economics 14, energy 7, legacy 7, hss 5, uncertaint
 | porte-1770-science-des-negocians | economics | core | book | fr | pdf | internet-archive | 788 | sha256 |
 | ramsey-1931-foundations-of-mathematics | uncertainty | reserve | book | en | pdf | internet-archive | 340 | sha256 |
 | rethore-2013-wind-farm-optimization | energy | core | presentation | en | pdf | zenodo | 24 | sha256 |
+| sanguo-yanyi-ch01-chinapage-1999 | hss | reserve | webpage | zh | html | internet-archive | — | sha256 |
+| sanzijing-chinapage-1999 | hss | reserve | webpage | zh | html | internet-archive | — | sha256 |
 | satw-2011-erneuerbare-energien | energy | core | report | de | pdf | zenodo | 32 | sha256 |
 | schindler-2015-alien-species-health-dataset | environment | core | dataset | en | xlsx | zenodo | — | sha256 |
 | smith-1776-wealth-of-nations | economics | core | book | en | txt html epub | project-gutenberg | — | sha256 |
+| tolstoy-1910-sueverie-gosudarstva | hss | reserve | book | ru | html | internet-archive | — | sha256 |
 | tran-trong-kim-1920-viet-nam-su-luoc-q1 | hss | reserve | book | vi | djvu | wikimedia-commons | 294 | sha256 |
-| tran-trong-kim-1920-viet-nam-su-luoc-wikisource | legacy | legacy | legacy | vi | wikitext | wikisource | — | sha256 |
+| tran-trong-kim-1920-viet-nam-su-luoc-wikisource | hss | core | book | vi | html | wikisource | — | sha256 |
+| tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-nuoc-viet-nam | hss | core | bookSection | vi | html | wikisource | — | sha256 |
+| tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch1 | hss | core | bookSection | vi | html | wikisource | — | sha256 |
+| tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch2 | hss | core | bookSection | vi | html | wikisource | — | sha256 |
+| tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch3 | hss | core | bookSection | vi | html | wikisource | — | sha256 |
+| tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch4 | hss | core | bookSection | vi | html | wikisource | — | sha256 |
 | tran-trong-kim-1928-viet-nam-su-luoc-q2 | hss | reserve | book | vi | pdf | wikimedia-commons | 347 | sha256 |
-| vn-constitution-1992-en | legacy | legacy | legacy | en | wikitext | wikisource | — | sha256 |
-| vn-constitution-1992-vi | legacy | legacy | legacy | vi | wikitext | wikisource | — | sha256 |
+| vn-constitution-1992-en | hss | core | statute | en | html | wikisource | — | sha256 |
+| vn-constitution-1992-vi | hss | core | statute | vi | html | wikisource | — | sha256 |
+| vn-constitution-1992-vi-chuong-i | hss | core | statute | vi | html | wikisource | — | sha256 |
+| vn-constitution-1992-vi-chuong-ii | hss | core | statute | vi | html | wikisource | — | sha256 |
+| vn-constitution-1992-vi-chuong-iii | hss | core | statute | vi | html | wikisource | — | sha256 |
+| vn-constitution-1992-vi-chuong-iv | hss | core | statute | vi | html | wikisource | — | sha256 |
+| vn-constitution-1992-vi-chuong-ix | hss | core | statute | vi | html | wikisource | — | sha256 |
+| vn-constitution-1992-vi-chuong-v | hss | core | statute | vi | html | wikisource | — | sha256 |
+| vn-constitution-1992-vi-chuong-vi | hss | core | statute | vi | html | wikisource | — | sha256 |
+| vn-constitution-1992-vi-chuong-vii | hss | core | statute | vi | html | wikisource | — | sha256 |
+| vn-constitution-1992-vi-chuong-viii | hss | core | statute | vi | html | wikisource | — | sha256 |
+| vn-constitution-1992-vi-chuong-x | hss | core | statute | vi | html | wikisource | — | sha256 |
+| vn-constitution-1992-vi-chuong-xi | hss | core | statute | vi | html | wikisource | — | sha256 |
+| vn-constitution-1992-vi-chuong-xii | hss | core | statute | vi | html | wikisource | — | sha256 |
 | vn-decision-11-2017-qdttg-solar-fit-en | energy | core | statute | en | pdf | faolex | 9 | sha256 |
+| vn-law-electricity-2004-vi | energy | core | statute | vi | html | wikisource | — | sha256 |
+| vn-law-energy-efficiency-2010-vi | energy | core | statute | vi | html | wikisource | — | sha256 |
+| vn-law-environment-2005-vi | environment | core | statute | vi | html | wikisource | — | sha256 |
+| vnembassy-usa-1999-tinh-hinh-lao-dong | economics | reserve | webpage | vi | html | internet-archive | — | sha256 |
+| vuillemin-1875-carte-concessions-nord-pas-de-calais | energy | core | map | fr | jpg | wikimedia-commons | — | sha256 |
+| vuillemin-1875-production-pas-de-calais | energy | core | map | fr | jpg | wikimedia-commons | — | sha256 |
 | walras-1900-elements | economics | core | book | fr | pdf | internet-archive | 270 | sha256 |
+| wb-2016-vietnam-2035-en | development | core | book | en | pdf | world-bank-okr | 409 | sha256 |
+| wb-2016-vietnam-2035-en-overview | development | core | bookSection | en | pdf | world-bank-okr | 114 | sha256 |
+| wb-2016-vietnam-2035-vi | development | core | book | vi | pdf | world-bank-okr | 584 | sha256 |
+| wb-2016-vietnam-2035-vi-overview | development | core | bookSection | vi | pdf | world-bank-okr | 168 | sha256 |
 | wittkopf-2016-bipv-methodological-framework | energy | core | journalArticle | en | pdf | zenodo | 24 | sha256 |
 | worldbank-2009-vietnam-energy-mitigation | energy | core | report | en | pdf txt | world-bank-okr | 33 | sha256 |
 | worldbank-2015-state-trends-carbon-pricing | economics | core | report | en | pdf | world-bank-okr | 92 | sha256 |
+| wp-climate-change-ar | environment | core | encyclopediaArticle | ar | html | wikipedia | — | sha256 |
+| wp-climate-change-de | environment | core | encyclopediaArticle | de | html | wikipedia | — | sha256 |
+| wp-climate-change-en | environment | core | encyclopediaArticle | en | html | wikipedia | — | sha256 |
+| wp-climate-change-es | environment | core | encyclopediaArticle | es | html | wikipedia | — | sha256 |
+| wp-climate-change-fr | environment | core | encyclopediaArticle | fr | html | wikipedia | — | sha256 |
+| wp-climate-change-hi | environment | core | webpage | hi | html | wikipedia | — | sha256 |
+| wp-climate-change-ru | environment | core | encyclopediaArticle | ru | html | wikipedia | — | sha256 |
+| wp-climate-change-vi | environment | core | encyclopediaArticle | vi | html | wikipedia | — | sha256 |
+| wp-climate-change-zh | environment | core | encyclopediaArticle | zh | html | wikipedia | — | sha256 |
+| wp-economics-vi | economics | core | encyclopediaArticle | vi | html | wikipedia | — | sha256 |
+| wp-inflation-ar | economics | core | encyclopediaArticle | ar | html | wikipedia | — | sha256 |
+| wp-inflation-en | economics | core | encyclopediaArticle | en | html | wikipedia | — | sha256 |
+| wp-inflation-hi | economics | core | encyclopediaArticle | hi | html | wikipedia | — | sha256 |
+| wp-inflation-ru | economics | core | encyclopediaArticle | ru | html | wikipedia | — | sha256 |
+| wp-inflation-zh | economics | core | encyclopediaArticle | zh | html | wikipedia | — | sha256 |
+| wp-sustainable-development-vi | development | core | encyclopediaArticle | vi | html | wikipedia | — | sha256 |
+| yan-fu-1902-yuanfu-yishi-liyan | economics | core | bookSection | zh | html wikitext | wikisource | — | sha256 |
+| zenodo-11353-open-data-energy-india | energy | core | dataset | en | xlsx | zenodo | — | sha256 |
+| zenodo-1246601-green-economy-employment | energy | core | dataset | en | xlsx docx | zenodo | — | sha256 |
 
 ## Dropped from the closed PR #151, and why
 

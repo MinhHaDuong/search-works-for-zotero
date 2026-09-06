@@ -15,7 +15,19 @@
         "reputable": "Internet Archive, San Francisco, digital library since 1996",
         "byte_exact": "an item identifier plus the file name names one file; the sha256 pins it",
         "age": "founded 1996"
-      }
+      },
+      "notes": "[lane C, 2026-09-06] The Wayback replay adds no charset of its own: the archived Content-Type header is replayed as the 1990s server sent it (koi8-r declared for lib.ru; none for chinapage), which is exactly the undeclared-charset case the fixture wants.",
+      "further_probes": [
+        {
+          "lane": "C",
+          "date": "2026-09-06",
+          "robot_open": "CDX API https://web.archive.org/cdx/search/cdx?url=…&output=json → 200 (slow, 30-90 s per query, occasional 504 Gateway Time-out on wide prefix queries); GET https://web.archive.org/web/19990210113910id_/http://chinapage.com:80/3words-gb.html → 200 text/html 3 489 bytes, byte-identical to the predecessor's fetch; GET https://web.archive.org/web/19991128173655id_/http://lib.ru:80/LITRA/TOLSTOJ/gosudarstwo.txt → 200 text/html; charset=koi8-r 44 168 bytes, byte-identical. The replay carries x-archive-orig-* headers naming the 1990s server (Apache/1.2.3 FrontPage, 1999-02-10; Apache/1.3.6 rus/PL28.15, 1999-11-28)",
+          "licence": "per document: the text on the page must be public domain or openly licensed; the 1990s page author's HTML wrapper is carried because the captures chosen carry bare texts (a 13th-century primer, Tolstoy 1910, Karamzin 1818, the 14th-century Sanguo yanyi) with no copyrightable commentary",
+          "reputable": "Internet Archive",
+          "byte_exact": "timestamp + original URL name one capture; the id_ replay returned identical bytes on two fetches a few hours apart; the CDX digest is recorded beside the sha256",
+          "age": "Wayback captures from 1996"
+        }
+      ]
     },
     {
       "name": "wikimedia-commons",
@@ -65,7 +77,19 @@
         "reputable": "Wikimedia Foundation encyclopedia; admitted by the author's ruling of 2026-09-04 (the Wikipedia constellation, article namespace, pinned by permanent revision id like Wikisource). An interlanguage link is recorded as a same-subject work relation, never as a translation",
         "byte_exact": "language, title and oldid name one revision's wikitext; the sha256 pins it",
         "age": "founded 2001"
-      }
+      },
+      "notes": "[lane C, 2026-09-06] Two of the eight climate pages (ru:Глобальное потепление, es:Calentamiento global) sit on Wikidata Q7942 (global warming), the other six and vi on Q125928 (climate change); their same-subject relations are kept with a sourcing_note.",
+      "further_probes": [
+        {
+          "lane": "C",
+          "date": "2026-09-06",
+          "robot_open": "GET https://en.wikipedia.org/api/rest_v1/page/html/Climate_change/1372428406 with the Firefox UA → 200 text/html 2 265 782 bytes; thirteen such fetches across en, fr, ar, ru, zh, de, hi, es (two clusters) all 200; the action API (langlinks, pageprops, revisions) answered every query; a 429 was met once by the predecessor and cleared with a 6-second backoff (probe429.txt)",
+          "licence": "CC BY-SA 4.0 on every article revision",
+          "reputable": "Wikimedia Foundation",
+          "byte_exact": "QUALIFIED. Re-fetching the thirteen pinned renderings a few hours later returned twelve byte-identical files and one (en:Climate change) that differed in exactly 24 bytes: the <meta http-equiv=\"x-mediawiki-render-id\" content=\"<uuid>\"> tag (e0da416f-… became 45959c74-…). The revision is byte-exact; the HTML rendering is byte-exact only until the REST cache re-renders the revision, and a Parsoid version change (data-mw-parsoid-version=\"0.24.0.0-alpha21\" today) could alter more. Three options for the integrator: (a) keep the HTML and let fetch_recipe.py report a MISMATCH to inspect (diff will show the one tag); (b) normalise that one meta tag before hashing; (c) pin raw wikitext as the archive entry says and give up the HTML share for these records",
+          "age": "2001"
+        }
+      ]
     },
     {
       "name": "hal",
@@ -243,7 +267,8 @@
         "scielo.org",
         "scielo.br",
         "scielo.org.mx",
-        "scielo.isciii.es"
+        "scielo.isciii.es",
+        "scielo.org.co"
       ],
       "identifier": "S-prefixed PID",
       "version": "none",
@@ -256,8 +281,51 @@
         "age": "1997 — 29 years"
       },
       "verdict": "NOT ADMITTED by this lane: leg 1 is mixed (search walled, documents open) and leg 2 was not met on the probed journal. Spanish coverage was taken from Zenodo instead (two CC BY 4.0 records). A future lane could admit a specific CC BY SciELO journal with a direct-PDF probe.",
+      "dropped": false,
+      "notes": "[lane A, 2026-09-06]  verdict: NOT ADMITTED by this lane: leg 1 is mixed (search walled, documents open) and leg 2 was not met on the probed journal. Spanish coverage was taken from Zenodo instead (two CC BY 4.0 records). A future lane could admit a specific CC BY SciELO journal with a direct-PDF probe. [lane C, 2026-09-06] Recommended shape if re-admitted: identifier_allowlist with the single PID, mirroring the FAOLEX narrow admission, so that a second SciELO record needs its own journal-licence probe. verdict: ADMITTED BY THIS LANE FOR ONE RECORD (macias-2014-crecimiento-desigualdad-pobreza), on the per-document reading of legs 1 and 2: the bytes are robot-open at a direct address and the journal is CC BY 4.0. If the integrator keeps lane A's archive-level drop, the record falls with it — the validator currently reports it as 'archive scielo was dropped' and 'host www.scielo.org.co does not belong to archive scielo', which is what this amendment (hosts + dropped: false, or a per-identifier allowlist as for FAOLEX) would clear.",
+      "further_probes": [
+        {
+          "lane": "A",
+          "date": "2026-09-06",
+          "robot_open": "FAILED at the front door: GET https://search.scielo.org/?q=… → 403 with a bunny-shield JavaScript challenge ('Establishing a secure connection'). Article pages and PDFs on the national sites answered 200 (scielo.org.mx scielo.php?script=sci_arttext&pid=S0301-70362012000200002 → 200 text/html 88 KB with real body text; /pdf/prode/v43n169/v43n169a2.pdf → 200 application/pdf 635 604 bytes; scielo.isciii.es → 200), so the challenge covers discovery, not the documents",
+          "licence": "per journal, and the probed journal fails: Problemas del Desarrollo (UNAM) is CC BY-NC 3.0 per the article page. No CC BY journal was identified within this lane's budget",
+          "reputable": "yes (FAPESP/BIREME network since 1997)",
+          "byte_exact": "PID + PDF path; no published checksum",
+          "age": "1997 — 29 years"
+        },
+        {
+          "lane": "C",
+          "date": "2026-09-06",
+          "robot_open": "Documents open, discovery walled. GET http://www.scielo.org.co/pdf/rei/v16n31/v16n31a06.pdf with the Firefox UA → 200 application/pdf 1 941 283 bytes, %PDF, Apache/2.2.15 (CentOS), no challenge; twice (predecessor's fetch and this lane's re-fetch) byte-identical, sha256 4ff9f8e7…; Range 0-400000 → 206. GET http://www.scielo.org.co/scielo.php?script=sci_arttext&pid=S0124-59962014000200006 → 200 text/html (113 482 bytes, title CRECIMIENTO, DESIGUALDAD Y POBREZA: ESTADO DE LA CUESTIÓN); issue TOC and journal home pages → 200. Caveats: https://www.scielo.org.co answered nothing from this host (curl exit without status; plain http works), and lane A's finding stands that search.scielo.org sits behind a bunny-shield JavaScript challenge — so discovery must go through the national site's TOC pages or an external index, never the search front",
+          "licence": "per journal, read on the journal's SciELO home page: Revista de Economía Institucional (Universidad Externado de Colombia) carries <a rel=\"license\" href=\"http://creativecommons.org/licenses/by/4.0/deed.es\"> with 'Todo el contenido de esta revista, excepto dónde está identificado, está bajo una Licencia Creative Commons'; the article page and PDF carry no contrary identification. Counter-example met by lane A and still standing: Problemas del Desarrollo (UNAM, scielo.org.mx) is CC BY-NC 3.0. So the leg is per journal (and per article where the article page identifies otherwise), never per archive",
+          "reputable": "yes: the SciELO network (FAPESP/BIREME, 1997), Colombian node run by Universidad Nacional de Colombia",
+          "byte_exact": "PID names one article; the PDF address is stable (Last-Modified 2016-10-27, ETag \"bc03f5-1d9f23-53fdda7bc2180\"); no published checksum, so the recipe's sha256 is the only pin",
+          "age": "1997 — 29 years; scielo.org.co since 2005"
+        }
+      ],
+      "identifier_allowlist": [
+        "S0124-59962014000200006"
+      ],
+      "narrow": "admitted 2026-09-06 for one record (macias-2014-crecimiento-desigualdad-pobreza) on the per-document reading of legs 1 and 2: the PDF is robot-open at its direct address and Revista de Economía Institucional is CC BY 4.0; the search front is walled and other journals are BY-NC, so a second SciELO record needs its own probe. Lead's decision pending the author's confirmation"
+    },
+    {
+      "name": "cyberleninka",
+      "hosts": [
+        "cyberleninka.ru"
+      ],
+      "identifier": "article slug (cyberleninka.ru/article/n/<slug>); PDF at <slug>/pdf",
+      "version": "none",
+      "admission": {
+        "date": "2026-09-06",
+        "robot_open": "GET https://cyberleninka.ru/article/n/globalnoe-izmenenie-klimata-kak-vyzov-mirovoy-ekonomike-i-ekonomicheskoy-nauke with the Firefox UA → 200 text/html (155 749 bytes, server cloudflare, no challenge); …/pdf Range 0-255 → 200 application/pdf, bytes open %PDF-1.7 (Range ignored, full body served); the predecessor's full fetch returned 268 183 bytes, Content-Disposition attachment; filename=\"globalnoe-izmenenie-klimata-….pdf\", Producer 'CyberLeninka' (the archive re-stamps the PDF, so the bytes are CyberLeninka's rendition, not the publisher's). The site's JSON search API answered the predecessor's queries (probe-cl-api*.json, 1 000 hits on 'неопределенность энергетика')",
+        "licence": "FAILED on the probed article. CyberLeninka's About page says the library provides materials 'по лицензии Creative Commons Attribution (CC BY)', but the licence is per article and the article page for Makarov 2013 (Экономический журнал ВШЭ 17(3)) labels it 'CC BY-NC-ND' (read twice on 2026-09-06). NC-ND is not licence-open under the standing test, so the PDF already in the byte cache is not carried; the article survives as a record-only item with a child note (makarov-2013-climate-change-challenge-world-economy). No CC BY article on the author's topics was identified within this lane's budget",
+        "reputable": "yes: the largest Russian open-access aggregator (since 2012), journals in the Russian Science Citation Index",
+        "byte_exact": "slug names one article; the served PDF is CyberLeninka's re-stamped rendition (CreationDate 2024-04-13 for a 2013 article), so the hash pins that rendition, not the publisher's file",
+        "age": "launched 2012 — 14 years"
+      },
+      "verdict": "NOT ADMITTED by this lane: legs 1, 3, 4 pass; leg 2 is per article and failed on the only article probed; leg 5 passes (14 years). A future lane can admit a specific CC BY article by reading the badge on its page.",
       "dropped": true,
-      "dropped_reason": "NOT ADMITTED by this lane: leg 1 is mixed (search walled, documents open) and leg 2 was not met on the probed journal. Spanish coverage was taken from Zenodo instead (two CC BY 4.0 records). A future lane could admit a specific CC BY SciELO journal with a direct-PDF probe."
+      "dropped_reason": "NOT ADMITTED by this lane: legs 1, 3, 4 pass; leg 2 is per article and failed on the only article probed; leg 5 passes (14 years). A future lane can admit a specific CC BY article by reading the badge on its page."
     }
   ]
 }

@@ -105,3 +105,146 @@ admitted by recording a real probe, not by editing a frozenset.
       labelled truthfully, topic and stratum
 - [ ] the export committed with the manifest above, replayed end to end
 - [ ] 0029's Children table row and log line updated
+
+## Disposition of every record at assembly (2026-09-06)
+
+The 26 pre-build records and the three sourcing lanes' fragments, as merged into
+`bench/fixtures/recipe.json` (104 records, 114 attachments; the per-record table
+with topic, stratum, type, languages, formats and archives is regenerated in
+`bench/fixtures/README.md`).
+
+| record | disposition |
+|---|---|
+| cournot-1838-recherches | DROPPED: Gallica dropped 2026-09-04; replaced by cournot-1838-recherches-ia (Internet Archive) |
+| walras-1900-elements | kept, core, economics |
+| porte-1770-science-des-negocians | kept, core, economics |
+| minkowski-1896-geometrie-der-zahlen | RETIRED: mathematics; German is carried by Menger 1871/1884 and the SATW report |
+| malynes-1622-lex-mercatoria | kept, reserve, economics |
+| ramsey-1931-foundations-of-mathematics | kept, reserve, uncertainty |
+| depitre-1908-oeuvres-cournot | DROPPED: Gallica dropped 2026-09-04; no replacement needed |
+| ha-duong-2005-modeles-de-precaution-hdr | rewritten by lane B |
+| ha-duong-1998-irreversibilite-these | rewritten by lane B |
+| johnson-1785-dictionary | kept, reserve, hss |
+| baudelaire-1857-fleurs-du-mal | RETIRED: poetry; no mechanism an on-topic document cannot carry |
+| stein-1925-making-of-americans | RETIRED: literature; its mechanism (an English body far past the page cap) is carried by Johnson 1785 and the long economics books |
+| curie-1904-recherches-substances-radioactives | RETIRED: physics; French equation-heavy prose is carried by Poincaré 1912 |
+| einstein-minkowski-1920-principle-of-relativity | RETIRED: physics, weak licence flag; English equation-heavy prose is carried by Keynes 1921 |
+| tran-trong-kim-1920-viet-nam-su-luoc-q1 | kept, reserve, hss |
+| tran-trong-kim-1928-viet-nam-su-luoc-q2 | kept, reserve, hss |
+| tran-trong-kim-1920-viet-nam-su-luoc-wikisource | rewritten by lane B |
+| vn-constitution-1992-vi | rewritten by lane B |
+| vn-constitution-1992-en | rewritten by lane B |
+| hal-04332519-economies-of-scale | rewritten by lane B |
+| hal-04826774-lich-su-sach-nam-ky | rewritten by lane B |
+| des-michels-1883-luc-van-tien | DROPPED: Gallica dropped 2026-09-04; Kim Vân Kiều volumes found on the Internet Archive instead |
+| des-michels-1884-kim-van-kieu-t2p1 | DROPPED: Gallica dropped 2026-09-04; replaced by des-michels-1884/1885 Internet Archive copies |
+| bonet-1899-dictionnaire-annamite-francais-t1 | rewritten by lane B |
+| bonet-1899-dictionnaire-annamite-francais-t2 | rewritten by lane B |
+| vn-decision-11-2017-qdttg-solar-fit-en | rewritten by lane B |
+| keynes-1921-treatise-on-probability | lane A, core, uncertainty |
+| keynes-1921-application-of-probability-to-conduct | lane A, core, uncertainty |
+| knight-1921-risk-uncertainty-profit | lane A, trimmed (census shape: fewer books/preprints/small reports) |
+| jevons-1865-coal-question | lane A, core, energy |
+| cournot-1838-recherches-ia | lane A, core, economics |
+| cournot-1897-researches-bacon | lane A, core, economics |
+| poincare-1912-calcul-des-probabilites | lane A, core, uncertainty |
+| menger-1871-grundsaetze | lane A, reserve, economics |
+| smith-1776-wealth-of-nations | lane A, core, economics |
+| bastiat-1862-oeuvres-completes-t1 | lane A, reserve, economics |
+| pei-2015-climate-macroeconomic-preindustrial-europe | lane A, core, economics |
+| ormos-2014-entropy-asset-pricing | lane A, core, economics |
+| ormos-2015-entropy-asset-pricing-arxiv | lane A, reserve, economics |
+| bettencourt-2012-professional-diversity-cities-arxiv | lane A, core, economics |
+| bettencourt-2014-professional-diversity-cities-scirep | lane A, core, economics |
+| korotayev-2015-east-africa-malthusian-trap | lane A, core, development |
+| zambrano-2015-thermodynamics-firms-growth | lane A, trimmed (census shape: fewer books/preprints/small reports) |
+| satw-2011-erneuerbare-energien | lane A, core, energy |
+| land-2014-kann-man-entwicklung-messen | lane A, trimmed (census shape: fewer books/preprints/small reports) |
+| wittkopf-2016-bipv-methodological-framework | lane A, core, energy |
+| rethore-2013-wind-farm-optimization | lane A, core, energy |
+| ibanez-2015-desarrollo-humano-sustentable | lane A, core, development |
+| gutierrez-2014-diagnostico-ambiental-trevelez | lane A, core, environment |
+| schindler-2015-alien-species-health-dataset | lane A, core, environment |
+| epa-2016-ghg-inventory-1990-2014 | lane A, core, environment |
+| doe-2011-quadrennial-technology-review | lane A, core, energy |
+| hagerman-2014-buildings-to-grid | lane A, trimmed (census shape: fewer books/preprints/small reports) |
+| worldbank-2009-vietnam-energy-mitigation | lane A, core, energy |
+| worldbank-2015-state-trends-carbon-pricing | lane A, core, economics |
+| ha-duong-2005-modeles-de-precaution-hdr | lane B, core, uncertainty |
+| ha-duong-1998-irreversibilite-these | lane B, core, uncertainty |
+| hal-04332519-economies-of-scale | lane B, core, economics |
+| hal-04826774-lich-su-sach-nam-ky | lane B, core, hss |
+| wb-2016-vietnam-2035-en | lane B, core, development |
+| wb-2016-vietnam-2035-vi | lane B, core, development |
+| wb-2016-vietnam-2035-en-overview | lane B, core, development |
+| wb-2016-vietnam-2035-vi-overview | lane B, core, development |
+| des-michels-1884-kim-van-kieu-t1 | lane B, core, hss |
+| des-michels-1885-kim-van-kieu-t2 | lane B, core, hss |
+| nguyen-du-truyen-kieu-vi-wikisource | lane B, core, hss |
+| vn-constitution-1992-vi | lane B, core, hss |
+| vn-constitution-1992-vi-chuong-i | lane B, core, hss |
+| vn-constitution-1992-vi-chuong-ii | lane B, core, hss |
+| vn-constitution-1992-vi-chuong-iii | lane B, core, hss |
+| vn-constitution-1992-vi-chuong-iv | lane B, core, hss |
+| vn-constitution-1992-vi-chuong-v | lane B, core, hss |
+| vn-constitution-1992-vi-chuong-vi | lane B, core, hss |
+| vn-constitution-1992-vi-chuong-vii | lane B, core, hss |
+| vn-constitution-1992-vi-chuong-viii | lane B, core, hss |
+| vn-constitution-1992-vi-chuong-ix | lane B, core, hss |
+| vn-constitution-1992-vi-chuong-x | lane B, core, hss |
+| vn-constitution-1992-vi-chuong-xi | lane B, core, hss |
+| vn-constitution-1992-vi-chuong-xii | lane B, core, hss |
+| vn-constitution-1992-en | lane B, core, hss |
+| vn-law-electricity-2004-vi | lane B, core, energy |
+| vn-law-energy-efficiency-2010-vi | lane B, core, energy |
+| vn-law-environment-2005-vi | lane B, core, environment |
+| tran-trong-kim-1920-viet-nam-su-luoc-wikisource | lane B, core, hss |
+| tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-nuoc-viet-nam | lane B, core, hss |
+| tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch1 | lane B, core, hss |
+| tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch2 | lane B, core, hss |
+| tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch3 | lane B, core, hss |
+| tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch4 | lane B, core, hss |
+| dai-viet-su-ky-toan-thu-quyen-thu-zh | lane B, core, hss |
+| dai-viet-su-ky-toan-thu-ngoai-ky-1-zh | lane B, core, hss |
+| wp-climate-change-vi | lane B, core, environment |
+| wp-economics-vi | lane B, core, economics |
+| wp-sustainable-development-vi | lane B, core, development |
+| bonet-1899-dictionnaire-annamite-francais-t1 | lane B, core, hss |
+| bonet-1899-dictionnaire-annamite-francais-t2 | lane B, core, hss |
+| vn-decision-11-2017-qdttg-solar-fit-en | lane B, core, energy |
+| nhandan-1998-06-21-tin-kinh-te | lane B, reserve, economics |
+| vnembassy-usa-1999-tinh-hinh-lao-dong | lane B, reserve, economics |
+| wp-climate-change-en | lane C, core, environment |
+| wp-climate-change-fr | lane C, core, environment |
+| wp-climate-change-ar | lane C, core, environment |
+| wp-climate-change-ru | lane C, core, environment |
+| wp-climate-change-zh | lane C, core, environment |
+| wp-climate-change-de | lane C, core, environment |
+| wp-climate-change-hi | lane C, core, environment |
+| wp-climate-change-es | lane C, core, environment |
+| wp-inflation-en | lane C, core, economics |
+| wp-inflation-hi | lane C, core, economics |
+| wp-inflation-ar | lane C, core, economics |
+| wp-inflation-zh | lane C, core, economics |
+| wp-inflation-ru | lane C, core, economics |
+| yan-fu-1902-yuanfu-yishi-liyan | lane C, core, economics |
+| menger-1884-irrthuemer-des-historismus | lane C, reserve, economics |
+| jevons-1871-theory-of-political-economy | lane C, core, economics |
+| ibn-khaldun-1904-muqaddimah | lane C, reserve, hss |
+| dli-1915-arthashastra-hindi | lane C, reserve, economics |
+| vuillemin-1875-carte-concessions-nord-pas-de-calais | lane C, core, energy |
+| vuillemin-1875-production-pas-de-calais | lane C, core, energy |
+| zenodo-11353-open-data-energy-india | lane C, core, energy |
+| zenodo-1246601-green-economy-employment | lane C, core, energy |
+| macias-2014-crecimiento-desigualdad-pobreza | lane C, reserve, development |
+| makarov-2013-climate-change-challenge-world-economy | lane C, core, economics |
+| tolstoy-1910-sueverie-gosudarstva | lane C, reserve, hss |
+| sanzijing-chinapage-1999 | lane C, reserve, hss |
+| karamzin-1818-istoriya-gosudarstva-rossiyskogo-t1-gl1 | lane C, reserve, hss |
+| sanguo-yanyi-ch01-chinapage-1999 | lane C, reserve, hss |
+| menger-1871-grundsaetze | lane C proposal applied: OCR txt first (indexed), boilerplate PDF second |
+| bastiat-1862-oeuvres-completes-t1 | lane C proposal applied: Gutenberg zip as a failure-control sibling |
+| nhandan-1998-06-21-tin-kinh-te | charset TCVN3 declared as windows-1252 (Zotero's guess) with the truth in encoding_note |
+| cournot-1897-researches-bacon | pruned dangling relation targets: cournot-1838-recherches |
+| wp-economics-vi | pruned dangling relation targets: wp-economics-en, wp-economics-fr, wp-economics-ar, wp-economics-ru, wp-economics-zh, wp-economics-de, wp-economics-hi, wp-economics-es |
+| wp-sustainable-development-vi | pruned dangling relation targets: wp-sustainable-development-en, wp-sustainable-development-fr, wp-sustainable-development-ar, wp-sustainable-development-ru, wp-sustainable-development-zh, wp-sustainable-development-de, wp-sustainable-development-hi, wp-sustainable-development-es |
