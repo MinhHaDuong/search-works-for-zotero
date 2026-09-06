@@ -7,6 +7,7 @@ Author: claude
 2026-09-06T16:21Z sim created
 
 2026-09-06T17:51Z interim recipe committed: lane A landed (25 records after a 4-record trim), 5 off-topic records retired (Stein, Baudelaire, Curie, Einstein-Minkowski, Minkowski), 4 Gallica records dropped; three archives admitted on probes (europe-pmc, osti, world-bank-okr), SciELO refused; lanes B and C resume after a session-limit interruption from the bytes and probe results their predecessors left
+2026-09-06T18:01Z harness landed: plugin 0.2.0 (complete flag, stock default, live prefs) then 0.3.0 (import endpoint for the RIS check into a scratch profile's user library); explicit charset on text attachments, --reindex-mode observed from the plugin, C.7 counter refusal, notes, record-only, retire (full-item write), archives.json; RIS package (export_ris.py, make menagerie-ris / menagerie-package, menagerie.ris committed) per the author's addition of 2026-09-06
 --- body ---
 ## Context
 

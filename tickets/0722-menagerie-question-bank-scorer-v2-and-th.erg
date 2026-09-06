@@ -6,6 +6,7 @@ Author: claude
 --- log ---
 2026-09-06T16:21Z sim created
 
+2026-09-06T18:01Z scorer v2 landed on the build branch: golden_gate.py validate/score/shape (menagerie-bank/v2 in, v1 refused), golden_run.py runner over the replay index (keyword mode only, embeddings off), make golden / golden-run, five demonstrator questions; the reviewed zoteus build (b0e0bc8) answers itemKey/title/snippet/score/source only, so section heading and printed page can never be carried (chain ceiling 4/6) and the 40 000-character index cap makes deep-body answers unreachable in the index
 --- body ---
 ## Context
 
