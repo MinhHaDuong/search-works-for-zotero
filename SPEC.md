@@ -1318,13 +1318,13 @@ design and inside the execution-mode comparison (§5.2.5).
 
 **The segmenter's interface.** The segmenter takes the document's extracted
 text and a list of structure signals, each a set of candidate boundaries with
-a provenance: pack blocks, the PDF's outline page targets, layout headings,
-markup headings, form feeds, a parsed contents list. It returns entries, each
-carrying a title, a character range in the text, an optional page range, a
-confidence, and the tier that produced the cut. Discovery runs before the
-extractor and the cut runs after it: a tier reads structure from the PDF or
-the pack, the segmenter cuts the extracted text, and Zotero stays the
-extractor. seg/1 is the implementation for the empty signal list and the
+a provenance: structured-text blocks, the PDF's outline page targets, layout
+headings, markup headings, form feeds, a parsed contents list. It returns
+entries, each carrying a title, a character range in the text, an optional
+page range, a confidence, and the tier that produced the cut. Discovery runs
+before the extractor and the cut runs after it: a tier reads structure from
+the PDF or from the structured-text response, the segmenter cuts the
+extracted text, and Zotero stays the extractor. seg/1 is the implementation for the empty signal list and the
 fall-through for every tier that comes up empty or low.
 
 **The segmenter, seg/1** is new machinery; the spec lives here. Its primary
@@ -1613,32 +1613,44 @@ is lost in today's chunker rather than in transport, and the extract stage
 carries those signals through from day one. A later extractor can replace the
 shim without moving the ledger boundary or touching the stages downstream.
 
-**Two sources, pack first (ruling 2026-09-02).** Per attachment the shim
-first looks for Zotero's structured-text pack, `.zotero-sdt-cache` beside the
-file, located through the same `/file/view/url` route the segmenter uses to
-reach the PDF — which answers with the local file URL as a plain-text body,
-where `/file` and `/file/view` answer with a 302 to it
-(`server_localAPI.js:1264-1276`, `9e28eb0`). A pack of a known pack version is the source: its blocks are the
-text, excluded flows (running heads, page numbers) dropped, joined so a
-passage's extent maps back to its blocks; its block types and page anchors go
-to the segmenter as the first structure signal; its metadata's source hash and
-processor version are the C1 key, so a processor bump is a visible staleness
-event. No pack, or a pack version the reader does not know, or a pack cut
-short, and the source is the flat text over `/fulltext` exactly as above,
-never a direct read of `.zotero-ft-cache`. The pack never overlays the flat
-text; one attachment has one source, recorded in the ledger and counted in
-R17's report, so the mixture the reader-only trigger produces today is
-disclosed rather than discovered. The pack's format is internal and unversioned
-in any public sense (C2), which is why the fallback is structural: a format
-move degrades that attachment to the flat path, never to a failure.
+**Two sources, structured first.** Per attachment the shim first asks a
+structured-text service for the attachment's structured text, over the same
+host and port the local API answers on. The service is whatever provides
+those blocks — an extension today, the platform itself if it ever serves them
+— and the shim knows it only by its contract. A response of a contract
+version the shim knows, carrying an identity it can key on, is the source:
+its blocks are the text, excluded flows (running heads, page numbers)
+dropped, joined so a passage's extent maps back to its blocks; its block
+types and page anchors go to the segmenter as the first structure signal; the
+source hash and processor version it reports are the C1 key, so a processor
+bump is a visible staleness event. Where the response also carries chunks,
+the chunker identity and geometry it names feed the chunk key: a chunker
+outside this tree that moves a boundary MUST arrive as a key bump and not as
+drift, and a response that serves chunks without naming its chunker is a
+fallback trigger rather than a default. No service, a contract version the
+shim does not know, an attachment the service does not cover, or an identity
+it does not name, and the source is the flat text over `/fulltext` exactly as
+above — never a direct read of `.zotero-ft-cache`, and never a direct read of
+the platform's pack either. Structured text never overlays the flat text; one
+attachment has one source, recorded in the ledger and counted in R17's
+report, so a mixed corpus is disclosed rather than discovered.
+
+The service boundary is what holds the platform's pack format at arm's
+length. That format is internal and unversioned in any public sense (C2), and
+behind a versioned contract it may move without reaching this design; the
+fallback stays structural, so a move degrades that attachment to the flat
+path and never to a failure. The response is read in pages and never as one
+body: C3 bounds peak memory to a section batch whatever the document's size,
+and the conductor materializes no document whole.
 
 This is the permanent source-selection contract, not the current deployment
-state. The reader is deferred until Zotero #6012 makes packs library-wide; the
-measured 2 packs among 13 630 flat caches do not justify maintaining an
-internal-format reader before then. Until that checkpoint the shim uses the
-flat path for every attachment. When the checkpoint is met, enabling pack-first
-selection changes no interface or downstream stage: the source identity,
-reporting, tier-0 structure signal and fallback are already fixed above.
+state. Until a structured-text service answers, the shim uses the flat path
+for every attachment; enabling structured-first selection then changes no
+interface and no downstream stage, because source identity, reporting, the
+tier-0 structure signal and the fallback are all fixed above. What the
+structured route adds is structure and the pages beyond the platform's
+extraction cap, which it does not observe and the flat extraction does — not
+better words, since where both exist the two texts agree.
 
 **The version-0 residue.** 584 of 8 037 measured fulltext entries sit at
 version 0. A local re-extraction that stamps 0 again is invisible to an
@@ -1830,10 +1842,13 @@ is written by the conductor and by nothing else. It runs seg/1 (§5.2.2) as a
 streaming state machine over the text windows the worker forwards: it closes
 entries at structural boundaries — a book into chapters, the dictionary into
 entries, proceedings into presentations — taking its structure signals in
-order: the pack's block types and page anchors when the source is a pack
-(§5.2.4), the PDF's own outline and layout otherwise, seg/1's heuristic last —
+order: the block types and page anchors a structured-text response carries
+when that is the source (§5.2.4), the PDF's own outline and layout otherwise,
+seg/1's heuristic last —
 cuts the passages inside each entry
-as deterministic token windows over text it is already holding, and commits
+as deterministic token windows over text it is already holding — or adopts
+the cuts a structured-text response carries, under the chunker identity that
+response names — and commits
 slab, entry and passage rows as entries close. Peak memory is one window plus
 the segmenter's own state, which is the streaming property C3 already
 asserts. **The conductor never materializes a whole document**: the local API
