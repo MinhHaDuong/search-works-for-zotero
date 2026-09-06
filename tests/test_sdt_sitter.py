@@ -20,14 +20,14 @@ about which build was running.
 The version-bump guard's own suite is `tests/test_check_sitter_version.py`,
 where the repository's guard-completeness convention puts it.
 
-Since ticket 0692 the wording itself lives in `locale/<tag>/sdt-pack-sitter.ftl`
-and not in `bootstrap.js`, so the vocabulary assertions are anchored there --
-one message id at a time, in the locale that carries the wording being argued
-about. What stays anchored in `bootstrap.js` is the *plumbing*: which composer
-reads which id, that no site keeps a second copy of a figure, and that no
-sentence has crept back into the source. The two halves are checked apart on
-purpose: a wording test that read the source would go green the day the string
-moved, which is exactly the direction this refactor moved it.
+Ticket 0692 moved the wording out to `locale/<tag>/sdt-pack-sitter.ftl`; the
+author had the whole multilingual layer removed again on 2026-09-07, so the
+strings are back in `bootstrap.js`, in the `SDT_TEXT` table, in English only.
+The vocabulary assertions are anchored on that table, one message id at a time.
+What stays anchored on the code is the *plumbing*: which composer reads which
+id, that no site keeps a second copy of a figure, and that no sentence has
+crept back into a call site. The two halves are still checked apart, because a
+wording test that read the call sites would go green the day a string moved.
 """
 import json
 import re
@@ -41,22 +41,24 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT / 'bench') not in sys.path:
     sys.path.insert(0, str(ROOT / 'bench'))
 
-import build_sdt_sitter  # noqa: E402
 from sdt_sitter_install import ADDON_ID, install, read_addon_record  # noqa: E402
 
 SITTER = ROOT / 'plugins' / 'sdt-sitter'
 BOOTSTRAP = SITTER / 'bootstrap.js'
 SCHEDULER = SITTER / 'scheduler.js'
 
-#: English first and deliberately: it is the source of truth every other locale
-#: falls back to, so it is also the one whose id set the others are compared to.
-#: Imported rather than restated -- `build_sdt_sitter` is what decides which
-#: locales reach the XPI, and a second list here could agree with the tree while
-#: disagreeing with what ships.
-LOCALES = ('en', *(tag for tag in build_sdt_sitter.LOCALES if tag != 'en'))
+#: The one language there is, kept as a tuple so the loops that iterated the
+#: four locales still read as what they check: every language this add-on ships
+#: obeys the vocabulary ban, carries no internal build name, and renders both
+#: halves of the session clause. That was four files and is now one table
+#: (author's instruction, 2026-09-07); the shape of the assertion did not change
+#: with the count, and collapsing the loops would only have to be undone if a
+#: second language ever returns.
+LOCALES = ('en',)
 
-#: The two strings whose meaning is carried by a number, and the only two that
-#: may (and must) use a Fluent select. Everything else is a sentence.
+#: The two strings whose meaning is carried by a number. They are the only
+#: entries in `SDT_TEXT` that are a [singular, plural] pair rather than a
+#: string; everything else is a sentence.
 PLURAL_MESSAGES = ('files-indexed', 'files-failed')
 
 #: A second add-on, so "present" can be told from "something is present".
@@ -155,44 +157,41 @@ def _site(start: str, end: str, path: Path | None = None) -> str:
     return source[begin:source.index(end, begin)]
 
 
-def ftl(tag: str) -> Path:
-    return SITTER / 'locale' / tag / 'sdt-pack-sitter.ftl'
+def messages(tag: str = 'en') -> dict[str, str | list[str]]:
+    """`id -> text` read out of `bootstrap.js`'s `SDT_TEXT` table.
 
+    Read from the source rather than restated, so a reworded string is argued
+    with here rather than silently agreed with. The `tag` argument survives the
+    removal of the multilingual layer (2026-09-07) so the call sites did not all
+    have to change on the same day; there is one language now and it is ignored.
 
-def messages(tag: str) -> dict[str, str]:
-    """`id -> pattern` for one locale, continuation lines joined by newline.
-
-    Deliberately the same line-based subset `tests/fluent_stub.mjs` parses, and
-    `test_the_locale_files_stay_inside_the_stubs_subset` is what keeps the two
-    honest about each other: a `.ftl` construct only the real Fluent understands
-    would be read one way here, another way by the stub, and a third way by
-    Zotero -- three readings of one file is worse than no reading at all.
+    Parsed as JSON, which the table is: the generator that inlined it emitted
+    `json.dumps` output, and keeping it parseable that way is what lets this
+    read the wording without a JavaScript engine.
     """
-    parsed: dict[str, str] = {}
-    current, buffer = None, []
-
-    def flush():
-        nonlocal current, buffer
-        if current is not None:
-            parsed[current] = '\n'.join(buffer).strip()
-        current, buffer = None, []
-
-    for line in ftl(tag).read_text(encoding='utf-8').splitlines():
-        if line.lstrip().startswith('#'):
-            flush()
-            continue
-        if not line.strip():
-            flush()
-            continue
-        if line[0].isspace():
-            if current is not None:
-                buffer.append(line.strip())
-            continue
-        flush()
-        name, _, value = line.partition('=')
-        current, buffer = name.strip(), [value.strip()]
-    flush()
-    return parsed
+    source = BOOTSTRAP.read_text(encoding='utf-8')
+    start = source.index('const SDT_TEXT = ')
+    begin = source.index('{', start)
+    depth, index, in_string, escaped = 0, begin, False, False
+    while index < len(source):
+        char = source[index]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == '\\':
+                escaped = True
+            elif char == '"':
+                in_string = False
+        elif char == '"':
+            in_string = True
+        elif char == '{':
+            depth += 1
+        elif char == '}':
+            depth -= 1
+            if depth == 0:
+                break
+        index += 1
+    return json.loads(source[begin:index + 1])
 
 
 #: `{ $count ->`, `{ $name }`, `[one]`, `*[other]`, `}` — everything a reader of
@@ -208,11 +207,15 @@ VARIANT_KEY = re.compile(r'^\s*\*?\[[^\]]*\]', re.MULTILINE)
 VARIABLE = re.compile(r'\{\s*\$[A-Za-z][A-Za-z0-9_-]*\s*\}')
 
 
-def visible(pattern: str) -> str:
-    """The text a reader actually sees, with every Fluent construct removed."""
-    text = SELECTOR.sub(' ', pattern)
-    text = PLACEABLE.sub(' ', text)
-    return VARIANT_KEY.sub(' ', text).replace('}', ' ')
+def visible(pattern: str | list[str]) -> str:
+    """The text a reader actually sees, with the `{name}` slots removed.
+
+    A plural entry is a [singular, plural] pair, and both halves are text a
+    reader meets, so both are returned for the vocabulary ban to read.
+    """
+    if isinstance(pattern, list):
+        return ' '.join(visible(half) for half in pattern)
+    return PLACEABLE.sub(' ', pattern)
 
 
 #: Comments, which are not user-facing text and are full of apostrophes. The
@@ -252,14 +255,6 @@ def test_sdt_sitter_dialog():
 
 
 @pytest.mark.integration
-def test_sdt_sitter_l10n():
-    """The Fluent layer of ticket 0692: the fallback chain, and what a locale
-    missing an id renders. Driven, because the criterion is behaviour under a
-    file that is not there — which no reading of either source can settle."""
-    subprocess.run(['node', 'tests/sdt_sitter_l10n.mjs'], cwd=ROOT,
-                   check=True, capture_output=True, text=True, timeout=30)
-
-
 @pytest.mark.integration
 def test_sdt_sitter_bootstrap():
     """`initialize()`'s own closure, run against a mock Zotero host.
@@ -567,13 +562,11 @@ def test_toolbar_button_label_reads_index():
         'the button composes its own label instead of reading the coverage composer'
     assert "setAttribute('label', spinning" in block and 'coverageLabel' in block
     assert 'SDT' not in ''.join(_ui_strings(block)), 'the internal name reached the toolbar'
-    assert messages('fr')['index'] == 'Index'
-    assert messages('en')['index'] == 'Index'
+    assert messages()['index'] == 'Index'
 
 
 def test_toolbar_tooltip_counts_files_not_packs():
-    assert 'fichiers indexés' in messages('fr')['files-indexed']
-    assert 'files indexed' in messages('en')['files-indexed']
+    assert 'files indexed' in messages()['files-indexed'][1]
     assert 'packs créés' not in BOOTSTRAP.read_text(encoding='utf-8')
     # 0696's structure and 0692's wording, asserted apart: the tooltip reads the
     # one composer, and the composer reads the one message. Either half alone
@@ -630,131 +623,30 @@ def test_no_ui_site_keeps_a_sentence_of_its_own():
     message of any locale may appear verbatim in the source (that is what a
     literal looks like once somebody translates around it), and no site may
     hold prose that is in no locale at all (that is what a brand-new one looks
-    like). Adding a string to this plugin means adding it to all four `.ftl`
-    files and reading it with `sdtText`.
+    like). Adding a string means adding it to `SDT_TEXT` and reading it with
+    `sdtText`.
+
+    The first half reads the source with the TABLE CUT OUT of it. Until
+    2026-09-07 the wording lived in four `.ftl` files, so "appears in
+    bootstrap.js at all" was the duplication; now the table is in bootstrap.js,
+    and that test would fail against its own single source of truth. The
+    invariant did not change — one home per string — only where the home is.
     """
     source = BOOTSTRAP.read_text(encoding='utf-8')
+    begin = source.index('const SDT_TEXT = ')
+    outside = source[:begin] + source[source.index('\n};', begin):]
     for tag in LOCALES:
         for name, pattern in messages(tag).items():
             text = visible(pattern).strip()
             # Single words ("Index", "Error") are legitimate elsewhere in the
-            # file; a phrase is not, and a phrase is what a translator loses.
+            # file; a phrase is not, and a phrase is what a second copy loses.
             if len(text.split()) < 3:
                 continue
-            assert text not in source, f'{tag}.ftl message {name!r} is hardcoded in bootstrap.js'
+            assert text not in outside, f'message {name!r} is also hardcoded at a call site'
     for start, end in UI_SITES:
         for text in _ui_strings(COMMENT.sub(' ', _site(start, end))):
             assert not looks_like_a_sentence(text), \
                 f'{text!r} is prose in the source, not a message id — site anchored at {start!r}'
-
-
-def test_every_message_a_site_asks_for_exists_in_english():
-    """English is the end of every fallback chain, so an id missing there renders
-    as its own name in all four locales at once — the loudest possible defect,
-    and the one nothing but a check like this sees before a reader does.
-
-    Both directions, because a typo produces one of each: the misspelt id is
-    asked for and undefined, and the real one is defined and named nowhere. The
-    second direction is checked against every quoted string rather than against
-    `sdtText(` calls alone, so the ids a call site picks by ternary or reads out
-    of a list are covered without this test having to parse JavaScript.
-    """
-    source = BOOTSTRAP.read_text(encoding='utf-8')
-    quoted = set(re.findall(r"'([^'\\\n]*)'", source))
-    english = messages('en')
-    orphans = set(english) - quoted
-    assert not orphans, f'{sorted(orphans)} are defined in en.ftl and named nowhere in the source'
-    asked = set(re.findall(r"sdtText\(\s*'([a-z][a-z0-9-]*)'", source))
-    asked |= set(re.findall(r"'(phase-[a-z-]+)'", _site('var SDT_PHASE_LABELS = {', '};')))
-    assert len(asked) > 30, f'the id extraction matched almost nothing: {sorted(asked)}'
-    assert not asked - set(english), f'ids no locale defines: {sorted(asked - set(english))}'
-
-
-def test_every_locale_on_disk_is_a_locale_the_build_packs():
-    """The asymmetry the `UI_SITES` comment names, one directory over.
-
-    A `.ftl` REMOVED from the tree is loud — the build cannot copy it and every
-    test that reads it raises. A `.ftl` that ARRIVES is silent: it sits in
-    `locale/`, `build_sdt_sitter.LOCALES` never learns of it, and the XPI ships
-    without the language while the whole suite and the version guard stay green.
-    A translator would find that out from a user.
-    """
-    on_disk = {path.name for path in (SITTER / 'locale').iterdir() if path.is_dir()}
-    assert on_disk, 'the locale directory is empty, so this check cannot look'
-    assert on_disk == set(build_sdt_sitter.LOCALES), \
-        f'locale/ and the packed set disagree: {sorted(on_disk ^ set(build_sdt_sitter.LOCALES))}'
-
-
-def test_the_four_locales_carry_exactly_the_english_id_set():
-    """Ticket 0692's acceptance: complete, not merely present. A locale missing
-    an id still renders (English shows through), which is the whole point of the
-    fallback and also the reason an incomplete file is invisible on screen."""
-    english = set(messages('en'))
-    for tag in LOCALES[1:]:
-        theirs = set(messages(tag))
-        assert not english - theirs, f'{tag}.ftl is missing {sorted(english - theirs)}'
-        assert not theirs - english, \
-            f'{tag}.ftl defines {sorted(theirs - english)}, which English does not'
-
-
-def test_both_plural_sensitive_strings_use_a_count_selector():
-    """Not string concatenation, and not a `> 1` test in JavaScript: French calls
-    zero singular where English does not, and Vietnamese has one form for every
-    count. Only the locale's own plural rules can decide that, which is what a
-    Fluent select delegates to."""
-    for tag in LOCALES:
-        catalogue = messages(tag)
-        for name in PLURAL_MESSAGES:
-            pattern = catalogue[name]
-            assert re.match(r'^\{\s*\$count\s*->', pattern), \
-                f'{tag}.ftl: {name} is not a $count selector: {pattern!r}'
-            assert '*[' in pattern, f'{tag}.ftl: {name} has no default variant'
-            assert '{ $count }' in pattern, f'{tag}.ftl: {name} drops the count it selects on'
-    source = BOOTSTRAP.read_text(encoding='utf-8')
-    for site in ("function describeSDTTooltip(state) {", "getElementById('sdt-failures').textContent"):
-        assert 'completed > 1' not in source and 's.failed > 1' not in source, \
-            f'{site} still decides plural in JavaScript'
-
-
-def test_no_locale_literal_survives_in_the_source():
-    """A hardcoded 'fr-FR' decided the decimal mark, the thousands separator and
-    the date field order for every reader in the world. Anchored on the calls
-    that took one, because the tag itself can be spelt many ways."""
-    source = re.sub(r'/\*.*?\*/|//[^\n]*', '', BOOTSTRAP.read_text(encoding='utf-8'), flags=re.S)
-    assert not re.search(r"'[a-z]{2}-[A-Z]{2}'", source), 'a BCP-47 literal remains in code'
-    for call in re.findall(r'\.toLocale\w*\(([^,)]*)', source):
-        assert call.strip() == 'SDT_LOCALE', f'{call!r} is not the reader\'s locale'
-    for call in re.findall(r'new Intl\.\w+\(([^,)]*)', source):
-        assert call.strip() == 'SDT_LOCALE', f'{call!r} is not the reader\'s locale'
-
-
-def test_the_locale_files_stay_inside_the_stubs_subset():
-    """`tests/fluent_stub.mjs` implements a subset, and a file that leaves it
-    would be read one way by the stub, another by Zotero's real Fluent.
-
-    Terms, attributes, message references and functions are all legal Fluent and
-    all outside what a hand-written parser can be trusted with, so the guard is
-    on the files rather than on the parser: keep the files simple and the two
-    readings cannot diverge.
-    """
-    for tag in LOCALES:
-        source = ftl(tag).read_text(encoding='utf-8')
-        for number, line in enumerate(source.splitlines(), 1):
-            stripped = line.strip()
-            if not stripped or stripped.startswith('#'):
-                continue
-            assert not stripped.startswith('-'), f'{tag}.ftl:{number}: a term, not a message'
-            assert not stripped.startswith('.'), f'{tag}.ftl:{number}: an attribute'
-        for name, pattern in messages(tag).items():
-            residue = VARIANT_KEY.sub(' ', SELECTOR.sub(' ', pattern))
-            # The STRICT placeable pattern here, and the loose one in `visible`.
-            # The difference is the whole point: `visible` wants every construct
-            # gone so the vocabulary ban is about words, while this guard wants
-            # a `{ NUMBER($n) }` or a `{ other-message }` left standing, which
-            # the loose pattern would have swallowed whole.
-            residue = VARIABLE.sub(' ', residue).replace('}', ' ')
-            assert '{' not in residue, \
-                f'{tag}.ftl: {name} uses a Fluent expression the stub does not implement'
 
 
 def test_toolbar_tooltip_never_interpolates_a_raw_phase():
@@ -806,24 +698,24 @@ def test_one_composer_owns_the_coverage_figure():
 
 
 def test_dialog_title_is_the_index_assistant():
-    assert messages('fr')['dialog-title'] == 'Assistant d’indexation'
+    assert messages()['dialog-title'] == 'Indexing assistant'
     assert 'SDT Pack Sitter' not in _site('doc.title = ', ';')
     for tag in LOCALES:
         assert 'SDT' not in messages(tag)['dialog-title'], f'{tag}.ftl names the internal build'
 
 
 def test_launch_prompt_title_is_the_index_assistant():
-    assert messages('fr')['launch-title'] == 'Assistant d’indexation — expérimental'
+    assert messages()['launch-title'] == 'Indexing assistant — experimental'
     for tag in LOCALES:
         assert 'SDT Pack Sitter' not in messages(tag)['launch-title']
 
 
 def test_launch_prompt_body_speaks_of_indexing_not_packs():
-    french = messages('fr')
-    assert 'Indexer toute la bibliothèque' in french['launch-question']
-    assert 'index de recherche textuelle' in french['launch-conditions'], \
+    english = messages()
+    assert 'Index the whole library' in english['launch-question']
+    assert 'full-text search index' in english['launch-conditions'], \
         "Zotero's own index must be named apart from the sitter's"
-    assert 'packs SDT' not in ' '.join(french.values())
+    assert 'packs SDT' not in ' '.join(visible(v) for v in english.values())
     # The four paragraphs are read at the call site in order, so the prompt keeps
     # the shape it had when they were one concatenated literal.
     site = _site('Services.prompt.confirm(', 'if (token !== generation) return;')
@@ -832,9 +724,9 @@ def test_launch_prompt_body_speaks_of_indexing_not_packs():
 
 
 def test_global_status_line_names_the_unit_it_counts():
-    assert messages('fr')['files-indexed-of'].startswith('Fichiers indexés : ')
-    assert messages('fr')['files-indexed-count'].startswith('Fichiers indexés : ')
-    assert 'Packs à jour' not in ' '.join(messages('fr').values())
+    assert messages()['files-indexed-of'].startswith('Files indexed: ')
+    assert messages()['files-indexed-count'].startswith('Files indexed: ')
+    assert 'Packs' not in ' '.join(visible(v) for v in messages().values())
     site = _site('status.textContent = ', ';')
     assert "sdtText('files-indexed-of'" in site and "sdtText('files-indexed-count'" in site
 
@@ -844,7 +736,7 @@ def test_active_row_leads_with_the_reference_not_the_attachment():
     nothing. Branch coverage lives in tests/sdt_sitter_scheduler.mjs."""
     site = _site('const activeMessage = ', 'const quietMessage')
     assert "sdtText('active-file'" in site and 'describeSDTActiveFile(' in site
-    assert messages('fr')['active-file'].startswith('Indexation : ')
+    assert messages()['active-file'].startswith('Indexing: ')
     assert 'Document ${s.active}' not in site
     composer = _site('function describeSDTFile(info, fallback) {', '\n}')
     assert 'parentTitle' in composer, 'the composer still never reads a reference title'
@@ -865,7 +757,7 @@ def test_failure_summary_line_is_rendered_outside_the_diagnostics():
     site = _site("getElementById('sdt-failures').textContent", ';')
     assert 's.failed' in site
     assert 'describeSDTFailures(' in site, 'the banner composes its own plural'
-    assert 'fichiers n’ont pas pu être indexés' in messages('fr')['files-failed']
+    assert 'files could not be indexed' in messages()['files-failed'][1]
 
 
 def test_one_composer_owns_each_running_total():
@@ -892,7 +784,7 @@ def test_one_composer_owns_each_running_total():
         site = _site(start, '\n}')
         assert f"sdtText('{message}'" in site, f'{start!r} does not read {message}'
         assert 'count > 1' not in site, f'{start!r} decides plural in JavaScript'
-        assert 'fichier' in messages('fr')[message], f'{message} lost its French singular'
+        assert 'file' in visible(messages()[message]), f'{message} lost its singular'
     # An empty failure line at zero: a library with nothing wrong says nothing
     # about failures rather than printing "0 fichier". That stays in JavaScript —
     # it is a decision about showing a line, not about wording one.
@@ -989,11 +881,11 @@ def test_no_toast_announces_the_start_of_a_sweep():
 
 
 def test_native_fulltext_panel_is_the_text_search_index():
-    french = messages('fr')
-    assert french['fulltext-title'] == 'Index de recherche textuelle'
-    assert 'Index de recherche textuelle' in french['fulltext-body']
-    assert 'Index texte natif' not in ' '.join(french.values())
-    assert 'packs SDT' not in french['fulltext-body']
+    english = messages()
+    assert english['fulltext-title'] == 'Full-text search index'
+    assert 'full-text search index' in english['fulltext-body']
+    assert 'Index texte natif' not in ' '.join(visible(v) for v in english.values())
+    assert 'packs SDT' not in english['fulltext-body']
     assert "sdtText('fulltext-title')" in _site('indexSummary.textContent = ', ';')
     assert "sdtText('fulltext-body')" in _site(
         "getElementById('sdt-fulltext').textContent", ';')
@@ -1113,12 +1005,12 @@ def test_the_session_clause_names_only_session_counters():
         catalogue = messages(tag)
         session, census = catalogue['diagnostics-completed'], catalogue['diagnostics-failed']
         assert session != census, f'{tag}.ftl: the two totals share one sentence'
-        assert '$count' in session and '$count' in census
-    french = messages('fr')
-    assert 'cette session' in french['diagnostics-completed']
-    assert 'cette session' not in french['diagnostics-failed'], \
+        assert '{count}' in session and '{count}' in census
+    english = messages()
+    assert 'this session' in english['diagnostics-completed']
+    assert 'cette session' not in english['diagnostics-failed'], \
         'a census-derived total is rendered under a "cette session" clause'
-    assert 'dernier recensement' in french['diagnostics-failed']
+    assert 'last census' in english['diagnostics-failed']
     site = _site("getElementById('sdt-diagnostics').textContent", '.filter(Boolean)')
     assert "sdtText('diagnostics-completed', { count: s.completed })" in site
     assert "sdtText('diagnostics-failed', { count: s.failed })" in site

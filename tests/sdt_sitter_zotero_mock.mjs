@@ -35,7 +35,6 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 
-import { FluentModule } from './fluent_stub.mjs';
 
 const SITTER = 'plugins/sdt-sitter';
 const decoder = new TextDecoder();
@@ -461,23 +460,9 @@ export function createHarness(options = {}) {
     Services: {
       prompt: { confirm: () => { calls.prompt++; return options.launch !== false; } },
       scriptloader: {
-        // Two scripts now, and the second is why the locales work at all: a
-        // `.ftl` inside a packed XPI cannot be read at runtime, so the packager
-        // generates `locales.js` and this loader is the road it travels
-        // (ticket 0727). Generated here the same way `bench/build_sdt_sitter.py`
-        // generates it, from the same files, so the harness cannot rehearse a
-        // delivery the packager does not actually make.
         loadSubScript: url => {
-          if (url === `${ROOT_URI}scheduler.js`) {
-            vm.runInContext(fs.readFileSync(`${SITTER}/scheduler.js`, 'utf8'), context);
-            return;
-          }
-          assert.equal(url, `${ROOT_URI}locales.js`,
-            'a script was loaded from somewhere other than rootURI');
-          const sources = Object.fromEntries(['en', 'fr', 'es', 'vi'].map(tag =>
-            [tag, fs.readFileSync(`${SITTER}/locale/${tag}/sdt-pack-sitter.ftl`, 'utf8')]));
-          vm.runInContext(
-            `var SDT_LOCALE_SOURCES = ${JSON.stringify(sources)};`, context);
+          assert.equal(url, `${ROOT_URI}scheduler.js`, 'the scheduler is not loaded from rootURI');
+          vm.runInContext(fs.readFileSync(`${SITTER}/scheduler.js`, 'utf8'), context);
         },
       },
     },
@@ -495,13 +480,6 @@ export function createHarness(options = {}) {
         return timers.module;
       },
     },
-    // Ambient globals, exactly as privileged JS sees them. Verified live in
-    // Zotero 10.0.1's Browser Console: `typeof FluentBundle`, `FluentResource`,
-    // `L10nRegistry` and `L10nFileSource` all answer "function", with no
-    // resource:// module backing any of them. bootstrap.js reads them off the
-    // global the way it reads `Services`.
-    FluentBundle: FluentModule.FluentBundle,
-    FluentResource: FluentModule.FluentResource,
     // The calendar, separable from the monotonic source above. Everything else
     // about Date is the real one, so `toLocaleString` still formats.
     Date: class extends Date {
