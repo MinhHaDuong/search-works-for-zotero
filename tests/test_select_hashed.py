@@ -12,6 +12,7 @@ shape (no ``attachments``) and the multi-attachment parent shape.
 
 import hashlib
 import importlib.util
+import json
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -68,3 +69,13 @@ def test_live_recipe_yields_seventeen_hashed_records():
     hashed = sh.select_hashed(recipe)
     assert len(hashed) == 17
     assert all(isinstance(doc.get("sha256"), str) for doc in hashed)
+
+
+def test_committed_pinned_recipe_is_exactly_the_hashed_subset():
+    """bench/fixtures/recipe-pinned.json is the file inject, export and the replay all
+    read, so the export manifest's recipe_sha256 pins the content the replay re-derives.
+    It is derived data: regenerate it with select_hashed.py whenever recipe.json moves,
+    and re-export, since a moved recipe hash invalidates the committed snapshot."""
+    recipe = fr.load_recipe(FIXTURES / "recipe.json")
+    expected = json.dumps(sh.select_hashed(recipe), ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+    assert (FIXTURES / "recipe-pinned.json").read_text(encoding="utf-8") == expected
