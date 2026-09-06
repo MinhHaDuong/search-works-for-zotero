@@ -15,6 +15,7 @@ Closed: autoclosed — PR #369
 2026-09-06T00:00Z claude note Acceptance boxes 1-4 ticked against PR #369. Box 5 stays open deliberately: its "no bundling" half is met (this PR carries no externalization) but its "lands before 0692" half is a merge-order fact nothing can observe from inside the PR, so it closes when 0692 merges after it.
 
 2026-09-06T10:11Z sim closed — autoclosed — PR #369
+2026-09-06T12:14Z claude note Vocabulary table amended after close by ticket 0710: three rows for the coverage figure carried with the scope it is measured over (one library, several, more than three). Recorded here because the table is this ticket's artifact and an edit invisible in the log is an edit the store cannot audit; the ticket itself stays closed and its acceptance is unchanged.
 --- body ---
 ## Context
 

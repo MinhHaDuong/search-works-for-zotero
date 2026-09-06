@@ -141,7 +141,15 @@ function describeSDTCoverage(state) {
    defect bench/zotero-fulltext-plugin/bootstrap.js records). Past three names the
    enumeration stops informing and the count does. Returns null when nothing can
    be read: an unscoped tooltip is degraded, a thrown one would kill the render
-   loop. */
+   loop.
+
+   Feeds are dropped, and that exclusion is the same requirement as the rest of
+   this function rather than a refinement of it. `Zotero.Libraries.getAll()`
+   enumerates the whole library cache, which `init` fills with feeds alongside
+   groups; a feed item carries no attachment, so no feed is in the set the census
+   measures. Listing "Nature News" beside the user library, or counting it into
+   "Toutes les bibliothèques (7)", would state a scope the figure was never
+   measured over — the very failure the prefix exists to end. */
 function describeSDTScope() {
   let libraries;
   try { libraries = Zotero.Libraries.getAll(); }
@@ -149,8 +157,10 @@ function describeSDTScope() {
   const names = [];
   for (const library of libraries || []) {
     let name;
-    try { name = library && library.name; }
-    catch (_error) { continue; }
+    try {
+      if (!library || library.libraryType === 'feed') continue;
+      name = library.name;
+    } catch (_error) { continue; }
     if (typeof name === 'string' && name.trim()) names.push(name.trim());
   }
   if (names.length === 0) return null;

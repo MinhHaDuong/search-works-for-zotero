@@ -449,6 +449,12 @@ assert.equal(tooltip({ phase: 'census', completed: 2 }),
 named('Ma bibliothèque', 'Groupe Climat');
 assert.equal(tooltip({ phase: 'waiting', completed: 3 }),
   'Bibliothèques : Ma bibliothèque, Groupe Climat — Index 57 % — 3 fichiers indexés');
+// A feed is in the library cache getAll() enumerates and holds no attachment, so
+// it is outside the set the census measures. Naming it would state a scope the
+// figure was never measured over — the failure the prefix exists to end.
+withLibraries(() => [{ name: 'Ma bibliothèque' },
+  { name: 'Nature News', libraryType: 'feed' }]);
+assert.equal(tooltip({ phase: 'waiting', completed: 3 }), idle);
 // Past three the enumeration stops informing and the count does.
 named('Ma bibliothèque', 'Groupe Climat', 'Groupe Énergie', 'Groupe Transport');
 assert.equal(tooltip({ phase: 'waiting', completed: 3 }),
