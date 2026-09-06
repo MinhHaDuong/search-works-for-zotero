@@ -161,12 +161,6 @@ def _attachment_charset(source: dict) -> str | None:
     return canonical_charset(charset)
 
 
-def _upload_content_type(source: dict) -> str:
-    charset = _attachment_charset(source)
-    content_type = _content_type(source)
-    return f"{content_type}; charset={charset}" if charset else content_type
-
-
 def _notes(doc: dict) -> list[dict]:
     notes = doc.get("notes", [])
     return notes if isinstance(notes, list) else []
@@ -595,7 +589,8 @@ def inject(
                 changed = True
             if library_type == "group":
                 client.upload_file(
-                    _key(attachment), source_path, _upload_content_type(source),
+                    _key(attachment), source_path, _content_type(source),
+                    charset=_attachment_charset(source),
                     previous_md5=existing_md5 if isinstance(existing_md5, str) else None,
                 )
                 pending_reindex.append(_key(attachment))
@@ -1416,7 +1411,8 @@ class ZoteroLocalClient:
         return out
 
     def upload_file(
-        self, key: str, path: Path, content_type: str, *, previous_md5: str | None = None,
+        self, key: str, path: Path, content_type: str, *, charset: str | None = None,
+        previous_md5: str | None = None,
     ) -> None:
         """Store a file on a stored (imported_file) attachment: the local API's own
         3-phase upload flow -- authorize, POST bytes, register. A group library has no
@@ -1444,10 +1440,19 @@ class ZoteroLocalClient:
             "Zotero-Server-ID": self.server_id,
         })
 
-        authorize_body = urllib.parse.urlencode({
+        # A bare MIME type here: Zotero copies the authorization's contentType onto the
+        # attachment item verbatim, so a "type; charset=x" value becomes the item's content
+        # type (padme, 2026-09-06: 'text/plain;+charset=windows-1252'). The charset travels
+        # in its own parameter, which is also what the web API's upload authorization takes.
+        if ";" in content_type:
+            raise GoldenFixtureError(f"upload contentType must be a bare MIME type, got {content_type!r}")
+        authorize_fields = {
             "md5": md5, "filename": path.name, "filesize": str(path.stat().st_size),
             "mtime": str(int(path.stat().st_mtime * 1000)), "contentType": content_type,
-        }).encode("utf-8")
+        }
+        if charset:
+            authorize_fields["charset"] = charset
+        authorize_body = urllib.parse.urlencode(authorize_fields).encode("utf-8")
         authorize_headers = {**common_headers, "Content-Type": "application/x-www-form-urlencoded"}
         request = urllib.request.Request(item_url, data=authorize_body, headers=authorize_headers, method="POST")
         try:

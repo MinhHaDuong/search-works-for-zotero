@@ -141,8 +141,9 @@ class MemoryZotero:
         self.reindexes.append(list(keys))
         self.last_reindex_mode = "uncapped" if complete else "stock"
 
-    def upload_file(self, key, path, content_type, *, previous_md5=None):
-        self.uploads.append((key, path, content_type, previous_md5))
+    def upload_file(self, key, path, content_type, *, charset=None, previous_md5=None):
+        assert ";" not in content_type, "the upload authorization takes a bare MIME type"
+        self.uploads.append((key, path, content_type, previous_md5, charset))
         self.items[key]["data"]["md5"] = hashlib.md5(path.read_bytes()).hexdigest()
 
 
@@ -199,7 +200,7 @@ def test_group_injection_uploads_bytes_instead_of_linking(tmp_path):
     assert attachment["filename"] == "invented-1900-control.pdf"
     assert "path" not in attachment
     assert len(zotero.uploads) == 1
-    uploaded_key, uploaded_path, uploaded_content_type, previous_md5 = zotero.uploads[0]
+    uploaded_key, uploaded_path, uploaded_content_type, previous_md5, uploaded_charset = zotero.uploads[0]
     assert uploaded_path == (cache / "invented-1900-control.pdf").resolve()
     assert uploaded_content_type == "application/pdf"
     assert previous_md5 is None
@@ -235,12 +236,12 @@ def test_group_injection_retries_upload_after_metadata_creation_succeeds(tmp_pat
     attempts = 0
     original_upload = zotero.upload_file
 
-    def fail_first_upload(key, path, content_type, *, previous_md5=None):
+    def fail_first_upload(key, path, content_type, *, charset=None, previous_md5=None):
         nonlocal attempts
         attempts += 1
         if attempts == 1:
             raise gf.GoldenFixtureError("upload control failure")
-        original_upload(key, path, content_type, previous_md5=previous_md5)
+        original_upload(key, path, content_type, charset=charset, previous_md5=previous_md5)
 
     zotero.upload_file = fail_first_upload
     with pytest.raises(gf.GoldenFixtureError, match="upload control failure"):
@@ -1703,7 +1704,7 @@ def test_export_refuses_a_text_attachment_whose_stored_charset_drifted(tmp_path)
     drift and the export refuses -- there is no longer a guess to record as a defect."""
     payload, recipe, cache, zotero, key = vietnamese_wikitext_fixture(tmp_path)
     assert zotero.items[key]["data"]["charset"] == "utf-8"
-    assert zotero.uploads[-1][2] == "text/plain; charset=utf-8"
+    assert zotero.uploads[-1][2] == "text/plain" and zotero.uploads[-1][4] == "utf-8"
     zotero.items[key]["data"]["charset"] = "windows-1252"
     zotero.reindex_fulltext = lambda keys, **_: {key: {
         "state": "indexed", "indexedPages": None, "totalPages": None, "indexedChars": len(payload),
@@ -1974,7 +1975,8 @@ def test_text_attachments_carry_the_recipe_charset_canonicalised_and_refuse_with
     # Zotero canonicalises labels on write (Encoding Standard); writing the canonical name
     # keeps the item equal to the recipe on every later reconciliation.
     assert html["charset"] == "windows-1252"
-    assert [upload[2] for upload in zotero.uploads] == ["application/pdf", "text/html; charset=windows-1252"]
+    assert [(upload[2], upload[4]) for upload in zotero.uploads] == [
+        ("application/pdf", None), ("text/html", "windows-1252")]
     pdf = next(item["data"] for item in zotero.items.values() if item["data"].get("contentType") == "application/pdf")
     assert "charset" not in pdf
     assert gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")["updated_attachments"] == 0
