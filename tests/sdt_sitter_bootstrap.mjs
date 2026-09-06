@@ -105,12 +105,12 @@ await test('an unreadable resource refuses admission once, records the reason, a
     assert.equal(refusals.length, 1, arm.label);
     assert.equal(refusals[0].reason, 'resources-unavailable', arm.label);
     assert.equal(refusals[0].level, 'state', `${arm.label}: a refusal was filed as trace`);
-    if (arm.errored) assert(state.error.startsWith('Lecture des ressources'), `${arm.label}: ${state.error}`);
+    if (arm.errored) assert(state.error.startsWith('Reading resources'), `${arm.label}: ${state.error}`);
     else assert.equal(state.error, null, `${arm.label}: ${state.error}`);
     arm.reading(harness.context.admission);
     // The panel says how long ago the reading was taken; with the whole read
     // thrown there is nothing to say, and it says that rather than printing zeros.
-    assert.equal(harness.context.describeSDTAdmission().startsWith('Aucune mesure'),
+    assert.equal(harness.context.describeSDTAdmission().startsWith('No resource reading'),
       harness.context.admission === null, arm.label);
   }
 });
@@ -242,7 +242,7 @@ await test('an unwritable data directory is journalled once per episode, and the
   // the path it failed on.
   assert.equal(errors[0].error, 'Error');
   assert(!JSON.stringify(errors).includes('read-only'));
-  assert(state.cacheWarning.startsWith('Cache non enregistré'));
+  assert(state.cacheWarning.startsWith('Cache not saved'));
 
   // And the session is not degraded by it. The durations were recorded in the
   // in-memory cache, so the next census still hands the estimator its samples —
@@ -359,7 +359,7 @@ await test('two windows and two startups leave one sitter, one launch prompt and
     assert(button, 'a main window has no toolbar button');
     assert.equal(button.parentNode, window.toolbar);
     assert.equal(button.getAttribute('label'), 'Index 100 %');
-    assert(button.getAttribute('tooltiptext').includes('2 fichiers indexés'));
+    assert(button.getAttribute('tooltiptext').includes('2 files indexed'));
   }
 });
 
@@ -398,12 +398,12 @@ await test('a document past its empirical upper bound withdraws the finish time,
   await harness.turn();
   const doc = harness.windows[0].dialogs[0].document;
   const perDocument = doc.getElementById('sdt-document-estimate').textContent;
-  assert.equal(perDocument, 'Durée estimée : 12 min 00 s (entre 12 min 00 s et 12 min 00 s)');
+  assert.equal(perDocument, 'Estimated duration: 12 min 00 s (between 12 min 00 s and 12 min 00 s)');
 
   // Inside the bound: the window says when the library should be done.
   harness.advance(1000);
   harness.context.render();
-  assert(doc.getElementById('sdt-global-estimate').textContent.startsWith('Fin estimée vers '),
+  assert(doc.getElementById('sdt-global-estimate').textContent.startsWith('Estimated finish around '),
     doc.getElementById('sdt-global-estimate').textContent);
 
   // Past it, the projection is withdrawn. The fallback is the empty string —
@@ -415,7 +415,7 @@ await test('a document past its empirical upper bound withdraws the finish time,
   // Only the projection goes. The per-document estimate is still the honest
   // reading of three observations, and the elapsed line still runs.
   assert.equal(doc.getElementById('sdt-document-estimate').textContent, perDocument);
-  assert(doc.getElementById('sdt-document-status').textContent.includes('12 min 01 s écoulées'),
+  assert(doc.getElementById('sdt-document-status').textContent.includes('12 min 01 s elapsed'),
     doc.getElementById('sdt-document-status').textContent);
 
   finish.resolve();
@@ -435,7 +435,7 @@ await test('a wall clock stepped backwards mid-job never produces a negative dur
   harness.context.openDialog(harness.windows[0]);
   await harness.turn();
   const doc = harness.windows[0].dialogs[0].document;
-  assert(doc.getElementById('sdt-document-status').textContent.includes('0 s écoulées'));
+  assert(doc.getElementById('sdt-document-status').textContent.includes('0 s elapsed'));
 
   // Five seconds of work, during which the author's clock is corrected an hour
   // backwards. Three implementations are distinguishable here and only one is
@@ -444,7 +444,7 @@ await test('a wall clock stepped backwards mid-job never produces a negative dur
   harness.clock.mono += 5000;
   harness.clock.wall -= 60 * 60 * 1000;
   harness.context.render();
-  assert(doc.getElementById('sdt-document-status').textContent.includes('5 s écoulées'),
+  assert(doc.getElementById('sdt-document-status').textContent.includes('5 s elapsed'),
     doc.getElementById('sdt-document-status').textContent);
 
   harness.context.heartbeatTick();
@@ -517,7 +517,7 @@ await test('the clock falls through its tiers: ChromeUtils, then performance, th
     harness.clock.mono += 5000;
     harness.clock.wall -= 60 * 60 * 1000;
     harness.context.render();
-    assert(doc.getElementById('sdt-document-status').textContent.includes(`${arm.reading} écoulées`),
+    assert(doc.getElementById('sdt-document-status').textContent.includes(`${arm.reading} elapsed`),
       `${arm.label}: ${doc.getElementById('sdt-document-status').textContent}`);
     finish.resolve();
     await harness.quiet();
@@ -548,7 +548,7 @@ await test('with no platform monotonic clock the wall clock is ratcheted, never 
   // It cannot say how long the step lasted — nothing without a monotonic clock
   // can — but it refuses to answer a negative duration, which is the failure
   // the fallback exists to stop.
-  assert(doc.getElementById('sdt-document-status').textContent.includes('0 s écoulées'),
+  assert(doc.getElementById('sdt-document-status').textContent.includes('0 s elapsed'),
     doc.getElementById('sdt-document-status').textContent);
   harness.context.heartbeatTick();
   assert.equal(harness.records('heartbeat').at(-1).elapsedMS, 0);
@@ -556,7 +556,7 @@ await test('with no platform monotonic clock the wall clock is ratcheted, never 
   // And it is a ratchet, not a freeze: the clock catching back up resumes.
   harness.clock.wall += 60 * 60 * 1000 + 7000;
   harness.context.render();
-  assert(doc.getElementById('sdt-document-status').textContent.includes('7 s écoulées'),
+  assert(doc.getElementById('sdt-document-status').textContent.includes('7 s elapsed'),
     doc.getElementById('sdt-document-status').textContent);
 
   finish.resolve();
@@ -599,11 +599,11 @@ await test('the admission panel ages its reading on running time too', async () 
   assert(harness.context.admission, 'no reading was taken, so the age says nothing');
   // One second, which is what the extractor's own clock step cost between the
   // reading and now.
-  assert(harness.context.describeSDTAdmission().startsWith('Dernière mesure il y a 1 s '),
+  assert(harness.context.describeSDTAdmission().startsWith('Last reading 1 s '),
     harness.context.describeSDTAdmission());
   harness.clock.mono += 120_000;
   harness.clock.wall -= 60 * 60 * 1000;
-  assert(harness.context.describeSDTAdmission().startsWith('Dernière mesure il y a 2 min '),
+  assert(harness.context.describeSDTAdmission().startsWith('Last reading 2 min '),
     harness.context.describeSDTAdmission());
 });
 
@@ -644,7 +644,7 @@ await test('the pack versions reach the cache identity, so a bump invalidates th
 
    THE SEQUENCE. `sitter` is a module-level binding that `initialize()` reassigns
    and `shutdown()` never clears, and the plugin's own launch prompt advertises
-   the way in: "désactiver l'extension arrête les admissions ; le fichier en cours
+   the way in: "turning the add-on off stops new admissions; the file under way
    finit". So a disable while the extractor holds a file leaves the first sitter's
    sweep suspended, a re-enable installs a second sitter and puts `alive` back to
    true — before the modal confirm, so no click is needed — and when the first
@@ -703,7 +703,7 @@ await test('a disable, a re-enable, and the suspended sweep announces nothing', 
   // Its own toast is legitimate: that sweep really did index two files. What is
   // asserted below is that nothing is ADDED to this.
   assert.equal(harness.toasts.length, 1, 'the second sitter announced its own work wrongly');
-  assert.deepEqual(harness.toasts[0].lines, ['2 fichiers indexés']);
+  assert.deepEqual(harness.toasts[0].lines, ['2 files indexed']);
   // Its own reschedule is legitimate too, so the staleness assertion below is
   // against this set rather than against an empty one.
   const armed = harness.timers.ids('timeout');

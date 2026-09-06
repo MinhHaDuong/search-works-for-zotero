@@ -63,178 +63,134 @@ var generation = 0;
 let lastCompleted = 0;
 let completionBlinkUntil = 0;
 
-/* ---- the user-facing text, and the only place any of it lives (ticket 0692) ----
+/* ---- the user-facing text, and the only place any of it lives ----
 
-   Fluent, because it is what Zotero 7+ and Firefox already use for user-facing
-   strings, and because two strings here are genuinely plural-sensitive — the
-   tooltip's file count and the failures line — in a way the source language
-   cannot decide for the target one. French calls zero singular and English
-   does not; Vietnamese has one form for every count. `n > 1 ? … : …` is a
-   French rule written in JavaScript, and it is wrong everywhere else.
+   ENGLISH ONLY, by the author's instruction of 2026-09-07: "REMOVE ALL THE
+   MULTILINGUISM CODE. Revert to English." What was here was a Fluent layer
+   with four locales, a fallback chain and a runtime file read (ticket 0692).
+   It never once worked in a real Zotero: the module it imported does not
+   exist in this host, and the `.ftl` files it fetched are unreadable inside a
+   packed XPI, whose `rootURI` is a `jar:` URL no read API this plugin can
+   reach will parse. Every string in the shipped window rendered as its own
+   message id. Ticket 0727 has the measurements.
 
-   An imperative `FluentBundle`, NOT `Localization`/`document.l10n`: this
-   add-on registers no chrome or resource protocol for `L10nRegistry` to hook
-   into, and `document.l10n` observes `data-l10n-id` markup, which a dialog
-   built entirely by `createElementNS` has none of. The `.ftl` text is fetched
-   exactly the way `sitterStartupSelfCheck` fetches `manifest.json`, so the
-   whole mechanism is one this file already had.
+   So this is a table and a two-line formatter. `{name}` is substituted from
+   the args object; an id the table does not carry returns as itself, which is
+   Fluent's own convention and worth keeping -- it is visible in the window and
+   it names exactly what is missing, where a throw here would go on throwing
+   ten times a second under `render()`'s pulse.
 
-   At RUNTIME a language costs one file, `locale/<tag>/sdt-pack-sitter.ftl`,
-   and no listing at all: the chain below tries the tag, then the language
-   without its region, then `en`, and a fetch that fails is simply a locale
-   this build does not ship. A manifest list would be a second place to
-   forget, and an unrecognised manifest key is how a plugin stops being
-   installable (ticket 0688).
+   ADDING A STRING: put it in the table and read it with `sdtText`. Never a
+   literal at the call site -- not for translation any more, but because the
+   tooltip, the dialog and the toast must not word one count three ways, which
+   is how the progress and error lines drifted apart before ticket 0691.
+   `test_no_ui_site_keeps_a_sentence_of_its_own` still reddens on prose here.
 
-   The BUILD is a second place, and saying otherwise would be the false half
-   of that claim: `build_sdt_sitter.LOCALES` decides what reaches the XPI, so
-   a `.ftl` dropped here and named nowhere ships in no package. That
-   asymmetry is guarded rather than remembered —
-   `test_every_locale_on_disk_is_a_locale_the_build_packs` reddens on it.
+   The two plural-sensitive entries are `[singular, plural]`, chosen by
+   `count === 1`. That is an English rule in JavaScript, which is exactly what
+   the Fluent selector existed to prevent -- correctly, while there were four
+   languages, and pointlessly now that there is one. */
+const SDT_TEXT = {
+    "index": "Index",
+    "index-coverage": "Index {percent} %",
+    "scope-one": "Library: {names}",
+    "scope-few": "Libraries: {names}",
+    "scope-many": "All libraries ({count})",
+    "files-indexed": [
+      "{count} file indexed",
+      "{count} files indexed"
+    ],
+    "phase-census": "Census",
+    "phase-extracting": "Indexing under way",
+    "phase-error": "Error",
+    "phase-disabled": "Turned off",
+    "phase-native-worker-busy": "Waiting: native indexing under way",
+    "phase-cpu-busy": "Paused: processor busy",
+    "phase-low-memory": "Paused: not enough memory",
+    "phase-low-disk": "Paused: not enough disk space",
+    "phase-storage-unavailable": "Paused: storage unavailable",
+    "phase-resources-unavailable": "Paused: system resources unreadable",
+    "phase-launch-declined": "Not started: turn the add-on off, then on again",
+    "dialog-title": "Indexing assistant",
+    "section-global": "Overall progress — library",
+    "section-active": "Indexing under way",
+    "details-title": "Details",
+    "fulltext-title": "Full-text search index",
+    "fulltext-body": "Zotero’s own full-text search index (distinct from the index the assistant prepares):",
+    "fulltext-unavailable": "Statistics unavailable: {error}",
+    "tech-title": "Technical diagnostics",
+    "files-indexed-of": "Files indexed: {current} / {total}",
+    "files-indexed-count": "Files indexed: {current}",
+    "global-estimate": "Estimated finish around {median} (between {low} and {high})",
+    "active-none": "No indexing under way",
+    "active-file": "Indexing: {file} — {progress} % — {elapsed} elapsed",
+    "active-finalising": "Finishing…",
+    "active-references": "Reading the references…",
+    "active-estimate": "Estimated duration: {median} (between {low} and {high})",
+    "files-failed": [
+      "{count} file could not be indexed",
+      "{count} files could not be indexed"
+    ],
+    "observations-waiting": "Observed durations: {count} (3 needed before any estimate)",
+    "observations": "Observed durations: {count}",
+    "observations-basis": "Observed durations: {count} — basis: {basis}",
+    "basis-pages": "per page",
+    "basis-bytes": "per byte",
+    "diagnostics-phase": "State: {phase}",
+    "diagnostics-census": "Census: {scanned} / {total}",
+    "diagnostics-count": "{status}: {count}",
+    "diagnostics-completed": "Created this session: {count}",
+    "diagnostics-failed": "Could not be indexed (last census): {count}",
+    "diagnostics-error": "Error: {error}",
+    "cache-not-saved": "Cache not saved: {error}",
+    "debug-label": "Log every step to Zotero’s debug output",
+    "journal-copy": "Copy the log",
+    "journal-copied": "Log copied to the clipboard.",
+    "journal-copy-failed": "Copy failed: clipboard unavailable.",
+    "journal-unreadable": "Log unreadable: {error}",
+    "environment-version": "Add-on version: {version}",
+    "environment-zotero": "Zotero: {version} (declared compatibility {min} – {max})",
+    "environment-native": "Native format: version {format}, schema {schema}",
+    "environment-extractors": "Native extractors: {extractors}",
+    "environment-root": "Installed in: {root}",
+    "admission-none": "No resource reading since startup.",
+    "admission-age": "Last reading {age} ago — one reading per admission, none while the library is up to date",
+    "admission-memory": "Memory available: {available} (threshold {threshold})",
+    "admission-load": "Processor load: {load} on {cpus} cores",
+    "admission-disk": "Disk space: {available} (threshold {threshold})",
+    "gibibytes": "{value} GiB",
+    "unknown-value": "?",
+    "unit-seconds": "{count} s",
+    "unit-minutes": "{count} min",
+    "unit-hours-minutes": "{hours} h {minutes} min",
+    "unit-minutes-seconds": "{minutes} min {seconds} s",
+    "file-unknown": "unknown file",
+    "file-number": "file no. {id}",
+    "settle-failed": "“{file}” failed: {error}",
+    "resources-read": "Reading resources: {error}",
+    "launch-title": "Indexing assistant — experimental",
+    "launch-question": "Index the whole library tonight?",
+    "launch-conditions": "One file at a time, with at least 4 GiB of memory available and 8 GiB of free disk. PDFs and the full-text search index settings are left untouched.",
+    "launch-worker": "The shared worker cannot be interrupted, nor given a system priority of its own. A large file can delay native work that arrived after it. The thresholds do not cap what it consumes.",
+    "launch-disable": "Turning the add-on off stops new admissions; the file under way finishes. Errors stay confined to the session. A disposable local cache keeps the freshness checks and the durations; it holds no text and no running job."
+  };
 
-   ADDING A STRING, which is the commoner errand and the one that brought you
-   to this file: put it in ALL FOUR `.ftl` files and read it with `sdtText`
-   below. Never a literal at the call site — a string only English carries
-   renders in English for every reader, and a string in no locale at all
-   cannot be translated by anyone. Both are refused rather than requested:
-   `test_no_ui_site_keeps_a_sentence_of_its_own` reddens on prose in this
-   file, `test_the_four_locales_carry_exactly_the_english_id_set` on a locale
-   that lags English, and `test_every_message_a_site_asks_for_exists_in_english`
-   on an id that exists at only one of the two ends. If the string's meaning
-   turns on a number, it is a `$count` selector, not a `> 1` in JavaScript. */
-var SDT_LOCALE = 'en';
-var SDT_BUNDLES = [];
-
-/* Requested locale -> its language without the region -> `en`, which every id
-   must exist in. Every resolved bundle is KEPT, in order, because the fallback
-   this chain exists for is per message rather than per file: a half-translated
-   `fr.ftl` is the normal state of a locale between two releases. */
-function sdtLocaleChain(requested) {
-  const chain = [];
-  for (const tag of [requested, String(requested || '').split('-')[0], 'en']) {
-    if (tag && !chain.includes(tag)) chain.push(tag);
-  }
-  return chain;
-}
-
-/* Every string a reader sees passes through here. An id no bundle carries
-   returns as itself — Fluent's own convention: visible in the window, it names
-   exactly what is missing, and it is not the one thing this call site cannot
-   afford. The whole body is guarded for the reason describeSDTScope carries:
-   render() has no try above the pulse timer, so a throw here would go on
-   throwing ten times a second for the life of the sitter. */
+/* Every string a reader sees passes through here. */
 function sdtText(id, args) {
-  for (const bundle of SDT_BUNDLES) {
-    try {
-      const message = bundle.getMessage(id);
-      if (!message || !message.value) continue;
-      // The errors array is not optional: without one, formatPattern THROWS on
-      // an argument a translation does not name. Collected and dropped, because
-      // Fluent still returns its best-effort text, which is worth more on
-      // screen than an identifier.
-      return bundle.formatPattern(message.value, args || {}, []);
-    } catch (_error) { /* Try the next locale in the chain. */ }
-  }
-  return id;
+  let pattern = SDT_TEXT[id];
+  if (pattern === undefined) return id;
+  if (Array.isArray(pattern)) pattern = Number(args && args.count) === 1 ? pattern[0] : pattern[1];
+  return pattern.replace(/\{(\w+)\}/g, (whole, name) =>
+    (args && name in args ? String(args[name]) : whole));
 }
 
-/* Numbers in the reader's locale. What used to sit at these call sites was a
-   hardcoded French locale tag and a `.replace` of the point by a comma, which
-   decided the decimal mark and the thousands separator for every reader in the
-   world. */
+/* Numbers, in English. What used to sit at these call sites was a hardcoded
+   French locale tag and a `.replace` of the point by a comma, which decided the
+   decimal mark and the thousands separator for every reader in the world; that
+   is still not something to write by hand, so the formatter stays. */
 function sdtNumber(value, options) {
-  try { return new Intl.NumberFormat(SDT_LOCALE, options).format(value); }
+  try { return new Intl.NumberFormat('en', options).format(value); }
   catch (_error) { return String(value); }
-}
-
-/* Zotero's own UI locale, not a preference of this add-on's: the author asked
-   for the plugin to follow Zotero, and a second language setting is a second
-   thing to get wrong. Both reads are guarded — `Zotero.locale` is a getter in
-   a compartment this plugin does not own. */
-function sdtRequestedLocale() {
-  try { if (typeof Zotero.locale === 'string' && Zotero.locale) return Zotero.locale; }
-  catch (_error) { /* A getter can throw. */ }
-  try { return Services.locale.appLocaleAsBCP47 || 'en'; } catch (_error) { return 'en'; }
-}
-
-/* Built once at startup, before anything renders. Nothing here may stop
-   startup: a host with no Fluent global, an unshipped locale, an unparseable
-   `.ftl` — each leaves the chain shorter and the window naming its own ids,
-   which is legible and harmless, where a throw would take the plugin with it.
-
-   `FluentBundle` and `FluentResource` are read off the global, never imported.
-   Privileged JS already has them, the way it already has `Services`: measured
-   in Zotero 10.0.1's Browser Console, `typeof FluentBundle`,
-   `typeof FluentResource`, `typeof L10nRegistry` and `typeof L10nFileSource`
-   all answer "function", while `ChromeUtils.importESModule` on
-   `resource://gre/modules/Fluent.sys.mjs`, `…/Localization.sys.mjs` and
-   `…/L10nRegistry.sys.mjs` each fail to load — no such module is in either
-   omni.ja. Zotero's own devtools code calls `L10nRegistry.getInstance()` with
-   no import above it, which is the same fact from the other side.
-
-   This function used to open with that import. It threw on every startup, the
-   whole body fell to the catch below, `SDT_BUNDLES` stayed empty, and
-   `sdtText` returned each id as itself: the author's toolbar button read
-   `index-coverage`, and no percentage ever interpolated because the id never
-   resolved to a pattern. Forty tests were green throughout, because every one
-   of them served Fluent through a mocked `ChromeUtils.importESModule` — a
-   test cannot fail an import that only the test provides. The mock now
-   exposes the globals instead, and dropping the import reddens it (ticket
-   0692, round 2).
-
-   THE SOURCES ARE NOT FETCHED, and that is the second half of the same
-   failure. The `.ftl` files are packed, but an installed XPI is an archive:
-   `rootURI` is `jar:file:///….xpi!/`, and nothing the plugin can call reads a
-   `jar:` URL. `Zotero.File.getContentsFromURLAsync` throws
-   `NS_ERROR_FAILURE [nsIURI.username]` — its HTTP layer cannot even parse the
-   URI — and `fetch` answers NetworkError. Measured in Zotero 10.0.1, not
-   inferred. So `locales.js`, generated by the packager from those same `.ftl`
-   files, is loaded by `Services.scriptloader` beside `scheduler.js`, which is
-   the one road into that archive this plugin has always used and which has
-   never failed. `SDT_LOCALE_SOURCES` is what it defines (ticket 0727). */
-function loadSDTLocalization(requested) {
-  const bundles = [];
-  const skipped = {};
-  let active = 'en';
-  try {
-    for (const tag of sdtLocaleChain(requested)) {
-      const source = (typeof SDT_LOCALE_SOURCES === 'object' && SDT_LOCALE_SOURCES)
-        ? SDT_LOCALE_SOURCES[tag] : undefined;
-      if (typeof source !== 'string') {
-        skipped[tag] = 'absent'; /* A locale this build does not ship. */
-        continue;
-      }
-      try {
-        // `useIsolating` off. Fluent otherwise wraps every placeable in FSI/PDI
-        // marks: invisible in a browser, not invisible in a toolbar tooltip or
-        // a <pre>, and they would ride the journal onto the clipboard.
-        const bundle = new FluentBundle([tag], { useIsolating: false });
-        bundle.addResource(new FluentResource(source));
-        if (bundles.length === 0) active = tag;
-        bundles.push(bundle);
-      } catch (error) {
-        // An unparseable locale is one the chain skips, and so is a host with
-        // no Fluent global at all: `new FluentBundle` throws a ReferenceError
-        // here and the window names its own ids, which is the documented
-        // degradation rather than a new failure. The REASON is recorded,
-        // because "bundles: 0" alone cost this plugin a whole evening of
-        // guessing at which of three causes had produced it (ticket 0727).
-        skipped[tag] = classifyError(error);
-      }
-    }
-  } catch (error) { /* `sdtLocaleChain` cannot throw on a string, so nothing
-                       should reach this; it stays because startup is what is
-                       at stake if anything ever does. */
-    skipped.chain = classifyError(error);
-  }
-  SDT_BUNDLES = bundles;
-  SDT_LOCALE = active;
-  // `skipped` names which tag failed and how. A record saying only "bundles: 0"
-  // is true and useless: it reads the same whether the sources never arrived,
-  // the parser refused them, or Fluent itself was missing, and those are three
-  // different repairs.
-  emit('localization', { locale: active, bundles: bundles.length, skipped });
-  return { locale: active, bundles: bundles.length, skipped };
 }
 
 /* The clock every DURATION in this file is measured on.
@@ -728,7 +684,7 @@ function describeSDTJournalTail(limit = 50) {
   try {
     return Array.from(journal ? journal.tail(limit) : [], record => {
       const { at, kind, level, ...rest } = record;
-      return `${new Date(at).toLocaleTimeString(SDT_LOCALE, { hour12: false })} ${level} ${kind} ${JSON.stringify(rest)}`;
+      return `${new Date(at).toLocaleTimeString('en', { hour12: false })} ${level} ${kind} ${JSON.stringify(rest)}`;
     }).join('\n');
   } catch (error) {
     return sdtText('journal-unreadable', { error: classifyError(error) });
@@ -909,7 +865,7 @@ function renderState() {
     // span, so it comes from the totals above. Its LOCALE decides the field
     // order and not merely the separators — 05/09 and 09/05 are the same
     // instant and two different dates to two readers (ticket 0692).
-    const finishAt = ms => new Date(Date.now() + ms).toLocaleString(SDT_LOCALE,
+    const finishAt = ms => new Date(Date.now() + ms).toLocaleString('en',
       { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
     let unknown = 0;
     for (const item of s.pending) {
@@ -1158,14 +1114,6 @@ async function initialize(rootURI, token) {
   await Zotero.uiReadyPromise;
   if (token !== generation) return;
   Services.scriptloader.loadSubScript(rootURI + 'scheduler.js', globalThis);
-  // The locales travel as a script for the same reason the scheduler does: this
-  // is the only reader that works against a packed XPI's `jar:` rootURI
-  // (ticket 0727). Guarded on its own, because a build that somehow shipped
-  // without it must still start -- the window would name its ids, which is bad
-  // and legible, where a throw here would take the plugin down entirely.
-  try {
-    Services.scriptloader.loadSubScript(rootURI + 'locales.js', globalThis);
-  } catch (error) { emit('locales-error', { error: classifyError(error) }, 'error'); }
   // `??=`: a re-initialization within one Zotero session keeps the transitions
   // that led to it. A real plugin unload tears this scope down and takes the ring
   // with it; surviving that needs a durable store, which the ruling forbids.
@@ -1178,10 +1126,11 @@ async function initialize(rootURI, token) {
   // initialize() never got this far.
   Zotero.SDTPackSitterJournal = journal;
   sealed = false;
-  // Before anything renders, and after the ring exists so the chain that was
-  // actually resolved is on the record — a window showing bare message ids is
-  // a locale that failed to load, and the ring is where that is diagnosed.
-  loadSDTLocalization(sdtRequestedLocale());
+  // Kept although the locale load that used to sit above it is gone: nothing
+  // between here and the window read awaits today, so this is redundant TODAY,
+  // and re-earning it costs a disable/re-enable race of exactly the kind
+  // ticket 0696 shipped. A guard removed because the await it guarded moved is
+  // a guard removed for the wrong reason.
   if (token !== generation) return;
   const win = Zotero.getMainWindow();
   if (!win || typeof Zotero.SDT?.ensure !== 'function') throw new Error('Zotero 10 native SDT unavailable');
