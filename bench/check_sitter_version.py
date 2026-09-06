@@ -47,7 +47,14 @@ control rather than by reading the code:
 * **a grafted history** — `git replace --graft` truncates the visible ancestry
   and sets no marker at all, so the shallow probe answers false;
 * **no commit touching the payload path** — a fresh checkout, or a rename to a
-  path whose history starts empty. Zero revisions compared is no comparison.
+  path whose history starts empty. Zero revisions compared is no comparison;
+* **a partial clone** — commits present, blobs absent. `git show` fails there
+  exactly as it does on a path that never existed, and only the tree can say
+  which, so the tree is asked;
+* **a redirected environment** — `GIT_DIR` and its relatives answer about a
+  different repository than `--root` names, so they are stripped rather than
+  detected. There is no case where this guard wants one tree's files read
+  against another tree's log.
 
 What it still cannot see: a rewritten history that keeps the same shape (a
 filter-branch that edited an old manifest in place), and a payload delivered
@@ -60,6 +67,7 @@ import argparse
 import hashlib
 import json
 import logging
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -69,7 +77,27 @@ from build_sdt_sitter import DELIVERED
 #: Where the payload lives, relative to the repository root.
 SITTER = "bench/sdt-sitter"
 
+#: Environment that redirects git away from `--root`. Inherited from whoever ran
+#: the gate, and every one of these silently answers the question about a
+#: DIFFERENT repository — `--root` names the working tree to read and the
+#: environment quietly names the history, so the guard reported OK about a
+#: repository it had not looked at. Stripped rather than detected: there is no
+#: case where this guard wants to read one tree's files against another's log.
+REDIRECTING = ("GIT_DIR", "GIT_WORK_TREE", "GIT_COMMON_DIR", "GIT_INDEX_FILE",
+               "GIT_OBJECT_DIRECTORY", "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+               "GIT_CEILING_DIRECTORIES", "GIT_NAMESPACE")
+
 log = logging.getLogger("check_sitter_version")
+
+
+class Unreadable(Exception):
+    """A blob the tree names and the repository cannot produce.
+
+    A partial (blobless) clone has the commits and not their contents. `git
+    show` fails on both that and a path which never existed, and only one of
+    those is a payload that was never there — conflating them turned a history
+    the guard could not read into a history with nothing in it.
+    """
 
 
 def parse(version: str) -> tuple[int, ...]:
@@ -116,7 +144,12 @@ def version_of(read) -> str | None:
 
 
 def git(root: Path, *arguments: str) -> subprocess.CompletedProcess:
-    return subprocess.run(["git", *arguments], cwd=root, capture_output=True)
+    environment = {name: value for name, value in os.environ.items()
+                   if name not in REDIRECTING}
+    # A promisor remote would otherwise fetch a missing blob mid-gate, turning
+    # the partial-clone case into a network call instead of the NOT-RUN below.
+    environment["GIT_NO_LAZY_FETCH"] = "1"
+    return subprocess.run(["git", *arguments], cwd=root, capture_output=True, env=environment)
 
 
 def worktree_reader(root: Path):
@@ -128,8 +161,18 @@ def worktree_reader(root: Path):
 
 def commit_reader(root: Path, sha: str):
     def read(name: str) -> bytes | None:
-        shown = git(root, "show", f"{sha}:{SITTER}/{name}")
-        return shown.stdout if shown.returncode == 0 else None
+        address = f"{sha}:{SITTER}/{name}"
+        shown = git(root, "show", address)
+        if shown.returncode == 0:
+            return shown.stdout
+        # `git show` failed. The tree says which of the two reasons it was, and
+        # it can say so without the blob: a name the tree lists is a payload
+        # that exists and could not be produced, which is a gap in the clone
+        # rather than a file that was never committed.
+        listed = git(root, "ls-tree", "--name-only", sha, "--", f"{SITTER}/{name}")
+        if listed.returncode == 0 and listed.stdout.strip():
+            raise Unreadable(f"{address} is listed by the tree but its object is not here")
+        return None
     return read
 
 
@@ -210,6 +253,12 @@ def main() -> int:
 
     try:
         findings, version, read = run(root)
+    except Unreadable as exc:
+        log.error("NOT-RUN: %s. This checkout has the commits and not their contents — a "
+                  "partial or filtered clone — so an earlier payload cannot be hashed and a "
+                  "reused version would read as unused. Run `git fetch --refetch` or clone "
+                  "without a filter before trusting a verdict here.", exc)
+        return 1
     except ValueError as exc:
         log.error("FAIL: a manifest version this guard cannot order: %s", exc)
         return 1

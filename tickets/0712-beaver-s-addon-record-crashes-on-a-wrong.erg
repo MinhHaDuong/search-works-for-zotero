@@ -1,0 +1,85 @@
+%erg 0.1
+Title: Beaver's addon record crashes on a wrong-shape extensions.json
+Created: 2026-09-06
+Author: sim
+
+--- log ---
+2026-09-06T11:35Z sim created
+2026-09-06T11:35Z claude note Filed from PR #373's red-team round. Reproduced by transcribing _host_addon_record verbatim and running it: two controls pass (present, absent) and three inputs raise. Not fixed there because #373 is ticket 0688 and this is a different file with different call sites; the same three defects were fixed in bench/sdt_sitter_install.py, whose read_addon_record was modelled on this function.
+
+--- body ---
+## Context
+
+`bench/acceptance/adapters/beaver.py`'s `_host_addon_record()` reads a
+profile's `extensions.json` and reports what the host recorded about the
+add-on under test. Its docstring states the invariant plainly: "A missing or
+unreadable file is reported as such, never as a False."
+
+It does not hold for a file that is *readable* and the wrong shape. Three
+inputs raise instead of returning a record, reproduced 2026-09-06 by
+transcribing the function verbatim and running it, with the present and absent
+controls passing first:
+
+| input | result |
+|---|---|
+| `{"addons": [{"id": ADDON_ID}]}` | present — control |
+| `{"addons": [{"id": "other@example.org"}]}` | absent — control |
+| `[]` (a top-level array) | `AttributeError: 'list' object has no attribute 'get'` |
+| `{"addons": [{"id": 17}, {"id": "a@b"}]}` | `TypeError: '<' not supported between instances of 'str' and 'int'` |
+| `{"addons": ["not an object"]}` | `AttributeError: 'str' object has no attribute 'get'` |
+
+Three floors of one trapdoor: the *document*'s shape, the *container*'s, and
+the *element*'s. `except (ValueError, OSError)` catches JSON syntax errors and
+nothing about JSON shape, and `RecursionError` — which `json` raises on deeply
+nested input, and which descends from `RuntimeError` — is a fourth door.
+
+Why it matters here rather than being a curiosity: the call sites at
+`beaver.py:826` and `:869` are unguarded, inside the evidence dictionaries the
+acceptance verbs return. A raise there does not produce a bad record, it takes
+down the assertion that was reading it — so a profile whose `extensions.json`
+some other add-on wrote oddly turns a measurement into a crash, and the reason
+is nowhere near where it surfaces.
+
+`bench/sdt_sitter_install.py`'s `read_addon_record` was modelled on this
+function and had all four defects. They were fixed there under ticket 0688
+(PR #373); this is the same fix for the original, and the reference for the
+wording is that commit.
+
+## Relevant files
+
+- `bench/acceptance/adapters/beaver.py` — `_host_addon_record()` (~line 918)
+  and its two call sites (~826, ~869)
+- `bench/sdt_sitter_install.py` — `read_addon_record()`, the fixed sibling
+- `tests/test_sdt_sitter.py` — the shape and element arms, to copy
+
+## Actions
+
+1. Validate the document's shape after parsing (`isinstance(document, dict)`),
+   then the container's (`isinstance(addons, list)`), and report either as
+   `{"read": False, "why": ...}`.
+2. Skip elements that are not objects, and collect only ids that are strings,
+   so `sorted()` never sees mixed types.
+3. Add `RecursionError` to the caught families.
+
+## Test
+
+First, in `tests/test_acceptance_adapter_beaver.py`: a wrong-shape
+`extensions.json` returns `{"read": False, ...}` rather than raising, with the
+present and absent arms alongside it as controls — a shape test whose controls
+are absent proves only that the function runs.
+
+## Verification
+
+- [ ] Each of the three inputs above returns a record instead of raising.
+- [ ] Removing the fix turns the new test red (run it, do not assume it).
+
+## Invariants
+
+- The docstring's promise, unchanged: unreadable is reported as unreadable and
+  never coerced to `present: False`.
+- `make check` stays green.
+
+## Exit criteria
+
+- `_host_addon_record()` returns a record for every readable file, whatever its
+  shape, and the test that says so has been seen red against the current code.

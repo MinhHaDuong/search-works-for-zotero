@@ -7,6 +7,7 @@ history at all. The last is the one that would otherwise pass as green — a gat
 that cannot look must not answer as though it had.
 """
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -24,9 +25,10 @@ SITTER = REPO / "bench" / "sdt-sitter"
 GUARD = REPO / "bench" / "check_sitter_version.py"
 
 
-def guard(root: Path) -> subprocess.CompletedProcess:
+def guard(root: Path, **environment: str) -> subprocess.CompletedProcess:
     return subprocess.run([sys.executable, str(GUARD), "--root", str(root)],
-                          capture_output=True, text=True, timeout=120)
+                          capture_output=True, text=True, timeout=120,
+                          env={**os.environ, **environment} if environment else None)
 
 
 def commit(repo: Path, message: str) -> None:
@@ -156,6 +158,64 @@ def test_guard_reports_not_run_on_a_repository_with_no_commit_for_the_payload(tm
     result = guard(other)
     assert result.returncode != 0, result.stdout + result.stderr
     assert "NOT-RUN" in result.stdout + result.stderr
+
+
+@pytest.mark.integration
+def test_a_redirected_git_environment_cannot_answer_for_another_repository(tmp_path):
+    """`--root` names the tree to read; `GIT_DIR` quietly named the history.
+
+    Inherited from whoever ran the gate, and unfiltered, so the guard read one
+    repository's files against another repository's log and printed OK about a
+    checkout it had not looked at.
+    """
+    guilty = tmp_path / "guilty"
+    guilty.mkdir()
+    sitter = seed(guilty, "2.3.0")
+    (sitter / "bootstrap.js").write_text("// a different payload\n", encoding="utf-8")
+    commit(guilty, "change the payload, keep the version")
+    assert guard(guilty).returncode != 0, "the positive control must be red first"
+
+    innocent = tmp_path / "innocent"
+    innocent.mkdir()
+    seed(innocent, "1.0.0")
+
+    for redirect in ({"GIT_DIR": str(innocent / ".git")},
+                     {"GIT_DIR": str(innocent / ".git"), "GIT_WORK_TREE": str(innocent)},
+                     {"GIT_COMMON_DIR": str(innocent / ".git")},
+                     {"GIT_OBJECT_DIRECTORY": str(innocent / ".git" / "objects")}):
+        result = guard(guilty, **redirect)
+        assert result.returncode != 0, f"{redirect}: {result.stdout}{result.stderr}"
+
+
+@pytest.mark.integration
+def test_guard_reports_not_run_when_the_history_names_blobs_it_cannot_produce(tmp_path):
+    """Commits present, contents absent — a partial clone, and it read as clean.
+
+    `git show` fails identically on a blob that was filtered out and on a path
+    that never existed, and only the second is a payload that was never there.
+    The tree distinguishes them without needing the blob, so it is asked.
+    """
+    root = tmp_path / "repo"
+    root.mkdir()
+    sitter = seed(root, "2.3.0")
+    (sitter / "bootstrap.js").write_text("// a different payload\n", encoding="utf-8")
+    commit(root, "change the payload, keep the version")
+    assert guard(root).returncode != 0, "the collision must be visible before it is hidden"
+
+    # Remove the earlier bootstrap.js blob, which is what a blobless clone lacks.
+    first = subprocess.run(["git", "rev-list", "--max-parents=0", "HEAD"], cwd=root,
+                           check=True, capture_output=True, text=True).stdout.strip()
+    blob = subprocess.run(["git", "rev-parse", f"{first}:bench/sdt-sitter/bootstrap.js"],
+                          cwd=root, check=True, capture_output=True, text=True).stdout.strip()
+    subprocess.run(["git", "unpack-objects"], cwd=root, capture_output=True)  # keep loose
+    loose = root / ".git" / "objects" / blob[:2] / blob[2:]
+    if not loose.exists():
+        pytest.skip("the blob is packed here, so it cannot be removed one object at a time")
+    loose.unlink()
+
+    result = guard(root)
+    assert result.returncode != 0, result.stdout + result.stderr
+    assert "NOT-RUN" in result.stdout + result.stderr, result.stdout + result.stderr
 
 
 @pytest.mark.integration

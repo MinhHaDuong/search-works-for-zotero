@@ -41,6 +41,13 @@ SCHEDULER = SITTER / 'scheduler.js'
 #: A second add-on, so "present" can be told from "something is present".
 OTHER_ID = 'zotero-better-bibtex@iris-advies.com'
 
+#: A document nested deeply enough that `json` gives up on it. Measured, not
+#: guessed: 20 000 parses fine on CPython 3.14, whose stack guard only fires
+#: around 200 000, while older interpreters hit the recursion limit far earlier.
+#: A depth that only reddens on one interpreter is an arm that proves nothing on
+#: the next, so the fixture is sized for the laxest one seen.
+TOO_DEEP = '[' * 200_000 + ']' * 200_000
+
 
 def write_extensions(profile: Path, addons: list[dict]) -> Path:
     profile.mkdir(parents=True, exist_ok=True)
@@ -180,6 +187,40 @@ def test_a_document_of_the_wrong_shape_is_unread_rather_than_absent(tmp_path):
         assert record["read"] is False, document
         assert "present" not in record, document
 
+    # A document nested past the recursion limit. `json` rejects it by
+    # exhausting the stack, and RecursionError is a RuntimeError — outside the
+    # families a reader catches by reflex, and so out through main() into the
+    # ABSENT code.
+    deep = tmp_path / "deep"
+    deep.mkdir()
+    (deep / "extensions.json").write_text(TOO_DEEP, encoding="utf-8")
+    assert read_addon_record(deep)["read"] is False
+
+
+def test_an_element_of_the_wrong_shape_is_absent_rather_than_a_crash(tmp_path):
+    """The third floor of the same trapdoor: document, container, then element.
+
+    An entry whose `id` is a number is valid JSON in a valid object in a valid
+    list, and it met `sorted()` over mixed types — where `str < int` raises
+    TypeError, out of `main()`, into exit 1, which this tool reads as ABSENT.
+    """
+    profile = tmp_path / "mixed"
+    write_extensions(profile, [
+        {"id": 17, "version": "1.0"},
+        other_entry(),
+        {"id": None},
+        {"id": ["a", "list"]},
+        "not an object at all",
+        {},
+    ])
+    record = read_addon_record(profile)
+    assert record["read"] is True and record["present"] is False
+    assert record["ids"] == [OTHER_ID], record["ids"]
+
+    # And the add-on is still found when it sits among that debris.
+    write_extensions(profile, [{"id": 17}, sitter_entry(), "junk"])
+    assert read_addon_record(profile)["present"] is True
+
 
 def test_install_refuses_an_addon_id_that_is_not_one_path_component(tmp_path):
     """The id becomes a filename; a separator in it writes outside the profile."""
@@ -222,12 +263,21 @@ def test_verify_exit_codes_separate_present_absent_and_unread(tmp_path):
     never_opened.mkdir()
     assert cli("verify", "--profile", str(never_opened)).returncode == 3
 
-    for document in ("[]", '"text"', "{ truncated"):
+    for document in ("[]", '"text"', "{ truncated", TOO_DEEP):
         wrong = tmp_path / f"wrong-{abs(hash(document))}"
         wrong.mkdir()
         (wrong / "extensions.json").write_text(document, encoding="utf-8")
         result = cli("verify", "--profile", str(wrong))
-        assert result.returncode == 3, f"{document}: {result.stdout}{result.stderr}"
+        assert result.returncode == 3, f"{document[:40]}: {result.stdout}{result.stderr}"
+
+    # An element of the wrong shape is a real ABSENT, not a crash wearing its
+    # exit code: the process must reach report() and print a record.
+    mixed = tmp_path / "mixed"
+    write_extensions(mixed, [{"id": 17}, other_entry()])
+    result = cli("verify", "--profile", str(mixed))
+    assert result.returncode == 1, result.stdout + result.stderr
+    assert "Traceback" not in result.stderr, result.stderr
+    assert json.loads(result.stdout)["present"] is False
 
     # An id nobody installed is absent, and the message must name the id that
     # was looked for rather than the module's default.

@@ -59,7 +59,11 @@ def read_addon_record(profile: Path, addon_id: str = ADDON_ID) -> dict:
         return {"read": False, "why": f"{path} does not exist"}
     try:
         document = json.loads(path.read_text(encoding="utf-8"))
-    except (ValueError, OSError) as exc:
+    except (ValueError, OSError, RecursionError) as exc:
+        # RecursionError and not only ValueError: json rejects deep nesting by
+        # exhausting the stack, and RecursionError descends from RuntimeError,
+        # so a tuple naming only the two obvious families lets it out of main()
+        # — into exit 1, which this tool reads as ABSENT.
         return {"read": False, "why": f"{type(exc).__name__}: {exc}"}
     # Shape, separately from syntax, and this is where the first draft was wrong.
     # `[]` and `"text"` are valid JSON, so nothing above rejects them, and
@@ -80,9 +84,15 @@ def read_addon_record(profile: Path, addon_id: str = ADDON_ID) -> dict:
                     "version": addon.get("version"),
                     "active": addon.get("active"),
                     "location": addon.get("location")}
+    # `isinstance(..., str)` and not a bare truth test, which is the third floor
+    # of the same trapdoor: the document was checked, then the container, and an
+    # ELEMENT whose id is a number still reached `sorted()` over mixed types,
+    # where `str < int` raises TypeError — out of main(), into exit 1, ABSENT
+    # again. An id that is not a string is not an id we could have installed
+    # under, so it is not one of the ids reported back.
     return {"read": True, "present": False,
-            "ids": sorted(a.get("id") for a in addons
-                          if isinstance(a, dict) and a.get("id"))}
+            "ids": sorted(a["id"] for a in addons
+                          if isinstance(a, dict) and isinstance(a.get("id"), str) and a["id"])}
 
 
 def install(profile: Path, xpi: Path, addon_id: str = ADDON_ID) -> Path:
