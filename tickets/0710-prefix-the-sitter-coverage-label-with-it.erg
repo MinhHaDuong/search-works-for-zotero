@@ -8,7 +8,7 @@ Author: claude
 2026-09-06T09:10Z claude note Filed out of 0694's placement review. 0694 asked for the scoped form and 0691 does not carry it; without this ticket the requirement would close with 0691 and lose its owner. Scoped to the wording only -- placement is settled by the same-day ruling in DECISIONS.md.
 2026-09-06T10:06Z claude note Re-verification of PR #376 caught this ticket's Context quoting a DECISIONS.md sentence that the same PR's second commit had already reworded away -- "to be fixed in the tooltip rather than by moving the icon" exists nowhere in the ledger, and it contradicted Action 1 four lines below. Requoted verbatim from the ledger as it now stands, which leaves the surface to this ticket. Lesson for the next quoting ticket: a quotation and its source are only safe when the quote is exact, so the pair can be checked mechanically; this one was checked by normalizing whitespace and em dashes and asserting substring containment.
 2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED, no changes. Blocked-by 0691 now closed. Confirmed no separate aria-label exists in bootstrap.js today (the toolbar `label` attribute doubles as visible text and accessible name), so the tooltip/accessible-name/both surface choice is still genuinely open as the ticket states. `Zotero.Libraries.get(libraryID).name` is an established, simple API already used elsewhere in this repo -- no over-engineering risk. Ready to execute as written.
-
+2026-09-06T12:05Z claude note Surface decided: the tooltip, and only the tooltip. The accessible name was the tempting choice because none exists today -- the toolbar `label` attribute doubles as the accessible name and churns with the spinner glyph and the percentage, which is exactly the instability 0686 wants fixed. But this ticket's first exit criterion requires the coverage figure to travel with the scope, and a string carrying a percentage cannot be stable across state transitions: writing it into aria-label would fight 0686 rather than serve it. 0686 also states its own precondition -- verify assistive-technology claims in a real window before implementing -- which nothing here can do. So the accessible name stays 0686's, unclaimed. Second finding, not in the ticket's premise: `host.list` is `SELECT itemID FROM itemAttachments`, unscoped, so the census covers every library. Naming a single library would have replaced one false scope with another, and `Zotero.Libraries.get(libraryID)` has no correct libraryID to take here; describeSDTScope enumerates from `getAll()` instead -- one name, up to three, then a count.
 --- body ---
 ## Context
 
@@ -73,9 +73,19 @@ is the wrong test -- assert that the label is built from the library record.
 
 ## Verification
 
-- [ ] The new test is red before the change and green after.
-- [ ] A group library shows its own name, not "My Library".
-- [ ] `make check` green.
+- [x] The new test is red before the change and green after. All three
+      source-anchored tests were run against the unfixed tree first; the
+      tooltip one failed on "the tooltip states no library scope" with the
+      block found, so it failed on the absent prefix and not on a moved
+      anchor.
+- [x] A group library shows its own name, not "My Library". Driven in
+      `tests/sdt_sitter_scheduler.mjs` with "Groupe Climat", a name the
+      source cannot contain, so a hardcoding could not satisfy it. Two
+      control arms were run on the committed tree: hardcoding the name
+      fails both the driven assertion and the source-anchored provenance
+      test, and dropping the per-record guard lets a lazily-unloaded group
+      library throw out of the tooltip.
+- [x] `make check` green.
 
 ## Invariants
 
@@ -86,7 +96,12 @@ is the wrong test -- assert that the label is built from the library record.
 
 ## Exit criteria
 
-- [ ] The coverage figure reaches the user with its library scope attached,
-      on a surface named in the commit message.
-- [ ] The library name comes from Zotero, not from a literal.
-- [ ] 0691's vocabulary table records the scoped form.
+- [x] The coverage figure reaches the user with its library scope attached,
+      on a surface named in the commit message. The surface is the tooltip,
+      and only the tooltip; the commit message argues why the accessible
+      name was rejected.
+- [x] The library name comes from Zotero, not from a literal.
+      `describeSDTScope` reads `Zotero.Libraries.getAll()` and asks each
+      record for its name.
+- [x] 0691's vocabulary table records the scoped form, in three rows: one
+      library, several, and more than three.
