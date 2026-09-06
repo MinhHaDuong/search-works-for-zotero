@@ -1,0 +1,81 @@
+%erg 0.1
+Title: SPEC 5.2.10 the fixture contract, and the 5.2.8 golden-gate corrections
+Created: 2026-09-06
+Author: claude
+
+--- log ---
+2026-09-06T22:12Z claude created
+
+--- body ---
+## Context
+
+The author ruled on the Menagerie's construction point by point on 2026-09-06
+(`DECISIONS.md`, two RULED entries of that date plus the second-round entry
+closing points 2, 4, 5 and 8, and the ruling from the library-level bench's
+first run on the identifier clause). The panel record and the ratification list
+are `conception/0029-golden-fixture-structure-review.md`, Parts C, D and E.
+
+Ruling 9 stands: a new `SPEC.md` §5.2.10 owns the fixture contract, §5.2.8's
+golden-gate bullet keeps only what the gate itself asserts, and guards on prose
+are unnecessary fat — no marker protection, no move ratchet.
+
+This ticket carries the documentation pass alone. The library, the bank and the
+export are ticket 0721's, 0722's and 0723's, and `bench/fixtures/` is theirs.
+
+## Relevant files
+
+- `SPEC.md` — §5.2.8's golden-gate bullet, R29, and the new §5.2.10
+- `README.md` — the Menagerie paragraph's promise about an answer in a table
+- `bench/golden_gate.py` — `load_thresholds` parses four sentences out of
+  §5.2.8 between two literal markers; the edit must not disturb them
+- `bench/fixtures/README.md` — where the sourcing inventory belongs; pointer
+  only from here, the file itself is ticket 0721's
+
+## Actions
+
+1. Add §5.2.10, "The fixture contract": the three layers and the rule that the
+   gate reads the export; two sampled strata and the non-sampled appendix of
+   scale surrogates; the question record as the gate's input contract (lane
+   pair, facet, `set_kind`, directional relation assertions, primary set within
+   k); the answer's definition and locator; the win / near-win / miss ladder and
+   the citation chain; relevance judged on the source document against
+   reachability computed on the export; the `run` block; a hard minimum question
+   count per MUST cell; and the invalidation table.
+2. Correct §5.2.8's golden-gate bullet: delete "~40 queries"; correct the
+   extraction-cap sentence, which is unsatisfiable as written; mark the
+   stability thresholds as calibrated on the superseded corpus; move the
+   sourcing inventory out behind a pointer.
+3. Widen R29 to the ordered pairs over R7's first tier, per ruling 2's lane
+   pair.
+4. Reconcile README's Menagerie paragraph.
+
+## Test
+
+`bench/golden_gate.py`'s `load_thresholds` is the standing test of the edit:
+it must resolve the same five values from the edited `SPEC.md` as from the
+current one, and `tests/test_golden_gate.py` must stay green. Both are run
+before and after.
+
+## Verification
+
+- [ ] `load_thresholds(SPEC.md)` returns k=10, mean 0.8, 5 %, 0.35, floor 0.2
+      before and after the edit
+- [ ] `tests/test_golden_gate.py` green
+- [ ] `make check-fast`, `make lint`, `make check` green
+
+## Invariants
+
+- The two slice markers and the four parsed sentences survive verbatim, each
+  matching exactly once.
+- `bench/check_figures.py`'s `identical_ordered` anchors survive in `SPEC.md`.
+- No prose guard, ratchet or marker-protection test is added (ruling 9).
+- `DECISIONS.md`, `tickets/0029`, `bench/fixtures/` and `bench/generator/` are
+  untouched: other lanes hold them.
+
+## Exit criteria
+
+- §5.2.10 exists and owns the fixture contract.
+- §5.2.8's golden-gate bullet is corrected and carries no sourcing inventory.
+- R29 states which ordered language pairs bind.
+- README's Menagerie paragraph is true of the recipe.
+- The three gates are green and quoted on the pull request.
