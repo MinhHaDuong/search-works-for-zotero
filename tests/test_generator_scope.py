@@ -67,6 +67,10 @@ class Upstream(BaseHTTPRequestHandler):
         common = {"Last-Modified-Version": "4242", "X-Zotero-Version": "10.0.1"}
         if p.path in ("/api/users/0/items", "/api/users/0/items/top"):
             rows = RECORDS if p.path.endswith("/top") else ITEMS
+            if "itemKey" in q:
+                wanted = set(q["itemKey"].split(","))
+                assert len(wanted) <= 50, "the itemKey filter is capped at fifty keys"
+                rows = [it for it in rows if it["key"] in wanted]
             if "itemType" in q:
                 rows = [it for it in rows if it["data"]["itemType"] in q["itemType"].replace(" ", "").split("||")]
             start, limit = int(q.get("start", 0)), int(q.get("limit", 25))
@@ -148,9 +152,10 @@ def test_listings_are_filtered_paged_and_totalled(upstream):
         st, h, body = get(base + "/items?itemType=note%20%7C%7C%20annotation&limit=100&start=0")
         notes = {it["key"] for it in json.loads(body)}
         assert notes == {k for k in scope.child_keys if k.startswith("N")} and h["total-results"] == str(len(notes))
-        # The whole listing was fetched once per query, not once per page.
+        # The sample was fetched by key, once per query and chunk, never by paging the library.
         top_calls = [p for m, p in Upstream.seen if p.startswith("/api/users/0/items/top")]
-        assert len(top_calls) == 1
+        assert len(top_calls) == 1 and "itemKey=" in top_calls[0]
+        assert all("itemKey=" in p or p.endswith("limit=1") for m, p in Upstream.seen if "/items" in p and "/fulltext" not in p)
     finally:
         proxy.stop()
 
@@ -170,8 +175,12 @@ def test_census_is_filtered_and_the_rest_passes_through(upstream):
         assert st == 200, "pass-through does not filter: the target only asks for keys it was listed"
         st, h, body = get(f"http://127.0.0.1:{proxy.port}/api/groups?limit=100&start=0")
         assert json.loads(body) == [{"id": 305258}] and h["total-results"] == "1"
+        # The liveness probe: one upstream page, the scope's total, never a full fetch.
         st, h, body = get(base + "/items?limit=1")
         assert st == 200 and h["total-results"] == str(len(scope.all_keys))
+        assert all(it.get("key") in scope.all_keys for it in json.loads(body))
+        st, h, body = get(base + "/items/top?limit=1")
+        assert h["total-results"] == str(len(scope.record_keys))
         with pytest.raises(urllib.error.HTTPError) as e:
             get(f"http://127.0.0.1:{proxy.port}/api/users/0/nowhere")
         assert e.value.code == 404

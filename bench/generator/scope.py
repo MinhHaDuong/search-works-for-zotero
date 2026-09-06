@@ -15,9 +15,15 @@ which the run identity records.
 
 Paging is served by the proxy, not delegated: a filtered page of Zotero's would
 shrink below the requested size and a caller reading `Total-Results` would stop
-early or overshoot. The proxy fetches the whole listing for a query once (page
-by page, GET only), filters it, caches it, and serves `start`/`limit` slices
-with `Total-Results` set to the filtered count.
+early or overshoot. The proxy fetches the sample itself, by `itemKey=` chunks
+of fifty (the local API honours the filter, checked 2026-09-06), with the
+query's other parameters (`itemType`, `format`) passed along so Zotero applies
+them; it caches the result per query and serves `start`/`limit` slices with
+`Total-Results` set to the filtered count. Fetching the sample rather than
+paging the library matters twice over: a 17 000-item listing takes minutes,
+and the target's liveness probe (`/users/0/items?limit=1`, with a deadline)
+concluded the app was down and fell back to the Web API when the first version
+of this proxy paged the whole library to answer it.
 
 Read-only, and asserted: the proxy answers 405 to anything but GET and never
 builds a request of its own with another method. It is a fixture library in the
@@ -37,7 +43,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from bench.library_census import NON_RECORD_TYPES
 
-PAGE = 100
+#: Keys per `itemKey=` request; the Web API caps the filter at fifty.
+KEY_CHUNK = 50
 FORWARDED_HEADERS = ("content-type", "last-modified-version", "x-zotero-version",
                      "zotero-api-version", "zotero-schema-version", "location")
 
@@ -147,38 +154,59 @@ class ScopeProxy:
     # -- upstream reads -----------------------------------------------------
 
     def _fetch_all(self, path: str, params: list[tuple[str, str]], fmt: str) -> Listing:
-        """The whole listing behind one query, every page, filtered to the scope."""
-        key = path + "?" + urllib.parse.urlencode(sorted(params))
+        """The whole listing behind one query, fetched by key chunks and filtered to the scope."""
+        cache_key = path + "?" + urllib.parse.urlencode(sorted(params))
         with self._lock:
-            if key in self._cache:
-                return self._cache[key]
+            if cache_key in self._cache:
+                return self._cache[cache_key]
+        wanted = sorted(self.scope.record_keys if path.endswith("/top") else self.keys)
         rows: list = []
-        start = 0
-        status, headers = 200, {}
-        while True:
-            q = urllib.parse.urlencode(params + [("start", str(start)), ("limit", str(PAGE))])
-            status, headers, body = _get(f"{self.upstream}{path}?{q}")
-            if status != 200:
-                listing = Listing(status, headers, "opaque", body=body)
-                break
-            if fmt == "keys":
-                page = [line for line in body.decode().splitlines() if line]
-                rows.extend(k for k in page if k in self.keys)
-            else:
-                doc = json.loads(body)
-                if isinstance(doc, dict):
-                    page = list(doc.items())
-                    rows.extend((k, v) for k, v in page if k in self.keys)
+        seen: set[str] = set()
+        headers: dict[str, str] = {}
+        listing = None
+        for i in range(0, len(wanted), KEY_CHUNK):
+            chunk = wanted[i:i + KEY_CHUNK]
+            # A key chunk can answer with more rows than keys (`/items?itemKey=` adds
+            # the children of a listed record), so each chunk is paged to its own total.
+            start = 0
+            while True:
+                q = urllib.parse.urlencode(params + [("itemKey", ",".join(chunk)), ("start", str(start)),
+                                                     ("limit", str(KEY_CHUNK * 2))])
+                status, headers, body = _get(f"{self.upstream}{path}?{q}")
+                if status != 200:
+                    listing = Listing(status, headers, "opaque", body=body)
+                    break
+                if fmt == "keys":
+                    page = [k for k in body.decode().splitlines() if k]
+                    for k in page:
+                        if k in self.keys and k not in seen:
+                            seen.add(k)
+                            rows.append(k)
                 else:
-                    page = doc
-                    rows.extend(it for it in page if it.get("key") in self.keys)
-            total = int(headers.get("total-results", len(page)))
-            start += len(page)
-            if not page or start >= total:
-                listing = Listing(200, headers, "keys" if fmt == "keys" else "versions" if fmt == "versions" else "array", rows)
+                    doc = json.loads(body)
+                    if isinstance(doc, dict):
+                        page = list(doc.items())
+                        for k, v in page:
+                            if k in self.keys and k not in seen:
+                                seen.add(k)
+                                rows.append((k, v))
+                    else:
+                        page = doc
+                        for it in page:
+                            k = it.get("key")
+                            if k in self.keys and k not in seen:
+                                seen.add(k)
+                                rows.append(it)
+                start += len(page)
+                if not page or start >= int(headers.get("total-results", len(page))):
+                    break
+            if listing is not None:
                 break
+        if listing is None:
+            kind = "keys" if fmt == "keys" else "versions" if fmt == "versions" else "array"
+            listing = Listing(200, headers, kind, rows)
         with self._lock:
-            self._cache[key] = listing
+            self._cache[cache_key] = listing
         return listing
 
     # -- the handler --------------------------------------------------------
@@ -202,6 +230,15 @@ class ScopeProxy:
     def _serve_listing(self, h, path: str, params: list[tuple[str, str]]) -> None:
         paging = {k: v for k, v in params if k in ("start", "limit")}
         rest = [(k, v) for k, v in params if k not in ("start", "limit")]
+        if paging.get("limit") == "1" and not rest and "start" not in paging:
+            # The target's liveness probe, which runs on a deadline: one upstream
+            # page, filtered, with the scope's own total — never a full fetch.
+            status, headers, body = _get(f"{self.upstream}{path}?limit=1")
+            if status == 200:
+                body = json.dumps([it for it in json.loads(body) if it.get("key") in self.keys]).encode()
+            total = len(self.scope.record_keys if path.endswith("/top") else self.keys)
+            self._reply(h, status, headers, body, total=total)
+            return
         fmt = dict(rest).get("format", "json")
         listing = self._fetch_all(path, rest, fmt)
         if listing.kind == "opaque":
