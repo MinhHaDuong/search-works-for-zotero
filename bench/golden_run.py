@@ -22,6 +22,7 @@ import datetime as _dt
 import json
 import logging
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -270,6 +271,27 @@ def fork_build_sha(server: Path) -> str | None:
     return None
 
 
+def embedder_model(server: Path) -> dict[str, str | None]:
+    """Name the embedding model this build would load, read out of the build itself.
+
+    The replay refuses embeddings, so the run's `embedder` reads "none (keyword-only)" and
+    the identity says nothing about *which* embedder the reading is a keyword-only baseline
+    against. A later run with vectors on is only comparable to this one if both name their
+    model, and a model name typed into this file would be a claim about a build rather than
+    a reading of it — so it is parsed from the build's own source, with the file it came
+    from recorded beside it.
+    """
+
+    source = server.resolve().parent / "features" / "search" / "embeddings.js"
+    if not source.is_file():
+        return {"build_default": None, "read_from": None}
+    match = re.search(r"DEFAULT_LOCAL_MODEL\s*=\s*['\"]([^'\"]+)['\"]", source.read_text(encoding="utf-8"))
+    return {
+        "build_default": match.group(1) if match else None,
+        "read_from": str(source.relative_to(source.parents[3])) if len(source.parents) > 3 else source.name,
+    }
+
+
 def upstream_index_schema() -> str | None:
     try:
         for line in (REPO / "UPSTREAM").read_text(encoding="utf-8").splitlines():
@@ -323,6 +345,7 @@ def main(argv: list[str] | None = None) -> int:
     run_extra = {
         "build_sha": fork_build_sha(args.server),
         "index_schema": upstream_index_schema(),
+        "embedder_model": embedder_model(args.server),
         "chunker": (meta.get("status") or {}).get("chunker", "not-reported by zotero_index status"),
         "build": None if build_report is None else {
             "exit_code": build_report.get("exit_code"),

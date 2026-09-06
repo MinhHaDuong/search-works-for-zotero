@@ -137,3 +137,30 @@ def test_no_hits_is_written_as_an_empty_result_list_not_as_not_run(tmp_path):
     assert done.returncode == 0, done.stderr
     bundle = json.loads(output.read_text())
     assert [r for r in bundle["replies"] if r["mode"] == "lexical"][0]["results"] == []
+
+
+def test_the_run_identity_names_the_embedding_model_read_out_of_the_build(tmp_path):
+    """A keyword-only reading is comparable to a later vector run only if both name a model.
+
+    The name is parsed from the build's own source rather than typed into the runner: a
+    constant here would be a claim about a build instead of a reading of one, and would go
+    on reading true after the build changed its default.
+    """
+
+    from golden_run import embedder_model
+
+    dist = tmp_path / "dist"
+    (dist / "features" / "search").mkdir(parents=True)
+    (dist / "features" / "search" / "embeddings.js").write_text(
+        "export const DEFAULT_LOCAL_MODEL = 'Xenova/all-MiniLM-L6-v2';\n", encoding="utf-8"
+    )
+    (dist / "index.js").write_text("", encoding="utf-8")
+    named = embedder_model(dist / "index.js")
+    assert named["build_default"] == "Xenova/all-MiniLM-L6-v2"
+    assert named["read_from"].endswith("embeddings.js")
+
+    # A build that does not carry the constant reports no name rather than a stale one.
+    bare = tmp_path / "bare"
+    bare.mkdir()
+    (bare / "index.js").write_text("", encoding="utf-8")
+    assert embedder_model(bare / "index.js") == {"build_default": None, "read_from": None}
