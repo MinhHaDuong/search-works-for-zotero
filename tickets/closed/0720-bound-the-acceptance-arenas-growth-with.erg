@@ -1,0 +1,97 @@
+%erg 0.1
+Title: Bound the acceptance arenas' growth with a retention policy at allocation
+Created: 2026-09-06
+Author: sim
+Closed: autoclosed — PR #398
+
+--- log ---
+2026-09-06T16:17Z sim created
+
+2026-09-06T16:24Z sim note Red on the unfixed tree: tests/test_acceptance_arena_retention.py 6 of 7 fail (assess() has no keep_runs, no DEFAULT_KEEP_RUNS, no in_progress_marker); green after the retention landed in run.py, 7 of 7. End to end: three --fixtures runs on one fresh arena with --keep-runs 1, the third removed 14 arenas of 1 previous run per fixture, two runs' arenas remain per fixture, trace/ untouched, no marker left behind. make lint and make check-fast green (949 passed, 14 skipped).
+2026-09-06T16:29Z sim closed — autoclosed — PR #398
+--- body ---
+## Context
+`bench/acceptance/run.py` allocates a fresh arena per run (`arena_for`:
+`<base>/<date>/<HHMMSS>-<check>`) and deleted nothing, on purpose: a residue
+sweep needs a clean baseline and refuses a dirty arena, so reusing one is
+unsafe. That reasoning stands. What it left open is the bound: a run against a
+real target copies the embedding weights into three per-check arenas (87 MB
+each), and measured on 2026-09-06 one base arena (`~/data/acceptance-arena-1130`)
+held 878 MB across 55 run directories with the home volume at 90 %. Sessions
+also pass ad-hoc `--arena` paths under `~/data` and `/var/tmp`, so a bound on
+the Makefile default alone would not reach most of it.
+
+## Mechanism, and the alternatives set aside
+**Retention at allocation.** Before a run makes its first arena, `retain()`
+removes every completed previous run under the base arena beyond the
+`--keep-runs` most recent (`DEFAULT_KEEP_RUNS = 3`), and nothing else. The
+bound therefore follows the driver to whatever base arena a session names,
+Makefile default or not, and needs no one to remember a clean target.
+
+Protected, in order of what would hurt most if it were not:
+- the current run (`(date, started)` is excluded before ranking);
+- a run still in progress: `assess()` writes `<base>/<date>/<HHMMSS>.in-progress`
+  before its first arena and removes it on return, however it returns, and
+  retention skips any run whose marker is present. A crashed run keeps its
+  marker and is kept forever, and is named at every later run;
+- everything the layout does not describe: only a directory matching
+  `<YYYY-MM-DD>/<HHMMSS>-<check>` is a candidate, so a hand-made probe directory
+  (`seed/`, `ladder/`, `r23-iso/` in the measured arena), the tracer's `trace/`
+  and a stray file are never touched;
+- anything outside the base arena: symlinks are not descended, and every
+  removal is checked to resolve under the base.
+A removal that fails is logged with the path and the run continues: this
+exists because a disk filled up, and a pruner that could end a run would turn
+a full disk into a red gate about nothing.
+
+**A make target alone** (`make acceptance-clean`) does not meet the goal: it
+bounds nothing until someone runs it, and it cannot see the ad-hoc arenas.
+**Sharing one model cache across arenas** was set aside because the copy is
+the target's own act, made inside its declared derived-state root, and it is
+what `R15-model-cache-under-declared-roots` inspects — a cache shared across
+arenas would cross exactly the per-assertion independence `assess()`'s
+docstring argues for, and the layer is target-neutral, so it cannot know
+where a target keeps its models in the first place.
+
+**Evidence check before deleting.** `bench/results/**/acceptance.json`
+records arena paths as strings (`detail.arena`, residue lists) and nothing
+reads them back from disk; no verification note or assertion opens an old
+arena as evidence. The ad-hoc probe directories are left alone regardless.
+
+## Relevant files
+- `bench/acceptance/run.py` — `DEFAULT_KEEP_RUNS`, `in_progress_marker`,
+  `previous_runs`, `retain`; `assess()` prunes then marks; `--keep-runs`
+- `tests/test_acceptance_arena_retention.py` — the bound and its four protections
+- `Makefile` — the `ACCEPTANCE_ARENA` comment points at the bound
+
+## Actions
+1. Retention at allocation in `assess()`, with the in-progress marker.
+2. `--keep-runs N` on the driver, refused below 0, threaded to `--fixtures`.
+3. Docstrings and the Makefile comment say where the bound lives.
+
+## Test
+- `tests/test_acceptance_arena_retention.py`, fast tier, in-process against
+  `stub-quiet`: red on the unfixed tree (6 of 7 fail: no `keep_runs`, no
+  `DEFAULT_KEEP_RUNS`, no marker), green after.
+
+## Verification
+- [x] Planted previous runs beyond the keep count are removed; the most recent
+      `keep` survive; an emptied date directory goes with them
+- [x] The current run and a marked run survive `--keep-runs 0`
+- [x] A probe directory, `trace/`, a stray file, a non-run name inside a date
+      directory and a symlink out of the arena all survive, and the planted run
+      beside them does not (the control that makes survival a discrimination)
+- [x] A removal that fails is logged by path and the run still returns
+- [x] `--keep-runs -1` is refused with the count's own message
+
+## Invariants
+- No arena is ever reused; the residue sweep's clean-baseline rule stands.
+- Nothing is removed outside the base arena or outside the run layout.
+- The target-neutrality guard still passes: the layer names no target, no path.
+
+## Exit criteria
+- [x] `make check` passes with the new test in the fast tier
+- [x] A third run on one base arena, `--keep-runs 1`, leaves two runs' arenas
+      where three would have accumulated (log entry of 2026-09-06)
+- [x] The ad-hoc probe directories under the measured arena are not the
+      mechanism's to remove, and the ticket says so
