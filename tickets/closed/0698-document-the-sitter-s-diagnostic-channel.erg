@@ -2,6 +2,7 @@
 Title: Document the sitter's diagnostic channel and its debug pref in SPEC
 Created: 2026-09-06
 Author: claude
+Closed: autoclosed — PR #386
 
 --- log ---
 2026-09-06T09:01Z claude created
@@ -9,6 +10,7 @@ Author: claude
 
 2026-09-06T10:25Z sim note blocker 0689 closed — Blocked-by removed.
 2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED. Confirmed against shipped code: SPEC.md/README still silent on the diagnostic channel (only manifest.json's description field mentions it, an addon-manager string almost nobody reads); emit()/classifyError()/DEBUG_PREF/createSDTJournal all match this ticket's Context section. One precision note for the writer: scope the "no text, titles or source paths" claim to library/attachment content -- the `startup` emit records `rootURI` (the plugin's own install path), which is technically a path too, just not a library/document source path.
+2026-09-06T15:33Z sim closed — autoclosed — PR #386
 --- body ---
 ## Context
 
