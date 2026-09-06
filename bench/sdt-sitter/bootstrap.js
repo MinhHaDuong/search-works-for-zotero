@@ -63,6 +63,133 @@ var generation = 0;
 let lastCompleted = 0;
 let completionBlinkUntil = 0;
 
+/* ---- the user-facing text, and the only place any of it lives (ticket 0692) ----
+
+   Fluent, because it is what Zotero 7+ and Firefox already use for user-facing
+   strings, and because two strings here are genuinely plural-sensitive — the
+   tooltip's file count and the failures line — in a way the source language
+   cannot decide for the target one. French calls zero singular and English
+   does not; Vietnamese has one form for every count. `n > 1 ? … : …` is a
+   French rule written in JavaScript, and it is wrong everywhere else.
+
+   An imperative `FluentBundle`, NOT `Localization`/`document.l10n`: this
+   add-on registers no chrome or resource protocol for `L10nRegistry` to hook
+   into, and `document.l10n` observes `data-l10n-id` markup, which a dialog
+   built entirely by `createElementNS` has none of. The `.ftl` text is fetched
+   exactly the way `sitterStartupSelfCheck` fetches `manifest.json`, so the
+   whole mechanism is one this file already had.
+
+   At RUNTIME a language costs one file, `locale/<tag>/sdt-pack-sitter.ftl`,
+   and no listing at all: the chain below tries the tag, then the language
+   without its region, then `en`, and a fetch that fails is simply a locale
+   this build does not ship. A manifest list would be a second place to
+   forget, and an unrecognised manifest key is how a plugin stops being
+   installable (ticket 0688).
+
+   The BUILD is a second place, and saying otherwise would be the false half
+   of that claim: `build_sdt_sitter.LOCALES` decides what reaches the XPI, so
+   a `.ftl` dropped here and named nowhere ships in no package. That
+   asymmetry is guarded rather than remembered —
+   `test_every_locale_on_disk_is_a_locale_the_build_packs` reddens on it.
+
+   ADDING A STRING, which is the commoner errand and the one that brought you
+   to this file: put it in ALL FOUR `.ftl` files and read it with `sdtText`
+   below. Never a literal at the call site — a string only English carries
+   renders in English for every reader, and a string in no locale at all
+   cannot be translated by anyone. Both are refused rather than requested:
+   `test_no_ui_site_keeps_a_sentence_of_its_own` reddens on prose in this
+   file, `test_the_four_locales_carry_exactly_the_english_id_set` on a locale
+   that lags English, and `test_every_message_a_site_asks_for_exists_in_english`
+   on an id that exists at only one of the two ends. If the string's meaning
+   turns on a number, it is a `$count` selector, not a `> 1` in JavaScript. */
+var SDT_LOCALE = 'en';
+var SDT_BUNDLES = [];
+
+/* Requested locale -> its language without the region -> `en`, which every id
+   must exist in. Every resolved bundle is KEPT, in order, because the fallback
+   this chain exists for is per message rather than per file: a half-translated
+   `fr.ftl` is the normal state of a locale between two releases. */
+function sdtLocaleChain(requested) {
+  const chain = [];
+  for (const tag of [requested, String(requested || '').split('-')[0], 'en']) {
+    if (tag && !chain.includes(tag)) chain.push(tag);
+  }
+  return chain;
+}
+
+/* Every string a reader sees passes through here. An id no bundle carries
+   returns as itself — Fluent's own convention: visible in the window, it names
+   exactly what is missing, and it is not the one thing this call site cannot
+   afford. The whole body is guarded for the reason describeSDTScope carries:
+   render() has no try above the pulse timer, so a throw here would go on
+   throwing ten times a second for the life of the sitter. */
+function sdtText(id, args) {
+  for (const bundle of SDT_BUNDLES) {
+    try {
+      const message = bundle.getMessage(id);
+      if (!message || !message.value) continue;
+      // The errors array is not optional: without one, formatPattern THROWS on
+      // an argument a translation does not name. Collected and dropped, because
+      // Fluent still returns its best-effort text, which is worth more on
+      // screen than an identifier.
+      return bundle.formatPattern(message.value, args || {}, []);
+    } catch (_error) { /* Try the next locale in the chain. */ }
+  }
+  return id;
+}
+
+/* Numbers in the reader's locale. What used to sit at these call sites was a
+   hardcoded French locale tag and a `.replace` of the point by a comma, which
+   decided the decimal mark and the thousands separator for every reader in the
+   world. */
+function sdtNumber(value, options) {
+  try { return new Intl.NumberFormat(SDT_LOCALE, options).format(value); }
+  catch (_error) { return String(value); }
+}
+
+/* Zotero's own UI locale, not a preference of this add-on's: the author asked
+   for the plugin to follow Zotero, and a second language setting is a second
+   thing to get wrong. Both reads are guarded — `Zotero.locale` is a getter in
+   a compartment this plugin does not own. */
+function sdtRequestedLocale() {
+  try { if (typeof Zotero.locale === 'string' && Zotero.locale) return Zotero.locale; }
+  catch (_error) { /* A getter can throw. */ }
+  try { return Services.locale.appLocaleAsBCP47 || 'en'; } catch (_error) { return 'en'; }
+}
+
+/* Built once at startup, before anything renders. Nothing here may stop
+   startup: a host with no Fluent module, an unshipped locale, an unparseable
+   `.ftl` — each leaves the chain shorter and the window naming its own ids,
+   which is legible and harmless, where a throw would take the plugin with it. */
+async function loadSDTLocalization(rootURI, requested) {
+  const bundles = [];
+  let active = 'en';
+  try {
+    const { FluentBundle, FluentResource } =
+      ChromeUtils.importESModule('resource://gre/modules/Fluent.sys.mjs');
+    for (const tag of sdtLocaleChain(requested)) {
+      let source;
+      try {
+        source = await Zotero.File.getContentsFromURLAsync(
+          `${rootURI}locale/${tag}/sdt-pack-sitter.ftl`);
+      } catch (_error) { continue; /* A locale this build does not ship. */ }
+      try {
+        // `useIsolating` off. Fluent otherwise wraps every placeable in FSI/PDI
+        // marks: invisible in a browser, not invisible in a toolbar tooltip or
+        // a <pre>, and they would ride the journal onto the clipboard.
+        const bundle = new FluentBundle([tag], { useIsolating: false });
+        bundle.addResource(new FluentResource(source));
+        if (bundles.length === 0) active = tag;
+        bundles.push(bundle);
+      } catch (_error) { /* An unparseable locale is one the chain skips. */ }
+    }
+  } catch (_error) { /* No Fluent module: every string falls back to its id. */ }
+  SDT_BUNDLES = bundles;
+  SDT_LOCALE = active;
+  emit('localization', { locale: active, bundles: bundles.length });
+  return { locale: active, bundles: bundles.length };
+}
+
 /* The clock every DURATION in this file is measured on.
 
    `Date.now()` reads the calendar, and the calendar moves: NTP steps it, a
@@ -217,7 +344,10 @@ function announceSDTSweep(before) {
   if (s.completed === before.completed && s.failed === before.failed) return false;
   try {
     const toast = new Zotero.ProgressWindow();
-    toast.changeHeadline('Assistant d’indexation');
+    // The same message the status window's own title reads (ticket 0692). The
+    // toast and the window are the same thing announcing itself, so naming it
+    // twice would be two places for one name to drift.
+    toast.changeHeadline(sdtText('dialog-title'));
     // One line each, rather than one string with a newline in it: the two counts
     // have different spans (the session's, and the last census's) and a reader
     // meets them as two statements on the tooltip and in the dialog too.
@@ -330,21 +460,27 @@ function getSDTCoverage(state) {
    so each blocking reason gets its own plain sentence; the raw internal name
    stays in the diagnostics disclosure. `null` is the deliberate no-label case:
    the two healthy idle phases, where the count already says everything. An
-   unlisted phase falls back to the scoped count rather than leaking its name. */
+   unlisted phase falls back to the scoped count rather than leaking its name.
+
+   The values are message ids, not sentences: this table's job is the mapping
+   from an internal phase to a decided label, and which language that label is
+   written in is the `.ftl` files' job. Keeping the table means `phase in
+   SDT_PHASE_LABELS` still answers "has this phase been decided about", which
+   is what tests/sdt_sitter_scheduler.mjs asks of every phase it can enumerate. */
 var SDT_PHASE_LABELS = {
   ready: null,
   waiting: null,
-  census: 'Recensement',
-  extracting: 'Indexation en cours',
-  error: 'Erreur',
-  disabled: 'Désactivé',
-  'native-worker-busy': 'En attente : indexation native en cours',
-  'cpu-busy': 'En pause : processeur occupé',
-  'low-memory': 'En pause : mémoire insuffisante',
-  'low-disk': 'En pause : espace disque insuffisant',
-  'storage-unavailable': 'En pause : stockage indisponible',
-  'resources-unavailable': 'En pause : ressources système illisibles',
-  'launch-declined; disable/re-enable to launch': 'Non lancé : désactiver puis réactiver l’extension',
+  census: 'phase-census',
+  extracting: 'phase-extracting',
+  error: 'phase-error',
+  disabled: 'phase-disabled',
+  'native-worker-busy': 'phase-native-worker-busy',
+  'cpu-busy': 'phase-cpu-busy',
+  'low-memory': 'phase-low-memory',
+  'low-disk': 'phase-low-disk',
+  'storage-unavailable': 'phase-storage-unavailable',
+  'resources-unavailable': 'phase-resources-unavailable',
+  'launch-declined; disable/re-enable to launch': 'phase-launch-declined',
 };
 
 /* One composer for the coverage percentage, so the toolbar strip and the tooltip
@@ -353,7 +489,8 @@ var SDT_PHASE_LABELS = {
 function describeSDTCoverage(state) {
   const coverage = getSDTCoverage(state);
   return coverage.total > 0
-    ? ` ${Math.floor((coverage.current / coverage.total) * 100)} %` : '';
+    ? sdtText('index-coverage',
+      { percent: Math.floor((coverage.current / coverage.total) * 100) }) : '';
 }
 
 /* What the coverage figure is measured over. The button lives in the items
@@ -396,9 +533,9 @@ function describeSDTScope() {
       if (typeof name === 'string' && name.trim()) names.push(name.trim());
     }
     if (names.length === 0) return null;
-    if (names.length === 1) return `Bibliothèque : ${names[0]}`;
-    if (names.length <= 3) return `Bibliothèques : ${names.join(', ')}`;
-    return `Toutes les bibliothèques (${names.length})`;
+    if (names.length === 1) return sdtText('scope-one', { names: names[0] });
+    if (names.length <= 3) return sdtText('scope-few', { names: names.join(', ') });
+    return sdtText('scope-many', { count: names.length });
   } catch (_error) { return null; }
 }
 
@@ -411,31 +548,41 @@ function describeSDTScope() {
    tooltip could round one percentage two ways (ticket 0710). Here the shared
    quantity is a count and its plural agreement.
 
-   The failure line is empty at zero rather than "0 fichier": a library with
+   The failure line is empty at zero rather than "0 file": a library with
    nothing wrong has nothing to say about failures, and the dialog's banner has
    read that way since ticket 0699. The indexed line is not, because it is the
-   count itself and reads as a measurement even at zero. */
+   count itself and reads as a measurement even at zero. That emptiness stays
+   here in JavaScript, because it is a decision about whether to show a line
+   at all rather than about how to word one.
+
+   The plural agreement itself does NOT stay here (ticket 0692). `count > 1` is
+   a French rule written in JavaScript: French calls zero singular, English does
+   not, and Vietnamese has one form for every count — no source language can
+   hold that rule for the target one. So each composer keeps 0696's guarantee
+   that the three surfaces cannot drift, and delegates the agreement to the
+   locale's own plural rules through a Fluent `$count` selector. The two
+   requirements are orthogonal and this is what satisfying both looks like. */
 function describeSDTIndexed(count) {
-  return count > 1 ? `${count} fichiers indexés` : `${count} fichier indexé`;
+  return sdtText('files-indexed', { count });
 }
 
 function describeSDTFailures(count) {
   if (!count) return '';
-  return count > 1 ? `${count} fichiers n’ont pas pu être indexés`
-    : `${count} fichier n’a pas pu être indexé`;
+  return sdtText('files-failed', { count });
 }
 
+/* Four segments joined by one em dash.
+
+   Before the first census there is no percentage, and the bare word "Index"
+   between two em dashes says nothing the rest of the line does not: that
+   segment is dropped rather than left dangling. The scope is not — which
+   libraries the sitter is about is true before any figure exists. The phase
+   label is a segment in its own right for the same reason it used to be
+   concatenated with the same em dash: one separator, one place. */
 function describeSDTTooltip(state) {
-  const indexed = describeSDTIndexed(state.completed);
   const label = SDT_PHASE_LABELS[state.phase];
-  const progress = label ? `${label} — ${indexed}` : indexed;
-  // Before the first census there is no percentage, and the bare word "Index"
-  // between two em dashes says nothing the rest of the line does not: the
-  // segment is dropped rather than left dangling. The scope is not — which
-  // libraries the sitter is about is true before any figure exists.
-  const percentage = describeSDTCoverage(state);
-  const segments = [describeSDTScope(), percentage && `Index${percentage}`, progress];
-  return segments.filter(Boolean).join(' — ');
+  return [describeSDTScope(), describeSDTCoverage(state), label && sdtText(label),
+    describeSDTIndexed(state.completed)].filter(Boolean).join(' — ');
 }
 
 /* The unit of work is one attachment, and Zotero names attachments for us
@@ -449,14 +596,19 @@ function describeSDTFile(info, fallback) {
 }
 
 function describeSDTActiveFile(state) {
-  return describeSDTFile(state.activeInfo, `fichier n° ${state.active}`);
+  return describeSDTFile(state.activeInfo, sdtText('file-number', { id: state.active }));
 }
 
 /* ---- the third layer: what a bug report asks for and a reader never does ---- */
 
 function formatSDTBytes(bytes) {
-  // Decimal comma, per this repository's number convention.
-  return Number.isFinite(bytes) ? `${(bytes / 1024 ** 3).toFixed(1).replace('.', ',')} Gio` : '?';
+  // The decimal mark is the locale's, not this file's: `toFixed` produces a
+  // point and the old `.replace('.', ',')` produced a comma, and exactly one of
+  // those two is right for any given reader.
+  return Number.isFinite(bytes)
+    ? sdtText('gibibytes', { value: sdtNumber(bytes / 1024 ** 3,
+      { minimumFractionDigits: 1, maximumFractionDigits: 1 }) })
+    : sdtText('unknown-value');
 }
 
 /* Which build is running, and where it was installed from. Ticket 0688 put this
@@ -465,20 +617,27 @@ function formatSDTBytes(bytes) {
    one who will be asked which version he was running. */
 function describeSDTEnvironment() {
   const native = environment.packVersions || {};
+  const unknown = sdtText('unknown-value');
   return [
-    `Version de l’extension : ${environment.version ?? '?'}`,
-    `Zotero : ${environment.zoteroVersion ?? '?'} (compatibilité déclarée ${environment.strictMinVersion ?? '?'} – ${environment.strictMaxVersion ?? '?'})`,
-    `Format natif : version ${native.SDT_PACK_VERSION ?? '?'}, schéma ${native.SDT_SCHEMA_VERSION ?? '?'}`,
-    `Extracteurs natifs : ${JSON.stringify(native.SDT_PROCESSOR_VERSIONS ?? null)}`,
-    `Installée dans : ${environment.rootURI ?? '?'}`,
+    sdtText('environment-version', { version: environment.version ?? unknown }),
+    sdtText('environment-zotero', { version: environment.zoteroVersion ?? unknown,
+      min: environment.strictMinVersion ?? unknown,
+      max: environment.strictMaxVersion ?? unknown }),
+    sdtText('environment-native', { format: native.SDT_PACK_VERSION ?? unknown,
+      schema: native.SDT_SCHEMA_VERSION ?? unknown }),
+    sdtText('environment-extractors',
+      { extractors: JSON.stringify(native.SDT_PROCESSOR_VERSIONS ?? null) }),
+    sdtText('environment-root', { root: environment.rootURI ?? unknown }),
   ].join('\n');
 }
 
 function formatSDTAge(ms) {
   const seconds = Math.max(0, Math.round(ms / 1000));
-  if (seconds < 60) return `${seconds} s`;
+  if (seconds < 60) return sdtText('unit-seconds', { count: seconds });
   const minutes = Math.round(seconds / 60);
-  return minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
+  return minutes < 60 ? sdtText('unit-minutes', { count: minutes })
+    : sdtText('unit-hours-minutes',
+      { hours: Math.floor(minutes / 60), minutes: minutes % 60 });
 }
 
 /* The numbers behind the gate's verdict. A sitter that says "En pause : mémoire
@@ -494,16 +653,22 @@ function formatSDTAge(ms) {
    when, and why there may be no newer reading, is the honest fix; polling
    /proc from render() ten times a second to keep a diagnostic warm is not. */
 function describeSDTAdmission() {
-  if (!admission) return 'Aucune mesure de ressources depuis le démarrage.';
+  if (!admission) return sdtText('admission-none');
   return [
-    `Dernière mesure il y a ${formatSDTAge(monotonic() - admission.at)} — une lecture par admission, aucune tant que la bibliothèque est à jour`,
-    `Mémoire disponible : ${formatSDTBytes(admission.memoryAvailableBytes)} (seuil ${formatSDTBytes(MIN_FREE_MEMORY)})`,
+    // `monotonic()`, from ticket 0695: the age of a reading is a SPAN, and the
+    // calendar moves under a span. Its wording is this ticket's `.ftl`; its
+    // clock is that ticket's, and the merge keeps both.
+    sdtText('admission-age', { age: formatSDTAge(monotonic() - admission.at) }),
+    sdtText('admission-memory', { available: formatSDTBytes(admission.memoryAvailableBytes),
+      threshold: formatSDTBytes(MIN_FREE_MEMORY) }),
+    // The load average is a bare number from /proc; passed as a NUMBER so that
+    // Fluent's own NumberFormat gives it the same decimal mark as the two byte
+    // readings beside it, whatever locale that is.
     admission.load === undefined ? ''
-      // The load average is a bare number from /proc and would otherwise print a
-      // decimal point beside two readings that carry a comma.
-      : `Charge processeur : ${String(admission.load).replace('.', ',')} sur ${admission.cpus} cœurs`,
+      : sdtText('admission-load', { load: admission.load, cpus: admission.cpus }),
     admission.diskAvailableBytes === undefined ? ''
-      : `Espace disque : ${formatSDTBytes(admission.diskAvailableBytes)} (seuil ${formatSDTBytes(MIN_FREE_DISK)})`,
+      : sdtText('admission-disk', { available: formatSDTBytes(admission.diskAvailableBytes),
+        threshold: formatSDTBytes(MIN_FREE_DISK) }),
   ].filter(Boolean).join('\n');
 }
 
@@ -516,10 +681,10 @@ function describeSDTJournalTail(limit = 50) {
   try {
     return Array.from(journal ? journal.tail(limit) : [], record => {
       const { at, kind, level, ...rest } = record;
-      return `${new Date(at).toLocaleTimeString('fr-FR', { hour12: false })} ${level} ${kind} ${JSON.stringify(rest)}`;
+      return `${new Date(at).toLocaleTimeString(SDT_LOCALE, { hour12: false })} ${level} ${kind} ${JSON.stringify(rest)}`;
     }).join('\n');
   } catch (error) {
-    return `Journal illisible : ${classifyError(error)}`;
+    return sdtText('journal-unreadable', { error: classifyError(error) });
   }
 }
 
@@ -565,7 +730,7 @@ function composeSDTJournalReport() {
       records: journal ? Array.from(journal.tail(50), scrubSDTRecord) : [],
     }, null, 2);
   } catch (error) {
-    return `Journal illisible : ${classifyError(error)}`;
+    return sdtText('journal-unreadable', { error: classifyError(error) });
   }
 }
 
@@ -588,13 +753,13 @@ function copySDTText(text) {
 function buildSDTDiagnostics(doc, element) {
   const group = element('details', 'sdt-tech-details');
   const summary = element('summary', 'sdt-tech-title');
-  summary.textContent = 'Diagnostics techniques';
+  summary.textContent = sdtText('tech-title');
   const row = element('div', 'sdt-debug-row');
   const toggle = element('input', 'sdt-debug');
   toggle.setAttribute('type', 'checkbox');
   const label = element('label', 'sdt-debug-label');
   label.setAttribute('for', toggle.id);
-  label.textContent = 'Consigner chaque étape dans la sortie de débogage de Zotero';
+  label.textContent = sdtText('debug-label');
   row.append(toggle, label);
   toggle.addEventListener('change', () => {
     // Fully qualified, like every other read of this pref.
@@ -604,10 +769,10 @@ function buildSDTDiagnostics(doc, element) {
   });
   const copy = element('button', 'sdt-journal-copy');
   copy.setAttribute('type', 'button');
-  copy.textContent = 'Copier le journal';
+  copy.textContent = sdtText('journal-copy');
   copy.addEventListener('click', () => {
-    doc.getElementById('sdt-journal-copy-status').textContent = copySDTText(composeSDTJournalReport())
-      ? 'Journal copié dans le presse-papiers.' : 'Copie impossible : presse-papiers indisponible.';
+    doc.getElementById('sdt-journal-copy-status').textContent =
+      sdtText(copySDTText(composeSDTJournalReport()) ? 'journal-copied' : 'journal-copy-failed');
   });
   group.append(summary, row, element('pre', 'sdt-environment'), element('pre', 'sdt-admission'),
     copy, element('pre', 'sdt-journal-copy-status'), element('pre', 'sdt-journal'));
@@ -643,8 +808,10 @@ function renderState() {
   const coverage = getSDTCoverage(s);
   for (const button of buttons) {
     // Composed here rather than hoisted, so the toolbar strip and the tooltip
-    // read as the two call sites of one composer at the sites themselves.
-    const coverageLabel = describeSDTCoverage(s);
+    // read as the two call sites of one composer at the sites themselves. The
+    // composer now carries the word as well as the figure — before the first
+    // census there is no percentage, and the button still has to say what it is.
+    const coverageLabel = describeSDTCoverage(s) || sdtText('index');
     const working = s.phase === 'census' || s.active !== null;
     // The blink deadline and the two animation phases are all spans, so they
     // read the monotonic clock: a wall-clock step backwards would otherwise
@@ -657,7 +824,7 @@ function renderState() {
     const spinning = s.active !== null;
     const blinking = !working && now < completionBlinkUntil;
     button.setAttribute('label', spinning
-      ? `${['◐', '◓', '◑', '◒'][Math.floor(now / 140) % 4]} Index${coverageLabel}` : `Index${coverageLabel}`);
+      ? `${['◐', '◓', '◑', '◒'][Math.floor(now / 140) % 4]} ${coverageLabel}` : coverageLabel);
     const opacity = s.phase === 'census'
       ? 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(now / 450))
       : blinking ? ((Math.floor(now / 180) % 2) ? 0.2 : 1) : 1;
@@ -673,23 +840,29 @@ function renderState() {
     const silence = s.active === null ? null : Math.round((monotonic() - s.lastProgressAt) / 1000);
     const formatDuration = ms => {
       const minutes = Math.max(1, Math.round(ms / 60000));
-      return minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
+      return minutes < 60 ? sdtText('unit-minutes', { count: minutes })
+        : sdtText('unit-hours-minutes',
+          { hours: Math.floor(minutes / 60), minutes: minutes % 60 });
     };
     const formatDocumentDuration = ms => {
       const seconds = Math.max(0, Math.round(ms / 1000));
-      if (seconds < 60) return `${seconds} s`;
-      return `${Math.floor(seconds / 60)} min ${String(seconds % 60).padStart(2, '0')} s`;
+      if (seconds < 60) return sdtText('unit-seconds', { count: seconds });
+      // The seconds are zero-padded, so they are passed as text: a number would
+      // go through Fluent's NumberFormat and come back as "7" where the column
+      // wants "07".
+      return sdtText('unit-minutes-seconds', { minutes: Math.floor(seconds / 60),
+        seconds: String(seconds % 60).padStart(2, '0') });
     };
-    const format = prediction => prediction ?
-      `Durée estimée : ${formatDuration(prediction.median)} (entre ${formatDuration(prediction.low)} et ${formatDuration(prediction.high)})` : '';
     const activePrediction = s.active === null ? null : estimateSDTDuration(s.fittedSamples, s.activeInfo);
     const total = { low: 0, median: 0, high: 0 };
     const overrun = activePrediction && monotonic() - s.startedAt > activePrediction.high;
     // The one wall-clock reading left in this loop, and it is not a span: a
     // finish time is a point on the author's calendar, which is exactly what a
-    // monotonic clock cannot name. The offset added to it IS a span, so it comes
-    // from the totals above.
-    const finishAt = ms => new Date(Date.now() + ms).toLocaleString('fr-FR',
+    // monotonic clock cannot name (ticket 0695). The offset added to it IS a
+    // span, so it comes from the totals above. Its LOCALE decides the field
+    // order and not merely the separators — 05/09 and 09/05 are the same
+    // instant and two different dates to two readers (ticket 0692).
+    const finishAt = ms => new Date(Date.now() + ms).toLocaleString(SDT_LOCALE,
       { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
     let unknown = 0;
     for (const item of s.pending) {
@@ -710,31 +883,42 @@ function renderState() {
     globalProgress.max = Math.max(1, coverage.total);
     if (coverage.known) globalProgress.value = coverage.current;
     else globalProgress.removeAttribute('value');
-    status.textContent = coverage.known ? `Fichiers indexés : ${coverage.current} / ${coverage.total}` : `Fichiers indexés : ${coverage.current}`;
-    const activeMessage = s.active === null ? 'Aucune indexation en cours' :
-      `Indexation : ${describeSDTActiveFile(s)} — ${s.progress ?? '?'} % — ${formatDocumentDuration(elapsed * 1000)} écoulées`;
+    status.textContent = coverage.known
+      ? sdtText('files-indexed-of', { current: coverage.current, total: coverage.total })
+      : sdtText('files-indexed-count', { current: coverage.current });
+    const activeMessage = s.active === null ? sdtText('active-none')
+      : sdtText('active-file', { file: describeSDTActiveFile(s),
+        progress: s.progress ?? sdtText('unknown-value'),
+        elapsed: formatDocumentDuration(elapsed * 1000) });
     const quietMessage = s.active !== null && Number(s.progress) >= 90 && silence >= 60
-      ? (Number(s.progress) >= 95 ? 'Finalisation…' : 'Analyse des références…') : '';
+      ? sdtText(Number(s.progress) >= 95 ? 'active-finalising' : 'active-references') : '';
     doc.getElementById('sdt-document-status').textContent = [activeMessage, quietMessage].filter(Boolean).join('\n');
     doc.getElementById('sdt-document-estimate').textContent = activePrediction
-      ? `Durée estimée : ${formatDocumentDuration(activePrediction.median)} (entre ${formatDocumentDuration(activePrediction.low)} et ${formatDocumentDuration(activePrediction.high)})` : '';
+      ? sdtText('active-estimate', { median: formatDocumentDuration(activePrediction.median),
+        low: formatDocumentDuration(activePrediction.low),
+        high: formatDocumentDuration(activePrediction.high) }) : '';
     const globalEstimate = !overrun && s.scanned === s.total && s.fittedSamples.length >= 3
-      ? `Fin estimée vers ${finishAt(total.median)} (entre ${finishAt(total.low)} et ${finishAt(total.high)})` : '';
+      ? sdtText('global-estimate', { median: finishAt(total.median),
+        low: finishAt(total.low), high: finishAt(total.high) }) : '';
     doc.getElementById('sdt-global-estimate').textContent = globalEstimate;
-    // Failures were reachable only by opening the diagnostics. Surface the count.
+    // Failures were reachable only by opening the diagnostics. Surface the
+    // count — through the composer, so this banner and the toast cannot word
+    // one number two ways, and its plural comes from the locale.
     doc.getElementById('sdt-failures').textContent = describeSDTFailures(s.failed);
     doc.getElementById('sdt-diagnostics').textContent = [
-      `État : ${s.phase}`, `Recensement : ${s.scanned} / ${s.total}`,
-      ...Object.entries(s.counts).map(([key, n]) => `${key} : ${n}`),
+      sdtText('diagnostics-phase', { phase: s.phase }),
+      sdtText('diagnostics-census', { scanned: s.scanned, total: s.total }),
+      ...Object.entries(s.counts).map(([key, n]) =>
+        sdtText('diagnostics-count', { status: key, count: n })),
       // Two clauses, because the two numbers have different spans and one
-      // "cette session" governing both would misdescribe the second: `completed`
+      // "this session" governing both would misdescribe the second: `completed`
       // accumulates over the whole session, `failed` is read off the last census
       // and includes attachments this session never touched.
-      `Créés cette session : ${s.completed}`,
-      // Not "non indexés": that would cover the queued statuses too, which are
+      sdtText('diagnostics-completed', { count: s.completed }),
+      // Not "not indexed": that would cover the queued statuses too, which are
       // work still owed rather than work that failed. The banner's own verb.
-      `N’ont pas pu être indexés (dernier recensement) : ${s.failed}`,
-      s.error ? `Erreur : ${s.error}` : '',
+      sdtText('diagnostics-failed', { count: s.failed }),
+      s.error ? sdtText('diagnostics-error', { error: s.error }) : '',
       // The cache is derived and disposable, so a failed write changes nothing
       // about what is indexed and belongs in the disclosure rather than beside
       // the totals — but it was set and read nowhere at all, which made an
@@ -750,8 +934,10 @@ function renderState() {
     // is a number the reader has no way to disbelieve.
     const fit = s.activeInfo ? estimateSDTDuration(s.fittedSamples, s.activeInfo) : null;
     doc.getElementById('sdt-observations').textContent = s.fittedSamples.length < 3
-      ? `Durées observées : ${s.fittedSamples.length} (3 nécessaires avant toute estimation)`
-      : `Durées observées : ${s.fittedSamples.length}${fit ? ` — base de calcul : ${fit.basis === 'pages' ? 'par page' : 'par octet'}` : ''}`;
+      ? sdtText('observations-waiting', { count: s.fittedSamples.length })
+      : fit ? sdtText('observations-basis', { count: s.fittedSamples.length,
+        basis: sdtText(fit.basis === 'pages' ? 'basis-pages' : 'basis-bytes') })
+        : sdtText('observations', { count: s.fittedSamples.length });
     // Layer 3. The checkbox is reread rather than written once, so a pref changed
     // from Zotero's own advanced settings is not silently contradicted here.
     const technical = doc.getElementById('sdt-tech-details');
@@ -787,7 +973,7 @@ function openDialog(window) {
   const populate = async () => {
     if (!alive || dialog.closed) return;
     const doc = dialog.document;
-    doc.title = 'Assistant d’indexation';
+    doc.title = sdtText('dialog-title');
     const body = doc.body || doc.documentElement;
     body.replaceChildren();
     // A bare chrome about:blank window does not inherit Zotero's opaque surface.
@@ -816,20 +1002,20 @@ function openDialog(window) {
     // Layer 1, always visible and always first: progress, what is being worked
     // on, how long it has taken and when it should end. Nothing below is needed
     // to read any of it.
-    section('sdt-global-section', 'Progression globale — bibliothèque', [
+    section('sdt-global-section', sdtText('section-global'), [
       ['pre', 'sdt-status'], ['progress', 'sdt-global-progress'], ['pre', 'sdt-global-estimate'],
       ['pre', 'sdt-failures']]);
-    section('sdt-document-section', 'Indexation en cours', [
+    section('sdt-document-section', sdtText('section-active'), [
       ['pre', 'sdt-document-status'], ['progress', 'sdt-progress'], ['pre', 'sdt-document-estimate']]);
     // Layer 2, closed: the counts and the fit behind the estimates. 0686 asked
     // for exactly this — technical detail kept, moved below primary progress.
     const details = element('details', 'sdt-details');
     const summary = element('summary', 'sdt-details-title');
-    summary.textContent = 'Détails';
+    summary.textContent = sdtText('details-title');
     details.append(summary, element('pre', 'sdt-observations'), element('pre', 'sdt-diagnostics'));
     const indexDetails = element('details', 'sdt-index-details');
     const indexSummary = element('summary', 'sdt-index-title');
-    indexSummary.textContent = 'Index de recherche textuelle';
+    indexSummary.textContent = sdtText('fulltext-title');
     indexDetails.append(indexSummary, element('pre', 'sdt-fulltext'));
     details.append(indexDetails);
     // Layer 3, nested inside layer 2 and closed in its turn. Discoverable
@@ -840,9 +1026,10 @@ function openDialog(window) {
     try {
       const stats = await Zotero.Fulltext.getIndexStats();
       if (alive && !dialog.closed) doc.getElementById('sdt-fulltext').textContent =
-        `Index de recherche textuelle de Zotero (distinct de l’index préparé par l’assistant) :\n${JSON.stringify(stats, null, 2)}`;
+        `${sdtText('fulltext-body')}\n${JSON.stringify(stats, null, 2)}`;
     } catch (error) {
-      if (alive && !dialog.closed) doc.getElementById('sdt-fulltext').textContent = `Statistiques indisponibles : ${error}`;
+      if (alive && !dialog.closed) doc.getElementById('sdt-fulltext').textContent =
+        sdtText('fulltext-unavailable', { error: String(error) });
     }
   };
   if (dialog.document.readyState === 'complete') populate();
@@ -936,6 +1123,11 @@ async function initialize(rootURI, token) {
   // initialize() never got this far.
   Zotero.SDTPackSitterJournal = journal;
   sealed = false;
+  // Before anything renders, and after the ring exists so the chain that was
+  // actually resolved is on the record — a window showing bare message ids is
+  // a locale that failed to load, and the ring is where that is diagnosed.
+  await loadSDTLocalization(rootURI, sdtRequestedLocale());
+  if (token !== generation) return;
   const win = Zotero.getMainWindow();
   if (!win || typeof Zotero.SDT?.ensure !== 'function') throw new Error('Zotero 10 native SDT unavailable');
   const SDT = win.require('resource://zotero/document-worker/structured-document-text.js');
@@ -991,7 +1183,9 @@ async function initialize(rootURI, token) {
         compact = false;
       }
       catch (error) {
-        if (alive && sitter) sitter.state.cacheWarning = `Cache non enregistré : ${error}`;
+        if (alive && sitter) {
+          sitter.state.cacheWarning = sdtText('cache-not-saved', { error: String(error) });
+        }
         // Contained is not silent. From the ring alone a cache that has stopped
         // persisting anything looked exactly like one that is working, and the
         // on-screen warning it did set sits three disclosures deep. The error's
@@ -1119,7 +1313,7 @@ async function initialize(rootURI, token) {
       admission.diskAvailableBytes = file.diskSpaceAvailable;
       if (file.diskSpaceAvailable < MIN_FREE_DISK) return 'low-disk';
     } catch (error) {
-      if (alive && sitter) sitter.state.error = `Lecture des ressources : ${error}`;
+      if (alive && sitter) sitter.state.error = sdtText('resources-read', { error: String(error) });
       return 'resources-unavailable';
     }
     // Recheck after async resource reads; never deliberately queue behind native work.
@@ -1140,8 +1334,8 @@ async function initialize(rootURI, token) {
     // 0691's on-screen wording, this ticket's journal: describeError still shows
     // the author the file and the full error text, locally, and the failure that
     // reaches the journal is what replaced the retired on-disk error ledger.
-    describeError: (info, error) =>
-      `Échec de « ${describeSDTFile(info, 'fichier inconnu')} » : ${String(error)}`,
+    describeError: (info, error) => sdtText('settle-failed',
+      { file: describeSDTFile(info, sdtText('file-unknown')), error: String(error) }),
     reportError: reportSettleFailure,
     emit,
     yield: () => new Promise(resolve => timers.setTimeout(resolve, 0)),
@@ -1150,14 +1344,11 @@ async function initialize(rootURI, token) {
   alive = true;
   Zotero.SDTPackSitter = { state: sitter.state, inspect, blocked, journal };
   for (const window of Zotero.getMainWindows()) onMainWindowLoad({ window });
-  const launch = Services.prompt.confirm(win, 'Assistant d’indexation — expérimental',
-    'Indexer toute la bibliothèque cette nuit ?\n\n' +
-    'Un fichier à la fois, avec au moins 4 Gio de RAM disponible et 8 Gio de disque libre. ' +
-    'Les PDF et les préférences de l’index de recherche textuelle restent inchangés.\n\n' +
-    'Le worker partagé ne peut être interrompu ni recevoir une priorité système indépendante. ' +
-    'Un gros fichier peut retarder un travail natif arrivé ensuite. Les seuils ne plafonnent pas sa consommation.\n\n' +
-    'Désactiver l’extension arrête les admissions ; le fichier en cours finit. ' +
-    'Les erreurs restent propres à la session. Un cache local jetable conserve les vérifications et durées ; il ne contient ni texte ni tâche active.');
+  // Four paragraphs, one message each: a translator gets sentences to work on
+  // rather than one wall of text whose internal `\n\n` he has to preserve.
+  const launch = Services.prompt.confirm(win, sdtText('launch-title'),
+    ['launch-question', 'launch-conditions', 'launch-worker', 'launch-disable']
+      .map(id => sdtText(id)).join('\n\n'));
   if (token !== generation) return;
   if (!launch) { sitter.state.phase = 'launch-declined; disable/re-enable to launch'; render(); return; }
   pulse = timers.setInterval(render, 100);
