@@ -3,6 +3,7 @@ Title: Fix sitter failure accounting to count every non-indexed document
 Created: 2026-09-06
 Author: claude
 Blocked-by: github.com/MinhHaDuong/search-works-for-zotero#365
+Closed: autoclosed — PR #387
 
 --- log ---
 2026-09-06T00:00Z claude created
@@ -12,6 +13,9 @@ Blocked-by: github.com/MinhHaDuong/search-works-for-zotero#365
 2026-09-06T00:00Z claude note Reopened. PR #378 corrected this ticket's own wording (attachment count vs item count) but did not do any of the actual work below -- none of the acceptance boxes are checked, scheduler.js is untouched. It should have used `Ticket-ref:` instead of `**Ticket:**`, closing the ticket by mistake. My error, caught immediately on inspecting the merged result.
 2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED WITH CHANGES. Defects confirmed unchanged against current scheduler.js (untouched since before Wave A). Antipattern caught: the reconciliation acceptance box as worded ("sum of counts[*] equals total candidate count") is tautologically true even in today's buggy code -- it's a conservation law of the counter increments/decrements, not a property that discriminates fixed from unfixed behavior. Rewrote it to reconcile the user-facing failure/coverage total against the sum of every "not indexed" status instead, which is where the real divergence lives.
 
+2026-09-06T12:05Z claude note Fixed. SDT_STATUS_CLASSES in scheduler.js is now the single owner of what every census status means, and state.failed is derived from the census instead of accumulated beside it: inspection-error / unsupported-pack / missing-source join the user-facing banner, the banner stops growing by one sweep's failures every pass over an unchanged library, host.observed() is contained so a verified pack is never re-read as a failure and blacklisted, and state.cacheWarning renders in the disclosure and clears on the next successful write. The reconciliation test drives a 10-attachment / 11-reference fixture (one reference with twin attachments, two with none, one standalone attachment) and asserts indexed + failed + queued == coverage denominator. Mutants M9/M10/M11 added to verification/probes/sdt_sitter_scheduler_mutants.py; 11/11 caught, each new mutant by the test written for it.
+2026-09-06T15:50Z claude note Correction to the note above, which was written before review round 1 landed: the probe gains FOUR mutants, not three, and stands at 12/12 caught, not 11/11. The fourth is M12, 'the failure total is recomputed from a half-filled census' -- round 1's blocking finding, that an ungated derivation blanks the banner at the head of every sweep and refills it as the census runs. M12 is caught by that round's own test alone (state.failed sampled from inside host.inspect: [1,1,1] fixed, [0,0,0] unfixed), which is what makes it worth having: no assertion taken after sweep() resolves can see it. Re-ran the probe to read the count rather than recomputing it from the diff.
+2026-09-06T15:53Z sim closed — autoclosed — PR #387
 --- body ---
 ## Context
 
@@ -87,9 +91,9 @@ the library's non-indexed count. Concretely:
 
 ## Acceptance
 
-- [ ] A document that throws during `inspect()` is reflected in the
+- [x] A document that throws during `inspect()` is reflected in the
       user-facing failure total, not just in collapsed diagnostics.
-- [ ] A reconciliation test: the sum of every status that means
+- [x] A reconciliation test: the sum of every status that means
       "not currently indexed" (missing-pack, stale-source,
       stale-processor, invalid-pack, inspection-error, failed-session,
       unsupported-pack, missing-source -- excluding only the
@@ -103,10 +107,10 @@ the library's non-indexed count. Concretely:
       unfixed code -- it cannot discriminate fixed from buggy behavior.
       Test the failure/coverage total against the true non-indexed-status
       sum instead, which is where the current code actually diverges.
-- [ ] No existing passing test regresses.
-- [ ] `unsupported-pack`/`missing-source` documents are reflected honestly
+- [x] No existing passing test regresses.
+- [x] `unsupported-pack`/`missing-source` documents are reflected honestly
       in the coverage total, not silently excluded from both numerator
       and denominator in a way that makes 100% unreachable.
-- [ ] A persisted, verified pack (`host.observed()` returns true) is
+- [x] A persisted, verified pack (`host.observed()` returns true) is
       never counted as a failure, even if `observed()` itself throws on
       a later check.
