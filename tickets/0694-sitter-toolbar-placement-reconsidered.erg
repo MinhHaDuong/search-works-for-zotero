@@ -9,6 +9,7 @@ Author: claude
 2026-09-06T08:46Z claude note Execute phase: appended the correction entry to DECISIONS.md (icon position and label visibility are separate decisions; host coupling and precedent, not label-fitting, are why the items toolbar stays). SPEC.md unchanged -- grepped it for placement and toolbar wording and found none, so the second acceptance item resolves to nothing to change. Note that the Imagine-phase claim above, that SPEC.md holds no literal UI copy strings, is false: R18 pins three empty-result sentences verbatim and R22 pins "paused since <date>". The conclusion survives because the scoped string is a wording ticket's work, not because SPEC.md refuses literal copy. Docs-only PR: no code test applies; the gate is erg check plus the full make check.
 2026-09-06T09:00Z claude note Adherence round 2: corrected two stale cross-references in the appended entry -- the ProgressWindow/zotero-plugin-toolkit toast pattern is ticket 0696, not 0693, which the same day's raid split out of it after 0694's body was written, here and in the body above.
 2026-09-06T09:12Z claude note Adherence round 3, on the coordinator's relay of the author's decision. The single entry was wrong in register: a corrected premise that leaves two legitimate options open is a decision under the 2026-09-02 ruling, and an executor may not resolve it. Split into the ledger's own precedent shape -- a FINDING recording the false premise and both remaining cases, and a RULED entry above it carrying the author's actual choice to keep the button in the items toolbar. Header token CORRECTION dropped; it appears nowhere else in DECISIONS.md. Rebased onto origin/main, whose same-day permahome ruling foreclosed this entry's second revisit trigger; the union of both tail entries is preserved. The bare log note on 0691 is reverted -- 0691 closes with PR #369 on criteria that never asked for the scope prefix, so a note there could not own it; ticket 0710 is filed for the wording instead (0699 was taken by a sibling PR that merged mid-flight; renumbered clear of the frontier).
+2026-09-06T09:58Z claude note Review round 1 on PR #376, three blockers, all in the RULED entry. It prejudged the fix surface ("to be fixed in the tooltip") against its own FINDING and against 0710's Action 1, which both leave tooltip/aria-label/dialog open; reworded to leave it to 0710. It attributed host-coupling-and-precedent to the author, who only chose a position -- the same disguised-authorship defect round 3 fixed one layer up, so the RULED entry now says he gave no reasons and none are attributed to him. And the empirical claims were unsourced: measured them instead against the two Zotero trees on this machine, 6.0.35 (/opt/zotero/zotero.jar) and 10.0.1 (/opt/zotero7/app/omni.ja). zotero-items-toolbar is in both; the sync button's -stop, -progress-box, -storage-cancel, progressmeter and zoterofilesyncstatus children are gone from 10.0.1's markup while overlay.css still styles #zotero-tb-sync-progress, so a stylesheet grep would have said "unchanged". Span measured is 6-10, not the 7-10 the body claimed. The plugin-precedent claim stays unverified and is labelled as such in both the ledger and the body; FIELD-REVIEW.md never discusses injection location.
 --- body ---
 ## Context
 
@@ -47,8 +48,22 @@ holds. The pros/cons that still favor the items toolbar:
 - **Host coupling.** The items-toolbar id is stable across Zotero 7-10;
   the sync button's internals changed between 6 and 7, so injecting beside
   it depends on more private layout.
+  *Measured at Execute time, against the two Zotero trees installed here:*
+  `zotero-items-toolbar` is present in both 6.0.35 (`zoteroPane.xul:116`,
+  `/opt/zotero/zotero.jar`) and 10.0.1 (`zoteroPane.xhtml:1244`,
+  `/opt/zotero7/app/omni.ja`), so the span is 6-10, wider than claimed
+  above. The sync button was rebuilt over the same span: `-stop`,
+  `-progress-box`, `-storage-cancel`, `progressmeter#-progress` and
+  `zoterofilesyncstatus` are all gone from 10.0.1's markup. Note the trap:
+  10.0.1's `overlay.css` still styles `#zotero-tb-sync-progress`, so a
+  stylesheet grep would report no change. No 7.x tree was available, so
+  "between 6 and 7" specifically is not what was measured.
 - **Precedent.** Other index/full-text plugins already use the items
   toolbar; no known plugin injects beside the sync spinner.
+  *Unverified.* Nothing in this repo establishes it —
+  `verification/FIELD-REVIEW.md` surveys plugins without ever discussing
+  injection location (its three "inject" hits are about prompt and context
+  injection). Treat as the executor's own impression until probed.
 - **Zero migration cost.** The button is already there.
 
 What no longer favors either side, now that label-fitting is off the
