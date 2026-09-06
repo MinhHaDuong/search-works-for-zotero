@@ -910,8 +910,14 @@ def _snapshot_rows(
                 raise GoldenFixtureError(f"{source['id']}: attachment has no /fulltext response")
             if not isinstance(census[attachment_key], int) or census[attachment_key] < 0:
                 raise GoldenFixtureError(f"{source['id']}: invalid /fulltext census version")
-            if not isinstance(fulltext, dict) or not isinstance(fulltext.get("content"), str) or not fulltext["content"].strip():
+            if not isinstance(fulltext, dict) or not isinstance(fulltext.get("content"), str):
                 raise GoldenFixtureError(f"{source['id']}: malformed /fulltext response")
+            # Whitespace-only content with matching counters is Zotero's own answer for a file
+            # whose extraction found no text (the Internet Archive's Jevons EPUB, 2026-09-06):
+            # an indexed attachment with a blank body, kept as the pathology it is.
+            body_blank = not fulltext["content"].strip()
+            if body_blank and fulltext.get("indexedChars") != len(fulltext["content"]):
+                raise GoldenFixtureError(f"{source['id']}: blank /fulltext content whose counters do not match it")
             response_version = getattr(client, "last_fulltext_version", fulltext.get("version", None))
             if response_version != census[attachment_key]:
                 raise GoldenFixtureError(f"{source['id']}: fulltext body version does not match its census")
@@ -936,6 +942,7 @@ def _snapshot_rows(
                 "recipe_id": doc["id"], "parent_key": parent_key,
                 "attachment_key": attachment_key, "terminal_state": "indexed",
                 "observed_state": (observed or {}).get("state", "indexed"),
+                "body_blank": body_blank,
                 "fulltext_file": f"fulltext/{attachment_key}.json",
                 "fulltext_version": census[attachment_key], "body": fulltext,
             }

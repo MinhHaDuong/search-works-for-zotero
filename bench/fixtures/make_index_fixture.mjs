@@ -550,7 +550,12 @@ export function loadGoldenExport(directory, options = {}) {
     // counters and no pages; either pair is the binding record, its relation checked.
     const hasPages = Number.isInteger(body?.indexedPages) && Number.isInteger(body?.totalPages);
     const hasChars = Number.isInteger(body?.indexedChars) && Number.isInteger(body?.totalChars);
-    if (typeof body?.content !== 'string' || !body.content.trim() || (!hasPages && !hasChars)) {
+    // A blank body is Zotero's own answer for a file whose extraction found no text; the
+    // manifest says so (body_blank) and the counters must agree with the blank.
+    const blank = typeof body?.content === 'string' && !body.content.trim();
+    if (typeof body?.content !== 'string' || (!hasPages && !hasChars) ||
+        (blank && (row.body_blank !== true || body.indexedChars !== body.content.length)) ||
+        (!blank && row.body_blank === true)) {
       throw new Error(`${recipeId}: malformed fulltext for ${key}`);
     }
     if (hasPages && (body.indexedPages < 0 || body.totalPages < 0 || body.indexedPages > body.totalPages)) {

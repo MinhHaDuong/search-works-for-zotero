@@ -673,6 +673,7 @@ def test_export_is_raw_complete_atomic_and_bound_to_recipe(tmp_path):
         "attachment_key": attachment,
         "terminal_state": "indexed",
         "observed_state": "indexed",
+        "body_blank": False,
         "fulltext_file": f"fulltext/{attachment}.json",
         "fulltext_version": 17,
         "indexed_pages": 2,
@@ -1022,7 +1023,7 @@ def test_export_refuses_extra_child_empty_content_and_invalid_pages(tmp_path):
     zotero.items.pop("EXTRA001")
 
     for body, message in [
-        ({"content": "   ", "indexedPages": 1, "totalPages": 1, "version": 17}, "malformed"),
+        ({"content": "   ", "indexedPages": 1, "totalPages": 1, "version": 17}, "blank /fulltext content"),
         ({"content": "body", "indexedPages": -1, "totalPages": 1, "version": 17}, "relation"),
         ({"content": "body", "indexedPages": 2, "totalPages": 1, "version": 17}, "relation"),
     ]:
@@ -2441,3 +2442,34 @@ def test_a_served_text_attachment_answers_with_character_counters_and_no_pages(t
     zotero.fulltexts[key] = {"content": "same body", "version": 17}
     with pytest.raises(gf.GoldenFixtureError, match="lacks integer"):
         export_again(recipe, zotero, cache, tmp_path / "neither")
+
+
+def test_a_blank_extraction_zotero_calls_indexed_is_exported_as_such(tmp_path):
+    """Zotero marked the Internet Archive's Jevons EPUB indexed with 27 whitespace characters
+    (padme, 2026-09-06): the extraction ran and found no text. That answer is exported with
+    body_blank on the row and the loader serves it; blank content whose counters disagree,
+    or a blank flag on real text, stays malformed."""
+    payloads = (b"%PDF-1.4\npdf body\n", b"<html><body>same body</body></html>")
+    recipe = ruled_recipe(payloads)
+    recipe[0]["attachments"] = [recipe[0]["attachments"][1]]
+    recipe[0]["attachments"][0].update(role="primary", relation="primary", selection_expectation="indexed")
+    recipe[0]["attachments"][0].pop("skip_reason", None)
+    recipe[0]["mechanisms"] = []
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "invented-html.html").write_bytes(payloads[1])
+    zotero = MemoryZotero()
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+    key = next(k for k, item in zotero.items.items() if item["data"]["itemType"] == "attachment")
+    zotero.fulltexts[key] = {"content": "\n    \n  ", "indexedChars": 8, "totalChars": 8, "version": 17}
+    destination = tmp_path / "blank"
+    export_again(recipe, zotero, cache, destination)
+    row = json.loads((destination / "manifest.json").read_text())["attachments"][0]
+    assert row["body_blank"] is True and row["indexed_chars"] == 8
+    recipe_path = tmp_path / "recipe.json"
+    recipe_path.write_text(json.dumps(recipe), encoding="utf-8")
+    accepted = run_loader(destination, recipe_path)
+    assert accepted.returncode == 0, accepted.stderr
+    zotero.fulltexts[key] = {"content": "\n    \n  ", "indexedChars": 42, "totalChars": 42, "version": 17}
+    with pytest.raises(gf.GoldenFixtureError, match="blank /fulltext content"):
+        export_again(recipe, zotero, cache, tmp_path / "disagree")
