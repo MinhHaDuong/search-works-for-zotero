@@ -75,6 +75,8 @@ BUTTON_BLOCK = ('for (const button of buttons) {', 'for (const dialog of dialogs
 # ('sdt-document-status') and helper names (formatDocumentDuration) stay legal.
 UI_SITES = (
     ('function describeSDTTooltip(state) {', '\n}'),
+    ('function describeSDTScope() {', '\n}'),
+    ('function describeSDTCoverage(state) {', '\n}'),
     ('function describeSDTFile(info, fallback) {', '\n}'),
     ('function describeSDTActiveFile(state) {', '\n}'),
     ('var SDT_PHASE_LABELS = {', '};'),
@@ -431,6 +433,42 @@ def test_toolbar_tooltip_never_interpolates_a_raw_phase():
     assert 's.phase}' not in _site(*BUTTON_BLOCK)
 
 
+def test_toolbar_tooltip_scopes_the_coverage_to_the_libraries_it_covers():
+    """Ticket 0710. The button sits in the items toolbar, whose scope is one
+    library and one collection; the coverage figure beside it is the whole
+    census. The tooltip is the surface that carries the scope, so the figure and
+    the libraries it is measured over reach the reader together rather than the
+    reader assuming the collection in view."""
+    site = _site('function describeSDTTooltip(state) {', '\n}')
+    assert 'describeSDTScope(' in site, 'the tooltip states no library scope'
+    assert 'describeSDTCoverage(' in site, \
+        'the tooltip carries no coverage figure for the scope to qualify'
+
+
+def test_the_library_scope_is_read_from_zoteros_own_records():
+    """A prefix that hardcoded "Ma bibliothèque" would pass any wording grep and
+    still lie to every reader of a group library, so the assertion is on the
+    provenance of the name, not on its text: the composer reads Zotero's library
+    records and holds no library name of its own."""
+    site = _site('function describeSDTScope() {', '\n}')
+    assert 'Zotero.Libraries' in site, 'the scope is not read from Zotero'
+    assert '.name' in site, 'no library record is asked for its name'
+    for literal in ('Ma bibliothèque', 'My Library'):
+        assert literal not in site, f'{literal!r} is hardcoded rather than read'
+
+
+def test_one_composer_owns_the_coverage_figure():
+    """The toolbar label and the tooltip both show the coverage percentage.
+    Composing it twice is how two sites end up rounding or spacing it
+    differently; the same lesson describeSDTFile carries for the file name."""
+    for start, end in (BUTTON_BLOCK,
+                       ('function describeSDTTooltip(state) {', '\n}')):
+        assert 'describeSDTCoverage(' in _site(start, end), \
+            f'{start!r} composes its own coverage figure'
+    percent = _site('function describeSDTCoverage(state) {', '\n}')
+    assert '%' in percent, 'the composer does not produce a percentage'
+
+
 def test_dialog_title_is_the_index_assistant():
     site = _site('doc.title = ', ';')
     assert 'Assistant d’indexation' in site
@@ -579,9 +617,17 @@ def test_the_coverage_denominator_reads_the_classification():
     of a status the scheduler has since reclassified.
     """
     site = _site('function getSDTCoverage', '\n}')
-    assert 'SDT_STATUS_CLASSES.outOfScope' in site, \
+    # Asserted on the two members, not on the literal `SDT_STATUS_CLASSES.x`:
+    # binding the object to a local first is a legitimate shape (it is what the
+    # merge with the library-scope work produced, so that an absent
+    # classification can make the figure unsayable rather than throw), and an
+    # anchor on the dotted spelling would have failed that refactor while the
+    # fact it guards was intact.
+    assert 'SDT_STATUS_CLASSES' in site, \
+        'the coverage line no longer reads the census classification at all'
+    assert '.outOfScope' in site, \
         'the coverage denominator keeps its own copy of the out-of-scope statuses'
-    assert 'SDT_STATUS_CLASSES.indexed' in site, \
+    assert '.indexed' in site, \
         'the coverage numerator keeps its own copy of what "indexed" means'
     for status in ("'excluded'", "'unsupported'", "'current'"):
         assert status not in site, f'{status} is spelt out a second time'
