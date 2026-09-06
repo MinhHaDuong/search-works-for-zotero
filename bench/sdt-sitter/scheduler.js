@@ -142,9 +142,10 @@ var createSDTCache = function (raw, versions) {
   };
 };
 
-/* Volatile ring of state transitions. Never written to disk: the 2026-09-05 ruling
-   forbids a private durable ledger, and Zotero's own debug output is not durable
-   either. What it buys is a hang readable after the fact, within the session. */
+/* Volatile ring of state transitions. Never written to disk: SPEC.md's sitter
+   section suppresses failures for the session "without a private durable ledger",
+   and Zotero's own debug output is not durable either. What the ring buys is a
+   hang readable after the fact, within the session that suffered it. */
 var createSDTJournal = function (limit = 2000) {
   const records = [];
   return {

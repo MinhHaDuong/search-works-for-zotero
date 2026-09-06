@@ -8,7 +8,8 @@ Blocked-by: github.com/MinhHaDuong/search-works-for-zotero#365
 2026-09-06T00:00Z claude created
 2026-09-06T00:00Z claude note Imagine-phase finding (raid, model sonnet): the code merged in PR #365 already writes an unbounded, never-rotated `sdt-sitter-errors.jsonl` on every failure (bootstrap.js's `reportError` host callback, via `IOUtils.write(..., {mode:'append'})`). That is the exact durable failure ledger the 2026-09-05 ruling and SPEC.md R22 forbid, predates this ticket, and isn't mentioned in the original body. Folded into scope below as in-scope cleanup, not new scope -- removing an existing write isn't "writing a new file" under this ticket's own acceptance bar.
 
-2026-09-06T08:53Z note Execute: no persisted file added, so the flag-back to the author is not triggered. Zotero.debug() carries error and state always; the pref extensions.sdt-pack-sitter.debug (read fully qualified, Prefs.get(name, true)) gates trace only. native-worker-busy emits worker-idle-wait at trace, every other gate reason emits refuse at state, instrumented once in scheduler.js and never also in bootstrap's blocked(). sdt-sitter-errors.jsonl and its IOUtils.write are gone. Eleven control arms on a committed tree, each firing red; two found tests that could not fail and were rewritten to drive production code. SPEC.md left untouched: its sitter section already says failures are suppressed without a private durable ledger, and a paragraph on the diagnostic channel needs the date-is-version bump, so it is proposed as a follow-up rather than folded here.
+2026-09-06T08:53Z claude note Execute: no persisted file added, so the flag-back to the author is not triggered. Zotero.debug() carries error and state always; the pref extensions.sdt-pack-sitter.debug (read fully qualified, Prefs.get(name, true)) gates trace only. native-worker-busy emits worker-idle-wait at trace, every other gate reason emits refuse at state, instrumented once in scheduler.js and never also in bootstrap's blocked(). sdt-sitter-errors.jsonl and its IOUtils.write are gone. Eleven control arms on a committed tree, each firing red; two found tests that could not fail and were rewritten to drive production code. SPEC.md left untouched: its sitter section already says failures are suppressed without a private durable ledger, and a paragraph on the diagnostic channel needs the date-is-version bump, so it is proposed as a follow-up rather than folded here.
+2026-09-06T09:01Z claude note SPEC.md deferral is now tracked by ticket 0698, not by this log line alone.
 --- body ---
 ## Context
 
@@ -76,13 +77,13 @@ already settled, and should not ship as designed:
 
 ## Acceptance
 
-- [ ] After a synthetic hang, the ring's tail names the active document
+- [x] After a synthetic hang, the ring's tail names the active document
       identity, the last progress tick, and every heartbeat since --
       verified by reading it, not by asserting it exists.
-- [ ] `Zotero.debug()` calls never throw into the sitter loop.
-- [ ] Disable mid-job writes `shutdown(disable)` as the last record, with
+- [x] `Zotero.debug()` calls never throw into the sitter loop.
+- [x] Disable mid-job writes `shutdown(disable)` as the last record, with
       nothing after -- evidence the callbacks were really removed.
-- [ ] No new file is written to disk by this ticket. If that changes, the
+- [x] No new file is written to disk by this ticket. If that changes, the
       ticket log records the author's explicit go-ahead first.
-- [ ] `sdt-sitter-errors.jsonl` and its `IOUtils.write` call are removed;
+- [x] `sdt-sitter-errors.jsonl` and its `IOUtils.write` call are removed;
       no code path writes it any longer.

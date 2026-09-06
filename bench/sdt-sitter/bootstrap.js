@@ -38,8 +38,8 @@ function heartbeatTick() {
 }
 
 /* The failure half of settle. It goes to the session ring and Zotero.debug(),
-   never to a file: a cross-session failure ledger is what the 2026-09-05 ruling
-   forbids. The identity is the opaque cache key, never the attachment's title. */
+   never to a file, for the reason createSDTJournal carries. The identity is the
+   opaque cache key, never the attachment's title. */
 function reportSettleFailure(info, error) {
   emit('settle', { id: info.cacheKey ?? null, ok: false, error: String(error) }, 'error');
 }
