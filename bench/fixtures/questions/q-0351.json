@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0351",
+  "need": "Hazard: the moral the poem closes on — 'chữ tâm kia mới bằng ba chữ tài' — is the single most quoted couplet of Truyện Kiều and it lies at character 109 044 of a 109 258-character page, in the last two hundred characters of the file and 69 000 past the 40 000-character index cap. The cap is counted in characters: this Vietnamese verse averages roughly 1,5 UTF-8 bytes per character, so a byte-counted cap would stop even earlier, around verse 800 of 3 254.",
+  "query": "Thiện căn ở tại lòng ta chữ tâm kia mới bằng ba chữ tài",
+  "question_language": "vi",
+  "answer_language": "vi",
+  "lane": "vi->vi",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "index_fulltext_max_chars",
+    "multibyte-character-offsets"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "nguyen-du-truyen-kieu-vi-wikisource",
+      "recipe_id": "nguyen-du-truyen-kieu-vi-wikisource",
+      "attachment_id": "nguyen-du-truyen-kieu-vi-wikisource-html",
+      "attachment_key": "8ZXPNMC6",
+      "section": "Câu 3251–3254",
+      "alternates": [
+        {
+          "page_printed": null,
+          "quote": "Thiện căn ở tại lòng ta,\nChữ tâm kia mới bằng ba chữ tài.\nLời quê chắp nhặt dông dài,\nMua vui cũng được một vài trống canh.",
+          "char_offset": 108984
+        }
+      ],
+      "chain": {
+        "title": "Truyện Kiều (Đoạn trường tân thanh)",
+        "author": "Nguyễn Du",
+        "date": "1820",
+        "identifier": "https://vi.wikisource.org/w/index.php?title=Truy%E1%BB%87n_Ki%E1%BB%81u&oldid=205132",
+        "section_heading": null,
+        "page_printed": null,
+        "part_title": "Câu 3251–3254",
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "index_fulltext_max_chars: the closing couplet lies at character 109 044 of the 109 258-character extraction, far past the 40 000-character cap, which in this poem falls around verse 1 180 of 3 254; the couplet is in the export and outside the index",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "8ZXPNMC6",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 108984,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}
