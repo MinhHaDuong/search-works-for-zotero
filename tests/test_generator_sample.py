@@ -251,3 +251,25 @@ def test_attachment_file_never_leaves_the_storage_folder(tmp_path):
     assert S.attachment_file(att, None) is None
     linked = {"key": "L", "linkMode": "linked_file", "contentType": "application/pdf", "path": str(folder / "paper.pdf")}
     assert S.attachment_file(linked, None) == folder / "paper.pdf"
+
+
+def test_length_quota_defers_rather_than_discards_on_a_small_frame():
+    """Five pairs in one length bucket, four wanted: the quota turns some away,
+    and they come back once the frame is otherwise empty, so the run reaches n."""
+    class Lib:
+        calls = 0
+
+        def get_json(self, path):
+            Lib.calls += 1
+            return {"content": PROSE_EN + "\n", "totalChars": 600}
+    targets = {"type": {t: 0.0 for t in (*S.TYPE_GROUPS, "other")}, "format": {"pdf": 1.0, "html": 0.0, "other": 0.0},
+               "length": {b: 0.25 for b in ("short", "medium", "long", "very-long")},
+               "length_cuts_chars": (100, 400, 800), "census_measured_at": "", "census_library_version": ""}
+    targets["type"]["journalArticle"] = 1.0
+    sampler = S.Sampler(Lib(), targets, seed=1, zotero_data_dir=None)
+    record = {"key": "R", "itemType": "journalArticle", "title": "t"}
+    pairs = [(record, {"key": f"A{i}", "contentType": "application/pdf", "linkMode": "imported_file"}) for i in range(5)]
+    rows = sampler.draw({("journalArticle", "pdf"): list(pairs)}, 4)
+    assert len(rows) == 4
+    assert sampler.rejected["length-over-quota"] >= 1 and sampler.rejected["length-quota-released"] >= 1
+    assert Lib.calls == 5, "one GET per attachment; deferred pairs are not re-fetched"

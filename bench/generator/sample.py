@@ -225,6 +225,7 @@ class Sampler:
         self.achieved: dict[str, Counter] = {"type": Counter(), "format": Counter(), "length": Counter()}
         self.rejected: Counter = Counter()
         self._cell_count: Counter = Counter()
+        self._texts: dict[str, dict] = {}
 
     def frame(self, items: list[dict], entries: dict[str, int], scope: set[str] | None) -> dict[tuple, list]:
         """Cells of (type group, format) → candidate (record, attachment) pairs."""
@@ -252,11 +253,26 @@ class Sampler:
         return self.targets["type"][t] * self.targets["format"][f] * n_total - self._cell_count[cell]
 
     def draw(self, cells: dict[tuple, list], n: int) -> list[dict]:
+        """Fill the (type, format) cell with the largest deficit first.
+
+        A draw whose length bucket is already over quota is deferred, not
+        discarded: on a small scope the frame is the scarce thing, so once every
+        cell is empty the deferred pairs come back and the length quota yields.
+        The summary counts both the deferrals and how many came back.
+        """
         self._cell_count = Counter()
         out: list[dict] = []
         tries: Counter = Counter()
+        deferred: dict[tuple, list] = {}
+        length_quota = True
         while len(out) < n:
             live = [c for c, pairs in cells.items() if pairs]
+            if not live and deferred and length_quota:
+                cells = deferred
+                deferred = {}
+                length_quota = False
+                self.rejected["length-quota-released"] = sum(len(v) for v in cells.values())
+                continue
             if not live:
                 logging.warning("frame exhausted after %d samples", len(out))
                 break
@@ -269,8 +285,9 @@ class Sampler:
                 continue
             bucket = row["length_bucket"]
             over = self.achieved["length"][bucket] - self.targets["length"][bucket] * n
-            if over >= 1 and tries[cell] <= self.max_tries_per_cell and any(cells.values()):
+            if length_quota and over >= 1 and tries[cell] <= self.max_tries_per_cell:
                 self.rejected["length-over-quota"] += 1
+                deferred.setdefault(cell, []).append((record, attachment))
                 continue
             tries[cell] = 0
             self._cell_count[cell] += 1
@@ -280,10 +297,16 @@ class Sampler:
             out.append(row)
         return out
 
+    def _fulltext(self, key: str) -> dict:
+        """One GET per attachment, however many times a pair is drawn."""
+        if key not in self._texts:
+            self._texts[key] = self.lib.get_json(f"items/{key}/fulltext")
+        return self._texts[key]
+
     def one(self, record: dict, attachment: dict) -> dict | None:
         """One sampled paragraph of one attachment, with its whole chain, or None
         when the text holds no eligible paragraph."""
-        doc = self.lib.get_json(f"items/{attachment['key']}/fulltext")
+        doc = self._fulltext(attachment["key"])
         content = doc.get("content") or ""
         paragraphs = T.split_paragraphs(content)
         if not paragraphs:

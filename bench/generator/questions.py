@@ -123,7 +123,9 @@ class TjsWriter:
     def __init__(self, transformers_path: str, model: str, cache_dir: str, dtype: str = "q4",
                  script: Path | None = None, run: Callable = subprocess.run):
         self.transformers_path = transformers_path
-        self.model = model
+        #: The hub id the driver loads, and the description the artifact records.
+        self.model_id = model
+        self.model = f"{model} ({dtype}, transformers.js at {transformers_path})"
         self.cache_dir = cache_dir
         self.dtype = dtype
         self.script = script or Path(__file__).with_name("tjs_generate.mjs")
@@ -133,7 +135,7 @@ class TjsWriter:
         payload = "".join(json.dumps({"id": i, "paragraph": r["paragraph"], "language": r["question_language"]},
                                      ensure_ascii=False) + "\n" for i, r in enumerate(rows))
         cmd = ["node", str(self.script), "--transformers-path", self.transformers_path,
-               "--model", self.model, "--cache-dir", self.cache_dir, "--dtype", self.dtype]
+               "--model", self.model_id, "--cache-dir", self.cache_dir, "--dtype", self.dtype]
         proc = self.run(cmd, input=payload, capture_output=True, text=True)
         if proc.returncode != 0:
             raise RuntimeError(f"question writer failed ({proc.returncode}): {proc.stderr[-2000:]}")
@@ -190,9 +192,7 @@ def build_writer(args: argparse.Namespace):
     if args.writer == "tjs":
         if not (args.transformers_path and args.model and args.cache_dir):
             raise SystemExit("--writer tjs needs --transformers-path, --model and --cache-dir")
-        w = TjsWriter(args.transformers_path, args.model, args.cache_dir, dtype=args.dtype)
-        w.model = f"{args.model} ({args.dtype}, transformers.js at {args.transformers_path})"
-        return w
+        return TjsWriter(args.transformers_path, args.model, args.cache_dir, dtype=args.dtype)
     return TemplateWriter()
 
 
