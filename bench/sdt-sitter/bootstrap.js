@@ -31,12 +31,16 @@ function render() {
     const spinning = s.active !== null;
     const blinking = !working && now < completionBlinkUntil;
     button.setAttribute('label', spinning
-      ? `${['◐', '◓', '◑', '◒'][Math.floor(now / 140) % 4]} SDT${coverageLabel}` : `SDT${coverageLabel}`);
+      ? `${['◐', '◓', '◑', '◒'][Math.floor(now / 140) % 4]} Index${coverageLabel}` : `Index${coverageLabel}`);
     const opacity = s.phase === 'census'
       ? 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(now / 450))
       : blinking ? ((Math.floor(now / 180) % 2) ? 0.2 : 1) : 1;
     button.style.setProperty('opacity', String(opacity), 'important');
-    button.setAttribute('tooltiptext', `${s.phase === 'census' ? 'Recensement' : s.phase} — ${s.completed} packs créés`);
+    // Census is the one phase with a translation. The others are internal names
+    // ('native-worker-busy', 'low-memory', 'launch-declined; …') and stay in the
+    // diagnostics disclosure, where a reader has asked for them.
+    const indexed = s.completed > 1 ? `${s.completed} documents indexés` : `${s.completed} document indexé`;
+    button.setAttribute('tooltiptext', s.phase === 'census' ? `Recensement — ${indexed}` : indexed);
   }
   for (const dialog of dialogs) {
     if (dialog.closed) { dialogs.delete(dialog); continue; }
@@ -82,9 +86,11 @@ function render() {
     globalProgress.max = Math.max(1, coverage.total);
     if (coverage.known) globalProgress.value = coverage.current;
     else globalProgress.removeAttribute('value');
-    status.textContent = coverage.known ? `Packs à jour : ${coverage.current} / ${coverage.total}` : `Packs à jour : ${coverage.current}`;
+    status.textContent = coverage.known ? `Index à jour : ${coverage.current} / ${coverage.total}` : `Index à jour : ${coverage.current}`;
+    // The scheduler carries the title; the row id is a last resort, not a label.
+    const activeTitle = s.active === null ? '' : s.activeInfo?.title || `document ${s.active}`;
     const documentMessage = s.active === null ? 'Aucun document en cours' :
-      `Document ${s.active} — ${s.progress ?? '?'} % — ${formatDocumentDuration(elapsed * 1000)} écoulées`;
+      `Indexation : ${activeTitle} — ${s.progress ?? '?'} % — ${formatDocumentDuration(elapsed * 1000)} écoulées`;
     const quietMessage = s.active !== null && Number(s.progress) >= 90 && silence >= 60
       ? (Number(s.progress) >= 95 ? 'Finalisation…' : 'Analyse des références…') : '';
     doc.getElementById('sdt-document-status').textContent = [documentMessage, quietMessage].filter(Boolean).join('\n');
@@ -93,6 +99,10 @@ function render() {
     const globalEstimate = !overrun && s.scanned === s.total && s.fittedSamples.length >= 3
       ? `Fin estimée vers ${finishAt(total.median)} (entre ${finishAt(total.low)} et ${finishAt(total.high)})` : '';
     doc.getElementById('sdt-global-estimate').textContent = globalEstimate;
+    // Failures were reachable only by opening the diagnostics. Surface the count.
+    doc.getElementById('sdt-failures').textContent = s.failed === 0 ? ''
+      : s.failed > 1 ? `${s.failed} documents n’ont pas pu être indexés`
+        : `${s.failed} document n’a pas pu être indexé`;
     doc.getElementById('sdt-diagnostics').textContent = [
       `État : ${s.phase}`, `Recensement : ${s.scanned} / ${s.total}`,
       ...Object.entries(s.counts).map(([key, n]) => `${key} : ${n}`),
@@ -120,7 +130,7 @@ function openDialog(window) {
   const populate = async () => {
     if (!alive || dialog.closed) return;
     const doc = dialog.document;
-    doc.title = 'SDT Pack Sitter';
+    doc.title = 'Assistant d’indexation';
     const body = doc.body || doc.documentElement;
     body.replaceChildren();
     // A bare chrome about:blank window does not inherit Zotero's opaque surface.
@@ -147,7 +157,8 @@ function openDialog(window) {
       body.append(group);
     };
     section('sdt-global-section', 'Progression globale — bibliothèque', [
-      ['pre', 'sdt-status'], ['progress', 'sdt-global-progress'], ['pre', 'sdt-global-estimate']]);
+      ['pre', 'sdt-status'], ['progress', 'sdt-global-progress'], ['pre', 'sdt-global-estimate'],
+      ['pre', 'sdt-failures']]);
     section('sdt-document-section', 'Document en cours', [
       ['pre', 'sdt-document-status'], ['progress', 'sdt-progress'], ['pre', 'sdt-document-estimate']]);
     const details = element('details', 'sdt-details');
@@ -156,14 +167,14 @@ function openDialog(window) {
     details.append(summary, element('pre', 'sdt-diagnostics'));
     const indexDetails = element('details', 'sdt-index-details');
     const indexSummary = element('summary', 'sdt-index-title');
-    indexSummary.textContent = 'Index texte natif';
+    indexSummary.textContent = 'Index de recherche textuelle';
     indexDetails.append(indexSummary, element('pre', 'sdt-fulltext'));
     details.append(indexDetails); body.append(details);
     dialogs.add(dialog); render();
     try {
       const stats = await Zotero.Fulltext.getIndexStats();
       if (alive && !dialog.closed) doc.getElementById('sdt-fulltext').textContent =
-        `Index texte natif (distinct des packs SDT) :\n${JSON.stringify(stats, null, 2)}`;
+        `Index de recherche textuelle de Zotero (distinct de l’index des documents) :\n${JSON.stringify(stats, null, 2)}`;
     } catch (error) {
       if (alive && !dialog.closed) doc.getElementById('sdt-fulltext').textContent = `Statistiques indisponibles : ${error}`;
     }
@@ -366,10 +377,10 @@ async function initialize(rootURI, token) {
   alive = true;
   Zotero.SDTPackSitter = { state: sitter.state, inspect, blocked };
   for (const window of Zotero.getMainWindows()) onMainWindowLoad({ window });
-  const launch = Services.prompt.confirm(win, 'SDT Pack Sitter — expérimental',
-    'Préparer les packs SDT de toute la bibliothèque cette nuit ?\n\n' +
+  const launch = Services.prompt.confirm(win, 'Assistant d’indexation — expérimental',
+    'Indexer toute la bibliothèque cette nuit ?\n\n' +
     'Un document à la fois, avec au moins 4 Gio de RAM disponible et 8 Gio de disque libre. ' +
-    'Les PDF et les préférences d’indexation texte restent inchangés.\n\n' +
+    'Les PDF et les préférences de l’index de recherche textuelle restent inchangés.\n\n' +
     'Le worker partagé ne peut être interrompu ni recevoir une priorité système indépendante. ' +
     'Un gros document peut retarder un travail natif arrivé ensuite. Les seuils ne plafonnent pas sa consommation.\n\n' +
     'Désactiver l’extension arrête les admissions ; le document en cours finit. ' +

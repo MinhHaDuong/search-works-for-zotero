@@ -67,6 +67,21 @@ await test('native success without current persisted cache counts as failure', a
   const f = fixture(); f.host.ensure = async () => true;
   await f.api.sweep(); assert.equal(f.api.state.failed, 2); assert.equal(f.api.state.completed, 0);
 });
+await test('the document title reaches pending and active info for the UI', async () => {
+  const f = fixture();
+  f.host.inspect = async id => ({ status: f.cached.has(id) ? 'current' : 'missing-pack',
+    identity: String(id), title: `Titre ${id}` });
+  const active = [], queued = [];
+  const ensure = f.host.ensure;
+  f.host.ensure = (id, progress) => {
+    active.push(f.api.state.activeInfo.title);
+    queued.push(f.api.state.pending.map(item => item.title).join(','));
+    return ensure(id, progress);
+  };
+  await f.api.sweep();
+  assert.deepEqual(active, ['Titre 1', 'Titre 2']);
+  assert.equal(queued[0], 'Titre 1,Titre 2');
+});
 await test('unsupported, missing and future-version packs are never overwritten', async () => {
   for (const status of ['unsupported', 'missing-source', 'unsupported-pack', 'excluded']) {
     const f = fixture(); f.host.inspect = async () => ({ status });
