@@ -934,11 +934,17 @@ class Beaver:
             return {"read": False, "why": f"{path} does not exist"}
         try:
             document = json.loads(path.read_text(encoding="utf-8"))
-        except (ValueError, OSError, RecursionError) as exc:
-            # RecursionError and not only ValueError: json rejects deeply nested
-            # input by exhausting the stack, and RecursionError descends from
-            # RuntimeError, so a tuple naming only the two obvious families lets
-            # it straight through the caller.
+        except (ValueError, OSError, RecursionError, MemoryError) as exc:
+            # RecursionError and MemoryError, not only ValueError: json rejects
+            # deeply nested input by exhausting the stack and a large enough
+            # document by exhausting the heap. Neither descends from ValueError
+            # or OSError — RecursionError is a RuntimeError and MemoryError
+            # inherits Exception directly — so a tuple naming only the two
+            # obvious families lets both straight through the caller. Both were
+            # reproduced against this function rather than reasoned about: 200k
+            # nested arrays for the first, an 81 MB flat document under a 150 MB
+            # address-space cap for the second, each with a small-input control
+            # under the same conditions returning a record normally.
             return {"read": False, "why": f"{type(exc).__name__}: {exc}"}
         # Shape, separately from syntax. `[]` and `"text"` are valid JSON, so
         # nothing above rejects them, and `.get` on the result raised

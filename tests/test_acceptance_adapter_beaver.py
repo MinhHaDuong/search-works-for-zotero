@@ -660,6 +660,38 @@ def test_a_document_of_the_wrong_shape_is_unread_rather_than_a_crash(
     assert record["read"] is False and "present" not in record
 
 
+def test_a_parse_that_exhausts_a_resource_is_unread_rather_than_a_crash(
+        tmp_path, artifact, monkeypatch):
+    """The two doors that are neither ValueError nor OSError, pinned as a pair.
+
+    `RecursionError` descends from `RuntimeError` and `MemoryError` inherits
+    `Exception` directly, so a reader catching the two obvious families by
+    reflex lets both through — into the unguarded call sites, where the raise
+    takes down the assertion rather than producing a record.
+
+    Both were reproduced against the real function before being pinned here:
+    the recursion door by the `TOO_DEEP` fixture above, which raises for real
+    on this interpreter, and the memory door by an 81 MB flat document parsed
+    under a 150 MB `RLIMIT_AS` cap — with a small-input control under the same
+    cap returning a record normally, so the cap was not what broke it. Neither
+    reproduction belongs in a unit suite: one is interpreter-build dependent
+    and the other needs a subprocess and ~100 MB. What this arm pins is the
+    thing that would actually regress — a future edit narrowing the caught
+    tuple — and for that the exception's identity is the whole content, so
+    raising it directly is not a weaker test than exhausting the heap to get it.
+    """
+    target = with_extensions(tmp_path, artifact, "exhausted",
+                             json.dumps({"addons": []}))
+    for door in (RecursionError, MemoryError):
+        def raise_door(*a, _door=door, **kw):
+            raise _door()
+        monkeypatch.setattr(json, "loads", raise_door)
+        record = target._host_addon_record()
+        assert record["read"] is False, door.__name__
+        assert "present" not in record, door.__name__
+        assert door.__name__ in record["why"], record["why"]
+
+
 def test_an_element_of_the_wrong_shape_is_absent_rather_than_a_crash(
         tmp_path, artifact):
     """The third floor of the same trapdoor: document, container, then element.
