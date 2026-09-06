@@ -1,0 +1,55 @@
+%erg 0.1
+Title: Add sitter progress toasts on job start, completion, and failure
+Created: 2026-09-06
+Author: claude
+Blocked-by: 0691
+
+--- log ---
+2026-09-06T00:00Z claude created
+
+--- body ---
+## Context
+
+Split from ticket 0693 by the raid's Imagine phase (2026-09-06). This is
+**not** a direct author request: neither ticket 0686 nor the author's
+2026-09-06 remarks ask for a notification channel. It is motivated by
+ecosystem convention -- most widely-adopted Zotero plugins surface
+background-task feedback through a transient, non-blocking toast rather
+than requiring the user to keep a dialog open. That argument holds up, but
+it is this ticket's own synthesis, not a ratified decision, and it adds
+new accessibility surface (screen-reader announcement of transient toasts,
+timing, dismissal) on top of ticket 0686's already-open, still-unverified
+accessibility items. Get a quick author nod before building this -- it is
+cheap to ask and the alternative is stacking unverified a11y surface on
+unverified a11y surface.
+
+## Mechanism
+
+Use **`Zotero.ProgressWindow`** (Zotero's own bundled global) directly,
+not `zotero-plugin-toolkit`. This plugin has zero build tooling -- no
+`package.json`, no bundler; `bootstrap.js`/`scheduler.js` load raw via
+`Services.scriptloader.loadSubScript`. Pulling in `zotero-plugin-toolkit`
+would mean introducing a bundler for the first time solely to get a toast.
+`Zotero.ProgressWindow` needs no new dependency and no build step, and is
+the same primitive the toolkit wraps.
+
+## Design
+
+Add toasts for: job start ("Indexing: <title>", per 0691's vocabulary),
+job completion, and a terminal failure (one that will not be retried) --
+not on every progress tick, and not once per document in an overnight
+sweep of many documents (that would mean dozens of toasts per run, which
+cuts against the sitter's "supervise quietly" design). Pin down before
+writing acceptance tests: does "job completion" mean per-document or
+per-sweep? Default to per-sweep (one completion toast when the whole
+overnight run finishes, or goes idle) unless the author says otherwise --
+per-document toasts do not match unattended overnight operation.
+
+## Acceptance
+
+- [ ] Toasts use `Zotero.ProgressWindow`; no new dependency added.
+- [ ] Author has confirmed this ticket should proceed (recorded in the log).
+- [ ] Toast cadence is per-sweep, not per-document, unless the author's
+      answer says otherwise.
+- [ ] Toast text uses only the vocabulary from ticket 0691 -- no internal
+      jargon.
