@@ -247,6 +247,16 @@ async function initialize(rootURI, token) {
   };
   if (token !== generation) return;
 
+  const getItemTitle = async item => {
+    if (!item) return null;
+    try {
+      if (typeof item.loadData === 'function') await item.loadData();
+      return item.getField('title') || item.getDisplayTitle?.() || null;
+    } catch (_error) {
+      return null;
+    }
+  };
+
   async function inspect(id) {
     const item = await Zotero.Items.getAsync(id);
     if (!item?.isAttachment() || item.deleted || (item.parentItemID && (await Zotero.Items.getAsync(item.parentItemID))?.deleted)) return { status: 'excluded' };
@@ -258,9 +268,10 @@ async function initialize(rootURI, token) {
     const directory = Zotero.Attachments.getStorageDirectory(item).path;
     const path = PathUtils.join(directory, '.zotero-sdt-cache');
     const parent = item.parentItemID ? await Zotero.Items.getAsync(item.parentItemID) : null;
+    const [title, parentTitle] = await Promise.all([getItemTitle(item), getItemTitle(parent)]);
     const result = { status: 'missing-pack', directory,
-      title: item.getField('title') || sourcePath.split(/[\\/]/).pop(),
-      parentTitle: parent?.getField('title') || null,
+      title: title || sourcePath.split(/[\\/]/).pop(),
+      parentTitle: parentTitle || null,
       identity: `${item.libraryID}/${item.key}/${hash}/${JSON.stringify(versions)}` };
     result.cacheKey = `${item.libraryID}/${item.key}`;
     seen.add(result.cacheKey);
