@@ -546,17 +546,21 @@ export function loadGoldenExport(directory, options = {}) {
       throw new Error(`${recipeId}: invalid fulltext version`);
     }
     const body = readJson(row.fulltext_file, `fulltext for ${key}`);
-    if (typeof body?.content !== 'string' || !body.content.trim() || !Number.isInteger(body.indexedPages) ||
-        !Number.isInteger(body.totalPages)) {
+    // A PDF answers with page counters, a served text format (HTML, EPUB) with character
+    // counters and no pages; either pair is the binding record, its relation checked.
+    const hasPages = Number.isInteger(body?.indexedPages) && Number.isInteger(body?.totalPages);
+    const hasChars = Number.isInteger(body?.indexedChars) && Number.isInteger(body?.totalChars);
+    if (typeof body?.content !== 'string' || !body.content.trim() || (!hasPages && !hasChars)) {
       throw new Error(`${recipeId}: malformed fulltext for ${key}`);
     }
-    if (body.indexedPages < 0 || body.totalPages < 0 || body.indexedPages > body.totalPages) {
+    if (hasPages && (body.indexedPages < 0 || body.totalPages < 0 || body.indexedPages > body.totalPages)) {
       throw new Error(`${recipeId}: invalid indexedPages/totalPages relation`);
     }
-    for (const [field, bodyField] of [['indexed_pages', 'indexedPages'], ['total_pages', 'totalPages']]) {
-      if (row[field] !== body[bodyField]) throw new Error(`${source.id}: manifest ${field} does not match fulltext`);
+    if (hasChars && (body.indexedChars < 0 || body.totalChars < 0 || body.indexedChars > body.totalChars)) {
+      throw new Error(`${recipeId}: invalid indexedChars/totalChars relation`);
     }
-    for (const [field, bodyField] of [['indexed_chars', 'indexedChars'], ['total_chars', 'totalChars']]) {
+    for (const [field, bodyField] of [['indexed_pages', 'indexedPages'], ['total_pages', 'totalPages'],
+                                      ['indexed_chars', 'indexedChars'], ['total_chars', 'totalChars']]) {
       if (row[field] !== (body[bodyField] ?? null)) throw new Error(`${source.id}: manifest ${field} does not match fulltext`);
     }
     fulltext.set(key, { body, version: row.fulltext_version });

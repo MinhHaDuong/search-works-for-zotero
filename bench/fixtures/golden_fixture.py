@@ -915,11 +915,20 @@ def _snapshot_rows(
             response_version = getattr(client, "last_fulltext_version", fulltext.get("version", None))
             if response_version != census[attachment_key]:
                 raise GoldenFixtureError(f"{source['id']}: fulltext body version does not match its census")
-            if not isinstance(fulltext.get("indexedPages"), int) or not isinstance(fulltext.get("totalPages"), int):
-                raise GoldenFixtureError(f"{source['id']}: /fulltext lacks integer indexedPages/totalPages")
-            indexed_pages, total_pages = fulltext["indexedPages"], fulltext["totalPages"]
-            if indexed_pages < 0 or total_pages < 0 or indexed_pages > total_pages:
-                raise GoldenFixtureError(f"{source['id']}: invalid indexedPages/totalPages relation")
+            # A PDF answers with page counters, a served text format (HTML, EPUB) with
+            # character counters and no pages; either pair is the binding record.
+            pages = (fulltext.get("indexedPages"), fulltext.get("totalPages"))
+            chars = (fulltext.get("indexedChars"), fulltext.get("totalChars"))
+            has_pages = all(isinstance(v, int) for v in pages)
+            has_chars = all(isinstance(v, int) for v in chars)
+            if not has_pages and not has_chars:
+                raise GoldenFixtureError(
+                    f"{source['id']}: /fulltext lacks integer indexedPages/totalPages or indexedChars/totalChars"
+                )
+            for name, (indexed, total), present in (("Pages", pages, has_pages), ("Chars", chars, has_chars)):
+                if present and (indexed < 0 or total < 0 or indexed > total):
+                    raise GoldenFixtureError(f"{source['id']}: invalid indexed{name}/total{name} relation")
+            indexed_pages, total_pages = pages if has_pages else (None, None)
             if census[attachment_key] == 0:
                 version_zero_bodies[attachment_key] = (source["id"], fulltext)
             items.append(child)

@@ -2410,3 +2410,34 @@ def test_a_stock_reindex_that_stops_at_a_cap_settles_partial_and_is_exported(tmp
     }}
     with pytest.raises(gf.GoldenFixtureError, match="settled at 'unindexed'"):
         export_again(recipe, zotero, cache, tmp_path / "refused")
+
+
+def test_a_served_text_attachment_answers_with_character_counters_and_no_pages(tmp_path):
+    """Zotero's /fulltext for an HTML or EPUB attachment carries indexedChars/totalChars and no
+    page counters; the first stock export (padme, 2026-09-06) refused every HTML record for
+    lacking integer pages. Either counter pair is the binding record; a body with neither is
+    still malformed."""
+    payloads = (b"%PDF-1.4\npdf body\n", b"<html><body>same body</body></html>")
+    recipe = ruled_recipe(payloads)
+    recipe[0]["attachments"] = [recipe[0]["attachments"][1]]  # the HTML alone, indexed
+    recipe[0]["attachments"][0].update(role="primary", relation="primary", selection_expectation="indexed")
+    recipe[0]["attachments"][0].pop("skip_reason", None)
+    recipe[0]["mechanisms"] = []
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "invented-html.html").write_bytes(payloads[1])
+    zotero = MemoryZotero()
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+    key = next(k for k, item in zotero.items.items() if item["data"]["itemType"] == "attachment")
+    zotero.fulltexts[key] = {"content": "same body", "indexedChars": 9, "totalChars": 9, "version": 17}
+    destination = tmp_path / "html"
+    export_again(recipe, zotero, cache, destination)
+    row = json.loads((destination / "manifest.json").read_text())["attachments"][0]
+    assert (row["indexed_pages"], row["total_pages"], row["indexed_chars"], row["total_chars"]) == (None, None, 9, 9)
+    recipe_path = tmp_path / "recipe.json"
+    recipe_path.write_text(json.dumps(recipe), encoding="utf-8")
+    accepted = run_loader(destination, recipe_path)
+    assert accepted.returncode == 0, accepted.stderr
+    zotero.fulltexts[key] = {"content": "same body", "version": 17}
+    with pytest.raises(gf.GoldenFixtureError, match="lacks integer"):
+        export_again(recipe, zotero, cache, tmp_path / "neither")
