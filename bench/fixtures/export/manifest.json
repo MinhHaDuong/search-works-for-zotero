@@ -235,6 +235,66 @@
   "indexed_attachment_count": 11,
   "indexed_not_served_count": 3,
   "items_file": "items.json",
+  "known_defects": [
+    {
+      "declared_by": "operator",
+      "defect": "the pinned wikitext (1 176 bytes, 17 lines) is the Wikisource work page's header template, a transclusion skeleton, not the text of the 294-page volume; the injected attachment carries no body text to index -- re-source the transcluded pages and re-pin",
+      "recipe_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource"
+    },
+    {
+      "declared_by": "operator",
+      "defect": "the pinned wikitext (2 628 bytes, 43 lines) is the Wikisource work page's header and law infobox, a transclusion skeleton, not the constitution's articles; the injected attachment carries no body text to index -- re-source the transcluded pages and re-pin",
+      "recipe_id": "vn-constitution-1992-vi"
+    },
+    {
+      "declared_by": "operator",
+      "defect": "injected as bare text/plain with no charset; Zotero recorded windows-1252 and indexed 1 176 characters for 1 176 bytes whose UTF-8 reading is 914 characters (mojibake) -- re-inject with charset utf-8",
+      "recipe_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource"
+    },
+    {
+      "declared_by": "operator",
+      "defect": "injected as bare text/plain with no charset; Zotero recorded windows-1252 and indexed 2 628 characters for 2 628 bytes whose UTF-8 reading is 2 081 characters (mojibake) -- re-inject with charset utf-8",
+      "recipe_id": "vn-constitution-1992-vi"
+    },
+    {
+      "declared_by": "operator",
+      "defect": "injected as bare text/plain with no charset; Zotero recorded windows-1252 and indexed 78 658 characters for 78 658 bytes whose UTF-8 reading is 78 630 characters (28 non-ASCII characters mangled) -- re-inject with charset utf-8",
+      "recipe_id": "vn-constitution-1992-en"
+    },
+    {
+      "attachment_key": "63IK8WLP",
+      "defect": "charset guessed by Zotero: the injection wrote a bare text/plain attachment with no charset, Zotero recorded windows-1252, and the indexed text is the file's bytes decoded one per character (mojibake for non-ASCII text)",
+      "evidence": {
+        "indexed_chars": 1176,
+        "source_bytes": 1176,
+        "utf8_chars": 914
+      },
+      "recipe_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource",
+      "remedy": "re-inject with an explicit charset and re-pin"
+    },
+    {
+      "attachment_key": "ERV2G8L8",
+      "defect": "charset guessed by Zotero: the injection wrote a bare text/plain attachment with no charset, Zotero recorded windows-1252, and the indexed text is the file's bytes decoded one per character (mojibake for non-ASCII text)",
+      "evidence": {
+        "indexed_chars": 2628,
+        "source_bytes": 2628,
+        "utf8_chars": 2081
+      },
+      "recipe_id": "vn-constitution-1992-vi",
+      "remedy": "re-inject with an explicit charset and re-pin"
+    },
+    {
+      "attachment_key": "UBHINKN8",
+      "defect": "charset guessed by Zotero: the injection wrote a bare text/plain attachment with no charset, Zotero recorded windows-1252, and the indexed text is the file's bytes decoded one per character (mojibake for non-ASCII text)",
+      "evidence": {
+        "indexed_chars": 78658,
+        "source_bytes": 78658,
+        "utf8_chars": 78630
+      },
+      "recipe_id": "vn-constitution-1992-en",
+      "remedy": "re-inject with an explicit charset and re-pin"
+    }
+  ],
   "library": {
     "collection_key": "3AY48MA5",
     "id": 6659303,
@@ -247,11 +307,18 @@
   },
   "parent_item_count": 17,
   "recipe_sha256": "23980113a777c3ecec90692ee12c5b6205a95279dec61876c3ff13cc69f23716",
+  "reindex": {
+    "binding_record": "per-attachment indexed_pages/total_pages and indexed_chars/total_chars",
+    "limits": "ignored",
+    "mode": "complete",
+    "source": "bench/zotero-fulltext-plugin/bootstrap.js: Zotero.FullText.indexItems(ids, {complete: true, ignoreErrors: true}); fulltext.js indexPDF(filePath, itemID, allPages)"
+  },
   "schema_version": 1,
   "source_byte_count": 501029618,
   "zotero": {
     "client_version": "10.0.1 build 20260824184709",
     "fulltext.pdfMaxPages": 100,
-    "fulltext.textMaxLength": 500000
+    "fulltext.textMaxLength": 500000,
+    "preferences_are": "the injecting profile's values as read at run time; not a bound on this extraction, see reindex"
   }
 }

@@ -31,6 +31,7 @@
   },
   {
     "data": {
+      "charset": "",
       "contentType": "application/pdf",
       "filename": "walras-1900-elements.pdf",
       "itemType": "attachment",
@@ -80,6 +81,7 @@
   },
   {
     "data": {
+      "charset": "",
       "contentType": "application/pdf",
       "filename": "porte-1770-science-des-negocians.pdf",
       "itemType": "attachment",
@@ -129,6 +131,7 @@
   },
   {
     "data": {
+      "charset": "",
       "contentType": "application/pdf",
       "filename": "minkowski-1896-geometrie-der-zahlen.pdf",
       "itemType": "attachment",
@@ -178,6 +181,7 @@
   },
   {
     "data": {
+      "charset": "",
       "contentType": "application/pdf",
       "filename": "ramsey-1931-foundations-of-mathematics.pdf",
       "itemType": "attachment",
@@ -227,6 +231,7 @@
   },
   {
     "data": {
+      "charset": "",
       "contentType": "application/pdf",
       "filename": "johnson-1785-dictionary.pdf",
       "itemType": "attachment",
@@ -276,6 +281,7 @@
   },
   {
     "data": {
+      "charset": "",
       "contentType": "application/pdf",
       "filename": "baudelaire-1857-fleurs-du-mal.pdf",
       "itemType": "attachment",
@@ -325,6 +331,7 @@
   },
   {
     "data": {
+      "charset": "",
       "contentType": "application/pdf",
       "filename": "stein-1925-making-of-americans.pdf",
       "itemType": "attachment",
@@ -374,6 +381,7 @@
   },
   {
     "data": {
+      "charset": "",
       "contentType": "application/pdf",
       "filename": "curie-1904-recherches-substances-radioactives.pdf",
       "itemType": "attachment",
@@ -423,6 +431,7 @@
   },
   {
     "data": {
+      "charset": "",
       "contentType": "application/pdf",
       "filename": "einstein-minkowski-1920-principle-of-relativity.pdf",
       "itemType": "attachment",
@@ -472,6 +481,7 @@
   },
   {
     "data": {
+      "charset": "",
       "contentType": "image/vnd.djvu",
       "filename": "tran-trong-kim-1920-viet-nam-su-luoc-q1.djvu",
       "itemType": "attachment",
@@ -521,6 +531,7 @@
   },
   {
     "data": {
+      "charset": "",
       "contentType": "application/pdf",
       "filename": "tran-trong-kim-1928-viet-nam-su-luoc-q2.pdf",
       "itemType": "attachment",
@@ -570,6 +581,7 @@
   },
   {
     "data": {
+      "charset": "windows-1252",
       "contentType": "text/plain",
       "filename": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource.wikitext",
       "itemType": "attachment",
@@ -619,6 +631,7 @@
   },
   {
     "data": {
+      "charset": "windows-1252",
       "contentType": "text/plain",
       "filename": "vn-constitution-1992-vi.wikitext",
       "itemType": "attachment",
@@ -668,6 +681,7 @@
   },
   {
     "data": {
+      "charset": "windows-1252",
       "contentType": "text/plain",
       "filename": "vn-constitution-1992-en.wikitext",
       "itemType": "attachment",
@@ -717,6 +731,7 @@
   },
   {
     "data": {
+      "charset": "",
       "contentType": "application/pdf",
       "filename": "bonet-1899-dictionnaire-annamite-francais-t1.pdf",
       "itemType": "attachment",
@@ -766,6 +781,7 @@
   },
   {
     "data": {
+      "charset": "",
       "contentType": "application/pdf",
       "filename": "bonet-1899-dictionnaire-annamite-francais-t2.pdf",
       "itemType": "attachment",
@@ -815,6 +831,7 @@
   },
   {
     "data": {
+      "charset": "",
       "contentType": "application/pdf",
       "filename": "vn-decision-11-2017-qdttg-solar-fit-en.pdf",
       "itemType": "attachment",
