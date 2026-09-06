@@ -2,7 +2,7 @@
 
 - **Status:** COMPLETE
 - **Author:** Minh Ha-Duong (CNRS)
-- **Date:** 2026-09-05
+- **Date:** 2026-09-06
 
 ## 1. Introduction
 
@@ -2238,6 +2238,33 @@ persisted. Missing, corrupt or unwritable cache falls back to native inspection
 and fresh measurements. It contains no text, titles or source paths and keeps
 only the latest observation per attachment. An active document exceeding its
 empirical upper duration makes the displayed finish time unavailable, not now.
+
+The sitter records its own state transitions to the host's debug output and to
+a volatile in-session ring. A record carries a timestamp, a kind, a level and a
+few scalars: the attachment's numeric item id, its byte size and page count, a
+progress fraction, elapsed and since-progress milliseconds, a phase or refusal
+reason, and for a failure the error's class name alone. The message text never
+travels. Platform error prose names whatever it happens to name — a full file
+path, an attachment's title — and is not separable from it by pattern, while
+debug output is submittable to the vendor and so not session-confined; the
+on-screen failure line still shows the author the file and the whole error,
+locally. Neither sink receives extracted text, attachment or parent titles, or
+library source paths, the same privacy rule the cache paragraph states. The one
+path-bearing record is the startup self-check, and the path is the plugin's own
+install location, recorded beside its manifest and host versions so a build that
+vanishes from the extension list stays identifiable. The ring keeps the last
+2 000 records, discarding the oldest, and is never written to disk: it makes a
+hang readable within the session that suffered it and nothing beyond. This is
+not an exception to the rule above — there is still no private durable ledger,
+and neither sink outlives the session. The channel seals at shutdown, so nothing
+lands behind the shutdown record, and a diagnostic that throws is swallowed
+rather than raised into the sitter's loop.
+
+One preference, `extensions.sdt-pack-sitter.debug`, gates the trace level:
+per-progress and per-heartbeat records, and the wait for an idle native worker.
+It is declared nowhere and reads as unset, which the sitter treats as off, so
+debug output stays quiet until the author creates it; error and state records go
+out regardless. The ring takes every level whatever the preference says.
 
 **D3 — serve-stale.** The verified violation (`dropStaleVectors` →
 `clearVectors()` at open) dies. Vectors carry per-row embedder keys: on a
