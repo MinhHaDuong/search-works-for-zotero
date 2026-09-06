@@ -46,15 +46,25 @@ var createSDTSitter = function (host) {
           if (!state.enabled) break;
           const reason = await host.blocked(before);
           if (!state.enabled) break;
-          if (reason) { state.phase = reason; publish(); break; }
+          if (reason) {
+            // Queueing behind the native worker is the designed resting state, not a
+            // refusal; it repeats every sweep, so it is trace and never state.
+            const idle = reason === 'native-worker-busy';
+            if (host.emit) host.emit(idle ? 'worker-idle-wait' : 'refuse', { reason }, idle ? 'trace' : 'state');
+            state.phase = reason; publish(); break;
+          }
+          if (host.emit) host.emit('admit', { id, sourceBytes: before.sourceBytes, pages: before.pages });
           state.active = id; state.startedAt = host.now();
           state.activeInfo = { sourceBytes: before.sourceBytes, pages: before.pages };
           state.lastProgressAt = state.startedAt; state.progress = null;
           state.phase = 'extracting'; publish();
+          if (host.emit) host.emit('submit', { id });
           try {
             const ok = await host.ensure(id, progress => {
               if (!state.enabled) return;
-              state.progress = progress; state.lastProgressAt = host.now(); publish();
+              state.progress = progress; state.lastProgressAt = host.now();
+              if (host.emit) host.emit('progress', { id, progress }, 'trace');
+              publish();
             });
             if (!state.enabled) break;
             const after = await host.inspect(id);
@@ -63,6 +73,8 @@ var createSDTSitter = function (host) {
             state.completed++; state.serviceMS += host.now() - state.startedAt;
             state.samples.push({ sourceBytes: before.sourceBytes, pages: before.pages,
               milliseconds: host.now() - state.startedAt });
+            if (host.emit) host.emit('settle',
+              { id, ok: true, ms: state.samples[state.samples.length - 1].milliseconds });
             if (host.observed) await host.observed(before, state.samples[state.samples.length - 1]);
             if (state.samples.length % 3 === 0) state.fittedSamples = state.samples.slice();
             state.counts[status]--; state.counts.current = (state.counts.current || 0) + 1;
@@ -127,6 +139,17 @@ var createSDTCache = function (raw, versions) {
     saved(changes) { for (const { key } of changes) dirty.delete(key); },
     samples() { return Object.values(records).filter(r => validSample(r.sample)).map(r => r.sample); },
     data() { return { format: 1, versions, records }; },
+  };
+};
+
+/* Volatile ring of state transitions. Never written to disk: the 2026-09-05 ruling
+   forbids a private durable ledger, and Zotero's own debug output is not durable
+   either. What it buys is a hang readable after the fact, within the session. */
+var createSDTJournal = function (limit = 2000) {
+  const records = [];
+  return {
+    push(record) { records.push(record); if (records.length > limit) records.shift(); },
+    tail(n = limit) { return records.slice(Math.max(0, records.length - n)); },
   };
 };
 

@@ -4,6 +4,10 @@ import vm from 'node:vm';
 
 const context = {};
 vm.runInNewContext(fs.readFileSync('bench/sdt-sitter/scheduler.js', 'utf8'), context);
+// The host half of the journal (emit, heartbeat, shutdown) lives in bootstrap.js;
+// loading it here lets the ring be driven by the real scheduler rather than by hand.
+const ui = {};
+vm.runInNewContext(fs.readFileSync('bench/sdt-sitter/bootstrap.js', 'utf8'), ui);
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
 function fixture() {
   const cached = new Set(), calls = [], updates = [];
@@ -121,6 +125,112 @@ await test('unsupported, missing and future-version packs are never overwritten'
     await f.api.sweep(); assert.equal(f.calls.length, 0);
   }
 });
+await test('the journal ring keeps its last records and evicts the oldest', async () => {
+  const ring = context.createSDTJournal(3);
+  for (const kind of ['a', 'b', 'c', 'd']) ring.push({ kind });
+  // Array.from: the ring's arrays come from the sandbox realm and never compare equal.
+  assert.deepEqual(Array.from(ring.tail(10), record => record.kind), ['b', 'c', 'd']);
+  assert.deepEqual(Array.from(ring.tail(2), record => record.kind), ['c', 'd']);
+  assert.deepEqual(Array.from(ring.tail(), record => record.kind), ['b', 'c', 'd']);
+});
+await test('one sweep journals admit, submit, progress and settle, carrying no title', async () => {
+  const f = fixture(), seen = [];
+  f.host.emit = (kind, detail, level = 'state') => seen.push({ kind, level, ...detail });
+  f.host.inspect = async id => ({ status: f.cached.has(id) ? 'current' : 'missing-pack',
+    identity: String(id), cacheKey: `1/${id}`, sourceBytes: 100 * id, pages: id,
+    title: 'Secret Title', parentTitle: 'Secret Parent', directory: '/secret/storage' });
+  f.host.ensure = async (id, progress) => {
+    f.calls.push(id);
+    if (id !== 1) return false;
+    progress(90); f.cached.add(id); return true;
+  };
+  f.host.reportError = (info, error) => f.host.emit('settle',
+    { id: info.cacheKey, ok: false, error: String(error) }, 'error');
+  await f.api.sweep();
+  assert.deepEqual(seen.map(record => record.kind),
+    ['admit', 'submit', 'progress', 'settle', 'admit', 'submit', 'settle']);
+  assert.deepEqual(seen[0], { kind: 'admit', level: 'state', id: 1, sourceBytes: 100, pages: 1 });
+  assert.deepEqual(seen[1], { kind: 'submit', level: 'state', id: 1 });
+  assert.deepEqual(seen[2], { kind: 'progress', level: 'trace', id: 1, progress: 90 });
+  assert.equal(seen[3].kind, 'settle'); assert.equal(seen[3].ok, true);
+  assert.equal(seen[3].id, 1); assert(Number.isFinite(seen[3].ms));
+  assert.equal(seen[6].level, 'error'); assert.equal(seen[6].ok, false);
+  assert.equal(seen[6].id, '1/2'); assert(seen[6].error.includes('did not persist'));
+  // The whitelist is the privacy rule: spreading `before` wholesale would leak these.
+  assert(!JSON.stringify(seen).includes('Secret'));
+  assert(!JSON.stringify(seen).includes('/secret/storage'));
+});
+await test('a blocked gate journals its reason once, idle waits at trace level', async () => {
+  for (const [reason, kind, level] of [['native-worker-busy', 'worker-idle-wait', 'trace'],
+    ['low-memory', 'refuse', 'state'], ['low-disk', 'refuse', 'state']]) {
+    const f = fixture(), seen = [];
+    f.host.emit = (emitted, detail, emittedLevel = 'state') => seen.push({ kind: emitted, level: emittedLevel, ...detail });
+    f.host.blocked = async () => reason;
+    await f.api.sweep();
+    assert.deepEqual(seen, [{ kind, level, reason }]);
+  }
+});
+await test('Zotero.debug and pref failures never reach the sitter loop', async () => {
+  const ring = context.createSDTJournal(10);
+  ui.journal = ring;
+  ui.Zotero = { debug: () => { throw new Error('debug output unavailable'); },
+    Prefs: { get: () => { throw new Error('prefs unavailable'); } } };
+  ui.emit('admit', { id: 7 });
+  assert.deepEqual(ring.tail(1)[0].kind, 'admit');
+  assert.equal(ring.tail(1)[0].id, 7);
+  assert.equal(ring.tail(1)[0].level, 'state');
+  assert(Number.isFinite(ring.tail(1)[0].at));
+});
+await test('after a hang the ring names the active document, its last progress and every heartbeat', async () => {
+  const f = fixture(), entered = deferred(), finish = deferred();
+  const ring = context.createSDTJournal(50);
+  ui.journal = ring; ui.alive = true; ui.sitter = f.api;
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => true } };
+  f.host.emit = ui.emit; f.host.now = () => Date.now();
+  let callback;
+  f.host.ensure = async (id, progress) => {
+    f.calls.push(id); callback = progress; entered.resolve(); await finish.promise; return true;
+  };
+  const running = f.api.sweep();
+  await entered.promise;
+  callback(42);
+  for (let tick = 0; tick < 3; tick++) ui.heartbeatTick();
+  const tail = Array.from(ring.tail(50));
+  assert.deepEqual(tail.map(record => record.kind),
+    ['admit', 'submit', 'progress', 'heartbeat', 'heartbeat', 'heartbeat']);
+  const beat = tail[tail.length - 1];
+  assert.equal(beat.level, 'trace'); assert.equal(beat.id, 1); assert.equal(beat.progress, 42);
+  assert.equal(beat.phase, 'extracting'); assert(beat.elapsedMS >= 0); assert(beat.sinceProgressMS >= 0);
+  assert(beat.pending >= 1);
+  f.api.stop(); finish.resolve(); await running;
+  // The heartbeat is silent with no document under the worker.
+  const settled = ring.tail(50).length;
+  ui.heartbeatTick();
+  assert.equal(ring.tail(50).length, settled);
+});
+await test('shutdown is the last record even with a submission still in flight', async () => {
+  const f = fixture(), entered = deferred(), finish = deferred();
+  const ring = context.createSDTJournal(50);
+  ui.journal = ring; ui.alive = true; ui.sitter = f.api;
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => true }, SDTPackSitter: { state: f.api.state } };
+  f.host.emit = ui.emit; f.host.now = () => Date.now();
+  let callback;
+  f.host.ensure = async (id, progress) => {
+    f.calls.push(id); callback = progress; entered.resolve(); await finish.promise;
+    progress(100); f.cached.add(id); return true;
+  };
+  const running = f.api.sweep();
+  await entered.promise;
+  ui.shutdown(null, 4);
+  const closed = ring.tail(50).length;
+  callback(50); finish.resolve(); await running;
+  ui.heartbeatTick();
+  const tail = Array.from(ring.tail(50));
+  assert.equal(tail.length, closed);
+  assert.equal(tail[tail.length - 1].kind, 'shutdown');
+  assert.equal(tail[tail.length - 1].reason, 'disable');
+  assert.equal(ui.Zotero.SDTPackSitter, undefined);
+});
 console.log(JSON.stringify({ tests: results, result: 'pass' }));
 
 const samples = [1, 2, 3].map(n => ({ milliseconds: n * 1000, pages: 10, sourceBytes: 100 }));
@@ -131,8 +241,6 @@ prediction = context.estimateSDTDuration(samples, { sourceBytes: 200 });
 assert.equal(prediction.median, 4000); assert.equal(prediction.basis, 'sourceBytes');
 assert.equal(context.estimateSDTDuration(samples, {}), null);
 
-const ui = {};
-vm.runInNewContext(fs.readFileSync('bench/sdt-sitter/bootstrap.js', 'utf8'), ui);
 let coverage = ui.getSDTCoverage({ total: 10, scanned: 10, phase: 'waiting',
   counts: { current: 4, excluded: 2, unsupported: 1, 'failed-session': 1, 'missing-source': 2 } });
 assert.equal(coverage.current, 4); assert.equal(coverage.total, 7); assert.equal(coverage.known, true);

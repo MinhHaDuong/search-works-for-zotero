@@ -2,12 +2,47 @@
 var createSDTSitter;
 var estimateSDTDuration;
 var createSDTCache;
-let sitter, alive = false, timer, pulse, timers;
-const buttons = new Set(), dialogs = new Set();
+var createSDTJournal;
+// `var`, not `let`: the journal and the sitter are the state the scheduler test
+// drives this file's emit/heartbeat/shutdown against, and only `var` reaches the
+// script global a sandboxed load exposes.
+var sitter, journal, alive = false;
+let timer, pulse, heartbeat, timers;
+const buttons = new Set(), dialogs = new Set(), closeJournalled = new WeakSet();
 const BUTTON = 'sdt-pack-sitter-button';
+const DEBUG_PREF = 'extensions.sdt-pack-sitter.debug';
+// Bootstrap reason constants are numeric here and named elsewhere; accept both.
+const SHUTDOWN_REASONS = { 2: 'app-shutdown', 3: 'enable', 4: 'disable',
+  5: 'install', 6: 'uninstall', 7: 'upgrade', 8: 'downgrade' };
 let generation = 0;
 let lastCompleted = 0;
 let completionBlinkUntil = 0;
+
+/* The sitter's whole diagnostic channel. The ring always records; Zotero.debug()
+   is the readable one and carries everything but trace unless the pref is set. */
+function emit(kind, detail, level = 'state') {
+  journal?.push({ at: Date.now(), kind, level, ...detail });
+  try {
+    // Fully qualified pref name: `true` stops Zotero prepending `extensions.zotero.`.
+    if (level === 'trace' && !Zotero.Prefs.get(DEBUG_PREF, true)) return;
+    Zotero.debug(`SDT sitter ${kind} ${JSON.stringify(detail ?? {})}`);
+  } catch (_error) { /* Diagnostics must never throw into the sitter loop. */ }
+}
+
+function heartbeatTick() {
+  if (!alive || !sitter || sitter.state.active === null) return;
+  const s = sitter.state;
+  emit('heartbeat', { id: s.active, phase: s.phase, progress: s.progress,
+    elapsedMS: Date.now() - s.startedAt, sinceProgressMS: Date.now() - s.lastProgressAt,
+    pending: s.pending.length }, 'trace');
+}
+
+function noteDialogClose(dialog) {
+  // `close()` may dispatch unload after shutdown has run; record it once, in order.
+  if (closeJournalled.has(dialog)) return;
+  closeJournalled.add(dialog);
+  emit('dialog-close', {});
+}
 
 function getSDTCoverage(state) {
   return { known: state.scanned === state.total && state.phase !== 'ready',
@@ -110,6 +145,7 @@ function openDialog(window) {
   for (const existing of dialogs) {
     if (!existing.closed) {
       existing.focus();
+      emit('dialog-open', { reused: true });
       render();
       return existing;
     }
@@ -117,6 +153,8 @@ function openDialog(window) {
   }
   const dialog = window.openDialog('about:blank', 'sdt-pack-sitter-status',
     'chrome,dialog=no,resizable,width=700,height=650');
+  emit('dialog-open', { reused: false });
+  dialog.addEventListener('unload', () => { dialogs.delete(dialog); noteDialogClose(dialog); }, { once: true });
   const populate = async () => {
     if (!alive || dialog.closed) return;
     const doc = dialog.document;
@@ -204,6 +242,7 @@ async function initialize(rootURI, token) {
   await Zotero.uiReadyPromise;
   if (token !== generation) return;
   Services.scriptloader.loadSubScript(rootURI + 'scheduler.js', globalThis);
+  journal = createSDTJournal();
   const win = Zotero.getMainWindow();
   if (!win || typeof Zotero.SDT?.ensure !== 'function') throw new Error('Zotero 10 native SDT unavailable');
   const SDT = win.require('resource://zotero/document-worker/structured-document-text.js');
@@ -211,7 +250,6 @@ async function initialize(rootURI, token) {
   const versions = JSON.parse(await Zotero.File.getContentsFromURLAsync('resource://zotero/document-worker/metadata.json'));
   if (token !== generation) return;
   const cachePath = PathUtils.join(Zotero.DataDirectory.dir, 'sdt-sitter-cache.jsonl');
-  const errorPath = PathUtils.join(Zotero.DataDirectory.dir, 'sdt-sitter-errors.jsonl');
   await Zotero.SDTPackSitterCacheWrite?.catch(() => {});
   const raw = { format: 1, versions: JSON.stringify(versions), records: Object.create(null) };
   try {
@@ -225,6 +263,7 @@ async function initialize(rootURI, token) {
     }
   } catch (error) { /* Disposable cache. */ }
   const cache = createSDTCache(raw, JSON.stringify(versions));
+  emit('cache-load', { records: Object.keys(raw.records).length });
   let seen = new Set();
   let compact = true;
   const saveCache = async () => {
@@ -237,7 +276,9 @@ async function initialize(rootURI, token) {
       try {
         // Compact once per activation; subsequent writes contain changed rows only.
         await IOUtils.write(cachePath, bytes, compact ? { tmpPath: `${cachePath}.tmp` } : { mode: 'append' });
-        cache.saved(changes); compact = false;
+        cache.saved(changes);
+        emit('cache-write', { rows: changes.length, compact });
+        compact = false;
       }
       catch (error) { if (alive) sitter.state.cacheWarning = `Cache non enregistré : ${error}`; }
     });
@@ -349,22 +390,16 @@ async function initialize(rootURI, token) {
       const parent = info.parentTitle ? ` — élément : « ${info.parentTitle} »` : '';
       return `Échec de « ${info.title || 'pièce jointe inconnue'} »${parent} : ${String(error)}`;
     },
-    reportError: async (info, error) => {
-      const line = JSON.stringify({
-        at: new Date().toISOString(), attachment: info.title || null,
-        parent: info.parentTitle || null, identity: info.identity || null, error: String(error),
-      }) + '\n';
-      try {
-        await IOUtils.write(errorPath, new TextEncoder().encode(line), { mode: 'append' });
-      } catch (writeError) {
-        if (alive) sitter.state.error = `${sitter.state.error} (journal non enregistré : ${writeError})`;
-      }
-    },
+    // The failure record goes to the session ring and Zotero.debug(), never to a
+    // file: a cross-session failure ledger is what the 2026-09-05 ruling forbids.
+    reportError: (info, error) => emit('settle',
+      { id: info.cacheKey ?? null, ok: false, error: String(error) }, 'error'),
+    emit,
     yield: () => new Promise(resolve => timers.setTimeout(resolve, 0)),
     ensure: (id, onProgress) => Zotero.SDT.ensure(id, { isPriority: false, onProgress }),
   });
   alive = true;
-  Zotero.SDTPackSitter = { state: sitter.state, inspect, blocked };
+  Zotero.SDTPackSitter = { state: sitter.state, inspect, blocked, journal };
   for (const window of Zotero.getMainWindows()) onMainWindowLoad({ window });
   const launch = Services.prompt.confirm(win, 'SDT Pack Sitter — expérimental',
     'Préparer les packs SDT de toute la bibliothèque cette nuit ?\n\n' +
@@ -381,16 +416,19 @@ async function initialize(rootURI, token) {
     if (alive && token === generation) timer = timers.setTimeout(sweep, 30000);
   };
   pulse = timers.setInterval(render, 100);
+  heartbeat = timers.setInterval(heartbeatTick, 60000);
   timer = timers.setTimeout(sweep, 0);
 }
-function shutdown() {
+function shutdown(data, reason) {
   ++generation; alive = false; sitter?.stop();
-  if (timers) { timers.clearTimeout(timer); timers.clearInterval(pulse); }
+  if (timers) { timers.clearTimeout(timer); timers.clearInterval(pulse); timers.clearInterval(heartbeat); }
   for (const button of buttons) button.remove();
   buttons.clear();
-  for (const dialog of dialogs) if (!dialog.closed) dialog.close();
+  for (const dialog of dialogs) if (!dialog.closed) { noteDialogClose(dialog); dialog.close(); }
   dialogs.clear();
   delete Zotero.SDTPackSitter;
+  emit('shutdown', { reason: typeof reason === 'number' ? SHUTDOWN_REASONS[reason] || `reason-${reason}`
+    : reason ? String(reason).toLowerCase().replace(/^addon[_-]/, '').replace(/_/g, '-') : 'unknown' });
 }
 function install() {}
 function uninstall() {}
