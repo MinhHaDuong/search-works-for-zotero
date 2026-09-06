@@ -7,6 +7,7 @@ Blocked-by: github.com/MinhHaDuong/search-works-for-zotero#365
 --- log ---
 2026-09-06T00:00Z claude created
 2026-09-06T00:00Z claude note Fable 5.1 deep-QA pass found three sibling gaps, folded into this ticket's scope: `unsupported-pack`/`missing-source` documents sit in the coverage denominator but are never candidates and never counted as failures, so coverage can never reach 100% with no explanation shown; `host.observed()` throwing on an already-persisted pack counts a success as a failure and blacklists it for the session (a false negative in the opposite direction from the two gaps already described above); `state.cacheWarning` is set but never rendered anywhere, so cache-write failures are invisible even though the data exists.
+2026-09-06T00:00Z claude note Author, live: "Do not assume the 1 Zotero entry = 1 PDF fulltext. Its more messy." Corrected the reconciliation target below from "library's total item count" to "total attachment count" (what the census actually enumerates via `itemAttachments`) and added a mixed-cardinality fixture requirement to the acceptance checkbox -- the original wording would have let an Execute agent build a reconciliation test that silently assumed one attachment per item and passed on a fixture that never exercises the real, messier cardinality.
 
 --- body ---
 ## Context
@@ -67,9 +68,17 @@ the library's non-indexed count. Concretely:
   failure count, without breaking the existing `failed-session`
   suppression-by-identity behavior for genuine extraction failures.
 - Add a test that independently sums every `counts[*]` bucket against
-  the library's total item count and asserts they reconcile -- this is
-  the actual "add up to the correct totals" property, not per-scenario
-  spot checks.
+  the library's total **attachment** count -- the count the census
+  actually enumerates (`SELECT itemID FROM itemAttachments`), never a
+  count of distinct Zotero items. Do not assume one Zotero entry has
+  exactly one PDF: a reference can carry zero, one, or several
+  attachments the sitter processes independently (SPEC.md D6 twin
+  attachments), and a standalone attachment with no parent item is also
+  valid. Reconciling against `Zotero.Items.getAll().length` instead of
+  the candidate/queue length would silently pass on a single-attachment
+  fixture and be wrong on any real library where an item has 0 or more
+  than 1 attachment. This is the actual "add up to the correct totals"
+  property, not per-scenario spot checks.
 - Do not change what counts as "indexed" (`status === 'current'`) --
   only fix what happens to documents that are not.
 
@@ -78,9 +87,13 @@ the library's non-indexed count. Concretely:
 - [ ] A document that throws during `inspect()` is reflected in the
       user-facing failure total, not just in collapsed diagnostics.
 - [ ] A reconciliation test: sum of all `counts[*]` buckets equals the
-      total candidate/library count, for a fixture exercising all
-      branches (current, missing-pack, stale-source, stale-processor,
-      invalid-pack, inspection-error, failed-session).
+      total candidate count (attachment rows the census enumerates, not
+      distinct Zotero items), for a fixture exercising all branches
+      (current, missing-pack, stale-source, stale-processor,
+      invalid-pack, inspection-error, failed-session) AND including at
+      least one item with two supported attachments and one item with
+      zero -- proving the reconciliation is not silently assuming a 1:1
+      item-to-attachment mapping.
 - [ ] No existing passing test regresses.
 - [ ] `unsupported-pack`/`missing-source` documents are reflected honestly
       in the coverage total, not silently excluded from both numerator
