@@ -362,6 +362,8 @@ export function loadGoldenExport(directory, options = {}) {
   const noteKeys = new Set();
   const fulltext = new Map();
   const censusOnly = new Map();
+  // Unserved rows the product never asks for: a same-language sibling D6 skips.
+  const skippedUnserved = new Set();
   const expectedAttachmentOrder = recipe.flatMap((doc) => sources(doc).map((source) => source.id));
   const observedAttachmentOrder = [];
   // Parents first: the binding recipe id -> parent key lives in manifest.parents so a
@@ -532,6 +534,7 @@ export function loadGoldenExport(directory, options = {}) {
         throw new Error(`${attachmentId}: an unserved attachment must not carry a fulltext file`);
       }
       censusOnly.set(key, row.fulltext_version);
+      if (row.selection_expectation === 'skipped-first-with-text') skippedUnserved.add(key);
       consumedItemKeys.add(parent);
       consumedItemKeys.add(key);
       continue;
@@ -614,7 +617,7 @@ export function loadGoldenExport(directory, options = {}) {
   if (consumedItemKeys.size !== itemByKey.size || [...itemByKey.keys()].some((key) => !consumedItemKeys.has(key))) {
     throw new Error('items export contains a row not consumed by the recipe attachment mapping');
   }
-  return { root, manifest, items, itemByKey, fulltext, censusOnly };
+  return { root, manifest, items, itemByKey, fulltext, censusOnly, skippedUnserved };
 }
 
 /** Sort object keys recursively to match `golden_fixture.py`'s canonical recipe hash. */
@@ -845,7 +848,13 @@ export function validateGoldenBuildResult(fixture, result, requests, dataDirecto
   const failed = requests.find((request) => request.status !== 200 &&
     !(request.status === 404 && request.method === 'GET' && unservedRoutes.has(new URL(request.url, 'http://replay').pathname)));
   if (failed) throw new Error(`golden replay received ${failed.status} for ${failed.method} ${failed.url}`);
+  // The product asks for the attachment D6 selects per language; a skipped same-language
+  // sibling is never requested, so only the selected unserved rows must have been asked.
+  const skippedRoutes = new Set(
+    [...(fixture.skippedUnserved ?? new Set())].map((key) => `${prefix}/items/${encodeURIComponent(key)}/fulltext`),
+  );
   for (const route of unservedRoutes) {
+    if (skippedRoutes.has(route)) continue;
     const asked = requests.some((request) => request.method === 'GET' && request.status === 404 &&
       new URL(request.url, 'http://replay').pathname === route);
     if (!asked) throw new Error(`golden replay did not exercise the unserved fulltext route ${route}`);

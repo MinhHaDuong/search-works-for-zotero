@@ -17,8 +17,8 @@
     {
       "work_id": "vn-decision-11-2017-qdttg-solar-fit-en",
       "recipe_id": "vn-decision-11-2017-qdttg-solar-fit-en",
-      "attachment_id": null,
-      "attachment_key": "L68LPREA",
+      "attachment_id": "vn-decision-11-2017-qdttg-solar-fit-en-pdf",
+      "attachment_key": "R74WLCBB",
       "section": "Article 12",
       "alternates": [
         {
@@ -31,7 +31,7 @@
         "title": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation)",
         "author": "Thủ tướng Chính phủ (Prime Minister of Vietnam)",
         "date": "2017",
-        "identifier": "https://faolex.fao.org/docs/pdf/vie179224.pdf",
+        "identifier": "https://www.fao.org/faolex/results/details/en/c/LEX-FAOC179224/",
         "page_printed": null,
         "part_title": null,
         "part_byline": null,
@@ -41,8 +41,8 @@
     {
       "work_id": "vn-decision-11-2017-qdttg-solar-fit-en",
       "recipe_id": "vn-decision-11-2017-qdttg-solar-fit-en",
-      "attachment_id": null,
-      "attachment_key": "L68LPREA",
+      "attachment_id": "vn-decision-11-2017-qdttg-solar-fit-en-pdf",
+      "attachment_key": "R74WLCBB",
       "section": "Article 16",
       "alternates": [
         {
@@ -55,7 +55,7 @@
         "title": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation)",
         "author": "Thủ tướng Chính phủ (Prime Minister of Vietnam)",
         "date": "2017",
-        "identifier": "https://faolex.fao.org/docs/pdf/vie179224.pdf",
+        "identifier": "https://www.fao.org/faolex/results/details/en/c/LEX-FAOC179224/",
         "page_printed": null,
         "part_title": null,
         "part_byline": null,
@@ -67,21 +67,21 @@
   "expected_miss_mechanism": null,
   "reachability": {
     "computed_by": "bench/golden_gate.py validate --stamp",
-    "export_sha256": "014cf144a55d2810759ac8100a6c50d9fd98a6ccbbef2034d2fe2dd35ab6aa74",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
     "extraction": {
-      "reindex_mode": "complete",
-      "reindex_limits": "ignored",
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
       "caps": {
         "fulltext.pdfMaxPages": 100,
         "fulltext.textMaxLength": 500000
       },
       "index_fulltext_max_chars": 40000,
-      "recipe_sha256": "23980113a777c3ecec90692ee12c5b6205a95279dec61876c3ff13cc69f23716"
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
     },
     "reachable": true,
     "rows": [
       {
-        "attachment_key": "L68LPREA",
+        "attachment_key": "R74WLCBB",
         "alternates": [
           {
             "reachable": true,
@@ -93,7 +93,7 @@
         ]
       },
       {
-        "attachment_key": "L68LPREA",
+        "attachment_key": "R74WLCBB",
         "alternates": [
           {
             "reachable": true,

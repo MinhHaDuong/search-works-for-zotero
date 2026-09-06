@@ -1,18 +1,685 @@
 ﻿TY  - BOOK
-ID  - WDHDGA89
-TI  - Éléments d'économie politique pure, ou Théorie de la richesse sociale (4e éd.)
-AU  - Léon Walras
-PY  - 1900
-UR  - https://archive.org/details/elementsdeconomi00walr
-KW  - zoteus-golden-source:walras-1900-elements
-M2  - ticket-0029 recipe id: walras-1900-elements
-M2  - ticket-0029 work id: walras-1900-elements
+ID  - LTBW97KE
+TI  - Œuvres complètes de Frédéric Bastiat, tome 1 : Correspondance, mélanges
+AU  - Frédéric Bastiat; mises en ordre, revues et annotées par Prosper Paillottet
+PY  - 1862
+LA  - fr
+UR  - https://www.gutenberg.org/ebooks/35390
+KW  - zoteus-golden-source:bastiat-1862-oeuvres-completes-t1
+M2  - ticket-0029 recipe id: bastiat-1862-oeuvres-completes-t1
+M2  - ticket-0029 work id: bastiat-1862-oeuvres-completes-t1
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: economics
+M2  - ticket-0029 stratum: reserve
+M2  - ticket-0029 mechanisms: ["legacy-charset-iso-8859-1"]
+L1  - attachments/bastiat-oeuvres-completes-t1-latin1-txt.txt
+L1  - attachments/bastiat-1862-oeuvres-completes-t1-zip.zip
+ER  - 
+
+TY  - GEN
+ID  - N2G37H54
+TI  - Professional diversity and the productivity of cities
+AU  - Luís M. A. Bettencourt; Horacio Samaniego; HyeJin Youn
+PY  - 2012
+UR  - https://arxiv.org/abs/1210.7335v3
+KW  - zoteus-golden-source:bettencourt-2012-professional-diversity-cities-arxiv
+M2  - ticket-0029 recipe id: bettencourt-2012-professional-diversity-cities-arxiv
+M2  - ticket-0029 work id: bettencourt-2012-professional-diversity-cities-arxiv
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: [{"target":"bettencourt-2014-professional-diversity-cities-scirep","type":"near-duplicate-publication"}]
+M2  - ticket-0029 topic: economics
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/bettencourt-2012-professional-diversity-cities-arxiv-pdf.pdf
+L1  - attachments/bettencourt-2012-professional-diversity-cities-source-tgz.tgz
+ER  - 
+
+TY  - JOUR
+ID  - 9XH5U5SM
+TI  - Professional diversity and the productivity of cities
+AU  - Luís M. A. Bettencourt; Horacio Samaniego; Hyejin Youn
+PY  - 2014
+LA  - en
+DO  - 10.1038/srep05393
+UR  - https://europepmc.org/article/PMC/PMC4066264
+KW  - zoteus-golden-source:bettencourt-2014-professional-diversity-cities-scirep
+M2  - ticket-0029 recipe id: bettencourt-2014-professional-diversity-cities-scirep
+M2  - ticket-0029 work id: bettencourt-2014-professional-diversity-cities-scirep
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: [{"target":"bettencourt-2012-professional-diversity-cities-arxiv","type":"near-duplicate-publication"}]
+M2  - ticket-0029 topic: economics
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+ER  - 
+
+TY  - BOOK
+ID  - M87F6NJF
+TI  - Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 1 (A–M)
+AU  - Jean Bonet
+PY  - 1899
+LA  - vi
+UR  - https://archive.org/details/dictionnaireanna01bone
+KW  - zoteus-golden-source:bonet-1899-dictionnaire-annamite-francais-t1
+M2  - ticket-0029 recipe id: bonet-1899-dictionnaire-annamite-francais-t1
+M2  - ticket-0029 work id: bonet-1899-dictionnaire-annamite-francais-t1
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: hss
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/bonet-1899-dictionnaire-annamite-francais-t1-pdf.pdf
+ER  - 
+
+TY  - BOOK
+ID  - 8RIX823L
+TI  - Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 2 (N–X)
+AU  - Jean Bonet
+PY  - 1899
+UR  - https://archive.org/details/dictionnaireanna02bone
+KW  - zoteus-golden-source:bonet-1899-dictionnaire-annamite-francais-t2
+M2  - ticket-0029 recipe id: bonet-1899-dictionnaire-annamite-francais-t2
+M2  - ticket-0029 work id: bonet-1899-dictionnaire-annamite-francais-t2
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: hss
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/bonet-1899-dictionnaire-annamite-francais-t2-pdf.pdf
+ER  - 
+
+TY  - BOOK
+ID  - HVXRRJDQ
+TI  - Recherches sur les principes mathématiques de la théorie des richesses
+AU  - Antoine-Augustin Cournot
+PY  - 1838
+LA  - fr
+UR  - https://archive.org/details/AugustinCournotRecherches
+KW  - zoteus-golden-source:cournot-1838-recherches-ia
+M2  - ticket-0029 recipe id: cournot-1838-recherches-ia
+M2  - ticket-0029 work id: cournot-1838-recherches
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: [{"target":"cournot-1897-researches-bacon","type":"translation"}]
+M2  - ticket-0029 topic: economics
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/cournot-1838-recherches-ia-pdf.pdf
+ER  - 
+
+TY  - BOOK
+ID  - HGPF9IH5
+TI  - Researches into the Mathematical Principles of the Theory of Wealth
+AU  - Antoine-Augustin Cournot; translated by Nathaniel T. Bacon; essay and bibliography by Irving Fisher
+PY  - 1897
+LA  - en-US
+UR  - https://archive.org/details/bub_gb_AGoGpyJY_SAC
+KW  - zoteus-golden-source:cournot-1897-researches-bacon
+M2  - ticket-0029 recipe id: cournot-1897-researches-bacon
+M2  - ticket-0029 work id: cournot-1897-researches-bacon
 M2  - ticket-0029 type fidelity: correct
 M2  - ticket-0029 work relations: []
 M2  - ticket-0029 topic: economics
 M2  - ticket-0029 stratum: core
 M2  - ticket-0029 mechanisms: []
-L1  - attachments/walras-1900-elements.pdf
+L1  - attachments/cournot-1897-researches-bacon-pdf.pdf
+ER  - 
+
+TY  - CHAP
+ID  - URQ2HCLJ
+TI  - 大越史記全書 外紀卷之一 鴻厖氏紀 (Đại Việt sử ký toàn thư, ngoại kỷ quyển 1)
+AU  - 吳士連 Ngô Sĩ Liên et al.
+PY  - 1697
+UR  - https://zh.wikisource.org/w/index.php?title=%E5%A4%A7%E8%B6%8A%E5%8F%B2%E8%A8%98%E5%85%A8%E6%9B%B8%2F%E5%A4%96%E7%B4%80%E5%8D%B7%E4%B9%8B%E4%B8%80&oldid=2770143
+KW  - zoteus-golden-source:dai-viet-su-ky-toan-thu-ngoai-ky-1-zh
+M2  - ticket-0029 recipe id: dai-viet-su-ky-toan-thu-ngoai-ky-1-zh
+M2  - ticket-0029 work id: dai-viet-su-ky-toan-thu-ngoai-ky-1-zh
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: [{"target":"dai-viet-su-ky-toan-thu-quyen-thu-zh","type":"book-chapter"}]
+M2  - ticket-0029 topic: hss
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/dai-viet-su-ky-toan-thu-ngoai-ky-1-zh-html.html
+ER  - 
+
+TY  - BOOK
+ID  - VUSTI7FZ
+TI  - 大越史記全書 卷首 (Đại Việt sử ký toàn thư, quyển thủ)
+AU  - 吳士連 Ngô Sĩ Liên et al.
+PY  - 1697
+LA  - zh
+UR  - https://zh.wikisource.org/w/index.php?title=%E5%A4%A7%E8%B6%8A%E5%8F%B2%E8%A8%98%E5%85%A8%E6%9B%B8%2F%E5%8D%B7%E9%A6%96&oldid=5438794
+KW  - zoteus-golden-source:dai-viet-su-ky-toan-thu-quyen-thu-zh
+M2  - ticket-0029 recipe id: dai-viet-su-ky-toan-thu-quyen-thu-zh
+M2  - ticket-0029 work id: dai-viet-su-ky-toan-thu-quyen-thu-zh
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: [{"target":"dai-viet-su-ky-toan-thu-ngoai-ky-1-zh","type":"book-chapter"}]
+M2  - ticket-0029 topic: hss
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/dai-viet-su-ky-toan-thu-quyen-thu-zh-html.html
+ER  - 
+
+TY  - BOOK
+ID  - E6IJRR2H
+TI  - Kim Vân Kiều tân truyện — Les poèmes de l'Annam, tome I
+AU  - Nguyễn Du; Abel des Michels (ed., transl.)
+PY  - 1884
+LA  - fr
+UR  - https://archive.org/details/kim-van-kieu-tan-truyen-1
+KW  - zoteus-golden-source:des-michels-1884-kim-van-kieu-t1
+M2  - ticket-0029 recipe id: des-michels-1884-kim-van-kieu-t1
+M2  - ticket-0029 work id: des-michels-1884-kim-van-kieu-t1
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: [{"target":"nguyen-du-truyen-kieu-vi-wikisource","type":"translation"}]
+M2  - ticket-0029 topic: hss
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/des-michels-1884-kim-van-kieu-t1-pdf.pdf
+ER  - 
+
+TY  - BOOK
+ID  - R7Z3HR4C
+TI  - Kim Vân Kiều tân truyện — Les poèmes de l'Annam, tome II
+AU  - Nguyễn Du; Abel des Michels (ed., transl.)
+PY  - 1885
+UR  - https://archive.org/details/kim-van-kieu-tan-truyen-2
+KW  - zoteus-golden-source:des-michels-1885-kim-van-kieu-t2
+M2  - ticket-0029 recipe id: des-michels-1885-kim-van-kieu-t2
+M2  - ticket-0029 work id: des-michels-1885-kim-van-kieu-t2
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: [{"target":"nguyen-du-truyen-kieu-vi-wikisource","type":"translation"}]
+M2  - ticket-0029 topic: hss
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/des-michels-1885-kim-van-kieu-t2-pdf.pdf
+ER  - 
+
+TY  - BOOK
+ID  - VBNA8CM5
+TI  - अर्थशास्त्र (Arthashastra: a Hindi political economy after Mrs Fawcett)
+AU  - Millicent Garrett Fawcett (श्रीमती एम. जी. फ़ॉसेट); Hindi adaptation edited at Navaratna Sarasvati Bhavan, Jhalrapatan (editor's name as read by OCR: गिरिधर शर्मा)
+PY  - 1915
+UR  - https://archive.org/details/in.ernet.dli.2015.404610
+KW  - zoteus-golden-source:dli-1915-arthashastra-hindi
+M2  - ticket-0029 recipe id: dli-1915-arthashastra-hindi
+M2  - ticket-0029 work id: dli-1915-arthashastra-hindi
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: economics
+M2  - ticket-0029 stratum: reserve
+M2  - ticket-0029 mechanisms: ["monster-non-latin-script","scan-without-text-layer"]
+L1  - attachments/dli-1915-arthashastra-hindi-text-pdf.pdf
+L1  - attachments/dli-1915-arthashastra-hindi-image-pdf.pdf
+L1  - attachments/dli-1915-arthashastra-hindi-txt.txt
+ER  - 
+
+TY  - RPRT
+ID  - UKNYN2I6
+TI  - Report on the First Quadrennial Technology Review
+AU  - U.S. Department of Energy
+PY  - 2011
+DO  - 10.2172/1186659
+UR  - https://www.osti.gov/biblio/1186659
+KW  - zoteus-golden-source:doe-2011-quadrennial-technology-review
+M2  - ticket-0029 recipe id: doe-2011-quadrennial-technology-review
+M2  - ticket-0029 work id: doe-2011-quadrennial-technology-review
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: energy
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/doe-2011-quadrennial-technology-review-pdf.pdf
+ER  - 
+
+TY  - RPRT
+ID  - EZRNSMR8
+TI  - Inventory of U.S. Greenhouse Gas Emissions and Sinks: 1990-2014
+AU  - U.S. Environmental Protection Agency
+PY  - 2016
+LA  - en-US
+DO  - 10.5281/zenodo.259515
+UR  - https://zenodo.org/records/259515
+KW  - zoteus-golden-source:epa-2016-ghg-inventory-1990-2014
+M2  - ticket-0029 recipe id: epa-2016-ghg-inventory-1990-2014
+M2  - ticket-0029 work id: epa-2016-ghg-inventory-1990-2014
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: environment
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/epa-2016-ghg-inventory-chapter-3-energy-pdf.pdf
+L1  - attachments/epa-2016-ghg-inventory-executive-summary-pdf.pdf
+L1  - attachments/epa-2016-ghg-inventory-chapter-tables-zip.zip
+ER  - 
+
+TY  - RPRT
+ID  - SEU4AJNZ
+TI  - Diagnóstico ambiental de las Agendas 21 de Trevélez y Busquístar
+AU  - Esther Gutiérrez Rueda; Ruben Alba-Ruiz
+PY  - 2014
+LA  - Spanish
+DO  - 10.5281/zenodo.573310
+UR  - https://zenodo.org/records/573310
+KW  - zoteus-golden-source:gutierrez-2014-diagnostico-ambiental-trevelez
+M2  - ticket-0029 recipe id: gutierrez-2014-diagnostico-ambiental-trevelez
+M2  - ticket-0029 work id: gutierrez-2014-diagnostico-ambiental-trevelez
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: environment
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/gutierrez-2014-diagnostico-ambiental-trevelez-pdf.pdf
+ER  - 
+
+TY  - THES
+ID  - XMP2QFDN
+TI  - Comment tenir compte de l'irréversibilité dans l'évaluation intégrée du changement climatique ?
+AU  - Minh Ha-Duong
+PY  - 1998
+LA  - Français
+UR  - https://theses.hal.science/tel-00003505v1
+KW  - zoteus-golden-source:ha-duong-1998-irreversibilite-these
+M2  - ticket-0029 recipe id: ha-duong-1998-irreversibilite-these
+M2  - ticket-0029 work id: ha-duong-1998-irreversibilite-these
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: uncertainty
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/ha-duong-1998-irreversibilite-these-pdf.pdf
+ER  - 
+
+TY  - THES
+ID  - LBW7QYN2
+TI  - Modèles de précaution en économie : introduction aux probabilités imprécises
+AU  - Minh Ha-Duong
+PY  - 2005
+LA  - fr
+UR  - https://theses.hal.science/halshs-00007520v1
+KW  - zoteus-golden-source:ha-duong-2005-modeles-de-precaution-hdr
+M2  - ticket-0029 recipe id: ha-duong-2005-modeles-de-precaution-hdr
+M2  - ticket-0029 work id: ha-duong-2005-modeles-de-precaution-hdr
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: uncertainty
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/ha-duong-2005-modeles-de-precaution-hdr-pdf.pdf
+ER  - 
+
+TY  - JOUR
+ID  - AUF4XPPJ
+TI  - Tính kinh tế theo quy mô trong tiêu dùng điện của các hộ gia đình tại Việt Nam (Economy of Scale in Electricity Consumption of Households in Vietnam)
+AU  - Nguyễn Hoài Sơn; Minh Ha-Duong; Nguyễn Xuân Thắng
+PY  - 2023
+LA  - vi
+UR  - https://enpc.hal.science/hal-04332519v1
+KW  - zoteus-golden-source:hal-04332519-economies-of-scale
+M2  - ticket-0029 recipe id: hal-04332519-economies-of-scale
+M2  - ticket-0029 work id: hal-04332519-economies-of-scale
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: economics
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+N1  - <p>Bài đăng trên <i>Những vấn đề Kinh tế và Chính trị Thế giới</i>, số 11 (331), 2023, tr. 63-73. Tệp HAL là bản dịch tiếng Anh của tóm tắt, phần mở đầu và kết luận.</p>
+L1  - attachments/hal-04332519-economies-of-scale-pdf.pdf
+ER  - 
+
+TY  - CONF
+ID  - N9SJXVTA
+TI  - Lịch sử sách, in ấn và xuất bản ở Nam Kỳ. Dùng Heurist để hệ thống hoá và phân tích dữ liệu của kho lưu chiểu Đông Dương
+AU  - Cao Vy
+PY  - 2024
+UR  - https://hal.science/hal-04826774v1
+KW  - zoteus-golden-source:hal-04826774-lich-su-sach-nam-ky
+M2  - ticket-0029 recipe id: hal-04826774-lich-su-sach-nam-ky
+M2  - ticket-0029 work id: hal-04826774-lich-su-sach-nam-ky
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: hss
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/hal-04826774-lich-su-sach-nam-ky-pdf.pdf
+ER  - 
+
+TY  - JOUR
+ID  - H6G6SRM7
+TI  - Hacia la cuantificación del desarrollo humano sustentable
+AU  - Neyda Ibáñez; Ruben Castillo
+PY  - 2015
+LA  - es
+DO  - 10.5281/zenodo.4917256
+UR  - https://zenodo.org/records/4917256
+KW  - zoteus-golden-source:ibanez-2015-desarrollo-humano-sustentable
+M2  - ticket-0029 recipe id: ibanez-2015-desarrollo-humano-sustentable
+M2  - ticket-0029 work id: ibanez-2015-desarrollo-humano-sustentable
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: development
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/ibanez-2015-desarrollo-humano-sustentable-pdf.pdf
+ER  - 
+
+TY  - BOOK
+ID  - UHJ7M4TD
+TI  - مقدمة ابن خلدون (Al-Muqaddimah)
+AU  - عبد الرحمن بن خلدون (Ibn Khaldūn, 1332-1406)
+PY  - 1904
+UR  - https://archive.org/details/almuqaddimah00ibnk
+KW  - zoteus-golden-source:ibn-khaldun-1904-muqaddimah
+M2  - ticket-0029 recipe id: ibn-khaldun-1904-muqaddimah
+M2  - ticket-0029 work id: ibn-khaldun-1904-muqaddimah
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: hss
+M2  - ticket-0029 stratum: reserve
+M2  - ticket-0029 mechanisms: ["monster-non-latin-script","degraded-ocr-text-layer"]
+L1  - attachments/ibn-khaldun-1904-muqaddimah-pdf.pdf
+L1  - attachments/ibn-khaldun-1904-muqaddimah-txt.txt
+ER  - 
+
+TY  - BOOK
+ID  - IBLNBQMC
+TI  - The Coal Question; an enquiry concerning the progress of the Nation, and the probable exhaustion of our coal-mines
+AU  - William Stanley Jevons
+PY  - 1865
+UR  - https://archive.org/details/bub_gb_gAAKAAAAIAAJ
+KW  - zoteus-golden-source:jevons-1865-coal-question
+M2  - ticket-0029 recipe id: jevons-1865-coal-question
+M2  - ticket-0029 work id: jevons-1865-coal-question
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: energy
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/jevons-1865-coal-question-pdf.pdf
+ER  - 
+
+TY  - BOOK
+ID  - 9TINEKMQ
+TI  - The Theory of Political Economy
+AU  - William Stanley Jevons
+PY  - 1871
+LA  - English
+UR  - https://archive.org/details/theoryofpolitica00jevouoft
+KW  - zoteus-golden-source:jevons-1871-theory-of-political-economy
+M2  - ticket-0029 recipe id: jevons-1871-theory-of-political-economy
+M2  - ticket-0029 work id: jevons-1871-theory-of-political-economy
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: economics
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/jevons-1871-theory-of-political-economy-pdf.pdf
+L1  - attachments/jevons-1871-theory-of-political-economy-txt.txt
+L1  - attachments/jevons-1871-theory-of-political-economy-epub.epub
+ER  - 
+
+TY  - BOOK
+ID  - G3IXLJC6
+TI  - A Dictionary of the English Language, Vol. 1 (6th ed.)
+AU  - Samuel Johnson
+PY  - 1785
+UR  - https://archive.org/details/dictionaryofengl01johnuoft
+KW  - zoteus-golden-source:johnson-1785-dictionary
+M2  - ticket-0029 recipe id: johnson-1785-dictionary
+M2  - ticket-0029 work id: johnson-1785-dictionary
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: hss
+M2  - ticket-0029 stratum: reserve
+M2  - ticket-0029 mechanisms: ["compound-document-entries","latin-script-monster","page-cap-crossing"]
+L1  - attachments/johnson-1785-dictionary.pdf
+ER  - 
+
+TY  - CHAP
+ID  - IKPA3YTS
+TI  - История государства Российского. Том 1, глава I: О народах, издревле обитавших в России
+AU  - Николай Михайлович Карамзин
+PY  - 1818
+LA  - ru-RU
+UR  - https://web.archive.org/web/19991010004134/http://www.magister.msk.ru/library/history/karamzin/kar01_01.htm
+KW  - zoteus-golden-source:karamzin-1818-istoriya-gosudarstva-rossiyskogo-t1-gl1
+M2  - ticket-0029 recipe id: karamzin-1818-istoriya-gosudarstva-rossiyskogo-t1-gl1
+M2  - ticket-0029 work id: karamzin-1818-istoriya-gosudarstva-rossiyskogo-t1-gl1
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: hss
+M2  - ticket-0029 stratum: reserve
+M2  - ticket-0029 mechanisms: ["legacy-encoding-windows-1251"]
+L1  - attachments/karamzin-1818-istoriya-t1-gl1-magister-1999-cp1251-html.html
+ER  - 
+
+TY  - CHAP
+ID  - BX8KC9XP
+TI  - The application of probability to conduct
+AU  - John Maynard Keynes
+PY  - 1921
+UR  - https://archive.org/details/cu31924014110435
+KW  - zoteus-golden-source:keynes-1921-application-of-probability-to-conduct
+M2  - ticket-0029 recipe id: keynes-1921-application-of-probability-to-conduct
+M2  - ticket-0029 work id: keynes-1921-application-of-probability-to-conduct
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: [{"target":"keynes-1921-treatise-on-probability","type":"book-chapter"}]
+M2  - ticket-0029 topic: uncertainty
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+ER  - 
+
+TY  - BOOK
+ID  - R2FQ96P3
+TI  - A Treatise on Probability
+AU  - John Maynard Keynes
+PY  - 1921
+LA  - en
+UR  - https://archive.org/details/cu31924014110435
+KW  - zoteus-golden-source:keynes-1921-treatise-on-probability
+M2  - ticket-0029 recipe id: keynes-1921-treatise-on-probability
+M2  - ticket-0029 work id: keynes-1921-treatise-on-probability
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: [{"target":"keynes-1921-application-of-probability-to-conduct","type":"book-chapter"}]
+M2  - ticket-0029 topic: uncertainty
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/keynes-1921-treatise-on-probability-pdf.pdf
+ER  - 
+
+TY  - GEN
+ID  - SVG7KA7M
+TI  - East Africa in the Malthusian trap? A statistical analysis of financial, economic, and demographic indicators
+AU  - Andrey Korotayev; Julia Zinkina
+PY  - 2015
+LA  - en
+UR  - https://arxiv.org/abs/1503.08441v1
+KW  - zoteus-golden-source:korotayev-2015-east-africa-malthusian-trap
+M2  - ticket-0029 recipe id: korotayev-2015-east-africa-malthusian-trap
+M2  - ticket-0029 work id: korotayev-2015-east-africa-malthusian-trap
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: development
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/korotayev-2015-east-africa-malthusian-trap-pdf.pdf
+ER  - 
+
+TY  - JOUR
+ID  - JYWTAQKJ
+TI  - Crecimiento, desigualdad y pobreza: estado de la cuestión
+AU  - Alfredo Macías Vázquez
+PY  - 2014
+LA  - es
+UR  - http://www.scielo.org.co/scielo.php?script=sci_arttext&pid=S0124-59962014000200006
+KW  - zoteus-golden-source:macias-2014-crecimiento-desigualdad-pobreza
+M2  - ticket-0029 recipe id: macias-2014-crecimiento-desigualdad-pobreza
+M2  - ticket-0029 work id: macias-2014-crecimiento-desigualdad-pobreza
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: development
+M2  - ticket-0029 stratum: reserve
+M2  - ticket-0029 mechanisms: ["malformed-date-field"]
+L1  - attachments/macias-2014-crecimiento-desigualdad-pobreza-pdf.pdf
+ER  - 
+
+TY  - JOUR
+ID  - FWGMEZZY
+TI  - Глобальное изменение климата как вызов мировой экономике и экономической науке
+AU  - Игорь Алексеевич Макаров
+PY  - 2013
+LA  - ru
+UR  - https://cyberleninka.ru/article/n/globalnoe-izmenenie-klimata-kak-vyzov-mirovoy-ekonomike-i-ekonomicheskoy-nauke
+KW  - zoteus-golden-source:makarov-2013-climate-change-challenge-world-economy
+M2  - ticket-0029 recipe id: makarov-2013-climate-change-challenge-world-economy
+M2  - ticket-0029 work id: makarov-2013-climate-change-challenge-world-economy
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: economics
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+N1  - <p>Заметка о статье. Макаров (Экономический журнал ВШЭ, т. 17, № 3, 2013, с. 479–496) рассматривает глобальное изменение климата как вызов и мировой экономике, и экономической науке: оценка последствий изменения климата, национальное климатическое регулирование (система cap-and-trade, углеродный налог) и международный климатический режим после Киотского протокола. Ключевые слова издателя: изменение климата, последствия изменения климата, оценка последствий, национальное климатическое регулирование, система cap-and-trade, углеродный налог, международное климатическое регулирование, Киотский протокол.</p><p>Полный текст в КиберЛенинке доступен под лицензией CC BY-NC-ND, поэтому файл в корпус не включён.</p>
+ER  - 
+
+TY  - BOOK
+ID  - J4LPXANQ
+TI  - Grundsätze der Volkswirthschaftslehre
+AU  - Carl Menger
+PY  - 1871
+UR  - https://archive.org/details/grundstzedervol01menggoog
+KW  - zoteus-golden-source:menger-1871-grundsaetze
+M2  - ticket-0029 recipe id: menger-1871-grundsaetze
+M2  - ticket-0029 work id: menger-1871-grundsaetze
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: economics
+M2  - ticket-0029 stratum: reserve
+M2  - ticket-0029 mechanisms: ["boilerplate-only-text-layer","char-cap-crossing","same-text-different-format"]
+L1  - attachments/menger-1871-grundsaetze-txt.txt
+L1  - attachments/menger-1871-grundsaetze-pdf.pdf
+ER  - 
+
+TY  - BOOK
+ID  - LFL3A88E
+TI  - Die Irrthümer des Historismus in der deutschen Nationalökonomie
+AU  - Carl Menger
+PY  - 1884
+LA  - de
+UR  - https://archive.org/details/dieirrthmerdes00meng
+KW  - zoteus-golden-source:menger-1884-irrthuemer-des-historismus
+M2  - ticket-0029 recipe id: menger-1884-irrthuemer-des-historismus
+M2  - ticket-0029 work id: menger-1884-irrthuemer-des-historismus
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: economics
+M2  - ticket-0029 stratum: reserve
+M2  - ticket-0029 mechanisms: ["lying-content-type"]
+L1  - attachments/menger-1884-irrthuemer-des-historismus-pdf.pdf
+ER  - 
+
+TY  - BOOK
+ID  - AC26V94L
+TI  - Truyện Kiều (Đoạn trường tân thanh)
+AU  - Nguyễn Du
+PY  - 1820
+LA  - vi
+UR  - https://vi.wikisource.org/w/index.php?title=Truy%E1%BB%87n_Ki%E1%BB%81u&oldid=205132
+KW  - zoteus-golden-source:nguyen-du-truyen-kieu-vi-wikisource
+M2  - ticket-0029 recipe id: nguyen-du-truyen-kieu-vi-wikisource
+M2  - ticket-0029 work id: nguyen-du-truyen-kieu-vi-wikisource
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: [{"target":"des-michels-1884-kim-van-kieu-t1","type":"translation"},{"target":"des-michels-1885-kim-van-kieu-t2","type":"translation"}]
+M2  - ticket-0029 topic: hss
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/nguyen-du-truyen-kieu-vi-wikisource-html.html
+ER  - 
+
+TY  - NEWS
+ID  - B6HU6WK6
+TI  - Tin kinh tế, Nhân Dân điện tử, 21-6-1998 (cà-phê, gạo, ADB…)
+AU  - Báo Nhân Dân
+PY  - 1998
+UR  - https://web.archive.org/web/19990202210244/http://www.nhandan.org.vn:80/19980621/bai-kt1.html
+KW  - zoteus-golden-source:nhandan-1998-06-21-tin-kinh-te
+M2  - ticket-0029 recipe id: nhandan-1998-06-21-tin-kinh-te
+M2  - ticket-0029 work id: nhandan-1998-06-21-tin-kinh-te
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: economics
+M2  - ticket-0029 stratum: reserve
+M2  - ticket-0029 mechanisms: ["undecodable-legacy-charset"]
+L1  - attachments/nhandan-1998-06-21-tin-kinh-te-html.html
+ER  - 
+
+TY  - JOUR
+ID  - 27AU52Z8
+TI  - Entropy-based financial asset pricing
+AU  - Mihály Ormos; Dávid Zibriczky
+PY  - 2014
+LA  - eng
+DO  - 10.1371/journal.pone.0115742
+UR  - https://europepmc.org/article/PMC/PMC4278763
+KW  - zoteus-golden-source:ormos-2014-entropy-asset-pricing
+M2  - ticket-0029 recipe id: ormos-2014-entropy-asset-pricing
+M2  - ticket-0029 work id: ormos-2014-entropy-asset-pricing
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: [{"target":"ormos-2015-entropy-asset-pricing-arxiv","type":"metadata-conflicting-duplicate"}]
+M2  - ticket-0029 topic: economics
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/ormos-2014-entropy-asset-pricing-plos-pdf.pdf
+ER  - 
+
+TY  - GEN
+ID  - DUTSAU6D
+TI  - Entropy-Based Financial Asset Pricing
+AU  - Ormos, Mihaly; Zibriczky, D.
+PY  - 2015
+UR  - https://arxiv.org/abs/1501.01155v1
+KW  - zoteus-golden-source:ormos-2015-entropy-asset-pricing-arxiv
+M2  - ticket-0029 recipe id: ormos-2015-entropy-asset-pricing-arxiv
+M2  - ticket-0029 work id: ormos-2015-entropy-asset-pricing-arxiv
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: [{"target":"ormos-2014-entropy-asset-pricing","type":"metadata-conflicting-duplicate"}]
+M2  - ticket-0029 topic: economics
+M2  - ticket-0029 stratum: reserve
+M2  - ticket-0029 mechanisms: ["metadata-conflicting-duplicate"]
+ER  - 
+
+TY  - JOUR
+ID  - 43XP9Q4L
+TI  - Climate change and the macroeconomic structure in pre-industrial Europe: new evidence from wavelet analysis
+AU  - Qing Pei; David D. Zhang; Guodong Li; Harry F. Lee
+PY  - 2015
+DO  - 10.1371/journal.pone.0126480
+UR  - https://europepmc.org/article/PMC/PMC4454689
+KW  - zoteus-golden-source:pei-2015-climate-macroeconomic-preindustrial-europe
+M2  - ticket-0029 recipe id: pei-2015-climate-macroeconomic-preindustrial-europe
+M2  - ticket-0029 work id: pei-2015-climate-macroeconomic-preindustrial-europe
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: economics
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/pei-2015-climate-macroeconomic-preindustrial-europe-pdf.pdf
+ER  - 
+
+TY  - BOOK
+ID  - 8598JF8K
+TI  - Calcul des probabilités
+AU  - Henri Poincaré; rédaction de A. Quiquet
+PY  - 1912
+LA  - Français
+UR  - https://archive.org/details/calculdesprobab00poinuoft
+KW  - zoteus-golden-source:poincare-1912-calcul-des-probabilites
+M2  - ticket-0029 recipe id: poincare-1912-calcul-des-probabilites
+M2  - ticket-0029 work id: poincare-1912-calcul-des-probabilites
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: uncertainty
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/poincare-1912-calcul-des-probabilites-pdf.pdf
 ER  - 
 
 TY  - BOOK
@@ -51,21 +718,133 @@ M2  - ticket-0029 mechanisms: ["no-text-layer-scan"]
 L1  - attachments/ramsey-1931-foundations-of-mathematics.pdf
 ER  - 
 
-TY  - BOOK
-ID  - G3IXLJC6
-TI  - A Dictionary of the English Language, Vol. 1 (6th ed.)
-AU  - Samuel Johnson
-PY  - 1785
-UR  - https://archive.org/details/dictionaryofengl01johnuoft
-KW  - zoteus-golden-source:johnson-1785-dictionary
-M2  - ticket-0029 recipe id: johnson-1785-dictionary
-M2  - ticket-0029 work id: johnson-1785-dictionary
+TY  - SLIDE
+ID  - 6XGITDAY
+TI  - Wind Farm Optimization and Multi-Fidelity Wake Modelling: Presentation of TOPFARM I & II, FUSED-Wake
+AU  - Pierre-Elouan Réthoré
+PY  - 2013
+DO  - 10.5281/zenodo.12386
+UR  - https://zenodo.org/records/12386
+KW  - zoteus-golden-source:rethore-2013-wind-farm-optimization
+M2  - ticket-0029 recipe id: rethore-2013-wind-farm-optimization
+M2  - ticket-0029 work id: rethore-2013-wind-farm-optimization
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: energy
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/rethore-2013-wind-farm-optimization-slides-pdf.pdf
+ER  - 
+
+TY  - ELEC
+ID  - S59SVXCY
+TI  - 三國演義 第一回 宴桃園豪杰三結義 斬黃巾英雄首立功 (Romance of the Three Kingdoms, chapter 1) — chinapage.com, Big5 edition
+AU  - 羅貫中 (Luo Guanzhong, 14th century); web page by Ming L. Pei (chinapage.com)
+PY  - 1998
+UR  - https://web.archive.org/web/19990422164439/http://chinapage.com/sanguo/001_b5.html
+KW  - zoteus-golden-source:sanguo-yanyi-ch01-chinapage-1999
+M2  - ticket-0029 recipe id: sanguo-yanyi-ch01-chinapage-1999
+M2  - ticket-0029 work id: sanguo-yanyi-ch01-chinapage-1999
 M2  - ticket-0029 type fidelity: correct
 M2  - ticket-0029 work relations: []
 M2  - ticket-0029 topic: hss
 M2  - ticket-0029 stratum: reserve
-M2  - ticket-0029 mechanisms: ["compound-document-entries","latin-script-monster","page-cap-crossing"]
-L1  - attachments/johnson-1785-dictionary.pdf
+M2  - ticket-0029 mechanisms: ["legacy-encoding-big5","undeclared-charset"]
+M2  - ticket-0029 retained reason: A 14th-century novel chapter is hss at the edge of the author's topics; kept because no other admitted document carries Big5 bytes from a 1990s server.
+L1  - attachments/sanguo-yanyi-ch01-chinapage-1999-big5-html.html
+ER  - 
+
+TY  - ELEC
+ID  - YC4EAVQN
+TI  - 《三字经》 (San Zi Jing, the Three Character Classic) — chinapage.com, GB2312 edition
+AU  - 王應麟 (attributed to Wang Yinglin, 1223-1296); web page by Ming L. Pei (chinapage.com)
+PY  - 1998
+LA  - zh-CN
+UR  - https://web.archive.org/web/19990210113910/http://chinapage.com/3words-gb.html
+KW  - zoteus-golden-source:sanzijing-chinapage-1999
+M2  - ticket-0029 recipe id: sanzijing-chinapage-1999
+M2  - ticket-0029 work id: sanzijing-chinapage-1999
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: hss
+M2  - ticket-0029 stratum: reserve
+M2  - ticket-0029 mechanisms: ["legacy-encoding-gb2312","undeclared-charset"]
+M2  - ticket-0029 retained reason: The Three Character Classic is a Confucian primer, an hss text; kept because no other admitted document in the corpus carries GB2312 bytes from a 1990s server.
+L1  - attachments/sanzijing-chinapage-1999-gb2312-html.html
+ER  - 
+
+TY  - RPRT
+ID  - WNZ9822H
+TI  - Erneuerbare Energien – Herausforderungen auf dem Weg zur Vollversorgung
+AU  - Silvia Banfi Frost; Marco Berg; Jean-François Dupont; Matthias Gysler; Eduard Kiener; Jürg Minsch; Alexander Wokaun (Schweizerische Akademie der Technischen Wissenschaften)
+PY  - 2011
+LA  - de
+DO  - 10.5281/zenodo.1160834
+UR  - https://zenodo.org/records/1160834
+KW  - zoteus-golden-source:satw-2011-erneuerbare-energien
+M2  - ticket-0029 recipe id: satw-2011-erneuerbare-energien
+M2  - ticket-0029 work id: satw-2011-erneuerbare-energien
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: energy
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/satw-2011-erneuerbare-energien-pdf.pdf
+ER  - 
+
+TY  - DATA
+ID  - 43KSACFX
+TI  - Supplementary material 1 from: Alien species and public health impacts in Europe: a literature review (literature table, n=77 articles)
+AU  - Stefan Schindler; Bernadette Staska; Mildren Adam; Wolfgang Rabitsch; Franz Essl
+PY  - 2015
+DO  - 10.3897/neobiota.27.5007.suppl1
+UR  - https://zenodo.org/records/902296
+KW  - zoteus-golden-source:schindler-2015-alien-species-health-dataset
+M2  - ticket-0029 recipe id: schindler-2015-alien-species-health-dataset
+M2  - ticket-0029 work id: schindler-2015-alien-species-health-dataset
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: environment
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/schindler-2015-alien-species-health-xlsx.xlsx
+ER  - 
+
+TY  - BOOK
+ID  - 3YKGHC7M
+TI  - An Inquiry into the Nature and Causes of the Wealth of Nations
+AU  - Adam Smith
+PY  - 1776
+LA  - EN
+UR  - https://www.gutenberg.org/ebooks/3300
+KW  - zoteus-golden-source:smith-1776-wealth-of-nations
+M2  - ticket-0029 recipe id: smith-1776-wealth-of-nations
+M2  - ticket-0029 work id: smith-1776-wealth-of-nations
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: economics
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/smith-1776-wealth-of-nations-txt.txt
+L1  - attachments/smith-1776-wealth-of-nations-html.html
+L1  - attachments/smith-1776-wealth-of-nations-epub.epub
+ER  - 
+
+TY  - BOOK
+ID  - LW27ZU99
+TI  - Суеверие государства
+AU  - Лев Николаевич Толстой (составитель)
+PY  - 1910
+UR  - https://web.archive.org/web/19991128173655/http://lib.ru/LITRA/TOLSTOJ/gosudarstwo.txt
+KW  - zoteus-golden-source:tolstoy-1910-sueverie-gosudarstva
+M2  - ticket-0029 recipe id: tolstoy-1910-sueverie-gosudarstva
+M2  - ticket-0029 work id: tolstoy-1910-sueverie-gosudarstva
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: hss
+M2  - ticket-0029 stratum: reserve
+M2  - ticket-0029 mechanisms: ["legacy-encoding-koi8-r"]
+L1  - attachments/tolstoy-1910-sueverie-gosudarstva-librue-1999-html.html
 ER  - 
 
 TY  - BOOK
@@ -87,6 +866,112 @@ L1  - attachments/tran-trong-kim-1920-viet-nam-su-luoc-q1.djvu
 ER  - 
 
 TY  - BOOK
+ID  - 32UTQ3FR
+TI  - Việt Nam sử lược (Tựa)
+AU  - Trần Trọng Kim
+PY  - 1920
+LA  - vi
+UR  - https://vi.wikisource.org/w/index.php?title=Vi%E1%BB%87t_Nam_s%E1%BB%AD_l%C6%B0%E1%BB%A3c%2FQuy%E1%BB%83n_I%2FT%E1%BB%B1a&oldid=100853
+KW  - zoteus-golden-source:tran-trong-kim-1920-viet-nam-su-luoc-wikisource
+M2  - ticket-0029 recipe id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource
+M2  - ticket-0029 work id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: [{"target":"tran-trong-kim-1920-viet-nam-su-luoc-q1","type":"same-work"},{"target":"tran-trong-kim-1928-viet-nam-su-luoc-q2","type":"same-work"},{"target":"tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-nuoc-viet-nam","type":"book-chapter"},{"target":"tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch1","type":"book-chapter"},{"target":"tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch2","type":"book-chapter"},{"target":"tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch3","type":"book-chapter"},{"target":"tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch4","type":"book-chapter"}]
+M2  - ticket-0029 topic: hss
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/tran-trong-kim-1920-viet-nam-su-luoc-wikisource-html.html
+ER  - 
+
+TY  - CHAP
+ID  - I6HDX49H
+TI  - Việt Nam sử lược, Quyển I — Nước Việt Nam
+AU  - Trần Trọng Kim
+PY  - 1920
+LA  - vi
+UR  - https://vi.wikisource.org/w/index.php?title=Vi%E1%BB%87t_Nam_s%E1%BB%AD_l%C6%B0%E1%BB%A3c%2FQuy%E1%BB%83n_I%2FN%C6%B0%E1%BB%9Bc_Vi%E1%BB%87t_Nam&oldid=100833
+KW  - zoteus-golden-source:tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-nuoc-viet-nam
+M2  - ticket-0029 recipe id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-nuoc-viet-nam
+M2  - ticket-0029 work id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-nuoc-viet-nam
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: [{"target":"tran-trong-kim-1920-viet-nam-su-luoc-wikisource","type":"book-chapter"}]
+M2  - ticket-0029 topic: hss
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-nuoc-viet-nam-html.html
+ER  - 
+
+TY  - CHAP
+ID  - 4KL8HJN7
+TI  - Việt Nam sử lược, Quyển I, Phần I, Chương I: Họ Hồng Bàng
+AU  - Trần Trọng Kim
+PY  - 1920
+UR  - https://vi.wikisource.org/w/index.php?title=Vi%E1%BB%87t_Nam_s%E1%BB%AD_l%C6%B0%E1%BB%A3c%2FQuy%E1%BB%83n_I%2FPh%E1%BA%A7n_I%2FCh%C6%B0%C6%A1ng_I&oldid=100834
+KW  - zoteus-golden-source:tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch1
+M2  - ticket-0029 recipe id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch1
+M2  - ticket-0029 work id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch1
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: [{"target":"tran-trong-kim-1920-viet-nam-su-luoc-wikisource","type":"book-chapter"}]
+M2  - ticket-0029 topic: hss
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch1-html.html
+ER  - 
+
+TY  - CHAP
+ID  - BZWH95MK
+TI  - Việt Nam sử lược, Quyển I, Phần I, Chương II: Nhà Thục
+AU  - Trần Trọng Kim
+PY  - 1920
+LA  - vi
+UR  - https://vi.wikisource.org/w/index.php?title=Vi%E1%BB%87t_Nam_s%E1%BB%AD_l%C6%B0%E1%BB%A3c%2FQuy%E1%BB%83n_I%2FPh%E1%BA%A7n_I%2FCh%C6%B0%C6%A1ng_II&oldid=100835
+KW  - zoteus-golden-source:tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch2
+M2  - ticket-0029 recipe id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch2
+M2  - ticket-0029 work id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch2
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: [{"target":"tran-trong-kim-1920-viet-nam-su-luoc-wikisource","type":"book-chapter"}]
+M2  - ticket-0029 topic: hss
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch2-html.html
+ER  - 
+
+TY  - CHAP
+ID  - 7WRDZFR4
+TI  - Việt Nam sử lược, Quyển I, Phần I, Chương III: Xã hội nước Tàu về đời Tam đại và đời nhà Tần
+AU  - Trần Trọng Kim
+PY  - 1920
+LA  - Vietnamese
+UR  - https://vi.wikisource.org/w/index.php?title=Vi%E1%BB%87t_Nam_s%E1%BB%AD_l%C6%B0%E1%BB%A3c%2FQuy%E1%BB%83n_I%2FPh%E1%BA%A7n_I%2FCh%C6%B0%C6%A1ng_III&oldid=100836
+KW  - zoteus-golden-source:tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch3
+M2  - ticket-0029 recipe id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch3
+M2  - ticket-0029 work id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch3
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: [{"target":"tran-trong-kim-1920-viet-nam-su-luoc-wikisource","type":"book-chapter"}]
+M2  - ticket-0029 topic: hss
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch3-html.html
+ER  - 
+
+TY  - CHAP
+ID  - AWJ85TZS
+TI  - Việt Nam sử lược, Quyển I, Phần I, Chương IV: Nhà Triệu
+AU  - Trần Trọng Kim
+PY  - 1920
+UR  - https://vi.wikisource.org/w/index.php?title=Vi%E1%BB%87t_Nam_s%E1%BB%AD_l%C6%B0%E1%BB%A3c%2FQuy%E1%BB%83n_I%2FPh%E1%BA%A7n_I%2FCh%C6%B0%C6%A1ng_IV&oldid=94309
+KW  - zoteus-golden-source:tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch4
+M2  - ticket-0029 recipe id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch4
+M2  - ticket-0029 work id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch4
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: [{"target":"tran-trong-kim-1920-viet-nam-su-luoc-wikisource","type":"book-chapter"}]
+M2  - ticket-0029 topic: hss
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch4-html.html
+ER  - 
+
+TY  - BOOK
 ID  - EYJCJMSI
 TI  - Việt Nam sử lược, quyển II (1928 printing)
 AU  - Trần Trọng Kim
@@ -104,26 +989,26 @@ M2  - ticket-0029 mechanisms: ["no-text-layer-scan"]
 L1  - attachments/tran-trong-kim-1928-viet-nam-su-luoc-q2.pdf
 ER  - 
 
-TY  - BOOK
-ID  - GYTR85DH
-TI  - Việt Nam sử lược (Tựa)
-AU  - Trần Trọng Kim
-PY  - 1920
-LA  - vi
-UR  - https://vi.wikisource.org/w/index.php?title=Vi%E1%BB%87t_Nam_s%E1%BB%AD_l%C6%B0%E1%BB%A3c%2FQuy%E1%BB%83n_I%2FT%E1%BB%B1a&oldid=100853
-KW  - zoteus-golden-source:tran-trong-kim-1920-viet-nam-su-luoc-wikisource
-M2  - ticket-0029 recipe id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource
-M2  - ticket-0029 work id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource
+TY  - STAT
+ID  - GV65RWMF
+TI  - Constitution of the Socialist Republic of Vietnam (1992), English text
+AU  - Quốc hội Việt Nam (official translation)
+PY  - 1992
+LA  - en
+UR  - https://en.wikisource.org/w/index.php?title=Constitution_of_Vietnam_%281992%29&oldid=16201311
+KW  - zoteus-golden-source:vn-constitution-1992-en
+M2  - ticket-0029 recipe id: vn-constitution-1992-en
+M2  - ticket-0029 work id: vn-constitution-1992-en
 M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: [{"target":"tran-trong-kim-1920-viet-nam-su-luoc-q1","type":"same-work"},{"target":"tran-trong-kim-1928-viet-nam-su-luoc-q2","type":"same-work"},{"target":"tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-nuoc-viet-nam","type":"book-chapter"},{"target":"tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch1","type":"book-chapter"},{"target":"tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch2","type":"book-chapter"},{"target":"tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch3","type":"book-chapter"},{"target":"tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch4","type":"book-chapter"}]
+M2  - ticket-0029 work relations: [{"target":"vn-constitution-1992-vi","type":"translation"}]
 M2  - ticket-0029 topic: hss
 M2  - ticket-0029 stratum: core
 M2  - ticket-0029 mechanisms: []
-L1  - attachments/tran-trong-kim-1920-viet-nam-su-luoc-wikisource-html.html
+L1  - attachments/vn-constitution-1992-en-html.html
 ER  - 
 
 TY  - STAT
-ID  - AZGCI85Y
+ID  - IUTSQI2Q
 TI  - Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992 (Lời nói đầu)
 AU  - Quốc hội Việt Nam
 PY  - 1992
@@ -142,895 +1027,7 @@ L1  - attachments/vn-constitution-1992-vi-html.html
 ER  - 
 
 TY  - STAT
-ID  - VSN32JSP
-TI  - Constitution of the Socialist Republic of Vietnam (1992), English text
-AU  - Quốc hội Việt Nam (official translation)
-PY  - 1992
-LA  - en
-UR  - https://en.wikisource.org/w/index.php?title=Constitution_of_Vietnam_%281992%29&oldid=16201311
-KW  - zoteus-golden-source:vn-constitution-1992-en
-M2  - ticket-0029 recipe id: vn-constitution-1992-en
-M2  - ticket-0029 work id: vn-constitution-1992-en
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: [{"target":"vn-constitution-1992-vi","type":"translation"}]
-M2  - ticket-0029 topic: hss
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/vn-constitution-1992-en-html.html
-ER  - 
-
-TY  - BOOK
-ID  - NXIPLWTH
-TI  - Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 1 (A–M)
-AU  - Jean Bonet
-PY  - 1899
-LA  - vi
-UR  - https://archive.org/details/dictionnaireanna01bone
-KW  - zoteus-golden-source:bonet-1899-dictionnaire-annamite-francais-t1
-M2  - ticket-0029 recipe id: bonet-1899-dictionnaire-annamite-francais-t1
-M2  - ticket-0029 work id: bonet-1899-dictionnaire-annamite-francais-t1
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: hss
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/bonet-1899-dictionnaire-annamite-francais-t1-pdf.pdf
-ER  - 
-
-TY  - BOOK
-ID  - 4AZTUVYF
-TI  - Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 2 (N–X)
-AU  - Jean Bonet
-PY  - 1899
-UR  - https://archive.org/details/dictionnaireanna02bone
-KW  - zoteus-golden-source:bonet-1899-dictionnaire-annamite-francais-t2
-M2  - ticket-0029 recipe id: bonet-1899-dictionnaire-annamite-francais-t2
-M2  - ticket-0029 work id: bonet-1899-dictionnaire-annamite-francais-t2
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: hss
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/bonet-1899-dictionnaire-annamite-francais-t2-pdf.pdf
-ER  - 
-
-TY  - STAT
-ID  - GEWEZPJ4
-TI  - Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation)
-AU  - Thủ tướng Chính phủ (Prime Minister of Vietnam)
-PY  - 2017
-LA  - en
-UR  - https://www.fao.org/faolex/results/details/en/c/LEX-FAOC179224/
-KW  - zoteus-golden-source:vn-decision-11-2017-qdttg-solar-fit-en
-M2  - ticket-0029 recipe id: vn-decision-11-2017-qdttg-solar-fit-en
-M2  - ticket-0029 work id: vn-decision-11-2017-qdttg-solar-fit-en
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: energy
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/vn-decision-11-2017-qdttg-solar-fit-en-pdf.pdf
-ER  - 
-
-TY  - BOOK
-TI  - Œuvres complètes de Frédéric Bastiat, tome 1 : Correspondance, mélanges
-AU  - Frédéric Bastiat; mises en ordre, revues et annotées par Prosper Paillottet
-PY  - 1862
-LA  - fr
-UR  - https://www.gutenberg.org/ebooks/35390
-KW  - zoteus-golden-source:bastiat-1862-oeuvres-completes-t1
-M2  - ticket-0029 recipe id: bastiat-1862-oeuvres-completes-t1
-M2  - ticket-0029 work id: bastiat-1862-oeuvres-completes-t1
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: economics
-M2  - ticket-0029 stratum: reserve
-M2  - ticket-0029 mechanisms: ["legacy-charset-iso-8859-1"]
-L1  - attachments/bastiat-oeuvres-completes-t1-latin1-txt.txt
-L1  - attachments/bastiat-1862-oeuvres-completes-t1-zip.zip
-ER  - 
-
-TY  - GEN
-TI  - Professional diversity and the productivity of cities
-AU  - Luís M. A. Bettencourt; Horacio Samaniego; HyeJin Youn
-PY  - 2012
-UR  - https://arxiv.org/abs/1210.7335v3
-KW  - zoteus-golden-source:bettencourt-2012-professional-diversity-cities-arxiv
-M2  - ticket-0029 recipe id: bettencourt-2012-professional-diversity-cities-arxiv
-M2  - ticket-0029 work id: bettencourt-2012-professional-diversity-cities-arxiv
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: [{"target":"bettencourt-2014-professional-diversity-cities-scirep","type":"near-duplicate-publication"}]
-M2  - ticket-0029 topic: economics
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/bettencourt-2012-professional-diversity-cities-arxiv-pdf.pdf
-L1  - attachments/bettencourt-2012-professional-diversity-cities-source-tgz.tgz
-ER  - 
-
-TY  - JOUR
-TI  - Professional diversity and the productivity of cities
-AU  - Luís M. A. Bettencourt; Horacio Samaniego; Hyejin Youn
-PY  - 2014
-LA  - en
-DO  - 10.1038/srep05393
-UR  - https://europepmc.org/article/PMC/PMC4066264
-KW  - zoteus-golden-source:bettencourt-2014-professional-diversity-cities-scirep
-M2  - ticket-0029 recipe id: bettencourt-2014-professional-diversity-cities-scirep
-M2  - ticket-0029 work id: bettencourt-2014-professional-diversity-cities-scirep
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: [{"target":"bettencourt-2012-professional-diversity-cities-arxiv","type":"near-duplicate-publication"}]
-M2  - ticket-0029 topic: economics
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-ER  - 
-
-TY  - BOOK
-TI  - Recherches sur les principes mathématiques de la théorie des richesses
-AU  - Antoine-Augustin Cournot
-PY  - 1838
-LA  - fr
-UR  - https://archive.org/details/AugustinCournotRecherches
-KW  - zoteus-golden-source:cournot-1838-recherches-ia
-M2  - ticket-0029 recipe id: cournot-1838-recherches-ia
-M2  - ticket-0029 work id: cournot-1838-recherches
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: [{"target":"cournot-1897-researches-bacon","type":"translation"}]
-M2  - ticket-0029 topic: economics
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/cournot-1838-recherches-ia-pdf.pdf
-ER  - 
-
-TY  - BOOK
-TI  - Researches into the Mathematical Principles of the Theory of Wealth
-AU  - Antoine-Augustin Cournot; translated by Nathaniel T. Bacon; essay and bibliography by Irving Fisher
-PY  - 1897
-LA  - en-US
-UR  - https://archive.org/details/bub_gb_AGoGpyJY_SAC
-KW  - zoteus-golden-source:cournot-1897-researches-bacon
-M2  - ticket-0029 recipe id: cournot-1897-researches-bacon
-M2  - ticket-0029 work id: cournot-1897-researches-bacon
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: economics
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/cournot-1897-researches-bacon-pdf.pdf
-ER  - 
-
-TY  - CHAP
-TI  - 大越史記全書 外紀卷之一 鴻厖氏紀 (Đại Việt sử ký toàn thư, ngoại kỷ quyển 1)
-AU  - 吳士連 Ngô Sĩ Liên et al.
-PY  - 1697
-UR  - https://zh.wikisource.org/w/index.php?title=%E5%A4%A7%E8%B6%8A%E5%8F%B2%E8%A8%98%E5%85%A8%E6%9B%B8%2F%E5%A4%96%E7%B4%80%E5%8D%B7%E4%B9%8B%E4%B8%80&oldid=2770143
-KW  - zoteus-golden-source:dai-viet-su-ky-toan-thu-ngoai-ky-1-zh
-M2  - ticket-0029 recipe id: dai-viet-su-ky-toan-thu-ngoai-ky-1-zh
-M2  - ticket-0029 work id: dai-viet-su-ky-toan-thu-ngoai-ky-1-zh
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: [{"target":"dai-viet-su-ky-toan-thu-quyen-thu-zh","type":"book-chapter"}]
-M2  - ticket-0029 topic: hss
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/dai-viet-su-ky-toan-thu-ngoai-ky-1-zh-html.html
-ER  - 
-
-TY  - BOOK
-TI  - 大越史記全書 卷首 (Đại Việt sử ký toàn thư, quyển thủ)
-AU  - 吳士連 Ngô Sĩ Liên et al.
-PY  - 1697
-LA  - zh
-UR  - https://zh.wikisource.org/w/index.php?title=%E5%A4%A7%E8%B6%8A%E5%8F%B2%E8%A8%98%E5%85%A8%E6%9B%B8%2F%E5%8D%B7%E9%A6%96&oldid=5438794
-KW  - zoteus-golden-source:dai-viet-su-ky-toan-thu-quyen-thu-zh
-M2  - ticket-0029 recipe id: dai-viet-su-ky-toan-thu-quyen-thu-zh
-M2  - ticket-0029 work id: dai-viet-su-ky-toan-thu-quyen-thu-zh
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: [{"target":"dai-viet-su-ky-toan-thu-ngoai-ky-1-zh","type":"book-chapter"}]
-M2  - ticket-0029 topic: hss
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/dai-viet-su-ky-toan-thu-quyen-thu-zh-html.html
-ER  - 
-
-TY  - BOOK
-TI  - Kim Vân Kiều tân truyện — Les poèmes de l'Annam, tome I
-AU  - Nguyễn Du; Abel des Michels (ed., transl.)
-PY  - 1884
-LA  - fr
-UR  - https://archive.org/details/kim-van-kieu-tan-truyen-1
-KW  - zoteus-golden-source:des-michels-1884-kim-van-kieu-t1
-M2  - ticket-0029 recipe id: des-michels-1884-kim-van-kieu-t1
-M2  - ticket-0029 work id: des-michels-1884-kim-van-kieu-t1
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: [{"target":"nguyen-du-truyen-kieu-vi-wikisource","type":"translation"}]
-M2  - ticket-0029 topic: hss
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/des-michels-1884-kim-van-kieu-t1-pdf.pdf
-ER  - 
-
-TY  - BOOK
-TI  - Kim Vân Kiều tân truyện — Les poèmes de l'Annam, tome II
-AU  - Nguyễn Du; Abel des Michels (ed., transl.)
-PY  - 1885
-UR  - https://archive.org/details/kim-van-kieu-tan-truyen-2
-KW  - zoteus-golden-source:des-michels-1885-kim-van-kieu-t2
-M2  - ticket-0029 recipe id: des-michels-1885-kim-van-kieu-t2
-M2  - ticket-0029 work id: des-michels-1885-kim-van-kieu-t2
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: [{"target":"nguyen-du-truyen-kieu-vi-wikisource","type":"translation"}]
-M2  - ticket-0029 topic: hss
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/des-michels-1885-kim-van-kieu-t2-pdf.pdf
-ER  - 
-
-TY  - BOOK
-TI  - अर्थशास्त्र (Arthashastra: a Hindi political economy after Mrs Fawcett)
-AU  - Millicent Garrett Fawcett (श्रीमती एम. जी. फ़ॉसेट); Hindi adaptation edited at Navaratna Sarasvati Bhavan, Jhalrapatan (editor's name as read by OCR: गिरिधर शर्मा)
-PY  - 1915
-UR  - https://archive.org/details/in.ernet.dli.2015.404610
-KW  - zoteus-golden-source:dli-1915-arthashastra-hindi
-M2  - ticket-0029 recipe id: dli-1915-arthashastra-hindi
-M2  - ticket-0029 work id: dli-1915-arthashastra-hindi
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: economics
-M2  - ticket-0029 stratum: reserve
-M2  - ticket-0029 mechanisms: ["monster-non-latin-script","scan-without-text-layer"]
-L1  - attachments/dli-1915-arthashastra-hindi-text-pdf.pdf
-L1  - attachments/dli-1915-arthashastra-hindi-image-pdf.pdf
-L1  - attachments/dli-1915-arthashastra-hindi-txt.txt
-ER  - 
-
-TY  - RPRT
-TI  - Report on the First Quadrennial Technology Review
-AU  - U.S. Department of Energy
-PY  - 2011
-DO  - 10.2172/1186659
-UR  - https://www.osti.gov/biblio/1186659
-KW  - zoteus-golden-source:doe-2011-quadrennial-technology-review
-M2  - ticket-0029 recipe id: doe-2011-quadrennial-technology-review
-M2  - ticket-0029 work id: doe-2011-quadrennial-technology-review
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: energy
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/doe-2011-quadrennial-technology-review-pdf.pdf
-ER  - 
-
-TY  - RPRT
-TI  - Inventory of U.S. Greenhouse Gas Emissions and Sinks: 1990-2014
-AU  - U.S. Environmental Protection Agency
-PY  - 2016
-LA  - en-US
-DO  - 10.5281/zenodo.259515
-UR  - https://zenodo.org/records/259515
-KW  - zoteus-golden-source:epa-2016-ghg-inventory-1990-2014
-M2  - ticket-0029 recipe id: epa-2016-ghg-inventory-1990-2014
-M2  - ticket-0029 work id: epa-2016-ghg-inventory-1990-2014
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: environment
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/epa-2016-ghg-inventory-chapter-3-energy-pdf.pdf
-L1  - attachments/epa-2016-ghg-inventory-executive-summary-pdf.pdf
-L1  - attachments/epa-2016-ghg-inventory-chapter-tables-zip.zip
-ER  - 
-
-TY  - RPRT
-TI  - Diagnóstico ambiental de las Agendas 21 de Trevélez y Busquístar
-AU  - Esther Gutiérrez Rueda; Ruben Alba-Ruiz
-PY  - 2014
-LA  - Spanish
-DO  - 10.5281/zenodo.573310
-UR  - https://zenodo.org/records/573310
-KW  - zoteus-golden-source:gutierrez-2014-diagnostico-ambiental-trevelez
-M2  - ticket-0029 recipe id: gutierrez-2014-diagnostico-ambiental-trevelez
-M2  - ticket-0029 work id: gutierrez-2014-diagnostico-ambiental-trevelez
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: environment
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/gutierrez-2014-diagnostico-ambiental-trevelez-pdf.pdf
-ER  - 
-
-TY  - THES
-TI  - Comment tenir compte de l'irréversibilité dans l'évaluation intégrée du changement climatique ?
-AU  - Minh Ha-Duong
-PY  - 1998
-LA  - Français
-UR  - https://theses.hal.science/tel-00003505v1
-KW  - zoteus-golden-source:ha-duong-1998-irreversibilite-these
-M2  - ticket-0029 recipe id: ha-duong-1998-irreversibilite-these
-M2  - ticket-0029 work id: ha-duong-1998-irreversibilite-these
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: uncertainty
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/ha-duong-1998-irreversibilite-these-pdf.pdf
-ER  - 
-
-TY  - THES
-TI  - Modèles de précaution en économie : introduction aux probabilités imprécises
-AU  - Minh Ha-Duong
-PY  - 2005
-LA  - fr
-UR  - https://theses.hal.science/halshs-00007520v1
-KW  - zoteus-golden-source:ha-duong-2005-modeles-de-precaution-hdr
-M2  - ticket-0029 recipe id: ha-duong-2005-modeles-de-precaution-hdr
-M2  - ticket-0029 work id: ha-duong-2005-modeles-de-precaution-hdr
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: uncertainty
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/ha-duong-2005-modeles-de-precaution-hdr-pdf.pdf
-ER  - 
-
-TY  - JOUR
-TI  - Tính kinh tế theo quy mô trong tiêu dùng điện của các hộ gia đình tại Việt Nam (Economy of Scale in Electricity Consumption of Households in Vietnam)
-AU  - Nguyễn Hoài Sơn; Minh Ha-Duong; Nguyễn Xuân Thắng
-PY  - 2023
-LA  - vi
-UR  - https://enpc.hal.science/hal-04332519v1
-KW  - zoteus-golden-source:hal-04332519-economies-of-scale
-M2  - ticket-0029 recipe id: hal-04332519-economies-of-scale
-M2  - ticket-0029 work id: hal-04332519-economies-of-scale
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: economics
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-N1  - <p>Bài đăng trên <i>Những vấn đề Kinh tế và Chính trị Thế giới</i>, số 11 (331), 2023, tr. 63-73. Tệp HAL là bản dịch tiếng Anh của tóm tắt, phần mở đầu và kết luận.</p>
-L1  - attachments/hal-04332519-economies-of-scale-pdf.pdf
-ER  - 
-
-TY  - CONF
-TI  - Lịch sử sách, in ấn và xuất bản ở Nam Kỳ. Dùng Heurist để hệ thống hoá và phân tích dữ liệu của kho lưu chiểu Đông Dương
-AU  - Cao Vy
-PY  - 2024
-UR  - https://hal.science/hal-04826774v1
-KW  - zoteus-golden-source:hal-04826774-lich-su-sach-nam-ky
-M2  - ticket-0029 recipe id: hal-04826774-lich-su-sach-nam-ky
-M2  - ticket-0029 work id: hal-04826774-lich-su-sach-nam-ky
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: hss
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/hal-04826774-lich-su-sach-nam-ky-pdf.pdf
-ER  - 
-
-TY  - JOUR
-TI  - Hacia la cuantificación del desarrollo humano sustentable
-AU  - Neyda Ibáñez; Ruben Castillo
-PY  - 2015
-LA  - es
-DO  - 10.5281/zenodo.4917256
-UR  - https://zenodo.org/records/4917256
-KW  - zoteus-golden-source:ibanez-2015-desarrollo-humano-sustentable
-M2  - ticket-0029 recipe id: ibanez-2015-desarrollo-humano-sustentable
-M2  - ticket-0029 work id: ibanez-2015-desarrollo-humano-sustentable
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: development
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/ibanez-2015-desarrollo-humano-sustentable-pdf.pdf
-ER  - 
-
-TY  - BOOK
-TI  - مقدمة ابن خلدون (Al-Muqaddimah)
-AU  - عبد الرحمن بن خلدون (Ibn Khaldūn, 1332-1406)
-PY  - 1904
-UR  - https://archive.org/details/almuqaddimah00ibnk
-KW  - zoteus-golden-source:ibn-khaldun-1904-muqaddimah
-M2  - ticket-0029 recipe id: ibn-khaldun-1904-muqaddimah
-M2  - ticket-0029 work id: ibn-khaldun-1904-muqaddimah
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: hss
-M2  - ticket-0029 stratum: reserve
-M2  - ticket-0029 mechanisms: ["monster-non-latin-script","degraded-ocr-text-layer"]
-L1  - attachments/ibn-khaldun-1904-muqaddimah-pdf.pdf
-L1  - attachments/ibn-khaldun-1904-muqaddimah-txt.txt
-ER  - 
-
-TY  - BOOK
-TI  - The Coal Question; an enquiry concerning the progress of the Nation, and the probable exhaustion of our coal-mines
-AU  - William Stanley Jevons
-PY  - 1865
-UR  - https://archive.org/details/bub_gb_gAAKAAAAIAAJ
-KW  - zoteus-golden-source:jevons-1865-coal-question
-M2  - ticket-0029 recipe id: jevons-1865-coal-question
-M2  - ticket-0029 work id: jevons-1865-coal-question
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: energy
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/jevons-1865-coal-question-pdf.pdf
-ER  - 
-
-TY  - BOOK
-TI  - The Theory of Political Economy
-AU  - William Stanley Jevons
-PY  - 1871
-LA  - English
-UR  - https://archive.org/details/theoryofpolitica00jevouoft
-KW  - zoteus-golden-source:jevons-1871-theory-of-political-economy
-M2  - ticket-0029 recipe id: jevons-1871-theory-of-political-economy
-M2  - ticket-0029 work id: jevons-1871-theory-of-political-economy
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: economics
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/jevons-1871-theory-of-political-economy-pdf.pdf
-L1  - attachments/jevons-1871-theory-of-political-economy-txt.txt
-L1  - attachments/jevons-1871-theory-of-political-economy-epub.epub
-ER  - 
-
-TY  - CHAP
-TI  - История государства Российского. Том 1, глава I: О народах, издревле обитавших в России
-AU  - Николай Михайлович Карамзин
-PY  - 1818
-LA  - ru-RU
-UR  - https://web.archive.org/web/19991010004134/http://www.magister.msk.ru/library/history/karamzin/kar01_01.htm
-KW  - zoteus-golden-source:karamzin-1818-istoriya-gosudarstva-rossiyskogo-t1-gl1
-M2  - ticket-0029 recipe id: karamzin-1818-istoriya-gosudarstva-rossiyskogo-t1-gl1
-M2  - ticket-0029 work id: karamzin-1818-istoriya-gosudarstva-rossiyskogo-t1-gl1
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: hss
-M2  - ticket-0029 stratum: reserve
-M2  - ticket-0029 mechanisms: ["legacy-encoding-windows-1251"]
-L1  - attachments/karamzin-1818-istoriya-t1-gl1-magister-1999-cp1251-html.html
-ER  - 
-
-TY  - CHAP
-TI  - The application of probability to conduct
-AU  - John Maynard Keynes
-PY  - 1921
-UR  - https://archive.org/details/cu31924014110435
-KW  - zoteus-golden-source:keynes-1921-application-of-probability-to-conduct
-M2  - ticket-0029 recipe id: keynes-1921-application-of-probability-to-conduct
-M2  - ticket-0029 work id: keynes-1921-application-of-probability-to-conduct
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: [{"target":"keynes-1921-treatise-on-probability","type":"book-chapter"}]
-M2  - ticket-0029 topic: uncertainty
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-ER  - 
-
-TY  - BOOK
-TI  - A Treatise on Probability
-AU  - John Maynard Keynes
-PY  - 1921
-LA  - en
-UR  - https://archive.org/details/cu31924014110435
-KW  - zoteus-golden-source:keynes-1921-treatise-on-probability
-M2  - ticket-0029 recipe id: keynes-1921-treatise-on-probability
-M2  - ticket-0029 work id: keynes-1921-treatise-on-probability
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: [{"target":"keynes-1921-application-of-probability-to-conduct","type":"book-chapter"}]
-M2  - ticket-0029 topic: uncertainty
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/keynes-1921-treatise-on-probability-pdf.pdf
-ER  - 
-
-TY  - GEN
-TI  - East Africa in the Malthusian trap? A statistical analysis of financial, economic, and demographic indicators
-AU  - Andrey Korotayev; Julia Zinkina
-PY  - 2015
-LA  - en
-UR  - https://arxiv.org/abs/1503.08441v1
-KW  - zoteus-golden-source:korotayev-2015-east-africa-malthusian-trap
-M2  - ticket-0029 recipe id: korotayev-2015-east-africa-malthusian-trap
-M2  - ticket-0029 work id: korotayev-2015-east-africa-malthusian-trap
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: development
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/korotayev-2015-east-africa-malthusian-trap-pdf.pdf
-ER  - 
-
-TY  - JOUR
-TI  - Crecimiento, desigualdad y pobreza: estado de la cuestión
-AU  - Alfredo Macías Vázquez
-PY  - 2014
-LA  - es
-UR  - http://www.scielo.org.co/scielo.php?script=sci_arttext&pid=S0124-59962014000200006
-KW  - zoteus-golden-source:macias-2014-crecimiento-desigualdad-pobreza
-M2  - ticket-0029 recipe id: macias-2014-crecimiento-desigualdad-pobreza
-M2  - ticket-0029 work id: macias-2014-crecimiento-desigualdad-pobreza
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: development
-M2  - ticket-0029 stratum: reserve
-M2  - ticket-0029 mechanisms: ["malformed-date-field"]
-L1  - attachments/macias-2014-crecimiento-desigualdad-pobreza-pdf.pdf
-ER  - 
-
-TY  - JOUR
-TI  - Глобальное изменение климата как вызов мировой экономике и экономической науке
-AU  - Игорь Алексеевич Макаров
-PY  - 2013
-LA  - ru
-UR  - https://cyberleninka.ru/article/n/globalnoe-izmenenie-klimata-kak-vyzov-mirovoy-ekonomike-i-ekonomicheskoy-nauke
-KW  - zoteus-golden-source:makarov-2013-climate-change-challenge-world-economy
-M2  - ticket-0029 recipe id: makarov-2013-climate-change-challenge-world-economy
-M2  - ticket-0029 work id: makarov-2013-climate-change-challenge-world-economy
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: economics
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-N1  - <p>Заметка о статье. Макаров (Экономический журнал ВШЭ, т. 17, № 3, 2013, с. 479–496) рассматривает глобальное изменение климата как вызов и мировой экономике, и экономической науке: оценка последствий изменения климата, национальное климатическое регулирование (система cap-and-trade, углеродный налог) и международный климатический режим после Киотского протокола. Ключевые слова издателя: изменение климата, последствия изменения климата, оценка последствий, национальное климатическое регулирование, система cap-and-trade, углеродный налог, международное климатическое регулирование, Киотский протокол.</p><p>Полный текст в КиберЛенинке доступен под лицензией CC BY-NC-ND, поэтому файл в корпус не включён.</p>
-ER  - 
-
-TY  - BOOK
-TI  - Consuetudo, vel Lex Mercatoria, or The Ancient Law-Merchant (1622 first edition)
-AU  - Gerard de Malynes
-PY  - 1622
-LA  - English
-UR  - https://archive.org/details/bim_early-english-books-1475-1640_consuetudo-vel-lex-merc_malynes-gerard-de_1622
-KW  - zoteus-golden-source:malynes-1622-lex-mercatoria
-M2  - ticket-0029 recipe id: malynes-1622-lex-mercatoria
-M2  - ticket-0029 work id: malynes-1622-lex-mercatoria
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: economics
-M2  - ticket-0029 stratum: reserve
-M2  - ticket-0029 mechanisms: ["early-modern-typography","page-cap-crossing","oversized-source-file"]
-ER  - 
-
-TY  - BOOK
-TI  - Grundsätze der Volkswirthschaftslehre
-AU  - Carl Menger
-PY  - 1871
-UR  - https://archive.org/details/grundstzedervol01menggoog
-KW  - zoteus-golden-source:menger-1871-grundsaetze
-M2  - ticket-0029 recipe id: menger-1871-grundsaetze
-M2  - ticket-0029 work id: menger-1871-grundsaetze
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: economics
-M2  - ticket-0029 stratum: reserve
-M2  - ticket-0029 mechanisms: ["boilerplate-only-text-layer","char-cap-crossing","same-text-different-format"]
-L1  - attachments/menger-1871-grundsaetze-txt.txt
-L1  - attachments/menger-1871-grundsaetze-pdf.pdf
-ER  - 
-
-TY  - BOOK
-TI  - Die Irrthümer des Historismus in der deutschen Nationalökonomie
-AU  - Carl Menger
-PY  - 1884
-LA  - de
-UR  - https://archive.org/details/dieirrthmerdes00meng
-KW  - zoteus-golden-source:menger-1884-irrthuemer-des-historismus
-M2  - ticket-0029 recipe id: menger-1884-irrthuemer-des-historismus
-M2  - ticket-0029 work id: menger-1884-irrthuemer-des-historismus
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: economics
-M2  - ticket-0029 stratum: reserve
-M2  - ticket-0029 mechanisms: ["lying-content-type"]
-L1  - attachments/menger-1884-irrthuemer-des-historismus-pdf.pdf
-ER  - 
-
-TY  - BOOK
-TI  - Truyện Kiều (Đoạn trường tân thanh)
-AU  - Nguyễn Du
-PY  - 1820
-LA  - vi
-UR  - https://vi.wikisource.org/w/index.php?title=Truy%E1%BB%87n_Ki%E1%BB%81u&oldid=205132
-KW  - zoteus-golden-source:nguyen-du-truyen-kieu-vi-wikisource
-M2  - ticket-0029 recipe id: nguyen-du-truyen-kieu-vi-wikisource
-M2  - ticket-0029 work id: nguyen-du-truyen-kieu-vi-wikisource
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: [{"target":"des-michels-1884-kim-van-kieu-t1","type":"translation"},{"target":"des-michels-1885-kim-van-kieu-t2","type":"translation"}]
-M2  - ticket-0029 topic: hss
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/nguyen-du-truyen-kieu-vi-wikisource-html.html
-ER  - 
-
-TY  - NEWS
-TI  - Tin kinh tế, Nhân Dân điện tử, 21-6-1998 (cà-phê, gạo, ADB…)
-AU  - Báo Nhân Dân
-PY  - 1998
-UR  - https://web.archive.org/web/19990202210244/http://www.nhandan.org.vn:80/19980621/bai-kt1.html
-KW  - zoteus-golden-source:nhandan-1998-06-21-tin-kinh-te
-M2  - ticket-0029 recipe id: nhandan-1998-06-21-tin-kinh-te
-M2  - ticket-0029 work id: nhandan-1998-06-21-tin-kinh-te
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: economics
-M2  - ticket-0029 stratum: reserve
-M2  - ticket-0029 mechanisms: ["undecodable-legacy-charset"]
-L1  - attachments/nhandan-1998-06-21-tin-kinh-te-html.html
-ER  - 
-
-TY  - JOUR
-TI  - Entropy-based financial asset pricing
-AU  - Mihály Ormos; Dávid Zibriczky
-PY  - 2014
-LA  - eng
-DO  - 10.1371/journal.pone.0115742
-UR  - https://europepmc.org/article/PMC/PMC4278763
-KW  - zoteus-golden-source:ormos-2014-entropy-asset-pricing
-M2  - ticket-0029 recipe id: ormos-2014-entropy-asset-pricing
-M2  - ticket-0029 work id: ormos-2014-entropy-asset-pricing
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: [{"target":"ormos-2015-entropy-asset-pricing-arxiv","type":"metadata-conflicting-duplicate"}]
-M2  - ticket-0029 topic: economics
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/ormos-2014-entropy-asset-pricing-plos-pdf.pdf
-ER  - 
-
-TY  - GEN
-TI  - Entropy-Based Financial Asset Pricing
-AU  - Ormos, Mihaly; Zibriczky, D.
-PY  - 2015
-UR  - https://arxiv.org/abs/1501.01155v1
-KW  - zoteus-golden-source:ormos-2015-entropy-asset-pricing-arxiv
-M2  - ticket-0029 recipe id: ormos-2015-entropy-asset-pricing-arxiv
-M2  - ticket-0029 work id: ormos-2015-entropy-asset-pricing-arxiv
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: [{"target":"ormos-2014-entropy-asset-pricing","type":"metadata-conflicting-duplicate"}]
-M2  - ticket-0029 topic: economics
-M2  - ticket-0029 stratum: reserve
-M2  - ticket-0029 mechanisms: ["metadata-conflicting-duplicate"]
-ER  - 
-
-TY  - JOUR
-TI  - Climate change and the macroeconomic structure in pre-industrial Europe: new evidence from wavelet analysis
-AU  - Qing Pei; David D. Zhang; Guodong Li; Harry F. Lee
-PY  - 2015
-DO  - 10.1371/journal.pone.0126480
-UR  - https://europepmc.org/article/PMC/PMC4454689
-KW  - zoteus-golden-source:pei-2015-climate-macroeconomic-preindustrial-europe
-M2  - ticket-0029 recipe id: pei-2015-climate-macroeconomic-preindustrial-europe
-M2  - ticket-0029 work id: pei-2015-climate-macroeconomic-preindustrial-europe
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: economics
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/pei-2015-climate-macroeconomic-preindustrial-europe-pdf.pdf
-ER  - 
-
-TY  - BOOK
-TI  - Calcul des probabilités
-AU  - Henri Poincaré; rédaction de A. Quiquet
-PY  - 1912
-LA  - Français
-UR  - https://archive.org/details/calculdesprobab00poinuoft
-KW  - zoteus-golden-source:poincare-1912-calcul-des-probabilites
-M2  - ticket-0029 recipe id: poincare-1912-calcul-des-probabilites
-M2  - ticket-0029 work id: poincare-1912-calcul-des-probabilites
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: uncertainty
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/poincare-1912-calcul-des-probabilites-pdf.pdf
-ER  - 
-
-TY  - SLIDE
-TI  - Wind Farm Optimization and Multi-Fidelity Wake Modelling: Presentation of TOPFARM I & II, FUSED-Wake
-AU  - Pierre-Elouan Réthoré
-PY  - 2013
-DO  - 10.5281/zenodo.12386
-UR  - https://zenodo.org/records/12386
-KW  - zoteus-golden-source:rethore-2013-wind-farm-optimization
-M2  - ticket-0029 recipe id: rethore-2013-wind-farm-optimization
-M2  - ticket-0029 work id: rethore-2013-wind-farm-optimization
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: energy
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/rethore-2013-wind-farm-optimization-slides-pdf.pdf
-ER  - 
-
-TY  - ELEC
-TI  - 三國演義 第一回 宴桃園豪杰三結義 斬黃巾英雄首立功 (Romance of the Three Kingdoms, chapter 1) — chinapage.com, Big5 edition
-AU  - 羅貫中 (Luo Guanzhong, 14th century); web page by Ming L. Pei (chinapage.com)
-PY  - 1998
-UR  - https://web.archive.org/web/19990422164439/http://chinapage.com/sanguo/001_b5.html
-KW  - zoteus-golden-source:sanguo-yanyi-ch01-chinapage-1999
-M2  - ticket-0029 recipe id: sanguo-yanyi-ch01-chinapage-1999
-M2  - ticket-0029 work id: sanguo-yanyi-ch01-chinapage-1999
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: hss
-M2  - ticket-0029 stratum: reserve
-M2  - ticket-0029 mechanisms: ["legacy-encoding-big5","undeclared-charset"]
-M2  - ticket-0029 retained reason: A 14th-century novel chapter is hss at the edge of the author's topics; kept because no other admitted document carries Big5 bytes from a 1990s server.
-L1  - attachments/sanguo-yanyi-ch01-chinapage-1999-big5-html.html
-ER  - 
-
-TY  - ELEC
-TI  - 《三字经》 (San Zi Jing, the Three Character Classic) — chinapage.com, GB2312 edition
-AU  - 王應麟 (attributed to Wang Yinglin, 1223-1296); web page by Ming L. Pei (chinapage.com)
-PY  - 1998
-LA  - zh-CN
-UR  - https://web.archive.org/web/19990210113910/http://chinapage.com/3words-gb.html
-KW  - zoteus-golden-source:sanzijing-chinapage-1999
-M2  - ticket-0029 recipe id: sanzijing-chinapage-1999
-M2  - ticket-0029 work id: sanzijing-chinapage-1999
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: hss
-M2  - ticket-0029 stratum: reserve
-M2  - ticket-0029 mechanisms: ["legacy-encoding-gb2312","undeclared-charset"]
-M2  - ticket-0029 retained reason: The Three Character Classic is a Confucian primer, an hss text; kept because no other admitted document in the corpus carries GB2312 bytes from a 1990s server.
-L1  - attachments/sanzijing-chinapage-1999-gb2312-html.html
-ER  - 
-
-TY  - RPRT
-TI  - Erneuerbare Energien – Herausforderungen auf dem Weg zur Vollversorgung
-AU  - Silvia Banfi Frost; Marco Berg; Jean-François Dupont; Matthias Gysler; Eduard Kiener; Jürg Minsch; Alexander Wokaun (Schweizerische Akademie der Technischen Wissenschaften)
-PY  - 2011
-LA  - de
-DO  - 10.5281/zenodo.1160834
-UR  - https://zenodo.org/records/1160834
-KW  - zoteus-golden-source:satw-2011-erneuerbare-energien
-M2  - ticket-0029 recipe id: satw-2011-erneuerbare-energien
-M2  - ticket-0029 work id: satw-2011-erneuerbare-energien
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: energy
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/satw-2011-erneuerbare-energien-pdf.pdf
-ER  - 
-
-TY  - DATA
-TI  - Supplementary material 1 from: Alien species and public health impacts in Europe: a literature review (literature table, n=77 articles)
-AU  - Stefan Schindler; Bernadette Staska; Mildren Adam; Wolfgang Rabitsch; Franz Essl
-PY  - 2015
-DO  - 10.3897/neobiota.27.5007.suppl1
-UR  - https://zenodo.org/records/902296
-KW  - zoteus-golden-source:schindler-2015-alien-species-health-dataset
-M2  - ticket-0029 recipe id: schindler-2015-alien-species-health-dataset
-M2  - ticket-0029 work id: schindler-2015-alien-species-health-dataset
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: environment
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/schindler-2015-alien-species-health-xlsx.xlsx
-ER  - 
-
-TY  - BOOK
-TI  - An Inquiry into the Nature and Causes of the Wealth of Nations
-AU  - Adam Smith
-PY  - 1776
-LA  - EN
-UR  - https://www.gutenberg.org/ebooks/3300
-KW  - zoteus-golden-source:smith-1776-wealth-of-nations
-M2  - ticket-0029 recipe id: smith-1776-wealth-of-nations
-M2  - ticket-0029 work id: smith-1776-wealth-of-nations
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: economics
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/smith-1776-wealth-of-nations-txt.txt
-L1  - attachments/smith-1776-wealth-of-nations-html.html
-L1  - attachments/smith-1776-wealth-of-nations-epub.epub
-ER  - 
-
-TY  - BOOK
-TI  - Суеверие государства
-AU  - Лев Николаевич Толстой (составитель)
-PY  - 1910
-UR  - https://web.archive.org/web/19991128173655/http://lib.ru/LITRA/TOLSTOJ/gosudarstwo.txt
-KW  - zoteus-golden-source:tolstoy-1910-sueverie-gosudarstva
-M2  - ticket-0029 recipe id: tolstoy-1910-sueverie-gosudarstva
-M2  - ticket-0029 work id: tolstoy-1910-sueverie-gosudarstva
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: []
-M2  - ticket-0029 topic: hss
-M2  - ticket-0029 stratum: reserve
-M2  - ticket-0029 mechanisms: ["legacy-encoding-koi8-r"]
-L1  - attachments/tolstoy-1910-sueverie-gosudarstva-librue-1999-html.html
-ER  - 
-
-TY  - CHAP
-TI  - Việt Nam sử lược, Quyển I — Nước Việt Nam
-AU  - Trần Trọng Kim
-PY  - 1920
-LA  - vi
-UR  - https://vi.wikisource.org/w/index.php?title=Vi%E1%BB%87t_Nam_s%E1%BB%AD_l%C6%B0%E1%BB%A3c%2FQuy%E1%BB%83n_I%2FN%C6%B0%E1%BB%9Bc_Vi%E1%BB%87t_Nam&oldid=100833
-KW  - zoteus-golden-source:tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-nuoc-viet-nam
-M2  - ticket-0029 recipe id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-nuoc-viet-nam
-M2  - ticket-0029 work id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-nuoc-viet-nam
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: [{"target":"tran-trong-kim-1920-viet-nam-su-luoc-wikisource","type":"book-chapter"}]
-M2  - ticket-0029 topic: hss
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-nuoc-viet-nam-html.html
-ER  - 
-
-TY  - CHAP
-TI  - Việt Nam sử lược, Quyển I, Phần I, Chương I: Họ Hồng Bàng
-AU  - Trần Trọng Kim
-PY  - 1920
-UR  - https://vi.wikisource.org/w/index.php?title=Vi%E1%BB%87t_Nam_s%E1%BB%AD_l%C6%B0%E1%BB%A3c%2FQuy%E1%BB%83n_I%2FPh%E1%BA%A7n_I%2FCh%C6%B0%C6%A1ng_I&oldid=100834
-KW  - zoteus-golden-source:tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch1
-M2  - ticket-0029 recipe id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch1
-M2  - ticket-0029 work id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch1
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: [{"target":"tran-trong-kim-1920-viet-nam-su-luoc-wikisource","type":"book-chapter"}]
-M2  - ticket-0029 topic: hss
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch1-html.html
-ER  - 
-
-TY  - CHAP
-TI  - Việt Nam sử lược, Quyển I, Phần I, Chương II: Nhà Thục
-AU  - Trần Trọng Kim
-PY  - 1920
-LA  - vi
-UR  - https://vi.wikisource.org/w/index.php?title=Vi%E1%BB%87t_Nam_s%E1%BB%AD_l%C6%B0%E1%BB%A3c%2FQuy%E1%BB%83n_I%2FPh%E1%BA%A7n_I%2FCh%C6%B0%C6%A1ng_II&oldid=100835
-KW  - zoteus-golden-source:tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch2
-M2  - ticket-0029 recipe id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch2
-M2  - ticket-0029 work id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch2
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: [{"target":"tran-trong-kim-1920-viet-nam-su-luoc-wikisource","type":"book-chapter"}]
-M2  - ticket-0029 topic: hss
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch2-html.html
-ER  - 
-
-TY  - CHAP
-TI  - Việt Nam sử lược, Quyển I, Phần I, Chương III: Xã hội nước Tàu về đời Tam đại và đời nhà Tần
-AU  - Trần Trọng Kim
-PY  - 1920
-LA  - Vietnamese
-UR  - https://vi.wikisource.org/w/index.php?title=Vi%E1%BB%87t_Nam_s%E1%BB%AD_l%C6%B0%E1%BB%A3c%2FQuy%E1%BB%83n_I%2FPh%E1%BA%A7n_I%2FCh%C6%B0%C6%A1ng_III&oldid=100836
-KW  - zoteus-golden-source:tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch3
-M2  - ticket-0029 recipe id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch3
-M2  - ticket-0029 work id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch3
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: [{"target":"tran-trong-kim-1920-viet-nam-su-luoc-wikisource","type":"book-chapter"}]
-M2  - ticket-0029 topic: hss
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch3-html.html
-ER  - 
-
-TY  - CHAP
-TI  - Việt Nam sử lược, Quyển I, Phần I, Chương IV: Nhà Triệu
-AU  - Trần Trọng Kim
-PY  - 1920
-UR  - https://vi.wikisource.org/w/index.php?title=Vi%E1%BB%87t_Nam_s%E1%BB%AD_l%C6%B0%E1%BB%A3c%2FQuy%E1%BB%83n_I%2FPh%E1%BA%A7n_I%2FCh%C6%B0%C6%A1ng_IV&oldid=94309
-KW  - zoteus-golden-source:tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch4
-M2  - ticket-0029 recipe id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch4
-M2  - ticket-0029 work id: tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch4
-M2  - ticket-0029 type fidelity: correct
-M2  - ticket-0029 work relations: [{"target":"tran-trong-kim-1920-viet-nam-su-luoc-wikisource","type":"book-chapter"}]
-M2  - ticket-0029 topic: hss
-M2  - ticket-0029 stratum: core
-M2  - ticket-0029 mechanisms: []
-L1  - attachments/tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch4-html.html
-ER  - 
-
-TY  - STAT
+ID  - NWVA2RU9
 TI  - Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992, Chương I: Nước Cộng hòa Xã hội Chủ nghĩa Việt Nam - chế độ chính trị
 AU  - Quốc hội Việt Nam
 PY  - 1992
@@ -1047,6 +1044,7 @@ L1  - attachments/vn-constitution-1992-vi-chuong-i-html.html
 ER  - 
 
 TY  - STAT
+ID  - MA3ITIUU
 TI  - Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992, Chương II: Chế độ kinh tế
 AU  - Quốc hội Việt Nam
 PY  - 1992
@@ -1064,6 +1062,7 @@ L1  - attachments/vn-constitution-1992-vi-chuong-ii-html.html
 ER  - 
 
 TY  - STAT
+ID  - DB29NYCJ
 TI  - Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992, Chương III: Văn hóa, giáo dục, khoa học, công nghệ
 AU  - Quốc hội Việt Nam
 PY  - 1992
@@ -1081,6 +1080,7 @@ L1  - attachments/vn-constitution-1992-vi-chuong-iii-html.html
 ER  - 
 
 TY  - STAT
+ID  - X7XR8TVW
 TI  - Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992, Chương IV: Bảo vệ Tổ quốc Việt Nam xã hội chủ nghĩa
 AU  - Quốc hội Việt Nam
 PY  - 1992
@@ -1097,6 +1097,7 @@ L1  - attachments/vn-constitution-1992-vi-chuong-iv-html.html
 ER  - 
 
 TY  - STAT
+ID  - 4LJTF9JH
 TI  - Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992, Chương IX: Hội đồng nhân dân và Ủy ban nhân dân
 AU  - Quốc hội Việt Nam
 PY  - 1992
@@ -1113,6 +1114,7 @@ L1  - attachments/vn-constitution-1992-vi-chuong-ix-html.html
 ER  - 
 
 TY  - STAT
+ID  - 88PA89A2
 TI  - Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992, Chương V: Quyền và nghĩa vụ cơ bản của công dân
 AU  - Quốc hội Việt Nam
 PY  - 1992
@@ -1130,6 +1132,7 @@ L1  - attachments/vn-constitution-1992-vi-chuong-v-html.html
 ER  - 
 
 TY  - STAT
+ID  - 6HHKNLYD
 TI  - Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992, Chương VI: Quốc hội
 AU  - Quốc hội Việt Nam
 PY  - 1992
@@ -1146,6 +1149,7 @@ L1  - attachments/vn-constitution-1992-vi-chuong-vi-html.html
 ER  - 
 
 TY  - STAT
+ID  - LDNLMSP6
 TI  - Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992, Chương VII: Chủ tịch nước
 AU  - Quốc hội Việt Nam
 PY  - 1992
@@ -1163,6 +1167,7 @@ L1  - attachments/vn-constitution-1992-vi-chuong-vii-html.html
 ER  - 
 
 TY  - STAT
+ID  - AUQMWR3Z
 TI  - Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992, Chương VIII: Chính phủ
 AU  - Quốc hội Việt Nam
 PY  - 1992
@@ -1180,6 +1185,7 @@ L1  - attachments/vn-constitution-1992-vi-chuong-viii-html.html
 ER  - 
 
 TY  - STAT
+ID  - 4HGW537Q
 TI  - Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992, Chương X: Tòa án nhân dân và Viện kiểm sát nhân dân
 AU  - Quốc hội Việt Nam
 PY  - 1992
@@ -1197,6 +1203,7 @@ L1  - attachments/vn-constitution-1992-vi-chuong-x-html.html
 ER  - 
 
 TY  - STAT
+ID  - D8JHCQKD
 TI  - Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992, Chương XI: Quốc kỳ, quốc huy, quốc ca, thủ đô, ngày quốc khánh
 AU  - Quốc hội Việt Nam
 PY  - 1992
@@ -1213,6 +1220,7 @@ L1  - attachments/vn-constitution-1992-vi-chuong-xi-html.html
 ER  - 
 
 TY  - STAT
+ID  - MRBTULVZ
 TI  - Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992, Chương XII: Hiệu lực của Hiến pháp và việc sửa đổi Hiến pháp
 AU  - Quốc hội Việt Nam
 PY  - 1992
@@ -1230,6 +1238,25 @@ L1  - attachments/vn-constitution-1992-vi-chuong-xii-html.html
 ER  - 
 
 TY  - STAT
+ID  - RIIGM2EC
+TI  - Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation)
+AU  - Thủ tướng Chính phủ (Prime Minister of Vietnam)
+PY  - 2017
+LA  - en
+UR  - https://www.fao.org/faolex/results/details/en/c/LEX-FAOC179224/
+KW  - zoteus-golden-source:vn-decision-11-2017-qdttg-solar-fit-en
+M2  - ticket-0029 recipe id: vn-decision-11-2017-qdttg-solar-fit-en
+M2  - ticket-0029 work id: vn-decision-11-2017-qdttg-solar-fit-en
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: energy
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/vn-decision-11-2017-qdttg-solar-fit-en-pdf.pdf
+ER  - 
+
+TY  - STAT
+ID  - BGM6XA2N
 TI  - Luật Điện lực (28/2004/QH11)
 AU  - Quốc hội Việt Nam
 PY  - 2004
@@ -1247,6 +1274,7 @@ L1  - attachments/vn-law-electricity-2004-vi-html.html
 ER  - 
 
 TY  - STAT
+ID  - UTKNFDL5
 TI  - Luật Sử dụng năng lượng tiết kiệm và hiệu quả (50/2010/QH12)
 AU  - Quốc hội Việt Nam
 PY  - 2010
@@ -1263,6 +1291,7 @@ L1  - attachments/vn-law-energy-efficiency-2010-vi-html.html
 ER  - 
 
 TY  - STAT
+ID  - JVAG4QBG
 TI  - Luật Bảo vệ môi trường (52/2005/QH11)
 AU  - Quốc hội Việt Nam
 PY  - 2005
@@ -1280,6 +1309,7 @@ L1  - attachments/vn-law-environment-2005-vi-html.html
 ER  - 
 
 TY  - ELEC
+ID  - 57SJIUEP
 TI  - Tình hình lực lượng lao động tại Việt Nam (Đại sứ quán Việt Nam tại Hoa Kỳ, tin kinh tế 1999)
 AU  - Đại sứ quán Việt Nam tại Hoa Kỳ (Embassy of Vietnam in the USA)
 PY  - 1999
@@ -1297,6 +1327,7 @@ L1  - attachments/vnembassy-usa-1999-tinh-hinh-lao-dong-html.html
 ER  - 
 
 TY  - MAP
+ID  - CHL5Q8XY
 TI  - Nouvelle carte des bassins houillers du Nord et du Pas-de-Calais (1875), planche p. 39 : concessions
 AU  - Émile Vuillemin
 PY  - 1875
@@ -1314,6 +1345,7 @@ L1  - attachments/vuillemin-1875-carte-concessions-nord-pas-de-calais-jpg.jpg
 ER  - 
 
 TY  - MAP
+ID  - LENIPZLN
 TI  - Production du bassin houiller du Pas-de-Calais depuis 1850 (Nouvelle carte des bassins houillers, 1875, pp. 52-53)
 AU  - Émile Vuillemin
 PY  - 1875
@@ -1330,6 +1362,24 @@ L1  - attachments/vuillemin-1875-production-pas-de-calais-jpg.jpg
 ER  - 
 
 TY  - BOOK
+ID  - WDHDGA89
+TI  - Éléments d'économie politique pure, ou Théorie de la richesse sociale (4e éd.)
+AU  - Léon Walras
+PY  - 1900
+UR  - https://archive.org/details/elementsdeconomi00walr
+KW  - zoteus-golden-source:walras-1900-elements
+M2  - ticket-0029 recipe id: walras-1900-elements
+M2  - ticket-0029 work id: walras-1900-elements
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: economics
+M2  - ticket-0029 stratum: core
+M2  - ticket-0029 mechanisms: []
+L1  - attachments/walras-1900-elements.pdf
+ER  - 
+
+TY  - BOOK
+ID  - PKX9T3CK
 TI  - Vietnam 2035: Toward Prosperity, Creativity, Equity, and Democracy
 AU  - World Bank; Ministry of Planning and Investment of Vietnam
 PY  - 2016
@@ -1350,6 +1400,7 @@ L1  - attachments/wb-2016-vietnam-2035-en-pdf.pdf
 ER  - 
 
 TY  - CHAP
+ID  - FUMT38SR
 TI  - Vietnam 2035: Toward Prosperity, Creativity, Equity, and Democracy — Overview
 AU  - World Bank; Ministry of Planning and Investment of Vietnam
 PY  - 2016
@@ -1367,6 +1418,7 @@ L1  - attachments/wb-2016-vietnam-2035-en-overview-pdf.pdf
 ER  - 
 
 TY  - BOOK
+ID  - C4LGUQ6N
 TI  - Việt Nam 2035: Hướng tới Thịnh vượng, Sáng tạo, Công bằng và Dân chủ
 AU  - Ngân hàng Thế giới; Bộ Kế hoạch và Đầu tư Việt Nam
 PY  - 2016
@@ -1385,6 +1437,7 @@ L1  - attachments/wb-2016-vietnam-2035-vi-pdf.pdf
 ER  - 
 
 TY  - CHAP
+ID  - FF8QSEVR
 TI  - Việt Nam 2035: Hướng tới Thịnh vượng, Sáng tạo, Công bằng và Dân chủ — Báo cáo tổng quan
 AU  - Ngân hàng Thế giới; Bộ Kế hoạch và Đầu tư Việt Nam
 PY  - 2016
@@ -1403,6 +1456,7 @@ L1  - attachments/wb-2016-vietnam-2035-vi-overview-pdf.pdf
 ER  - 
 
 TY  - JOUR
+ID  - 3XXJ3TJ9
 TI  - Common methodological framework to assess energy, climate and economic impacts of BIPV
 AU  - Walter Ott; Meta Lehmann; Stephen Wittkopf (ed.)
 PY  - 2016
@@ -1421,6 +1475,7 @@ L1  - attachments/wittkopf-2016-bipv-methodological-framework-pdf.pdf
 ER  - 
 
 TY  - RPRT
+ID  - 7HTWWGXF
 TI  - Potential Climate Change Mitigation Opportunities in the Energy Sector in Vietnam: Background Paper
 AU  - RCEE Energy and Environment JSC; Full Advantage Co., Ltd. (for the World Bank Carbon Finance Assist Program)
 PY  - 2009
@@ -1440,6 +1495,7 @@ L1  - attachments/worldbank-2009-vietnam-energy-mitigation-txt.txt
 ER  - 
 
 TY  - RPRT
+ID  - S4PGRI82
 TI  - State and Trends of Carbon Pricing 2015
 AU  - Alexandre Kossoy; Grzegorz Peszko; Klaus Oppermann; Nicolai Prytz; Noémie Klein; Kornelis Blok; Long Lam; Lindee Wong; Bram Borkent
 PY  - 2015
@@ -1458,6 +1514,7 @@ L1  - attachments/worldbank-2015-state-trends-carbon-pricing-pdf.pdf
 ER  - 
 
 TY  - ENCYC
+ID  - H43SMC6K
 TI  - تغير المناخ
 AU  - Wikipedia contributors
 PY  - 2026
@@ -1474,6 +1531,7 @@ L1  - attachments/wp-climate-change-ar-html.html
 ER  - 
 
 TY  - ENCYC
+ID  - 75WMKVVK
 TI  - Klimawandel
 AU  - Wikipedia contributors
 PY  - 2026
@@ -1490,6 +1548,7 @@ L1  - attachments/wp-climate-change-de-html.html
 ER  - 
 
 TY  - ENCYC
+ID  - A87PTDEU
 TI  - Climate change
 AU  - Wikipedia contributors
 PY  - 2026
@@ -1507,6 +1566,7 @@ L1  - attachments/wp-climate-change-en-html.html
 ER  - 
 
 TY  - ENCYC
+ID  - N3DSG5VT
 TI  - Calentamiento global
 AU  - Wikipedia contributors
 PY  - 2026
@@ -1523,6 +1583,7 @@ L1  - attachments/wp-climate-change-es-html.html
 ER  - 
 
 TY  - ENCYC
+ID  - YRAUIIKD
 TI  - Changement climatique
 AU  - Wikipedia contributors
 PY  - 2026
@@ -1539,6 +1600,7 @@ L1  - attachments/wp-climate-change-fr-html.html
 ER  - 
 
 TY  - ELEC
+ID  - BP5QW5GR
 TI  - जलवायु परिवर्तन
 AU  - Wikipedia contributors
 PY  - 2025
@@ -1556,6 +1618,7 @@ L1  - attachments/wp-climate-change-hi-html.html
 ER  - 
 
 TY  - ENCYC
+ID  - 26Y7859X
 TI  - Глобальное потепление
 AU  - Wikipedia contributors
 PY  - 2026
@@ -1573,6 +1636,7 @@ L1  - attachments/wp-climate-change-ru-html.html
 ER  - 
 
 TY  - ENCYC
+ID  - QS9XZYUX
 TI  - Biến đổi khí hậu
 AU  - Wikipedia tiếng Việt (contributors)
 PY  - 2026
@@ -1590,6 +1654,7 @@ L1  - attachments/wp-climate-change-vi-html.html
 ER  - 
 
 TY  - ENCYC
+ID  - ATPYH5U8
 TI  - 氣候變化
 AU  - Wikipedia contributors
 PY  - 2026
@@ -1607,6 +1672,7 @@ L1  - attachments/wp-climate-change-zh-html.html
 ER  - 
 
 TY  - ENCYC
+ID  - J9L5JSVH
 TI  - Kinh tế học
 AU  - Wikipedia tiếng Việt (contributors)
 PY  - 2025
@@ -1623,6 +1689,7 @@ L1  - attachments/wp-economics-vi-html.html
 ER  - 
 
 TY  - ENCYC
+ID  - 4W2RJNXF
 TI  - تضخم اقتصادي
 AU  - Wikipedia contributors
 PY  - 2026
@@ -1640,6 +1707,7 @@ L1  - attachments/wp-inflation-ar-html.html
 ER  - 
 
 TY  - ENCYC
+ID  - 5K9LFBY5
 TI  - Inflation
 AU  - Wikipedia contributors
 PY  - 2026
@@ -1656,6 +1724,7 @@ L1  - attachments/wp-inflation-en-html.html
 ER  - 
 
 TY  - ENCYC
+ID  - J9A48XAD
 TI  - मुद्रास्फीति
 AU  - Wikipedia contributors
 PY  - 2024
@@ -1672,6 +1741,7 @@ L1  - attachments/wp-inflation-hi-html.html
 ER  - 
 
 TY  - ENCYC
+ID  - 5M4ZPLBP
 TI  - Инфляция
 AU  - Wikipedia contributors
 PY  - 2026
@@ -1689,6 +1759,7 @@ L1  - attachments/wp-inflation-ru-html.html
 ER  - 
 
 TY  - ENCYC
+ID  - 44KHNR7L
 TI  - 通货膨胀
 AU  - Wikipedia contributors
 PY  - 2026
@@ -1705,6 +1776,7 @@ L1  - attachments/wp-inflation-zh-html.html
 ER  - 
 
 TY  - ENCYC
+ID  - V4RNHPB8
 TI  - Phát triển bền vững
 AU  - Wikipedia tiếng Việt (contributors)
 PY  - 2024
@@ -1722,6 +1794,7 @@ L1  - attachments/wp-sustainable-development-vi-html.html
 ER  - 
 
 TY  - CHAP
+ID  - 9X639J5G
 TI  - 原富 · 譯事例言 (Translator's preface to Yuan Fu, Yan Fu's rendering of The Wealth of Nations)
 AU  - 嚴復 (Yan Fu)
 PY  - 1902
@@ -1740,6 +1813,7 @@ L1  - attachments/yan-fu-1902-yuanfu-yishi-liyan-wikitext.wikitext
 ER  - 
 
 TY  - DATA
+ID  - PEVFVZG6
 TI  - Supporting data for Open government data for regulation of energy resources in India
 AU  - Nidhi Srivastava; Veena Agarwal; Souvik Bhattacharjya; Tarun Gopalakrishnan; Harsha Meenawat; Bibhu Prasad Nayak; Anmol Soni
 PY  - 2014
@@ -1758,6 +1832,7 @@ L1  - attachments/zenodo-11353-open-data-energy-india-xlsx.xlsx
 ER  - 
 
 TY  - DATA
+ID  - JD2PQ67U
 TI  - Employment data for the rest of the world (underlying data for 'Towards a green energy economy? Tracking the employment effects of low-carbon technologies in the European Union')
 AU  - Anil Markandya; Iñaki Arto; Mikel González-Eguino; Maria V. Román
 PY  - 2016
@@ -1773,5 +1848,21 @@ M2  - ticket-0029 stratum: core
 M2  - ticket-0029 mechanisms: []
 L1  - attachments/zenodo-1246601-green-economy-employment-xlsx.xlsx
 L1  - attachments/zenodo-1246601-green-economy-employment-docx.docx
+ER  - 
+
+TY  - BOOK
+TI  - Consuetudo, vel Lex Mercatoria, or The Ancient Law-Merchant (1622 first edition)
+AU  - Gerard de Malynes
+PY  - 1622
+LA  - English
+UR  - https://archive.org/details/bim_early-english-books-1475-1640_consuetudo-vel-lex-merc_malynes-gerard-de_1622
+KW  - zoteus-golden-source:malynes-1622-lex-mercatoria
+M2  - ticket-0029 recipe id: malynes-1622-lex-mercatoria
+M2  - ticket-0029 work id: malynes-1622-lex-mercatoria
+M2  - ticket-0029 type fidelity: correct
+M2  - ticket-0029 work relations: []
+M2  - ticket-0029 topic: economics
+M2  - ticket-0029 stratum: reserve
+M2  - ticket-0029 mechanisms: ["early-modern-typography","page-cap-crossing","oversized-source-file"]
 ER  - 
 

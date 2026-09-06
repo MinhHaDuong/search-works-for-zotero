@@ -20,16 +20,16 @@
   "expected_miss_mechanism": "no-answer: Decision 11/2017 covers solar power only and no document of the export sets a wind tariff; the empty pinned set is the ruling's no-answer case",
   "reachability": {
     "computed_by": "bench/golden_gate.py validate --stamp",
-    "export_sha256": "014cf144a55d2810759ac8100a6c50d9fd98a6ccbbef2034d2fe2dd35ab6aa74",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
     "extraction": {
-      "reindex_mode": "complete",
-      "reindex_limits": "ignored",
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
       "caps": {
         "fulltext.pdfMaxPages": 100,
         "fulltext.textMaxLength": 500000
       },
       "index_fulltext_max_chars": 40000,
-      "recipe_sha256": "23980113a777c3ecec90692ee12c5b6205a95279dec61876c3ff13cc69f23716"
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
     },
     "reachable": false,
     "rows": []
