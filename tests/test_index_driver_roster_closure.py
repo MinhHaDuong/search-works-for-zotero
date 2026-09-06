@@ -117,6 +117,14 @@ sixteen reasons written in a hurry to keep a suite green would be sixteen bare n
 longer type, which is the defect `EXCUSED` exists against. Ticket 0598's body records the
 population and the deferral.
 
+`plugins/` is the second root outside the scan, and it arrived rather than being carved
+out: ticket 0697 promoted the sitter's payload there from `bench/sdt-sitter/`, which moved
+two `.js` files out of this root with nothing going red. It holds no file in this class —
+the same `OPENS_SQLITE` predicate over `plugins/` names 0 files against 47 under `bench/`,
+so the zero is a measurement and not a probe that could not look. `UNPLUGGED_ROOT` names it
+and `test_a_promoted_plugin_root_ships_no_index_driver` pins the reading, so the day a
+plugin does open an index the scope decision is re-taken deliberately instead of never.
+
 So `SEARCH_ROOT` is a constant with a test on it, and a control asserts that a file of this
 exact class placed outside the root is NOT named. Widening the scan is then a deliberate
 edit that reds a named test, rather than a silent change of what the module claims. That is
@@ -152,6 +160,13 @@ SEARCH_ROOT = "bench"
 #: The root this scan deliberately does not walk, named so the exclusion is greppable and
 #: so widening the scan means editing a constant a test reads.
 UNSEARCHED_ROOT = "verification/probes"
+
+#: The other root outside the scan, and the one that arrived by a move rather than by a
+#: judgement: ticket 0697 promoted the sitter's payload out of `bench/sdt-sitter/`. Unlike
+#: `UNSEARCHED_ROOT` it is excluded because it holds nothing in this class, not because
+#: classifying what it holds was deferred — which is a claim about content, so a test reads
+#: it rather than trusting the sentence.
+UNPLUGGED_ROOT = "plugins"
 
 #: Source files a bench driver can be written in.
 SOURCE_SUFFIXES = {".py", ".mjs", ".js", ".cjs", ".ts"}
@@ -537,6 +552,42 @@ def test_the_search_root_is_the_one_the_module_documents():
     doc = __doc__ or ""
     assert f"`{SEARCH_ROOT}/`" in doc, "the docstring must name the root the scan walks"
     assert f"`{UNSEARCHED_ROOT}/`" in doc, "the docstring must name what the root leaves out"
+    assert f"`{UNPLUGGED_ROOT}/`" in doc, "the docstring must name every root left out"
+
+
+def test_a_promoted_plugin_root_ships_no_index_driver():
+    """`plugins/` is out of scope because it holds nothing in this class, not by fiat.
+
+    Ticket 0697 moved two `.js` files out of `SEARCH_ROOT` and nothing noticed — the
+    arriving half of the defect this module's last docstring paragraph names. The
+    exclusion is therefore a reading, taken with the module's own predicate, and this
+    is what re-opens the decision the day a plugin opens an index.
+
+    The `bench/` arm is the positive control: the same predicate over the searched root
+    must name many files, or a zero here would mean the predicate had stopped matching
+    rather than that the directory is clean.
+    """
+    def opens_an_index(root: Path) -> list[str]:
+        return [path.relative_to(REPO).as_posix()
+                for path in sorted((REPO / root).rglob("*"))
+                if path.is_file() and path.suffix in SOURCE_SUFFIXES
+                and OPENS_SQLITE.search(path.read_text(encoding="utf-8", errors="replace"))]
+
+    assert (REPO / UNPLUGGED_ROOT).is_dir(), (
+        f"{UNPLUGGED_ROOT}/ is gone — re-derive the exclusion rather than leaving a claim "
+        "about a directory that no longer exists"
+    )
+    assert len(opens_an_index(SEARCH_ROOT)) > 10, (
+        "the control arm found almost nothing under the searched root, so the predicate "
+        "has stopped matching and the reading below means nothing"
+    )
+    found = opens_an_index(UNPLUGGED_ROOT)
+    assert not found, (
+        f"{UNPLUGGED_ROOT}/ now ships an index driver: {found}. Either widen SEARCH_ROOT "
+        "and rewrite the docstring's WHERE THE SCAN LOOKS section, or excuse these the way "
+        f"{UNSEARCHED_ROOT}/ is excused — but the exclusion can no longer rest on the "
+        "directory holding nothing in this class."
+    )
 
 
 def test_the_inventory_stays_inside_the_search_root():

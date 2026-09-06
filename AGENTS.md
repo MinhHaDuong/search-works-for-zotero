@@ -23,8 +23,9 @@ each.
 | [`SYNC.md`](SYNC.md) | Live account of Zotero and zoteus upstream movement |
 | [`STATE.md`](STATE.md) | Compact live operational handoff and pointers; owns no requirements, measurements, or history |
 | [`tickets/`](tickets/) | Work train, tracked with [git-erg](https://github.com/MinhHaDuong/git-erg) |
-| [`bench/`](bench/) | Executable probes and acceptance-harness work |
+| [`bench/`](bench/) | Executable probes, one-off measurement scripts, and acceptance-harness work |
 | [`bench/results/`](bench/results/) | Committed raw evidence behind reported figures |
+| [`plugins/`](plugins/) | Zotero plugins this repo ships: source with its own manifest, version and install lifecycle — a probe belongs in `bench/` |
 | [`verification/`](verification/) | Reports that settle a factual question, and the probes that produced them |
 | [`UPSTREAM`](UPSTREAM) | Machine-readable zoteus review baseline |
 

@@ -791,3 +791,52 @@ def test_the_marker_does_not_exempt_a_neighbouring_line(tmp_path):
         },
     )
     assert cm.run(repo) == 1
+
+
+# --- the scope, which a directory move can take a file out of --------------------
+#
+# Ticket 0697 promoted the sitter's payload from `bench/sdt-sitter/` to a top-level
+# `plugins/sdt-sitter/`. Nothing went red: the guard's roster named `bench/`, so two
+# delivered files left its scope and it went on printing that nothing else names a
+# model — the all-clear indistinguishable from "I could not look", reached by a move
+# rather than by a bad flag. Guarding a departure is the easy half; a file arriving
+# somewhere the roster does not name is the half that stays silent.
+
+
+def load_packager():
+    """`bench/build_sdt_sitter.py`, loaded by path like the guard above.
+
+    Imported for `SOURCE` alone. The packager decides which directory becomes the
+    XPI, which makes it the authority on where delivered source lives; the guard
+    holds its roster by hand because it is itself loaded with no `bench/` on
+    `sys.path`, so this test is what keeps the two from drifting.
+    """
+    spec = importlib.util.spec_from_file_location(
+        "bss", REPO / "bench" / "build_sdt_sitter.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_a_model_id_named_in_a_promoted_plugin_directory_is_caught(tmp_path):
+    """The positive control for the widened roster, and it must fail on the old one.
+
+    A planted id, one directory away from `bench/`. Against `SCANNED_ROOTS =
+    ("bench",)` this fixture comes back 0 — the file is simply never opened — which
+    is what the real tree looked like the moment the payload moved.
+    """
+    repo = build(tmp_path, {"plugins/sdt-sitter/bootstrap.js":
+                            "const m = 'intfloat/multilingual-e5-large';\n"})
+    assert cm.run(repo) == 1
+
+
+def test_the_scanned_roots_name_the_directory_the_payload_is_packaged_from():
+    """A promotion that forgets this roster is a scope this guard cannot report.
+
+    Pinned against the packager rather than a literal: the next move edits `SOURCE`,
+    and this is what then says the guard was left behind.
+    """
+    top = load_packager().SOURCE.split("/")[0]
+    assert top in cm.SCANNED_ROOTS, (
+        f"{top}/ is packaged into the XPI and no scanned root names it: "
+        f"{cm.SCANNED_ROOTS}")
