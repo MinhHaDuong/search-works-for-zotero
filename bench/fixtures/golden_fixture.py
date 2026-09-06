@@ -446,8 +446,14 @@ def _desired_attachment(
 
 
 def _managed_equal(item: dict, desired: dict) -> bool:
+    """Zotero's API omits a field written as the empty string (a deliberately empty
+    language field comes back absent, padme 2026-09-06), so an absent field equals a
+    desired empty string; every other difference is drift."""
     data = _data(item)
-    return all(data.get(field) == value for field, value in desired.items())
+    return all(
+        data.get(field, "" if isinstance(value, str) else None) == value
+        for field, value in desired.items()
+    )
 
 
 def _update_payload(item: dict, desired: dict) -> dict:

@@ -2274,3 +2274,45 @@ def test_inject_refuses_a_transclusion_skeleton_unless_it_declares_a_failure_con
     del recipe[0]["min_body_chars"]
     recipe[0]["failure_control"] = copy.deepcopy(CONTROL_DECLARATION)
     gf.inject(recipe, cache, MemoryZotero(), collection_key="COLLECT1", library_type="group")
+
+
+def test_an_empty_string_field_zotero_omits_is_not_drift(tmp_path):
+    """Zotero's API leaves out a field written as the empty string: a parent injected with
+    language_field "" came back with no `language` key at all (padme, 2026-09-06), so the
+    second inject rewrote 53 parents and the export refused the first of them as drift.
+    An absent field equals a desired empty string, in the harness and in the loader."""
+    payloads = (b"%PDF-1.4\npdf body\n", b"<html><body>same body</body></html>")
+    recipe = ruled_recipe(payloads)
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "invented-pdf.pdf").write_bytes(payloads[0])
+    (cache / "invented-html.html").write_bytes(payloads[1])
+    zotero = MemoryZotero()
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+    parent = next(item for item in zotero.items.values() if item["data"]["itemType"] == "journalArticle")
+    del parent["data"]["language"]  # what Zotero's API answers for an empty field
+    writes = len(zotero.writes)
+    counts = gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+    assert counts["updated_parents"] == 0 and len(zotero.writes) == writes
+    assert gf._managed_equal(parent, {"language": ""}) and not gf._managed_equal(parent, {"language": "en"})
+    assert not gf._managed_equal(parent, {"title": ""}), "a real value against an empty desire is still drift"
+
+    recipe_path = tmp_path / "recipe.json"
+    recipe_path.write_text(json.dumps(recipe), encoding="utf-8")
+    for key, item in zotero.items.items():
+        if item["data"]["itemType"] == "attachment":
+            zotero.fulltexts[key] = {"content": "same body", "indexedPages": 1, "totalPages": 1, "version": 17}
+    snapshot = tmp_path / "export"
+    gf.export_snapshot(
+        recipe, zotero, collection_key="COLLECT1", destination=snapshot,
+        library={"type": "group", "id": 7}, zotero_client_version="10.0.1-test",
+        pdf_max_pages=100, text_max_length=500000, index_max_chars=40000, cache_dir=cache,
+    )
+    items_path = snapshot / "items.json"
+    items = json.loads(items_path.read_text(encoding="utf-8"))
+    for item in items:
+        if item["data"].get("itemType") == "journalArticle":
+            item["data"].pop("language", None)
+    items_path.write_text(json.dumps(items), encoding="utf-8")
+    accepted = run_loader(snapshot, recipe_path)
+    assert accepted.returncode == 0, accepted.stderr

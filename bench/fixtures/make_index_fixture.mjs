@@ -161,7 +161,10 @@ function notesOf(doc) { return Array.isArray(doc.notes) ? doc.notes : []; }
 
 function requireFields(data, expected, label) {
   for (const [field, value] of Object.entries(expected)) {
-    if (JSON.stringify(canonicalJson(data[field])) !== JSON.stringify(canonicalJson(value))) {
+    // Zotero's API omits a field written as the empty string (a deliberately empty
+    // language field comes back absent), so an absent field equals an expected ''.
+    const actual = value === '' && !Object.hasOwn(data, field) ? '' : data[field];
+    if (JSON.stringify(canonicalJson(actual)) !== JSON.stringify(canonicalJson(value))) {
       throw new Error(`${label}: ${field} does not match the source recipe`);
     }
   }
