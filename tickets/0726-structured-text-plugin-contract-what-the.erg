@@ -49,7 +49,7 @@ is what the structured route adds.
 - `SPEC.md` §5.2.4 (the extract shim's source selection, re-cut in the same
   change as this ticket), §5.2.2 (the chunk key the response must feed),
   §5.2.7/C3 (the streaming property the paging clause protects), C1, C2.
-- `bench/sdt-sitter/` — the existing plugin, which today warms packs and
+- `plugins/sdt-sitter/` — the existing plugin, which today warms packs and
   deliberately opens no endpoint. Whether the contract lands there or in a
   second plugin is the author's call, not this ticket's.
 - `verification/probes/sdt_read.py` — the pack reader. It stops being a port

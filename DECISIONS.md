@@ -4329,21 +4329,49 @@ put to the author. Implementation waits for the feature freeze to lift on
 - **Whether zoteus consumes the structured-text service's chunks as final,
   or takes its blocks and chunks them here (claude, 2026-09-06, from the
   author's plugin premise; ticket 0726).** The service can serve both, so
-  this is a consumption decision, not a capability one. Taking its chunks
-  adopts #6012's merging rule, which folds a section below its token minimum
-  forward into its neighbour — and this design's boundary ruling is
-  deliberately stricter, never merging two sections each able to stand alone,
-  a divergence SPEC.md already records as intentional. It also moves every
-  chunk-geometry experiment out of this tree and into a plugin release.
-  Against that: its chunks are the ones the platform itself will embed, so
-  consuming them is what makes our passages comparable to the platform's.
-  **Recommendation: consume blocks as the source of truth and keep chunking
-  here, while serving the plugin's chunks as a measurable second arm.** That
-  keeps the boundary ruling and cheap geometry experiments, and it turns the
-  question into one an experiment settles with a number — the two chunkers
-  over the same documents — rather than a preference. The recommendation is
-  reversible in one direction only: the chunk key records which chunker cut a
-  passage, so switching later re-embeds what actually moved.
+  this is a consumption decision, not a capability one. **The first version
+  of this question recommended keeping the chunking here, on the ground that
+  #6012's chunker folds a section below its token minimum forward into its
+  neighbour where this design's ruling never merges. Measurement partly
+  reverses that recommendation, and the reversal is the useful part.**
+
+  Measured on doudou 2026-09-06 over the 4 873 packed PDFs, cutting at
+  heading blocks — the boundary #6012 chunks on — and approximating its
+  120-token minimum at ~92 words: **272 172 sections, of which 92 552 (34,0 %)
+  are sub-minimum, holding 2 915 111 words, or 2,52 % of the text.** So the
+  merge rule fires on a third of all boundaries and touches a fortieth of the
+  words. Per document the sub-minimum share runs 7,1 % / 26,1 % / 57,1 % at
+  the p10 / p50 / p90.
+
+  What those sections are decides the question, and they are not one thing.
+  Of 93 686 classified: **34,0 % carry zero words** — a heading immediately
+  followed by another heading, a stack rather than content — and a further
+  8,0 % carry ten words or fewer. Merging those is *correct*, and this
+  design's never-merge rule is wrong about them: it would orphan some 39 000
+  headings onto near-empty passages, each one embedded and each one able to
+  win a query. The remaining **40,7 % carry 31 to 92 words** and are real
+  short sections — an acknowledgements block, a task-force roster, a numbered
+  subsection of 31 words — about 38 000 of them, 14 % of all sections. Those
+  are the ones that lose their own heading path to a neighbour under the
+  platform's rule, and the cost is R24's locator rather than retrieval: a hit
+  in such a section reports the next section's heading.
+
+  **So both rules are wrong, in opposite directions, and neither side of the
+  original question was the right question.** The evidence points at a merge
+  threshold well below 120 tokens and well above zero — the 10-to-30-word
+  band is where the stacks end and real sections begin. **Recommendation:
+  consume the service's chunks, and make the merge threshold a parameter of
+  the contract rather than a constant inside the chunker.** That takes the
+  platform's chunker whole, which is the licence-clean way to run its actual
+  code, and still lets this design set the boundary its own ruling cares
+  about. It also retires the second argument the first version made — that
+  geometry experiments would become plugin releases — which was weak anyway,
+  since the plugin is the author's own code and not a third party's.
+
+  Consequence if adopted: the never-merge clause of the boundary ruling is
+  amended rather than kept, and the amendment is what the numbers above
+  support. The chunk key records which chunker cut a passage, so a later
+  change of mind re-embeds only what actually moved.
 
 - **How the embedder's token budget crosses the service boundary (claude,
   2026-09-06; ticket 0726).** #6012's chunk ceiling is not a constant: it is
