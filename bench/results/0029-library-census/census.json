@@ -1,0 +1,1059 @@
+{
+ "groups": {
+  "305258": {
+   "attachment_link_mode": {
+    "embedded_image": 236,
+    "imported_file": 3528,
+    "imported_url": 3340,
+    "linked_url": 173
+   },
+   "attachments": 7277,
+   "fulltext_entries": 6075,
+   "items_total": 13582,
+   "notes": 509,
+   "top_level_records": 5758,
+   "trash_items": 15
+  }
+ },
+ "personal": {
+  "attachments": {
+   "child": 9297,
+   "content_type": {
+    "": 117,
+    "application/epub+zip": 5,
+    "application/msword": 161,
+    "application/octet-stream": 1,
+    "application/pdf": 5298,
+    "application/rtf": 1,
+    "application/vnd.apple.pages": 3,
+    "application/vnd.google-earth.kmz": 1,
+    "application/vnd.mozilla.xul+xml": 2,
+    "application/vnd.ms-excel": 55,
+    "application/vnd.ms-excel.sheet.macroEnabled.12": 3,
+    "application/vnd.ms-powerpoint": 4,
+    "application/vnd.oasis.opendocument.graphics": 1,
+    "application/vnd.oasis.opendocument.presentation": 2,
+    "application/vnd.oasis.opendocument.spreadsheet": 6,
+    "application/vnd.oasis.opendocument.text": 50,
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation": 27,
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": 155,
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": 181,
+    "application/vnd.rar": 4,
+    "application/x-mobipocket-ebook": 3,
+    "application/xhtml+xml": 1,
+    "application/zip": 8,
+    "image/gif": 3,
+    "image/jpeg": 54,
+    "image/png": 61,
+    "image/webp": 1,
+    "image/x-xcf": 1,
+    "text/csv": 2,
+    "text/html": 3076,
+    "text/markdown": 7,
+    "text/plain": 4,
+    "text/xml": 11
+   },
+   "content_type_by_link_mode": {
+    "": {
+     "imported_file": 7,
+     "imported_url": 24,
+     "linked_url": 86
+    },
+    "application/epub+zip": {
+     "imported_file": 5
+    },
+    "application/msword": {
+     "imported_file": 160,
+     "imported_url": 1
+    },
+    "application/octet-stream": {
+     "imported_file": 1
+    },
+    "application/pdf": {
+     "imported_file": 3645,
+     "imported_url": 1591,
+     "linked_file": 3,
+     "linked_url": 59
+    },
+    "application/rtf": {
+     "imported_file": 1
+    },
+    "application/vnd.apple.pages": {
+     "imported_file": 3
+    },
+    "application/vnd.google-earth.kmz": {
+     "imported_file": 1
+    },
+    "application/vnd.mozilla.xul+xml": {
+     "imported_url": 2
+    },
+    "application/vnd.ms-excel": {
+     "imported_file": 55
+    },
+    "application/vnd.ms-excel.sheet.macroEnabled.12": {
+     "imported_file": 3
+    },
+    "application/vnd.ms-powerpoint": {
+     "imported_file": 4
+    },
+    "application/vnd.oasis.opendocument.graphics": {
+     "imported_file": 1
+    },
+    "application/vnd.oasis.opendocument.presentation": {
+     "imported_file": 2
+    },
+    "application/vnd.oasis.opendocument.spreadsheet": {
+     "imported_file": 6
+    },
+    "application/vnd.oasis.opendocument.text": {
+     "imported_file": 50
+    },
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation": {
+     "imported_file": 27
+    },
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+     "imported_file": 155
+    },
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+     "imported_file": 181
+    },
+    "application/vnd.rar": {
+     "imported_file": 4
+    },
+    "application/x-mobipocket-ebook": {
+     "imported_file": 3
+    },
+    "application/xhtml+xml": {
+     "imported_url": 1
+    },
+    "application/zip": {
+     "imported_file": 8
+    },
+    "image/gif": {
+     "imported_file": 3
+    },
+    "image/jpeg": {
+     "imported_file": 53,
+     "imported_url": 1
+    },
+    "image/png": {
+     "imported_file": 61
+    },
+    "image/webp": {
+     "imported_file": 1
+    },
+    "image/x-xcf": {
+     "imported_file": 1
+    },
+    "text/csv": {
+     "imported_file": 2
+    },
+    "text/html": {
+     "imported_file": 18,
+     "imported_url": 2757,
+     "linked_url": 301
+    },
+    "text/markdown": {
+     "imported_file": 5,
+     "linked_file": 2
+    },
+    "text/plain": {
+     "imported_file": 4
+    },
+    "text/xml": {
+     "imported_file": 11
+    }
+   },
+   "link_mode": {
+    "imported_file": 4481,
+    "imported_url": 4377,
+    "linked_file": 5,
+    "linked_url": 446
+   },
+   "total": 9309
+  },
+  "attachments_per_record": {
+   "0": 1118,
+   "1": 4639,
+   "10": 5,
+   "11": 4,
+   "12": 7,
+   "13": 2,
+   "15": 3,
+   "16": 1,
+   "18": 1,
+   "2": 1343,
+   "25": 1,
+   "3": 220,
+   "4": 135,
+   "5": 19,
+   "6": 33,
+   "7": 2,
+   "8": 5,
+   "9": 2,
+   "99": 1
+  },
+  "attachments_per_record_quantiles": {
+   "max": 99,
+   "mean": 1.23,
+   "min": 0,
+   "n": 7541,
+   "p10": 0,
+   "p25": 1,
+   "p50": 1,
+   "p75": 1,
+   "p90": 2,
+   "p99": 5
+  },
+  "collections": {
+   "collections_per_record": {
+    "0": 1259,
+    "1": 4208,
+    "2": 1863,
+    "3": 197,
+    "4": 11,
+    "5": 3
+   },
+   "records_in_collections": 6282,
+   "records_in_no_collection": 1259
+  },
+  "fulltext": {
+   "by_content_type": {
+    "": {
+     "entry_version_zero": 0,
+     "file_attachments": 31,
+     "state": {
+      "unindexed": 31
+     },
+     "with_entry": 0,
+     "without_entry": 31
+    },
+    "application/epub+zip": {
+     "entry_version_zero": 0,
+     "file_attachments": 5,
+     "state": {
+      "indexed": 5
+     },
+     "with_entry": 5,
+     "without_entry": 0
+    },
+    "application/msword": {
+     "entry_version_zero": 0,
+     "file_attachments": 161,
+     "state": {
+      "unindexed": 161
+     },
+     "with_entry": 0,
+     "without_entry": 161
+    },
+    "application/octet-stream": {
+     "entry_version_zero": 0,
+     "file_attachments": 1,
+     "state": {
+      "unindexed": 1
+     },
+     "with_entry": 0,
+     "without_entry": 1
+    },
+    "application/pdf": {
+     "entry_version_zero": 460,
+     "file_attachments": 5239,
+     "state": {
+      "indexed": 4195,
+      "partial": 584,
+      "unindexed": 460
+     },
+     "with_entry": 5239,
+     "without_entry": 0
+    },
+    "application/rtf": {
+     "entry_version_zero": 0,
+     "file_attachments": 1,
+     "state": {
+      "unindexed": 1
+     },
+     "with_entry": 0,
+     "without_entry": 1
+    },
+    "application/vnd.apple.pages": {
+     "entry_version_zero": 0,
+     "file_attachments": 3,
+     "state": {
+      "unindexed": 3
+     },
+     "with_entry": 0,
+     "without_entry": 3
+    },
+    "application/vnd.google-earth.kmz": {
+     "entry_version_zero": 0,
+     "file_attachments": 1,
+     "state": {
+      "unindexed": 1
+     },
+     "with_entry": 0,
+     "without_entry": 1
+    },
+    "application/vnd.mozilla.xul+xml": {
+     "entry_version_zero": 0,
+     "file_attachments": 2,
+     "state": {
+      "unindexed": 2
+     },
+     "with_entry": 0,
+     "without_entry": 2
+    },
+    "application/vnd.ms-excel": {
+     "entry_version_zero": 0,
+     "file_attachments": 55,
+     "state": {
+      "unindexed": 55
+     },
+     "with_entry": 0,
+     "without_entry": 55
+    },
+    "application/vnd.ms-excel.sheet.macroEnabled.12": {
+     "entry_version_zero": 0,
+     "file_attachments": 3,
+     "state": {
+      "unindexed": 3
+     },
+     "with_entry": 0,
+     "without_entry": 3
+    },
+    "application/vnd.ms-powerpoint": {
+     "entry_version_zero": 0,
+     "file_attachments": 4,
+     "state": {
+      "unindexed": 4
+     },
+     "with_entry": 0,
+     "without_entry": 4
+    },
+    "application/vnd.oasis.opendocument.graphics": {
+     "entry_version_zero": 0,
+     "file_attachments": 1,
+     "state": {
+      "unindexed": 1
+     },
+     "with_entry": 0,
+     "without_entry": 1
+    },
+    "application/vnd.oasis.opendocument.presentation": {
+     "entry_version_zero": 0,
+     "file_attachments": 2,
+     "state": {
+      "unindexed": 2
+     },
+     "with_entry": 0,
+     "without_entry": 2
+    },
+    "application/vnd.oasis.opendocument.spreadsheet": {
+     "entry_version_zero": 0,
+     "file_attachments": 6,
+     "state": {
+      "unindexed": 6
+     },
+     "with_entry": 0,
+     "without_entry": 6
+    },
+    "application/vnd.oasis.opendocument.text": {
+     "entry_version_zero": 0,
+     "file_attachments": 50,
+     "state": {
+      "unindexed": 50
+     },
+     "with_entry": 0,
+     "without_entry": 50
+    },
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation": {
+     "entry_version_zero": 0,
+     "file_attachments": 27,
+     "state": {
+      "unindexed": 27
+     },
+     "with_entry": 0,
+     "without_entry": 27
+    },
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+     "entry_version_zero": 0,
+     "file_attachments": 155,
+     "state": {
+      "unindexed": 155
+     },
+     "with_entry": 0,
+     "without_entry": 155
+    },
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+     "entry_version_zero": 0,
+     "file_attachments": 181,
+     "state": {
+      "unindexed": 181
+     },
+     "with_entry": 0,
+     "without_entry": 181
+    },
+    "application/vnd.rar": {
+     "entry_version_zero": 0,
+     "file_attachments": 4,
+     "state": {
+      "unindexed": 4
+     },
+     "with_entry": 0,
+     "without_entry": 4
+    },
+    "application/x-mobipocket-ebook": {
+     "entry_version_zero": 0,
+     "file_attachments": 3,
+     "state": {
+      "unindexed": 3
+     },
+     "with_entry": 0,
+     "without_entry": 3
+    },
+    "application/xhtml+xml": {
+     "entry_version_zero": 0,
+     "file_attachments": 1,
+     "state": {
+      "indexed": 1
+     },
+     "with_entry": 1,
+     "without_entry": 0
+    },
+    "application/zip": {
+     "entry_version_zero": 0,
+     "file_attachments": 8,
+     "state": {
+      "unindexed": 8
+     },
+     "with_entry": 0,
+     "without_entry": 8
+    },
+    "image/gif": {
+     "entry_version_zero": 0,
+     "file_attachments": 3,
+     "state": {
+      "unindexed": 3
+     },
+     "with_entry": 0,
+     "without_entry": 3
+    },
+    "image/jpeg": {
+     "entry_version_zero": 0,
+     "file_attachments": 54,
+     "state": {
+      "unindexed": 54
+     },
+     "with_entry": 0,
+     "without_entry": 54
+    },
+    "image/png": {
+     "entry_version_zero": 0,
+     "file_attachments": 61,
+     "state": {
+      "unindexed": 61
+     },
+     "with_entry": 0,
+     "without_entry": 61
+    },
+    "image/webp": {
+     "entry_version_zero": 0,
+     "file_attachments": 1,
+     "state": {
+      "unindexed": 1
+     },
+     "with_entry": 0,
+     "without_entry": 1
+    },
+    "image/x-xcf": {
+     "entry_version_zero": 0,
+     "file_attachments": 1,
+     "state": {
+      "unindexed": 1
+     },
+     "with_entry": 0,
+     "without_entry": 1
+    },
+    "text/csv": {
+     "entry_version_zero": 0,
+     "file_attachments": 2,
+     "state": {
+      "indexed": 2
+     },
+     "with_entry": 2,
+     "without_entry": 0
+    },
+    "text/html": {
+     "entry_version_zero": 113,
+     "file_attachments": 2775,
+     "state": {
+      "indexed": 2640,
+      "unavailable": 22,
+      "unindexed": 113
+     },
+     "with_entry": 2775,
+     "without_entry": 0
+    },
+    "text/markdown": {
+     "entry_version_zero": 0,
+     "file_attachments": 7,
+     "state": {
+      "indexed": 7
+     },
+     "with_entry": 7,
+     "without_entry": 0
+    },
+    "text/plain": {
+     "entry_version_zero": 0,
+     "file_attachments": 4,
+     "state": {
+      "indexed": 4
+     },
+     "with_entry": 4,
+     "without_entry": 0
+    },
+    "text/xml": {
+     "entry_version_zero": 11,
+     "file_attachments": 11,
+     "state": {
+      "unindexed": 11
+     },
+     "with_entry": 11,
+     "without_entry": 0
+    }
+   },
+   "caps": {
+    "chars_indexed_beyond_stock_cap": 3,
+    "chars_over_stock_cap": 3,
+    "chars_partial": 0,
+    "chars_truncated_at_stock_cap": 0,
+    "pages_indexed_beyond_stock_cap": 37,
+    "pages_over_stock_cap": 620,
+    "pages_partial": 584,
+    "pages_truncated_at_stock_cap": 583,
+    "stock_char_cap": 500000,
+    "stock_page_cap": 100,
+    "with_char_counters": 2659,
+    "with_page_counters": 4779
+   },
+   "counters_measured": 8863,
+   "entries_in_census": 8045,
+   "entries_version_zero": 584,
+   "file_attachments": 8863,
+   "non_file_attachments": 446,
+   "quantiles": {
+    "indexedChars": {
+     "max": 1124660,
+     "mean": 17205.08,
+     "min": 1,
+     "n": 2659,
+     "p10": 2480,
+     "p25": 4162,
+     "p50": 8141,
+     "p75": 15200,
+     "p90": 37322,
+     "p99": 137130
+    },
+    "indexedPages": {
+     "max": 1019,
+     "mean": 35.21,
+     "min": 1,
+     "n": 4779,
+     "p10": 5,
+     "p25": 9,
+     "p50": 19,
+     "p75": 46,
+     "p90": 100,
+     "p99": 100
+    },
+    "totalChars": {
+     "max": 1124660,
+     "mean": 17205.08,
+     "min": 1,
+     "n": 2659,
+     "p10": 2480,
+     "p25": 4162,
+     "p50": 8141,
+     "p75": 15200,
+     "p90": 37322,
+     "p99": 137130
+    },
+    "totalPages": {
+     "max": 3949,
+     "mean": 54.16,
+     "min": 1,
+     "n": 4779,
+     "p10": 5,
+     "p25": 9,
+     "p50": 19,
+     "p75": 46,
+     "p90": 129,
+     "p99": 552
+    }
+   }
+  },
+  "item_types": {
+   "artwork": 4,
+   "bill": 7,
+   "blogPost": 190,
+   "book": 509,
+   "bookSection": 278,
+   "computerProgram": 4,
+   "conferencePaper": 289,
+   "dataset": 7,
+   "dictionaryEntry": 1,
+   "document": 181,
+   "email": 2,
+   "encyclopediaArticle": 15,
+   "forumPost": 8,
+   "hearing": 2,
+   "interview": 6,
+   "journalArticle": 2511,
+   "letter": 15,
+   "magazineArticle": 222,
+   "manuscript": 95,
+   "map": 10,
+   "newspaperArticle": 260,
+   "patent": 1,
+   "preprint": 37,
+   "presentation": 271,
+   "report": 1915,
+   "statute": 41,
+   "thesis": 57,
+   "videoRecording": 1,
+   "webpage": 602
+  },
+  "items_total": 17532,
+  "language": {
+   "normalised": {
+    "ar": 4,
+    "de": 17,
+    "empty": 3891,
+    "en": 2607,
+    "fr": 245,
+    "id": 1,
+    "it": 2,
+    "ja": 2,
+    "nl": 1,
+    "ru": 5,
+    "sv": 1,
+    "unmapped": 4,
+    "vi": 761
+   },
+   "raw": {
+    "": 3891,
+    "(free text, binned)": 4,
+    "AR; CN; EN; FR; RU; SP": 1,
+    "Anglais": 96,
+    "DE": 4,
+    "EN": 483,
+    "EN and VN": 1,
+    "EN, BR": 1,
+    "EN, CN": 1,
+    "EN, CN, RU, SP": 1,
+    "EN, FR": 7,
+    "EN, FR, ES": 2,
+    "EN, FR; Ar; Ru, Cn": 1,
+    "EN, TH, ID, VN": 1,
+    "EN, VI": 3,
+    "EN, VN": 56,
+    "EN, Vi": 1,
+    "EN,VN": 1,
+    "EN-VN": 4,
+    "ENG": 1,
+    "En": 13,
+    "English": 109,
+    "FR": 70,
+    "FR, EN": 2,
+    "Fr": 2,
+    "France": 1,
+    "Français": 28,
+    "French": 4,
+    "GB": 1,
+    "NL": 1,
+    "RU, EN": 1,
+    "Texte en français et en anglais.": 1,
+    "VI": 4,
+    "VI, EN": 1,
+    "VN": 310,
+    "VN, EN": 14,
+    "VN, EN, FR": 1,
+    "Vi": 9,
+    "Vietnamese": 30,
+    "ar en es fr ru zh": 2,
+    "ar, ch, en, fr, ru, sp": 1,
+    "de": 13,
+    "en": 1520,
+    "en & vi": 14,
+    "en, fr": 2,
+    "en, vi": 1,
+    "en, vn": 3,
+    "en-AU": 2,
+    "en-GB": 51,
+    "en-GB, fr-FR": 1,
+    "en-US": 150,
+    "en-US, VN, FR": 1,
+    "en-ZA": 2,
+    "en-au": 2,
+    "en-gb": 9,
+    "en-us": 4,
+    "en_US": 1,
+    "en_sg": 1,
+    "eng": 58,
+    "fr": 112,
+    "fr-FR": 9,
+    "fr-fr": 1,
+    "fra": 13,
+    "fre": 4,
+    "id": 1,
+    "it": 1,
+    "it-IT": 1,
+    "ja": 1,
+    "ja-JP": 1,
+    "ru": 4,
+    "sv": 1,
+    "vi": 286,
+    "vi-VN": 69,
+    "vi-vn": 3,
+    "vietnamese": 21,
+    "vn": 11,
+    "vn, en": 1,
+    "vn,en": 1
+   },
+   "records_with_language": 3650
+  },
+  "notes": {
+   "child": 682,
+   "length_chars_quantiles": {
+    "max": 494030,
+    "mean": 6353.44,
+    "min": 0,
+    "n": 682,
+    "p10": 19,
+    "p25": 81,
+    "p50": 435,
+    "p75": 6106,
+    "p90": 13132,
+    "p99": 55187
+   },
+   "per_record": {
+    "0": 6922,
+    "1": 561,
+    "2": 54,
+    "3": 3,
+    "4": 1
+   },
+   "records_with_notes": 619,
+   "standalone": 0,
+   "total": 682
+  },
+  "orphan_children": 0,
+  "pdf_attachments_per_record": {
+   "0": 3088,
+   "1": 3924,
+   "11": 4,
+   "12": 6,
+   "13": 2,
+   "15": 1,
+   "16": 1,
+   "2": 437,
+   "25": 1,
+   "3": 48,
+   "4": 17,
+   "5": 5,
+   "6": 2,
+   "7": 1,
+   "8": 2,
+   "9": 2
+  },
+  "records": {
+   "abstract_length_chars_quantiles": {
+    "max": 6019,
+    "mean": 814.53,
+    "min": 5,
+    "n": 3124,
+    "p10": 125,
+    "p25": 187,
+    "p50": 700,
+    "p75": 1250,
+    "p90": 1669,
+    "p99": 3090
+   },
+   "decade": {
+    "0s": 5,
+    "1620s": 1,
+    "1770s": 1,
+    "1800s": 1,
+    "1830s": 2,
+    "1860s": 1,
+    "1870s": 3,
+    "1880s": 6,
+    "1890s": 4,
+    "1900s": 4,
+    "1910s": 6,
+    "1920s": 10,
+    "1930s": 16,
+    "1940s": 8,
+    "1950s": 48,
+    "1960s": 50,
+    "1970s": 74,
+    "1980s": 80,
+    "1990s": 250,
+    "2000s": 1620,
+    "2010s": 3240,
+    "2020s": 2013,
+    "2910s": 1,
+    "undated": 97
+   },
+   "tags_per_record_quantiles": {
+    "max": 142,
+    "mean": 0.8,
+    "min": 0,
+    "n": 7541,
+    "p10": 0,
+    "p25": 0,
+    "p50": 0,
+    "p75": 0,
+    "p90": 3,
+    "p99": 10
+   },
+   "title_script": {
+    "cyrillic": 4,
+    "latin_ascii": 6349,
+    "latin_plus_cyrillic": 1,
+    "latin_plus_greek": 1,
+    "latin_plus_modifier": 1,
+    "latin_with_diacritics": 1142,
+    "no_letters": 43
+   },
+   "with_abstract": 3124,
+   "with_date": 7402,
+   "with_tags": 1319
+  },
+  "records_by_type_and_attachment": {
+   "artwork": {
+    "items": 4,
+    "with_any_attachment": 4,
+    "with_note": 0,
+    "with_pdf": 1
+   },
+   "bill": {
+    "items": 7,
+    "with_any_attachment": 7,
+    "with_note": 0,
+    "with_pdf": 5
+   },
+   "blogPost": {
+    "items": 190,
+    "with_any_attachment": 173,
+    "with_note": 31,
+    "with_pdf": 13
+   },
+   "book": {
+    "items": 509,
+    "with_any_attachment": 439,
+    "with_note": 38,
+    "with_pdf": 304
+   },
+   "bookSection": {
+    "items": 278,
+    "with_any_attachment": 124,
+    "with_note": 23,
+    "with_pdf": 98
+   },
+   "computerProgram": {
+    "items": 4,
+    "with_any_attachment": 0,
+    "with_note": 0,
+    "with_pdf": 0
+   },
+   "conferencePaper": {
+    "items": 289,
+    "with_any_attachment": 166,
+    "with_note": 20,
+    "with_pdf": 157
+   },
+   "dataset": {
+    "items": 7,
+    "with_any_attachment": 5,
+    "with_note": 2,
+    "with_pdf": 1
+   },
+   "dictionaryEntry": {
+    "items": 1,
+    "with_any_attachment": 1,
+    "with_note": 1,
+    "with_pdf": 1
+   },
+   "document": {
+    "items": 181,
+    "with_any_attachment": 126,
+    "with_note": 8,
+    "with_pdf": 79
+   },
+   "email": {
+    "items": 2,
+    "with_any_attachment": 2,
+    "with_note": 0,
+    "with_pdf": 0
+   },
+   "encyclopediaArticle": {
+    "items": 15,
+    "with_any_attachment": 15,
+    "with_note": 1,
+    "with_pdf": 4
+   },
+   "forumPost": {
+    "items": 8,
+    "with_any_attachment": 7,
+    "with_note": 1,
+    "with_pdf": 0
+   },
+   "hearing": {
+    "items": 2,
+    "with_any_attachment": 2,
+    "with_note": 0,
+    "with_pdf": 1
+   },
+   "interview": {
+    "items": 6,
+    "with_any_attachment": 5,
+    "with_note": 2,
+    "with_pdf": 1
+   },
+   "journalArticle": {
+    "items": 2511,
+    "with_any_attachment": 2228,
+    "with_note": 142,
+    "with_pdf": 1822
+   },
+   "letter": {
+    "items": 15,
+    "with_any_attachment": 14,
+    "with_note": 2,
+    "with_pdf": 9
+   },
+   "magazineArticle": {
+    "items": 222,
+    "with_any_attachment": 204,
+    "with_note": 54,
+    "with_pdf": 41
+   },
+   "manuscript": {
+    "items": 95,
+    "with_any_attachment": 41,
+    "with_note": 13,
+    "with_pdf": 22
+   },
+   "map": {
+    "items": 10,
+    "with_any_attachment": 7,
+    "with_note": 0,
+    "with_pdf": 2
+   },
+   "newspaperArticle": {
+    "items": 260,
+    "with_any_attachment": 241,
+    "with_note": 50,
+    "with_pdf": 23
+   },
+   "patent": {
+    "items": 1,
+    "with_any_attachment": 1,
+    "with_note": 0,
+    "with_pdf": 1
+   },
+   "preprint": {
+    "items": 37,
+    "with_any_attachment": 35,
+    "with_note": 12,
+    "with_pdf": 35
+   },
+   "presentation": {
+    "items": 271,
+    "with_any_attachment": 247,
+    "with_note": 10,
+    "with_pdf": 215
+   },
+   "report": {
+    "items": 1915,
+    "with_any_attachment": 1730,
+    "with_note": 162,
+    "with_pdf": 1526
+   },
+   "statute": {
+    "items": 41,
+    "with_any_attachment": 28,
+    "with_note": 7,
+    "with_pdf": 16
+   },
+   "thesis": {
+    "items": 57,
+    "with_any_attachment": 49,
+    "with_note": 3,
+    "with_pdf": 45
+   },
+   "videoRecording": {
+    "items": 1,
+    "with_any_attachment": 0,
+    "with_note": 0,
+    "with_pdf": 0
+   },
+   "webpage": {
+    "items": 602,
+    "with_any_attachment": 522,
+    "with_note": 37,
+    "with_pdf": 31
+   }
+  },
+  "standalone_attachments": 12,
+  "standalone_notes": 0,
+  "top_level_records": 7541,
+  "top_level_total": 7553,
+  "trash": {
+   "children": 1,
+   "item_types": {
+    "attachment": 1,
+    "book": 1
+   },
+   "items": 2,
+   "top_level": 1
+  }
+ },
+ "provenance": {
+  "base_url": "http://localhost:23119/api/",
+  "fulltext_counters_source": "plugin",
+  "groups": [
+   305258
+  ],
+  "host": "doudou",
+  "library_last_modified_version": "1257",
+  "measured_at": "2026-09-06T10:05:21+00:00",
+  "platform": "Linux-7.0.0-30-generic-x86_64-inconnu-with-glibc2.43",
+  "python": "3.12.10",
+  "sqlite": "/home/haduong/data/Zotero/zotero.sqlite",
+  "zotero_api_version": "3",
+  "zotero_schema_version": "44",
+  "zotero_version": "10.0.1"
+ },
+ "sqlite": {
+  "annotations_by_library_type": {
+   "group": {
+    "highlight": 36,
+    "image": 2
+   }
+  },
+  "annotations_in_trash": 0,
+  "collections_by_library_type": {
+   "group": 2,
+   "user": 90
+  },
+  "feed_items": 0,
+  "feed_libraries": 0,
+  "libraries_by_type": {
+   "group": 2,
+   "user": 1
+  },
+  "note": "immutable read: rows still in an un-checkpointed WAL are not visible"
+ },
+ "ticket": "0711"
+}

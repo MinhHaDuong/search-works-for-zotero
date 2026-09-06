@@ -2,7 +2,7 @@
 
 - **Status:** COMPLETE
 - **Author:** Minh Ha-Duong (CNRS)
-- **Date:** 2026-09-05
+- **Date:** 2026-09-06
 
 ## 1. Introduction
 
@@ -2214,6 +2214,9 @@ filesystem. These are checks before admission, not enforced peak resource caps.
 The sitter submits at most one attachment at a time, only to an idle native
 worker, at native background priority. It does not claim independent OS nice
 control or preemption. Unavailable resource readings prevent admission.
+The sitter censuses the library 30 seconds after each sweep ends, and 10 minutes
+after one that ended idle having found nothing to index, so a library with no
+work left is not re-walked twice a minute all night.
 An unresolved native promise prevents further submissions; lack of progress
 alone does not prove a hang. Failures are suppressed for the session by source
 and processor identity, without a private durable ledger.
@@ -2230,14 +2233,53 @@ observations leave the corresponding estimate unavailable. These empirical
 estimates do not assert reliable predictive coverage or bounded completion time.
 
 The sitter may cache verified pack metadata and successful duration observations
-across sessions. Reuse checks attachment identity, live source hash, processor
-versions and the pack's filesystem fingerprint. Source or processor changes
+across sessions. Reuse checks attachment identity, source hash, processor
+versions and the pack's filesystem fingerprint. The source hash is read from the
+file, then reused for at most 24 hours while the source's path, byte size and
+modification time are all unchanged; past that bound it is read again whether or
+not they match, so a source rewritten in place at the same size and modification
+time is detected within a day. The hash memory is in-session only and is
+discarded on disable or restart. Source or processor changes
 invalidate observations; pack deletion or changed fingerprints force inspection.
 The cache is derived, not a work ledger: active jobs and failures are never
 persisted. Missing, corrupt or unwritable cache falls back to native inspection
 and fresh measurements. It contains no text, titles or source paths and keeps
 only the latest observation per attachment. An active document exceeding its
 empirical upper duration makes the displayed finish time unavailable, not now.
+
+The sitter records its own state transitions to the host's debug output and to
+a volatile in-session ring. A record carries a timestamp, a kind, a level and
+scalars only, among them the attachment's identity — its numeric item id, or for
+a failure the opaque library-and-item-key pair the cache is addressed by — its
+byte size and page count, a progress fraction, elapsed and since-progress
+milliseconds, a phase or refusal reason, and for a failure the error's class
+name alone. No error message text enters the channel. Platform error prose names
+whatever it happens to name — a full file path, an attachment's title — and is
+not separable from it by pattern, while debug output is submittable to the
+vendor and so not session-confined; the on-screen failure line still shows the
+author the file and the whole error, locally. The channel's reach is what is
+specified here and not the host's own: an initialization that rejects is handed
+whole to the host error console, the ordinary fate of an unhandled plugin
+failure, which this rule neither widens nor claims to narrow. Neither sink
+receives extracted text, attachment or parent titles, or library source paths —
+the cache paragraph's privacy rule, scoped here to library and document content.
+The one path-bearing record is the startup self-check, and the path is the
+plugin's own install location, recorded beside its manifest and host versions
+so a build that vanishes from the extension list stays identifiable; on a
+first initialization it reaches the debug output alone, the
+ring not existing yet. The ring keeps the last 2 000 records, discarding the
+oldest, and is never written to disk: it makes a hang readable within the
+session that suffered it and nothing beyond. This is not an exception to the
+rule above — there is still no private durable ledger, and neither sink outlives
+the session. The channel seals at shutdown, so nothing lands behind the shutdown
+record, and a diagnostic that throws is swallowed rather than raised into the
+sitter's loop.
+
+One preference, `extensions.sdt-pack-sitter.debug`, gates the trace level:
+per-progress and per-heartbeat records, and the wait for an idle native worker.
+It is declared nowhere and reads as unset, which the sitter treats as off, so
+debug output stays quiet until the author creates it; error and state records go
+out regardless. The ring takes every level whatever the preference says.
 
 **D3 — serve-stale.** The verified violation (`dropStaleVectors` →
 `clearVectors()` at open) dies. Vectors carry per-row embedder keys: on a

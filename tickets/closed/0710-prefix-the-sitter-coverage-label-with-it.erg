@@ -1,0 +1,117 @@
+%erg 0.1
+Title: Prefix the sitter coverage label with its library scope
+Created: 2026-09-06
+Author: claude
+Closed: autoclosed — PR #385
+
+--- log ---
+2026-09-06T09:10Z claude created
+2026-09-06T09:10Z claude note Filed out of 0694's placement review. 0694 asked for the scoped form and 0691 does not carry it; without this ticket the requirement would close with 0691 and lose its owner. Scoped to the wording only -- placement is settled by the same-day ruling in DECISIONS.md.
+2026-09-06T10:06Z claude note Re-verification of PR #376 caught this ticket's Context quoting a DECISIONS.md sentence that the same PR's second commit had already reworded away -- "to be fixed in the tooltip rather than by moving the icon" exists nowhere in the ledger, and it contradicted Action 1 four lines below. Requoted verbatim from the ledger as it now stands, which leaves the surface to this ticket. Lesson for the next quoting ticket: a quotation and its source are only safe when the quote is exact, so the pair can be checked mechanically; this one was checked by normalizing whitespace and em dashes and asserting substring containment.
+2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED, no changes. Blocked-by 0691 now closed. Confirmed no separate aria-label exists in bootstrap.js today (the toolbar `label` attribute doubles as visible text and accessible name), so the tooltip/accessible-name/both surface choice is still genuinely open as the ticket states. `Zotero.Libraries.get(libraryID).name` is an established, simple API already used elsewhere in this repo -- no over-engineering risk. Ready to execute as written.
+2026-09-06T12:05Z claude note Surface decided: the tooltip, and only the tooltip. The accessible name was the tempting choice because none exists today -- the toolbar `label` attribute doubles as the accessible name and churns with the spinner glyph and the percentage, which is exactly the instability 0686 wants fixed. But this ticket's first exit criterion requires the coverage figure to travel with the scope, and a string carrying a percentage cannot be stable across state transitions: writing it into aria-label would fight 0686 rather than serve it. 0686 also states its own precondition -- verify assistive-technology claims in a real window before implementing -- which nothing here can do. So the accessible name stays 0686's, unclaimed. Second finding, not in the ticket's premise: `host.list` is `SELECT itemID FROM itemAttachments`, unscoped, so the census covers every library. Naming a single library would have replaced one false scope with another, and `Zotero.Libraries.get(libraryID)` has no correct libraryID to take here; describeSDTScope enumerates from `getAll()` instead -- one name, up to three, then a count.
+2026-09-06T15:36Z claude note Round 1 review, 5/5 perspectives, no request-changes (correctness approve, four comment). Two findings fixed: the outer try guarded only the getAll() call, leaving the iteration it was written for outside it, and the harness's identifier check read a hyphen as a leaked internal phase name now that library names flow into the same string. The second fix's first fixture was vacuous -- "Groupe bio-énergie" cannot match /[a-z]-[a-z]/ because é is outside [a-z] -- and only the control arm caught it; the fixture is now "Groupe socio-technique" and the stalled-phase loop runs under it, so the scoping is exercised rather than green by accident. Also fixed from the synthesizer's own list: a test comment that misstated its arithmetic, a stale "bare count" comment the same PR had already corrected at its twin site, describeSDTCoverage missing from UI_SITES, getSDTCoverage dereferencing state.counts unguarded on a render path whose shape this ticket widened, and a dangling "Index" between two em dashes before the first census. Two findings left to the author, not acted on: the same false scope survives on the dialog heading (bootstrap.js:325, figure at :254) and the launch prompt (:582, pinned by test_sdt_sitter.py:446), which wants a follow-up ticket since 0710 names none of them; and amending a closed ticket's body has no precedent here. Disclosed: this PR both widened exit criterion 3 and ticked it.
+2026-09-06T15:40Z sim closed — autoclosed — PR #385
+--- body ---
+## Context
+
+Ticket 0694 reviewed where the sitter button belongs and, in doing so, gave
+the reason the coverage label needs a scope prefix. The button sits in the
+items toolbar, whose scope is one library and one collection, while the
+number it shows -- how much of the index is built -- is global background
+work. The author's ruling keeps the button there. DECISIONS.md, same day:
+the scope mismatch "survives it as a wording problem, and which surface
+carries the library name -- tooltip, accessible name, or both -- is ticket
+0710's to decide, not this entry's." The surface is this ticket's call, and
+the ruling deliberately does not make it.
+
+Ticket 0691 replaced the sitter's SDT jargon with plain language and settled
+on "Index 43 %". Its vocabulary table pins that unscoped form, its acceptance
+criteria never mention a prefix, and PR #369 ships it as written. So the
+prefix is nobody's work until it is filed, which is what this ticket does.
+
+The scoped form 0694 names is:
+
+    Library: My Library — Index 43 %
+
+Where it belongs is part of the work, not a given. The toolbar label is a
+narrow strip and 0691 chose its wording for that strip; the tooltip and the
+accessible name are the surfaces 0694 identified as able to carry the longer
+string in either toolbar position. Ticket 0686 wants a stable accessible
+name, so whatever this ticket writes into `aria-label` has to satisfy 0686
+too rather than fight it.
+
+## Relevant files
+
+- `bench/sdt-sitter/bootstrap.js` -- builds the toolbar label, its tooltip
+  and its accessible name. Moves to `plugins/sdt-sitter/` under ticket 0697;
+  rebase onto whichever path is current when this ticket runs.
+- `tests/test_sdt_sitter.py` -- 0691's source-anchored wording tests, one per
+  template site. The new assertion joins them.
+- `tickets/0691-sitter-plain-language-vocabulary.erg` -- the vocabulary table
+  this extends.
+- `tickets/0686-*.erg` -- the stable-accessible-name requirement the
+  `aria-label` must keep satisfying.
+
+## Actions
+
+1. Decide which surface carries the scope: tooltip, accessible name, or both.
+   Say why in the commit message; the toolbar strip itself is 0691's and does
+   not have to grow.
+2. Name the library from Zotero's own library record, not a hardcoded
+   "My Library" -- a group library must read as itself.
+3. Extend 0691's vocabulary table with the scoped form, so one table remains
+   the whole vocabulary.
+
+## Test
+
+A source-anchored test in `tests/test_sdt_sitter.py` asserting the chosen
+surface carries the library name in front of the coverage figure, scoped to
+that site's block rather than the whole file, in 0691's style. Run it against
+the unfixed tree first: it must fail, and it must fail because the prefix is
+absent, not because the block moved.
+
+A test that greps for the literal "My Library" would pass on a hardcoding and
+is the wrong test -- assert that the label is built from the library record.
+
+## Verification
+
+- [x] The new test is red before the change and green after. All three
+      source-anchored tests were run against the unfixed tree first; the
+      tooltip one failed on "the tooltip states no library scope" with the
+      block found, so it failed on the absent prefix and not on a moved
+      anchor.
+- [x] A group library shows its own name, not "My Library". Driven in
+      `tests/sdt_sitter_scheduler.mjs` with "Groupe Climat", a name the
+      source cannot contain, so a hardcoding could not satisfy it. Four
+      control arms were run on the committed tree: hardcoding the name
+      fails both the driven assertion and the source-anchored provenance
+      test; dropping the per-record guard lets a lazily-unloaded group
+      library throw out of the tooltip; dropping the feed filter renders
+      "Bibliothèques : Ma bibliothèque, Nature News"; and narrowing the
+      outer guard back to the `getAll()` call alone lets a non-iterable
+      return escape as `TypeError: (libraries || []) is not iterable`.
+      A fifth arm caught a vacuous test of my own: the first hyphenated
+      fixture was "Groupe bio-énergie", and the check it exercises is
+      `/[a-z]-[a-z]/`, which "é" cannot match -- so un-scoping the regex
+      still passed. "Groupe socio-technique" replaced it.
+- [x] `make check` green.
+
+## Invariants
+
+- 0691's toolbar wording stays as ratified unless this ticket rules
+  otherwise on the record; this is an addition, not a revision.
+- 0686's accessible name stays stable across state transitions.
+- Placement does not change: the button stays in the items toolbar.
+
+## Exit criteria
+
+- [x] The coverage figure reaches the user with its library scope attached,
+      on a surface named in the commit message. The surface is the tooltip,
+      and only the tooltip; the commit message argues why the accessible
+      name was rejected.
+- [x] The library name comes from Zotero, not from a literal.
+      `describeSDTScope` reads `Zotero.Libraries.getAll()` and asks each
+      record for its name.
+- [x] 0691's vocabulary table records the scoped form, in three rows: one
+      library, several, and more than three.

@@ -1,0 +1,91 @@
+%erg 0.1
+Title: Document the sitter's diagnostic channel and its debug pref in SPEC
+Created: 2026-09-06
+Author: claude
+Closed: autoclosed — PR #386
+
+--- log ---
+2026-09-06T09:01Z claude created
+2026-09-06T09:01Z claude note Split out of 0689 rather than folded into it. SPEC.md carries a date-is-version header, several sibling sitter tickets are in flight against the same file, and 0689's own acceptance bar is entirely code and tests. Deferring it in 0689's log alone would have archived the deferral when 0689 closed, which is why this exists as a ticket.
+
+2026-09-06T10:25Z sim note blocker 0689 closed — Blocked-by removed.
+2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED. Confirmed against shipped code: SPEC.md/README still silent on the diagnostic channel (only manifest.json's description field mentions it, an addon-manager string almost nobody reads); emit()/classifyError()/DEBUG_PREF/createSDTJournal all match this ticket's Context section. One precision note for the writer: scope the "no text, titles or source paths" claim to library/attachment content -- the `startup` emit records `rootURI` (the plugin's own install path), which is technically a path too, just not a library/document source path.
+2026-09-06T15:33Z sim closed — autoclosed — PR #386
+--- body ---
+## Context
+
+Ticket 0689 gave the sitter a diagnostic channel: state transitions to
+`Zotero.debug()`, plus a volatile 2 000-record ring readable within the
+session. It also introduced a user-visible preference,
+`extensions.sdt-pack-sitter.debug`, which gates the trace level.
+
+Neither is documented in prose. SPEC.md's sitter section says failures are
+suppressed "without a private durable ledger" — true, and now more strongly
+true since 0689 retired `sdt-sitter-errors.jsonl` — but it says nothing about
+what the sitter *does* record, where the author reads it, or that a
+preference exists at all. A reader of SPEC alone cannot find the channel, and
+a user cannot find the pref: `grep` over SPEC.md, README.md and the plugin
+manifest matches it nowhere.
+
+The gap was left deliberately. SPEC.md's header is date-is-version, so any
+edit bumps it; sitter siblings were in flight against the same file; and
+0689's acceptance criteria are entirely code and tests. Folding a spec
+paragraph into that PR would have mixed one concern with another and put a
+contended file in its diff.
+
+## Relevant files
+
+- `SPEC.md` — the sitter section (search "native SDT pack sitter"), beside
+  the existing paragraphs on the disposable cache and its privacy rule
+- `bench/sdt-sitter/scheduler.js` — `createSDTJournal`, the ring
+- `bench/sdt-sitter/bootstrap.js` — `emit`, `DEBUG_PREF`, `heartbeatTick`
+- `bench/sdt-sitter/manifest.json` — where a default pref value would be
+  declared, if one is wanted
+- `verification/SDT-SITTER-LAUNCH.md` — the user-facing install doc, which
+  tells the author what the plugin does and does not do; its line about
+  persisting no private ledger stays true, but it says nothing about where to
+  read the sitter's own state
+
+## Actions
+
+1. Add a paragraph to SPEC.md's sitter section stating: the sitter emits its
+   state transitions through the platform's own debug channel; a volatile
+   in-session ring holds the last transitions and is never written to disk;
+   the ring carries no text, titles or source paths, the same privacy rule
+   the cache paragraph already states; and one preference gates the trace
+   level while error and state always go through.
+2. Bump SPEC.md's `Date:` header, per the date-is-version convention.
+3. Decide whether the pref needs a declared default and a line in README.md,
+   or whether an undeclared pref read with a `false` default is enough for an
+   experimental bench plugin. Recommended default: declare nothing, document
+   the name in SPEC only — the plugin is experimental and has no options UI.
+4. Add a sentence to `verification/SDT-SITTER-LAUNCH.md` telling the author
+   where to read the sitter's state: Help → Debug Output Logging → View
+   Output, and the pref that widens it.
+
+## Test
+
+`bench/check_progress.py` already reads SPEC.md and counts requirements;
+run it before and after and confirm the count moves as expected rather than
+silently. No new guard: this repo's guard budget is net-negative, and a
+paragraph's presence is what review is for.
+
+## Verification
+
+- [ ] SPEC.md names the debug channel, the ring's volatility, its privacy
+      rule and the pref
+- [ ] `SPEC.md` `Date:` header bumped
+- [ ] `make check` green
+
+## Invariants
+
+- The paragraph must not contradict the existing "without a private durable
+  ledger" sentence — it explains what replaced the retired file, it does not
+  carve an exception out of the ruling.
+- No persisted file is introduced. If that ever changes it needs the author's
+  explicit ruling first, exactly as 0689 recorded.
+
+## Exit criteria
+
+- SPEC.md documents the sitter's diagnostic channel and the pref that gates
+  its trace level, with the date bumped and the suite green.
