@@ -12,7 +12,7 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate schema-gate sitter-version sitter-install sitter-verify-install golden golden-run
+.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate schema-gate sitter-version sitter-install sitter-verify-install golden golden-run menagerie-ris menagerie-package
 
 # Where the acceptance layer's arenas live: outside the repository, because the
 # residue sweep fills them with a target's derived state and bench/ is scanned
@@ -149,6 +149,8 @@ help:
 	@echo "make upstream-rebaseline — the UPSTREAM block for the current tip, computed, and the recipe"
 	@echo "make golden      — the golden gate: validate the question bank against the committed export, then score bench/results/golden/replies.json (exit 3 not-run when absent)"
 	@echo "make golden-run  — drive the bank through fork/dist/index.js over the replayed export and write bench/results/golden/replies.json"
+	@echo "make menagerie-ris     — regenerate bench/fixtures/export/menagerie.ris from recipe.json and the export (committed; a test holds it regenerable)"
+	@echo "make menagerie-package — MENAGERIE_PACKAGE=/path/out.zip: the RIS beside attachments/, each file sha256-checked against the recipe from MENAGERIE_CACHE (never committed)"
 
 check: deps lint figures models names progress tickets ticket-logs sitter-version check-fast
 
@@ -381,6 +383,30 @@ golden-run:
 	python3 bench/golden_run.py --bank "$(GOLDEN_BANK)" --export "$(GOLDEN_EXPORT)" \
 	  --server "$(GOLDEN_SERVER)" --data-dir "$(GOLDEN_DATA_DIR)" --output "$(GOLDEN_REPLIES)" \
 	  $(if $(GOLDEN_PREVIOUS),--previous "$(GOLDEN_PREVIOUS)",)
+
+# The Menagerie as a colleague imports it (ticket 0721): one RIS record per
+# recipe parent, an L1 link per verified attachment at attachments/<id>.<ext>
+# relative to the file. The RIS is derived data and committed, like
+# recipe-pinned.json: tests/test_export_ris.py holds it byte-identical to what
+# this target writes, so a recipe or export change without a regeneration is
+# red. The bytes are never committed (Malynes alone is 352 MB): the package
+# target lays them out in a zip you name, taking each file from the recipe's
+# verified fetch cache only after its sha256 matches the recipe, and refusing
+# the whole package on the first mismatch or missing file. The package rewrites
+# the RIS on its way, with the same bytes when nothing has changed.
+MENAGERIE_RECIPE ?= bench/fixtures/recipe.json
+MENAGERIE_EXPORT ?= bench/fixtures/export
+MENAGERIE_RIS ?= $(MENAGERIE_EXPORT)/menagerie.ris
+MENAGERIE_CACHE ?= $(HOME)/data/golden-fixture-cache
+MENAGERIE_PACKAGE ?=
+
+menagerie-ris:
+	python3 bench/fixtures/export_ris.py --recipe "$(MENAGERIE_RECIPE)" --export "$(MENAGERIE_EXPORT)" --ris "$(MENAGERIE_RIS)"
+
+menagerie-package:
+	@test -n "$(MENAGERIE_PACKAGE)" || { echo "Name the zip: make menagerie-package MENAGERIE_PACKAGE=/path/out.zip" >&2; exit 2; }
+	python3 bench/fixtures/export_ris.py --recipe "$(MENAGERIE_RECIPE)" --export "$(MENAGERIE_EXPORT)" --ris "$(MENAGERIE_RIS)" \
+	  --cache-dir "$(MENAGERIE_CACHE)" --package "$(MENAGERIE_PACKAGE)"
 
 upstream-checkout:
 	@test ! -e fork || { echo "Refusing to overwrite existing fork/" >&2; exit 1; }

@@ -207,6 +207,37 @@ def test_record_only_parent_gets_no_l1_and_carries_its_doi():
     assert "N1" not in tags
 
 
+def test_isbn_goes_to_extra_where_sn_would_import_as_something_else():
+    # RIS.js fieldMap.SN: ISSN on journalArticle/magazineArticle/newspaperArticle, reportNumber on
+    # report; golden_fixture.py writes such an ISBN to Extra as `ISBN: ...`, and so does the RIS
+    for item_type in ("journalArticle", "report", "newspaperArticle"):
+        pairs = er.record_tags(record_only(item_type=item_type, citation={"isbn": "978-0-00-000000-1"}))
+        tags = dict(pairs)
+        assert "SN" not in tags, item_type
+        assert [v for t, v in pairs if t == "M2"][-1] == "ISBN: 978-0-00-000000-1"
+    # a legacy `document` imports as journalArticle (GEN) and never carries an ISBN, its URL is UR
+    assert tags_of(legacy_record())["UR"].startswith("https://archive.org/")
+    # on a book SN reads back as ISBN and stays a field, after the ticket-0029 Extra lines
+    pairs = er.record_tags(attachments_record())
+    assert dict(pairs)["SN"] == "978-0-00-000000-1"
+    assert not any(v.startswith("ISBN:") for t, v in pairs if t == "M2")
+
+
+def test_an_author_with_a_comma_is_emitted_as_given_and_warned_about(caplog):
+    # RIS.js case "creators": lastName = text before the first comma, firstName = the rest.
+    # The fixture holds one single-field name; the RIS cannot say so, so the value is kept
+    # and the loss is logged. Three records of the 2026-09-06 recipe carry such a name.
+    author = "Albert Einstein and Hermann Minkowski, translated by M. N. Saha and S. N. Bose"
+    with caplog.at_level("WARNING", logger="export_ris"):
+        tags = tags_of(legacy_record(author=author))
+    assert tags["AU"] == author
+    assert any("comma" in record.message for record in caplog.records)
+    caplog.clear()
+    with caplog.at_level("WARNING", logger="export_ris"):
+        tags_of(legacy_record(author="Nguyễn Du; Abel des Michels (ed.)"))  # a semicolon is not split
+    assert not caplog.records
+
+
 def test_unpinned_attachment_gets_no_l1():
     tags = tags_of(legacy_record(sha256=None, sha256_reason="blocked"))
     assert "L1" not in tags
@@ -385,7 +416,8 @@ def test_cli_main_writes_the_ris_and_returns_zero(tmp_path):
     recipe_file.write_text(json.dumps([legacy_record()]), encoding="utf-8")
     out = tmp_path / "menagerie.ris"
     assert er.main(["--recipe", str(recipe_file), "--no-export", "--ris", str(out)]) == 0
-    assert parse_ris(out.read_text(encoding="utf-8"))[0]["TY"] == ["GEN"]
+    # read_bytes, not read_text: universal newlines would fold the CRLF the file must carry
+    assert parse_ris(out.read_bytes().decode("utf-8"))[0]["TY"] == ["GEN"]
 
 
 def test_cli_main_returns_one_on_a_refused_package(tmp_path):

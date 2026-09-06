@@ -389,3 +389,114 @@ old and new bytes or their text, decide whether the archive corrected or
 replaced the file, and if the new bytes are the ones the corpus should carry,
 commit the new hash. That commit's diff is the review artifact, the same rule
 D11 applies to the pinned answer sets.
+
+## Import into your own Zotero (RIS package)
+
+Ticket 0721. Beside `items.json`, `fulltext/` and `manifest.json`, which the
+harness replays and no person can hand to Zotero, `export/menagerie.ris` is the
+Menagerie as a colleague imports it in one gesture: one RIS record per recipe
+parent, with its metadata, its managed tag, its Extra lines, its child notes,
+and one `L1` file link per attachment whose bytes the recipe has pinned, as a
+path relative to the RIS file (`attachments/<attachment id>.<ext>`). The RIS is
+derived data and committed, like `recipe-pinned.json`: `make menagerie-ris`
+writes it from `recipe.json` and `export/` (the export supplies each parent's
+Zotero key, as `ID`, and the record order), and `tests/test_export_ris.py` holds
+the committed file byte-identical to that output, so a recipe or export change
+without a regeneration is red. The output carries no timestamp.
+
+The bytes are never committed (Malynes alone is 352 MB). They are assembled
+locally:
+
+```bash
+make menagerie-ris                                        # export/menagerie.ris
+make menagerie-package MENAGERIE_PACKAGE=/path/menagerie.zip
+```
+
+The package is a zip holding `menagerie.ris` at its root, `IMPORT.txt`, and
+`attachments/<id>.<ext>` for every pinned attachment of a parent that is not
+`record_only`. Each file is taken from the recipe's verified fetch cache
+(`MENAGERIE_CACHE`, default `~/data/golden-fixture-cache`, the same directory
+`fetch_recipe.py --cache-dir` fills) only after its sha256 matches the recipe;
+a mismatch, a missing file or a symlink refuses the whole package and leaves
+nothing behind. Nothing is read from Zotero's storage. An unpinned record
+(`sha256: null`) gets a record and no `L1`; a `record_only` parent gets a
+record and no file.
+
+**The gesture**, for the colleague. Unzip the archive, keeping `menagerie.ris`
+and `attachments/` side by side. In Zotero: File → Import… → "A file (BibTeX,
+RIS, Zotero RDF, etc.)" → choose `menagerie.ris`. Leave "Place imported
+collections and items into new collection" checked: the items land in a
+collection named after the file, `menagerie`. Under file handling, "Copy files
+to the Zotero storage folder" (the default) makes the library self-contained;
+"Link to files in original location" keeps them where they were unpacked, as
+linked files. Finish. Each `L1` becomes a child attachment of its parent.
+
+Why this works, read off Zotero's own code in the import direction
+(zotero/translators `RIS.js`, lastUpdated 2026-01-05; zotero/zotero
+`translate_item.js`, `fileInterface.js`, `translate_firefox.js`): `L1` maps to
+`attachments/PDF` (RIS.js `fieldMap`), the path is handed to the item saver,
+which resolves it as a URI against the RIS file first and as a path under the
+file's directory second (`_parsePathURI`, `_parseRelativePath`), then copies
+it (`Zotero.Attachments.importFromFile`) or, with the link option, links it
+(`linkFromFile`); the content type is sniffed from the file, so `L1` serves
+every format, and the attachment's title is the file name without its
+extension. `TY` is read through `importTypeMap`, `AU` without a comma becomes a
+single-field creator (`fieldMode = 1`), `LA` maps to `language`, `M2` to
+`extra` with repeated lines joined by newlines, `N1` to one child note per
+line (a value carrying HTML is stored as-is), `KW` to a tag, `DO` to `DOI`,
+`UR` to `url`, `DB` to `archive`, `AN` to `archiveLocation`, and `ID` is
+`__ignore`. The file is UTF-8 with a BOM and CRLF line endings, which the
+reader locks its charset on. The complete argument, mapping by mapping, is the
+module docstring of `export_ris.py`.
+
+**What RIS cannot express, and Zotero RDF would.** The RIS is a lossy view of
+the fixture, and the import will differ from the group library on these points:
+
+- *Item types without a TY.* `document` has no RIS type; it exports as `GEN`,
+  which imports as `journalArticle`. Every record of the 2026-09-06 recipe is a
+  legacy-shape `document`, so every one of the 26 imports as a journal article;
+  `make menagerie-ris` logs the count. `preprint` and `standard` fall to `GEN`
+  the same way. A ruled-shape record with a type of its own (`book`, `report`,
+  `thesis`, …) round-trips.
+- *Notes.* A note's HTML is folded to one line; its managed marker
+  (`zoteus-golden-note:<id>`) and its Zotero key are not carried, since RIS has
+  no tag on a child; and RIS.js drops an `N1` equal to the parent's title.
+- *Work relations.* Carried only as the text of the Extra line
+  `ticket-0029 work relations: […]`, which is also where the fixture keeps them;
+  RDF would carry Zotero's related-item links, of which the fixture has none.
+- *An empty language field.* RIS.js drops an empty value before mapping it, so
+  no `LA` is written and the import leaves the field empty, as the fixture has
+  it, by omission rather than by assertion. A malformed value on purpose
+  (`Français`, `en-US`) is carried verbatim.
+- *A creator with a comma.* RIS.js splits `AU` on the first comma into last and
+  first name; the fixture holds every author as one single-field name. The
+  value is emitted as given and the script warns; three records of the current
+  recipe are affected (the Einstein–Minkowski volume, the two des Michels
+  editions, whose names carry `translated by …` and `(ed., transl.)`).
+- *Tags.* Only the parent's `zoteus-golden-source:<id>` marker travels; the
+  attachment markers (`zoteus-golden-attachment:<id>`) do not.
+- *Collections.* RIS has no collection. Zotero puts everything in a new
+  collection named after the file, not in the fixture's collection `3AY48MA5`.
+- *Attachment metadata.* Title (becomes the file name minus its extension),
+  charset and content type (sniffed; the three `text/plain` wikitext files are
+  exactly where the fixture's Zotero guessed `windows-1252`), link mode (the
+  fixture's is `imported_file`), the recipe's `content_type_declared` lie, and
+  the attachment's Zotero key.
+- *Zotero keys.* `ID` carries the parent's key for a reader; the import mints
+  new keys. `manifest.json` stays the binding of keys to recipe records.
+- *An ISBN on a type whose `SN` means something else.* On a journal, magazine
+  or newspaper article `SN` imports as ISSN, on a report as report number, so
+  such an ISBN goes to Extra as `ISBN: …`, which is also what the fixture
+  writes to Zotero for a type without the field.
+
+**Checking an import** on a client, once the zip is unpacked beside nothing
+else: the new collection `menagerie` holds 26 items, all of type Journal
+Article (the current recipe), 17 of them with one child attachment and 9 with
+none (the 4 HAL, 4 Gallica and Malynes records, unpinned); every attachment
+opens, the 13 PDFs, the DjVu (`tran-trong-kim-1920-viet-nam-su-luoc-q1`) and
+the 3 wikitext files as text; each parent carries the tag
+`zoteus-golden-source:<id>`, an Extra field of four `ticket-0029` lines, the
+`archive` and `Loc. in Archive` fields, a URL, and a language except where the
+recipe's is empty; with "Link to files in original location", every
+attachment's path points into the unpacked `attachments/` directory and
+nothing was copied into Zotero's storage.
