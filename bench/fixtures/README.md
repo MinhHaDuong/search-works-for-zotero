@@ -183,6 +183,42 @@ an error page; default 1 000), `archive_checksums` (the archive's own md5 or
 sha1 where it publishes one), `page_count`, `provenance_check`,
 `wayback_capture` (for the unversioned database of record), `notes`.
 
+Optional, and checked by the validator when present: `failure_control`, the
+declaration the 2026-09-03 ruling requires of every failure control — an
+object with exactly `expected_state` (`unindexed`, Zotero's own name for an
+attachment it finished trying and left without full text),
+`expected_degradation` (why, in words a reader can check against the bytes),
+and `answer_set_participation` (`none`: a control is never a pinned answer).
+Three records carry it (author's rulings of 2026-09-04 and 2026-09-06): the
+Trần Trọng Kim DjVu, which Zotero's extraction dispatch never processes, and
+the two un-OCR'd scans, Trần Trọng Kim volume II and Ramsey 1931, which yield
+no text.
+
+## The pinned subset and the export
+
+`recipe-pinned.json` is derived data, not a second recipe: `select_hashed.py`
+writes it from `recipe.json` as the records whose every attachment carries a
+sha256, in the parent's order, and a test holds it byte-identical to that
+output. It is the one file `golden_fixture.py inject`, `golden_fixture.py
+export` and the offline replay all read, so the export manifest's
+`recipe_sha256` pins exactly the content the replay re-derives. Regenerate it
+whenever `recipe.json` gains a pinned hash, and re-export.
+
+The export (`golden_fixture.py export`, destination `export/`) is a raw
+capture of the live API: `items.json`, one `fulltext/<key>.json` per indexed
+attachment, and `manifest.json` binding each attachment row to its recipe
+record. A declared failure control is exported with `terminal_state`
+`unindexed`, no fulltext file, its declaration copied from the recipe and the
+state the reindex observed. It is accepted on evidence from the run itself:
+the reindex must have watched Zotero go idle and leave the attachment at the
+declared state, and the `/fulltext` census must have no row for it. Mere
+absence from the census is refused, because absence also describes text that
+was indexed once and vanished. The replay answers for a control as Zotero
+did: no census entry, 404 on its fulltext route, the item itself still served.
+An indexed attachment is refused when the reindex left its fulltext version
+unchanged, since Zotero resets that version on every local extraction and an
+unchanged one means the client held the item but never read the file.
+
 ## Re-pinning
 
 Run `python3 bench/fixtures/fetch_recipe.py`. Every document reports one of

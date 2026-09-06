@@ -12,6 +12,8 @@ recipe is known to mean something.
 
 import importlib.util
 import json
+
+import pytest
 import re
 import zipfile
 from pathlib import Path
@@ -230,6 +232,36 @@ def test_cap_expectations_are_independent_consistent_and_located_across_boundari
     offences = fr.validate([crossing])
     assert any("contradicts" in offence for offence in offences)
     assert any("before/after locators" in offence for offence in offences)
+
+
+@pytest.mark.parametrize("control, message", [
+    ({"expected_state": "unindexed", "expected_degradation": "no text layer"}, "must contain exactly"),
+    ({"expected_state": "partial", "expected_degradation": "x", "answer_set_participation": "none"}, "expected_state 'partial' unknown"),
+    ({"expected_state": "unindexed", "expected_degradation": " ", "answer_set_participation": "none"}, "expected_degradation is empty"),
+    ({"expected_state": "unindexed", "expected_degradation": "x", "answer_set_participation": "pinned"}, "no part in golden answer sets"),
+])
+def test_failure_control_declares_state_degradation_and_no_answer_part(control, message):
+    """DECISIONS.md 2026-09-03: every failure control declares its expected terminal or
+    degradation state and whether it takes part in golden answers."""
+    offences = fr.validate([good(failure_control=control)])
+    assert len(offences) == 1 and message in offences[0], offences
+    complete = {"expected_state": "unindexed", "expected_degradation": "no text layer",
+                "answer_set_participation": "none"}
+    assert fr.validate([good(failure_control=complete)]) == []
+
+
+def test_live_recipe_declares_the_three_ruled_failure_controls():
+    """Author, 2026-09-04 and 2026-09-06: the two Vietnamese dead-text volumes and the
+    Ramsey scan stay, exported and scored as failure controls."""
+    recipe = json.loads((FIXTURES / "recipe.json").read_text(encoding="utf-8"))
+    declared = {doc["id"]: doc["failure_control"] for doc in recipe if "failure_control" in doc}
+    assert set(declared) == {
+        "tran-trong-kim-1920-viet-nam-su-luoc-q1",
+        "tran-trong-kim-1928-viet-nam-su-luoc-q2",
+        "ramsey-1931-foundations-of-mathematics",
+    }
+    assert all(control["expected_state"] == "unindexed" for control in declared.values())
+    assert all(control["answer_set_participation"] == "none" for control in declared.values())
 
 
 def test_live_recipe_is_valid():

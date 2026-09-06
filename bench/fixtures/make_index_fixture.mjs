@@ -224,6 +224,17 @@ export function loadGoldenExport(directory, options = {}) {
           (source.selection_expectation === 'skipped-first-with-text' && !source.skip_reason))) {
         throw new Error(`${source.id}: source recipe lacks attachment semantics`);
       }
+      if (source.failure_control !== undefined) {
+        const control = source.failure_control;
+        if (!control || typeof control !== 'object' ||
+            JSON.stringify(Object.keys(control).sort()) !==
+              JSON.stringify(['answer_set_participation', 'expected_degradation', 'expected_state']) ||
+            control.expected_state !== 'unindexed' ||
+            typeof control.expected_degradation !== 'string' || !control.expected_degradation.trim() ||
+            control.answer_set_participation !== 'none') {
+          throw new Error(`${source.id}: source recipe has an invalid failure_control declaration`);
+        }
+      }
       sourceById.set(source.id, { parent: doc, source });
     }
     recipeById.set(doc.id, doc);
@@ -318,6 +329,32 @@ export function loadGoldenExport(directory, options = {}) {
     if (String(attachment.links?.enclosure?.href ?? '').startsWith('file:')) {
       throw new Error(`${recipeId}: linked-file enclosure discloses a machine path`);
     }
+    // A declared failure control (recipe `failure_control`) is exported with no full
+    // text: the extracting client finished and left it unindexed, and the replay must
+    // answer for it exactly as Zotero did -- no census entry, 404 on its fulltext route.
+    // The declaration and the export must agree in both directions, so a control that
+    // indexed after all, or an undeclared attachment exported empty, is refused.
+    if (row.terminal_state === 'unindexed') {
+      if (!source.failure_control) {
+        throw new Error(`${attachmentId}: exported without full text but not declared a failure control`);
+      }
+      if (row.fulltext_file !== null || row.fulltext_version !== null ||
+          JSON.stringify(canonicalJson(row.failure_control)) !== JSON.stringify(canonicalJson(source.failure_control)) ||
+          row.observed_state !== source.failure_control.expected_state ||
+          [row.indexed_pages, row.total_pages, row.indexed_chars, row.total_chars].some((v) => v !== null)) {
+        throw new Error(`${attachmentId}: failure-control export row does not match its declaration`);
+      }
+      if (existsSync(resolve(root, `fulltext/${key}.json`))) {
+        throw new Error(`${attachmentId}: failure control must not carry a fulltext file`);
+      }
+      consumedItemKeys.add(parent);
+      consumedItemKeys.add(key);
+      continue;
+    }
+    if (row.terminal_state !== 'indexed') throw new Error(`${attachmentId}: unknown terminal_state ${row.terminal_state}`);
+    if (source.failure_control) {
+      throw new Error(`${attachmentId}: declared failure control was exported as indexed; the declaration is stale`);
+    }
     const expectedFile = `fulltext/${key}.json`;
     if (row.fulltext_file !== expectedFile) throw new Error(`${recipeId}: fulltext locator must be ${expectedFile}`);
     if (!Number.isInteger(row.fulltext_version) || row.fulltext_version < 0) {
@@ -348,10 +385,13 @@ export function loadGoldenExport(directory, options = {}) {
   if (JSON.stringify(observedAttachmentOrder) !== JSON.stringify(expectedAttachmentOrder)) {
     throw new Error('manifest attachment order does not match the recipe');
   }
+  const declaredControls = [...sourceById.values()].filter(({ source }) => source.failure_control).length;
   if (manifest.parent_item_count !== recipe.length ||
       manifest.attachment_count !== sourceById.size ||
+      manifest.failure_control_count !== declaredControls ||
+      manifest.indexed_attachment_count !== sourceById.size - declaredControls ||
       !Number.isInteger(manifest.source_byte_count) || manifest.source_byte_count <= 0) {
-    throw new Error('manifest parent, attachment, or source-byte count does not match the recipe');
+    throw new Error('manifest parent, attachment, failure-control, or source-byte count does not match the recipe');
   }
   if (consumedItemKeys.size !== itemByKey.size || [...itemByKey.keys()].some((key) => !consumedItemKeys.has(key))) {
     throw new Error('items export contains a row not consumed by the recipe attachment mapping');

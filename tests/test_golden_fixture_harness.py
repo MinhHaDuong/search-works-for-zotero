@@ -454,13 +454,25 @@ def test_local_client_verifies_plugin_reindex_completion(monkeypatch):
         "key": "ATTACH01", "state": "indexed", "indexedPages": 2,
         "totalPages": 2, "version": 9,
     }]}
+    before = {"busy": False, "running": 0, "lastError": None, "items": [{
+        "key": "ATTACH01", "state": "indexed", "indexedPages": 2,
+        "totalPages": 2, "version": 8,
+    }]}
     responses = [
+        before,
         {"queued": [{"key": "ATTACH01", "libraryID": 2}], "missing": [], "notAttachments": []},
         idle_indexed,
         idle_indexed,
     ]
     monkeypatch.setattr(client, "_plugin_request", lambda *_args, **_kwargs: responses.pop(0))
-    client.reindex_fulltext(["ATTACH01"], poll=0, max_wait=1)
+    settled = client.reindex_fulltext(["ATTACH01"], poll=0, max_wait=1)
+
+    # The settled row is the export's only evidence that the reindex ran on this
+    # client: the state once idle, and the version before and after the run.
+    assert settled == {"ATTACH01": {
+        "state": "indexed", "indexedPages": 2, "totalPages": 2,
+        "indexedChars": None, "totalChars": None, "version": 9, "previous_version": 8,
+    }}
 
 
 @pytest.mark.parametrize("previous_md5, header, value", [
@@ -516,12 +528,18 @@ def test_reindex_accepts_a_genuinely_settled_unindexed_state(monkeypatch):
         "totalPages": 0, "version": 9,
     }]}
     responses = [
+        {"busy": False, "running": 0, "lastError": None, "items": [{
+            "key": "ATTACH01", "state": "unindexed", "indexedPages": None,
+            "totalPages": None, "version": None,
+        }]},
         {"queued": [{"key": "ATTACH01", "libraryID": 2}], "missing": [], "notAttachments": []},
         idle_unindexed,
         idle_unindexed,
     ]
     monkeypatch.setattr(client, "_plugin_request", lambda *_args, **_kwargs: responses.pop(0))
-    client.reindex_fulltext(["ATTACH01"], poll=0, max_wait=1)
+    settled = client.reindex_fulltext(["ATTACH01"], poll=0, max_wait=1)
+    assert settled["ATTACH01"]["state"] == "unindexed"
+    assert settled["ATTACH01"]["previous_version"] is None
 
 
 def test_reindex_still_times_out_when_genuinely_never_idle(monkeypatch):
@@ -532,6 +550,7 @@ def test_reindex_still_times_out_when_genuinely_never_idle(monkeypatch):
         library_type="group", library_id=4321, collection_key="COLLECT1"
     )
     responses = [
+        {"busy": False, "running": 0, "lastError": None, "items": []},
         {"queued": [{"key": "ATTACH01", "libraryID": 2}], "missing": [], "notAttachments": []},
     ]
 
@@ -565,6 +584,7 @@ def test_reindex_idle_must_hold_across_two_polls_not_one(monkeypatch):
         "totalPages": 0, "version": 9,
     }]}
     responses = [
+        {"busy": False, "running": 0, "lastError": None, "items": []},
         {"queued": [{"key": "ATTACH01", "libraryID": 2}], "missing": [], "notAttachments": []},
     ]
     status_calls = [0]
@@ -631,6 +651,7 @@ def test_export_is_raw_complete_atomic_and_bound_to_recipe(tmp_path):
         "recipe_id": "invented-1900-control",
         "parent_key": manifest["attachments"][0]["parent_key"],
         "attachment_key": attachment,
+        "terminal_state": "indexed",
         "fulltext_file": f"fulltext/{attachment}.json",
         "fulltext_version": 17,
         "indexed_pages": 2,
@@ -640,6 +661,8 @@ def test_export_is_raw_complete_atomic_and_bound_to_recipe(tmp_path):
     }]
     assert manifest["parent_item_count"] == 1
     assert manifest["attachment_count"] == 1
+    assert manifest["indexed_attachment_count"] == 1
+    assert manifest["failure_control_count"] == 0
     assert manifest["source_byte_count"] == len(b"%PDF-1.4\ncontrol\n")
     assert len(items) == 2
     assert fulltext["content"] == "offline golden control body"
@@ -1426,3 +1449,197 @@ def test_run_build_positive_done_and_nonbuild_controls(tmp_path, monkeypatch, bu
     rb.drive_server(args, {})
     assert json.loads(result_path.read_text())["peak_rss_kb"] == 7
     assert process.terminated and process.waited
+
+
+# --- Declared failure controls (DECISIONS.md 2026-09-03 and 2026-09-04): an attachment
+# --- Zotero genuinely cannot extract is exported without full text only on evidence
+# --- from the run itself, never on mere absence from the /fulltext census.
+
+CONTROL_DECLARATION = {
+    "expected_state": "unindexed",
+    "expected_degradation": "no full text: invented un-OCR'd scan, no text layer",
+    "answer_set_participation": "none",
+}
+
+
+def control_recipe(payload: bytes) -> list[dict]:
+    """One indexed record beside one declared failure control, both pinned to payload."""
+    recipe = recipe_for(payload)
+    control = copy.deepcopy(recipe[0])
+    control.update({"id": "invented-1901-scan", "title": "Invented scan", "year": 1901,
+                    "failure_control": copy.deepcopy(CONTROL_DECLARATION)})
+    recipe.append(control)
+    return recipe
+
+
+def injected_control_fixture(tmp_path):
+    payload = b"%PDF-1.4\ncontrol\n"
+    recipe = control_recipe(payload)
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    for doc in recipe:
+        (cache / f"{doc['id']}.pdf").write_bytes(payload)
+    zotero = MemoryZotero()
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+    keys = {}
+    for key, item in zotero.items.items():
+        if item["data"]["itemType"] == "attachment":
+            keys[gf._tag_values(item["data"])[0][len(gf.ATTACHMENT_TAG_PREFIX):]] = key
+    indexed, control = keys["invented-1900-control"], keys["invented-1901-scan"]
+    zotero.fulltexts[indexed] = {"content": "indexed body", "indexedPages": 1, "totalPages": 1, "version": 17}
+    return recipe, cache, zotero, indexed, control
+
+
+def settled_rows(indexed, control, *, control_state="unindexed", indexed_version=0, previous=17):
+    return {
+        indexed: {"state": "indexed", "indexedPages": 1, "totalPages": 1, "indexedChars": None,
+                  "totalChars": None, "version": indexed_version, "previous_version": previous},
+        control: {"state": control_state, "indexedPages": None, "totalPages": None,
+                  "indexedChars": None, "totalChars": None, "version": None, "previous_version": None},
+    }
+
+
+def test_export_accepts_a_declared_control_the_reindex_watched_settle_unindexed(tmp_path):
+    recipe, cache, zotero, indexed, control = injected_control_fixture(tmp_path)
+    zotero.reindex_fulltext = lambda keys: settled_rows(indexed, control)
+    destination = tmp_path / "with-control"
+    export_again(recipe, zotero, cache, destination)
+
+    manifest = json.loads((destination / "manifest.json").read_text())
+    assert manifest["attachment_count"] == 2
+    assert manifest["indexed_attachment_count"] == 1
+    assert manifest["failure_control_count"] == 1
+    rows = {row["recipe_id"]: row for row in manifest["attachments"]}
+    assert rows["invented-1900-control"]["terminal_state"] == "indexed"
+    assert rows["invented-1901-scan"] == {
+        "recipe_id": "invented-1901-scan", "parent_key": rows["invented-1901-scan"]["parent_key"],
+        "attachment_key": control, "terminal_state": "unindexed", "fulltext_file": None,
+        "fulltext_version": None, "failure_control": CONTROL_DECLARATION, "observed_state": "unindexed",
+        "indexed_pages": None, "total_pages": None, "indexed_chars": None, "total_chars": None,
+    }
+    assert sorted(path.name for path in (destination / "fulltext").iterdir()) == [f"{indexed}.json"]
+    items = json.loads((destination / "items.json").read_text())
+    assert {item["key"] for item in items} >= {indexed, control}
+    assert len(items) == 4
+
+    recipe_path = tmp_path / "control-recipe.json"
+    recipe_path.write_text(json.dumps(recipe), encoding="utf-8")
+    loaded = run_loader(destination, recipe_path)
+    assert loaded.returncode == 0, loaded.stderr
+    probe = """
+      import { loadGoldenExport, goldenReplayResponse } from './bench/fixtures/make_index_fixture.mjs';
+      const fx = loadGoldenExport(process.argv[1], { recipePath: process.argv[2] });
+      const base = '/api/groups/4321';
+      const census = goldenReplayResponse(fx, 'GET', `${base}/fulltext?since=0`);
+      const control = goldenReplayResponse(fx, 'GET', `${base}/items/${process.argv[3]}/fulltext`);
+      const item = goldenReplayResponse(fx, 'GET', `${base}/items/${process.argv[3]}`);
+      const top = goldenReplayResponse(fx, 'GET', `${base}/items/top?limit=100`);
+      console.log(JSON.stringify({ census: census.body, control: control.status, item: item.status,
+                                   top: top.body.length }));
+    """
+    done = subprocess.run(
+        ["node", "--input-type=module", "--eval", probe, str(destination), str(recipe_path), control],
+        cwd=REPO, text=True, capture_output=True, timeout=30,
+    )
+    assert done.returncode == 0, done.stderr
+    replay = json.loads(done.stdout)
+    # The replay answers for the control exactly as Zotero did: no census entry, 404
+    # on its fulltext route, while the item itself is still served.
+    assert replay == {"census": {indexed: 17}, "control": 404, "item": 200, "top": 2}
+
+
+def test_export_refuses_vanished_fulltext_even_when_the_reindex_settles_unindexed(tmp_path):
+    """The real regression the 2026-09-04 loosening could not tell apart: full text that
+    existed and vanished. Zotero reports the same settled 'unindexed' for a file it
+    could not read as for a scan with no text, so the observation alone is not enough;
+    an undeclared attachment stays refused however the reindex settled."""
+    recipe, dest, attachment, zotero, cache, _ = exported_snapshot(tmp_path)
+    zotero.fulltexts.clear()
+    zotero.reindex_fulltext = lambda keys: {attachment: {
+        "state": "unindexed", "indexedPages": None, "totalPages": None, "indexedChars": None,
+        "totalChars": None, "version": None, "previous_version": 17,
+    }}
+    old = (dest / "manifest.json").read_bytes()
+    with pytest.raises(gf.GoldenFixtureError, match="only a declared failure control"):
+        export_again(recipe, zotero, cache, dest)
+    assert (dest / "manifest.json").read_bytes() == old
+
+
+def test_export_refuses_a_declared_control_without_a_settled_observation(tmp_path):
+    """Absence from the census with no observation from this run proves nothing: the
+    strict behaviour stays, declaration or not."""
+    recipe, cache, zotero, indexed, control = injected_control_fixture(tmp_path)
+    assert zotero.reindex_fulltext([indexed, control]) is None
+    with pytest.raises(gf.GoldenFixtureError, match="no settled reindex observation"):
+        export_again(recipe, zotero, cache, tmp_path / "unobserved")
+
+
+def test_export_refuses_a_declared_control_that_indexed_after_all(tmp_path):
+    """A stale declaration (the scan was OCR'd, the container replaced) is a recipe
+    defect to fix, not a control to export."""
+    recipe, cache, zotero, indexed, control = injected_control_fixture(tmp_path)
+    zotero.fulltexts[control] = {"content": "it has text now", "indexedPages": 1, "totalPages": 1, "version": 3}
+    zotero.reindex_fulltext = lambda keys: settled_rows(indexed, control, control_state="indexed")
+    with pytest.raises(gf.GoldenFixtureError, match="expected unindexed, the reindex settled at 'indexed'"):
+        export_again(recipe, zotero, cache, tmp_path / "stale-declaration")
+
+
+def test_export_refuses_an_indexed_attachment_the_reindex_never_re_extracted(tmp_path):
+    """Zotero resets fulltextItems.version to 0 on every local extraction. A synced
+    version surviving the reindex unchanged means indexItems found no file to read
+    (a client holding the group's items but not its bytes) and moved on silently;
+    the export would otherwise re-publish the synced text as a fresh extraction."""
+    recipe, cache, zotero, indexed, control = injected_control_fixture(tmp_path)
+    zotero.reindex_fulltext = lambda keys: settled_rows(indexed, control, indexed_version=17, previous=17)
+    with pytest.raises(gf.GoldenFixtureError, match="nothing was re-extracted"):
+        export_again(recipe, zotero, cache, tmp_path / "not-re-extracted")
+
+
+def test_export_refuses_a_reindex_that_settled_only_part_of_the_recipe(tmp_path):
+    recipe, cache, zotero, indexed, control = injected_control_fixture(tmp_path)
+    zotero.reindex_fulltext = lambda keys: {indexed: settled_rows(indexed, control)[indexed]}
+    with pytest.raises(gf.GoldenFixtureError, match="settled state for every attachment"):
+        export_again(recipe, zotero, cache, tmp_path / "partial-settle")
+
+
+@pytest.mark.parametrize("mutation, message", [
+    ("control_as_indexed", "exported as indexed"),
+    ("indexed_as_control", "not declared a failure control"),
+    ("control_with_fulltext_file", "must not carry a fulltext file"),
+    ("control_counts", "failure-control, or source-byte count"),
+    ("control_declaration_drift", "does not match its declaration"),
+])
+def test_loader_refuses_control_rows_that_disagree_with_the_recipe(tmp_path, mutation, message):
+    recipe, cache, zotero, indexed, control = injected_control_fixture(tmp_path)
+    zotero.reindex_fulltext = lambda keys: settled_rows(indexed, control)
+    destination = tmp_path / "mutant"
+    export_again(recipe, zotero, cache, destination)
+    recipe_path = tmp_path / "control-recipe.json"
+    manifest_path = destination / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    rows = {row["recipe_id"]: row for row in manifest["attachments"]}
+    if mutation == "control_as_indexed":
+        rows["invented-1901-scan"].update(
+            terminal_state="indexed", fulltext_file=f"fulltext/{control}.json", fulltext_version=0)
+        (destination / "fulltext" / f"{control}.json").write_text(
+            json.dumps({"content": "forged", "indexedPages": 1, "totalPages": 1}), encoding="utf-8")
+    elif mutation == "indexed_as_control":
+        rows["invented-1900-control"].update(
+            terminal_state="unindexed", fulltext_file=None, fulltext_version=None,
+            failure_control=copy.deepcopy(CONTROL_DECLARATION), observed_state="unindexed",
+            indexed_pages=None, total_pages=None)
+        (destination / "fulltext" / f"{indexed}.json").unlink()
+    elif mutation == "control_with_fulltext_file":
+        (destination / "fulltext" / f"{control}.json").write_text(
+            json.dumps({"content": "forged", "indexedPages": 1, "totalPages": 1}), encoding="utf-8")
+    elif mutation == "control_counts":
+        manifest["failure_control_count"] = 0
+        manifest["indexed_attachment_count"] = 2
+    elif mutation == "control_declaration_drift":
+        rows["invented-1901-scan"]["failure_control"]["answer_set_participation"] = "pinned"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    recipe_path.write_text(json.dumps(recipe), encoding="utf-8")
+
+    done = run_loader(destination, recipe_path)
+    assert done.returncode == 7
+    assert message in done.stderr
