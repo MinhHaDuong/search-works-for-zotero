@@ -1,18 +1,23 @@
 /* Host-independent admission loop. Native ensure owns extraction and persistence. */
 var createSDTSitter = function (host) {
-  const state = { enabled: true, phase: 'ready', active: null, progress: null,
+  // `busy` is on the state rather than a closure variable because the heartbeat
+  // reads it: a hang in census or in the admission check leaves `active` null,
+  // and a heartbeat gated on `active` is silent for exactly the phases ticket
+  // 0703 needed a trace of. Phase cannot stand in for it — after stop() aborts a
+  // sweep mid-extraction the phase fixup is skipped and `phase` stays stale at
+  // 'extracting', where `busy` goes false the instant sweep() truly exits.
+  const state = { enabled: true, busy: false, phase: 'ready', active: null, progress: null,
     lastProgressAt: null, startedAt: null, completed: 0, failed: 0,
     scanned: 0, total: 0, counts: {}, serviceMS: 0, samples: [], activeInfo: null,
     fittedSamples: [], pending: [], error: null };
   const failed = new Set();
-  let busy = false;
   const publish = () => { if (state.enabled) host.changed(state); };
   return {
     state,
     stop() { state.enabled = false; },
     async sweep() {
-      if (!state.enabled || busy) return;
-      busy = true;
+      if (!state.enabled || state.busy) return;
+      state.busy = true;
       try {
         state.phase = 'census'; state.scanned = 0; state.counts = {};
         const ids = await host.list();
@@ -101,7 +106,7 @@ var createSDTSitter = function (host) {
         else if (state.enabled && state.phase === 'census') state.phase = 'waiting';
       } catch (error) {
         if (state.enabled) { state.phase = 'error'; state.error = String(error); }
-      } finally { busy = false; publish(); }
+      } finally { state.busy = false; publish(); }
     },
   };
 };

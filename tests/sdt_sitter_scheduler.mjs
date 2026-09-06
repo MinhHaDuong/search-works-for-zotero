@@ -357,6 +357,51 @@ await test('after a hang the ring names the active document, its last progress a
   ui.heartbeatTick();
   assert.equal(ring.tail(50).length, settled);
 });
+/* The other half of the heartbeat, and the half ticket 0703 filed. The test above
+   hangs the worker, where `active` names a document; this one hangs the census,
+   where it does not — the phase the author's own morning hang most plausibly sat
+   in, and the phase the previous `active === null` gate emitted nothing for. The
+   final silence assertion is the discriminating arm: a beat that fires whenever
+   the sitter merely exists would pass everything above it and fail here. */
+await test('a hang in census beats too, naming the phase and no document', async () => {
+  const f = fixture(), entered = deferred(), finish = deferred();
+  const ring = context.createSDTJournal(50);
+  ui.journal = ring; ui.sealed = false; ui.alive = true; ui.sitter = f.api;
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => true } };
+  f.host.emit = ui.emit;
+  const inspect = f.host.inspect;
+  f.host.inspect = async id => { entered.resolve(); await finish.promise; return inspect(id); };
+  const running = f.api.sweep();
+  await entered.promise;
+  for (let tick = 0; tick < 2; tick++) ui.heartbeatTick();
+  const beats = Array.from(ring.tail(50)).filter(record => record.kind === 'heartbeat');
+  assert.equal(beats.length, 2);
+  assert.equal(beats[0].level, 'trace');
+  assert.equal(beats[0].phase, 'census');
+  assert.equal(beats[0].id, null);
+  // There is no document, so there is no document age. Null, never NaN: a
+  // subtraction from a null startedAt would have published NaN as a duration.
+  assert.equal(beats[0].elapsedMS, null);
+  assert.equal(beats[0].sinceProgressMS, null);
+  f.api.stop(); finish.resolve(); await running;
+  const settled = ring.tail(50).length;
+  ui.heartbeatTick();
+  assert.equal(ring.tail(50).length, settled, 'the beat outlived the sweep that justified it');
+});
+await test('the ring outlives the disable used to recover from a hang', async () => {
+  const ring = context.createSDTJournal(50);
+  ui.journal = ring; ui.sealed = false; ui.alive = true;
+  ui.sitter = { state: { enabled: true }, stop() {} };
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => true }, SDTPackSitter: { journal: ring } };
+  ui.shutdown(null, 4);
+  // Disable is the natural first move against a hang, and it took the only
+  // handle on the evidence with it. The second name is never deleted.
+  assert.equal(ui.Zotero.SDTPackSitter, undefined);
+  assert.equal(ui.Zotero.SDTPackSitterJournal, ring);
+  assert.deepEqual(Array.from(ui.Zotero.SDTPackSitterJournal.tail(50), record => record.kind),
+    ['shutdown']);
+  assert.equal(ui.Zotero.SDTPackSitterJournal.tail(1)[0].reason, 'disable');
+});
 await test('shutdown is the last record even with a submission still in flight', async () => {
   const f = fixture(), entered = deferred(), finish = deferred();
   const ring = context.createSDTJournal(50);

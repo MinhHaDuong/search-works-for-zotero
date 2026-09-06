@@ -60,11 +60,21 @@ function classifyError(error) {
   }
 }
 
+/* A beat for every phase the sitter can hang in, not only the one with a document
+   under the worker. Ticket 0703: the census, host.list() and the whole blocked()
+   admission check all run with `active` null, so the previous `active === null`
+   gate was silent for precisely the phases whose hang left no trace after
+   `cache-load`. `busy` is the scheduler's own outer-finally flag, so it goes
+   false the instant sweep() exits — including the abort path, where `phase`
+   stays stale at 'extracting'. The two ages are null-guarded because they are
+   the age of a document, and during census there is none. */
 function heartbeatTick() {
-  if (!alive || !sitter || sitter.state.active === null) return;
+  if (!alive || !sitter) return;
   const s = sitter.state;
+  if (!s.busy && s.active === null) return;
+  const age = since => (since == null ? null : Date.now() - since);
   emit('heartbeat', { id: s.active, phase: s.phase, progress: s.progress,
-    elapsedMS: Date.now() - s.startedAt, sinceProgressMS: Date.now() - s.lastProgressAt,
+    elapsedMS: age(s.startedAt), sinceProgressMS: age(s.lastProgressAt),
     pending: s.pending.length }, 'trace');
 }
 
@@ -366,6 +376,13 @@ async function initialize(rootURI, token) {
   // that led to it. A real plugin unload tears this scope down and takes the ring
   // with it; surviving that needs a durable store, which the ruling forbids.
   journal ??= createSDTJournal();
+  // A second handle, under a name shutdown never deletes. The natural recovery
+  // from a hang is disable/re-enable, and disable removes Zotero.SDTPackSitter —
+  // which was the only way in to the ring, so the recovery action destroyed the
+  // evidence of what it was recovering from (ticket 0703). Republished in
+  // shutdown()'s finally as well, so the guarantee holds for a session whose
+  // initialize() never got this far.
+  Zotero.SDTPackSitterJournal = journal;
   sealed = false;
   const win = Zotero.getMainWindow();
   if (!win || typeof Zotero.SDT?.ensure !== 'function') throw new Error('Zotero 10 native SDT unavailable');
@@ -561,6 +578,10 @@ function shutdown(data, reason) {
     emit('shutdown', { reason: typeof reason === 'number' ? SHUTDOWN_REASONS[reason] || `reason-${reason}`
       : reason ? String(reason).toLowerCase().replace(/^addon[_-]/, '').replace(/_/g, '-') : 'unknown' });
     sealed = true;
+    // The shutdown record is the last thing written, and this is what keeps the
+    // ring holding it reachable afterwards. Guarded for the same reason emit()
+    // is: a teardown already halfway through a throw must not acquire a second.
+    try { if (journal) Zotero.SDTPackSitterJournal = journal; } catch (_error) { /* Nothing. */ }
   }
 }
 function install() {}
