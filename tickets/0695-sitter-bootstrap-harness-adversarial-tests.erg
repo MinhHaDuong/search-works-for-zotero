@@ -1,0 +1,65 @@
+%erg 0.1
+Title: Build a Zotero-mock harness and journal-dependent adversarial tests
+Created: 2026-09-06
+Author: claude
+Blocked-by: 0689
+
+--- log ---
+2026-09-06T00:00Z claude created
+2026-09-06T00:00Z author decided Add a monotonic clock now -- the clock-jump-backwards scenario proceeds.
+
+--- body ---
+## Context
+
+Split from ticket 0690 by the raid's Imagine phase (2026-09-06): these
+nine scenarios exercise `bootstrap.js`'s `initialize()` closure (`inspect`,
+`blocked`, `saveCache`, `startup`/`generation`) and `openDialog`, which no
+current test touches beyond `node --check` syntax and the standalone
+`getSDTCoverage()`. There is no mock `Zotero`/`IOUtils`/`PathUtils`/
+`Services`/`ChromeUtils` surface anywhere in the test tree today --
+building it is a real task, not an add-on to a "smoke test" ticket, which
+is why it is its own ticket rather than folded back into 0690.
+
+Several scenarios' expected behavior references ticket 0689's journal
+vocabulary (`shutdown(disable)`, heartbeat, "error line logged", "refusal
+logged") directly -- assert against the ring buffer/`Zotero.debug()`
+stream from 0689, not against UI state, once 0689 exists.
+
+## Open question for the author -- do not resolve unilaterally
+
+One scenario, "clock jump backwards," describes behavior (elapsed time
+computed from a monotonic clock rather than raw `Date.now()`) that does
+not exist anywhere in `bootstrap.js` today -- every timing computation
+there calls `Date.now()` directly. Testing this scenario requires first
+*adding* a monotonic clock source, which is a small design change, not a
+test of existing behavior. Ask the author: is a monotonic clock worth
+adding now (protects the finish-time estimate against a system clock
+adjustment during an overnight run), or should this scenario be dropped
+from the adversarial suite as out of proportion to the risk? Do not build
+the monotonic-clock change without that answer.
+
+## Scenarios
+
+| Scenario | Fake | Expected |
+|---|---|---|
+| Worker promise never settles | `ensure()` pends forever | No 2nd submission; heartbeat continues (0689); no hang verdict rendered (0681 owns that verdict, not this ticket) |
+| RAM/disk reading unavailable | resource-reading call throws | Admission refused; refusal recorded via 0689; `blocked()` is called once per admission attempt, not polled in a tight loop |
+| Cache file corrupt / partial line | crafted cache file | Falls back to native inspection; malformed rows are dropped -- observe this via the resulting usable-observation count, not an invented "dropped rows" counter that doesn't exist in the code |
+| Cache directory unwritable | write throws | One entry via 0689's channel; estimates still computed in memory for the rest of the session |
+| Dialog closed & reopened mid-job | open/close/open | One instance; no duplicated listeners (count them); state preserved across the cycle |
+| Two windows, two `startup()` calls | call `startup` twice / open a second main window | One global `Zotero.SDTPackSitter`; one active submission; both toolbars render |
+| Disable during active job (bootstrap-level) | call the top-level `shutdown()` while a submission is pending | Timer and `generation` token cleanup runs; distinct from 0690's scheduler-level `stop()` test -- target `bootstrap.js`'s `shutdown()` specifically or this duplicates 0690 |
+| Quit during cache write | reject the write chain at quit | No partial line persisted, or a partial line is dropped on next load (either is acceptable; the test records which) |
+| Empirical upper bound exceeded | active document duration exceeds its empirical p95 | The displayed finish time becomes unavailable -- assert against whatever the actual current fallback value is (verify against code, not the placeholder wording "unavailable, not now" from an earlier draft, which does not match any string in the shipped code) |
+
+## Acceptance
+
+- [ ] A minimal `Zotero`/`IOUtils`/`PathUtils`/`Services`/`ChromeUtils` mock
+      surface exists for testing `bootstrap.js`'s `initialize()` and
+      `openDialog`, scoped to what these scenarios need -- not a general
+      Zotero-environment simulator.
+- [ ] Each row is one test, shown red once against a deliberately broken
+      implementation -- record the red commit hash in this ticket's log.
+- [ ] The clock-jump scenario is either implemented per the author's answer
+      above, or explicitly dropped with that answer recorded in the log.
+- [ ] Tests run under this repo's existing `make check`.

@@ -1,0 +1,370 @@
+[
+  {
+    "artifact": "index-sitter-252.jsonl",
+    "finished": true,
+    "dispatch_utc": "2026-09-05T18:46:59Z",
+    "target": {
+      "key": "TD45RDD6",
+      "libraryID": 1,
+      "libraryType": "user",
+      "state": "indexed",
+      "indexedPages": 252,
+      "totalPages": 252,
+      "indexedChars": null,
+      "totalChars": null,
+      "version": 25055
+    },
+    "peak_main_process_rss_mib": 1122.7578125,
+    "minimum_host_available_mib": 10349.44140625,
+    "latency": {
+      "baseline": {
+        "status": {
+          "samples": 5,
+          "errors": 0,
+          "median_s": 0.17692704001092352,
+          "maximum_s": 0.19146295302198268
+        },
+        "api": {
+          "samples": 5,
+          "errors": 0,
+          "median_s": 0.15504188800696284,
+          "maximum_s": 0.16769136002403684
+        }
+      },
+      "work": {
+        "status": {
+          "samples": 6,
+          "errors": 0,
+          "median_s": 0.1866058995074127,
+          "maximum_s": 0.23927006899612024
+        },
+        "api": {
+          "samples": 6,
+          "errors": 0,
+          "median_s": 0.16091499201138504,
+          "maximum_s": 0.21656328698736615
+        }
+      },
+      "after": {
+        "status": {
+          "samples": 3,
+          "errors": 0,
+          "median_s": 0.17450001000543125,
+          "maximum_s": 0.2145352140069008
+        },
+        "api": {
+          "samples": 3,
+          "errors": 0,
+          "median_s": 0.15392134297871962,
+          "maximum_s": 0.18347046501003206
+        }
+      }
+    },
+    "first_cache_change_observed_s": 3.8410303620039485,
+    "last_unchanged_cache_observed_s": 2.6010930580087006,
+    "cache_hash_unchanged": true,
+    "end_status": {
+      "busy": false,
+      "running": 0,
+      "lastError": null,
+      "stats": {
+        "indexed": 12275,
+        "partial": 1053,
+        "notAvailable": 751,
+        "notesIndexed": 1216,
+        "remaining": 0,
+        "unindexedQueue": 0,
+        "noteQueue": 0
+      },
+      "items": [
+        {
+          "key": "TD45RDD6",
+          "libraryID": 1,
+          "libraryType": "user",
+          "state": "indexed",
+          "indexedPages": 252,
+          "totalPages": 252,
+          "indexedChars": null,
+          "totalChars": null,
+          "version": 25115
+        }
+      ]
+    }
+  },
+  {
+    "artifact": "index-sitter-2913.jsonl",
+    "finished": true,
+    "dispatch_utc": "2026-09-05T18:47:28Z",
+    "target": {
+      "key": "65F79PTJ",
+      "libraryID": 3,
+      "libraryType": "group",
+      "state": "indexed",
+      "indexedPages": 2913,
+      "totalPages": 2913,
+      "indexedChars": null,
+      "totalChars": null,
+      "version": 0
+    },
+    "peak_main_process_rss_mib": 1697.703125,
+    "minimum_host_available_mib": 9727.72265625,
+    "latency": {
+      "baseline": {
+        "status": {
+          "samples": 5,
+          "errors": 0,
+          "median_s": 0.16406744898995385,
+          "maximum_s": 0.19024756998987868
+        },
+        "api": {
+          "samples": 5,
+          "errors": 0,
+          "median_s": 0.1415308410068974,
+          "maximum_s": 0.16410860500764102
+        }
+      },
+      "work": {
+        "status": {
+          "samples": 55,
+          "errors": 0,
+          "median_s": 0.1709884570154827,
+          "maximum_s": 0.7863194179954007
+        },
+        "api": {
+          "samples": 55,
+          "errors": 0,
+          "median_s": 0.146633501019096,
+          "maximum_s": 0.5568558780068997
+        }
+      },
+      "after": {
+        "status": {
+          "samples": 3,
+          "errors": 0,
+          "median_s": 0.19108480599243194,
+          "maximum_s": 0.19282445101998746
+        },
+        "api": {
+          "samples": 3,
+          "errors": 0,
+          "median_s": 0.1675092359946575,
+          "maximum_s": 0.16958658798830584
+        }
+      }
+    },
+    "first_cache_change_observed_s": 62.15131439099787,
+    "last_unchanged_cache_observed_s": 60.364399548998335,
+    "cache_hash_unchanged": true,
+    "end_status": {
+      "busy": false,
+      "running": 0,
+      "lastError": null,
+      "stats": {
+        "indexed": 12275,
+        "partial": 1053,
+        "notAvailable": 751,
+        "notesIndexed": 1216,
+        "remaining": 0,
+        "unindexedQueue": 0,
+        "noteQueue": 0
+      },
+      "items": [
+        {
+          "key": "65F79PTJ",
+          "libraryID": 3,
+          "libraryType": "group",
+          "state": "indexed",
+          "indexedPages": 2913,
+          "totalPages": 2913,
+          "indexedChars": null,
+          "totalChars": null,
+          "version": 0
+        }
+      ]
+    }
+  },
+  {
+    "artifact": "index-sitter-15497.jsonl",
+    "finished": true,
+    "dispatch_utc": "2026-09-05T18:49:19Z",
+    "target": {
+      "key": "AXE7G67C",
+      "libraryID": 1,
+      "libraryType": "user",
+      "state": "indexed",
+      "indexedPages": 15497,
+      "totalPages": 15497,
+      "indexedChars": null,
+      "totalChars": null,
+      "version": 25026
+    },
+    "peak_main_process_rss_mib": 2523.93359375,
+    "minimum_host_available_mib": 5809.58203125,
+    "latency": {
+      "baseline": {
+        "status": {
+          "samples": 5,
+          "errors": 0,
+          "median_s": 0.2100263750180602,
+          "maximum_s": 0.2609822190133855
+        },
+        "api": {
+          "samples": 5,
+          "errors": 0,
+          "median_s": 0.18173315201420337,
+          "maximum_s": 0.23621449997881427
+        }
+      },
+      "work": {
+        "status": {
+          "samples": 355,
+          "errors": 1,
+          "median_s": 0.450912464002613,
+          "maximum_s": 3.7085548280156218
+        },
+        "api": {
+          "samples": 356,
+          "errors": 0,
+          "median_s": 0.39611166149552446,
+          "maximum_s": 3.5640993599954527
+        }
+      },
+      "after": {
+        "status": {
+          "samples": 3,
+          "errors": 0,
+          "median_s": 0.7924868749978486,
+          "maximum_s": 0.866863519011531
+        },
+        "api": {
+          "samples": 3,
+          "errors": 0,
+          "median_s": 0.6779147860070225,
+          "maximum_s": 0.8109341030067299
+        }
+      }
+    },
+    "first_cache_change_observed_s": 552.2982450679992,
+    "last_unchanged_cache_observed_s": 546.2914458769956,
+    "cache_hash_unchanged": true,
+    "end_status": {
+      "busy": false,
+      "running": 0,
+      "lastError": null,
+      "stats": {
+        "indexed": 12275,
+        "partial": 1053,
+        "notAvailable": 751,
+        "notesIndexed": 1216,
+        "remaining": 0,
+        "unindexedQueue": 0,
+        "noteQueue": 0
+      },
+      "items": [
+        {
+          "key": "AXE7G67C",
+          "libraryID": 1,
+          "libraryType": "user",
+          "state": "indexed",
+          "indexedPages": 15497,
+          "totalPages": 15497,
+          "indexedChars": null,
+          "totalChars": null,
+          "version": 0
+        }
+      ]
+    }
+  },
+  {
+    "artifact": "index-sitter-queued-small.jsonl",
+    "finished": true,
+    "dispatch_utc": "2026-09-05T18:49:37Z",
+    "target": {
+      "key": "TD45RDD6",
+      "libraryID": 1,
+      "libraryType": "user",
+      "state": "indexed",
+      "indexedPages": 252,
+      "totalPages": 252,
+      "indexedChars": null,
+      "totalChars": null,
+      "version": 25115
+    },
+    "peak_main_process_rss_mib": 2523.9375,
+    "minimum_host_available_mib": 5809.58203125,
+    "latency": {
+      "baseline": {
+        "status": {
+          "samples": 5,
+          "errors": 0,
+          "median_s": 0.17542175098787993,
+          "maximum_s": 0.19766186201013625
+        },
+        "api": {
+          "samples": 5,
+          "errors": 0,
+          "median_s": 0.1524857449985575,
+          "maximum_s": 0.1745066930016037
+        }
+      },
+      "work": {
+        "status": {
+          "samples": 341,
+          "errors": 1,
+          "median_s": 0.45570182500523515,
+          "maximum_s": 3.7062100610055495
+        },
+        "api": {
+          "samples": 342,
+          "errors": 0,
+          "median_s": 0.4038775365042966,
+          "maximum_s": 3.562519544007955
+        }
+      },
+      "after": {
+        "status": {
+          "samples": 3,
+          "errors": 0,
+          "median_s": 0.7864438380056527,
+          "maximum_s": 0.9110525480064098
+        },
+        "api": {
+          "samples": 3,
+          "errors": 0,
+          "median_s": 0.7095828980091028,
+          "maximum_s": 0.8604748530196957
+        }
+      }
+    },
+    "first_cache_change_observed_s": 535.644330347015,
+    "last_unchanged_cache_observed_s": 534.0125747570128,
+    "cache_hash_unchanged": true,
+    "end_status": {
+      "busy": false,
+      "running": 0,
+      "lastError": null,
+      "stats": {
+        "indexed": 12275,
+        "partial": 1053,
+        "notAvailable": 751,
+        "notesIndexed": 1216,
+        "remaining": 0,
+        "unindexedQueue": 0,
+        "noteQueue": 0
+      },
+      "items": [
+        {
+          "key": "TD45RDD6",
+          "libraryID": 1,
+          "libraryType": "user",
+          "state": "indexed",
+          "indexedPages": 252,
+          "totalPages": 252,
+          "indexedChars": null,
+          "totalChars": null,
+          "version": 0
+        }
+      ]
+    }
+  }
+]

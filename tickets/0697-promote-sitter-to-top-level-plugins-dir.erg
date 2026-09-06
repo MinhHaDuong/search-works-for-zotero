@@ -1,0 +1,47 @@
+%erg 0.1
+Title: Promote the sitter from bench/ to a top-level plugins/ directory
+Created: 2026-09-06
+Author: claude
+
+--- log ---
+2026-09-06T00:00Z claude created
+
+--- body ---
+## Context
+
+DECISIONS.md, 2026-09-06 (RATIFIED): the sitter's permanent home is this
+repo, not a separate one. `bench/sdt-sitter/` is the wrong register for
+something with its own manifest, version, and install lifecycle -- `bench/`
+is for probes and one-off measurement scripts. Move the source to a new
+top-level `plugins/sdt-sitter/`, echoing README's own theory-of-change
+vocabulary.
+
+## Do not execute yet
+
+At filing time, five parallel Execute agents (tickets 0688, 0689, 0690,
+0691, 0694) are actively working inside `bench/sdt-sitter/` paths across
+several branches. Moving the directory now would break every one of them.
+Execute this only once that wave (and its Wave B follow-up, 0692/0693/0695/
+0696) has fully merged -- check `tickets/closed/` for all of 0688-0696
+before starting.
+
+## Work
+
+- `git mv bench/sdt-sitter plugins/sdt-sitter` (preserves history).
+- Update every path reference: `Makefile` targets, `tests/test_sdt_sitter.py`,
+  `tests/sdt_sitter_scheduler.mjs`, `bench/build_sdt_sitter.py` (or move it
+  too, to `plugins/sdt-sitter/build.py`), any `verification/*.md` or
+  `verification/probes/sdt-sitter-harness/` reference to the old path, and
+  README's own file listing if it names `bench/` explicitly.
+- Grep the whole repo for the literal string `bench/sdt-sitter` after the
+  move and confirm zero hits outside git history/DECISIONS.md/tickets.
+- No behavior change -- this is a pure path move. `make check` must be
+  byte-identical in outcome before and after (same tests, same pass count).
+
+## Acceptance
+
+- [ ] `plugins/sdt-sitter/` exists with full git history preserved
+      (`git log --follow` on any file inside it shows pre-move commits).
+- [ ] `bench/sdt-sitter/` no longer exists.
+- [ ] `make check` passes, same test count as before the move.
+- [ ] No remaining reference to the old path anywhere in the tracked tree.

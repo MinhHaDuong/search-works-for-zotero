@@ -1,0 +1,14 @@
+[
+  {
+    "backend": "cpu",
+    "exitCode": 0
+  },
+  {
+    "backend": "cuda",
+    "exitCode": 0
+  },
+  {
+    "backend": "cuda-profile",
+    "exitCode": 0
+  }
+]

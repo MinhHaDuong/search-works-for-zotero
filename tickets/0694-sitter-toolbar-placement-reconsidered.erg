@@ -1,0 +1,75 @@
+%erg 0.1
+Title: Reconsider sitter toolbar placement as icon-position, not label-position
+Created: 2026-09-06
+Author: claude
+
+--- log ---
+2026-09-06T00:00Z claude created
+2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED, with a scope correction -- drop the bootstrap.js tooltip-fix step entirely. Grepped DECISIONS.md, SPEC.md and bootstrap.js on origin/main: no "Index NN%" or "Library: ..." wording exists anywhere yet (that's ticket 0691's prospective work, itself still unimplemented and blocked). This ticket has no code to correct; it resolves to a pure documentation PR -- one DECISIONS.md entry adapting the ticket's own "What changes the picture"/"Recommendation" text near-verbatim, and either closing the SPEC.md criterion as "nothing to change" or adding one generic system-only-prose sentence for future implementers, matching SPEC.md's existing register (no literal UI copy strings). Flag in the DECISIONS.md entry that this affirms the status-quo position and only revises the justification, so a skimming reader doesn't mistake the pros/cons discussion for authorization to move the button.
+
+--- body ---
+## Context
+
+Author, 2026-09-06: "Sa position naturelle dans l'UI pros and cons? A cote
+de l'autre spinner, ou on laisse pres de la boite de recherche puisque
+c'est l'index?" -- asked for a pros/cons on toolbar placement: beside the
+existing sync spinner (global background activity) versus beside the
+search box (where the button sits today, and where the thing it measures
+-- the search index -- lives).
+
+A first pass (Fable 5.1 synthesis, "Sitter's Ledger") recommended keeping
+the current position, reasoning that only the items toolbar can carry the
+text label "Index 43 %" the wording fix (0691) needs, and that the sync
+area is icon-only "by design." On reflection that framing sets up a false
+choice: it treats icon *position* and label *visibility* as the same
+decision, when the ecosystem's own convention treats them as separate.
+
+## What changes the picture
+
+Zotero's sync spinner, and the `ProgressWindow` toast pattern most
+widely-adopted plugins use (`zotero-plugin-toolkit` -- see 0693), both
+show state through an icon plus an on-demand disclosure (tooltip, toast,
+or the plugin's own dialog), not through permanent on-canvas text. That is
+also the desktop-wide convention for background-job indicators (Dropbox,
+iCloud, Time Machine menu-bar icons): the always-visible affordance is an
+icon; the number appears on hover, click, or a transient toast. Under that
+convention, "Index 43 %" does not need to live in the toolbar chrome at
+all to satisfy 0691 -- it can live in a tooltip, an `aria-label` (which
+also serves 0686's stable-accessible-name requirement), and the dialog's
+first line, in *either* toolbar position.
+
+This does not overturn the earlier recommendation, but it changes why it
+holds. The pros/cons that still favor the items toolbar:
+
+- **Host coupling.** The items-toolbar id is stable across Zotero 7-10;
+  the sync button's internals changed between 6 and 7, so injecting beside
+  it depends on more private layout.
+- **Precedent.** Other index/full-text plugins already use the items
+  toolbar; no known plugin injects beside the sync spinner.
+- **Zero migration cost.** The button is already there.
+
+What no longer favors either side, now that label-fitting is off the
+table:
+
+- Semantic/scope fit is genuinely closer for the sync area (global
+  background activity) than for the items toolbar (per-library, per-
+  collection scope) -- the earlier writeup called this a "mismatch" and
+  proposed fixing it with tooltip wording; that fix is needed either way.
+
+## Recommendation
+
+Keep the current position for now -- host coupling and precedent are the
+decisive, durable arguments, not the label-fitting argument that turns out
+not to hold. Revisit only if the plugin moves toward icon+toast as its
+primary interface (0693) and the extraction to its own repo (pending,
+separate proposal) changes what "stable host coupling" even means for a
+plugin no longer built as an in-tree experiment.
+
+## Acceptance
+
+- [ ] DECISIONS.md records this reasoning, explicitly superseding the
+      earlier "only A can carry the label" justification with the
+      host-coupling/precedent one.
+- [ ] SPEC.md's placement wording (if any) reflects the corrected tooltip/
+      scope fix: "Library: My Library -- Index 43 %", not "Index 43 %"
+      alone.

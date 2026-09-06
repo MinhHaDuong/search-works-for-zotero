@@ -1,0 +1,51 @@
+%erg 0.1
+Title: Replace SDT jargon with plain-language sitter vocabulary
+Created: 2026-09-06
+Author: claude
+Blocked-by: github.com/MinhHaDuong/search-works-for-zotero#365
+
+--- log ---
+2026-09-06T00:00Z claude created
+2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED, but the six-row table alone is not sufficient -- necessary but not sufficient against this ticket's own "no jargon outside diagnostics" intent. Gaps found by reading bootstrap.js directly: (1) the toolbar tooltip leaks raw internal phase strings verbatim when phase isn't 'census' (e.g. 'native-worker-busy', 'low-memory', 'launch-declined; disable/re-enable to launch') -- none in the table; (2) the global status line 'Packs a jour : X / Y' uses the excluded word 'packs' but isn't literally named by any checkbox; (3) 'active document' needs new plumbing, not a word swap -- state.active is a raw item ID today, never a title (title is already computed in inspect() as result.title and needs threading through); (4) 'finished with exceptions' is a new summary line, not a rename -- nothing today surfaces failures outside the diagnostics block. All four must land in the same pass or the checkboxes will read green while the leak is only half-fixed. Also: pair the sitter's own 'index' rename with Zotero's native full-text panel rename in the same commit (acceptance criterion 2 already requires this; the collision doesn't exist yet but a partial implementation would create it).
+
+--- body ---
+## Context
+
+Author, 2026-09-06: "SDT ca dit rien, 'Index 43%' on comprend" -- SDT means
+nothing to a reader, "Index 43%" is immediately understood. Ticket 0686
+already asked for "human-readable states" and to "move technical
+diagnostics below primary progress information"; this ticket supplies the
+actual wording 0686 should adopt, so the two are not solved twice with
+different vocabularies.
+
+## Vocabulary
+
+| Internal | User-facing (en) | fr |
+|---|---|---|
+| SDT pack sitter | Index assistant | Assistant d'indexation |
+| SDT pack | index (of a document) | index (du document) |
+| coverage | Index 43 % | Index 43 % |
+| native full-text index (Zotero's own) | text search index | index de recherche textuelle |
+| active document | Indexing: <title> | Indexation : <titre> |
+| finished with exceptions | 12 documents could not be indexed | 12 documents n'ont pas pu etre indexes |
+
+"SDT", "pack", "processor", "fingerprint" survive only inside the
+diagnostics disclosure (see 0693), where a reader has explicitly asked for
+them.
+
+One naming conflict to resolve, not just translate around: Zotero already
+has its own "full-text index" panel. The sitter's object keeps the word
+"index"; Zotero's older one is relabeled "text search index" and confined
+to the disclosure, so the two are never both called "index" in view at
+once.
+
+## Acceptance
+
+- [ ] Toolbar, dialog, and all user-facing prompts use only the
+      user-facing column above; "SDT" does not appear outside the
+      diagnostics disclosure.
+- [ ] The two "index" concepts are never both visible under the same
+      unqualified label in one view.
+- [ ] Wording lands before 0692 (i18n) externalizes it -- do not bundle a
+      wording change and a string-externalization change in one PR; they
+      cannot be diffed against each other.

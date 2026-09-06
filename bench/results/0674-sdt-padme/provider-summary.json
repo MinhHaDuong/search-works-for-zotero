@@ -1,0 +1,48 @@
+{
+  "572077354eea61583982a31a3f443c5abd8d92c04e2dbfd105299c1ca1d131f7_2026-09-05_21-48-48.json": {
+    "nodeEvents": {},
+    "eventDurationUs": {},
+    "sha256": "907f486c3188e5cd71ff2e3c9d0f1d184c373ce6e873d34a255196803f413606"
+  },
+  "572077354eea61583982a31a3f443c5abd8d92c04e2dbfd105299c1ca1d131f7_2026-09-05_21-49-52.json": {
+    "nodeEvents": {
+      "CUDAExecutionProvider": 19032,
+      "CPUExecutionProvider": 5928
+    },
+    "eventDurationUs": {
+      "CUDAExecutionProvider": 107866,
+      "CPUExecutionProvider": 9557
+    },
+    "sha256": "a361fe2966c5a10bf3733241c494a5a430c4bc73d38b3d0eb7497f6d4379ba59"
+  },
+  "5cb6f8645a0f4c8f4396d5e8b1da70d9c8d8fff8c98f324889b8c6e271575350_2026-09-05_21-48-48.json": {
+    "nodeEvents": {},
+    "eventDurationUs": {},
+    "sha256": "b771a250d782c45355318be8a68c648deec5a6fa3ed608d53487f8c66799deca"
+  },
+  "5cb6f8645a0f4c8f4396d5e8b1da70d9c8d8fff8c98f324889b8c6e271575350_2026-09-05_21-49-52.json": {
+    "nodeEvents": {
+      "CUDAExecutionProvider": 76128,
+      "CPUExecutionProvider": 9984
+    },
+    "eventDurationUs": {
+      "CUDAExecutionProvider": 557551,
+      "CPUExecutionProvider": 15366
+    },
+    "sha256": "65fa2ea43464bb1439c6738dc4021bedabba23123f25f3ed4923eb97b03d0e98"
+  },
+  "7fd29831c26f09cefa5a4f92c797e559bda5f513f6691d339d6c323bd563a789_2026-09-05_21-48-48.json": {
+    "nodeEvents": {},
+    "eventDurationUs": {},
+    "sha256": "0aa01a230f678383f39f66adea9fcd87cc4d6422a2db635197c9fbbd5e66aaae"
+  },
+  "7fd29831c26f09cefa5a4f92c797e559bda5f513f6691d339d6c323bd563a789_2026-09-05_21-49-52.json": {
+    "nodeEvents": {
+      "CUDAExecutionProvider": 2184
+    },
+    "eventDurationUs": {
+      "CUDAExecutionProvider": 24108
+    },
+    "sha256": "f8b183e80f64abae9f0d932d8c660b554c4402bf9670048de5ca772624b1c0e2"
+  }
+}

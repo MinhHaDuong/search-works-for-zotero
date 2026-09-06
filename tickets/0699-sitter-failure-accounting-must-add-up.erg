@@ -1,0 +1,105 @@
+%erg 0.1
+Title: Fix sitter failure accounting to count every non-indexed document
+Created: 2026-09-06
+Author: claude
+Blocked-by: github.com/MinhHaDuong/search-works-for-zotero#365
+
+--- log ---
+2026-09-06T00:00Z claude created
+2026-09-06T00:00Z claude note Fable 5.1 deep-QA pass found three sibling gaps, folded into this ticket's scope: `unsupported-pack`/`missing-source` documents sit in the coverage denominator but are never candidates and never counted as failures, so coverage can never reach 100% with no explanation shown; `host.observed()` throwing on an already-persisted pack counts a success as a failure and blacklists it for the session (a false negative in the opposite direction from the two gaps already described above); `state.cacheWarning` is set but never rendered anywhere, so cache-write failures are invisible even though the data exists.
+2026-09-06T00:00Z claude note Author, live: "Do not assume the 1 Zotero entry = 1 PDF fulltext. Its more messy." Corrected the reconciliation target below from "library's total item count" to "total attachment count" (what the census actually enumerates via `itemAttachments`) and added a mixed-cardinality fixture requirement to the acceptance checkbox -- the original wording would have let an Execute agent build a reconciliation test that silently assumed one attachment per item and passed on a fixture that never exercises the real, messier cardinality.
+2026-09-06T09:48Z sim closed — autoclosed — PR #378
+2026-09-06T00:00Z claude note Reopened. PR #378 corrected this ticket's own wording (attachment count vs item count) but did not do any of the actual work below -- none of the acceptance boxes are checked, scheduler.js is untouched. It should have used `Ticket-ref:` instead of `**Ticket:**`, closing the ticket by mistake. My error, caught immediately on inspecting the merged result.
+
+--- body ---
+## Context
+
+Author, 2026-09-06: "Accounting must add up to the correct totals." Two
+independent reviewers (correctness and red-team) found real gaps in
+`bench/sdt-sitter/scheduler.js`'s failure counting while reviewing PR #369
+(ticket 0691's "N documents could not be indexed" summary line), which
+surfaces this existing counting logic into a first-class, trusted UI
+element for the first time. The counting logic itself predates 0691 and
+is in scope here, not there.
+
+## The two gaps
+
+1. **Over-report.** `scheduler.js`'s failure branch is
+   `if (!ok || after.status !== 'current') throw ...` -- a native
+   `ensure()` that returns `true` but whose post-hoc re-`inspect()` does
+   not show `status === 'current'` increments `state.failed`. That is a
+   *postcondition-verification mismatch*, not necessarily proof the
+   document was never extracted. Confirmed reachable by the existing test
+   `native success without current persisted cache counts as failure`.
+2. **Under-report.** `inspect()` throwing during census maps to
+   `status: 'inspection-error'` (scheduler.js census loop), which sits
+   outside the four-status whitelist that populates `candidates`. A
+   document whose attachment is genuinely broken/inaccessible at
+   inspection time never becomes a candidate, never reaches `ensure()`,
+   and never touches `state.failed` -- it is invisible in the new banner,
+   surfacing only as a `counts['inspection-error']` entry inside the
+   collapsed diagnostics block. The banner can read "0 documents n'ont
+   pas pu etre indexes" while real inspection failures exist unreported.
+
+These pull in opposite directions and must both be fixed together --
+fixing only one without the other trades one wrong total for another.
+
+## What "adds up" means here
+
+Every document that is not currently, verifiably indexed must be
+accounted for in exactly one bucket, and the buckets' total must equal
+the library's non-indexed count. Concretely:
+- `inspection-error` documents must be counted as not-indexed (join the
+  failure tally, or an explicit adjacent category -- pick one and make
+  the UI honest about which), not silently dropped from every count.
+- The "native success but not persisted" case should stay counted as a
+  failure for accounting purposes (the document genuinely has no current
+  index, regardless of subtlety in cause) -- the fix is not to stop
+  counting it, but to make sure the *other* gap (inspection-error) is
+  counted too, so the total is complete rather than selectively wrong.
+- If the sitter cannot distinguish some failure subtypes cleanly, the UI
+  may show one honest combined total rather than a false precision split
+  -- do not invent a distinction the code cannot actually verify.
+
+## Work
+
+- Read the current census/candidate logic in `scheduler.js` (the
+  four-status whitelist and the `inspection-error` status path) before
+  changing anything.
+- Include `inspection-error` in whatever total feeds the user-facing
+  failure count, without breaking the existing `failed-session`
+  suppression-by-identity behavior for genuine extraction failures.
+- Add a test that independently sums every `counts[*]` bucket against
+  the library's total **attachment** count -- the count the census
+  actually enumerates (`SELECT itemID FROM itemAttachments`), never a
+  count of distinct Zotero items. Do not assume one Zotero entry has
+  exactly one PDF: a reference can carry zero, one, or several
+  attachments the sitter processes independently (SPEC.md D6 twin
+  attachments), and a standalone attachment with no parent item is also
+  valid. Reconciling against `Zotero.Items.getAll().length` instead of
+  the candidate/queue length would silently pass on a single-attachment
+  fixture and be wrong on any real library where an item has 0 or more
+  than 1 attachment. This is the actual "add up to the correct totals"
+  property, not per-scenario spot checks.
+- Do not change what counts as "indexed" (`status === 'current'`) --
+  only fix what happens to documents that are not.
+
+## Acceptance
+
+- [ ] A document that throws during `inspect()` is reflected in the
+      user-facing failure total, not just in collapsed diagnostics.
+- [ ] A reconciliation test: sum of all `counts[*]` buckets equals the
+      total candidate count (attachment rows the census enumerates, not
+      distinct Zotero items), for a fixture exercising all branches
+      (current, missing-pack, stale-source, stale-processor,
+      invalid-pack, inspection-error, failed-session) AND including at
+      least one item with two supported attachments and one item with
+      zero -- proving the reconciliation is not silently assuming a 1:1
+      item-to-attachment mapping.
+- [ ] No existing passing test regresses.
+- [ ] `unsupported-pack`/`missing-source` documents are reflected honestly
+      in the coverage total, not silently excluded from both numerator
+      and denominator in a way that makes 100% unreachable.
+- [ ] A persisted, verified pack (`host.observed()` returns true) is
+      never counted as a failure, even if `observed()` itself throws on
+      a later check.

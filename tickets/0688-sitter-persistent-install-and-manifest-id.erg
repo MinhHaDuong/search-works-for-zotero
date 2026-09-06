@@ -1,0 +1,76 @@
+%erg 0.1
+Title: Install the SDT sitter persistently and fix its manifest identity
+Created: 2026-09-06
+Author: claude
+Blocked-by: github.com/MinhHaDuong/search-works-for-zotero#365
+
+--- log ---
+2026-09-06T00:00Z claude created
+2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED. Reuse bench/acceptance/adapters/beaver.py's existing extensions.json install/verify pattern (lines ~338, 614, 913-941) instead of hand-rolling it -- it already does persistent XPI install + present/absent/version/active/location reporting for a different plugin, defensively (missing/unreadable file reported "unknown", never coerced false). Don't block the startup self-check on 0689 landing first: emit it via one direct Zotero.debug() call now (no such call exists yet in bootstrap.js), let 0689 fold it into its vocabulary later. Add explicit acceptance checkboxes for the startup self-check and version-bump-test Work items, or justify why the existing three cover them.
+
+--- body ---
+## Context
+
+The author reports the sitter "tends to disappear on its own from the
+installed-plugins list." `bench/sdt-sitter/` does not exist on `main` yet
+(it ships only in PR #365), so this ticket cannot start coding until #365
+merges -- but the two candidate mechanisms below are worth recording now.
+
+Ticket 0680's own closing note says the XPI was "delivered to author home
+without profile installation," and its exit criteria state "No automatic
+installation into the author's live profile by the test harness." That is
+consistent with either of two independently real Zotero mechanisms, neither
+confirmed yet against this specific incident:
+
+1. **Non-persistent install.** If the XPI was ever loaded as a temporary/
+   unpacked add-on rather than through Tools -> Add-ons -> Install Add-on
+   From File, Firefox/Gecko's temporary-add-on lifecycle unloads it on
+   restart or source changes -- this is not a crash, it is how that install
+   path works.
+2. **"Administrative incompatibility."** Zotero disables (and, per forum
+   reports, sometimes fully removes) a plugin whose `strict_max_version`
+   does not cover the running Zotero build, on ordinary point-release
+   updates. See https://forums.zotero.org/discussion/133127/ and
+   https://forums.zotero.org/discussion/94617/. The manifest's
+   `strict_max_version: "10.*"` should tolerate Zotero 10.x point releases,
+   but the exact range-matcher behavior is not verified here.
+
+Separately, `bench/sdt-sitter/manifest.json`'s `update_url` points at
+`https://example.invalid/...` -- an RFC 2606 address guaranteed to never
+resolve. Zotero's own developer docs list `update_url` as a required
+manifest field but do not document what an unreachable one does at
+runtime; this is unconfirmed as a cause, not ruled out.
+
+## Before implementing
+
+Ask the author the discriminating question this ticket cannot answer from
+the repo alone: did the plugin vanish right after a Zotero version update,
+or with no Zotero update in between? And was it installed via Tools ->
+Add-ons -> Install Add-on From File, or some other way? The answer picks
+between mechanism 1 and 2 above before more effort is spent chasing either.
+
+## Work
+
+- Install as a persistent extension: copy the XPI into the profile's
+  `extensions/` directory under the manifest id (or install through
+  Zotero's Add-ons dialog), not a session sideload. Add an `install` /
+  `verify-install` Make target that reads the profile's `extensions.json`
+  for the manifest id and reports present/absent.
+- Fix `update_url`: either drop it if Zotero's manifest validator allows an
+  unlisted add-on to omit it, or point it at a real, static JSON file this
+  repo controls. Keep the opaque `@...invalid` *id* as-is -- ids are never
+  resolved as URLs, only `update_url` is.
+- Startup self-check: journal (see 0689) the plugin's own version, install
+  path, and whether `strict_max_version` still admits the running Zotero,
+  so a future disappearance leaves a trace of its own diagnosis.
+- Version-bump discipline: a test asserts each delivered XPI's manifest
+  `version` is greater than the last one tagged/delivered.
+
+## Acceptance
+
+- [ ] `verify-install` reports present/absent from `extensions.json`,
+      checked once while the plugin is known installed (positive control)
+      and once after deliberate removal (negative control).
+- [ ] No unresolvable URL remains in the manifest.
+- [ ] Author has answered the discriminating question above, and the
+      answer is recorded in this ticket's log before closing it.

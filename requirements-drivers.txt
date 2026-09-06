@@ -20,3 +20,9 @@ torch
 # it — but declared here because the committed artifact was measured with it and
 # a re-run without it is not the same measurement.
 ftfy
+
+# SDT tensor replay (ticket 0674). The default distribution runs the CPU arm.
+# In a separate CUDA replay environment, install onnxruntime-gpu INSTEAD of
+# onnxruntime: both distributions provide the same Python import. The measured
+# version and actual providers are recorded with the result, not assumed here.
+onnxruntime

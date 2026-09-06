@@ -1,0 +1,50 @@
+{
+  "recordedUtc": "2026-09-05T19:50:48.743821+00:00",
+  "host": "padme",
+  "cpu": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           43 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  24\nOn-line CPU(s) list:                     0-23\nVendor ID:                               AuthenticAMD\nModel name:                              AMD Ryzen Threadripper PRO 3945WX 12-Cores\nCPU family:                              23\nModel:                                   49\nThread(s) per core:                      2\nCore(s) per socket:                      12\nSocket(s):                               1\nStepping:                                0\nFrequency boost:                         enabled\nCPU(s) scaling MHz:                      53%\nCPU max MHz:                             4427.7739\nCPU min MHz:                             560.1400\nBogoMIPS:                                7985.02\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr rdpru wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif v_spec_ctrl umip rdpid overflow_recov succor smca sev sev_es\nVirtualization:                          AMD-V\nL1d cache:                               384 KiB (12 instances)\nL1i cache:                               384 KiB (12 instances)\nL2 cache:                                6 MiB (12 instances)\nL3 cache:                                64 MiB (4 instances)\nNUMA node(s):                            1\nNUMA node0 CPU(s):                       0-23\nVulnerability Gather data sampling:      Not affected\nVulnerability Ghostwrite:                Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Old microcode:             Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Mitigation; untrained return thunk; SMT enabled with STIBP protection\nVulnerability Spec rstack overflow:      Mitigation; Safe RET\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; Retpolines; IBPB conditional; STIBP always-on; RSB filling; PBRSB-eIBRS Not affected; BHI Not affected\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Mitigation; IBPB before exit to userspace",
+  "gpu": "NVIDIA RTX A4000, 580.159.04, 16376 MiB, 14232 MiB, 0 %\nNVIDIA GeForce RTX 3060, 580.159.04, 12288 MiB, 11484 MiB, 0 %",
+  "node": "v22.23.1",
+  "documentWorker": "8fb70af4000873561c82b2f4eb88be190efb9979",
+  "submodules": "f4d05caed86bd38f6ccd2171dbbd5cb832d72912 pdf.js (vundefined-16175-gf4d05caed)\n 7963c11faac4595be3bbe86b7574704a22c67bed structured-document-text (heads/main)",
+  "models": {
+    "classifier/model.onnx": {
+      "sourceSha256": "572077354eea61583982a31a3f443c5abd8d92c04e2dbfd105299c1ca1d131f7",
+      "installedSha256": "572077354eea61583982a31a3f443c5abd8d92c04e2dbfd105299c1ca1d131f7"
+    },
+    "clusterer/model.onnx": {
+      "sourceSha256": "5cb6f8645a0f4c8f4396d5e8b1da70d9c8d8fff8c98f324889b8c6e271575350",
+      "installedSha256": "5cb6f8645a0f4c8f4396d5e8b1da70d9c8d8fff8c98f324889b8c6e271575350"
+    },
+    "clusterer/repair.onnx": {
+      "sourceSha256": "7fd29831c26f09cefa5a4f92c797e559bda5f513f6691d339d6c323bd563a789",
+      "installedSha256": "7fd29831c26f09cefa5a4f92c797e559bda5f513f6691d339d6c323bd563a789"
+    }
+  },
+  "installedMetadata": {
+    "SDT_SCHEMA_VERSION": "1.1.0",
+    "SDT_PACK_VERSION": 1,
+    "SDT_PROCESSOR_VERSIONS": {
+      "pdf": 3,
+      "epub": 1,
+      "snapshot": 1
+    }
+  },
+  "wasmOrtVersion": "1.27.0",
+  "nodeOrtVersion": "1.24.3",
+  "pythonOrtVersion": "1.24.4",
+  "llamaState": "PID STAT COMMAND\n2041960 Ssl  llama-server",
+  "documentInputs": [
+    {
+      "key": "GMAP993G"
+    },
+    {
+      "fixture": "test/fixtures/pdf/full/ethics-in-law-enforcement.pdf"
+    },
+    {
+      "fixture": "test/fixtures/pdf/full/raster-text-flow.pdf"
+    },
+    {
+      "fixture": "test/fixtures/pdf/full/crs-r48555.pdf"
+    }
+  ]
+}

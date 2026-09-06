@@ -1,0 +1,23 @@
+%erg 0.1
+Title: Use system foreground and background colors in SDT sitter
+Created: 2026-09-05
+Author: codex
+Closed: System colors and dark preference verified in isolated Zotero; updated XPI delivered
+
+--- log ---
+2026-09-05T20:52Z codex created
+
+2026-09-05T20:52Z Minh Ha-Duong closed — System colors and dark preference verified in isolated Zotero; updated XPI delivered
+--- body ---
+Author reports that the opaque status surface ignores the dark system theme.
+Replace hard-coded light colors with CSS Canvas/CanvasText and advertise both
+light and dark color schemes. Keep the background opaque and preserve wrapping.
+No scheduler or extraction change.
+
+The isolated smoke driver can emulate a dark system preference via --dark;
+it checks the actual media query and computed foreground/background contrast
+in the unmodified production extension. Deliver a separately versioned XPI in
+the author's home, without installing into the running Zotero profile.
+
+Passing dark-system native Zotero evidence and exact source digests:
+`bench/results/sdt-sitter-launch-2026-09-05/dark-theme.json`.

@@ -1,0 +1,108 @@
+{
+  "arena": "/home/haduong/CNRS/code/search-works-for-zotero/corpus-cache/sdt-diagnostic-jgoo7fjc",
+  "returncode": 0,
+  "deadlineReached": false,
+  "wallSeconds": 10.9577626750106,
+  "pluginSourceSHA256": {
+    "sdt-sitter/bootstrap.js": "1f0fe179a1c45a85ecc03f5cd14a0bbc019fc489a9b72ab503a45970a9618d79",
+    "sdt-sitter/manifest.json": "81150c92ecc34b2324de33eae19946f459c092b9d93ba12dea1df1bff8a7e4d9",
+    "sdt-sitter/scheduler.js": "77fe7650fa1ff755ad6f813fcf96b33f64a648c9049ecba2192216b25b08180b",
+    "sdt-sitter-harness/bootstrap.js": "406384d2af044fd56dae3cd92034b4af5a20d35449511576643d9381d2ece92a",
+    "sdt-sitter-harness/manifest.json": "2a6569b7f95b8e6a5950a01734808bee1da5459a097cf20245d4e0f40d7912f3"
+  },
+  "network": "unshared",
+  "filesystem": "host read-only, arena writable",
+  "report": {
+    "tests": [
+      {
+        "name": "confirmed automatic sweep produces native PDF and EPUB packs",
+        "result": "pass"
+      },
+      {
+        "name": "global verified coverage and document progress have separate labelled groups",
+        "result": "pass"
+      },
+      {
+        "name": "toolbar has text width and dialog has opaque wrapping surface",
+        "result": "pass",
+        "buttonWidth": 80,
+        "surface": "rgb(44, 44, 44)",
+        "foreground": "rgb(247, 247, 247)",
+        "darkSystemTheme": true
+      },
+      {
+        "name": "toolbar opens status with native fulltext statistics",
+        "result": "pass"
+      },
+      {
+        "name": "disable removes UI and API",
+        "result": "pass"
+      },
+      {
+        "name": "reload restores duration observations and reuses verified census cache without extraction",
+        "result": "pass"
+      }
+    ],
+    "version": "10.0.1",
+    "scope": "isolated unmodified production sitter, synthetic attachments",
+    "lastState": {
+      "enabled": false,
+      "phase": "waiting",
+      "active": null,
+      "progress": 100,
+      "lastProgressAt": 1788642196200,
+      "startedAt": 1788642196133,
+      "completed": 3,
+      "failed": 0,
+      "scanned": 3,
+      "total": 3,
+      "counts": {
+        "missing-pack": 0,
+        "current": 3
+      },
+      "serviceMS": 1798,
+      "samples": [
+        {
+          "sourceBytes": 590,
+          "pages": 1,
+          "milliseconds": 1685
+        },
+        {
+          "sourceBytes": 1140,
+          "pages": null,
+          "milliseconds": 38
+        },
+        {
+          "sourceBytes": 590,
+          "pages": 1,
+          "milliseconds": 75
+        }
+      ],
+      "activeInfo": {
+        "sourceBytes": 590,
+        "pages": 1
+      },
+      "fittedSamples": [
+        {
+          "sourceBytes": 590,
+          "pages": 1,
+          "milliseconds": 1685
+        },
+        {
+          "sourceBytes": 1140,
+          "pages": null,
+          "milliseconds": 38
+        },
+        {
+          "sourceBytes": 590,
+          "pages": 1,
+          "milliseconds": 75
+        }
+      ],
+      "pending": [],
+      "error": null
+    },
+    "accepted": true,
+    "finished": "2026-09-05T21:03:17.939Z"
+  }
+}

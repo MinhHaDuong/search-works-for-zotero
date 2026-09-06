@@ -1,0 +1,30 @@
+{
+  "pdfWorker/manager.js": {
+    "sha256": "eebf3542754a833d0e05ce56818790a177d8e69b7c69bfd6f3b6d73898f5e1ae",
+    "anchors": {
+      "async _processQueue()": [
+        46
+      ],
+      "resolve(await fn());": [
+        57
+      ],
+      "this._worker = new Worker(WORKER_URL);": [
+        112
+      ],
+      "async getStructuredDocumentText": [
+        652
+      ],
+      "Zotero.PDFWorker = new PDFWorker();": [
+        815
+      ]
+    }
+  },
+  "sdt.js": {
+    "sha256": "f8bc0bc61e59ea85d8f36f1f271bad3955a6353b8a75993fabc0ad033275ffe8",
+    "anchors": {
+      "Per-item in-flight generation": [
+        30
+      ]
+    }
+  }
+}

@@ -6444,3 +6444,58 @@ tickets, `verification/` and git history.
 The author's statement that the design is done is the declaration AGENTS.md
 requires to move `SPEC.md` from DRAFT to COMPLETE. Complete describes the
 specification deliverable, not implementation of all its requirements.
+**2026-09-05 — RATIFIED: disabling the native SDT sitter lets the submitted
+document finish.** The author: "C'est plutot bien qu'il finisse le travail en
+cours." Disabling the plugin stops further admissions and removes its UI and
+callbacks; the attachment already handed to Zotero may finish and persist its
+native pack. This is intended graceful stopping, not an immediate-cancellation
+requirement. It does not authorize draining an entire pre-submitted library,
+retrying a hung job, or weakening the separate non-interference requirement.
+The isolated integration evidence belongs to ticket 0675; the system contract
+is reflected in SPEC.md's R22 design paragraph.
+
+**2026-09-05 — RATIFIED: experimental overnight native SDT sitter.** The author
+requests a launchable plugin and assigns the quadratic membership correction
+to a separate Zotero patch ticket. The author accepts admission guards of
+4 GiB available RAM and 8 GiB available disk, and confirms overnight operation
+without competing native work. These are admission guards, not resource caps
+on an already submitted document. The shared native worker cannot be preempted
+or independently OS-niced by the plugin. The experimental launch must disclose
+that limitation; it does not establish general foreground non-interference.
+No truncation preference change is needed for native SDT. SPEC.md's R22 design
+paragraph owns the experimental guards; tickets 0679 and 0680 track delivery.
+
+**2026-09-05 — RATIFIED: session-only empirical SDT duration estimates.** The
+author asks for a distribution starting with three completed documents,
+refreshed every three completions, for both the active document and the total.
+Elapsed time remains visible. Size and page counts condition estimates where
+available. Empirical quantiles must not be presented as calibrated predictive
+coverage, and sums of marginal quantiles are scenarios, not joint quantiles.
+The experimental estimator parameters belong to SPEC.md's R22 design paragraph.
+
+**2026-09-05 — RATIFIED: disposable persistent sitter cache and finish time.**
+The author: "Avec cache alors", accepting reconstructible census hints and
+duration observations across sessions, never a durable active-job or failure
+ledger. Native sources and packs remain authoritative. This supersedes the
+session-only restriction on observations, not graceful disable. The author
+also clarifies that the global estimate must say at what time work will finish,
+with date when needed, rather than only a duration. Empirical uncertainty and
+overrun must remain explicit.
+
+**2026-09-06 — RATIFIED: the sitter's permanent home is this repo, promoted
+out of `bench/`, not a separate repository.** The sitter is already the
+workshop's own "verification and scoring bench" deliverable (README), not a
+rival implementation to zoteus; a repo split was proposed and reconsidered.
+The author: it is a workshop deliverable, and the workshop can be organized
+as a monorepo rather than as multiple repos coordinated through GitHub
+Projects, a platform not otherwise in use here. A single repo keeps this
+project's existing git-erg ticket system as the only tracking mechanism, with
+no cross-repo `Blocked-by` references and no second CI to maintain. `bench/`
+remains right for probes and one-off measurement scripts; it is the wrong
+register for something with its own manifest, version, and install lifecycle.
+The sitter's source moves to a new top-level `plugins/sdt-sitter/`, echoing
+the vocabulary of README's own theory of change ("independent
+implementations... plugins, and future adapters"), leaving room for a second
+plugin later without contradicting "not the home of a single product." The
+move is a plain `git mv`, tracked in a dedicated ticket, executed once no
+in-flight work is touching `bench/sdt-sitter/` paths.

@@ -59,6 +59,7 @@ REPO = Path(__file__).resolve().parent.parent
 #: against stale figures that quietly stops guarding the moment a ticket closes is the
 #: worst version of it: the document becomes permanent at exactly that moment.
 PROSE = {
+    "v0674": ["verification/SDT-PARALLELISM-0674.md"],
     "readme": ["README.md"],
     "sync": ["SYNC.md"],
     "design": ["SPEC.md"],
@@ -441,6 +442,42 @@ MINIMUM_PAIRS = 629
 #: `{}` marking the slot; None falls back to the weaker presence check. A figure may
 #: legitimately live in several documents; it must be current in every one that claims it.
 FIGURES = [
+    # SDT CPU/GPU and document parallelism pilot.
+    ("0674-sdt-padme/summary.json", "serial.wasm-t1.sumMedianWallSeconds", 2,
+     {"v0674": "| WASM, one thread | {} |"}),
+    ("0674-sdt-padme/summary.json", "serial.cpu-t1.sumMedianWallSeconds", 2,
+     {"v0674": "| Native CPU, one thread | {} |"}),
+    ("0674-sdt-padme/summary.json", "serial.cpu-t2.sumMedianWallSeconds", 2,
+     {"v0674": "| Native CPU, two threads | {} |"}),
+    ("0674-sdt-padme/summary.json", "serial.cpu-t4.sumMedianWallSeconds", 2,
+     {"v0674": "| Native CPU, four threads | {} |"}),
+    ("0674-sdt-padme/summary.json", "serial.cpu-t8.sumMedianWallSeconds", 2,
+     {"v0674": "| Native CPU, eight threads | {} |"}),
+    ("0674-sdt-padme/summary.json", "batch.1.wallSeconds", 2,
+     {"v0674": "| 1 | {} |"}),
+    ("0674-sdt-padme/summary.json", "batch.1.speedup", 2,
+     {"v0674": "| 1 | 16,54 | {}× |"}),
+    ("0674-sdt-padme/summary.json", "batch.2.wallSeconds", 2,
+     {"v0674": "| 2 | {} |"}),
+    ("0674-sdt-padme/summary.json", "batch.2.speedup", 2,
+     {"v0674": "| 2 | 11,18 | {}× |"}),
+    ("0674-sdt-padme/summary.json", "batch.4.wallSeconds", 2,
+     {"v0674": "| 4 | {} |"}),
+    ("0674-sdt-padme/summary.json", "batch.4.speedup", 2,
+     {"v0674": "| 4 | 8,43 | {}× |"}),
+    ("0674-sdt-padme/summary.json", "batch.8.wallSeconds", 2,
+     {"v0674": "| 8 | {} |"}),
+    ("0674-sdt-padme/summary.json", "batch.8.speedup", 2,
+     {"v0674": "| 8 | 6,23 | {}× |"}),
+    ("0674-sdt-padme/summary.json", "batch.12.wallSeconds", 2,
+     {"v0674": "| 12 | {} |"}),
+    ("0674-sdt-padme/summary.json", "batch.12.speedup", 2,
+     {"v0674": "| 12 | 4,49 | {}× |"}),
+    ("0674-sdt-padme/summary.json", "batch.1.pages", 0, {"v0674": "**{} pages**"}),
+    ("0674-sdt-padme/summary.json", "replay.cpu.medianMs", 2, {"v0674": "| CPU | {} |"}),
+    ("0674-sdt-padme/summary.json", "replay.cuda.medianMs", 2, {"v0674": "| CUDA | {} |"}),
+    ("0674-sdt-padme/source-counts.json", "structure.lines", 0, {"v0674": "**{} physical lines**"}),
+    ("0674-sdt-padme/source-counts.json", "format.lines", 0, {"v0674": "**{} physical lines**"}),
     # ---- 0612, cross-lingual headline confirmed on the task metric (padme run).
     ("0612-task-pooling/granite-97m-multilingual-r2-task-recall.json", "models.0.at.0.recall_at_topk", 4,
      {"u0612": "| {}\u21920.8499 (-5.1%)"}, "dot"),

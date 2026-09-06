@@ -1,0 +1,28 @@
+%erg 0.1
+Title: Simplify sitter 2.1 main dialog to estimates and progress
+Created: 2026-09-05
+Author: codex
+Closed: Version 2.1 delivered with concise grouped progress and silent unavailable estimates
+
+--- log ---
+2026-09-05T21:21Z codex created
+
+2026-09-05T21:22Z Minh Ha-Duong closed — Version 2.1 delivered with concise grouped progress and silent unavailable estimates
+--- body ---
+Version 2.1 simplifies the primary dialog to two grouped progress areas:
+global verified-pack coverage and current-document progress. Main text shows
+only useful state and estimates. Duration is written as “Durée estimée: median
+(entre low et high)” and global completion as “Fin estimée vers time (entre
+time et time)”. No estimate text is inserted when the fit is unavailable.
+
+Long native silence is surfaced only when progress reaches 90% (reference
+analysis) or 95% (finalisation). Diagnostic counters, cache/session details,
+and native lexical statistics are behind a collapsed Details section.
+
+Passing exact Zotero 10.0.1 evidence is in the last smoke arena recorded by
+the session; package source is `bench/sdt-sitter/` and the delivered artifact
+is `/home/haduong/sdt-pack-sitter-2.1.0.xpi`.
+
+Follow-up 2.1.1: global finish time now uses the observed document-rate
+distribution for documents lacking usable page/byte covariates. One atypical
+document no longer suppresses the library-wide clock estimate.

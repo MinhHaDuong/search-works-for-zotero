@@ -1,0 +1,95 @@
+%erg 0.1
+Title: Prototype a bounded SDT extraction worker pool in Zotero
+Created: 2026-09-05
+Author: codex
+
+--- log ---
+2026-09-05T20:04Z codex created
+
+2026-09-05T20:05Z codex note Requested by the author after the SDT parallelism discussion. Read the fork search build source, SYNC Zotero rows and current Zotero PDFWorker manager before filing. The manager still has a singleton serial queue. make upstream-catchup completed with TOUCHED for zoteus; Zotero implementation must be pinned afresh before coding. Scope is a bounded SDT Web Worker pool with native-Zotero resource and fidelity measurements; worker-count suggestions remain experiment candidates.
+--- body ---
+## Context
+
+The author asked to ticket the bounded SDT worker pool discussed after the
+padme measurements. The experiment and its limitations are recorded in
+`verification/SDT-PARALLELISM-0674.md`, with raw evidence under
+`bench/results/0674-sdt-padme/`. The demonstrated parallelism is between
+independent Node processes using native ONNX, not between Zotero Web Workers.
+Do not promise its speedup for the Zotero patch.
+
+The target is Zotero desktop's
+`chrome/content/zotero/xpcom/pdfWorker/manager.js`, with the SDT service in
+`chrome/content/zotero/xpcom/sdt.js` and whichever bulk producer feeds it.
+The installed source and the Zotero main file read on 2026-09-05 both use a
+singleton worker and await each queue task before starting the next. SDT
+requests enter that queue. Installed source hashes and anchors are in the
+measurement artifact's `queue-provenance.json`.
+
+Source: https://github.com/zotero/zotero/blob/main/chrome/content/zotero/xpcom/pdfWorker/manager.js
+
+The local zoteus fork's `src/features/search/build.ts` consumes a full-text
+source; its fetch concurrency is not the Zotero extraction worker pool. Read
+`SYNC.md`'s Zotero core/extraction rows and refresh the Zotero source and draft
+semantic-search work before implementation so a newly shipped pool or changed
+producer is not duplicated.
+
+## Proposed experiment
+
+Prototype an SDT-only pool of independent Web Workers, retaining the existing
+extractor, models and pack format. Keep the pool size configurable for the
+experiment. Compare a serial control, a pair of workers, and a four-worker arm
+on padme. The pair was suggested as a conservative initial default, with the
+serial path as fallback; these are experiment candidates, not a ratified
+shipping default or a requirement to occupy every CPU core. Select a proposed
+shipping setting from actual Zotero throughput, peak memory and reader
+responsiveness, then use the repository's decision process if that choice
+changes the system contract. SPEC.md remains the owner of design limits.
+
+## Work
+
+- Pin the Zotero checkout and document-worker revision. Inspect the bulk caller:
+  an await-per-document producer must feed a bounded window of requests or the
+  new pool will remain idle. Keep queued requests lightweight and defer loading
+  PDF buffers until a worker slot is available.
+- Introduce a dispatcher and independent worker state: request IDs, pending
+  promises, progress, asset replies and errors must route back to the correct
+  originating worker. Warm workers can be reused, with an explicit idle and
+  shutdown lifecycle.
+- Preserve interactive priority and the existing same-item in-flight
+  deduplication. Keep PDF mutations on their serialized path and coordinate
+  same-file extraction with rotation, page deletion and annotation writes;
+  retaining a separate mutation queue alone does not prevent those races.
+- Integrate the caller's pause/stop lifecycle. Define what happens to active
+  jobs, prevent new background starts while paused, and preserve progress and
+  cache validation against source changes. Reject pending promises on worker
+  failure and ensure another document can still complete afterward.
+- Measure in an isolated Zotero profile using the actual Web Worker/WASM path.
+  Include mixed document lengths and layouts, concurrent reader requests, and
+  genuine uncached extraction. Distinguish warm worker reuse from cold startup;
+  include pack writing, process-wide peak memory and observed CPU utilization.
+  Do not substitute native ONNX for WASM when pricing this patch.
+- Record raw evidence and a report under the existing repository conventions.
+  Compare pack contents after normalizing timestamps and check page coverage,
+  block structure, outline, anchors and extraction fallback/error reporting.
+
+## Exit criteria
+
+- [ ] Reviewable isolated Zotero patch dispatches SDT work to independent
+      workers within the configured bound; tests prove overlap and the bound.
+- [ ] Priority, same-item deduplication, same-file mutation coordination,
+      progress routing, pause/stop and crash recovery have meaningful tests.
+- [ ] Real Zotero measurements compare the proposed pool settings with serial
+      extraction, including throughput, peak memory and reader responsiveness.
+- [ ] Output preservation and failure behavior are verified; limitations and
+      the proposed default/fallback are justified by the resulting evidence.
+- [ ] Zotero's relevant tests and this repository's `make check` pass; the patch
+      and evidence are available for review.
+
+## Scope
+
+No Rust rewrite, parser replacement, GPU backend or automatic use of all cores
+is needed for this experiment. Ticket 0674 is completed evidence, not an open
+blocker. Ticket 0676 investigates a specific document's phase/memory behavior
+and can inform corpus selection without blocking a scheduling prototype.
+This is a local work ticket; upstream publication is a separate authorized
+step governed by `GOVERNANCE.md`.
