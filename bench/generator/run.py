@@ -183,6 +183,9 @@ def report(readings: list[dict], sample_summary: dict, questions_summary: dict) 
                for m in MODES if readings and m in readings[0].get("by_mode", {})}
     by_mode_lane = {m: SC.aggregate(readings, lambda r: r["lane"], f"by_mode.{m}")
                     for m in MODES if readings and m in readings[0].get("by_mode", {})}
+    by_mode_cross = {m: SC.aggregate(readings, lambda r: "cross-lingual" if r["cross_lingual"] else "same-language",
+                                     f"by_mode.{m}")
+                     for m in MODES if readings and m in readings[0].get("by_mode", {})}
     return {
         "sample": sample_summary,
         "questions": questions_summary,
@@ -204,6 +207,7 @@ def report(readings: list[dict], sample_summary: dict, questions_summary: dict) 
             "by_writer": SC.aggregate(readings, lambda r: r["writer"]),
             "by_mode": by_mode,
             "by_mode_and_lane": by_mode_lane,
+            "by_mode_and_cross_lingual": by_mode_cross,
         },
         "chain_in_reply": SC.chain_tally(readings),
         "self_consistency_note": (

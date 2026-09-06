@@ -102,6 +102,7 @@ def test_ask_puts_every_question_through_every_mode_and_reads_the_evidence():
     doc = R.report(readings, {"n": 2}, {"n": 2})
     assert doc["ladder"]["by_lane"]["fr->en"]["miss"] == 1
     assert doc["ladder"]["by_mode"]["exact"]["win"] == 1 and doc["ladder"]["by_mode_and_lane"]["meaning"]["en->en"]["n"] == 1
+    assert doc["ladder"]["by_mode_and_cross_lingual"]["exact"]["cross-lingual"]["miss"] == 1
     assert doc["ladder"]["by_cross_lingual"]["cross-lingual"]["n"] == 1
     assert doc["ladder"]["by_compound"]["simple"]["n"] == 2
     assert doc["ladder"]["by_reachability"]["within-cap"]["n"] == 2
@@ -129,3 +130,23 @@ def test_the_artifact_carries_no_row_level_text():
     text = json.dumps(R.report(readings, {"n": 1}, {"n": 1}))
     for secret in (PARA[:25], "what is the carbon tax", "ITEM1", "T1"):
         assert secret not in text
+
+
+def test_refresh_recomputes_the_ladder_from_the_readings_and_keeps_the_identity(tmp_path):
+    refresh = importlib.import_module("bench.generator.refresh")
+    hit = {"itemKey": "ITEM1", "title": "T1", "snippet": "under the name of the climate energy contribution, at a rate"}
+    target = FakeTarget({"q1": {"hits": [hit]}})
+    secret = row(1, "q1")
+    secret["chain"]["title"]["value"] = "SecretTitleXYZ"
+    readings, _ = R.ask(target, [secret], top_k=10)
+    work = tmp_path / "work"
+    work.mkdir()
+    (work / "readings.jsonl").write_text("\n".join(json.dumps(r) for r in readings) + "\n")
+    out = tmp_path / "run.json"
+    stale = {"identity": {"seed": 9}, "sample": {"n": 1}, "questions": {"n": 1}, "ladder": {}, "chain_in_reply": {}, "readings": {}}
+    out.write_text(json.dumps(stale))
+    doc = refresh.refresh(out, work)
+    assert doc["identity"] == {"seed": 9} and doc["sample"] == {"n": 1}
+    assert doc["ladder"]["by_lane"]["all"]["win"] == 1 and doc["ladder"]["by_mode"]["exact"]["n"] == 1
+    assert doc["chain_in_reply"]["answer_rows_found"] == 1 and len(doc["refreshed"]) == 1
+    assert "ITEM1" not in json.dumps(doc) and "SecretTitleXYZ" not in json.dumps(doc) and PARA[:25] not in json.dumps(doc)
