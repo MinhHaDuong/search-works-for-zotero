@@ -514,11 +514,11 @@ def test_an_answer_past_the_index_cap_is_reachable_but_flagged(export):
 
 def test_reachability_positive_and_negative_controls_on_the_committed_export():
     loaded = load_export(COMMITTED_EXPORT)
-    decision = json.loads((COMMITTED_EXPORT / "fulltext" / "L68LPREA.json").read_text())["content"]
+    decision = json.loads((COMMITTED_EXPORT / "fulltext" / "R74WLCBB.json").read_text())["content"]
     start = decision.index("Article 12. Feed in Tariff")
     quote = " ".join(decision[start:start + 120].split())
     row = {"work_id": "vn-decision-11-2017-qdttg-solar-fit-en", "recipe_id": "vn-decision-11-2017-qdttg-solar-fit-en",
-           "attachment_id": None, "attachment_key": "L68LPREA", "section": "Article 12",
+           "attachment_id": None, "attachment_key": "R74WLCBB", "section": "Article 12",
            "alternates": [{"page_printed": None, "char_offset": None, "quote": quote}],
            "chain": {name: None for name in CHAIN_FIELDS}}
     positive = compute_reachability(question("q-0001", [row]), loaded)
