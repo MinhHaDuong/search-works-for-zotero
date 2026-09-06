@@ -1060,8 +1060,22 @@ function onMainWindowUnload({ window }) {
   }
 }
 
-function startup({ rootURI }) {
+/* The host HANDS us the version, and that is the only way we can have it.
+
+   `data.version` and `data.id` come from the add-on record Zotero already
+   built; nothing is read to obtain them. The self-check below used to parse
+   `manifest.json` for the version instead, which cannot work in an installed
+   add-on: `rootURI` is `jar:file:///….xpi!/` and `Zotero.File` cannot parse a
+   `jar:` URI, so every startup since ticket 0688 recorded
+   `version: "unreadable (NS_ERROR_FAILURE)"`. The instrumentation 0688 added
+   to say WHICH BUILD was running when the plugin vanished has therefore never
+   once said it — the same defect that made every UI string render as its own
+   id, in the one place whose whole job was to leave evidence (ticket 0727). */
+var installedVersion = null;
+
+function startup({ rootURI, version }) {
   const token = ++generation;
+  installedVersion = typeof version === 'string' ? version : null;
   timers = ChromeUtils.importESModule('resource://gre/modules/Timer.sys.mjs');
   // Addon startup is serialized. Never hold it on UI readiness or a modal prompt.
   timer = timers.setTimeout(() => initialize(rootURI, token).catch(error => Zotero.logError(error)), 0);
@@ -1087,7 +1101,12 @@ async function sitterStartupSelfCheck(rootURI) {
   const application = (manifest.applications && manifest.applications.zotero) || {};
   let zoteroVersion = '<unreadable>';
   try { zoteroVersion = Zotero.version; } catch (_error) { /* A getter can throw. */ }
-  return { version: manifest.version, rootURI, zoteroVersion,
+  // The handed version wins over the parsed one. The manifest read is kept
+  // because the compatibility bounds are only there, and it degrades to
+  // "unreadable" in an installed add-on exactly as it always has -- but the
+  // version, which is the one field this record exists to carry, no longer
+  // depends on a read that cannot succeed.
+  return { version: installedVersion || manifest.version, rootURI, zoteroVersion,
     strictMinVersion: application.strict_min_version,
     strictMaxVersion: application.strict_max_version };
 }
