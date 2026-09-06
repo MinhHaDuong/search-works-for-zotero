@@ -19,7 +19,7 @@ Reproduced fresh, one `npx vitest run` against `fork-0091` under a private `TMPD
 |---|---|
 | 116 (115 `zoteus-*`, 1 `node-compile-cache` — pre-existing, unrelated to this leak) | 16 MB |
 
-Matches the ticket's own table exactly. All 949 tests pass either way (invariant preserved by
+Matches the ticket's own table exactly. The suite reads the same either way, 949 passed and 7 skipped (invariant preserved by
 every change below).
 
 ## The drafted fix
@@ -104,5 +104,5 @@ directory before any test runs and removes it — and everything any test put un
 returned teardown. Every current and future `tmpdir()`-based caller is covered without touching
 the call sites themselves.
 
-949 tests pass before and after; the only difference is that the scratch directories no longer
+949 passed, 7 skipped, before and after; the only difference is that the scratch directories no longer
 survive the run.

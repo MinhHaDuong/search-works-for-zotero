@@ -23,8 +23,7 @@ include UPSTREAM
 # by the guards above. Override to put them elsewhere.
 ACCEPTANCE_ARENA ?= $(HOME)/data/acceptance-arena
 
-# Disk-backed, not the quota'd /tmp tmpfs (ticket 0714) — a killed or leaking
-# vitest run fills memory, not just space, before the quota error even fires.
+# Disk-backed scratch for `test-fork` (ticket 0714 — see the header above).
 FORK_TEST_TMPDIR ?= $(HOME)/data/fork-test-tmp
 
 # A real run against a real target (not `make acceptance-fixtures`, which only
@@ -152,6 +151,7 @@ help:
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
 	@echo "make upstream-catchup  — QUIET or TOUCHED: did upstream move anything of ours"
 	@echo "make upstream-rebaseline — the UPSTREAM block for the current tip, computed, and the recipe"
+	@echo "make test-fork   — the fork suite with TMPDIR off the /tmp tmpfs (FORK_TEST_TMPDIR, ticket 0714)"
 
 check: deps lint figures models names progress tickets ticket-logs sitter-version check-fast
 
@@ -356,13 +356,10 @@ upstream-checkout:
 	git -C fork checkout --detach "$(UPSTREAM_REVIEWED_SHA)"
 	@echo "fork/ recreated at $(UPSTREAM_REVIEWED_SHA); origin is the author fork, upstream is oscardvs/zoteus"
 
-# Local mitigation for ticket 0714, until the globalSetup teardown drafted
-# there lands upstream: every `mkdtempSync(tmpdir())` the fork's own test
-# files leave behind goes under a disk-backed directory instead of /tmp, so a
-# leaking or killed run fills neither the quota nor RAM. Does not remove the
-# leftovers itself — that is the upstream fix's job — only keeps them off the
-# tmpfs meanwhile.
+# Ticket 0714 mitigation (see the header above) until the globalSetup teardown
+# drafted there lands upstream. Does not remove the leftovers itself — that is
+# the upstream fix's job — only keeps them off the tmpfs meanwhile.
 test-fork:
-	@test -d fork || { echo "fork/ absent — run 'make upstream-checkout' first" >&2; exit 1; }
+	@test -d fork/.git || { echo "fork/ absent — run 'make upstream-checkout' first" >&2; exit 1; }
 	mkdir -p "$(FORK_TEST_TMPDIR)"
 	cd fork && TMPDIR="$(FORK_TEST_TMPDIR)" npx vitest run
