@@ -93,6 +93,48 @@ async function run() {
       buttonWidth: button.getBoundingClientRect().width, surface, foreground,
       darkSystemTheme: dialog.matchMedia('(prefers-color-scheme: dark)').matches });
     report.tests.push({ name: 'toolbar opens status with native fulltext statistics', result: 'pass' });
+    // Ticket 0693's layers, checked in a real window because that is the only
+    // place `<details>` has its platform behaviour. Ticket 0686's keyboard items
+    // must be verified against THIS layout, not re-approved from the old one, so
+    // what can be established without synthesizing key events is asserted, and
+    // the two readings a source review cannot take are recorded for it.
+    const layerDoc = dialog.document;
+    const layer2 = layerDoc.getElementById('sdt-details');
+    const layer3 = layerDoc.getElementById('sdt-tech-details');
+    assert(layer2 && layer3, 'a disclosure layer is absent');
+    assert(layer3.parentNode === layer2, 'diagnostics is not nested inside the details layer');
+    assert(!layer2.open && !layer3.open, 'a disclosure layer opens expanded');
+    assert(layerDoc.body.firstElementChild.id === 'sdt-global-section' &&
+      layerDoc.body.lastElementChild.id === 'sdt-details',
+      'technical detail does not sit below primary progress');
+    const debugToggle = layerDoc.getElementById('sdt-debug');
+    assert(debugToggle && debugToggle.type === 'checkbox', 'the debug switch is not a native checkbox');
+    assert(layerDoc.querySelector('label[for="sdt-debug"]'), 'the debug switch carries no bound label');
+    // Focus, which the 0686 smoke could not establish: each summary must take it,
+    // because that is what makes the layers reachable without a mouse.
+    for (const disclosure of [layer2, layer3]) {
+      const summary = disclosure.querySelector('summary');
+      summary.focus();
+      assert(layerDoc.activeElement === summary, `${disclosure.id} summary does not take focus`);
+    }
+    // Opening layer 3 with debug logging off is the acceptance criterion: the
+    // ring is populated whatever the pref says, and only Zotero's debug output
+    // is gated by it.
+    Zotero.Prefs.set('extensions.sdt-pack-sitter.debug', false, true);
+    layer2.open = true; layer3.open = true;
+    await sleep(300);
+    assert(layerDoc.getElementById('sdt-journal').textContent.includes('settle'),
+      'the ring tail is empty with debug logging off');
+    assert(layerDoc.getElementById('sdt-environment').textContent.includes(Zotero.version),
+      'the diagnostics layer does not name the running host');
+    layer2.open = false; layer3.open = false;
+    report.tests.push({ name: 'diagnostics nests inside details, both closed, ring readable with debug off',
+      result: 'pass',
+      // Not assertions: reduced-motion is 0686's open item and this plugin does
+      // not yet honour it. Recorded so the run produces the evidence rather than
+      // leaving it to another reading of the source.
+      reducedMotionPreferred: dialog.matchMedia('(prefers-reduced-motion: reduce)').matches,
+      toolbarAccessibleName: button.getAttribute('label') });
     const firstDialog = dialog;
     button.doCommand();
     await sleep(100);

@@ -89,6 +89,17 @@ UI_SITES = (
     ("getElementById('sdt-fulltext').textContent", ';'),
     ('Services.prompt.confirm(', 'if (token !== generation) return;'),
     ('describeError: (info, error) =>', 'reportError:'),
+    # The disclosure layers of ticket 0693. A site added to the dialog and not
+    # added here is a site the vocabulary ban stops covering, which is the
+    # asymmetry this list fails on: removing a site is loud, arriving is silent.
+    ('function formatSDTBytes(bytes) {', '\n}'),
+    ('function formatSDTAge(ms) {', '\n}'),
+    ('function describeSDTEnvironment() {', '\n}'),
+    ('function describeSDTAdmission() {', '\n}'),
+    ('function describeSDTJournalTail(limit = 50) {', '\n}'),
+    ('function composeSDTJournalReport() {', '\n}'),
+    ('function buildSDTDiagnostics(doc, element) {', '\n}'),
+    ("getElementById('sdt-observations').textContent", ';'),
 )
 
 # "document" is the trap: Zotero's own French UI renders *item* as "document",
@@ -125,9 +136,37 @@ def test_sdt_sitter_scheduler():
 
 
 @pytest.mark.integration
+def test_sdt_sitter_dialog():
+    """The disclosure layers, driven against a stub document rather than read.
+
+    Nesting, closed-by-default, the debug switch's two directions, the ring tail
+    with the pref off, and what the copy action may carry are all behaviour; the
+    source says nothing about any of them.
+    """
+    subprocess.run(['node', 'tests/sdt_sitter_dialog.mjs'], cwd=ROOT,
+                   check=True, capture_output=True, text=True, timeout=30)
+
+
+@pytest.mark.integration
 def test_sdt_sitter_bootstrap_syntax():
     subprocess.run(['node', '--check', 'bench/sdt-sitter/bootstrap.js'], cwd=ROOT,
                    check=True, capture_output=True, text=True, timeout=30)
+
+
+@pytest.mark.integration
+def test_probe_javascript_parses():
+    """The Makefile puts `verification/probes/` in the lint gate on the ground
+    that a probe which produced committed evidence is code we depend on. Ruff is
+    Python-only, so the JavaScript probes were in scope by intent and covered by
+    nothing -- a syntax error in the in-app harness stays invisible until someone
+    boots a real Zotero, which is the one run that costs an evening. Discovered
+    while adding the layer assertions of ticket 0693 to that harness.
+    """
+    probes = sorted((ROOT / 'verification' / 'probes').rglob('*.js'))
+    assert probes, 'no JavaScript probe found: the glob, not the tree, is what changed'
+    for probe in probes:
+        subprocess.run(['node', '--check', str(probe)], cwd=ROOT,
+                       check=True, capture_output=True, text=True, timeout=30)
 
 
 def test_read_addon_record_discriminates_present_absent_and_someone_else(tmp_path):
@@ -453,6 +492,27 @@ def test_native_fulltext_panel_is_the_text_search_index():
     assert 'Index de recherche textuelle' in body
     assert 'Index texte natif' not in body
     assert 'packs SDT' not in body
+
+
+def test_admission_readings_are_recorded_where_they_are_read():
+    """The diagnostics layer shows the numbers behind the gate's verdict.
+
+    Read here rather than driven: `blocked()` closes over `initialize`'s Zotero
+    handles, and standing those up would test the stub. What a reading of the
+    source CAN settle is the placement that decides whether the layer is ever
+    populated — a reading recorded on the refusing branch alone is blank exactly
+    when the sitter is healthy, which is most of the time it is looked at. So
+    each assertion pairs the field with the line that must precede its threshold.
+    The rendering of these readings is driven, in tests/sdt_sitter_dialog.mjs.
+    """
+    site = _site('async function blocked(info) {', '\n  }')
+    for field, threshold in (('memoryAvailableBytes', "return 'low-memory'"),
+                             ('load', "return 'cpu-busy'"),
+                             ('cpus', "return 'cpu-busy'"),
+                             ('diskAvailableBytes', "return 'low-disk'")):
+        assert 'admission' in site and field in site, field
+        assert site.index(field) < site.index(threshold), \
+            f'{field} is recorded after the refusal it explains'
 
 
 def test_scheduler_threads_both_titles_to_the_ui():
