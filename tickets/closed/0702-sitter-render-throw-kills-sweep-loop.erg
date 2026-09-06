@@ -2,12 +2,15 @@
 Title: A throw inside render() must not permanently kill the sweep loop
 Created: 2026-09-06
 Author: claude
+Closed: autoclosed — PR #389
 
 --- log ---
 2026-09-06T00:00Z claude created
 
 2026-09-06T10:25Z sim note blocker 0689 closed — Blocked-by removed.
 2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED. Confirmed unchanged against current code -- render()/publish() still unguarded, no sweep-start/sweep-end emits exist. Implementation guidance: wrap render()'s whole body in bootstrap.js (covers all ~8 call sites at once) rather than each publish() site individually in scheduler.js, and add the sweep-start/sweep-end emits at the top/bottom of scheduler.js's sweep() -- a different region from the `if (reason) { state.phase = reason; publish(); break; }` line the mutation probe (verification/probes/sdt_sitter_scheduler_mutants.py, mutant M4) anchors on; do not touch that line. Land this ticket BEFORE 0701 -- both edit the sweep reschedule wrapper, and 0701's idle-backoff logic should build on this ticket's already-guarded wrapper, not the other way around.
+2026-09-06T12:11Z claude note render() body wrapped once in bootstrap.js (covers every call site) with a transition-only render-error record — a per-tick record would evict the 2000-entry ring in under four minutes at the 10 Hz pulse, destroying 0703's evidence. sweep-start/sweep-end added at the top and bottom of scheduler.js's sweep(), sweep-end emitted BEFORE the last publish so the record survives the call that can end the sweep; the M4 anchor line untouched. Bootstrap reschedule wrapper now try/catch/finally. Five control arms verified red.
+2026-09-06T16:01Z sim closed — autoclosed — PR #389
 --- body ---
 ## Context
 
@@ -40,8 +43,8 @@ hang this morning.
 
 ## Acceptance
 
-- [ ] A synthetic `render()` throw does not prevent the next sweep from
+- [x] A synthetic `render()` throw does not prevent the next sweep from
       being scheduled 30s later.
-- [ ] The journal (once 0689 lands) records the render failure and the
+- [x] The journal (once 0689 lands) records the render failure and the
       subsequent successful reschedule.
-- [ ] No existing test regresses.
+- [x] No existing test regresses.

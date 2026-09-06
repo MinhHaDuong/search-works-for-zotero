@@ -2,12 +2,16 @@
 Title: Duration samples measure hash+queue-wait time, not just extraction
 Created: 2026-09-06
 Author: claude
+Closed: autoclosed — PR #389
 
 --- log ---
 2026-09-06T00:00Z claude created
 
 2026-09-06T10:25Z sim note blocker 0689 closed — Blocked-by removed.
 2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED, second work item deferred. Confirmed unchanged. Implementation guidance: leave `state.startedAt` untouched -- it's legitimately used for the user-facing "elapsed since submission" display, the overrun check, and prediction math; disturbing it would regress those. Instead capture a second, extraction-only timestamp at the first `onProgress` call, used only for the `state.samples.push(...)` calculation -- a small, localized change confined to the inner per-candidate admission/extraction block. Defer the "discard a sample if workerBusy() was true before first progress" item (already hedged "Consider" in Work, not required by Acceptance) -- detecting mid-window contention races needs new polling infrastructure for marginal benefit, disproportionate to this ticket's scope. No line-level conflict with 0701/0702/0703 (touches scheduler.js's inner extraction block, a different region from 0702's outer sweep-start/sweep-end additions) -- low conflict, sequence via rebase, can slot in anywhere after 0702.
+2026-09-06T12:11Z claude note A second timestamp taken at the first onProgress tick, used only for state.samples.push; state.startedAt and serviceMS untouched, since the UI elapsed line, the overrun check and the prediction math all read startedAt as 'since submission'. The workerBusy() discard idea stays deferred per this ticket's own Imagine note. Mutant M9 added to verification/probes/sdt_sitter_scheduler_mutants.py: this is the one number in the loop that regresses to a WRONG value rather than a missing one, and startedAt is still in scope two lines above. Probe now 9/9 caught, every original mutant still caught. Four control arms red, including one that first survived: now() minus a missing start coerces to the epoch, not to NaN, so the fallback arm needed an epoch clock to discriminate.
+2026-09-06T15:59Z claude note Red team on PR #389 found the first fix's gap: 'extractingSince ?? state.startedAt' reinstated the whole defect for any extraction finishing with zero onProgress ticks — the small, fast, already-cached case. Fixed by WITHHOLDING the sample rather than falling back, and rather than the proposed settle-time stamp: a ~0 ms figure is no more measured than the inflated one and outlives the session in the cache the same way, whereas SPEC.md already lets an estimate be unavailable for want of observations. The settle record carries ms: null so the absence is visible. Two tests (no sample on a 5000 ms queue + no tick; settle ms null vs measured in one sweep), and mutant M14 pins it because the fallback is the reflex fix someone will propose again. My own earlier test could not see this: it asserted only < 60 s against a clock stepping 10 ms per read, where the poisoned and honest values are both small.
+2026-09-06T16:01Z sim closed — autoclosed — PR #389
 --- body ---
 ## Context
 
@@ -33,8 +37,8 @@ across sessions until a processor version bump invalidates it.
 
 ## Acceptance
 
-- [ ] A synthetic slow pre-enqueue phase (hash + queue wait) followed by
+- [x] A synthetic slow pre-enqueue phase (hash + queue wait) followed by
       a fast real extraction produces a sample close to the real
       extraction time, not the combined time, in a test with an
       injectable clock.
-- [ ] Existing duration-estimation tests still pass.
+- [x] Existing duration-estimation tests still pass.

@@ -79,8 +79,7 @@ MUTANTS = [
      "if (reason) { state.phase = reason; publish(); break; }",
      "if (reason) { state.phase = reason; publish(); continue; }"),
     ("M5 success path stops accumulating duration samples",
-     "            state.samples.push({ sourceBytes: before.sourceBytes, pages: before.pages,\n"
-     "              milliseconds: host.now() - state.startedAt });\n",
+     "            if (measured) state.samples.push(measured);\n",
      ""),
     ("M6 host.reportError is never called",
      "            if (host.reportError) await host.reportError(before, error);\n",
@@ -105,8 +104,8 @@ MUTANTS = [
      "  failed: ['failed-session', 'inspection-error', 'unsupported-pack', 'missing-source'],",
      "  failed: ['failed-session'],"),
     ("M10 a throwing duration observation reaches the verdict again (the 0699 false failure)",
-     "              try { await host.observed(before, state.samples[state.samples.length - 1]); }\n",
-     "              await host.observed(before, state.samples[state.samples.length - 1]);\n"
+     "              try { await host.observed(before, measured); }\n",
+     "              await host.observed(before, measured);\n"
      "              try { /* the catch below is now unreachable */ }\n"),
     # The banner used to be incremented beside the census instead of derived from
     # it, so it grew by one sweep's failures every pass over an unchanged library.
@@ -128,6 +127,26 @@ MUTANTS = [
      "    }\n",
      "    state.failed = SDT_STATUS_CLASSES.failed\n"
      "      .reduce((n, key) => n + (state.counts[key] || 0), 0);\n"),
+    # Ticket 0704's two shapes, and the pair is the point: the duration is the one
+    # number in this loop that regresses to a WRONG value rather than a missing
+    # one, so no count moves and no record disappears when either lands.
+    # M13 is the original defect. `state.startedAt` is still in scope and still
+    # correct a few lines above, which makes it the easiest edit in the file to
+    # make by accident.
+    ("M13 duration sample measures from submission again, not from first progress",
+     "                milliseconds: host.now() - extractingSince };",
+     "                milliseconds: host.now() - state.startedAt };"),
+    # M14 is the defect the FIRST fix carried, found by red team on PR #389 and
+    # invisible to every test that had progress ticks in its fixture: falling back
+    # to the submission clock when no tick ever fired reinstates the whole of M13
+    # for exactly the documents too small or too cached to report progress. A
+    # mutant rather than only a test, because the fallback is the reflex fix and
+    # will be proposed again by whoever next reads a null here as a bug.
+    ("M14 no-progress extraction falls back to the submission clock instead of withholding",
+     "            const measured = extractingSince === null ? null\n",
+     "            const measured = extractingSince === null\n"
+     "              ? { sourceBytes: before.sourceBytes, pages: before.pages,\n"
+     "                milliseconds: host.now() - state.startedAt }\n"),
 ]
 
 

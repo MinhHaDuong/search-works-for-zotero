@@ -26,12 +26,17 @@ var SDT_STATUS_CLASSES = {
 
 /* Host-independent admission loop. Native ensure owns extraction and persistence. */
 var createSDTSitter = function (host) {
-  const state = { enabled: true, phase: 'ready', active: null, progress: null,
+  // `busy` is on the state rather than a closure variable because the heartbeat
+  // reads it: a hang in census or in the admission check leaves `active` null,
+  // and a heartbeat gated on `active` is silent for exactly the phases ticket
+  // 0703 needed a trace of. Phase cannot stand in for it — after stop() aborts a
+  // sweep mid-extraction the phase fixup is skipped and `phase` stays stale at
+  // 'extracting', where `busy` goes false the instant sweep() truly exits.
+  const state = { enabled: true, busy: false, phase: 'ready', active: null, progress: null,
     lastProgressAt: null, startedAt: null, completed: 0, failed: 0,
     scanned: 0, total: 0, counts: {}, serviceMS: 0, samples: [], activeInfo: null,
-    fittedSamples: [], pending: [], error: null, cacheWarning: null };
+    fittedSamples: [], pending: [], candidates: 0, error: null, cacheWarning: null };
   const failed = new Set();
-  let busy = false;
   // Derived from the census, never accumulated beside it. `state.counts` is rebuilt
   // at the head of every sweep, so a counter incremented alongside it drifts by one
   // sweep's failures every pass and the banner slowly overstates a library that
@@ -55,8 +60,12 @@ var createSDTSitter = function (host) {
     state,
     stop() { state.enabled = false; },
     async sweep() {
-      if (!state.enabled || busy) return;
-      busy = true;
+      if (!state.enabled || state.busy) return;
+      state.busy = true;
+      // The sweep's own boundaries. Without them a sweep that died silently and a
+      // sweep that never started again look identical in the ring, which is the
+      // trace ticket 0702's failure mode left behind: none at all.
+      if (host.emit) host.emit('sweep-start', {}, 'trace');
       try {
         state.phase = 'census'; state.scanned = 0; state.counts = {};
         const ids = await host.list();
@@ -82,6 +91,10 @@ var createSDTSitter = function (host) {
         // Both titles travel with the queue. The attachment's own title is usually
         // auto-generated ('Full Text PDF'), so the UI needs the parent reference to
         // name anything a reader recognises.
+        // Kept apart from state.pending, which drains as documents settle. What
+        // the caller's poll interval needs is what this census FOUND, and by the
+        // end of the sweep pending says nothing about it (ticket 0701).
+        state.candidates = candidates.length;
         state.pending = candidates.map(({ id, before }) => ({ id, title: before.title ?? null,
           parentTitle: before.parentTitle ?? null, sourceBytes: before.sourceBytes, pages: before.pages }));
         if (state.enabled && host.censusComplete) {
@@ -110,10 +123,22 @@ var createSDTSitter = function (host) {
           state.lastProgressAt = state.startedAt; state.progress = null;
           state.phase = 'extracting'; publish();
           if (host.emit) host.emit('submit', { id });
+          // The duration sample's own clock, and deliberately not state.startedAt,
+          // which the UI's elapsed line, the overrun check and the prediction math
+          // all read as "since submission" and must keep reading that way. Between
+          // the two, ensure() hashes the file, validates any existing pack, and
+          // queues behind whatever native work is already running — none of it a
+          // property of this document, all of it booked as its extraction time
+          // (ticket 0704). With three samples the 95th percentile IS the maximum,
+          // so one inflated observation sets the upper bound for every later
+          // estimate, and the cache keeps it until a processor version bump.
+          let extractingSince = null;
           try {
             const ok = await host.ensure(id, progress => {
               if (!state.enabled) return;
-              state.progress = progress; state.lastProgressAt = host.now();
+              const at = host.now();
+              extractingSince ??= at;
+              state.progress = progress; state.lastProgressAt = at;
               if (host.emit) host.emit('progress', { id, progress }, 'trace');
               publish();
             });
@@ -122,17 +147,35 @@ var createSDTSitter = function (host) {
             if (!state.enabled) break;
             if (!ok || after.status !== 'current') throw new Error('Native SDT did not persist a current pack');
             state.completed++; state.serviceMS += host.now() - state.startedAt;
-            state.samples.push({ sourceBytes: before.sourceBytes, pages: before.pages,
-              milliseconds: host.now() - state.startedAt });
+            // No progress tick means no observed start, and the window from
+            // submission is not a stand-in for one: it IS ensure()'s hash, pack
+            // validation and queue wait, the quantity this ticket exists to stop
+            // booking as extraction. The first fix fell back to it, which quietly
+            // reinstated the whole defect for every document that finishes without
+            // a single tick — the small, fast, already-cached case, and so
+            // proportionally the one it distorts hardest.
+            //
+            // The duration is therefore withheld rather than guessed, and the
+            // guess it refuses includes the flattering one: stamping the clock at
+            // settle would record about zero, which is no more measured than the
+            // inflated figure and outlives the session in the cache exactly as
+            // that one did. SPEC.md already lets an estimate be unavailable for
+            // want of observations; it does not let one be invented. Everything
+            // else about the document still settles — the count, the journal
+            // record, the bucket — only the number nobody measured is missing.
+            const measured = extractingSince === null ? null
+              : { sourceBytes: before.sourceBytes, pages: before.pages,
+                milliseconds: host.now() - extractingSince };
+            if (measured) state.samples.push(measured);
             if (host.emit) host.emit('settle',
-              { id, ok: true, ms: state.samples[state.samples.length - 1].milliseconds });
+              { id, ok: true, ms: measured ? measured.milliseconds : null });
             // Contained on purpose. `inspect()` has just verified a current pack, so
             // the attachment IS indexed; the observation that follows only writes a
             // duration into a store SPEC.md calls derived and disposable. Letting it
             // reach the catch below turned a verified success into a failure and
             // blacklisted the source by identity, so no later sweep retried it either.
-            if (host.observed) {
-              try { await host.observed(before, state.samples[state.samples.length - 1]); }
+            if (measured && host.observed) {
+              try { await host.observed(before, measured); }
               // Contained, not silent: a swallow with no surface at all is how a
               // cache that has stopped recording durations looks exactly like one
               // that is working. No detail travels — the throw can come from the
@@ -140,7 +183,7 @@ var createSDTSitter = function (host) {
               // (bootstrap.js's classifyError carries the argument in full).
               catch (_error) { if (host.emit) host.emit('observe-failed', { id }, 'trace'); }
             }
-            if (state.samples.length % 3 === 0) state.fittedSamples = state.samples.slice();
+            if (measured && state.samples.length % 3 === 0) state.fittedSamples = state.samples.slice();
             state.counts[status]--; state.counts.current = (state.counts.current || 0) + 1;
           } catch (error) {
             if (!state.enabled) break;
@@ -158,7 +201,16 @@ var createSDTSitter = function (host) {
         else if (state.enabled && state.phase === 'census') state.phase = 'waiting';
       } catch (error) {
         if (state.enabled) { state.phase = 'error'; state.error = String(error); }
-      } finally { busy = false; publish(); }
+      // sweep-end goes out BEFORE the last publish, because publish is the one
+      // call in this finally that can still throw out of sweep(): the record of
+      // how the sweep ended must not be lost to the thing that ended it.
+      } finally {
+        state.busy = false;
+        if (host.emit) host.emit('sweep-end',
+          { phase: state.phase, scanned: state.scanned, completed: state.completed,
+            failed: state.failed, pending: state.pending.length }, 'trace');
+        publish();
+      }
     },
   };
 };
@@ -203,6 +255,48 @@ var createSDTCache = function (raw, versions) {
     saved(changes) { for (const { key } of changes) dirty.delete(key); },
     samples() { return Object.values(records).filter(r => validSample(r.sample)).map(r => r.sample); },
     data() { return { format: 1, versions, records }; },
+  };
+};
+
+/* The source MD5, remembered against the file's (path, size, mtime).
+
+   The sitter's cache key embeds the source hash, so `inspect()` had to hash the
+   file before it could consult the cache — and `sweep()` inspects the whole
+   library every time. Net effect: a full-library MD5 read every 30 seconds, all
+   night, from a plugin whose stated design is a quiet supervisor with a minimal
+   footprint (ticket 0701). Native Zotero's own SDT code keys a fingerprint on
+   exactly these three values for exactly this reason.
+
+   In memory only, and derived: it is not a claim about job state, and the worst
+   a stale entry costs is one recomputed identity. Nothing here is persisted, so
+   the disposable-cache-only ruling stands untouched.
+
+   The fingerprint is a proxy for the bytes, not the bytes, and it has a blind
+   spot: a file rewritten in place at the same length with its mtime restored is
+   invisible to it. So the author ruled that no entry is trusted forever — past
+   `maxAgeMS` the real MD5 is read again whether or not the three values still
+   match, which bounds how long such a rewrite can go unnoticed. A per-restart
+   bound would have been free, since this Map is built in initialize() and a
+   disable/re-enable already discards it, and it would also have been worth
+   nothing: the case that needs a bound is the session that runs for weeks. */
+var createSDTSourceHashes = function (maxAgeMS = 24 * 60 * 60 * 1000) {
+  const records = new Map();
+  return {
+    async hash(key, path, stat, now, compute) {
+      // The path is in the fingerprint because a file moved between attachments
+      // can carry a byte-identical size and mtime.
+      const fingerprint = JSON.stringify([path, stat.size, stat.lastModified]);
+      const known = records.get(key);
+      // Age outside [0, maxAgeMS) re-verifies, so a clock stepped backwards by
+      // NTP shortens the trust window instead of extending it.
+      const age = known ? now - known.verifiedAt : Infinity;
+      if (known && known.fingerprint === fingerprint && age >= 0 && age < maxAgeMS) return known.hash;
+      const hash = await compute();
+      records.set(key, { fingerprint, hash, verifiedAt: now });
+      return hash;
+    },
+    prune(keys) { for (const key of records.keys()) if (!keys.has(key)) records.delete(key); },
+    size() { return records.size; },
   };
 };
 

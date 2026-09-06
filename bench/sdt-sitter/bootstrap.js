@@ -3,6 +3,7 @@ var createSDTSitter;
 var estimateSDTDuration;
 var createSDTCache;
 var createSDTJournal;
+var createSDTSourceHashes;
 // The census's status classification, which the coverage line below reads. Same
 // provenance as the four above — scheduler.js is loaded into this global before
 // anything renders — and declared here for the same reason: the forward
@@ -12,6 +13,11 @@ var SDT_STATUS_CLASSES;
 // drives this file's emit/heartbeat/shutdown against, and only `var` reaches the
 // script global a sandboxed load exposes.
 var sitter, journal, alive = false, sealed = false;
+// Same reason: the render guard's test drives a torn-down dialog through this
+// set and resets the latch between cases, and neither a `const` nor a `let` at
+// script top level reaches the sandbox global — the assignment silently lands on
+// an unrelated property instead, and the reset reads as though it worked.
+var buttons = new Set(), dialogs = new Set(), renderFailing = false;
 // The two readings the diagnostics layer shows and nothing else needs.
 // `environment` identifies the running build to a bug report; `admission` is the
 // last set of resource numbers the gate actually read, as opposed to the verdict
@@ -19,8 +25,10 @@ var sitter, journal, alive = false, sealed = false;
 // drives the layer against them without standing up the whole of initialize().
 var environment = {}, admission = null;
 let timer, pulse, heartbeat, timers;
-const buttons = new Set(), dialogs = new Set(), closeJournalled = new WeakSet();
+const closeJournalled = new WeakSet();
 const BUTTON = 'sdt-pack-sitter-button';
+const SWEEP_INTERVAL_MS = 30000;
+const IDLE_SWEEP_INTERVAL_MS = 10 * 60 * 1000;
 const DEBUG_PREF = 'extensions.sdt-pack-sitter.debug';
 // SPEC.md owns these two numbers; this file needs them to compare against, and
 // the diagnostics layer needs to print them. One statement each, so a threshold
@@ -75,12 +83,37 @@ function classifyError(error) {
   }
 }
 
+/* A beat for every phase the sitter can hang in, not only the one with a document
+   under the worker. Ticket 0703: the census, host.list() and the whole blocked()
+   admission check all run with `active` null, so the previous `active === null`
+   gate was silent for precisely the phases whose hang left no trace after
+   `cache-load`. `busy` is the scheduler's own outer-finally flag, so it goes
+   false the instant sweep() exits — including the abort path, where `phase`
+   stays stale at 'extracting'. The two ages are null-guarded because they are
+   the age of a document, and during census there is none. */
 function heartbeatTick() {
-  if (!alive || !sitter || sitter.state.active === null) return;
+  if (!alive || !sitter) return;
   const s = sitter.state;
+  if (!s.busy && s.active === null) return;
+  const age = since => (since == null ? null : Date.now() - since);
   emit('heartbeat', { id: s.active, phase: s.phase, progress: s.progress,
-    elapsedMS: Date.now() - s.startedAt, sinceProgressMS: Date.now() - s.lastProgressAt,
+    elapsedMS: age(s.startedAt), sinceProgressMS: age(s.lastProgressAt),
     pending: s.pending.length }, 'trace');
+}
+
+/* How long before the next census. Ticket 0701: a library with nothing left to
+   index was re-censused every 30 seconds, all night, and every census walked the
+   whole item table. A sweep that ended `waiting` having found no candidate found
+   nothing to react to, so the next look is a floor poll rather than a work queue.
+
+   A floor rather than a notifier subscription, deliberately: the poll is the
+   robust half either way, and 10 minutes is 20x fewer wake-ups while still
+   picking up a newly added attachment within one coffee. `candidates`, not
+   `pending`: pending drains as documents settle, so by the end of a productive
+   sweep it is empty too, and the two cases are not the same one. */
+function nextSweepDelayMS(state) {
+  return state.phase === 'waiting' && state.candidates === 0
+    ? IDLE_SWEEP_INTERVAL_MS : SWEEP_INTERVAL_MS;
 }
 
 /* The failure half of settle. It goes to the session ring and Zotero.debug(),
@@ -388,7 +421,30 @@ function buildSDTDiagnostics(doc, element) {
   return group;
 }
 
+/* Ticket 0702. renderState() runs unguarded DOM work over `dialogs`, and it is
+   reached from publish(), which the scheduler calls from inside its own finally.
+   A throw there — a dead XUL dialog after its window closed, getElementById
+   returning null mid-render — rejected sitter.sweep(), so the wrapper that
+   reschedules the next sweep never ran and the sitter stopped for the rest of
+   the session while `phase` still read 'waiting'. Indistinguishable from working.
+
+   The failure is recorded on its transition, not on its tick: the pulse calls
+   this at 10 Hz, and a persistent broken dialog emitting every time would evict
+   the whole 2000-record ring in under four minutes — destroying exactly the
+   evidence ticket 0703 keeps. The layer above widens what runs under it, which
+   is the reason this guard is worth more now than when it was written. */
 function render() {
+  try {
+    renderState();
+    renderFailing = false;
+  } catch (error) {
+    if (renderFailing) return;
+    renderFailing = true;
+    emit('render-error', { error: classifyError(error) }, 'error');
+  }
+}
+
+function renderState() {
   if (!alive || !sitter) return;
   const s = sitter.state;
   const coverage = getSDTCoverage(s);
@@ -674,6 +730,13 @@ async function initialize(rootURI, token) {
   // that led to it. A real plugin unload tears this scope down and takes the ring
   // with it; surviving that needs a durable store, which the ruling forbids.
   journal ??= createSDTJournal();
+  // A second handle, under a name shutdown never deletes. The natural recovery
+  // from a hang is disable/re-enable, and disable removes Zotero.SDTPackSitter —
+  // which was the only way in to the ring, so the recovery action destroyed the
+  // evidence of what it was recovering from (ticket 0703). Republished in
+  // shutdown()'s finally as well, so the guarantee holds for a session whose
+  // initialize() never got this far.
+  Zotero.SDTPackSitterJournal = journal;
   sealed = false;
   const win = Zotero.getMainWindow();
   if (!win || typeof Zotero.SDT?.ensure !== 'function') throw new Error('Zotero 10 native SDT unavailable');
@@ -696,6 +759,9 @@ async function initialize(rootURI, token) {
     }
   } catch (error) { /* Disposable cache. */ }
   const cache = createSDTCache(raw, JSON.stringify(versions));
+  // In memory, never on disk: the pack cache above carries claims worth keeping
+  // across sessions, and a source hash is reconstructible from the file itself.
+  const sourceHashes = createSDTSourceHashes();
   emit('cache-load', { records: Object.keys(raw.records).length });
   let seen = new Set();
   let compact = true;
@@ -743,8 +809,16 @@ async function initialize(rootURI, token) {
     const processor = item.isPDFAttachment() ? 'pdf' : item.isEPUBAttachment() ? 'epub' : item.isSnapshotAttachment() ? 'snapshot' : null;
     if (!processor) return { status: 'unsupported' };
     const sourcePath = await item.getFilePathAsync();
-    if (!sourcePath || !(await IOUtils.exists(sourcePath))) return { status: 'missing-source' };
-    const hash = await item.attachmentHash;
+    if (!sourcePath) return { status: 'missing-source' };
+    // One stat where there were an exists() and a stat(): it answers both
+    // questions at once, and its (size, lastModified) is what lets the MD5 below
+    // be skipped on a file nothing has touched since the last census.
+    let source;
+    try { source = await IOUtils.stat(sourcePath); }
+    catch (_error) { return { status: 'missing-source' }; }
+    const cacheKey = `${item.libraryID}/${item.key}`;
+    const hash = await sourceHashes.hash(cacheKey, sourcePath, source, Date.now(),
+      () => item.attachmentHash);
     const directory = Zotero.Attachments.getStorageDirectory(item).path;
     const path = PathUtils.join(directory, '.zotero-sdt-cache');
     const [title, parentTitle] = await Promise.all([getItemTitle(item), getItemTitle(parent)]);
@@ -752,14 +826,22 @@ async function initialize(rootURI, token) {
       title: title || sourcePath.split(/[\\/]/).pop(),
       parentTitle: parentTitle || null,
       identity: `${item.libraryID}/${item.key}/${hash}/${JSON.stringify(versions)}` };
-    result.cacheKey = `${item.libraryID}/${item.key}`;
+    result.cacheKey = cacheKey;
     seen.add(result.cacheKey);
-    result.sourceBytes = (await IOUtils.stat(sourcePath)).size;
+    result.sourceBytes = source.size;
     result.pages = processor === 'pdf' ? await Zotero.DB.valueQueryAsync(
       'SELECT totalPages FROM fulltextItems WHERE itemID = ?', [id]) : null;
-    if (!(await IOUtils.exists(path))) { cache.drop(result.cacheKey); return result; }
+    // The same collapse as the source file above, in the same census walk: this
+    // exists() and the stat() that followed it asked one file one question.
+    // An absent pack takes the branch it always took. One case does move: a pack
+    // present but unstattable (permissions) now reads 'missing-pack' where it
+    // read 'invalid-pack'. Both re-extract, so only the diagnostic bucket
+    // differs, and 'missing-pack' is the truer of the two for a file the
+    // filesystem will not describe.
+    let stat;
+    try { stat = await IOUtils.stat(path); }
+    catch (_error) { cache.drop(result.cacheKey); return result; }
     try {
-      const stat = await IOUtils.stat(path);
       const fingerprint = JSON.stringify([stat.size, stat.lastModified]);
       const cached = cache.check(result.cacheKey, result.identity, fingerprint);
       if (cached) return { ...result, status: 'current', cached: true };
@@ -828,7 +910,9 @@ async function initialize(rootURI, token) {
 
   sitter = createSDTSitter({
     list: () => { seen = new Set(); return Zotero.DB.columnQueryAsync('SELECT itemID FROM itemAttachments ORDER BY itemID'); },
-    censusComplete: async () => { cache.prune(seen); await saveCache(); return cache.samples(); },
+    censusComplete: async () => {
+      cache.prune(seen); sourceHashes.prune(seen); await saveCache(); return cache.samples();
+    },
     observed: async (info, sample) => { cache.observe(info.cacheKey, info.identity, sample); await saveCache(); },
     inspect, blocked, now: () => Date.now(), changed: render,
     // 0691's on-screen wording, this ticket's journal: describeError still shows
@@ -854,9 +938,20 @@ async function initialize(rootURI, token) {
     'Les erreurs restent propres à la session. Un cache local jetable conserve les vérifications et durées ; il ne contient ni texte ni tâche active.');
   if (token !== generation) return;
   if (!launch) { sitter.state.phase = 'launch-declined; disable/re-enable to launch'; render(); return; }
+  // Defence in depth behind render()'s own guard. The reschedule is the single
+  // point whose loss stops the sitter for the session, so it does not depend on
+  // the sweep having returned normally — nor on this file being the only place a
+  // throw can come from.
   const sweep = async () => {
-    await sitter.sweep();
-    if (alive && token === generation) timer = timers.setTimeout(sweep, 30000);
+    try {
+      await sitter.sweep();
+    } catch (error) {
+      emit('sweep-error', { error: classifyError(error) }, 'error');
+    } finally {
+      if (alive && token === generation) {
+        timer = timers.setTimeout(sweep, nextSweepDelayMS(sitter.state));
+      }
+    }
   };
   pulse = timers.setInterval(render, 100);
   heartbeat = timers.setInterval(heartbeatTick, 60000);
@@ -880,6 +975,10 @@ function shutdown(data, reason) {
     emit('shutdown', { reason: typeof reason === 'number' ? SHUTDOWN_REASONS[reason] || `reason-${reason}`
       : reason ? String(reason).toLowerCase().replace(/^addon[_-]/, '').replace(/_/g, '-') : 'unknown' });
     sealed = true;
+    // The shutdown record is the last thing written, and this is what keeps the
+    // ring holding it reachable afterwards. Guarded for the same reason emit()
+    // is: a teardown already halfway through a throw must not acquire a second.
+    try { if (journal) Zotero.SDTPackSitterJournal = journal; } catch (_error) { /* Nothing. */ }
   }
 }
 function install() {}

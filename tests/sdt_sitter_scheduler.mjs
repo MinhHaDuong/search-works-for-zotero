@@ -190,15 +190,19 @@ await test('one sweep journals admit, submit, progress and settle, carrying no t
   await f.api.sweep();
   const seen = Array.from(ring.tail(50));
   assert.deepEqual(seen.map(record => record.kind),
-    ['admit', 'submit', 'progress', 'settle', 'admit', 'submit', 'settle']);
+    ['sweep-start', 'admit', 'submit', 'progress', 'settle', 'admit', 'submit', 'settle', 'sweep-end']);
   for (const record of seen) assert(Number.isFinite(record.at));
-  assert.deepEqual({ ...seen[0], at: 0 }, { at: 0, kind: 'admit', level: 'state', id: 1, sourceBytes: 100, pages: 1 });
-  assert.deepEqual({ ...seen[1], at: 0 }, { at: 0, kind: 'submit', level: 'state', id: 1 });
-  assert.deepEqual({ ...seen[2], at: 0 }, { at: 0, kind: 'progress', level: 'trace', id: 1, progress: 90 });
-  assert.equal(seen[3].kind, 'settle'); assert.equal(seen[3].ok, true);
-  assert.equal(seen[3].id, 1); assert(Number.isFinite(seen[3].ms));
-  assert.equal(seen[6].level, 'error'); assert.equal(seen[6].ok, false);
-  assert.equal(seen[6].id, '1/2'); assert.equal(seen[6].error, 'Error');
+  assert.deepEqual({ ...seen[1], at: 0 }, { at: 0, kind: 'admit', level: 'state', id: 1, sourceBytes: 100, pages: 1 });
+  assert.deepEqual({ ...seen[2], at: 0 }, { at: 0, kind: 'submit', level: 'state', id: 1 });
+  assert.deepEqual({ ...seen[3], at: 0 }, { at: 0, kind: 'progress', level: 'trace', id: 1, progress: 90 });
+  assert.equal(seen[4].kind, 'settle'); assert.equal(seen[4].ok, true);
+  assert.equal(seen[4].id, 1); assert(Number.isFinite(seen[4].ms));
+  assert.equal(seen[7].level, 'error'); assert.equal(seen[7].ok, false);
+  assert.equal(seen[7].id, '1/2'); assert.equal(seen[7].error, 'Error');
+  // The sweep closes on the ring saying how it ended, so a sweep that stopped
+  // being scheduled is distinguishable from one that never came back.
+  assert.equal(seen[8].level, 'trace'); assert.equal(seen[8].phase, 'waiting');
+  assert.equal(seen[8].scanned, 2); assert.equal(seen[8].completed, 1); assert.equal(seen[8].failed, 1);
   // The whitelist is the privacy rule: spreading `before` wholesale would leak these.
   assert(!JSON.stringify(seen).includes('Secret'));
   assert(!JSON.stringify(seen).includes('/secret/storage'));
@@ -210,7 +214,10 @@ await test('a blocked gate journals its reason once, idle waits at trace level',
     f.host.emit = (emitted, detail, emittedLevel = 'state') => seen.push({ kind: emitted, level: emittedLevel, ...detail });
     f.host.blocked = async () => reason;
     await f.api.sweep();
-    assert.deepEqual(seen, [{ kind, level, reason }]);
+    // The sweep boundaries bracket it; the reason itself still appears exactly once.
+    assert.deepEqual(seen.map(record => record.kind), ['sweep-start', kind, 'sweep-end']);
+    assert.deepEqual(seen[1], { kind, level, reason });
+    assert.equal(seen[2].phase, reason);
   }
 });
 await test('Zotero.debug and pref failures never reach the sitter loop', async () => {
@@ -352,7 +359,7 @@ await test('after a hang the ring names the active document, its last progress a
   for (let tick = 0; tick < 3; tick++) ui.heartbeatTick();
   const tail = Array.from(ring.tail(50));
   assert.deepEqual(tail.map(record => record.kind),
-    ['admit', 'submit', 'progress', 'heartbeat', 'heartbeat', 'heartbeat']);
+    ['sweep-start', 'admit', 'submit', 'progress', 'heartbeat', 'heartbeat', 'heartbeat']);
   const beat = tail[tail.length - 1];
   assert.equal(beat.level, 'trace'); assert.equal(beat.id, 1); assert.equal(beat.progress, 42);
   assert.equal(beat.phase, 'extracting'); assert(beat.elapsedMS >= 0); assert(beat.sinceProgressMS >= 0);
@@ -362,6 +369,277 @@ await test('after a hang the ring names the active document, its last progress a
   const settled = ring.tail(50).length;
   ui.heartbeatTick();
   assert.equal(ring.tail(50).length, settled);
+});
+/* Ticket 0704. The sample's clock used to start before ensure(), which hashes the
+   file, validates any existing pack, and queues behind whatever native work is
+   already running. None of that is a property of the document, and all of it was
+   booked as its extraction time. With three samples the 95th percentile IS the
+   maximum, so one inflated observation sets the upper bound for every later
+   estimate — and the cache keeps only the latest observation per attachment,
+   which is now `current` and never re-measured, so the poisoned number outlives
+   the session. The injected clock separates the two windows by two orders of
+   magnitude, because a sample that split the difference would pass a looser one. */
+await test('the queue wait before the first progress tick is not booked as extraction', async () => {
+  const f = fixture();
+  let clock = 0;
+  f.host.now = () => clock;
+  f.host.list = async () => [1];
+  f.host.ensure = async (id, progress) => {
+    clock += 100000;                 // hash, pack validation, and the native queue
+    progress(10); clock += 400;
+    progress(90); clock += 600;      // the extraction itself: 1000 ms
+    f.cached.add(id); return true;
+  };
+  await f.api.sweep();
+  assert.equal(f.api.state.samples.length, 1);
+  assert.equal(f.api.state.samples[0].milliseconds, 1000);
+  // state.startedAt is untouched, and serviceMS still answers the other question
+  // — how long the sitter held the slot — which the UI and the overrun check read.
+  assert.equal(f.api.state.startedAt, 0);
+  assert.equal(f.api.state.serviceMS, 101000);
+});
+/* The same timeline as the test above, minus the progress ticks — and it is a
+   separate test because the first fix passed the one above and failed this one.
+   Falling back to state.startedAt when nothing ever ticked reinstated the whole
+   defect for every document that finishes without a callback, which is the
+   small, fast, already-cached case. The earlier version of this test asserted
+   only `< 60 s` against a clock stepping 10 ms per read, where the poisoned
+   value and the honest one are both small: it could not see the defect it was
+   standing over. Real numbers, and no sample at all rather than a guessed one. */
+await test('a slow queue and no progress tick yields no sample, not a poisoned one', async () => {
+  const f = fixture();
+  let clock = 1_700_000_000_000;
+  f.host.now = () => clock;
+  f.host.list = async () => [1];
+  f.host.observed = async () => { assert.fail('an unmeasured duration reached the cache'); };
+  f.host.ensure = async id => {
+    clock += 5000;                      // hash, pack validation and the native queue
+    clock += 50;                        // the extraction itself, reporting nothing
+    f.cached.add(id); return true;
+  };
+  await f.api.sweep();
+  // Everything else about the document still settles; only the number nobody
+  // measured is absent. A 5050 ms sample here is the defect, and so is a 0 ms
+  // one — neither was observed.
+  assert.equal(f.api.state.completed, 1);
+  assert.equal(f.api.state.counts.current, 1);
+  // Lengths, not deepEqual against a literal: these arrays come from the sandbox
+  // realm and never compare equal to one built here, as the ring test notes.
+  assert.equal(f.api.state.samples.length, 0);
+  assert.equal(f.api.state.fittedSamples.length, 0);
+});
+await test('the settle record says the duration is unknown rather than inventing one', async () => {
+  const f = fixture(), seen = [];
+  let clock = 1_700_000_000_000;
+  f.host.now = () => clock;
+  f.host.list = async () => [1, 2];
+  f.host.emit = (kind, detail, level = 'state') => seen.push({ kind, level, ...detail });
+  f.host.ensure = async (id, progress) => {
+    clock += 5000;
+    if (id === 2) { progress(50); clock += 40; }
+    clock += 10;
+    f.cached.add(id); return true;
+  };
+  await f.api.sweep();
+  const settled = seen.filter(record => record.kind === 'settle');
+  assert.deepEqual(settled.map(record => record.ok), [true, true]);
+  // Both succeeded; only one was measurable, and the record says which.
+  assert.equal(settled[0].ms, null);
+  assert.equal(settled[1].ms, 50);
+  assert.equal(f.api.state.samples.length, 1);
+});
+/* Ticket 0701. The census hashed every attachment on every 30 s sweep, because
+   the cache key embeds the source MD5 and so the hash had to be taken before the
+   cache could be consulted. Counted across two consecutive sweeps of a library
+   nothing has touched, and then across a third where one file has changed — the
+   third arm is what separates "skips the hash" from "never hashes again". */
+await test('an unchanged library is not re-hashed, a changed file still is', async () => {
+  const hashes = context.createSDTSourceHashes();
+  const stats = { 1: { size: 10, lastModified: 5 }, 2: { size: 20, lastModified: 7 } };
+  const clock = 1_700_000_000_000;
+  let hashed = 0;
+  const f = fixture();
+  f.host.inspect = async id => ({
+    status: 'current',
+    identity: await hashes.hash(`1/${id}`, `/store/${id}/file.pdf`, stats[id], clock,
+      async () => { hashed++; return `md5-${id}-${stats[id].lastModified}`; }),
+  });
+  await f.api.sweep();
+  assert.equal(hashed, 2);
+  await f.api.sweep();
+  assert.equal(hashed, 2, 'an untouched library was hashed again on the second sweep');
+  stats[2] = { size: 20, lastModified: 9 };
+  await f.api.sweep();
+  assert.equal(hashed, 3, 'a changed file must be hashed again');
+  assert.equal(f.api.state.counts.current, 2);
+  // Same bytes, different file: the path is in the fingerprint because an
+  // attachment can be repointed at a byte-identical size and mtime.
+  await hashes.hash('1/1', '/store/1/other.pdf', stats[1], clock, async () => { hashed++; return 'x'; });
+  assert.equal(hashed, 4);
+  assert.equal(hashes.size(), 2);
+  hashes.prune(new Set(['1/1']));
+  assert.equal(hashes.size(), 1, 'a deleted attachment keeps its hash forever');
+});
+/* The author's ruling on ticket 0701 (DECISIONS.md, 2026-09-06): keep the fast
+   path, but re-verify on a cadence, so no memoized hash is trusted forever. The
+   case it bounds is the one the fingerprint structurally cannot see — a file
+   rewritten in place at the same length with its mtime restored, where (path,
+   size, mtime) are all still equal and only the bytes have moved. */
+await test('a memoized hash expires, so a silent in-place rewrite is caught within the bound', async () => {
+  const day = 24 * 60 * 60 * 1000;
+  // Two bounds, and the six-hour one is not decoration: run this only at the
+  // default and a factory that ignored its argument entirely would pass, since
+  // the test's clock would be stepping by exactly the hardcoded window.
+  for (const [label, bound, hashes] of [
+    ['the shipped default', day, context.createSDTSourceHashes()],
+    ['a caller-set bound', 6 * 60 * 60 * 1000, context.createSDTSourceHashes(6 * 60 * 60 * 1000)],
+  ]) {
+    const stat = { size: 10, lastModified: 5 };
+    const t0 = 1_700_000_000_000;
+    let content = 'before';
+    let hashed = 0;
+    const read = now => hashes.hash('1/1', '/store/1/file.pdf', stat, now,
+      async () => { hashed++; return `md5-${content}`; });
+    assert.equal(await read(t0), 'md5-before');
+    content = 'after';                  // rewritten in place; the fingerprint cannot tell
+    assert.equal(await read(t0 + bound - 1), 'md5-before', `${label}: the fast path stopped working`);
+    assert.equal(hashed, 1, label);
+    assert.equal(await read(t0 + bound), 'md5-after', `${label}: a stale hash was trusted past the bound`);
+    assert.equal(hashed, 2, label);
+    // The re-verify restarts the window rather than hashing on every later call:
+    // a bound that collapsed into "always re-hash" would undo the ticket.
+    assert.equal(await read(t0 + bound + 1), 'md5-after');
+    assert.equal(hashed, 2, label);
+    // A clock stepped backwards shortens the window instead of extending it.
+    assert.equal(await read(t0), 'md5-after');
+    assert.equal(hashed, 3, label);
+  }
+});
+await test('an idle library backs off; anything left to do keeps the 30 s cadence', async () => {
+  const idle = fixture();
+  idle.host.inspect = async () => ({ status: 'current' });
+  await idle.api.sweep();
+  assert.equal(idle.api.state.phase, 'waiting'); assert.equal(idle.api.state.candidates, 0);
+  assert(ui.nextSweepDelayMS(idle.api.state) >= 30000 * 10,
+    `an idle census still polls every ${ui.nextSweepDelayMS(idle.api.state)} ms`);
+  // A sweep that did work ends 'waiting' with an empty queue too — pending
+  // cannot tell the two apart, which is why `candidates` exists.
+  const worked = fixture();
+  await worked.api.sweep();
+  assert.equal(worked.api.state.phase, 'waiting');
+  assert.equal(worked.api.state.pending.length, 0);
+  assert.equal(worked.api.state.candidates, 2);
+  assert.equal(ui.nextSweepDelayMS(worked.api.state), 30000);
+  // And a sweep halted by a resource gate has work waiting: look again soon.
+  const held = fixture(); held.host.blocked = async () => 'low-disk';
+  await held.api.sweep();
+  assert.equal(ui.nextSweepDelayMS(held.api.state), 30000);
+  // A census that threw also found no candidate, and it is the case the count
+  // alone cannot tell from a finished library. Only the phase separates them,
+  // and a broken census must be retried in seconds, not in ten minutes.
+  const broken = fixture();
+  broken.host.list = async () => { throw new Error('the item table is unreadable'); };
+  await broken.api.sweep();
+  assert.equal(broken.api.state.phase, 'error');
+  assert.equal(broken.api.state.candidates, 0);
+  assert.equal(ui.nextSweepDelayMS(broken.api.state), 30000);
+});
+/* Ticket 0702's trigger, reproduced rather than described: a dialog whose window
+   has gone, so one getElementById comes back null halfway through the render.
+   render() is reached from publish(), which the scheduler calls from inside its
+   own finally, so before the guard this throw rejected sweep() itself and the
+   wrapper that reschedules the next sweep never ran — the sitter stopped for the
+   session with `phase` still reading 'waiting'. */
+await test('a torn-down dialog cannot throw out of render, and says so once', async () => {
+  const f = fixture();
+  const ring = context.createSDTJournal(50);
+  ui.journal = ring; ui.sealed = false; ui.alive = true; ui.sitter = f.api;
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => true } };
+  ui.renderFailing = false;
+  ui.dialogs.clear();
+  ui.dialogs.add({ closed: false,
+    document: { getElementById: id => (id === 'sdt-status' ? {} : null) } });
+  ui.render(); ui.render(); ui.render();
+  const errors = () => Array.from(ring.tail(50)).filter(record => record.kind === 'render-error');
+  // Once, not three times: the pulse renders at 10 Hz, and a record per tick
+  // would evict the whole ring in minutes — losing the evidence 0703 keeps.
+  assert.equal(errors().length, 1);
+  assert.equal(errors()[0].level, 'error');
+  assert.equal(errors()[0].error, 'TypeError');
+  // The latch releases on a render that works, so a second, later episode is
+  // still reported. Without this arm a guard that simply never records twice
+  // passes everything above — and the arm is also what proves the reset above
+  // reaches the sandbox at all, which as a `let` it silently did not.
+  ui.dialogs.clear();
+  ui.render();
+  assert.equal(errors().length, 1);
+  ui.dialogs.add({ closed: false,
+    document: { getElementById: id => (id === 'sdt-status' ? {} : null) } });
+  ui.render(); ui.render();
+  assert.equal(errors().length, 2);
+  ui.dialogs.clear();
+});
+/* The scheduler still rejects when the UI it publishes to throws — that is by
+   design, and it is why the guard belongs in bootstrap.js rather than here. What
+   this pins is that the ring records how the sweep ended even then: sweep-end is
+   emitted before the last publish, so the record cannot be lost to the very call
+   that ends the sweep. */
+await test('the sweep-end record survives a publish that throws', async () => {
+  const f = fixture(), seen = [];
+  f.host.emit = (kind, detail, level = 'state') => seen.push({ kind, level, ...detail });
+  f.host.list = async () => [];
+  f.host.changed = () => { throw new Error('render died'); };
+  await assert.rejects(() => f.api.sweep(), /render died/);
+  assert.deepEqual(seen.map(record => record.kind), ['sweep-start', 'sweep-end']);
+  assert.equal(seen[1].phase, 'error');
+  // And the loop is left re-entrant: a sweep that threw must not lock the sitter
+  // out of every later sweep as well.
+  assert.equal(f.api.state.busy, false);
+});
+/* The other half of the heartbeat, and the half ticket 0703 filed. The test above
+   hangs the worker, where `active` names a document; this one hangs the census,
+   where it does not — the phase the author's own morning hang most plausibly sat
+   in, and the phase the previous `active === null` gate emitted nothing for. The
+   final silence assertion is the discriminating arm: a beat that fires whenever
+   the sitter merely exists would pass everything above it and fail here. */
+await test('a hang in census beats too, naming the phase and no document', async () => {
+  const f = fixture(), entered = deferred(), finish = deferred();
+  const ring = context.createSDTJournal(50);
+  ui.journal = ring; ui.sealed = false; ui.alive = true; ui.sitter = f.api;
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => true } };
+  f.host.emit = ui.emit;
+  const inspect = f.host.inspect;
+  f.host.inspect = async id => { entered.resolve(); await finish.promise; return inspect(id); };
+  const running = f.api.sweep();
+  await entered.promise;
+  for (let tick = 0; tick < 2; tick++) ui.heartbeatTick();
+  const beats = Array.from(ring.tail(50)).filter(record => record.kind === 'heartbeat');
+  assert.equal(beats.length, 2);
+  assert.equal(beats[0].level, 'trace');
+  assert.equal(beats[0].phase, 'census');
+  assert.equal(beats[0].id, null);
+  // There is no document, so there is no document age. Null, never NaN: a
+  // subtraction from a null startedAt would have published NaN as a duration.
+  assert.equal(beats[0].elapsedMS, null);
+  assert.equal(beats[0].sinceProgressMS, null);
+  f.api.stop(); finish.resolve(); await running;
+  const settled = ring.tail(50).length;
+  ui.heartbeatTick();
+  assert.equal(ring.tail(50).length, settled, 'the beat outlived the sweep that justified it');
+});
+await test('the ring outlives the disable used to recover from a hang', async () => {
+  const ring = context.createSDTJournal(50);
+  ui.journal = ring; ui.sealed = false; ui.alive = true;
+  ui.sitter = { state: { enabled: true }, stop() {} };
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => true }, SDTPackSitter: { journal: ring } };
+  ui.shutdown(null, 4);
+  // Disable is the natural first move against a hang, and it took the only
+  // handle on the evidence with it. The second name is never deleted.
+  assert.equal(ui.Zotero.SDTPackSitter, undefined);
+  assert.equal(ui.Zotero.SDTPackSitterJournal, ring);
+  assert.deepEqual(Array.from(ui.Zotero.SDTPackSitterJournal.tail(50), record => record.kind),
+    ['shutdown']);
+  assert.equal(ui.Zotero.SDTPackSitterJournal.tail(1)[0].reason, 'disable');
 });
 await test('shutdown is the last record even with a submission still in flight', async () => {
   const f = fixture(), entered = deferred(), finish = deferred();
@@ -395,8 +673,10 @@ await test('shutdown is the last record even with a submission still in flight',
   assert.deepEqual(f.calls, [1]);
   const tail = Array.from(ring.tail(50));
   assert.equal(tail.length, closed);
+  // sweep-end is absent by the seal, not by omission: the sweep it belongs to
+  // finishes on the far side of shutdown, which is where nothing may land.
   assert.deepEqual(tail.map(record => record.kind),
-    ['admit', 'submit', 'dialog-close', 'shutdown']);
+    ['sweep-start', 'admit', 'submit', 'dialog-close', 'shutdown']);
   assert.equal(tail[tail.length - 1].reason, 'disable');
   assert.equal(ui.Zotero.SDTPackSitter, undefined);
 });
