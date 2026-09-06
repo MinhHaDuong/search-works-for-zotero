@@ -752,9 +752,10 @@ def run(repo: Path) -> int:
             "| Formal specification | **Complete** |",
             "| [Multilingual Menagerie](https://www.zotero.org/groups/6659303/semantic_search_challenge_fixture) | **In progress** |",
             "| Verification and scoring bench | **In progress** |",
+            "| Library-level bench | **In progress** |",
         )
         missing = [row for row in required if row not in text]
-        for heading in ("### Multilingual Menagerie", "### Verification and scoring bench"):
+        for heading in ("### Multilingual Menagerie", "### Verification and scoring bench", "### Library-level bench"):
             if heading not in text:
                 missing.append(heading)
         public = text.split("## Deliverables", 1)[1].split("### Multilingual Menagerie", 1)[0]
@@ -762,11 +763,12 @@ def run(repo: Path) -> int:
             line for line in public.splitlines()
             if line.startswith("|") and not line.startswith("|---") and "deliverable |" not in line
         ]
-        if len(public_rows) != 3:
-            missing.append("exactly three public deliverable rows")
+        if len(public_rows) != 4:
+            missing.append("exactly four public deliverable rows")
         for heading, following in (
             ("### Multilingual Menagerie", "### Verification and scoring bench"),
-            ("### Verification and scoring bench", None),
+            ("### Verification and scoring bench", "### Library-level bench"),
+            ("### Library-level bench", None),
         ):
             if heading not in text:
                 continue
@@ -791,7 +793,7 @@ def run(repo: Path) -> int:
                 log.error("DELIVERABLES: missing %s", item)
             return 1
         log.info(
-            "PROGRESS: three public deliverables present; %d requirements remain in SPEC.md, 0 findings",
+            "PROGRESS: four public deliverables present; %d requirements remain in SPEC.md, 0 findings",
             len(declared),
         )
         return 0
