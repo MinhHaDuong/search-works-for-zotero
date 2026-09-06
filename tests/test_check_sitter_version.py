@@ -287,8 +287,14 @@ def test_guard_reports_not_run_when_the_history_names_blobs_it_cannot_produce(tm
     # Remove the earlier bootstrap.js blob, which is what a blobless clone lacks.
     first = subprocess.run(["git", "rev-list", "--max-parents=0", "HEAD"], cwd=root,
                            check=True, capture_output=True, text=True).stdout.strip()
-    blob = subprocess.run(["git", "rev-parse", f"{first}:plugins/sdt-sitter/bootstrap.js"],
-                          cwd=root, check=True, capture_output=True, text=True).stdout.strip()
+    blob = None
+    for home in HOMES:
+        resolved = subprocess.run(["git", "rev-parse", f"{first}:{home}/bootstrap.js"],
+                                  cwd=root, capture_output=True, text=True)
+        if resolved.returncode == 0:
+            blob = resolved.stdout.strip()
+            break
+    assert blob is not None, f"{first} carries no bootstrap.js under any configured home"
     subprocess.run(["git", "unpack-objects"], cwd=root, capture_output=True)  # keep loose
     loose = root / ".git" / "objects" / blob[:2] / blob[2:]
     if not loose.exists():

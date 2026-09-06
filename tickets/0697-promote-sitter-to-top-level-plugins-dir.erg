@@ -54,7 +54,7 @@ before starting.
 - [x] This review follow-up adds two `tests/test_check_progress.py` controls
       for the newly admitted `plugins/` repo-path root; `python3 -m pytest
       tests/test_check_progress.py -q` passes (50 passed).
-- [x] Final full-gate rerun for this follow-up: `make check` reached
+- [ ] Final full-gate rerun for this follow-up: `make check` reached
       `python3 -m pytest tests/ -q` at 1034 passed, 18 skipped, 2 failed.
 - [x] No remaining reference to the old path anywhere in the tracked tree,
       outside git history, DECISIONS.md, tickets -- and `HOMES` in
