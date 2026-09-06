@@ -6,12 +6,23 @@ import json
 from pathlib import Path
 import zipfile
 
+#: Where the sitter's locales live. A language is added by dropping one file
+#: here and naming its tag below; nothing enumerates the directory at runtime,
+#: because `bootstrap.js` resolves its fallback chain by trying to fetch each
+#: candidate (ticket 0692). This tuple is what packs them.
+LOCALES = ('en', 'fr', 'es', 'vi')
+
 #: The payload, and the only definition of it. `bench/check_sitter_version.py`
 #: reads this rather than keeping a second list: a file added to the XPI and
 #: forgotten by the version guard is a payload that can change without a bump,
 #: which is the one thing that guard exists to prevent. `update.json` beside
 #: these is deliberately absent — it is served over HTTP, never packed.
-DELIVERED = ('manifest.json', 'bootstrap.js', 'scheduler.js')
+#:
+#: The `.ftl` files are payload for both reasons at once: an XPI without them
+#: shows every string as its own message id, and a translation corrected without
+#: a version bump is exactly the two-builds-one-number case the guard is for.
+DELIVERED = ('manifest.json', 'bootstrap.js', 'scheduler.js',
+             *(f'locale/{tag}/sdt-pack-sitter.ftl' for tag in LOCALES))
 
 
 def main():

@@ -1,0 +1,91 @@
+%erg 0.1
+Title: On-the-fly question generator over the real library: the library-level bench
+Created: 2026-09-06
+Author: Minh Ha-Duong
+Closed: autoclosed — PR #406
+
+--- log ---
+2026-09-06T16:13Z sim created
+2026-09-06T16:14Z claude note filed on the author's naming of a fifth deliverable while ruling on the panel's point 8 (DECISIONS.md 2026-09-06, second round): a system that generates about a hundred questions on the fly from the author's real library and benches the search engine against them. Distinct from the Menagerie (ticket 0029), which stays pinned, public, adversarial and hand-judged; this is the library level of SPEC.md 5.2.8 made routine
+
+2026-09-06T17:03Z claude note runtime discovery on doudou: no ollama, no llama.cpp, no torch or transformers in any Python env; the one local generation runtime on the host is transformers.js 4.2.0 (the package zoteus embeds with, at ~/CNRS/projets/actifs/zoteus-fts5/fork/node_modules/@huggingface/transformers), which runs onnx-community/Qwen2.5-1.5B-Instruct q4 on CPU at about 20 s per short prompt (0.5B: 4 s). padme carries Qwen3-8B on two GPUs but is another machine, so under R10's letter it is not used; reported to the author as the alternative
+2026-09-06T17:03Z claude note Zotero was not running at session start (no process, port 23119 closed); started it from the session so the local API answers, the sampler and the target both need it. The API's /fulltext content keeps the form feeds Zotero's extractor writes between pages: 4 728 of 13 653 caches carry them, so the PDF page index is derivable for about a third of the library and not measured for the rest; printed page labels come from the PDF's /PageLabels through pikepdf where the tree exists
+2026-09-06T17:03Z claude note index scope: no schema-2 index over the library exists on this host (the local full indexes are schema 1, keyword-only, from 0120), and the reviewed build embeds at 3 to 8 passages per second on this CPU (Xenova/all-MiniLM-L6-v2 through transformers.js), so a full-library build with vectors is 15 to 40 hours; the run's scope is the newest 300 items, built with body text on, a stated limit
+2026-09-06T17:04Z claude note README deliverables row added as 'Library-level bench' (the author's name, relayed by the coordinator), with a section beside the two other unfinished deliverables; bench/check_progress.py now expects four public rows
+2026-09-06T17:04Z claude note two clients on Zotero 10's local API at once (the sampler's item listing beside the target's body-text crawl) saturated it within minutes: zoteus logged the port as not answering and fell back to the Zotero Web API, exactly the degradation its limits.ts documents. The build was stopped and restarted alone; the runner already serialises the stages, and a run must not share the API with anything else
+2026-09-06T17:42Z claude note index built alone over the newest 300 items with body text on, reviewed build 34d6c26 (v1.14.0), default local embedder: 1 014 s, 9 032 passages and 9 032 vectors, 260 of 288 items with text. The status still reports localApiDegradedAt four minutes in, so part of the crawl went through the target's Web API fallback; recorded in the run identity as a stated limit, cause not isolated (a sibling agent works against the same Zotero)
+2026-09-06T18:14Z claude note first run, seed 1, 100 questions over the newest 300 items against 34d6c26 (v1.14.0): 0 win, 62 near-win, 38 miss; the answer row within the first ten for 26, the work for 62; row MRR 0,197, work MRR 0,464. Same-language 52 near-wins of 69, cross-lingual 10 of 31 (fr->en 1 of 13, vi->en 7 of 13). No win is possible against this target: its hit carries item key, title, snippet and score, so of the 26 answer rows found all carried the title and none any other chain element. Beyond the 40 000-character body-text cap the answer row was found 0 times of 29, within it 26 of 71. Questions: 100 of 100 from Qwen2.5-1.5B-Instruct q4 through transformers.js, 1 271 s, no template fallback. Report verification/GENERATOR-0719.md, artifact bench/results/0719-generator/run.json (aggregates only, swept for paragraph, title, key and question text)
+2026-09-06T18:14Z claude note the artifact's sample.frame_pairs was corrected from 505 to 264 by hand after the run: the summariser double-counted deferred draws, the fix is in the same commit, and the run's own log line reads 'frame: 264 pairs in 7 cells'
+2026-09-06T18:56Z claude note the author ruled on the three questions (DECISIONS.md, 2026-09-06, last entry): a resolvable item key wins except for compound documents, the scope is a seeded random item sample built into its own index, padme's llama-server is admissible under R10. Applied: score.py's ladder, scope.py (a read-only proxy on the local API that filters listings to the sample, the target pointed at it through ZOTERO_LOCAL_PORT), questions.py's llama-server writer with the transformers.js fallback, and every question asked in the three interface modes with the mode map read from the adapter and each mode's evidence read from the replies. padme: llama-server b10542 on 127.0.0.1:8080 serving alias qwen3.8-27b (Qwen3.8-27B-Q4_K_M.gguf), reached through an ssh -L tunnel, about 1,5 s per question with thinking off
+2026-09-06T18:56Z claude note Zotero stopped again, cleanly (WAL checkpointed), between 18:43Z and 18:55Z while a sibling agent's acceptance run started on this machine; cause not isolated. Restarted it for the ruled run
+2026-09-06T19:22Z claude note second run, the three changes applied, seed 1, random scope of 300 records and 412 children behind the proxy (build 609,6 s, 6 458 passages and vectors, 300 items in the index, 309 proxy requests all GET), 100 questions from padme's qwen3.8-27b in 188 s, every question asked in the three modes: combined 22 win / 51 near-win / 27 miss (row MRR 0,226, work MRR 0,548); exact 23/42/35; meaning 17/51/32. Same-language 21/43/6, cross-lingual 1/8/21 — and the cross-lingual misses hold in every mode (exact finds the work 3 times in 30, meaning 9), so they read as a model effect, the monolingual embedder, not a mode effect. vi->en 0 of 10 in all three modes; fr->en 0 near-wins in exact, 5 in meaning. Compound documents 0 wins of 20 (the reply carries no part byline or page). Report and artifact refreshed; the artifact's ladder was recomputed once from the private readings to add the per-mode cross-lingual table (bench/generator/refresh.py), identity untouched and the refresh recorded in it
+2026-09-06T19:34Z sim closed — autoclosed — PR #406
+--- body ---
+## Context
+
+SPEC.md §5.2.8 decides every gate at one of two levels: the fixture level,
+on the committable corpus, and the library level, against the author's
+real library, which cannot be committed. The Menagerie (ticket 0029) is the
+fixture level. The library level has so far been a manual act. The author
+named the missing instrument while ruling on the panel of 2026-09-06: a
+system that generates about a hundred questions on the fly from the real
+library and benches the search engine against them.
+
+Why it is worth a deliverable of its own. A pinned bank can be tuned
+against by whoever tunes the engine; a bank regenerated at each run from a
+private library cannot. The Menagerie is representative in shape by
+construction against the census (ticket 0711); the real library is
+representative by being the thing itself. And the same scoring applies to
+both, ruling 7 of 2026-09-06: an answer is a paragraph in a page in a file
+attached to a Zotero entry, and a reply scores win, near-win or miss on the
+rank of that paragraph and the completeness of its citation chain (title,
+author, date, identifier, section heading, printed page number, and the
+part's title and byline for a compound document).
+
+## What it is
+
+1. Sample about a hundred answer paragraphs from the real library's
+   extracted text, stratified so the sample follows the library's own
+   marginals (item type, format, language, length, notes and annotations),
+   with the full citation chain read from Zotero's metadata.
+2. Author one question per paragraph with a local model, in the paragraph's
+   language and, for a declared share, in another of R7's languages, so the
+   cross-lingual pairs of ruling 2 appear on the fly.
+3. Run the engine under test through the acceptance harness's query verb,
+   score each reply on rank and chain completeness, and report per lane
+   (question language against answer-paragraph language), per format and
+   per stratum, with counts beside rates.
+4. Regenerate at each run. A run records its sample seed, the library
+   version, and the run identity block of the fixture contract, so a
+   comparison across runs is honest about what changed.
+
+## Constraints
+
+- R10 and R36 hold: generation runs on a local model, no text leaves the
+  machine, no paid service.
+- Read-only against Zotero and the library, as the census is.
+- A question written from a paragraph it must retrieve is a self-consistency
+  probe, closer to a recall check than to a user need; say so in the
+  report, and reserve need-driven questions for the Menagerie.
+- Nothing from a run is committed except aggregates: no paragraph text, no
+  titles, no keys.
+
+## Relevant files
+
+- `bench/library_census.py` (ticket 0711) — the stratification marginals
+  and the read-only access pattern
+- `bench/acceptance/interface.py` — the query verb every adapter offers
+- `bench/golden_gate.py` — the scorer's readings; the rank and chain
+  scoring is new and belongs beside it, not inside it
+- `conception/0029-golden-fixture-structure-review.md` Parts C to E — the
+  rulings that define the answer and the score
+
+## Exit criteria
+- [x] a generator that produces about a hundred questions from the real
+      library in one run, stratified against the census marginals, with the
+      full citation chain per answer
+- [x] a scorer reading win, near-win and miss on rank and chain completeness
+- [x] a run against the reviewed zoteus build reported in `verification/`,
+      aggregates only, with its seed and library version
+- [x] README's deliverables table gains the row, once the author confirms
+      the name

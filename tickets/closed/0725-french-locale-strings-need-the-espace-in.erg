@@ -1,0 +1,80 @@
+%erg 0.1
+Title: French locale strings need the espace insécable before : and %
+Created: 2026-09-06
+Author: claude
+Closed: author's call: goldplating -- a tooltip line-wrap cosmetic nit in an unreleased plugin, not worth the guard
+
+--- log ---
+2026-09-06T17:43Z claude created
+2026-09-06T17:47Z claude note Filed out of PR #403's doc-propagation review. Not a defect that PR introduced -- the wording predates it (`bootstrap.js` on `origin/main` at db1ea83 already carried "En pause : " six times) and ticket 0692's fourth acceptance criterion forbade it from changing wording. What 0692 did change is that the strings are now data in four files instead of literals in one, which is what makes this mechanizable at all: measured, not estimated, at 41 lines.
+
+2026-09-06T18:25Z sim closed — author's call: goldplating -- a tooltip line-wrap cosmetic nit in an unreleased plugin, not worth the guard
+--- body ---
+## Context
+
+French typography puts a no-break space before `:` `;` `?` `!` and before
+`%`, so that the mark never begins a line. `rules/lang/fr.md` states the norm
+outright. `bench/sdt-sitter/locale/fr/sdt-pack-sitter.ftl` uses an ordinary
+U+0020 on **41 of its message lines** and contains zero U+00A0 and zero
+U+202F. Measured with a four-locale sweep, not eyeballed; the same sweep
+reports 3 lines each for `en`, `es` and `vi`, all of them the space before
+`%`, where those languages' own conventions differ and this ticket takes no
+position.
+
+The visible failure is a tooltip or a `<pre>` wrapping between the text and
+its colon — "En pause" at the end of one line and ": mémoire insuffisante"
+at the start of the next.
+
+Why now rather than at 0692: that ticket was barred from touching wording
+(its criterion 4), and before it the strings were JavaScript literals spread
+over one 1000-line file, where a sweep would have had to tell a UI string
+from an element id from a phase name. They are now 76 named messages in four
+files, so both the fix and its guard are a few lines.
+
+## Relevant files
+
+- `bench/sdt-sitter/locale/fr/sdt-pack-sitter.ftl` — the 41 lines
+- `tests/test_sdt_sitter.py` — where the guard goes, beside the other
+  `.ftl` checks (`messages()`, `visible()` already parse these files)
+- `~/.claude/rules/lang/fr.md` — the norm being enforced
+
+## Actions
+
+1. Decide U+00A0 or U+202F, once, and write the choice into the `fr.ftl`
+   header so the next translator does not have to guess. U+202F (narrow) is
+   what French typography wants before `:` `;` `!` `?`; U+00A0 is the safer
+   choice against a font with no narrow glyph. This is the one judgement in
+   the ticket.
+2. Replace the 41 ordinary spaces in `fr.ftl`. Mechanical once (1) is settled.
+3. Add the guard, so a 42nd line cannot arrive: for `fr.ftl` only, no message
+   value may carry U+0020 immediately before `:` `;` `?` `!` or `%`.
+4. Bump `bench/sdt-sitter/manifest.json` — a `.ftl` is delivered payload, so
+   `bench/check_sitter_version.py` requires it.
+
+## Test
+
+Write the guard first and watch it fail on the 41 lines as they stand. That
+is the red step and it costs nothing: the defect is already in the tree, so
+no fixture has to be built to produce it.
+
+## Verification
+
+- [ ] The guard reddens on the current `fr.ftl`, before any string is touched
+- [ ] It greens after the replacement
+- [ ] It reddens again on one deliberately reintroduced ordinary space
+- [ ] `make check` passes
+- [ ] The rendered strings are checked in a real window, not only in the
+      file: a no-break space is invisible in a diff and a mojibake is not
+
+## Invariants
+
+- Wording does not change — only the space characters. `tests/sdt_sitter_dialog.mjs`
+  and `tests/sdt_sitter_scheduler.mjs` assert French strings verbatim, so any
+  change beyond the space will redden them, which is the desired direction.
+- `en`, `es` and `vi` are out of scope. Their conventions are not French's,
+  and a guard written for all four would be wrong for three of them.
+
+## Exit criteria
+
+`fr.ftl` carries no ordinary space before a French-spaced mark, the choice of
+character is recorded in the file, and a test refuses the next one.

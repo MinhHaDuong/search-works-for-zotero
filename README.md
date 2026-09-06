@@ -70,6 +70,7 @@ Contents below the bar is generated to track implementation progress.
 | Formal specification | **Complete** | [SPEC.md](SPEC.md): 24 ratified requirements, including R36 free operation |
 | [Multilingual Menagerie](https://www.zotero.org/groups/6659303/semantic_search_challenge_fixture) | **In progress** | ticket 0029 |
 | Verification and scoring bench | **In progress** | [bench/](bench/) and ticket 0026 |
+| Library-level bench | **In progress** | ticket 0719 |
 
 Numbers in the **work owner** columns are local issues tracked in
 [`tickets/`](tickets/) with [git-erg](https://github.com/MinhHaDuong/git-erg).
@@ -93,6 +94,12 @@ Numbers in the **work owner** columns are local issues tracked in
 | Deletion, residue and uninstall | In progress | 0654–0657 |
 | Concurrent serving and bounded duplicate work | In progress | 0650–0652 |
 | Durable pause | In progress | 0643, 0665; upstream #56 / PR #57 |
+
+### Library-level bench
+
+| object | state | work owner |
+|---|---|---|
+| Questions generated on the fly from the author's real library, the engine benched against them | In progress | 0719 |
 
 Current focus and handoff: [STATE.md](STATE.md). Upstream movement and
 contributions: [SYNC.md](SYNC.md). Evidence: [verification/](verification/).

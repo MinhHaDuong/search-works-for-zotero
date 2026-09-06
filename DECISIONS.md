@@ -6711,3 +6711,104 @@ to tune against, representative by construction, scored on the same rank
 and citation chain as the Menagerie. The Menagerie stays the pinned,
 public, adversarial, hand-judged instrument; the two are complements, not
 rivals. Filed as its own ticket.
+
+**2026-09-06 — RULED: the sitter measures every duration on a monotonic clock.**
+Ticket 0695 asked, among its adversarial scenarios, what the sitter does when the
+system clock steps backwards mid-session. It had no answer:
+`grep -n "performance.now\|monotonic" bootstrap.js` returned nothing, and every
+timing computation read `Date.now()`. The author ruled, before the ticket's
+Imagine pass ran: **"Add a monotonic clock now."**
+
+The failure being closed is not imprecision, it is a sign change. NTP steps the
+wall clock, a resume from suspend steps it, and the author setting his own clock
+steps it by hours; a span computed across such a step comes out negative, and
+nothing downstream re-checked the sign because until now nothing could produce
+one. What a reader would have seen: an elapsed line reading "-42 min", an
+empirical upper bound no document can exceed because the subtraction went the
+wrong way, so the finish-time projection is never withdrawn, and a duration
+sample poisoned into the disposable cache where it outlives the session.
+
+Implemented as `ChromeUtils.now()` — Gecko's own `TimeStamp::Now`, the clock the
+platform measures itself with — falling back to `performance.now()`, and last of
+all to the wall clock ratcheted to its own highest reading. The ratchet cannot
+say how long a backwards step lasted, since nothing without a monotonic source
+can; it can refuse to answer a negative duration, which is the failure at issue.
+Its other half is worth stating with the same plainness: the ratchet pins to the
+HIGHEST reading it has seen, so a single forward excursion — a clock corrected an
+hour ahead and then back — floors every later duration at zero for as long as the
+wall clock takes to catch up. That is the price of refusing the negative, and it
+is paid only where the platform offers no monotonic clock at all, which in Gecko
+is nowhere. The alternative considered and rejected was to clamp each
+subtraction at zero:
+that hides the step instead of measuring across it, and leaves every duration
+sample taken over the step silently short while looking exactly like a fast
+document.
+
+The split is by KIND, not by call site. A span reads the monotonic clock:
+elapsed, since-progress, service time, the duration observations the estimator is
+fitted on, the age of a resource reading, the memoized-hash re-verify window, and
+the spinner's own phase. A point on the calendar reads the wall clock, and there
+are exactly two — a journal record's timestamp, which the ring renders as a time
+of day, and the projected completion date and time, which is precisely what a
+monotonic clock cannot name.
+
+**2026-09-06 — RULED: the sitter's manifest version scheme is reset to 0.2.11.**
+The sitter's version had climbed through `2.2.0` … `2.11.0` across this raid's
+wave of tickets (0692, 0695, 0696), each landing on the last number a sibling
+PR had already spent. Told of the climb, the author ruled: **"Correct version
+to 0.2.11, we did not release yet."** The plugin has never shipped through any
+release channel — no auto-update feed, no installer, nothing but the author's
+own hand-delivered XPI — so nothing external reads the old numbers as meaningful,
+and the reset costs no one currency.
+
+This makes the manifest version numerically go backwards against every commit
+already in history, which `bench/check_sitter_version.py`'s own "no regression"
+check exists to catch. Asked how to reconcile the two, the author chose:
+**"Just set 0.2.11 and disable the no-regression check entirely."** The
+no-reuse check — no two different payloads may ever answer to one version
+number — is unconditional and stays; it is what actually protects the
+hand-delivered XPI from being confused with itself, and a scheme reset does
+not touch it. `check_sitter_version.py` and its tests were updated accordingly
+(this session, no separate ticket).
+
+One consequence is worth stating rather than discovering: a monotonic clock does
+not advance while the machine is suspended, so the 24-hour hash re-verify window
+ruled on ticket 0701 now bounds 24 hours of running time, not of calendar time.
+A laptop closed for a week resumes with its memoized hashes still inside the
+window. That is the honest reading of "the session that runs for weeks", which is
+the case that ruling exists for, and it is stated in `SPEC.md` §5 beside the
+window itself.
+
+**2026-09-06 — RULED: three questions the library-level bench's first run
+(ticket 0719, `verification/GENERATOR-0719.md`) put to the author, on the
+chain, the scope and the question writer.**
+
+1. *The identifier clause of ruling 7.* A resolvable item key in the reply
+   satisfies the identifier and work-identity part of the citation chain, so a
+   zoteus hit — item key, title, snippet, score — can win. The exception is the
+   compound document: for a book, a proceedings, a dictionary or an
+   encyclopedia and the parts they hold, a key alone is a near-win, and a win
+   still needs the part — the chapter, talk or entry title with its byline —
+   and the page in the reply. The chain-completeness readings stay reported
+   beside the ladder; the ladder no longer turns on them.
+2. *The scope.* A seeded random sample of items, not a stratified one and not
+   the newest N, built into its own index. Thin cells are what the library
+   has, and a random sample reports them at their true weight; a stratified
+   sample would manufacture precision. Each lane and format cell prints its
+   count. The run identity records seed and scope.
+3. *The question writer.* padme is admissible under R10: it is the author's
+   own second machine. It runs a llama-server, whose model is better than the
+   Qwen3-8B this ledger and `SPEC.md` §5.2.8 had named in shorthand ("Qwen
+   3.8" stood for it). The endpoint and the model actually served are read
+   from the machine over ssh, never assumed, and recorded in the run identity;
+   the local transformers.js path stays as the fallback. Nothing is started or
+   installed on padme by a run; a server that is not running is reported, and
+   the fallback is used.
+
+Also asked for, same day: the run identity and the report state which
+retrieval mode each question went through — lexical, semantic or hybrid, as
+the adapter's query verb resolves it against the target's default path — read
+from the adapter and the target's replies rather than from documentation, and
+the same questions run in all three modes where the harness allows, the ladder
+per mode beside the per-lane table, so a lane's near-zero can be read as a mode
+effect or a model effect rather than guessed.
