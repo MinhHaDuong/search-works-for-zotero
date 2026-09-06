@@ -4235,6 +4235,35 @@ retracted on purpose, not overlooked. Both the count and the reuse floor
 keep the same standing as the number they replace: first-pass, adjustable,
 not proof. The full tally table lives in ticket 0029.
 
+### 2026-09-06 — Pack text equals the flat cache; the 0,91/0,99 figures were a reader artifact (factual correction)
+
+The 2026-09-02 item under "Awaiting ratification" below (the extract stage
+SHOULD index from the structured-text pack, ticket 0572) states that the
+pack's text "is 0,91 and 0,99 of the flat cache's, the difference being the
+excluded flows." That figure was
+produced by `verification/probes/sdt_read.py`, whose `block_text` joined only
+top-level `text` runs. A `list` block's content is `listitem` blocks, each with
+its own runs, so every list read as empty — and bibliographies are typed as
+lists. The reader was fixed in PR #399 (hotfix, no ticket, by the author's
+ruling that a one-liner does not deserve one).
+
+Re-measured with the fixed reader on doudou, 2026-09-06, over the 4 762 PDFs
+in `~/data/Zotero/storage` carrying both a pack and a flat cache: pack words
+over flat words is 1,00 at the median in both extractor generations (731 old,
+4 031 current), with the excluded flows at 2,5 % of pack words. Two facts
+survive the correction and one is new. The pack normalises ligatures (0 raw
+glyphs against 28 779 in 243 old-generation caches) and anchors every block to
+a page. New: native SDT ignores `fulltext.pdfMaxPages`, so in 486 of the
+4 031 current-generation pairs the flat cache stops at exactly page 100 while
+the pack continues, median 1,79x more text. Excluded text, not text quality,
+is what the pack adds on documents under the cap.
+
+Consequence analysis: §5.2.4's "pack first" ruling stands on structure and
+page anchors, not on a text delta, and nothing in R24, C1 or ticket 0572
+changes. The verification note `verification/SDT-CAPS-0483.md` §4 measured
+bytes, not words, and is unaffected. Ticket 0606's stated size ratio is
+likewise bytes and stands.
+
 ## Awaiting ratification
 
 - **Whether zoteus serves its own extraction in place of a platform full-text
