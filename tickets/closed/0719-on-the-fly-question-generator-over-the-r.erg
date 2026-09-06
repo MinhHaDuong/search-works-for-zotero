@@ -2,6 +2,7 @@
 Title: On-the-fly question generator over the real library: the library-level bench
 Created: 2026-09-06
 Author: Minh Ha-Duong
+Closed: autoclosed — PR #406
 
 --- log ---
 2026-09-06T16:13Z sim created
@@ -18,6 +19,7 @@ Author: Minh Ha-Duong
 2026-09-06T18:56Z claude note the author ruled on the three questions (DECISIONS.md, 2026-09-06, last entry): a resolvable item key wins except for compound documents, the scope is a seeded random item sample built into its own index, padme's llama-server is admissible under R10. Applied: score.py's ladder, scope.py (a read-only proxy on the local API that filters listings to the sample, the target pointed at it through ZOTERO_LOCAL_PORT), questions.py's llama-server writer with the transformers.js fallback, and every question asked in the three interface modes with the mode map read from the adapter and each mode's evidence read from the replies. padme: llama-server b10542 on 127.0.0.1:8080 serving alias qwen3.8-27b (Qwen3.8-27B-Q4_K_M.gguf), reached through an ssh -L tunnel, about 1,5 s per question with thinking off
 2026-09-06T18:56Z claude note Zotero stopped again, cleanly (WAL checkpointed), between 18:43Z and 18:55Z while a sibling agent's acceptance run started on this machine; cause not isolated. Restarted it for the ruled run
 2026-09-06T19:22Z claude note second run, the three changes applied, seed 1, random scope of 300 records and 412 children behind the proxy (build 609,6 s, 6 458 passages and vectors, 300 items in the index, 309 proxy requests all GET), 100 questions from padme's qwen3.8-27b in 188 s, every question asked in the three modes: combined 22 win / 51 near-win / 27 miss (row MRR 0,226, work MRR 0,548); exact 23/42/35; meaning 17/51/32. Same-language 21/43/6, cross-lingual 1/8/21 — and the cross-lingual misses hold in every mode (exact finds the work 3 times in 30, meaning 9), so they read as a model effect, the monolingual embedder, not a mode effect. vi->en 0 of 10 in all three modes; fr->en 0 near-wins in exact, 5 in meaning. Compound documents 0 wins of 20 (the reply carries no part byline or page). Report and artifact refreshed; the artifact's ladder was recomputed once from the private readings to add the per-mode cross-lingual table (bench/generator/refresh.py), identity untouched and the refresh recorded in it
+2026-09-06T19:34Z sim closed — autoclosed — PR #406
 --- body ---
 ## Context
 
