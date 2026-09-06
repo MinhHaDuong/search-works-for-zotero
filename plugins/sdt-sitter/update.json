@@ -1,8 +1,18 @@
 {
-  "_comment": "Mozilla-style JSON update manifest, served raw from this repository's main branch and named by manifest.json's applications.zotero.update_url. Ticket 0688: the URL there was https://example.invalid/..., an RFC 2606 address guaranteed never to resolve, so every update check the plugin made failed against a name chosen to fail. The id keeps its .invalid suffix and correctly so -- Zotero never dereferences an id, only this URL. The updates list is EMPTY on purpose: it is the documented idiom for 'no update available', and it is the honest answer for a plugin hand-delivered as an XPI, since there is no published release and nothing here may point at a download link that does not exist. No claim is made either way about what an empty list or an unreachable update_url does to an installed add-on -- that was not established against Zotero's own fork, and this file is a fix for a URL that could not resolve, not a diagnosis. Publishing releases means adding an entry per release with update_link and applications.zotero version bounds.",
+  "_comment": "Mozilla-style JSON update manifest, served raw from this repository's main branch and named by manifest.json's applications.zotero.update_url. Ticket 0727: the updates list used to be EMPTY, on the reading that an empty list is the idiom for 'no update available'. Measured against Zotero 10.0.1, that reading is the suspected cause of the plugin uninstalling itself -- an add-on whose update manifest lists it with zero versions has no version the host can find compatible, and the host was seen to disable it and then delete it mid-session. So the list now carries the shipped version, with the same bounds manifest.json declares. An entry equal to the installed version is never downloaded: the host compares and finds nothing newer, which is the intended steady state, and update_link is therefore absent rather than pointed at a release that does not exist. Ticket 0727 also established, with a control, that update_url itself is REQUIRED: a build identical but for its removal is refused at install with 'peut-etre incompatible avec cette version de Zotero', which corrects ticket 0688's docs-based reading that only applications.zotero must be present. Keep this version in step with manifest.json on every bump.",
   "addons": {
     "sdt-pack-sitter@search-works-for-zotero.invalid": {
-      "updates": []
+      "updates": [
+        {
+          "version": "0.2.15",
+          "applications": {
+            "zotero": {
+              "strict_min_version": "10.0.1",
+              "strict_max_version": "10.*"
+            }
+          }
+        }
+      ]
     }
   }
 }

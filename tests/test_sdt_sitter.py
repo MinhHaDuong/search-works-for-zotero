@@ -517,6 +517,39 @@ def test_manifest_names_no_unresolvable_host():
         assert list(update["addons"]) == [zotero["id"]]
 
 
+def test_update_json_advertises_the_version_the_manifest_ships():
+    """Two files state the shipped version, so they can disagree. Ticket 0727.
+
+    `update.json` used to list this add-on with an EMPTY updates array, on the
+    reading that empty means "no update available". Measured against Zotero
+    10.0.1 that is the suspected cause of the plugin uninstalling itself: an
+    add-on the host is told has zero versions has none the host can find
+    compatible, and it was seen disabled and then deleted mid-session. The list
+    now carries the shipped version — which makes the manifest's `version` and
+    the advertised one one fact in two files, and the second is the one that
+    goes stale, silently, in the direction that reintroduces the defect.
+
+    An entry OLDER than what is installed is the same finding as an empty list
+    for the reader this exists to protect, so equality is what is asserted, not
+    presence.
+    """
+    manifest = json.loads((SITTER / "manifest.json").read_text(encoding="utf-8"))
+    update = json.loads((SITTER / "update.json").read_text(encoding="utf-8"))
+    entries = update["addons"][manifest["applications"]["zotero"]["id"]]["updates"]
+    assert entries, (
+        "update.json lists this add-on with no versions at all, which is the "
+        "shape ticket 0727 is about")
+    assert [entry["version"] for entry in entries] == [manifest["version"]], (
+        f'update.json advertises {[e["version"] for e in entries]}, '
+        f'manifest.json ships {manifest["version"]}')
+    # The bounds travel with it: an entry compatible with nothing is a version
+    # the host still cannot accept.
+    zotero = manifest["applications"]["zotero"]
+    advertised = entries[0]["applications"]["zotero"]
+    assert advertised["strict_min_version"] == zotero["strict_min_version"]
+    assert advertised["strict_max_version"] == zotero["strict_max_version"]
+
+
 @pytest.mark.integration
 def test_startup_self_check_is_emitted_before_anything_else_can_fail():
     """Driven, not read. A log line asserted by inspection is a log line nobody ran."""
