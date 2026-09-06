@@ -877,7 +877,9 @@ def _snapshot_rows(
                 )
                 continue
             if observed is not None:
-                if observed.get("state") != "indexed":
+                # `partial` is a stock reindex stopping at a cap (100 pages, 500 000 characters):
+                # Zotero serves the truncated text and the counters record where it stopped.
+                if observed.get("state") not in ("indexed", "partial"):
                     raise GoldenFixtureError(
                         f"{source['id']}: the reindex settled at {observed.get('state')!r}; only a "
                         "declared failure control may be exported without full text"
@@ -924,6 +926,7 @@ def _snapshot_rows(
             row = {
                 "recipe_id": doc["id"], "parent_key": parent_key,
                 "attachment_key": attachment_key, "terminal_state": "indexed",
+                "observed_state": (observed or {}).get("state", "indexed"),
                 "fulltext_file": f"fulltext/{attachment_key}.json",
                 "fulltext_version": census[attachment_key], "body": fulltext,
             }

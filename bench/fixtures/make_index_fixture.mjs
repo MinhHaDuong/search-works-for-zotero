@@ -522,7 +522,7 @@ export function loadGoldenExport(directory, options = {}) {
         throw new Error(`${attachmentId}: ${contentType} is served by the local API; an unserved export row is vanished text`);
       }
       if (row.fulltext_file !== null || !Number.isInteger(row.fulltext_version) || row.fulltext_version < 0 ||
-          row.observed_state !== 'indexed' || typeof row.not_served_reason !== 'string' || !row.not_served_reason ||
+          !['indexed', 'partial'].includes(row.observed_state) || typeof row.not_served_reason !== 'string' || !row.not_served_reason ||
           row.indexed_pages !== null || row.total_pages !== null ||
           ![null, 'number'].includes(row.indexed_chars === null ? null : typeof row.indexed_chars) ||
           ![null, 'number'].includes(row.total_chars === null ? null : typeof row.total_chars)) {

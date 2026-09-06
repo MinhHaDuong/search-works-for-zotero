@@ -2381,3 +2381,31 @@ def test_base_fields_are_written_under_the_item_types_own_names(tmp_path):
     recipe_path.write_text(json.dumps(recipe), encoding="utf-8")
     accepted = run_loader(snapshot, recipe_path)
     assert accepted.returncode == 0, accepted.stderr
+
+
+def test_a_stock_reindex_that_stops_at_a_cap_settles_partial_and_is_exported(tmp_path):
+    """Under the stock limits Zotero leaves an attachment it truncated at 100 pages or
+    500 000 characters in state `partial`, serving the truncated text: that is the
+    cap-crossing mechanism the fixture exists to carry, not a failure. The first stock
+    export (padme, 2026-09-06) refused Bastiat's 1 085 504-character text on it. A
+    `partial` settled state is exported with its counters; `unindexed` stays refused."""
+    recipe, cache, zotero, key = injected_unserved_fixture(tmp_path)
+    zotero.reindex_fulltext = lambda keys, **_: {key: {
+        "state": "partial", "indexedPages": None, "totalPages": None, "indexedChars": 500000,
+        "totalChars": 1085504, "version": 0, "previous_version": 9,
+    }}
+    destination = tmp_path / "partial"
+    export_again(recipe, zotero, cache, destination)
+    row = json.loads((destination / "manifest.json").read_text())["attachments"][0]
+    assert row["terminal_state"] == "indexed-not-served" and row["observed_state"] == "partial"
+    assert (row["indexed_chars"], row["total_chars"]) == (500000, 1085504)
+    recipe_path = tmp_path / "recipe.json"
+    recipe_path.write_text(json.dumps(recipe), encoding="utf-8")
+    accepted = run_loader(destination, recipe_path)
+    assert accepted.returncode == 0, accepted.stderr
+    zotero.reindex_fulltext = lambda keys, **_: {key: {
+        "state": "unindexed", "indexedPages": None, "totalPages": None, "indexedChars": None,
+        "totalChars": None, "version": 0, "previous_version": 9,
+    }}
+    with pytest.raises(gf.GoldenFixtureError, match="settled at 'unindexed'"):
+        export_again(recipe, zotero, cache, tmp_path / "refused")
