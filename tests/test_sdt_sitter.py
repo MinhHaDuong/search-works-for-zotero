@@ -13,6 +13,8 @@ import re
 import subprocess
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 BOOTSTRAP = ROOT / 'bench' / 'sdt-sitter' / 'bootstrap.js'
 SCHEDULER = ROOT / 'bench' / 'sdt-sitter' / 'scheduler.js'
@@ -67,11 +69,13 @@ def _ui_strings(site: str) -> list[str]:
     return [item for item in text if item.strip() and not item.startswith('sdt-')]
 
 
+@pytest.mark.integration
 def test_sdt_sitter_scheduler():
     subprocess.run(['node', 'tests/sdt_sitter_scheduler.mjs'], cwd=ROOT,
                    check=True, capture_output=True, text=True, timeout=30)
 
 
+@pytest.mark.integration
 def test_sdt_sitter_bootstrap_syntax():
     subprocess.run(['node', '--check', 'bench/sdt-sitter/bootstrap.js'], cwd=ROOT,
                    check=True, capture_output=True, text=True, timeout=30)

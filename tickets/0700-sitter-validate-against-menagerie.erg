@@ -1,0 +1,52 @@
+%erg 0.1
+Title: Validate the sitter's census and extraction against the real Menagerie
+Created: 2026-09-06
+Author: claude
+Blocked-by: 0632
+
+--- log ---
+2026-09-06T00:00Z claude created
+
+--- body ---
+## Context
+
+Author asked directly: "Are we testing against the ticket 029 gold adversarial
+library?" No -- every adversarial test in this wave (0690, 0695) runs against
+synthetic host mocks in a Node `vm` sandbox. None of them exercise the sitter
+against real pathological documents: multi-hundred-page books, mixed scripts
+(the Menagerie's EN/FR/VI MUST tier plus SHOULD-tier Arabic/Russian/Chinese/
+German/Hindi/Spanish), malformed or oversized attachments, or group-library
+membership. Mock tests prove the scheduler's control flow; they cannot prove
+the census/extraction pipeline survives what the corpus was specifically
+built to contain.
+
+Ticket 0029 is the tracker for that corpus; its child 0632 ("the harness
+triplet") is what actually produces a live, injectable fixture library, and
+is itself currently blocked on a real question (a dedicated public Zotero
+group with linked-file attachments -- the only group this host belongs to is
+a live 13,560-item research library, not a fixture target, and Zotero has no
+group-creation API). This ticket cannot start before 0632 unblocks; it exists
+now so the sitter's validation isn't forgotten once it does.
+
+## Work
+
+- Once 0632 delivers an injectable fixture library, run the sitter's full
+  census -> candidate -> extraction -> accounting pipeline against it in a
+  real (or realistic-scale) Zotero profile.
+- Specifically watch for: a census that never terminates or takes
+  disproportionately long on the corpus's largest documents; extraction
+  hangs or crashes on any SHOULD-tier script; the 0699 accounting fix
+  (every non-indexed document lands in exactly one bucket) actually holding
+  on documents that fail for real reasons, not synthetic ones; group-library
+  attachments handled correctly by the admission/inspection logic.
+- This is an integration/acceptance validation, not a unit-test replacement
+  -- it does not retire or duplicate 0690/0695's mock-based tests.
+
+## Acceptance
+
+- [ ] Sitter runs a full census+extraction pass over the live Menagerie
+      fixture without hanging or crashing.
+- [ ] Final failure/success counts reconcile against the corpus's known
+      document count (ties to 0699's reconciliation test, on real data).
+- [ ] Any script/format that the sitter cannot handle is named explicitly,
+      not silently miscounted or dropped.

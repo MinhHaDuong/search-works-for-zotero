@@ -6481,3 +6481,21 @@ session-only restriction on observations, not graceful disable. The author
 also clarifies that the global estimate must say at what time work will finish,
 with date when needed, rather than only a duration. Empirical uncertainty and
 overrun must remain explicit.
+
+**2026-09-06 — RATIFIED: the sitter's permanent home is this repo, promoted
+out of `bench/`, not a separate repository.** The sitter is already the
+workshop's own "verification and scoring bench" deliverable (README), not a
+rival implementation to zoteus; a repo split was proposed and reconsidered.
+The author: it is a workshop deliverable, and the workshop can be organized
+as a monorepo rather than as multiple repos coordinated through GitHub
+Projects, a platform not otherwise in use here. A single repo keeps this
+project's existing git-erg ticket system as the only tracking mechanism, with
+no cross-repo `Blocked-by` references and no second CI to maintain. `bench/`
+remains right for probes and one-off measurement scripts; it is the wrong
+register for something with its own manifest, version, and install lifecycle.
+The sitter's source moves to a new top-level `plugins/sdt-sitter/`, echoing
+the vocabulary of README's own theory of change ("independent
+implementations... plugins, and future adapters"), leaving room for a second
+plugin later without contradicting "not the home of a single product." The
+move is a plain `git mv`, tracked in a dedicated ticket, executed once no
+in-flight work is touching `bench/sdt-sitter/` paths.

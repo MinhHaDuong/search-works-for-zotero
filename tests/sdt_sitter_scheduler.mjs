@@ -3,7 +3,11 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 
 const context = {};
-vm.runInNewContext(fs.readFileSync('bench/sdt-sitter/scheduler.js', 'utf8'), context);
+// One read, reused by the phase enumeration below: a second literal copy of this
+// path would give verification/probes/sdt_sitter_scheduler_mutants.py two anchors
+// where it requires exactly one, and its mutants could no longer be loaded.
+const schedulerSource = fs.readFileSync('bench/sdt-sitter/scheduler.js', 'utf8');
+vm.runInNewContext(schedulerSource, context);
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
 function fixture() {
   const cached = new Set(), calls = [], updates = [];
@@ -93,6 +97,54 @@ await test('a file with no parent reference threads null, never undefined', asyn
   await f.api.sweep();
   assert.deepEqual(seen, [null, null]);
 });
+/* Distinct from 'failure suppresses same source for session': that one returns false, never
+   rejects, and never reaches host.reportError. A rejection thrown out of the per-candidate
+   try must stay inside it — escaping to the outer catch would end the sweep in 'error' with
+   candidate 2 unadmitted and the host never told. The state assertions carry the rest of the
+   catch block, which the UI reads: the tooltip text, the bucket the document moves out of, and
+   the finally that releases the spinner. Each is dropped by a plausible edit on its own. */
+await test('native rejection mid-job is reported once and the next document is still admitted', async () => {
+  const f = fixture(), reportCalls = [], ensure = f.host.ensure;
+  f.host.reportError = async (before, error) => { reportCalls.push({ before, error }); };
+  f.host.ensure = async (id, progress) => {
+    if (id !== 1) return ensure(id, progress);
+    f.calls.push(id); progress(30); progress(60); progress(90);
+    throw new Error('native worker died');
+  };
+  await f.api.sweep();
+  assert.deepEqual(f.calls, [1, 2]);
+  assert.equal(reportCalls.length, 1);
+  assert.equal(reportCalls[0].before.identity, '1');
+  assert.equal(reportCalls[0].error.message, 'native worker died');
+  assert.equal(f.api.state.failed, 1); assert.equal(f.api.state.completed, 1);
+  assert.equal(f.api.state.error, 'Error: native worker died');
+  assert.equal(f.api.state.counts['failed-session'], 1); assert.equal(f.api.state.counts.current, 1);
+  assert.equal(f.api.state.counts['missing-pack'], 0);
+  assert.equal(f.api.state.samples.length, 1);
+  assert.equal(f.api.state.active, null); assert.equal(f.api.state.pending.length, 0);
+  assert.equal(f.api.state.phase, 'waiting');
+});
+/* Distinct from 'resource or native queue blockage admits nothing': that one holds blocked()
+   constant for a whole sweep, so it cannot tell a per-candidate check from a single check
+   hoisted before the loop — both refuse everything. Here the reading dips for one admission
+   and recovers, over three candidates, which separates three implementations that the two-
+   candidate shape cannot: a hoisted check runs all three, `continue` on the blocked branch
+   skips only the blocked one and runs the third, and the real `break` halts the sweep. The
+   third candidate is what makes the halt observable; with two, refusing the last one and
+   halting look identical. */
+await test('resources crossing the threshold halt the sweep, they do not skip one document', async () => {
+  const f = fixture(); let checks = 0;
+  f.host.list = async () => [1, 2, 3];
+  f.host.blocked = async () => (++checks === 2 ? 'low-disk' : null);
+  await f.api.sweep();
+  assert.deepEqual(f.calls, [1]);
+  assert(f.cached.has(1));
+  assert.equal(f.api.state.completed, 1); assert.equal(f.api.state.failed, 0);
+  assert.equal(f.api.state.samples.length, 1);
+  assert.equal(f.api.state.active, null);
+  assert.deepEqual([...f.api.state.pending].map(item => item.id), [2, 3]);
+  assert.equal(f.api.state.phase, 'low-disk');
+});
 await test('unsupported, missing and future-version packs are never overwritten', async () => {
   for (const status of ['unsupported', 'missing-source', 'unsupported-pack', 'excluded']) {
     const f = fixture(); f.host.inspect = async () => ({ status });
@@ -111,7 +163,6 @@ assert.equal(context.estimateSDTDuration(samples, {}), null);
 
 const ui = {};
 const bootstrapSource = fs.readFileSync('bench/sdt-sitter/bootstrap.js', 'utf8');
-const schedulerSource = fs.readFileSync('bench/sdt-sitter/scheduler.js', 'utf8');
 vm.runInNewContext(bootstrapSource, ui);
 
 /* The tooltip is the only zero-click view of the sitter. Drive it with real

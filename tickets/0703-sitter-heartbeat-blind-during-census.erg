@@ -1,0 +1,45 @@
+%erg 0.1
+Title: Heartbeat only covers extraction hangs, not census/admission hangs
+Created: 2026-09-06
+Author: claude
+Blocked-by: 0689
+
+--- log ---
+2026-09-06T00:00Z claude created
+
+--- body ---
+## Context
+
+Fable 5.1 deep-QA pass (2026-09-06). Ticket 0689's `heartbeatTick` returns
+immediately whenever `state.active === null` -- which is the case for the
+entire census phase, the whole `blocked()` admission check, and
+`host.list()`. Hangs inside those phases (e.g. `IOUtils.stat`/`exists` on
+a dead network mount, a stalled synchronous `/proc` read in `blocked()`)
+leave no heartbeat record and no other trace after the last `cache-load`
+event -- 0689's stated goal ("diagnosable after a hang") does not hold
+for the phase where the author's own hang this morning ("stuck in a
+census loop") most plausibly occurred, especially combined with ticket
+0701's finding that census re-hashes the whole library on every sweep.
+
+Also noted: after a disable, `delete Zotero.SDTPackSitter` makes the ring
+buffer unreachable from outside, and `Zotero.debug` output only survives
+if debug logging was already enabled before the hang -- so the natural
+recovery action (disable/re-enable) destroys the evidence.
+
+## Work
+
+- Emit a heartbeat (or an equivalent periodic "still alive, currently in
+  phase X" record) whenever the sitter is doing *any* work -- census,
+  admission checks, extraction -- not only while a document is actively
+  extracting.
+- Keep a reference to the most recent journal reachable after a disable
+  (e.g. a module-level last-session snapshot), so disabling to recover
+  from a hang doesn't erase the only evidence of what hung.
+
+## Acceptance
+
+- [ ] A synthetic hang inside census (not extraction) produces at least
+      one heartbeat-equivalent record naming the census phase before the
+      hang.
+- [ ] The journal from the most recent session remains readable
+      immediately after a disable, before any re-enable.
