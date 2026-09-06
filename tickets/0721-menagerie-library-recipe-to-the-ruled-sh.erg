@@ -1,0 +1,104 @@
+%erg 0.1
+Title: Menagerie library: recipe to the ruled shape, injection fix and re-export
+Created: 2026-09-06
+Author: claude
+
+--- log ---
+2026-09-06T16:21Z sim created
+
+--- body ---
+## Context
+
+Child of 0029 (tracker). The author's rulings of 2026-09-06 (DECISIONS.md, two
+entries; conception/0029-golden-fixture-structure-review.md Parts D and E) fix
+the Menagerie's shape: two sampled strata (a representative core following the
+census marginals of ticket 0711, defect rates included, and an adversarial
+reserve enumerated from 0029's coverage ledger and the pathology ledger), scale
+surrogates as generators outside the export; topics of the author's own library
+(economics, uncertainty, energy, environment, development, STS, HSS), no
+animals; documents in all nine R7 languages, multilingual documents, legacy
+encodings of the 1990s as authentic archive-issued files; format mix PDF 56,9 %
+/ HTML 33,0 % / other 9,2 %; the five-part admission test; Wikipedia ordinary,
+interlanguage links recorded as same-subject; Gallica dropped; HAL and FAOLEX
+narrow exceptions. Ticket 0632's export (PR #381) recorded eight known defects
+and a limits-ignored reindex; this child repairs them and re-exports.
+
+## Recipe schema, extended (the contract every sourcing lane writes to)
+
+Parent record (the `attachments` shape of `fetch_recipe.py`): the existing
+required fields plus
+- `topic`: one of economics, uncertainty, energy, environment, development,
+  sts, hss;
+- `stratum`: core or reserve;
+- `language_field`: the exact string written to Zotero's `language` field
+  ("" or a malformed spelling on purpose for about half the core, per the
+  census: 78 spellings, half empty); the recipe's `language` stays the
+  declared language of the work and defines nothing for the lane;
+- `mechanisms`: list of mechanism ids a reserve member carries (empty for core);
+- `retained_reason`: required on any off-topic record kept from the old recipe;
+- `citation`: `{doi, isbn, url}` (any subset), written to the Zotero fields
+  the item type has, so the citation chain of ruling 7 has an identifier;
+- `notes`: optional list of `{id, html}` child notes (managed marker
+  `zoteus-golden-note:<id>`);
+- `work_relations` gains the type `same-subject` (Wikipedia interlanguage
+  links, never `translation`).
+
+Attachment record: the existing required fields plus
+- `charset`: required for every text format (`utf-8`, or the authentic legacy
+  charset: `windows-1258`, `koi8-r`, `windows-1251`, `gb2312`, `big5`,
+  `iso-8859-1`, `windows-1256`, ...), written explicitly on the Zotero item;
+- `bytes_format` widened: pdf, djvu, wikitext, txt, html, epub, docx, xlsx,
+  odt, rtf, md, jpg, png, zip, tgz (unindexable formats are failure controls);
+- `content_type_declared`: optional, for the lying-MIME failure control only;
+- `encoding_note`: optional prose on a legacy encoding.
+
+Archives are data: `bench/fixtures/archives.json` carries each admitted
+archive's hosts, identifier form, version rule and its admission probe under
+the five-part test (date, URL fetched, status, licence, age). A new archive is
+admitted by recording a real probe, not by editing a frozenset.
+
+## Relevant files
+- `bench/fixtures/recipe.json`, `recipe-pinned.json`, `select_hashed.py`
+- `bench/fixtures/fetch_recipe.py` (validator + fetch), `archives.json` (new)
+- `bench/fixtures/golden_fixture.py` (inject/export), `make_index_fixture.mjs`
+- `bench/zotero-fulltext-plugin/bootstrap.js` (reindex `complete` flag)
+- `bench/fixtures/README.md`, `bench/fixtures/export/`
+- `tests/test_fixture_recipe.py`, `tests/test_golden_fixture_harness.py`
+
+## Actions
+1. Plugin: `POST reindex` takes `complete` (default false = stock limits);
+   `status` reports the plugin version and the mode of the last reindex.
+2. Harness: explicit charset on every text attachment; `--reindex-mode
+   stock|uncapped` (stock default) recorded in the manifest as observed, both
+   preferences read from the client; per-attachment counters; child notes;
+   `language_field`, `citation`, `topic`, `stratum`, `mechanisms` written and
+   exported; a retire step that moves a parent out of the collection (no
+   deletion); a body-text check on text attachments (no transclusion skeleton).
+3. Recipe: retire off-topic records that carry no unique mechanism, keep the
+   rest with `retained_reason`; source the core to the census marginals and
+   the reserve to the ledgers; re-pin the two Wikisource skeletons to full
+   text; hash every new attachment into `~/data/golden-fixture-cache`.
+4. Inject into group 6659303 / collection 3AY48MA5 from padme over ssh as
+   0632's 2026-09-06 run did; re-export; replay through
+   `make_index_fixture.mjs --replay-export`; commit `export/`.
+
+## Verification
+- [ ] `fetch_recipe.py` reports `match` for every pinned attachment
+- [ ] the manifest records `reindex.mode` as observed and both preferences as
+      read; no `known_defects` of the charset or skeleton class remain
+- [ ] the replay build ends `done` with every served attachment at 200 and
+      the declared controls at 404
+- [ ] `make check-fast`, `make lint`, `make check` green
+
+## Invariants
+- Zotero writes limited to group 6659303: item creation and update in
+  collection 3AY48MA5, the plugin's reindex; never another library
+- no conversion of any source file; every byte is archive-issued
+- padme left as found: client stopped, no preference changed by hand
+
+## Exit criteria
+- [ ] recipe at the ruled shape, every record with identifier, hash, licence
+      basis, format, per-attachment language, charset where text, relations
+      labelled truthfully, topic and stratum
+- [ ] the export committed with the manifest above, replayed end to end
+- [ ] 0029's Children table row and log line updated

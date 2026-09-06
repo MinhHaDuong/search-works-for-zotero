@@ -1,0 +1,67 @@
+%erg 0.1
+Title: Menagerie question bank, scorer v2 and the golden target
+Created: 2026-09-06
+Author: claude
+
+--- log ---
+2026-09-06T16:21Z sim created
+
+--- body ---
+## Context
+
+Child of 0029 (tracker). Ruling 7 of 2026-09-06 and its refinement of the same
+day fix what a question and a score are: an answer is a paragraph in a page in
+a file attached to a Zotero entry; a reply scores win, near-win or miss on the
+rank of the answer paragraph and the completeness of its citation chain; the
+same work in another rendering or language is a near-win; a no-answer question
+carries an empty pinned set and is expected-miss. The pinned set is a set of
+rows (a work, or a section of a work); two paragraphs in one section are one
+row with alternates; `set_kind: any-of | all-of` says whether one row suffices
+or all are needed (all-of keeps R34's absolute reading and the ladder reads on
+the weakest row; per-row detail is reported). Rank and mean reciprocal rank are
+reported per lane and never gated (D11).
+
+## Question record (bank schema `menagerie-bank/v2`)
+id; need (prose, written before any document was opened for need-driven
+questions); query; question_language; answer_language (of the answer
+paragraph); lane = the pair; signal (exact | paraphrase | agreement); mode
+(lexical | semantic | hybrid | any); facet (core | notes | group | deep-body);
+stratum (core | reserve); mechanisms; generator (need | hazard); set_kind;
+pinned: list of rows, each `{work_id, recipe_id, attachment_id, section,
+alternates: [{page_printed, char_offset, quote}], chain: {title, author, date,
+identifier, section_heading, page_printed, part_title, part_byline}}`;
+expected_miss (bool) and expected_miss_mechanism; reachability (computed:
+per alternate, reachable in the export, offset resolved, stamped with the
+extraction configuration); provenance {author, date, page_read}.
+
+## Relevant files
+- `bench/golden_gate.py` (scorer), `tests/test_golden_gate.py`
+- `bench/fixtures/questions/` (the bank), `bench/fixtures/export/`
+- `bench/fixtures/make_index_fixture.mjs` (replay), `bench/query.py`
+- `Makefile` (`golden` target), `SPEC.md` §5.2.8
+
+## Actions
+1. Scorer v2: read the bank and a replies file (schema v2, v1 refused); per
+   question win / near-win / miss, rank, chain completeness (fraction of the
+   chain fields the reply carries correctly), expected-miss handling; readings
+   per lane, per stratum, per format, per signal, per set_kind, with counts
+   beside every rate and not-measured at zero; R34 absolute over the pinned
+   rows and the stability reading as SPEC §5.2.8 states them.
+2. Bank validator and reachability: locate every quoted alternate in the
+   committed export, resolve char offsets, stamp the extraction configuration.
+3. Runner: drive the bank's queries against the replay index of a zoteus
+   build and emit a replies file in the v2 shape.
+4. `make golden`: validator + scorer on the committed export and bank.
+5. Author the bank: need-driven questions first, then hazard-driven, one per
+   mechanism and tally sub-case; at least five per document with body text.
+
+## Verification
+- [ ] the scorer refuses a v1 bundle and a v2 bundle with a malformed row
+- [ ] every rate prints its count; a lane with no question prints not-measured
+- [ ] the bank validates against the committed export
+
+## Exit criteria
+- [ ] `bench/fixtures/questions/` committed, documented in
+      `bench/fixtures/README.md`
+- [ ] `bench/golden_gate.py` at input schema v2, `make golden` present
+- [ ] the scorer's reading on the reviewed zoteus build recorded
