@@ -954,6 +954,85 @@ await test('a toast that cannot be shown is journalled, not thrown into the swee
   // names whatever it happens to name.
   assert.equal(records[0].error, 'Error');
 });
+/* Ticket 0696, review round 1. Two panel seats reproduced the same race, and it
+   is a race no assertion in this file could have seen, because nothing here ran
+   the sweep loop: the arms above drive announceSDTSweep with a snapshot built by
+   hand, and the Python side compares substring positions. Red team demonstrated
+   the hole by welding the gate permanently shut — `const before = sitter.state`,
+   one object compared with itself — and watching all forty arms stay green.
+
+   So the loop is hoisted out of initialize() and driven here, whole: the real
+   snapshot, the real await, the real generation check, the real reschedule.
+
+   THE DEFECT. `sitter` is a module-level binding that initialize() reassigns and
+   shutdown() never clears, so `alive` and `sitter` can both be truthy while
+   naming a different sitter than the one whose counters filled `before`. The
+   plugin's own launch prompt advertises the way in — disabling stops admissions
+   but the file in flight finishes — so a disable during an uninterruptible
+   ensure() and a prompt re-enable leave this closure suspended while a second
+   sitter is installed and `alive` goes back to true. Before the guard, the
+   resumed closure diffed one sitter's snapshot against another's counters and
+   announced the subtraction: three files indexed, then "0 fichier indexé".
+
+   The third phase is the control, and the arm is worthless without it: it stages
+   the identical suspend-and-resume with no generation change, and requires the
+   toast. Without it every assertion here is satisfied by a loop that never
+   announces at all — which is exactly the mutation red team used. */
+await test('a sweep loop left over from a previous generation announces nothing', async () => {
+  const shown = [], scheduled = [];
+  ui.journal = context.createSDTJournal(50); ui.sealed = false;
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => true },
+    ProgressWindow: recordingProgressWindow(shown) };
+  ui.timers = { setTimeout: (fn, ms) => scheduled.push({ fn, ms }),
+    clearTimeout: () => {}, setInterval: () => 0, clearInterval: () => {} };
+  // A sitter that has already done work, so its snapshot is not the zeros a
+  // freshly built one carries — the two must be distinguishable for the
+  // misattribution to have anything to misattribute.
+  const suspendMidExtraction = (f, entered, finish) => {
+    f.host.list = async () => [1, 2, 3];
+    f.host.ensure = async (id, progress) => {
+      f.calls.push(id); entered.resolve(); await finish.promise;
+      progress(90); f.cached.add(id); return true;
+    };
+  };
+  const stale = fixture();
+  await stale.api.sweep();
+  assert.equal(stale.api.state.completed, 2, 'the fixture sweep did not run');
+  const entered = deferred(), finish = deferred();
+  suspendMidExtraction(stale, entered, finish);
+  ui.generation = 7; ui.alive = true; ui.sitter = stale.api;
+  const running = ui.createSDTSweepLoop(7)();
+  await entered.promise;
+  // Disable, then re-enable. initialize() installs the new sitter and restores
+  // `alive` before its modal confirm, so this needs no click to happen.
+  stale.api.stop();
+  ui.generation = 8;
+  const current = fixture();
+  ui.sitter = current.api; ui.alive = true;
+  finish.resolve();
+  await running;
+  assert.equal(shown.length, 0,
+    'a stale sweep announced against a sitter it never swept');
+  assert.equal(scheduled.length, 0, 'a stale sweep rescheduled itself');
+  // The control. Same suspension, same resume, one generation throughout.
+  const live = fixture();
+  await live.api.sweep();
+  const enteredAgain = deferred(), finishAgain = deferred();
+  suspendMidExtraction(live, enteredAgain, finishAgain);
+  ui.generation = 9; ui.alive = true; ui.sitter = live.api;
+  const alive = ui.createSDTSweepLoop(9)();
+  await enteredAgain.promise;
+  finishAgain.resolve();
+  await alive;
+  assert.equal(shown.length, 1, 'the loop announces nothing at all');
+  // Three, not the two the snapshot held: the copy is a copy. A `before` bound
+  // to sitter.state by reference would read this same number twice and never
+  // open the gate.
+  assert.deepEqual(shown[0].lines, ['3 fichiers indexés']);
+  assert.equal(scheduled.length, 1, 'the live loop stopped rescheduling itself');
+  assert.equal(scheduled[0].ms, 30000);
+  ui.timers = undefined;
+});
 console.log(JSON.stringify({ tests: results, result: 'pass' }));
 
 const samples = [1, 2, 3].map(n => ({ milliseconds: n * 1000, pages: 10, sourceBytes: 100 }));

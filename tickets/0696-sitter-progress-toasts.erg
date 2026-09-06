@@ -1,5 +1,5 @@
 %erg 0.1
-Title: Add sitter progress toasts on job start, completion, and failure
+Title: Add a sitter progress toast on sweep completion and failure
 Created: 2026-09-06
 Author: claude
 
@@ -12,6 +12,9 @@ Author: claude
 2026-09-06T15:37Z claude note Corrected a stale reading of 0699: it is no longer 'zero acceptance boxes checked'. Its fix is in review as PR #387, and state.failed there is derived from the census (SDT_STATUS_CLASSES.failed) and recomputed only once scanned === total, so it is stable across a running census -- which is the property a per-sweep toast needs. The Blocked-by header still gates this ticket.
 2026-09-06T15:53Z sim note blocker 0699 closed — Blocked-by removed.
 2026-09-06T16:12Z claude note Implemented as the Design section rewrote it. The title still reads "on job start, completion, and failure"; the start toast was dropped in the Imagine phase and is not delivered, and a test now holds bootstrap.js to exactly one toast construction site so it cannot creep back. Two composers were factored out (describeSDTIndexed, describeSDTFailures) so the tooltip, the dialog banner and the toast cannot word one count three ways — the toast therefore introduces no new user-facing string, and ticket 0691's vocabulary table needs no amendment. The dismissal delay (8 s) is a presentation timing and lives in bootstrap.js beside the 1400 ms completion blink and the 100 ms redraw, not in SPEC.md, which owns gates, decision rules and budgets. Accessibility, which the Context section flagged: not verified, and not verifiable in any headless lane — a transient toast's screen-reader announcement needs a real Zotero window, which is ticket 0686's own open precondition. Nothing here claims it.
+2026-09-06T17:05Z claude note Title corrected. It read "on job start, completion, and failure" and promised a start toast the Imagine phase had dropped; the log disclosed the gap but a reader scanning history saw only the title. Renamed to what ships.
+2026-09-06T17:05Z claude note Review round 1 (PR #396), blocker, found independently by two seats: announceSDTSweep read `sitter.state` live with no generation check, unlike every other deferred callback in bootstrap.js. `sitter` is a module-level binding initialize() reassigns and shutdown() never clears, so a sweep suspended inside an uninterruptible ensure() during a disable, resumed after a re-enable, diffed one sitter's snapshot against another's counters — the plugin's own launch prompt advertises that flow, and initialize() restores `alive` before its modal confirm, so no click is needed. Fixed by gating the announcement on `token === generation` at the call site, the file's existing idiom. The second half of the blocker was that neither suite could see the class: both reached the toast, neither ran the loop, and a mutation welding the gate shut left all forty driven arms green. The loop is therefore hoisted out of initialize() as createSDTSweepLoop(token) and driven whole — real sweeps, a real disable/re-enable, a control arm requiring the toast when the generation does NOT change. `generation` and `timers` became `var` so a sandbox load can reach them; that is the same reason `sitter`, `journal` and `dialogs` already are.
+2026-09-06T17:05Z claude note DECISIONS.md (2026-09-06, sitter button placement) says to revisit the ruling "only if the plugin moves toward icon+toast as its primary interface (ticket 0696)". This ticket does not: the toolbar button, its tooltip and the status dialog remain the primary interface, and the toast is one transient summary at the end of a sweep that did work. The revisit clause is not triggered, and DECISIONS.md needs no entry.
 --- body ---
 ## Context
 
@@ -76,10 +79,12 @@ completion-only toast ("N fichiers indexes").
 - [x] The toast fires only when a sweep call actually processed
       candidates (completed/failed count changed), never on a bare timer
       tick with nothing to report. (The wrapper snapshots both counts before
-      the await; the gate is driven with real sweeps in
-      `tests/sdt_sitter_scheduler.mjs` — five consecutive caught-up sweeps
-      announce nothing, and a newly added file announces again, which is the
-      arm that stops a gate welded shut satisfying the silence assertion.)
+      the await, and spends it only if `token === generation`; the gate is
+      driven with real sweeps in `tests/sdt_sitter_scheduler.mjs` — five
+      consecutive caught-up sweeps announce nothing, a newly added file
+      announces again, and a loop left over from a previous generation is
+      silent while the same suspend-and-resume within one generation is not.
+      Each arm's control was run against the committed tree.)
 - [x] No per-document or per-sweep-start toast; only a completion/
       exceptions toast. (`test_no_toast_announces_the_start_of_a_sweep`
       holds the file to one construction site and one call.)

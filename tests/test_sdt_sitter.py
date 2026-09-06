@@ -529,9 +529,13 @@ def test_failure_summary_line_is_rendered_outside_the_diagnostics():
 
 def test_one_composer_owns_each_running_total():
     """Ticket 0696. The two counts a reader is shown now reach three surfaces —
-    the tooltip, the dialog's failure banner and the end-of-sweep toast. Three
-    compositions of one plural is how the progress and error lines drifted apart
-    in ticket 0691 round 3, and how describeSDTCoverage came to exist."""
+    the tooltip, the dialog's failure banner and the end-of-sweep toast, three
+    sites that can only agree by coincidence. Both earlier composers in this file
+    were written for the same reason: describeSDTFile after the progress and
+    error lines came to name one file two different ways (ticket 0691, round 3),
+    describeSDTCoverage before the toolbar strip and the tooltip could round one
+    percentage two ways (ticket 0710). Here the shared quantity is a count and
+    its plural agreement."""
     toast = _site('function announceSDTSweep(before) {', '\n}')
     for composer in ('describeSDTIndexed(', 'describeSDTFailures('):
         assert composer in toast, f'the toast composes its own {composer}'
@@ -547,34 +551,61 @@ def test_one_composer_owns_each_running_total():
 
 
 def test_the_sweep_toast_is_gated_on_work_the_sweep_actually_did():
-    """Ticket 0696, and the regression it was rewritten to avoid. The wrapper
+    """Ticket 0696, and the regression it was rewritten to avoid. The loop
     reschedules on a fixed timer for the life of the plugin, so a toast fired on
     the call rather than on a completed/failed delta would repeat every thirty
     seconds forever once the library is caught up.
 
-    Read here rather than driven: the wrapper closes over `initialize`'s
-    generation token and its timer handles, so reaching it would mean standing up
-    the whole of initialize() and testing the stub. What the gate then does with
-    the snapshot is driven, with real sweeps, in tests/sdt_sitter_scheduler.mjs.
+    Ordering only, and deliberately so: two review seats showed that a
+    source-ordering assertion is blind to what the ordered lines mean — a
+    snapshot bound to `sitter.state` by reference satisfies every index
+    comparison here and welds the gate shut. The loop was hoisted out of
+    initialize() for that reason and is driven whole, against real sweeps and a
+    real generation change, in tests/sdt_sitter_scheduler.mjs.
     """
-    site = _site('const sweep = async () => {', 'pulse = timers.setInterval')
+    site = _site('function createSDTSweepLoop(token) {', '\n}')
     snapshot = site.index('sitter.state.completed')
     swept = site.index('await sitter.sweep()')
     announced = site.index('announceSDTSweep(before)')
     assert snapshot < swept, 'the counts are snapshotted after the sweep changed them'
     assert swept < announced, 'the toast is composed before the sweep it reports'
+    assert 'sitter.state.failed' in site
     gate = _site('function announceSDTSweep(before) {', '\n}')
     for read in ('before.completed', 'before.failed'):
         assert read in gate, f'the gate never compares {read}'
     assert 'return false' in gate, 'the gate has no silent path'
-    assert 'sitter.state.failed' in site
+
+
+def test_every_deferred_callback_checks_the_generation_it_was_armed_in():
+    """Ticket 0696, review round 1. `sitter` is a module-level binding that
+    initialize() reassigns and shutdown() never clears, so `alive` and `sitter`
+    can both be truthy and still name a different sitter than the one whose
+    counters a suspended sweep snapshotted. The plugin's own launch prompt
+    advertises the flow — disable stops admissions, the file in flight finishes —
+    and initialize() restores `alive` before its modal confirm, so no click is
+    needed. The race itself is staged and driven in
+    tests/sdt_sitter_scheduler.mjs; what is asserted here is the file-wide
+    convention it broke, since a second deferred callback added without the check
+    would reintroduce the same class in a new place."""
+    loop = _site('function createSDTSweepLoop(token) {', '\n}')
+    assert 'if (token === generation) announceSDTSweep(before)' in loop, \
+        'the announcement is spent against whatever generation happens to be current'
+    assert 'if (alive && token === generation)' in loop, \
+        'a stale loop reschedules itself, running two sweeps per interval'
+    # The bindings the race walks through must reach a sandbox load, or the
+    # regression test cannot stage it and this convention goes back to being
+    # asserted by reading. `let` at script top level does not.
+    source = BOOTSTRAP.read_text(encoding='utf-8')
+    for binding in ('var generation = 0;', 'var timers;'):
+        assert binding in source, f'{binding!r} is out of reach of a driven test'
 
 
 def test_the_toast_adds_no_dependency_and_uses_zoteros_own_primitive():
-    """Acceptance line 1. This plugin has no build tooling — bootstrap.js and
-    scheduler.js load raw through Services.scriptloader — so pulling in
-    zotero-plugin-toolkit for a toast would mean introducing a bundler for the
-    first time to get the thing Zotero already ships."""
+    """Acceptance line 1. This plugin has no build tooling — Zotero's own
+    bootstrapped-extension mechanism loads bootstrap.js and bootstrap.js loads
+    scheduler.js raw through Services.scriptloader, with nothing between source
+    and runtime — so pulling in zotero-plugin-toolkit for a toast would mean
+    introducing a bundler for the first time to get the thing Zotero ships."""
     assert 'Zotero.ProgressWindow' in \
         _site('function announceSDTSweep(before) {', '\n}')
     source = BOOTSTRAP.read_text(encoding='utf-8')

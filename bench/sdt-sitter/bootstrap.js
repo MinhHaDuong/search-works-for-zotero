@@ -24,7 +24,12 @@ var buttons = new Set(), dialogs = new Set(), renderFailing = false;
 // it reached. Both are `var` for the reason just above: tests/sdt_sitter_dialog.mjs
 // drives the layer against them without standing up the whole of initialize().
 var environment = {}, admission = null;
-let timer, pulse, heartbeat, timers;
+let timer, pulse, heartbeat;
+// `var` for the reason the block above gives, and the reason is not decorative
+// here: the sweep loop reschedules through this handle, so a test that cannot
+// install a clock cannot run the loop at all — and a loop nothing runs is where
+// the cross-generation defect of ticket 0696 hid from two suites at once.
+var timers;
 const closeJournalled = new WeakSet();
 const BUTTON = 'sdt-pack-sitter-button';
 const SWEEP_INTERVAL_MS = 30000;
@@ -43,7 +48,11 @@ const MIN_FREE_MEMORY = 4 * 1024 ** 3, MIN_FREE_DISK = 8 * 1024 ** 3;
 // Bootstrap reason constants are numeric here and named elsewhere; accept both.
 const SHUTDOWN_REASONS = { 2: 'app-shutdown', 3: 'enable', 4: 'disable',
   5: 'install', 6: 'uninstall', 7: 'upgrade', 8: 'downgrade' };
-let generation = 0;
+// `var`, same reason as `sitter` and `timers`: the disable/re-enable race of
+// ticket 0696 IS a generation change, so a test that cannot move this number
+// cannot stage the defect, and the guard against it would be asserted by reading
+// the source — which is how the defect got in.
+var generation = 0;
 let lastCompleted = 0;
 let completionBlinkUntil = 0;
 
@@ -143,8 +152,12 @@ function nextSweepDelayMS(state) {
    active file and pulses through the census.
 
    Guarded whole, for the reason render() is. This runs on the sweep loop's own
-   path, and an unguarded throw would be caught by the wrapper's `catch` and
-   journalled as a sweep error — a record naming the wrong thing entirely. */
+   path, and an unguarded throw would be caught by the loop's `catch` and
+   journalled as a sweep error — a record naming the wrong thing entirely.
+
+   It sits here, beside the delay it shares a loop with, rather than beside the
+   two composers it borrows from the UI vocabulary section below: what it is
+   about is the sweep, and the wording it shows is not its own. */
 function announceSDTSweep(before) {
   if (!alive || !sitter) return false;
   const s = sitter.state;
@@ -166,6 +179,55 @@ function announceSDTSweep(before) {
     emit('toast-error', { error: classifyError(error) }, 'error');
     return false;
   }
+}
+
+/* The sweep loop: one call, then the reschedule that keeps the sitter alive.
+
+   Hoisted out of initialize() rather than left as a closure inside it, and the
+   reason is a defect, not tidiness. Both suites could reach the toast and
+   neither could reach the loop, so the two lines that MAKE the toast correct —
+   where the snapshot is taken, and against which generation it is spent — were
+   verified by reading source text and by nothing else. A mutation that welded
+   the gate shut left all forty driven arms green. What is not runnable is not
+   tested, and this file already learned that about the startup self-check
+   (ticket 0688) and about render() (ticket 0702).
+
+   `token !== generation` before the announcement, matching every other deferred
+   callback in this file, and load-bearing rather than symmetric. `sitter` is a
+   module-level binding that initialize() reassigns wholesale and shutdown()
+   never clears, so `alive` and `sitter` can both be truthy and still belong to a
+   DIFFERENT sitter than the one that filled `before`. The plugin's own launch
+   prompt advertises the flow that gets there: disabling stops admissions but the
+   file in flight finishes, so a disable during an uninterruptible ensure()
+   followed by a re-enable leaves this closure suspended while initialize()
+   installs a second sitter and sets `alive` back to true — and initialize() does
+   both BEFORE its modal confirm, so no click is needed to open the window. The
+   resumed closure would then diff one sitter's snapshot against another's
+   counters and toast whatever the subtraction happened to say.
+
+   The reschedule below already carried the same check, for the neighbouring
+   reason: a stale loop that rescheduled would run two sweeps per interval.
+
+   The snapshot is a copy of the two numbers, taken outside the try. A reference
+   to `sitter.state` would read the same object twice and compare it with itself,
+   which is a gate that never opens — the mutation above. Outside the try because
+   there is nothing to catch: this reads two integers off a live binding, and if
+   that binding is gone the loop has no sweep to run either. */
+function createSDTSweepLoop(token) {
+  const sweep = async () => {
+    const before = { completed: sitter.state.completed, failed: sitter.state.failed };
+    try {
+      await sitter.sweep();
+      if (token === generation) announceSDTSweep(before);
+    } catch (error) {
+      emit('sweep-error', { error: classifyError(error) }, 'error');
+    } finally {
+      if (alive && token === generation) {
+        timer = timers.setTimeout(sweep, nextSweepDelayMS(sitter.state));
+      }
+    }
+  };
+  return sweep;
 }
 
 /* The failure half of settle. It goes to the session ring and Zotero.debug(),
@@ -285,9 +347,12 @@ function describeSDTScope() {
 
 /* The two running totals a reader is shown, each composed once. Both now reach
    three surfaces — the tooltip, the dialog, and the end-of-sweep toast — and
-   three sites agreeing on a plural by coincidence is how the progress and error
-   lines drifted apart in ticket 0691, the lesson describeSDTFile and
-   describeSDTCoverage already carry.
+   three sites agreeing by coincidence is not agreement. The two composers above
+   were each written after their sites had already drifted: describeSDTFile after
+   the progress line and the error line came to name one file two different ways
+   (ticket 0691, round 3), describeSDTCoverage before the toolbar strip and the
+   tooltip could round one percentage two ways (ticket 0710). Here the shared
+   quantity is a count and its plural agreement.
 
    The failure line is empty at zero rather than "0 fichier": a library with
    nothing wrong has nothing to say about failures, and the dialog's banner has
@@ -1007,29 +1072,9 @@ async function initialize(rootURI, token) {
     'Les erreurs restent propres à la session. Un cache local jetable conserve les vérifications et durées ; il ne contient ni texte ni tâche active.');
   if (token !== generation) return;
   if (!launch) { sitter.state.phase = 'launch-declined; disable/re-enable to launch'; render(); return; }
-  // Defence in depth behind render()'s own guard. The reschedule is the single
-  // point whose loss stops the sitter for the session, so it does not depend on
-  // the sweep having returned normally — nor on this file being the only place a
-  // throw can come from.
-  const sweep = async () => {
-    // Snapshotted by the caller rather than remembered inside announceSDTSweep,
-    // so the two counts are read at a point no sweep is running: a sweep that
-    // throws halfway still leaves the wrapper holding them as they were before.
-    const before = { completed: sitter.state.completed, failed: sitter.state.failed };
-    try {
-      await sitter.sweep();
-      announceSDTSweep(before);
-    } catch (error) {
-      emit('sweep-error', { error: classifyError(error) }, 'error');
-    } finally {
-      if (alive && token === generation) {
-        timer = timers.setTimeout(sweep, nextSweepDelayMS(sitter.state));
-      }
-    }
-  };
   pulse = timers.setInterval(render, 100);
   heartbeat = timers.setInterval(heartbeatTick, 60000);
-  timer = timers.setTimeout(sweep, 0);
+  timer = timers.setTimeout(createSDTSweepLoop(token), 0);
 }
 function shutdown(data, reason) {
   // try/finally, because the teardown between here and the seal calls out to the
