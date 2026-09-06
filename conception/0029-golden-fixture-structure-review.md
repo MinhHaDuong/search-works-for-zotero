@@ -716,3 +716,21 @@ Two defects found on the live group during the panel are not ratification
 items but work owed to child 0632 before the export closes: the charset on
 the three wikitext attachments, and the forced reindex ignoring the stock
 limits it records.
+
+## Part E. Rulings of 2026-09-06
+
+The author ruled on Part D point by point; the ledger entry of 2026-09-06
+in `DECISIONS.md` is the record. In brief: 1 ratified as amended; 2 the
+language requirement was ill-formed and the lane matrix is set aside for
+the chain question → document → answer paragraph, with multilingual
+documents and legacy encodings as corpus dimensions; 3 the animal theme is
+dropped, the topics are the author's library's own; 4 Wikipedia is an
+ordinary admitted source, relations labelled truthfully; 6 no-answer
+questions carry an empty pinned set and several are expected-miss; 7 an
+answer is a paragraph in a page in a file, and a perfect reply carries the
+full citation chain down to the printed page number and the byline of a
+compound document's part; 9 §5.2.10 stands with no prose guards; 10 an
+agent builds library and bank in one shot and review rounds converge it,
+with checklists and no automatic guard. Points 5 and 8 wait on a clearer
+explanation. Part D's items 12 and 13 become review-round checks under
+ruling 10; item 11, Vietnamese as a query language, is subsumed by ruling 2.
