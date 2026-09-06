@@ -32,11 +32,19 @@ different vocabularies.
 | SDT pack sitter | Index assistant | Assistant d'indexation |
 | SDT pack | index (of a file) | index (du fichier) |
 | coverage | Index 43 % | Index 43 % |
+| coverage, with the scope it is measured over | Library: My Library — Index 43 % | Bibliothèque : Ma bibliothèque — Index 43 % |
+| that scope, several libraries | Libraries: My Library, Climate Group — Index 43 % | Bibliothèques : Ma bibliothèque, Groupe Climat — Index 43 % |
+| that scope, more than three | All libraries (4) — Index 43 % | Toutes les bibliothèques (4) — Index 43 % |
 | native full-text index (Zotero's own) | text search index | index de recherche textuelle |
 | attachment (the unit of work) | file | fichier |
 | item owning the attachment | reference | reference |
 | active attachment | Indexing: <reference> - <file> | Indexation : <reference> - <fichier> |
 | finished with exceptions | 12 files could not be indexed | 12 fichiers n'ont pas pu etre indexes |
+
+The three scoped rows were added by ticket 0710, after this ticket closed, so
+that one table stays the whole vocabulary rather than splitting across two
+tickets. The library names in them are examples: the sitter reads them from
+Zotero's own library records, never from a literal.
 
 "SDT", "pack", "processor", "fingerprint" survive only inside the
 diagnostics disclosure (see 0693), where a reader has explicitly asked for

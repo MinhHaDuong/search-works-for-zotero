@@ -120,11 +120,53 @@ var SDT_PHASE_LABELS = {
   'launch-declined; disable/re-enable to launch': 'Non lancé : désactiver puis réactiver l’extension',
 };
 
+/* One composer for the coverage percentage, so the toolbar strip and the tooltip
+   cannot round or space it two different ways — the lesson describeSDTFile
+   already carries for the file name. */
+function describeSDTCoverage(state) {
+  const coverage = getSDTCoverage(state);
+  return coverage.total > 0
+    ? ` ${Math.floor((coverage.current / coverage.total) * 100)} %` : '';
+}
+
+/* What the coverage figure is measured over. The button lives in the items
+   toolbar, whose scope is one library and one collection, while the census reads
+   every attachment in the database (see `list` below), so a reader is invited to
+   take the figure for the collection in view. Naming a single library would
+   replace one false scope with another; the honest prefix is the set the census
+   actually covers, read from Zotero's own records — "Ma bibliothèque" is the
+   user library's name, not a literal to hardcode, and a group library must read
+   as itself. Each record is asked for its name separately because a group
+   library is loaded lazily and can throw from its getter after a restart (the
+   defect bench/zotero-fulltext-plugin/bootstrap.js records). Past three names the
+   enumeration stops informing and the count does. Returns null when nothing can
+   be read: an unscoped tooltip is degraded, a thrown one would kill the render
+   loop. */
+function describeSDTScope() {
+  let libraries;
+  try { libraries = Zotero.Libraries.getAll(); }
+  catch (_error) { return null; }
+  const names = [];
+  for (const library of libraries || []) {
+    let name;
+    try { name = library && library.name; }
+    catch (_error) { continue; }
+    if (typeof name === 'string' && name.trim()) names.push(name.trim());
+  }
+  if (names.length === 0) return null;
+  if (names.length === 1) return `Bibliothèque : ${names[0]}`;
+  if (names.length <= 3) return `Bibliothèques : ${names.join(', ')}`;
+  return `Toutes les bibliothèques (${names.length})`;
+}
+
 function describeSDTTooltip(state) {
   const indexed = state.completed > 1
     ? `${state.completed} fichiers indexés` : `${state.completed} fichier indexé`;
   const label = SDT_PHASE_LABELS[state.phase];
-  return label ? `${label} — ${indexed}` : indexed;
+  const progress = label ? `${label} — ${indexed}` : indexed;
+  const scope = describeSDTScope();
+  const coverage = `Index${describeSDTCoverage(state)}`;
+  return `${scope ? `${scope} — ` : ''}${coverage} — ${progress}`;
 }
 
 /* The unit of work is one attachment, and Zotero names attachments for us
@@ -307,9 +349,10 @@ function render() {
   if (!alive || !sitter) return;
   const s = sitter.state;
   const coverage = getSDTCoverage(s);
-  const coverageLabel = coverage.total > 0
-    ? ` ${Math.floor((coverage.current / coverage.total) * 100)} %` : '';
   for (const button of buttons) {
+    // Composed here rather than hoisted, so the toolbar strip and the tooltip
+    // read as the two call sites of one composer at the sites themselves.
+    const coverageLabel = describeSDTCoverage(s);
     const working = s.phase === 'census' || s.active !== null;
     const now = Date.now();
     if (s.completed > lastCompleted) {
