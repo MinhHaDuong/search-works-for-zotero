@@ -1,5 +1,5 @@
 {
-  "version": "2.4.0",
+  "version": "2.4.1",
   "change": "State transitions journalled to Zotero.debug() and a volatile 2000-record in-session ring",
   "retires": "2.1.5 — sdt-sitter-errors.jsonl and its IOUtils append are removed; no code path writes that file",
   "pref": "extensions.sdt-pack-sitter.debug gates the trace level only; error and state always reach Zotero.debug()",
