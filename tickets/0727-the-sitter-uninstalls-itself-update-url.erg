@@ -1,0 +1,120 @@
+%erg 0.1
+Title: The sitter uninstalls itself: update_url advertises zero versions
+Created: 2026-09-06
+Author: sim
+
+--- log ---
+2026-09-06T21:42Z sim created
+2026-09-06T21:44Z claude note Filed from a live reproduction on doudou, the first this defect has had. Ticket 0688 closed with the cause explicitly OPEN and "needs live reproduction, which no code here can perform"; this is that reproduction, with a mechanism that fits every observation 0688 recorded and was not among the three it considered.
+
+--- body ---
+## Context
+
+The author has reported for weeks that the sitter "tends to disappear on its
+own from the installed-plugins list". Ticket 0688 investigated, ruled out both
+mechanisms it had named (no Zotero update happened; the install used Tools ->
+Add-ons -> Install Add-on From File, the persistent path), declined to invent
+a third, and closed with the cause open and instrumentation added so the next
+occurrence would leave evidence.
+
+It occurred twice on the evening of 2026-09-06, during live verification, and
+this time the evidence was collected while it was happening.
+
+## What was observed
+
+One Zotero session, started 20:56:31, never restarted:
+
+- 23:0x  `verify` reports `present, version 0.2.13, active False, location app-profile`
+- 23:35:59  `extensions/` and `extensions.json` both mtime-stamped; the record
+  is gone and `extensions/sdt-pack-sitter@....xpi` is deleted from disk
+- The running instance kept working from memory throughout -- the author could
+  still open and close the dialog, and the toolbar spinner still animated.
+
+So: registered, then DISABLED, then REMOVED, file and all, mid-session, with no
+Zotero update and no user action. Disable-then-remove is what Gecko's
+AddonManager does to an add-on whose update/compatibility check concludes there
+is no compatible version of it.
+
+## The mechanism this points at
+
+`manifest.json` carries `applications.zotero.update_url`, and Zotero fetches it
+on a timer after startup -- which is the one thing in this plugin that happens
+minutes into a session, unprompted, matching the observed timing.
+
+That URL resolves (HTTP 200) and returns a well-formed Mozilla update manifest
+naming this add-on with an EMPTY updates array:
+
+    "addons": { "sdt-pack-sitter@search-works-for-zotero.invalid": { "updates": [] } }
+
+The reading to test is that Zotero takes "your id is listed, and it has no
+versions" as "there is no compatible version of you", disables, and cleans up.
+
+**This is why 0688's fix did not stop it.** 0688 changed `update_url` from
+`https://example.invalid/...` (unreachable -> no version information) to a
+reachable manifest carrying an empty list (-> still no version information).
+Both hand Zotero the same answer. The change was a real fix to a real defect --
+a URL chosen to never resolve -- and it did not touch this mechanism, which
+nobody had identified. `update.json`'s own comment says as much and says it
+honestly: "No claim is made either way about what an empty list or an
+unreachable update_url does to an installed add-on -- that was not established
+against Zotero's own fork."
+
+## Relevant files
+
+- `plugins/sdt-sitter/manifest.json` - carries `applications.zotero.update_url`
+- `plugins/sdt-sitter/update.json` - the empty-updates manifest it names
+- `bench/sdt_sitter_install.py` - `verify` reads the host's own record, and is
+  what distinguishes the three states this defect passes through
+- `tickets/closed/0688-sitter-persistent-install-and-manifest-id.erg` - the
+  investigation this continues; read its log before adding a fourth guess
+
+## Actions
+
+1. Isolate, one variable. Build the current payload with `update_url` REMOVED
+   and nothing else changed, install it, and leave Zotero running past the
+   window in which the removal has been seen (~40 min). Zotero's own developer
+   docs list only `applications.zotero` itself as required; 0688 read them and
+   recorded that `update_url` "is nowhere stated as required". 0688 deliberately
+   kept it rather than change two variables at once on a plugin already
+   disappearing -- correct then, and the live reproduction is what now justifies
+   testing the other arm.
+   Probe build: 0.2.14, `update_url` removed, identical otherwise.
+2. If it survives, that is the mechanism. Decide the permanent shape: drop
+   `update_url` (no update channel exists, so it advertises nothing anyone can
+   install), or publish a real entry per release with `update_link` and version
+   bounds. Do not leave an empty list.
+3. If it does NOT survive, the mechanism is elsewhere and this ticket has
+   narrowed it by one: record that, and do not close the ticket with a guess.
+   The next candidate to examine is the `.invalid` id under a host that may
+   validate ids it never dereferences.
+
+## Test
+
+`scratchpad/sitter-watch.sh` polls the three facts 0688's three-state model
+separates -- record present, record active, XPI on disk -- plus Zotero's pid,
+and appends a line ONLY on a change. A quiet log is "nothing moved"; a line is
+the transition, stamped. It was started at 23:42 and is what should carry the
+verdict for action 1 rather than anyone's recollection of when the icon went.
+
+## Verification
+
+- [ ] The probe build (no `update_url`) survives a Zotero session longer than
+      any build carrying one has
+- [ ] `sitter-watch.log` shows the survival as an absence of transitions, over
+      a window that previously contained one
+- [ ] A build WITH `update_url` restored disappears again -- the control that
+      makes the survival mean something rather than a quiet evening
+
+## Invariants
+
+- Do not "fix" this by having the installer reinstall the plugin on a timer.
+  That hides a host decision the plugin should not be arguing with, and would
+  make the next occurrence invisible again.
+- `bench/check_sitter_version.py`'s guard stands: any payload change needs its
+  own version number, probe builds included.
+
+## Exit criteria
+
+The disappearance has a named, demonstrated mechanism and a fix whose control
+arm has been run in both directions -- or, if `update_url` is exonerated, this
+ticket records that with its evidence and hands on the next candidate.
