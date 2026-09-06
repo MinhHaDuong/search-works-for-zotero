@@ -109,6 +109,15 @@ superseded implementation is preserved at `bae82a7` on
 `archive/fts5-storage-2026-08-21`. `UPSTREAM` is the machine-readable review
 baseline.*
 
+Updated 2026-09-06 — a new candidate, no slot spent. `/tmp` filled on this host
+from the fork suite's own `mkdtempSync` calls under `tmpdir()` with no matching
+`rmSync` (116 leftover directories, 16 MB, one `npx vitest run` in `fork-0091`;
+ticket 0714). Drafted a one-file `globalSetup` teardown, verified green against
+a disposable copy of `fork-0091` (949/949 tests unchanged, leftover count to
+zero), body in `verification/UPSTREAM-PR-0714-TMPDIR-TEARDOWN.md`. **Staged,
+not sent** — no branch pushed, no PR opened, per this raid's own instruction to
+stop short of upstream. Files next time a slot opens.
+
 ## What happened upstream
 
 The maintainer answered on 2026-08-25 — not in the thread, in the tree. He merged
