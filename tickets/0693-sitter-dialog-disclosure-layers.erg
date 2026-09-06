@@ -9,6 +9,8 @@ Author: claude
 
 2026-09-06T10:25Z sim note blocker 0689 closed — Blocked-by removed.
 2026-09-06T00:00Z claude note Imagine phase round 2 (raid, sonnet): PROCEED WITH CHANGES. 0689 has now actually merged (it was still open at the prior Imagine pass), so the two-phase sequencing note is moot -- collapsed to one pass. Corrected "0689's debug checkbox" wording: 0689 shipped only the pref and trace-level gating, no checkbox UI exists anywhere in shipped code -- the checkbox is this ticket's own work to build, not a pre-built component to wire in.
+2026-09-06T12:08Z claude note Built the three layers in bench/sdt-sitter/bootstrap.js: the primary sections unchanged and first, Détails (closed) gaining the observation count and covariate, Diagnostics techniques nested inside it and closed in its turn, hosting the debug checkbox, the ring tail, a copy action, versions, admission readings and the install path. Admission readings are recorded where blocked() reads them rather than on the refusing branch, so the layer is populated while the sitter is healthy. The copied journal carries the build and never the install path. Driven by tests/sdt_sitter_dialog.mjs against a stub document. Acceptance item 2 is NOT met by this branch — a real window needs a Zotero run — and is left to 0686, whose probe now carries the assertions.
+2026-09-06T15:35Z claude note Privacy blocker from the PR #388 red-team fixed and pushed (74a1368, merged to 5d935c1). The ring survives a disable/re-enable via journal ??=, so the second initialize() emits 0688's startup record with rootURI INTO the ring, and composeSDTJournalReport serialised the tail verbatim. Now dropped from every record at the clipboard boundary, not merely omitted as a top-level field. The claim is narrowed to a true one: rootURI already reaches Zotero's submittable debug output by 0688's design, so what this branch buys is that its copy button opens no new door. The guarding test was vacuous and that is now demonstrated: restoring the defect against the shipped test file is GREEN, against the new arm RED. Admission-reading staleness surfaced as an age line. Manifest 2.6.2.
 --- body ---
 ## Context
 
@@ -39,7 +41,7 @@ land in the same pass as the rest of the diagnostics layer.
 
 ## Acceptance
 
-- [ ] Diagnostics disclosure hosts a debug checkbox (new UI, bound to the existing `extensions.sdt-pack-sitter.debug` pref) and ring tail;
+- [x] Diagnostics disclosure hosts a debug checkbox (new UI, bound to the existing `extensions.sdt-pack-sitter.debug` pref) and ring tail;
       opening the disclosure does not require debug mode
       to already be on.
 - [ ] 0686's still-open accessibility items (keyboard open/focus/close/
@@ -47,3 +49,15 @@ land in the same pass as the rest of the diagnostics layer.
       are verified in a real window against the reorganized layout, not
       re-approved from the old one -- verified once, after 0689's wiring
       lands, not twice.
+
+      NOT MET by this branch, and it cannot be: a real window needs a Zotero
+      run, which no headless lane has. What the branch does instead is make
+      the verification executable — `verification/probes/sdt-sitter-harness/`
+      now asserts the layer structure, the nesting, closed-by-default, the
+      bound label, focus on each summary, and a ring tail readable with the
+      debug pref off, and it records the reduced-motion reading and the
+      toolbar's accessible name rather than leaving them to another reading
+      of the source. The remaining items (Escape, focus return, reduced-motion
+      behaviour, transition-only announcements) are 0686's own open scope and
+      0686 stays open for them; this ticket's criterion pointed at 0686
+      rather than duplicating it.

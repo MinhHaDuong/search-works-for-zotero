@@ -1,0 +1,68 @@
+%erg 0.1
+Title: Extract a shared host-addon-record reader for beaver.py and sdt_sitter_install.py
+Created: 2026-09-06
+Author: sim
+
+--- log ---
+2026-09-06T12:15Z sim created
+
+--- body ---
+
+## Context
+
+Two files independently implement the same "read a Zotero profile's
+`extensions.json` and report present/absent/unreadable, tolerant of
+every wrong shape" logic: `bench/sdt_sitter_install.py`'s
+`read_addon_record` (hardened through three review rounds under ticket
+0688/PR #373) and `bench/acceptance/adapters/beaver.py`'s
+`_host_addon_record` (the identical fix hand-ported under ticket
+0712/PR #383). This is now the second time the same four-defect fix
+(document-shape, container-shape, element-shape guards plus
+`RecursionError` on deep nesting) has had to be hand-duplicated between
+these two files, with nothing tracking the divergence risk. If a third
+adapter grows the same pattern, or either file's shape contract
+changes, this will silently drift.
+
+Both PRs' own review explicitly considered and deferred extraction: a
+shared helper wasn't taken because `bench/sdt_sitter_install.py` is a
+standalone CLI script for one specific plugin, not a shared library,
+and `bench/acceptance/adapters/beaver.py` is a different plugin's
+acceptance adapter -- importing one into the other creates an odd
+cross-plugin coupling. Ticket 0712's Imagine-phase note observed that
+`read_addon_record` is already a free function parametrized on
+`profile`/`addon_id` (not bound to `self.profile`), so extraction is
+mechanically easy; the objection is architectural, not technical.
+
+## Work
+
+- Decide the right home for a shared reader: a new neutral module
+  (e.g. `bench/host_addon_record.py`) that both `bench/sdt_sitter_install.py`
+  and `bench/acceptance/adapters/beaver.py` import, parametrized on
+  `profile: Path` and `addon_id: str`.
+- Port both files' call sites to the shared function; delete the
+  duplicated logic from each.
+- Merge both files' test suites for this function's shape-guard
+  behavior (`tests/test_sdt_sitter.py`'s three shape tests and
+  `tests/test_acceptance_adapter_beaver.py`'s section-11 tests) into
+  one shared test module, or keep both but assert they exercise the
+  same shared function.
+- Confirm no caller relies on a behavioral difference between the two
+  current implementations before merging them (a quick diff of the two
+  functions' bodies as of this ticket's filing should be identical
+  modulo the `self`/parameter binding).
+
+## Acceptance
+
+- [ ] One function implements the shape-guarded `extensions.json`
+      reader; both `bench/sdt_sitter_install.py` and
+      `bench/acceptance/adapters/beaver.py` call it.
+- [ ] No behavior regression: all existing tests for both call sites
+      still pass (or their shared replacement covers the same cases).
+- [ ] `make check` green.
+
+## Scope
+
+Low priority, low severity -- pure duplication-reduction, not a bug.
+Cheap to defer further; file exists so the divergence stops being
+silent.
+
