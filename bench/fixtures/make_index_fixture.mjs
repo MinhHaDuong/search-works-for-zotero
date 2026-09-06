@@ -93,10 +93,14 @@ const ITEM_FIELDS_FILE = resolve(import.meta.dirname, 'zotero-item-fields.json')
 const CITATION_TARGETS = { doi: ['DOI', 'DOI'], isbn: ['ISBN', 'ISBN'], url: ['url', 'URL'] };
 let itemFieldsCache = null;
 
-function itemFields() {
-  if (!itemFieldsCache) itemFieldsCache = JSON.parse(readFileSync(ITEM_FIELDS_FILE, 'utf8')).item_types;
+function itemSchema() {
+  if (!itemFieldsCache) itemFieldsCache = JSON.parse(readFileSync(ITEM_FIELDS_FILE, 'utf8'));
   return itemFieldsCache;
 }
+function itemFields() { return itemSchema().item_types; }
+// Zotero stores a plain author under the item type's primary creator type (presenter on
+// a presentation, cartographer on a map), so that is what the export carries.
+function primaryCreatorType(itemType) { return (itemSchema().primary_creators ?? {})[itemType] ?? 'author'; }
 
 function canonicalCharset(label) {
   const key = String(label).trim().toLowerCase();
@@ -144,7 +148,7 @@ export function expectedParent(doc, collectionKey) {
   const expected = {
     itemType,
     title: doc.title,
-    creators: [{ creatorType: 'author', name: doc.author }],
+    creators: [{ creatorType: primaryCreatorType(doc.item_type ?? 'document'), name: doc.author }],
     date: String(doc.year),
     language: Object.hasOwn(doc, 'language_field') ? doc.language_field : doc.language,
     extra: extraLines.join('\n'),

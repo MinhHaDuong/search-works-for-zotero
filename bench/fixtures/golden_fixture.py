@@ -169,16 +169,29 @@ def _notes(doc: dict) -> list[dict]:
 _ITEM_FIELDS: dict[str, list[str]] | None = None
 
 
-def item_fields(path: Path = ITEM_FIELDS_FILE) -> dict[str, list[str]]:
-    """Zotero's item types and their field names, from the committed reduction of
-    https://api.zotero.org/schema (`golden_fixture.py item-fields` regenerates it)."""
+def _item_schema(path: Path = ITEM_FIELDS_FILE) -> dict:
     global _ITEM_FIELDS
     if _ITEM_FIELDS is None:
         try:
-            _ITEM_FIELDS = json.loads(path.read_text(encoding="utf-8"))["item_types"]
+            _ITEM_FIELDS = json.loads(path.read_text(encoding="utf-8"))
+            _ITEM_FIELDS["item_types"]
         except (OSError, KeyError, json.JSONDecodeError) as error:
             raise GoldenFixtureError(f"cannot read Zotero item fields from {path}: {error}") from error
     return _ITEM_FIELDS
+
+
+def item_fields(path: Path = ITEM_FIELDS_FILE) -> dict[str, list[str]]:
+    """Zotero's item types and their field names, from the committed reduction of
+    https://api.zotero.org/schema (`golden_fixture.py item-fields` regenerates it)."""
+    return _item_schema(path)["item_types"]
+
+
+def primary_creator_type(item_type: str) -> str:
+    """The creator type Zotero stores a plain author under for this item type: 'author'
+    for most, 'presenter' for a presentation, 'cartographer' for a map. Zotero rewrites
+    the creator type on write, so writing 'author' on a presentation and expecting it
+    back reads as drift (padme, 2026-09-06)."""
+    return _item_schema().get("primary_creators", {}).get(item_type, "author")
 
 
 #: Recipe citation key -> (Zotero field name, the Extra line label Zotero's own
@@ -213,12 +226,16 @@ def write_item_fields(destination: Path = ITEM_FIELDS_FILE, schema_path: Path | 
         with urllib.request.urlopen(ZOTERO_SCHEMA_URL, timeout=60) as response:
             schema = json.load(response)
     reduced = {
-        "_source": f"{ZOTERO_SCHEMA_URL} (GET, unauthenticated), reduced to itemType -> field names; "
+        "_source": f"{ZOTERO_SCHEMA_URL} (GET, unauthenticated), reduced to itemType -> field names and primary creator type; "
                    f"fetched {time.strftime('%Y-%m-%d')}. Regenerate with "
                    "`python3 bench/fixtures/golden_fixture.py item-fields [--schema <schema.json>]` "
                    "when Zotero's schema version moves.",
         "schema_version": schema["version"],
         "item_types": {entry["itemType"]: [field["field"] for field in entry["fields"]] for entry in schema["itemTypes"]},
+        "primary_creators": {
+            entry["itemType"]: next(c["creatorType"] for c in entry["creatorTypes"] if c.get("primary"))
+            for entry in schema["itemTypes"] if entry.get("creatorTypes")
+        },
     }
     _write_json(destination, reduced)
     return reduced
@@ -383,7 +400,7 @@ def _desired_parent(doc: dict, collection_key: str) -> dict:
     desired = {
         "itemType": item_type,
         "title": doc["title"],
-        "creators": [{"creatorType": "author", "name": doc["author"]}],
+        "creators": [{"creatorType": primary_creator_type(item_type), "name": doc["author"]}],
         "date": str(doc["year"]),
         "language": doc["language_field"] if "language_field" in doc else doc["language"],
         "extra": "\n".join(extra_lines + citation_extra),

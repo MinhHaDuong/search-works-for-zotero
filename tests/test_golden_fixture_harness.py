@@ -2316,3 +2316,36 @@ def test_an_empty_string_field_zotero_omits_is_not_drift(tmp_path):
     items_path.write_text(json.dumps(items), encoding="utf-8")
     accepted = run_loader(snapshot, recipe_path)
     assert accepted.returncode == 0, accepted.stderr
+
+
+def test_the_creator_is_written_under_the_item_types_primary_creator_type(tmp_path):
+    """Zotero stores a plain author under the item type's primary creator type — 'presenter'
+    on a presentation, 'cartographer' on a map — and rewrites 'author' on write, so the
+    export of a presentation read its own parent as drift (padme, 2026-09-06). The recipe's
+    author is written under that type, and the loader expects it."""
+    assert gf.primary_creator_type("presentation") == "presenter"
+    assert gf.primary_creator_type("map") == "cartographer"
+    assert gf.primary_creator_type("statute") == "author" and gf.primary_creator_type("unknownType") == "author"
+    payloads = (b"%PDF-1.4\npdf body\n", b"<html><body>same body</body></html>")
+    recipe = ruled_recipe(payloads, item_type="presentation")
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "invented-pdf.pdf").write_bytes(payloads[0])
+    (cache / "invented-html.html").write_bytes(payloads[1])
+    zotero = MemoryZotero()
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+    parent = next(item for item in zotero.items.values() if item["data"]["itemType"] == "presentation")
+    assert parent["data"]["creators"] == [{"creatorType": "presenter", "name": "Fixture Author"}]
+    for key, item in zotero.items.items():
+        if item["data"]["itemType"] == "attachment":
+            zotero.fulltexts[key] = {"content": "same body", "indexedPages": 1, "totalPages": 1, "version": 17}
+    snapshot = tmp_path / "export"
+    gf.export_snapshot(
+        recipe, zotero, collection_key="COLLECT1", destination=snapshot,
+        library={"type": "group", "id": 7}, zotero_client_version="10.0.1-test",
+        pdf_max_pages=100, text_max_length=500000, index_max_chars=40000, cache_dir=cache,
+    )
+    recipe_path = tmp_path / "recipe.json"
+    recipe_path.write_text(json.dumps(recipe), encoding="utf-8")
+    accepted = run_loader(snapshot, recipe_path)
+    assert accepted.returncode == 0, accepted.stderr
