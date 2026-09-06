@@ -20,11 +20,15 @@ file exists for:
 
 - `TY` comes from RIS.js's `exportTypeMap`, and the type Zotero creates on import
   is `importTypeMap[TY]`, which is the inverse of that map except for the
-  degenerate entries: `document` has no RIS type of its own, exports as `GEN`,
-  and `GEN` imports as `journalArticle` (RIS.js's DEFAULT_IMPORT_TYPE). A type
-  RIS.js does not know at all (`preprint`, `standard`) also falls to `GEN`.
-  `ris_type()` returns both the tag and what it imports as; the CLI logs every
-  parent whose type will not survive the round trip.
+  degenerate entries: `document` has no RIS type of its own, exports as `GEN`
+  (`degenerateExportTypeMap`), and `importTypeMap.GEN` is `journalArticle`, the
+  same value as RIS.js's DEFAULT_IMPORT_TYPE for a tag it does not know. A type
+  RIS.js does not know at all (`preprint`, `standard`) also falls to `GEN`. Four
+  tags do import as `document` (`AGGR`, `ANCIENT`, `EQUA`, `GRNT`), and none is
+  used here: each names something the record is not, and a reader other than
+  Zotero would take the tag at its word. `ris_type()` returns both the tag and
+  what it imports as; the CLI logs every parent whose type will not survive the
+  round trip.
 - `AU`: RIS.js splits on the first comma into lastName / firstName and, when
   there is no comma, stores a single-field (institutional) creator. The recipe's
   `author` is one free-text string and the harness injects it as exactly such a
@@ -42,6 +46,13 @@ file exists for:
   exactly. `N1` maps to a child note, one note per tag; a value that already
   carries HTML tags is stored as-is, so the recipe's note `html` goes through on
   one line, unwrapped.
+- `DO` maps to `DOI` and `UR` to `url` on every type. `SN` maps to `ISBN` by
+  default but to `ISSN` on a journal, magazine or newspaper article, to
+  `reportNumber` on a report and to `patentNumber` on a patent, so an ISBN is
+  emitted as `SN` only when the type the record *imports as* reads it back as
+  ISBN and has the field; otherwise it goes to Extra as `ISBN: …`, which is what
+  golden_fixture.py writes to Zotero for a type without the field, and what
+  Zotero itself reads back from Extra.
 - `L1` maps to `attachments/PDF`: the path is handed to Zotero's item saver,
   which resolves it as a URI relative to the RIS file first
   (`_parsePathURI(path, baseURI = the file)`) and as a path under the file's
@@ -52,7 +63,8 @@ file exists for:
 - `ID` is `__ignore` on import (RIS.js `degenerateImportFieldMap`), so the
   fixture's Zotero key rides along for a reader without touching the import.
 - `KW` lines become tags, one per line. Only the parent's managed marker is
-  emitted. Note that RIS.js splits a *single* tag on commas; the marker has none.
+  emitted. RIS.js splits one `KW` value on newlines and semicolons, never on
+  commas ("Commas, might be more problematic"); the marker carries neither.
 - Encoding: UTF-8 with a BOM and CRLF line endings. Zotero's reader
   (translate_firefox.js) locks the charset on a BOM and ignores the dialog's
   charset override; Zotero's own RIS export writes `\\r\\n`, "from spec".
@@ -65,6 +77,7 @@ and a parent type that only exists on Zotero's side of the map.
 """
 
 import argparse
+import functools
 import hashlib
 import json
 import logging
@@ -80,6 +93,9 @@ FIXTURES = Path(__file__).resolve().parent
 DEFAULT_RECIPE = FIXTURES / "recipe.json"
 DEFAULT_EXPORT = FIXTURES / "export"
 DEFAULT_RIS = DEFAULT_EXPORT / "menagerie.ris"
+#: Zotero's public schema reduced to item type -> field names; golden_fixture.py
+#: `item-fields` regenerates it, and reads it for the same placement decision.
+ITEM_FIELDS_FILE = FIXTURES / "zotero-item-fields.json"
 #: Same convention as fetch_recipe.py's DEFAULT_CACHE; on the author's machine the
 #: contract of 2026-09-06 puts the bytes at ~/data/golden-fixture-cache.
 DEFAULT_CACHE = REPO / "corpus-cache"
@@ -149,6 +165,14 @@ DEFAULT_IMPORT_TYPE = "journalArticle"
 IMPORT_TYPE_MAP = {tag: item_type for item_type, tag in EXPORT_TYPE_MAP.items()}
 IMPORT_TYPE_MAP["GEN"] = DEFAULT_IMPORT_TYPE
 
+#: RIS.js `fieldMap.SN`: the types on which `SN` imports as something other than
+#: ISBN (ISSN, reportNumber, patentNumber).
+SN_NOT_ISBN = frozenset({"journalArticle", "magazineArticle", "newspaperArticle", "report", "patent"})
+
+#: Recipe citation key -> (Zotero field, RIS tag, Extra label), as golden_fixture.py
+#: places them: the field when the type has it, Extra otherwise.
+CITATION_TARGETS = {"doi": ("DOI", "DO", "DOI"), "isbn": ("ISBN", "SN", "ISBN"), "url": ("url", "UR", "URL")}
+
 #: Formats whose bytes are already compressed: stored in the zip, not deflated.
 STORED_FORMATS = frozenset({"pdf", "djvu", "epub", "docx", "xlsx", "odt", "jpg", "png", "zip", "tgz"})
 
@@ -161,6 +185,28 @@ def ris_type(item_type: str) -> tuple[str, str]:
 
 def source_tag(recipe_id: str) -> str:
     return SOURCE_TAG_PREFIX + recipe_id
+
+
+@functools.lru_cache(maxsize=1)
+def item_fields(path: Path = ITEM_FIELDS_FILE) -> dict[str, list[str]]:
+    return json.loads(path.read_text(encoding="utf-8"))["item_types"]
+
+
+def citation_placement(imports_as: str, citation: dict) -> tuple[list[tuple[str, str]], list[str]]:
+    """Split a recipe citation into (RIS tag, value) pairs the imported type reads
+    back into the right field, and Extra lines for the rest."""
+    fields = item_fields().get(imports_as, [])
+    pairs, extra = [], []
+    for key in ("doi", "isbn", "url"):
+        value = citation.get(key)
+        if not value:
+            continue
+        field, tag, label = CITATION_TARGETS[key]
+        if field in fields and not (key == "isbn" and imports_as in SN_NOT_ISBN):
+            pairs.append((tag, value))
+        else:
+            extra.append(f"{label}: {value}")
+    return pairs, extra
 
 
 def canonical_json(value) -> str:
@@ -305,11 +351,16 @@ def _one_line(value: str) -> str:
 def record_tags(doc: dict, key: str | None = None) -> list[tuple[str, str]]:
     """The (tag, value) pairs of one parent, `TY` first, `ER` excluded."""
     item_type = doc.get("item_type", "document")
-    tag, _ = ris_type(item_type)
+    tag, imports_as = ris_type(item_type)
     pairs: list[tuple[str, str]] = [("TY", tag)]
     if key:
         pairs.append(("ID", key))
     pairs.append(("TI", _one_line(doc["title"])))
+    if "," in doc["author"]:
+        # RIS.js processTag, case "creators": the text before the first comma becomes
+        # lastName and the rest firstName, where the fixture holds one single-field name.
+        log.warning("%s: author %r carries a comma; Zotero's RIS import will split it into last/first name",
+                    doc["id"], doc["author"])
     pairs.append(("AU", _one_line(doc["author"])))
     year, full_date = parent_date(doc)
     pairs.append(("PY", year))
@@ -319,20 +370,17 @@ def record_tags(doc: dict, key: str | None = None) -> list[tuple[str, str]]:
     if language.strip():
         pairs.append(("LA", language))
     citation = doc.get("citation") if isinstance(doc.get("citation"), dict) else {}
-    if citation.get("doi"):
-        pairs.append(("DO", citation["doi"]))
-    if citation.get("isbn"):
-        pairs.append(("SN", citation["isbn"]))
-    url = citation.get("url") or (doc.get("bytes_url") if is_legacy(doc) else None)
-    if url:
-        pairs.append(("UR", url))
+    if is_legacy(doc):
+        citation = {"url": doc.get("bytes_url")}
+    citation_pairs, citation_extra = citation_placement(imports_as, citation)
+    pairs.extend(citation_pairs)
     if is_legacy(doc):
         if doc.get("archive"):
             pairs.append(("DB", doc["archive"]))
         if doc.get("identifier"):
             pairs.append(("AN", doc["identifier"]))
     pairs.append(("KW", source_tag(doc["id"])))
-    for line in extra_lines(doc):
+    for line in extra_lines(doc) + citation_extra:
         pairs.append(("M2", _one_line(line)))
     for note in child_notes(doc):
         pairs.append(("N1", _one_line(note["html"])))
@@ -431,6 +479,7 @@ def build_package(recipe: list[dict], ris_text: str, ris_name: str, cache_dir: P
             for source, path in verified:
                 compress = zipfile.ZIP_STORED if source.get("bytes_format", "pdf") in STORED_FORMATS else zipfile.ZIP_DEFLATED
                 archive.write(path, attachment_relpath(source), compress_type=compress)
+        temp.chmod(0o644)  # mkstemp creates 0600; the zip is made to be handed over
         shutil.move(str(temp), str(destination))
     finally:
         if temp.exists():
