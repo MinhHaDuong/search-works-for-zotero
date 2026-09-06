@@ -734,3 +734,12 @@ agent builds library and bank in one shot and review rounds converge it,
 with checklists and no automatic guard. Points 5 and 8 wait on a clearer
 explanation. Part D's items 12 and 13 become review-round checks under
 ruling 10; item 11, Vietnamese as a query language, is subsumed by ruling 2.
+
+Second round, same day: 2 confirmed; 4 the format mix follows the census
+(PDF 56,9 %, HTML 33,0 %, other 9,2 %); 5 a reply scores win, near-win or
+miss on the rank of the answer paragraph and the completeness of its
+citation chain, the other-language twin being a near-win; 8 the workshop
+is the artisan's own and holds no participants, and the held-out
+instrument becomes a fifth deliverable, an on-the-fly question generator
+over the author's real library, ticketed separately. All ten points are
+now ruled; the one-shot build of ruling 10 starts.

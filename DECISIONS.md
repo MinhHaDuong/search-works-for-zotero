@@ -6554,3 +6554,23 @@ points. Two points wait on a clearer explanation before a ruling (5, 8).
     This governs the pathology ledger and, by extension, the panel's added
     items on a red state for the bank, which become a one-time review
     exercise rather than machinery.
+
+**2026-09-06 — RULED, second round on the same points, closing 2, 4, 5 and
+8.** Point 2's reading is confirmed as recorded. Point 4: the fixture's
+format mix follows the census of the author's library, so HTML and PDF are
+commensurate with what that library holds (PDF 56,9 %, HTML 33,0 %, other
+formats 9,2 % of file attachments, census of 2026-09-06). Point 5: under
+ruling 7 a reply is scored on the rank of the answer paragraph and on the
+completeness of its citation chain; a reply that returns the same work in
+another rendering or language in place of the answer paragraph is a
+near-win, not a miss, so the ladder is win, near-win, miss. Point 8: the
+workshop is the artisan's own, this repository, not an event with
+participants, so no cohort authors held-out questions. What the point was
+reaching for is a fifth deliverable, named by the author: a system that
+generates about a hundred questions on the fly from the author's real
+library and benches the search engine against them. It is the library
+level of §5.2.8 made routine: private, regenerated at each run, impossible
+to tune against, representative by construction, scored on the same rank
+and citation chain as the Menagerie. The Menagerie stays the pinned,
+public, adversarial, hand-judged instrument; the two are complements, not
+rivals. Filed as its own ticket.
