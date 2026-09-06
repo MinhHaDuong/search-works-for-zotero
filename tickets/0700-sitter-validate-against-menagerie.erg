@@ -2,10 +2,12 @@
 Title: Validate the sitter's census and extraction against the real Menagerie
 Created: 2026-09-06
 Author: claude
+Blocked-by: 0732
 
 --- log ---
 2026-09-06T00:00Z claude created
 2026-09-07T08:20Z claude note UNBLOCKED: the premise of the Blocked-by is satisfied. The Menagerie is a live, injectable fixture library -- group 6659303 on zotero.org at library version 592, 103 documents in collection 3AY48MA5, 114 top-level items, 125 imported-file attachments with their bytes on the server (authenticated /file returns 302; the anonymous 404 is Zotero's normal group-file behaviour, confirmed against group 305258 as a control). Its text attachments carry real charsets, the deliberate legacy ones included: utf-8, windows-1252, windows-1251, koi8-r, gbk, big5. Ticket 0632's exit criteria are all ticked on main; it remains open only until PR #409 lands the re-injection and stock-limit re-export that clear its two recorded defects. None of that gates this ticket, whose work is running the sitter's census and extraction against the corpus
+2026-09-07T09:42Z Minh Ha-Duong ruled the order and widened the work: run this after 0732 names the embedder, waiting first for the sitter run already in flight to finish, and then analyse the logs and the filesystem beside the sitter's own counters rather than trusting the counters alone
 
 --- body ---
 ## Context
@@ -46,6 +48,16 @@ read as an absent file.
   (every non-indexed document lands in exactly one bucket) actually holding
   on documents that fail for real reasons, not synthetic ones; group-library
   attachments handled correctly by the admission/inspection logic.
+- Wait for the sitter run already in flight to complete before starting;
+  do not interrupt it, and record what it was doing, so its own pass is
+  evidence rather than a disturbance.
+- After the census+extraction pass, analyse what it left behind rather than
+  only what it reported: the debug journal and Zotero's own log for the
+  transitions the sitter recorded, and the filesystem for the state it
+  created (storage directories touched, caches written, any residue outside
+  the declared locations, per R15's inventory clause). Reconcile the three
+  accounts -- the sitter's counters, the log, and the filesystem -- and name
+  every disagreement.
 - This is an integration/acceptance validation, not a unit-test replacement
   -- it does not retire or duplicate 0690/0695's mock-based tests.
 
