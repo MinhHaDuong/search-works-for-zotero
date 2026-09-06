@@ -92,10 +92,16 @@ function noteDialogClose(dialog) {
   emit('dialog-close', {});
 }
 
+/* `counts` is defaulted rather than dereferenced: the scheduler always
+   initialises it, but before the scope prefix landed the tooltip never read
+   coverage at all, so this function's required state shape widened onto the
+   render path — where a throw has no guard above it — without the caller's
+   shape being re-checked. */
 function getSDTCoverage(state) {
+  const counts = state.counts || {};
   return { known: state.scanned === state.total && state.phase !== 'ready',
-    current: state.counts.current || 0,
-    total: Math.max(0, state.total - (state.counts.excluded || 0) - (state.counts.unsupported || 0)) };
+    current: counts.current || 0,
+    total: Math.max(0, state.total - (counts.excluded || 0) - (counts.unsupported || 0)) };
 }
 
 /* Every phase a reader can meet on hover, in the user's vocabulary. A blocked or
@@ -103,7 +109,7 @@ function getSDTCoverage(state) {
    so each blocking reason gets its own plain sentence; the raw internal name
    stays in the diagnostics disclosure. `null` is the deliberate no-label case:
    the two healthy idle phases, where the count already says everything. An
-   unlisted phase falls back to the bare count rather than leaking its name. */
+   unlisted phase falls back to the scoped count rather than leaking its name. */
 var SDT_PHASE_LABELS = {
   ready: null,
   waiting: null,
@@ -180,9 +186,13 @@ function describeSDTTooltip(state) {
     ? `${state.completed} fichiers indexés` : `${state.completed} fichier indexé`;
   const label = SDT_PHASE_LABELS[state.phase];
   const progress = label ? `${label} — ${indexed}` : indexed;
-  const scope = describeSDTScope();
-  const coverage = `Index${describeSDTCoverage(state)}`;
-  return `${scope ? `${scope} — ` : ''}${coverage} — ${progress}`;
+  // Before the first census there is no percentage, and the bare word "Index"
+  // between two em dashes says nothing the rest of the line does not: the
+  // segment is dropped rather than left dangling. The scope is not — which
+  // libraries the sitter is about is true before any figure exists.
+  const percentage = describeSDTCoverage(state);
+  const segments = [describeSDTScope(), percentage && `Index${percentage}`, progress];
+  return segments.filter(Boolean).join(' — ');
 }
 
 /* The unit of work is one attachment, and Zotero names attachments for us

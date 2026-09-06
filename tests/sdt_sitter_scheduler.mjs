@@ -431,8 +431,8 @@ const withLibraries = getAll => {
   ui.Zotero = { debug: () => {}, Prefs: { get: () => true }, Libraries: { getAll } };
 };
 const named = (...names) => withLibraries(() => names.map(name => ({ name })));
-// scanned === total and 3 of the 10 attachments neither excluded nor
-// unsupported, so the composer has a real percentage to place: 4 of 7.
+// scanned === total, and of the 10 attachments 2 are excluded and 1 unsupported,
+// leaving 7 in the denominator, so the composer has a real percentage: 4 of 7.
 const tooltip = state => ui.describeSDTTooltip({ total: 10, scanned: 10,
   counts: { current: 4, excluded: 2, unsupported: 1 }, ...state });
 
@@ -477,11 +477,21 @@ assert.equal(tooltip({ phase: 'waiting', completed: 3 }), unscoped);
 withLibraries(() => ({ 0: { name: 'Ma bibliothèque' }, length: 1 }));
 assert.equal(tooltip({ phase: 'waiting', completed: 3 }), unscoped);
 named('Ma bibliothèque');
-// A bare count is reserved for the two healthy idle phases. Mapping any other
-// phase to null would silence it exactly as the raw-name removal once did.
+// Before the first census there is no percentage. The segment goes rather than
+// leaving a bare "Index" between two em dashes; the scope stays, because which
+// libraries the sitter is about is true before any figure exists.
+assert.equal(ui.describeSDTTooltip({ total: 0, scanned: 0, counts: {},
+  phase: 'waiting', completed: 3 }), 'Bibliothèque : Ma bibliothèque — 3 fichiers indexés');
+// getSDTCoverage defaults `counts` rather than dereferencing it: the tooltip
+// began reading coverage only with the scope prefix, so this shape reaches the
+// render path, where nothing above it catches.
+assert.equal(ui.describeSDTTooltip({ total: 0, scanned: 0, phase: 'waiting', completed: 3 }),
+  'Bibliothèque : Ma bibliothèque — 3 fichiers indexés');
+// An unlabelled count is reserved for the two healthy idle phases. Mapping any
+// other phase to null would silence it exactly as the raw-name removal once did.
 const silent = [...phases].filter(phase => !ui.SDT_PHASE_LABELS[phase]).sort();
 assert.deepEqual(silent, ['ready', 'waiting'],
-  `only healthy idle phases may render a bare count: ${silent.join(' | ')}`);
+  `only healthy idle phases may render an unlabelled count: ${silent.join(' | ')}`);
 const stalled = [...phases].filter(phase => !silent.includes(phase) && phase !== 'census');
 const rendered = new Set();
 // Driven under a HYPHENATED library name on purpose. The identifier check below

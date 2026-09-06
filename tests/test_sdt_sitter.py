@@ -76,6 +76,7 @@ BUTTON_BLOCK = ('for (const button of buttons) {', 'for (const dialog of dialogs
 UI_SITES = (
     ('function describeSDTTooltip(state) {', '\n}'),
     ('function describeSDTScope() {', '\n}'),
+    ('function describeSDTCoverage(state) {', '\n}'),
     ('function describeSDTFile(info, fallback) {', '\n}'),
     ('function describeSDTActiveFile(state) {', '\n}'),
     ('var SDT_PHASE_LABELS = {', '};'),
