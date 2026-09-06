@@ -504,7 +504,8 @@ async function initialize(rootURI, token) {
     try { source = await IOUtils.stat(sourcePath); }
     catch (_error) { return { status: 'missing-source' }; }
     const cacheKey = `${item.libraryID}/${item.key}`;
-    const hash = await sourceHashes.hash(cacheKey, sourcePath, source, () => item.attachmentHash);
+    const hash = await sourceHashes.hash(cacheKey, sourcePath, source, Date.now(),
+      () => item.attachmentHash);
     const directory = Zotero.Attachments.getStorageDirectory(item).path;
     const path = PathUtils.join(directory, '.zotero-sdt-cache');
     const [title, parentTitle] = await Promise.all([getItemTitle(item), getItemTitle(parent)]);

@@ -194,18 +194,30 @@ var createSDTCache = function (raw, versions) {
 
    In memory only, and derived: it is not a claim about job state, and the worst
    a stale entry costs is one recomputed identity. Nothing here is persisted, so
-   the disposable-cache-only ruling stands untouched. */
-var createSDTSourceHashes = function () {
+   the disposable-cache-only ruling stands untouched.
+
+   The fingerprint is a proxy for the bytes, not the bytes, and it has a blind
+   spot: a file rewritten in place at the same length with its mtime restored is
+   invisible to it. So the author ruled that no entry is trusted forever — past
+   `maxAgeMS` the real MD5 is read again whether or not the three values still
+   match, which bounds how long such a rewrite can go unnoticed. A per-restart
+   bound would have been free, since this Map is built in initialize() and a
+   disable/re-enable already discards it, and it would also have been worth
+   nothing: the case that needs a bound is the session that runs for weeks. */
+var createSDTSourceHashes = function (maxAgeMS = 24 * 60 * 60 * 1000) {
   const records = new Map();
   return {
-    async hash(key, path, stat, compute) {
+    async hash(key, path, stat, now, compute) {
       // The path is in the fingerprint because a file moved between attachments
       // can carry a byte-identical size and mtime.
       const fingerprint = JSON.stringify([path, stat.size, stat.lastModified]);
       const known = records.get(key);
-      if (known && known.fingerprint === fingerprint) return known.hash;
+      // Age outside [0, maxAgeMS) re-verifies, so a clock stepped backwards by
+      // NTP shortens the trust window instead of extending it.
+      const age = known ? now - known.verifiedAt : Infinity;
+      if (known && known.fingerprint === fingerprint && age >= 0 && age < maxAgeMS) return known.hash;
       const hash = await compute();
-      records.set(key, { fingerprint, hash });
+      records.set(key, { fingerprint, hash, verifiedAt: now });
       return hash;
     },
     prune(keys) { for (const key of records.keys()) if (!keys.has(key)) records.delete(key); },

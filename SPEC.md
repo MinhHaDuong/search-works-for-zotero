@@ -2,7 +2,7 @@
 
 - **Status:** COMPLETE
 - **Author:** Minh Ha-Duong (CNRS)
-- **Date:** 2026-09-05
+- **Date:** 2026-09-06
 
 ## 1. Introduction
 
@@ -2214,6 +2214,9 @@ filesystem. These are checks before admission, not enforced peak resource caps.
 The sitter submits at most one attachment at a time, only to an idle native
 worker, at native background priority. It does not claim independent OS nice
 control or preemption. Unavailable resource readings prevent admission.
+The sitter censuses the library 30 seconds after each sweep ends, and 10 minutes
+after one that ended idle having found nothing to index, so a library with no
+work left is not re-walked twice a minute all night.
 An unresolved native promise prevents further submissions; lack of progress
 alone does not prove a hang. Failures are suppressed for the session by source
 and processor identity, without a private durable ledger.
@@ -2230,8 +2233,13 @@ observations leave the corresponding estimate unavailable. These empirical
 estimates do not assert reliable predictive coverage or bounded completion time.
 
 The sitter may cache verified pack metadata and successful duration observations
-across sessions. Reuse checks attachment identity, live source hash, processor
-versions and the pack's filesystem fingerprint. Source or processor changes
+across sessions. Reuse checks attachment identity, source hash, processor
+versions and the pack's filesystem fingerprint. The source hash is read from the
+file, then reused for at most 24 hours while the source's path, byte size and
+modification time are all unchanged; past that bound it is read again whether or
+not they match, so a source rewritten in place at the same size and modification
+time is detected within a day. The hash memory is in-session only and is
+discarded on disable or restart. Source or processor changes
 invalidate observations; pack deletion or changed fingerprints force inspection.
 The cache is derived, not a work ledger: active jobs and failures are never
 persisted. Missing, corrupt or unwritable cache falls back to native inspection

@@ -416,11 +416,12 @@ await test('a document that never reports progress still yields a sample', async
 await test('an unchanged library is not re-hashed, a changed file still is', async () => {
   const hashes = context.createSDTSourceHashes();
   const stats = { 1: { size: 10, lastModified: 5 }, 2: { size: 20, lastModified: 7 } };
+  const clock = 1_700_000_000_000;
   let hashed = 0;
   const f = fixture();
   f.host.inspect = async id => ({
     status: 'current',
-    identity: await hashes.hash(`1/${id}`, `/store/${id}/file.pdf`, stats[id],
+    identity: await hashes.hash(`1/${id}`, `/store/${id}/file.pdf`, stats[id], clock,
       async () => { hashed++; return `md5-${id}-${stats[id].lastModified}`; }),
   });
   await f.api.sweep();
@@ -433,11 +434,46 @@ await test('an unchanged library is not re-hashed, a changed file still is', asy
   assert.equal(f.api.state.counts.current, 2);
   // Same bytes, different file: the path is in the fingerprint because an
   // attachment can be repointed at a byte-identical size and mtime.
-  await hashes.hash('1/1', '/store/1/other.pdf', stats[1], async () => { hashed++; return 'x'; });
+  await hashes.hash('1/1', '/store/1/other.pdf', stats[1], clock, async () => { hashed++; return 'x'; });
   assert.equal(hashed, 4);
   assert.equal(hashes.size(), 2);
   hashes.prune(new Set(['1/1']));
   assert.equal(hashes.size(), 1, 'a deleted attachment keeps its hash forever');
+});
+/* The author's ruling on ticket 0701 (DECISIONS.md, 2026-09-06): keep the fast
+   path, but re-verify on a cadence, so no memoized hash is trusted forever. The
+   case it bounds is the one the fingerprint structurally cannot see — a file
+   rewritten in place at the same length with its mtime restored, where (path,
+   size, mtime) are all still equal and only the bytes have moved. */
+await test('a memoized hash expires, so a silent in-place rewrite is caught within the bound', async () => {
+  const day = 24 * 60 * 60 * 1000;
+  // Two bounds, and the six-hour one is not decoration: run this only at the
+  // default and a factory that ignored its argument entirely would pass, since
+  // the test's clock would be stepping by exactly the hardcoded window.
+  for (const [label, bound, hashes] of [
+    ['the shipped default', day, context.createSDTSourceHashes()],
+    ['a caller-set bound', 6 * 60 * 60 * 1000, context.createSDTSourceHashes(6 * 60 * 60 * 1000)],
+  ]) {
+    const stat = { size: 10, lastModified: 5 };
+    const t0 = 1_700_000_000_000;
+    let content = 'before';
+    let hashed = 0;
+    const read = now => hashes.hash('1/1', '/store/1/file.pdf', stat, now,
+      async () => { hashed++; return `md5-${content}`; });
+    assert.equal(await read(t0), 'md5-before');
+    content = 'after';                  // rewritten in place; the fingerprint cannot tell
+    assert.equal(await read(t0 + bound - 1), 'md5-before', `${label}: the fast path stopped working`);
+    assert.equal(hashed, 1, label);
+    assert.equal(await read(t0 + bound), 'md5-after', `${label}: a stale hash was trusted past the bound`);
+    assert.equal(hashed, 2, label);
+    // The re-verify restarts the window rather than hashing on every later call:
+    // a bound that collapsed into "always re-hash" would undo the ticket.
+    assert.equal(await read(t0 + bound + 1), 'md5-after');
+    assert.equal(hashed, 2, label);
+    // A clock stepped backwards shortens the window instead of extending it.
+    assert.equal(await read(t0), 'md5-after');
+    assert.equal(hashed, 3, label);
+  }
 });
 await test('an idle library backs off; anything left to do keeps the 30 s cadence', async () => {
   const idle = fixture();

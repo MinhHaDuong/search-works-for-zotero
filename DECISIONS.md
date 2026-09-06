@@ -6570,3 +6570,40 @@ the items toolbar carries per-library, per-collection scope. The earlier
 writeup called that mismatch a defect and proposed fixing it with tooltip
 wording, a fix needed in either position, so it does not settle the question
 either.
+
+**2026-09-06 — RULING: the sitter's memoized source hash gets a periodic full
+re-verify.** Ticket 0701 stopped the sitter re-reading and MD5-hashing every
+attachment in the library on every 30-second sweep, by remembering each source
+hash against the file's `(path, size, mtime)` — the fingerprint native Zotero's
+own SDT code keys on. `SPEC.md` said the reuse check reads a "live source hash",
+and after that change it no longer did, which is a mechanism substitution and so
+the author's to settle rather than a lane's. He ruled: **"Add a periodic full
+re-verify."** Keep the memoized fast path (skip re-hashing when path/size/mtime
+unchanged), but force a real re-hash on some cadence regardless of those
+matching — e.g. once per plugin restart, or once per day/N hours of continuous
+running — bounding how long a stale hash (from the rare case of content changing
+without size/mtime changing) could persist undetected.
+
+Implemented as a 24-hour expiry per entry, not as the per-restart option the
+ruling also offered, because that one was already true and therefore bought
+nothing: the memory is a `Map` built inside `initialize()`, so a disable or a
+restart already discards it whole. The case needing a bound is the session that
+runs for weeks, and only a clock bounds that. An entry whose age falls outside
+`[0, 24 h)` is re-verified, so a clock stepped backwards by NTP shortens the
+trust window rather than extending it. The re-verify restarts the window instead
+of hashing on every later call, which is the difference between a bound and
+undoing the ticket.
+
+What the bound is worth is worth stating plainly, since the fingerprint is a
+proxy for the bytes and not the bytes. It closes exactly one hole: a source
+rewritten in place at the same length with its mtime restored, which
+`(path, size, mtime)` cannot see at all. Nothing else changes — a normal edit
+moves the mtime and is caught on the next census, as before. The cost is one
+full-library hash pass per day against the 2 880 that the 30-second poll used to
+take, and the residual exposure is up to 24 hours on a file altered that way.
+
+`SPEC.md` §5 is updated to match: "live source hash" becomes "source hash", with
+the reuse window, the 24-hour bound and the in-session-only lifetime stated where
+the promise is made. The same edit discloses the census cadence — 30 seconds
+after a sweep, 10 minutes after an idle one — which ticket 0701 also introduced
+and which no section owned.
