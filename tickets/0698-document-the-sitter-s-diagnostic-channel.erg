@@ -38,6 +38,10 @@ contended file in its diff.
 - `bench/sdt-sitter/bootstrap.js` — `emit`, `DEBUG_PREF`, `heartbeatTick`
 - `bench/sdt-sitter/manifest.json` — where a default pref value would be
   declared, if one is wanted
+- `verification/SDT-SITTER-LAUNCH.md` — the user-facing install doc, which
+  tells the author what the plugin does and does not do; its line about
+  persisting no private ledger stays true, but it says nothing about where to
+  read the sitter's own state
 
 ## Actions
 
@@ -52,6 +56,9 @@ contended file in its diff.
    or whether an undeclared pref read with a `false` default is enough for an
    experimental bench plugin. Recommended default: declare nothing, document
    the name in SPEC only — the plugin is experimental and has no options UI.
+4. Add a sentence to `verification/SDT-SITTER-LAUNCH.md` telling the author
+   where to read the sitter's state: Help → Debug Output Logging → View
+   Output, and the pref that widens it.
 
 ## Test
 

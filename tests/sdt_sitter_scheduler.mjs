@@ -134,8 +134,13 @@ await test('the journal ring keeps its last records and evicts the oldest', asyn
   assert.deepEqual(Array.from(ring.tail(), record => record.kind), ['b', 'c', 'd']);
 });
 await test('one sweep journals admit, submit, progress and settle, carrying no title', async () => {
-  const f = fixture(), seen = [];
-  f.host.emit = (kind, detail, level = 'state') => seen.push({ kind, level, ...detail });
+  const f = fixture();
+  const ring = context.createSDTJournal(50);
+  ui.journal = ring; ui.sealed = false; ui.alive = true; ui.sitter = f.api;
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => true } };
+  // The real host callbacks, not stand-ins: a spy the test writes itself would
+  // only re-prove the test's own three lines.
+  f.host.emit = ui.emit; f.host.reportError = ui.reportSettleFailure;
   f.host.inspect = async id => ({ status: f.cached.has(id) ? 'current' : 'missing-pack',
     identity: String(id), cacheKey: `1/${id}`, sourceBytes: 100 * id, pages: id,
     title: 'Secret Title', parentTitle: 'Secret Parent', directory: '/secret/storage' });
@@ -144,14 +149,14 @@ await test('one sweep journals admit, submit, progress and settle, carrying no t
     if (id !== 1) return false;
     progress(90); f.cached.add(id); return true;
   };
-  f.host.reportError = (info, error) => f.host.emit('settle',
-    { id: info.cacheKey, ok: false, error: String(error) }, 'error');
   await f.api.sweep();
+  const seen = Array.from(ring.tail(50));
   assert.deepEqual(seen.map(record => record.kind),
     ['admit', 'submit', 'progress', 'settle', 'admit', 'submit', 'settle']);
-  assert.deepEqual(seen[0], { kind: 'admit', level: 'state', id: 1, sourceBytes: 100, pages: 1 });
-  assert.deepEqual(seen[1], { kind: 'submit', level: 'state', id: 1 });
-  assert.deepEqual(seen[2], { kind: 'progress', level: 'trace', id: 1, progress: 90 });
+  for (const record of seen) assert(Number.isFinite(record.at));
+  assert.deepEqual({ ...seen[0], at: 0 }, { at: 0, kind: 'admit', level: 'state', id: 1, sourceBytes: 100, pages: 1 });
+  assert.deepEqual({ ...seen[1], at: 0 }, { at: 0, kind: 'submit', level: 'state', id: 1 });
+  assert.deepEqual({ ...seen[2], at: 0 }, { at: 0, kind: 'progress', level: 'trace', id: 1, progress: 90 });
   assert.equal(seen[3].kind, 'settle'); assert.equal(seen[3].ok, true);
   assert.equal(seen[3].id, 1); assert(Number.isFinite(seen[3].ms));
   assert.equal(seen[6].level, 'error'); assert.equal(seen[6].ok, false);
@@ -172,7 +177,7 @@ await test('a blocked gate journals its reason once, idle waits at trace level',
 });
 await test('Zotero.debug and pref failures never reach the sitter loop', async () => {
   const ring = context.createSDTJournal(10);
-  ui.journal = ring;
+  ui.journal = ring; ui.sealed = false;
   ui.Zotero = { debug: () => { throw new Error('debug output unavailable'); },
     Prefs: { get: () => { throw new Error('prefs unavailable'); } } };
   ui.emit('admit', { id: 7 });
@@ -184,7 +189,7 @@ await test('Zotero.debug and pref failures never reach the sitter loop', async (
 await test('a failed candidate journals settle without the attachment title', async () => {
   const f = fixture();
   const ring = context.createSDTJournal(50);
-  ui.journal = ring; ui.alive = true; ui.sitter = f.api;
+  ui.journal = ring; ui.sealed = false; ui.alive = true; ui.sitter = f.api;
   ui.Zotero = { debug: () => {}, Prefs: { get: () => true } };
   f.host.emit = ui.emit; f.host.reportError = ui.reportSettleFailure;
   f.host.inspect = async id => ({ status: 'missing-pack', identity: String(id), cacheKey: `1/${id}`,
@@ -200,9 +205,51 @@ await test('a failed candidate journals settle without the attachment title', as
   assert.deepEqual(settled.map(record => record.id), ['1/1', '1/2']);
   assert(!JSON.stringify(Array.from(ring.tail(50))).includes('Secret'));
 });
+await test('a platform IO error reaches the journal without the path it names', async () => {
+  // The second inspect(), after extraction, reaches IOUtils and attachmentHash
+  // minutes after the source was last known to exist. Its throw is the realistic
+  // failure, and its message embeds the file it failed on.
+  const thrown = [
+    Object.assign(new Error(
+      'Could not open the file at /home/haduong/Zotero/storage/ABCD2345/Secret Title.pdf'),
+    { name: 'NotFoundError' }),
+    new Error('Access denied to file:///home/haduong/Zotero/storage/ABCD2345/Secret.epub'),
+    new Error('Unable to read C:\\Users\\haduong\\Zotero\\storage\\ABCD2345\\Secret.pdf'),
+  ];
+  for (const error of thrown) {
+    const f = fixture();
+    const ring = context.createSDTJournal(50);
+    const debugged = [];
+    ui.journal = ring; ui.sealed = false; ui.alive = true; ui.sitter = f.api;
+    ui.Zotero = { debug: line => debugged.push(line), Prefs: { get: () => true } };
+    f.host.emit = ui.emit; f.host.reportError = ui.reportSettleFailure;
+    f.host.list = async () => [1];
+    f.host.inspect = async id => {
+      if (f.calls.length) throw error;
+      return { status: 'missing-pack', identity: String(id), cacheKey: `1/${id}` };
+    };
+    f.host.ensure = async id => { f.calls.push(id); return true; };
+    await f.api.sweep();
+    const settled = Array.from(ring.tail(50)).filter(record => record.kind === 'settle');
+    assert.equal(settled.length, 1);
+    // The opaque cache key is identity the journal is meant to carry, and it holds
+    // a separator; the error text is what must carry no filesystem identity at all.
+    for (const leak of ['Secret', 'haduong', 'ABCD2345', '.pdf', '.epub', '/', '\\']) {
+      assert(!settled[0].error.includes(leak), `${leak} reached the record: ${settled[0].error}`);
+    }
+    const written = debugged.join(' ');
+    for (const leak of ['Secret', 'haduong', 'ABCD2345', '.pdf', '.epub']) {
+      assert(!written.includes(leak), `${leak} reached Zotero.debug: ${written}`);
+    }
+    // Scrubbed, not silenced: the failure's shape still has to be readable.
+    assert(settled[0].error.startsWith(error.name));
+    assert(settled[0].error.includes('<path>') || settled[0].error.includes('<file>'));
+    assert(debugged.some(line => line.includes('settle')));
+  }
+});
 await test('a late dialog unload is recorded once, never twice', async () => {
   const ring = context.createSDTJournal(50);
-  ui.journal = ring;
+  ui.journal = ring; ui.sealed = false;
   ui.Zotero = { debug: () => {}, Prefs: { get: () => true } };
   const dialog = {};
   ui.noteDialogClose(dialog); ui.noteDialogClose(dialog);
@@ -211,7 +258,7 @@ await test('a late dialog unload is recorded once, never twice', async () => {
 await test('after a hang the ring names the active document, its last progress and every heartbeat', async () => {
   const f = fixture(), entered = deferred(), finish = deferred();
   const ring = context.createSDTJournal(50);
-  ui.journal = ring; ui.alive = true; ui.sitter = f.api;
+  ui.journal = ring; ui.sealed = false; ui.alive = true; ui.sitter = f.api;
   ui.Zotero = { debug: () => {}, Prefs: { get: () => true } };
   f.host.emit = ui.emit; f.host.now = () => Date.now();
   let callback;
@@ -238,7 +285,7 @@ await test('after a hang the ring names the active document, its last progress a
 await test('shutdown is the last record even with a submission still in flight', async () => {
   const f = fixture(), entered = deferred(), finish = deferred();
   const ring = context.createSDTJournal(50);
-  ui.journal = ring; ui.alive = true; ui.sitter = f.api;
+  ui.journal = ring; ui.sealed = false; ui.alive = true; ui.sitter = f.api;
   ui.Zotero = { debug: () => {}, Prefs: { get: () => true }, SDTPackSitter: { state: f.api.state } };
   f.host.emit = ui.emit; f.host.now = () => Date.now();
   let callback;
@@ -252,8 +299,10 @@ await test('shutdown is the last record even with a submission still in flight',
   ui.noteDialogClose(dialog);
   ui.shutdown(null, 4);
   const closed = ring.tail(50).length;
-  // close() may dispatch unload after shutdown returns, and the in-flight ensure
-  // still has to settle; neither may land a record behind the shutdown one.
+  // Everything that resumes after an await outlives disable and must find the
+  // channel sealed: a cache write in flight, a second unload, the native promise.
+  ui.emit('cache-write', { rows: 3, compact: false });
+  ui.emit('dialog-open', { reused: false });
   ui.noteDialogClose(dialog);
   callback(50); finish.resolve(); await running;
   ui.heartbeatTick();

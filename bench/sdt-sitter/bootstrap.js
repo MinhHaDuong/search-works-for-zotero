@@ -6,7 +6,7 @@ var createSDTJournal;
 // `var`, not `let`: the journal and the sitter are the state the scheduler test
 // drives this file's emit/heartbeat/shutdown against, and only `var` reaches the
 // script global a sandboxed load exposes.
-var sitter, journal, alive = false;
+var sitter, journal, alive = false, sealed = false;
 let timer, pulse, heartbeat, timers;
 const buttons = new Set(), dialogs = new Set(), closeJournalled = new WeakSet();
 const BUTTON = 'sdt-pack-sitter-button';
@@ -19,14 +19,37 @@ let lastCompleted = 0;
 let completionBlinkUntil = 0;
 
 /* The sitter's whole diagnostic channel. The ring always records; Zotero.debug()
-   is the readable one and carries everything but trace unless the pref is set. */
+   is the readable one and carries everything but trace unless the pref is set.
+   The whole body is guarded: the invariant is that no diagnostic ever throws
+   into the sitter loop, and a `detail` the ring rejects must not either. */
 function emit(kind, detail, level = 'state') {
-  journal?.push({ at: Date.now(), kind, level, ...detail });
+  // Sealed at shutdown, so nothing can land behind the shutdown record — an
+  // invariant of the channel rather than a guard each call site has to remember.
+  // Anything that resumes after an await outlives disable: the cache write, the
+  // native promise, a dialog's unload.
+  if (sealed) return;
   try {
+    journal?.push({ at: Date.now(), kind, level, ...detail });
     // Fully qualified pref name: `true` stops Zotero prepending `extensions.zotero.`.
     if (level === 'trace' && !Zotero.Prefs.get(DEBUG_PREF, true)) return;
     Zotero.debug(`SDT sitter ${kind} ${JSON.stringify(detail ?? {})}`);
   } catch (_error) { /* Diagnostics must never throw into the sitter loop. */ }
+}
+
+/* Error text is the one field the per-call-site whitelist cannot see inside, and
+   it is unbounded platform prose: a Gecko IO failure embeds the full path of the
+   file it failed on, and the second inspect() after extraction reaches IOUtils
+   and attachmentHash minutes after the source was last known to exist. Zotero's
+   debug output is user-submittable, so this is not even session-confined.
+   Anything carrying a separator or a document extension is therefore replaced,
+   not trimmed: the failure's shape is diagnostic, the file's identity is not. */
+function summarizeError(error) {
+  const name = error && error.name ? String(error.name) : 'Error';
+  const message = String(error && error.message != null ? error.message : error)
+    .replace(/\S*[\\/]\S*/g, '<path>')
+    .replace(/\S+\.(?:pdf|epub|html?|zip|txt|sqlite|json)\b/gi, '<file>')
+    .slice(0, 200);
+  return message ? `${name}: ${message}` : name;
 }
 
 function heartbeatTick() {
@@ -41,7 +64,7 @@ function heartbeatTick() {
    never to a file, for the reason createSDTJournal carries. The identity is the
    opaque cache key, never the attachment's title. */
 function reportSettleFailure(info, error) {
-  emit('settle', { id: info.cacheKey ?? null, ok: false, error: String(error) }, 'error');
+  emit('settle', { id: info.cacheKey ?? null, ok: false, error: summarizeError(error) }, 'error');
 }
 
 function noteDialogClose(dialog) {
@@ -249,7 +272,11 @@ async function initialize(rootURI, token) {
   await Zotero.uiReadyPromise;
   if (token !== generation) return;
   Services.scriptloader.loadSubScript(rootURI + 'scheduler.js', globalThis);
-  journal = createSDTJournal();
+  // `??=`: a re-initialization within one Zotero session keeps the transitions
+  // that led to it. A real plugin unload tears this scope down and takes the ring
+  // with it; surviving that needs a durable store, which the ruling forbids.
+  journal ??= createSDTJournal();
+  sealed = false;
   const win = Zotero.getMainWindow();
   if (!win || typeof Zotero.SDT?.ensure !== 'function') throw new Error('Zotero 10 native SDT unavailable');
   const SDT = win.require('resource://zotero/document-worker/structured-document-text.js');
@@ -284,6 +311,8 @@ async function initialize(rootURI, token) {
         // Compact once per activation; subsequent writes contain changed rows only.
         await IOUtils.write(cachePath, bytes, compact ? { tmpPath: `${cachePath}.tmp` } : { mode: 'append' });
         cache.saved(changes);
+        // This one resumes after an await, so disable can land under it. The seal
+        // in shutdown() is what keeps it off the far side of the shutdown record.
         emit('cache-write', { rows: changes.length, compact });
         compact = false;
       }
@@ -433,6 +462,7 @@ function shutdown(data, reason) {
   delete Zotero.SDTPackSitter;
   emit('shutdown', { reason: typeof reason === 'number' ? SHUTDOWN_REASONS[reason] || `reason-${reason}`
     : reason ? String(reason).toLowerCase().replace(/^addon[_-]/, '').replace(/_/g, '-') : 'unknown' });
+  sealed = true;
 }
 function install() {}
 function uninstall() {}
