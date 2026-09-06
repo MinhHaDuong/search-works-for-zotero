@@ -2,6 +2,7 @@
 Title: Upstream test suite leaks a temp directory per test and filled /tmp
 Created: 2026-09-06
 Author: sim
+Closed: autoclosed — PR #397
 
 --- log ---
 2026-09-06T15:33Z sim created
@@ -10,6 +11,7 @@ Author: sim
 2026-09-06T16:19Z claude note action 3: bench/smoke_upstream.py's schema-migration scratch copies a.index (measured 300-700+ MB for real indexes under ~/data/projets/zoteus-bench/) into the tempfile.TemporaryDirectory default, same /tmp tmpfs — worse than the vitest leak in absolute size on a killed run. Fixed with dir=data_dir.parent (already disk-backed, already required to exist); added tests/test_smoke_upstream_scratch_dir.py, proved red on the unfixed line then green on the fix
 2026-09-06T16:19Z claude note also corrected this ticket's own log stamp (was 15:40Z, 7 minutes after the 15:33Z commit that wrote it) per check_ticket_logs.py's own remedy: correct the stamp to the time the record evidences
 
+2026-09-06T17:02Z sim closed — autoclosed — PR #397
 --- body ---
 ## Context
 On 2026-09-06 `/tmp` (a 12 GB tmpfs, mounted `usrquota`, per-user cap 80 %
