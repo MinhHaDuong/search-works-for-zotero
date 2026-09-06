@@ -1,0 +1,33 @@
+%erg 0.1
+Title: Instrument isolated Palgrave SDT phases and memory
+Created: 2026-09-05
+Author: codex
+Closed: Bounded phase/memory experiment and control delivered; no full-volume or production run claimed.
+
+--- log ---
+2026-09-05T19:51Z codex created
+
+2026-09-05T20:05Z Both isolated Palgrave subsets and the unmodified control completed. Canonical control pack agrees excluding creation date only; original source unchanged. Global citation processing and healthy progress silence measured. Full volume not launched; resource and scaling uncertainty remain.
+2026-09-05T20:05Z Minh Ha-Duong closed — Bounded phase/memory experiment and control delivered; no full-volume or production run claimed.
+--- body ---
+## Scope
+
+Instrument native SDT phase and memory costs on bounded Palgrave subsets in
+an isolated profile. Do not overwrite production caches or equate a quiet
+progress bar with a failed extraction.
+
+## Evidence
+
+- Report: `verification/SDT-PALGRAVE-PHASES.md`.
+- Raw/derived evidence: `bench/results/sdt-palgrave-phases-2026-09-05/`.
+- Producer: `verification/probes/sdt_phase_probe.py` and
+  `verification/probes/sdt-phase-harness/`.
+- Summary: `verification/probes/sdt_phase_summary.py`.
+- Instrumentation guards: `tests/test_sdt_phase_instrumentation.py`.
+
+## Exit criteria
+
+- [x] Verify isolated process resource caps and unchanged source bytes.
+- [x] Measure page, global-reference and pack phases on progressively larger subsets.
+- [x] Compare an unmodified-worker control on identical input.
+- [x] Distinguish measured long progress silence from a hang and name full-volume limits.

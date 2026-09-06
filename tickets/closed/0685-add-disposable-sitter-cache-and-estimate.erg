@@ -1,0 +1,34 @@
+%erg 0.1
+Title: Add disposable sitter cache and estimated completion clock time
+Created: 2026-09-05
+Author: codex
+Closed: Disposable cache and completion clock delivered in tested 0.2.0 XPI
+
+--- log ---
+2026-09-05T21:03Z codex created
+
+2026-09-05T21:05Z Minh Ha-Duong closed — Disposable cache and completion clock delivered in tested 0.2.0 XPI
+--- body ---
+Author ratifies a disposable cache and clarifies that global ETA means a
+completion clock time. Rulings are recorded in DECISIONS.md and SPEC.md R22.
+Cache native inspection hints and latest successful timing per attachment;
+do not persist active tasks or failures. Source hash/processor changes and
+pack fingerprint changes invalidate reuse. No text, title or source path is
+stored. Corrupt or missing cache falls back to inspection.
+
+Storage: `sdt-sitter-cache.jsonl` in Zotero's data directory. Compact at the
+first completed census per activation, then append changed derived records
+only; unchanged sweeps do not rewrite the cache. This is not an authoritative
+work queue. Serialize writes across addon reactivations. A write failure must
+not fail native extraction. Quantile fitting is memoized per fitted sample
+array, avoiding a sort for every pending item on every UI refresh.
+
+Show estimated local completion date/time and low/high scenarios. If the
+active document exceeds the empirical upper duration, say the estimate is
+exceeded instead of reporting completion now. Code-level panel feedback:
+`verification/SDT-SITTER-UI-PANEL.md`.
+
+Passing native integration, including cache reuse and observation restoration:
+`bench/results/sdt-sitter-launch-2026-09-05/cache-and-progress.json`.
+Unit cases in `tests/sdt_sitter_scheduler.mjs` cover source/version/fingerprint
+invalidation, corrupt input, pruning and unchanged-cache dirty tracking.

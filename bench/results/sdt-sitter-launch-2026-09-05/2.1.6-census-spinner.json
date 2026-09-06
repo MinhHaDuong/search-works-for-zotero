@@ -1,0 +1,4 @@
+{
+  "version": "2.1.6",
+  "change": "Toolbar spinner pulses during census as well as document extraction"
+}

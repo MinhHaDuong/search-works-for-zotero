@@ -1,0 +1,20 @@
+%erg 0.1
+Title: Follow up SDT sitter panel accessibility and wording findings
+Created: 2026-09-05
+Author: codex
+
+--- log ---
+2026-09-05T21:04Z codex created
+
+--- body ---
+Requested panel results are recorded in `verification/SDT-SITTER-UI-PANEL.md`.
+Follow-up proposals, not an accessibility approval: stable accessible button
+name and reduced-motion support; transition-only status announcements; verify
+keyboard opening, focus, closing/Escape and focus return; human-readable states
+and document title/filename; distinguish complete coverage from finished passes
+with exceptions; move technical diagnostics below primary progress information.
+
+Before implementation, verify remaining visual and assistive-technology claims
+in a real window. The existing DOM/style smoke does not establish keyboard or
+screen-reader behavior. The finish-estimate overrun finding was addressed in
+0685; do not re-file it as unbuilt.

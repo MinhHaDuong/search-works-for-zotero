@@ -1,0 +1,51 @@
+{
+  "scope": "installed service; mocked host, parser, storage and worker",
+  "source_sha256": "f8bc0bc61e59ea85d8f36f1f271bad3955a6353b8a75993fabc0ad033275ffe8",
+  "metadata": {
+    "SDT_SCHEMA_VERSION": "1.1.0",
+    "SDT_PACK_VERSION": 1,
+    "SDT_PROCESSOR_VERSIONS": {
+      "pdf": 3,
+      "epub": 1,
+      "snapshot": 1
+    }
+  },
+  "results": [
+    {
+      "name": "current cache: no worker or write, but whole pack read",
+      "result": "pass"
+    },
+    {
+      "name": "missing cache: background generation and subsequent cache hit",
+      "result": "pass"
+    },
+    {
+      "name": "stale processor: ensure regenerates",
+      "result": "pass"
+    },
+    {
+      "name": "concurrent callers share work and both receive progress",
+      "result": "pass"
+    },
+    {
+      "name": "100 percent precedes persistence and ensure completion",
+      "result": "pass"
+    },
+    {
+      "name": "changed source during extraction: reject generated pack",
+      "result": "pass"
+    },
+    {
+      "name": "write failure returns false without exposing reason",
+      "result": "pass"
+    },
+    {
+      "name": "password failure memoized in session until source changes",
+      "result": "pass"
+    },
+    {
+      "name": "generic failure is not memoized: caller must prevent retry loop",
+      "result": "pass"
+    }
+  ]
+}

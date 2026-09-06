@@ -2,7 +2,7 @@
 
 - **Status:** COMPLETE
 - **Author:** Minh Ha-Duong (CNRS)
-- **Date:** 2026-09-04
+- **Date:** 2026-09-05
 
 ## 1. Introduction
 
@@ -2201,6 +2201,43 @@ not gate queries, the probe, deletions, or explicit verbs (`build` while
 paused asks). It survives restart by construction, and survives *sideline*
 by being carried into the fresh file. R1-versus-R22 resolves in the user's
 favor, disclosed: "paused since <date>".
+
+For a native SDT pack sitter, Zotero's plugin disable control stops further
+admissions and removes the sitter's UI and callbacks. The attachment already
+handed to Zotero may finish and persist its native pack; disabling does not
+cancel that work or authorize a queued library-wide drain. This graceful stop
+does not relax the separate obligation to avoid interfering with native work.
+
+For experimental overnight operation without competing native work, admission
+requires at least 4 GiB available RAM and 8 GiB free on the native pack's
+filesystem. These are checks before admission, not enforced peak resource caps.
+The sitter submits at most one attachment at a time, only to an idle native
+worker, at native background priority. It does not claim independent OS nice
+control or preemption. Unavailable resource readings prevent admission.
+An unresolved native promise prevents further submissions; lack of progress
+alone does not prove a hang. Failures are suppressed for the session by source
+and processor identity, without a private durable ledger.
+
+The experimental sitter collects successful document durations, byte sizes
+and available page counts in a disposable persistent cache. It begins empirical estimation
+after 3 completions and refreshes the fitted distribution every 3 completions.
+For each pending document it uses duration per page when the document and at
+least 3 observations have page counts, otherwise duration per byte when usable.
+It displays empirical 5th, 50th and 95th percentiles, elapsed time and the
+estimated completion date and time for remaining work. Summed marginal quantiles are labelled total
+scenarios, not a calibrated joint interval. Missing covariates or insufficient
+observations leave the corresponding estimate unavailable. These empirical
+estimates do not assert reliable predictive coverage or bounded completion time.
+
+The sitter may cache verified pack metadata and successful duration observations
+across sessions. Reuse checks attachment identity, live source hash, processor
+versions and the pack's filesystem fingerprint. Source or processor changes
+invalidate observations; pack deletion or changed fingerprints force inspection.
+The cache is derived, not a work ledger: active jobs and failures are never
+persisted. Missing, corrupt or unwritable cache falls back to native inspection
+and fresh measurements. It contains no text, titles or source paths and keeps
+only the latest observation per attachment. An active document exceeding its
+empirical upper duration makes the displayed finish time unavailable, not now.
 
 **D3 — serve-stale.** The verified violation (`dropStaleVectors` →
 `clearVectors()` at open) dies. Vectors carry per-row embedder keys: on a

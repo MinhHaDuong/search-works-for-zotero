@@ -1,0 +1,92 @@
+{
+  "arena": "/home/haduong/CNRS/code/search-works-for-zotero/corpus-cache/sdt-diagnostic-mru3zqfs",
+  "returncode": 0,
+  "deadlineReached": false,
+  "wallSeconds": 9.343652537994785,
+  "pluginSourceSHA256": {
+    "sdt-sitter/bootstrap.js": "da14597186c7b175ab9c3b2670a898ef89e5a0ca5dd4af3d64e6b8590250a07c",
+    "sdt-sitter/manifest.json": "1c159f0de6f01d5f7675b9df4d06665f2ea5629f3d458b002564dc40ca7cdeaf",
+    "sdt-sitter/scheduler.js": "23bbd23a7352c7b52fbe953d4f8d1dfe500b1126671d1e62eb4adb9572bdd697",
+    "sdt-sitter-harness/bootstrap.js": "0d99d4f17c91cec7b35f27fe2663b0160eb3ca0609e490d3ca825c8f7dae8c7e",
+    "sdt-sitter-harness/manifest.json": "2a6569b7f95b8e6a5950a01734808bee1da5459a097cf20245d4e0f40d7912f3"
+  },
+  "network": "unshared",
+  "filesystem": "host read-only, arena writable",
+  "report": {
+    "tests": [
+      {
+        "name": "confirmed automatic sweep produces native PDF and EPUB packs",
+        "result": "pass"
+      },
+      {
+        "name": "toolbar opens status with native fulltext statistics",
+        "result": "pass"
+      },
+      {
+        "name": "disable removes UI and API",
+        "result": "pass"
+      }
+    ],
+    "version": "10.0.1",
+    "scope": "isolated unmodified production sitter, synthetic attachments",
+    "lastState": {
+      "enabled": false,
+      "phase": "waiting",
+      "active": null,
+      "progress": 100,
+      "lastProgressAt": 1788641023101,
+      "startedAt": 1788641023054,
+      "completed": 3,
+      "failed": 0,
+      "scanned": 3,
+      "total": 3,
+      "counts": {
+        "missing-pack": 0,
+        "current": 3
+      },
+      "serviceMS": 1669,
+      "samples": [
+        {
+          "sourceBytes": 590,
+          "pages": 1,
+          "milliseconds": 1584
+        },
+        {
+          "sourceBytes": 1140,
+          "pages": null,
+          "milliseconds": 26
+        },
+        {
+          "sourceBytes": 590,
+          "pages": 1,
+          "milliseconds": 59
+        }
+      ],
+      "activeInfo": {
+        "sourceBytes": 590,
+        "pages": 1
+      },
+      "fittedSamples": [
+        {
+          "sourceBytes": 590,
+          "pages": 1,
+          "milliseconds": 1584
+        },
+        {
+          "sourceBytes": 1140,
+          "pages": null,
+          "milliseconds": 26
+        },
+        {
+          "sourceBytes": 590,
+          "pages": 1,
+          "milliseconds": 59
+        }
+      ],
+      "pending": [],
+      "error": null
+    },
+    "accepted": true,
+    "finished": "2026-09-05T20:43:44.182Z"
+  }
+}

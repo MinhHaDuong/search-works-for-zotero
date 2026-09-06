@@ -1,0 +1,29 @@
+%erg 0.1
+Title: Verify native SDT plugin prerequisites and failure boundaries
+Created: 2026-09-05
+Author: codex
+Closed: Prerequisite audit delivered; automatic production activation remains conditional on the named integration and product gates.
+
+--- log ---
+2026-09-05T19:27Z codex created
+
+2026-09-05T19:30Z Installed service contract probe passed; report records non-preemption, disable and worker-error boundaries. No production extraction or plugin installation. Next step is isolated diagnostic-plugin validation.
+2026-09-05T19:30Z Minh Ha-Duong closed — Prerequisite audit delivered; automatic production activation remains conditional on the named integration and product gates.
+--- body ---
+## Scope
+
+De-risk the author's native SDT plugin direction. This ticket is a prerequisite
+audit, not permission to activate a library-wide sweep or weaken non-interference.
+
+## Evidence
+
+- Report: `verification/SDT-PLUGIN-PREREQUISITES.md`.
+- Executable contract probe: `verification/probes/sdt_service_contract.mjs`.
+- Raw result: `bench/results/sdt-prerequisites-2026-09-05/service-contract.json`.
+
+## Exit criteria
+
+- [x] Inspect installed service and worker entry points and cache lifecycle.
+- [x] Exercise service control flow with explicit mocked-host boundaries.
+- [x] Separate verified capabilities from blockers and live integration tests.
+- [x] Name a bounded next step without starting production library generation.

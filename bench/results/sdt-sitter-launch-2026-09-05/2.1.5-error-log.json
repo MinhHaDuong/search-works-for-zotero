@@ -1,0 +1,6 @@
+{
+  "version": "2.1.5",
+  "change": "Persistent JSONL error journal with attachment and parent titles",
+  "path": "Zotero data directory/sdt-sitter-errors.jsonl",
+  "workState": "not authoritative; active jobs and cache records remain separate"
+}

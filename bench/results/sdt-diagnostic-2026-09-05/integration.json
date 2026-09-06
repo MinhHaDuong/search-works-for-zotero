@@ -1,0 +1,164 @@
+{
+  "arena": "/tmp/sdt-diagnostic-el3ra270",
+  "returncode": 0,
+  "deadlineReached": false,
+  "wallSeconds": 15.998120011994615,
+  "pluginSourceSHA256": {
+    "sdt-diagnostic-plugin/bootstrap.js": "a73f9a4d735d0cbd6fa737c51309692f271a2c8bf63dcca258cc103eca8e6648",
+    "sdt-diagnostic-plugin/manifest.json": "5ca1fdabb0f9f1f3093ea3ea488f0853257857b96b675d80463334b1bc7849fd",
+    "sdt-diagnostic-harness/bootstrap.js": "9441ebbacb787edabb177ee6b17de390b235eb59ce8f19590fe6ab5b4a8941d8",
+    "sdt-diagnostic-harness/manifest.json": "e1e4df62c6d598d49e0d2ed619064dd651f898e2115cc155c9b8956f709bf218"
+  },
+  "network": "unshared",
+  "filesystem": "host read-only, arena writable",
+  "report": {
+    "scope": "isolated real Zotero; synthetic PDF and EPUB; no production library",
+    "version": "10.0.1",
+    "tests": [
+      {
+        "name": "runtime resources and toolbar",
+        "result": "pass",
+        "detail": {
+          "diskFreeBytes": 4191342592,
+          "directoryWritable": true,
+          "logicalCPUs": 8,
+          "sysinfoCPUs": null,
+          "physicalMemoryBytes": 25079377920,
+          "availableMemoryBytes": null
+        }
+      },
+      {
+        "name": "passive missing-pack inspection writes nothing",
+        "result": "pass",
+        "detail": {
+          "status": "missing-pack"
+        }
+      },
+      {
+        "name": "PDF generation completes with native pack and progress",
+        "result": "pass",
+        "detail": {
+          "result": {
+            "ok": true,
+            "nativeOK": true,
+            "status": "current"
+          },
+          "callbacks": 5,
+          "progress": 100,
+          "packBytes": 462,
+          "processor": {
+            "type": "pdf",
+            "version": 3
+          }
+        }
+      },
+      {
+        "name": "cache-hit run and passive inspection do not rewrite",
+        "result": "pass",
+        "detail": {
+          "cached": true,
+          "packHash": "07af455ee196b58281d7780f80b961f4"
+        }
+      },
+      {
+        "name": "EPUB generation",
+        "result": "pass",
+        "detail": {
+          "ok": true,
+          "nativeOK": true,
+          "status": "current",
+          "bodyTokenPresent": true
+        }
+      },
+      {
+        "name": "corrupt disposable pack is reported then repaired",
+        "result": "pass",
+        "detail": {
+          "ok": true,
+          "nativeOK": true,
+          "status": "current"
+        }
+      },
+      {
+        "name": "changed source makes a valid pack stale and regenerates",
+        "result": "pass",
+        "detail": {
+          "ok": true,
+          "nativeOK": true,
+          "status": "current"
+        }
+      },
+      {
+        "name": "invalid PDF failure is suppressed until source changes",
+        "result": "pass",
+        "detail": {
+          "first": {
+            "ok": false,
+            "nativeOK": false,
+            "status": "missing-pack",
+            "reason": "native-failure"
+          },
+          "second": {
+            "ok": false,
+            "reason": "suppressed-for-session"
+          },
+          "repaired": {
+            "ok": true,
+            "nativeOK": true,
+            "status": "current"
+          }
+        }
+      },
+      {
+        "name": "linked-file cache is in Zotero storage, not beside PDF",
+        "result": "pass",
+        "detail": {
+          "result": {
+            "ok": true,
+            "nativeOK": true,
+            "status": "current"
+          },
+          "cacheInStorage": true
+        }
+      },
+      {
+        "name": "missing local file is refused before native generation",
+        "result": "pass",
+        "detail": {
+          "ok": false,
+          "reason": "missing-source"
+        }
+      },
+      {
+        "name": "native reader consumer shares valid pack",
+        "result": "pass",
+        "detail": {
+          "pages": 1,
+          "bodyTokenPresent": true
+        }
+      },
+      {
+        "name": "actual addon disable and re-enable cleans API and toolbar",
+        "result": "pass",
+        "detail": {
+          "cachedAfterEnable": true
+        }
+      },
+      {
+        "name": "disable during native work suppresses callbacks but does not cancel pack",
+        "result": "pass",
+        "detail": {
+          "result": {
+            "ok": true,
+            "disabledDuringRun": true
+          },
+          "readerCallbacks": 88,
+          "callbacksAtDisable": 2,
+          "callbacksAfterCompletion": 2
+        }
+      }
+    ],
+    "started": "2026-09-05T19:43:25.909Z",
+    "finished": "2026-09-05T19:43:37.187Z"
+  }
+}

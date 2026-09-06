@@ -1,0 +1,18 @@
+%erg 0.1
+Title: Analyze SDT algorithmic costs and split Palgrave into eight volumes
+Created: 2026-09-05
+Author: codex
+Closed: Source finding assigned to 0679; author handles separate volume imports
+
+--- log ---
+2026-09-05T20:16Z codex created
+
+2026-09-05T20:40Z codex note Author is importing the separate Palgrave volumes himself; no PDF replacement or split is performed by this lane. Quadratic source finding is tracked by 0679; phase evidence remains verification/SDT-PALGRAVE-PHASES.md.
+2026-09-05T20:45Z Minh Ha-Duong closed — Source finding assigned to 0679; author handles separate volume imports
+--- body ---
+The author took over importing the separate Palgrave volumes; no replacement
+or splitting of his PDF is performed by this lane. The code-analysis outcome
+is captured in `verification/SDT-PALGRAVE-AUDIT.md` and the measured phase
+breakdown in `verification/SDT-PALGRAVE-PHASES.md`. The demonstrated quadratic
+membership scan is assigned to the Zotero patch ticket 0679. Those reports do
+not claim a complete asymptotic bound for the citation pipeline.
