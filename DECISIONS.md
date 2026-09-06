@@ -6636,3 +6636,78 @@ the reuse window, the 24-hour bound and the in-session-only lifetime stated wher
 the promise is made. The same edit discloses the census cadence — 30 seconds
 after a sweep, 10 minutes after an idle one — which ticket 0701 also introduced
 and which no section owned.
+
+**2026-09-06 — RULED, point by point after the panel: the Menagerie's
+construction (conception/0029-golden-fixture-structure-review.md, Parts C
+and D).** The author read the panel record and ruled on each of the ten
+points. Two points wait on a clearer explanation before a ruling (5, 8).
+
+1. *Strata*: ratified as the panel amended it. Two sampled strata, the
+   representative core carrying the census's measured defect rates, and a
+   non-sampled appendix of generated scale surrogates outside every average.
+2. *Language*: the requirement as framed was ill-formed, and the lane matrix
+   is set aside with it. The unit is the chain question → research → answer
+   paragraph, and Zotero's language field is a weak indicator that has
+   little to do with that chain. The Menagerie holds documents in every
+   language of R7, including multilingual documents; questions in every
+   language; and answers whose paragraph is not in the question's language.
+   Legacy encodings of the 1990s are a dimension of the corpus in their own
+   right. A lane, where one is named, is the pair (question language,
+   answer-paragraph language); which pairs bind stays R7's and R29's.
+3. *Theme*: animals are the metaphor behind the name and nothing more. The
+   corpus is decontaminated of animals. Its topics are the author's own
+   library's: economics, uncertainty, energy, environment, development,
+   science and technology studies, and the humanities and social sciences.
+   The workshop's demonstrator questions are re-authored on those topics.
+4. *Wikipedia*: one source of text among others, admitted under the standing
+   five-part test with no special status and no special limit. Of the panel's
+   caution only truthful relation labelling survives: an interlanguage link
+   is recorded as same-subject, not as a translation, because that is what it
+   is, not because of where it comes from.
+5. *Grades*: not ruled. The author asked what "grade" stands for; the answer
+   is given in the session and the point is restated under ruling 7's
+   locator contract, which changes what a score is.
+6. *No-answer questions*: this is retrieval, not generation, so a no-answer
+   question has an empty pinned set. The bank holds several questions the
+   library does not cover, scored as expected-miss. No abstention rule is
+   invented for the oracle.
+7. *The answer and its locator*: an answer is a paragraph in a page in a file
+   attached to a Zotero entry; a pageless file locates by character number.
+   A perfect score requires the reply to carry the title, author, date and
+   identifier (DOI, ISBN or URL) of the entry, the section heading, the page
+   number as printed in the text (front matter in roman numerals, never the
+   PDF index), and, for a compound document, the chapter, talk or entry title
+   and its byline. This extends R24's page clause to a full citation chain;
+   what it demands of the system, printed page labels among other things, is
+   SPEC.md's to state.
+8. *Development and acceptance*: the panel's replacement is provisionally
+   accepted as correct; the author asked for a digestible explanation before
+   ruling.
+9. *The SPEC section*: §5.2.10 stands. Guards on prose are unnecessary fat:
+   no marker protection for the scorer's sentences, no move ratchet.
+10. *Process*: an agent builds the library and the question bank in one shot;
+    review rounds against checklists find what is missing; the construction
+    converges in a few rounds. Checklists and reviews, no automatic guard.
+    This governs the pathology ledger and, by extension, the panel's added
+    items on a red state for the bank, which become a one-time review
+    exercise rather than machinery.
+
+**2026-09-06 — RULED, second round on the same points, closing 2, 4, 5 and
+8.** Point 2's reading is confirmed as recorded. Point 4: the fixture's
+format mix follows the census of the author's library, so HTML and PDF are
+commensurate with what that library holds (PDF 56,9 %, HTML 33,0 %, other
+formats 9,2 % of file attachments, census of 2026-09-06). Point 5: under
+ruling 7 a reply is scored on the rank of the answer paragraph and on the
+completeness of its citation chain; a reply that returns the same work in
+another rendering or language in place of the answer paragraph is a
+near-win, not a miss, so the ladder is win, near-win, miss. Point 8: the
+workshop is the artisan's own, this repository, not an event with
+participants, so no cohort authors held-out questions. What the point was
+reaching for is a fifth deliverable, named by the author: a system that
+generates about a hundred questions on the fly from the author's real
+library and benches the search engine against them. It is the library
+level of §5.2.8 made routine: private, regenerated at each run, impossible
+to tune against, representative by construction, scored on the same rank
+and citation chain as the Menagerie. The Menagerie stays the pinned,
+public, adversarial, hand-judged instrument; the two are complements, not
+rivals. Filed as its own ticket.
