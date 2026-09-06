@@ -150,6 +150,19 @@ def test_sdt_sitter_dialog():
 
 
 @pytest.mark.integration
+def test_sdt_sitter_bootstrap():
+    """`initialize()`'s own closure, run against a mock Zotero host.
+
+    The scheduler suite above supplies its own `blocked`, `inspect` and cache, so
+    it exercises the admission contract and never the implementations bootstrap.js
+    passes it: the /proc reads, the pack reader, the cache file as the next
+    session finds it, the two windows, the two clocks. Ticket 0695.
+    """
+    subprocess.run(['node', 'tests/sdt_sitter_bootstrap.mjs'], cwd=ROOT,
+                   check=True, capture_output=True, text=True, timeout=60)
+
+
+@pytest.mark.integration
 def test_sdt_sitter_bootstrap_syntax():
     subprocess.run(['node', '--check', 'bench/sdt-sitter/bootstrap.js'], cwd=ROOT,
                    check=True, capture_output=True, text=True, timeout=30)

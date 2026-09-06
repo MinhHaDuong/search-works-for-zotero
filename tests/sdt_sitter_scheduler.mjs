@@ -656,7 +656,36 @@ await test('shutdown is the last record even with a submission still in flight',
   await entered.promise;
   const dialog = {};
   ui.noteDialogClose(dialog);
+  /* The other half of shutdown, and until ticket 0695 the untested one. Every
+     assertion below the seal reads the RING — what was written — and the ring
+     cannot say that the sitter has stopped being able to write anything. Three
+     handles and one token do that:
+
+       * `timer` is the armed next sweep, `pulse` the 100 ms redraw, `heartbeat`
+         the 60 s beat. A handle left armed keeps firing against a torn-down
+         sitter for the rest of the Zotero session — silently, because the seal
+         is what stops those callbacks producing records.
+       * `generation` is the other half, and it is not redundant with them: the
+         sweep wrapper in bootstrap.js re-arms `timer` from inside its own
+         `finally`, so a sweep already in flight schedules the next one AFTER
+         shutdown has cleared the handle. `token === generation` is the only
+         thing that stops it, which is why the bump is asserted here rather
+         than taken for granted.
+
+     Substituted here rather than driven through `startup()`: this file has no
+     Zotero host, and what is under test is shutdown's own bookkeeping. */
+  const cleared = [];
+  ui.timers = { clearTimeout: id => cleared.push(['timeout', id]),
+    clearInterval: id => cleared.push(['interval', id]) };
+  ui.timer = 'next-sweep'; ui.pulse = 'render-pulse'; ui.heartbeat = 'beat';
+  const generation = ui.generation;
   ui.shutdown(null, 4);
+  assert.deepEqual(cleared,
+    [['timeout', 'next-sweep'], ['interval', 'render-pulse'], ['interval', 'beat']],
+    'shutdown left a timer armed against a torn-down sitter');
+  assert.equal(ui.generation, generation + 1,
+    'the generation token was not burned, so an in-flight sweep re-arms itself');
+  ui.timers = undefined;
   const closed = ring.tail(50).length;
   const updates = f.updates.length;
   // Everything that resumes after an await outlives disable and must find the
