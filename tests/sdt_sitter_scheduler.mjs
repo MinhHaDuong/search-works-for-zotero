@@ -168,6 +168,12 @@ assert.equal(ui.describeSDTActiveFile({ active: 7,
 assert.equal(ui.describeSDTActiveFile({ active: 7, activeInfo: { parentTitle: null, title: null } }),
   'fichier n° 7');
 assert.equal(ui.describeSDTActiveFile({ active: 7, activeInfo: null }), 'fichier n° 7');
+// The error line names a file through the same composer, so it cannot drift
+// back to leading with Zotero's auto-generated attachment title.
+assert.equal(ui.describeSDTFile({ parentTitle: 'Sen 1999', title: 'Full Text PDF' }, 'fichier inconnu'),
+  'Sen 1999 — Full Text PDF');
+assert.equal(ui.describeSDTFile({}, 'fichier inconnu'), 'fichier inconnu');
+assert.equal(ui.describeSDTFile(null, 'fichier inconnu'), 'fichier inconnu');
 
 let coverage = ui.getSDTCoverage({ total: 10, scanned: 10, phase: 'waiting',
   counts: { current: 4, excluded: 2, unsupported: 1, 'failed-session': 1, 'missing-source': 2 } });

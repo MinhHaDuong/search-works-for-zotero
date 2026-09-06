@@ -10,6 +10,8 @@ Blocked-by: github.com/MinhHaDuong/search-works-for-zotero#365
 2026-09-06T00:00Z claude note Author directive 1 (PR #369 review): "Informative tooltip is nice to have, preserve." Dropping the phase word outside 'census' fixed the raw-name leak but cost all zero-click observability -- a blocked sitter read exactly like a healthy idle one. Resolved with SDT_PHASE_LABELS: a plain French sentence per blocking/error phase, an explicit null for the two healthy idle phases, bare count for anything unlisted. Added acceptance line 4.
 2026-09-06T00:00Z claude note Author directive 2 (PR #369 review): "document" is banned from the UI, not merely imprecise. The sitter indexes attachments (SELECT itemID FROM itemAttachments; Zotero.SDT.ensure(attachmentID)) and a reference can carry several (SPEC.md D6); Zotero's own French UI renders *item* as "document", so the word named the wrong object. Vocabulary gains file/fichier and reference; "document", "element", "piece jointe", "item" join the banned list. The directive also exposed a real defect: inspect() sets title from the attachment's own field, which Zotero auto-generates ("Full Text PDF"), so the threaded title identified nothing -- parentTitle now threads alongside it and the active line composes reference then file. Added acceptance line 3.
 2026-09-06T00:00Z claude note Downstream, not re-planned here: 0693/0696/0699 need the same reference-then-file composition and the "document" ban; 0692's Fluent ids should read files-indexed / files-failed. One residual ambiguity reported, not changed: the extraction plateau message "Analyse des references..." uses "references" in its bibliographic sense, which now collides with "reference" as the parent item -- rewording it needs a ruling on what the processor is actually doing at that point.
+2026-09-06T00:00Z claude note Consistency review round 3 (PR #369): describeError still led with the attachment's auto-generated title and appended the reference -- the same defect just fixed on the progress line, at a site this PR had already touched for the word swap. Root cause was two independent compositions, so both now go through one describeSDTFile(info, fallback) and a test asserts neither site composes its own label. Also: BANNED_IN_UI had drifted from the ban this ticket states ("item" missing), and the quietMessage strings were outside the checked site list; both closed.
+2026-09-06T00:00Z claude note Acceptance boxes 1-4 ticked against PR #369. Box 5 stays open deliberately: its "no bundling" half is met (this PR carries no externalization) but its "lands before 0692" half is a merge-order fact nothing can observe from inside the PR, so it closes when 0692 merges after it.
 
 --- body ---
 ## Context
@@ -61,17 +63,23 @@ once.
 
 ## Acceptance
 
-- [ ] Toolbar, dialog, and all user-facing prompts use only the
+- [x] Toolbar, dialog, and all user-facing prompts use only the
       user-facing column above; "SDT" does not appear outside the
-      diagnostics disclosure.
-- [ ] The two "index" concepts are never both visible under the same
-      unqualified label in one view.
-- [ ] Every count names the unit it counts (files). The active line shows the
+      diagnostics disclosure. (PR #369. manifest.json's name and description
+      are out of scope: Add-ons Manager, not toolbar/dialog/prompt.)
+- [x] The two "index" concepts are never both visible under the same
+      unqualified label in one view. (PR #369, same commit as the sitter's
+      own rename.)
+- [x] Every count names the unit it counts (files). The active line shows the
       reference title when one exists, never the attachment's generic
-      auto-generated title alone.
-- [ ] A blocked or failed sitter is distinguishable from a healthy idle one
+      auto-generated title alone. (PR #369; `describeSDTFile` composes
+      reference then file for both the progress line and the error line.)
+- [x] A blocked or failed sitter is distinguishable from a healthy idle one
       without opening the dialog, and no internal phase name reaches the
-      toolbar to do it.
+      toolbar to do it. (PR #369; SDT_PHASE_LABELS, with a test enumerating
+      the phase literals so a new one cannot ship untranslated.)
 - [ ] Wording lands before 0692 (i18n) externalizes it -- do not bundle a
       wording change and a string-externalization change in one PR; they
-      cannot be diffed against each other.
+      cannot be diffed against each other. (Half met: PR #369 carries no
+      externalization. The ordering half is only observable at merge, so this
+      box stays open until 0692 lands after it.)

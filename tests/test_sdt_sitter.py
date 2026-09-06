@@ -24,10 +24,12 @@ BUTTON_BLOCK = ('for (const button of buttons) {', 'for (const dialog of dialogs
 # ('sdt-document-status') and helper names (formatDocumentDuration) stay legal.
 UI_SITES = (
     ('function describeSDTTooltip(state) {', '\n}'),
+    ('function describeSDTFile(info, fallback) {', '\n}'),
     ('function describeSDTActiveFile(state) {', '\n}'),
     ('var SDT_PHASE_LABELS = {', '};'),
     ('status.textContent = ', ';'),
     ('const activeMessage = ', 'const quietMessage'),
+    ('const quietMessage = ', ';'),
     ("getElementById('sdt-failures').textContent", ';'),
     ('doc.title = ', ';'),
     ("section('sdt-global-section'", ']);'),
@@ -35,14 +37,14 @@ UI_SITES = (
     ('indexSummary.textContent = ', ';'),
     ("getElementById('sdt-fulltext').textContent", ';'),
     ('Services.prompt.confirm(', 'if (token !== generation) return;'),
-    ('describeError: (info, error) => {', '},'),
+    ('describeError: (info, error) =>', 'reportError:'),
 )
 
 # "document" is the trap: Zotero's own French UI renders *item* as "document",
 # so it reads as the reference, which is the opposite of the attachment this
 # add-on actually indexes. "élément" and "pièce jointe" are the same confusion
 # from the other side.
-BANNED_IN_UI = ('document', 'élément', 'pièce jointe', 'pack')
+BANNED_IN_UI = ('document', 'élément', 'pièce jointe', 'item', 'pack')
 
 
 def _site(start: str, end: str, path: Path | None = None) -> str:
@@ -140,8 +142,17 @@ def test_active_row_leads_with_the_reference_not_the_attachment():
     site = _site('const activeMessage = ', 'const quietMessage')
     assert 'Indexation : ' in site
     assert 'Document ${s.active}' not in site
-    composer = _site('function describeSDTActiveFile(state) {', '\n}')
-    assert 'parentTitle' in composer, 'the active row still never reads a reference title'
+    composer = _site('function describeSDTFile(info, fallback) {', '\n}')
+    assert 'parentTitle' in composer, 'the composer still never reads a reference title'
+
+
+def test_progress_and_error_lines_name_a_file_the_same_way():
+    """Two sites name the file being worked on. Composing them separately is how
+    the progress line ended up leading with the reference and the error line
+    with Zotero's auto-generated attachment title."""
+    for start, end in (('function describeSDTActiveFile(state) {', '\n}'),
+                       ('describeError: (info, error) =>', 'reportError:')):
+        assert 'describeSDTFile(' in _site(start, end), f'{start!r} composes its own label'
 
 
 def test_failure_summary_line_is_rendered_outside_the_diagnostics():

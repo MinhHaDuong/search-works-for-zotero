@@ -46,11 +46,16 @@ function describeSDTTooltip(state) {
 
 /* The unit of work is one attachment, and Zotero names attachments for us
    ('Full Text PDF', 'Snapshot'), so the attachment title alone identifies
-   nothing. Lead with the reference that owns it. */
+   nothing. Lead with the reference that owns it. One composer, so the progress
+   line and the error line cannot drift into naming the same file two ways. */
+function describeSDTFile(info, fallback) {
+  const { parentTitle, title } = info || {};
+  if (parentTitle && title) return `${parentTitle} — ${title}`;
+  return parentTitle || title || fallback;
+}
+
 function describeSDTActiveFile(state) {
-  const info = state.activeInfo || {};
-  if (info.parentTitle && info.title) return `${info.parentTitle} — ${info.title}`;
-  return info.parentTitle || info.title || `fichier n° ${state.active}`;
+  return describeSDTFile(state.activeInfo, `fichier n° ${state.active}`);
 }
 
 function render() {
@@ -388,10 +393,8 @@ async function initialize(rootURI, token) {
     censusComplete: async () => { cache.prune(seen); await saveCache(); return cache.samples(); },
     observed: async (info, sample) => { cache.observe(info.cacheKey, info.identity, sample); await saveCache(); },
     inspect, blocked, now: () => Date.now(), changed: render,
-    describeError: (info, error) => {
-      const parent = info.parentTitle ? ` — référence : « ${info.parentTitle} »` : '';
-      return `Échec de « ${info.title || 'fichier inconnu'} »${parent} : ${String(error)}`;
-    },
+    describeError: (info, error) =>
+      `Échec de « ${describeSDTFile(info, 'fichier inconnu')} » : ${String(error)}`,
     reportError: async (info, error) => {
       const line = JSON.stringify({
         at: new Date().toISOString(), attachment: info.title || null,
