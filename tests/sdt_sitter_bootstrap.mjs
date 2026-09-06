@@ -631,4 +631,96 @@ await test('the pack versions reach the cache identity, so a bump invalidates th
     'a duration measured under another pack version was kept');
 });
 
+/* --------------------------------------------------------------------------
+   Ticket 0696's end-of-sweep toast, through the real wrapper and a real
+   disable/re-enable — the sequence, not an equivalent of it.
+
+   Two review seats reproduced the same race by hand and both were right, and
+   the more expensive half of the finding was that no suite could have caught it:
+   tests/sdt_sitter_scheduler.mjs supplies its own snapshot and its own sitter, so
+   it exercises the toast's GATE and never the wrapper that feeds it. This file
+   already had the one thing that could — the real `startup()`, the real
+   `initialize()`, and `nextSweep()` firing the timer the sitter armed for itself.
+
+   THE SEQUENCE. `sitter` is a module-level binding that `initialize()` reassigns
+   and `shutdown()` never clears, and the plugin's own launch prompt advertises
+   the way in: "désactiver l'extension arrête les admissions ; le fichier en cours
+   finit". So a disable while the extractor holds a file leaves the first sitter's
+   sweep suspended, a re-enable installs a second sitter and puts `alive` back to
+   true — before the modal confirm, so no click is needed — and when the first
+   closure resumes it holds one sitter's snapshot and reads another's counters.
+
+   The two counts must be visibly different for the misattribution to have
+   anything to misattribute, so the second sitter indexes two files while the
+   first is still suspended holding a snapshot of zero. The assertion is a
+   count, not a silence: the second sitter's own toast is legitimate and must
+   arrive, and only the stale closure's must not.
+   -------------------------------------------------------------------------- */
+await test('a disable, a re-enable, and the suspended sweep announces nothing', async () => {
+  const entered = deferred(), release = deferred();
+  let held = 0;
+  const harness = createHarness({
+    attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222'), pdf(3, 'CCCC3333')],
+    // The second attachment holds the extractor exactly once. Everything else
+    // settles the way the mock's own extractor does, so the second sitter has
+    // real work to do and real counters to be misread.
+    ensure: async (id, onProgress) => {
+      if (id === 2 && held++ === 0) {
+        entered.resolve();
+        await release.promise;
+        return false;
+      }
+      onProgress(10);
+      harness.advance(1000);
+      harness.persistPack(id);
+      onProgress(100);
+      return true;
+    },
+  });
+  harness.context.startup({ rootURI: ROOT_URI });
+  await admitted(harness, entered, 'the suspended sweep');
+  const suspended = harness.context.sitter;
+  assert.equal(suspended.state.completed, 1, 'the first sitter never indexed anything');
+  assert.deepEqual(harness.toasts, [], 'a toast arrived before any sweep ended');
+
+  // Disable. The file in flight is not cancelled — that is the documented
+  // behaviour, and it is what leaves the closure alive.
+  harness.context.shutdown(null, 4);
+  assert.equal(harness.context.alive, false);
+
+  // Re-enable, and let the second sitter work. `quiet()` would wait on the
+  // suspended extractor, so the loop is turned by hand.
+  harness.context.startup({ rootURI: ROOT_URI });
+  for (let n = 0; n < 80 && harness.context.sitter === suspended; n++) await harness.turn(1);
+  assert.notEqual(harness.context.sitter, suspended, 'the re-enable built no second sitter');
+  assert.equal(harness.context.alive, true, 'the re-enable left the plugin disabled');
+  const current = harness.context.sitter;
+  // Waited on the outcome, not on `busy`: a sweep not yet armed is not busy
+  // either, and a wait on the negative would fall straight through and assert
+  // against a sitter that had not started.
+  for (let n = 0; n < 200 && current.state.completed < 2; n++) await harness.turn(1);
+  assert.equal(current.state.completed, 2, 'the second sitter indexed nothing');
+  // Its own toast is legitimate: that sweep really did index two files. What is
+  // asserted below is that nothing is ADDED to this.
+  assert.equal(harness.toasts.length, 1, 'the second sitter announced its own work wrongly');
+  assert.deepEqual(harness.toasts[0].lines, ['2 fichiers indexés']);
+  // Its own reschedule is legitimate too, so the staleness assertion below is
+  // against this set rather than against an empty one.
+  const armed = harness.timers.ids('timeout');
+  assert.equal(armed.length, 1, `the live sitter armed ${armed.length} sweeps`);
+
+  // Now the stale closure wakes into a live plugin it never knew. Before the
+  // generation check it diffed a snapshot of zero against the two files above
+  // and announced them as its own.
+  release.resolve();
+  await harness.turn(30);
+  assert.equal(harness.toasts.length, 1,
+    `a sweep from a dead generation announced ${JSON.stringify(harness.toasts.at(-1)?.lines)}`);
+  // And it did not re-arm itself either — the same staleness, in the half of the
+  // wrapper that already carried the check. A second entry here would be two
+  // sweeps per interval for the rest of the session.
+  assert.deepEqual(harness.timers.ids('timeout'), armed,
+    'a sweep from a dead generation rescheduled itself');
+});
+
 console.log(JSON.stringify({ tests: results, result: 'pass' }));

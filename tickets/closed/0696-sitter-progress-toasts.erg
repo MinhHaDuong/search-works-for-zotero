@@ -1,0 +1,99 @@
+%erg 0.1
+Title: Add a sitter progress toast on sweep completion and failure
+Created: 2026-09-06
+Author: claude
+Closed: autoclosed — PR #396
+
+--- log ---
+2026-09-06T00:00Z claude created
+2026-09-06T00:00Z author decided Proceed -- add the toasts. Cadence: one per overnight sweep, not per document.
+
+2026-09-06T10:11Z sim note blocker 0691 closed — Blocked-by removed.
+2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED WITH CHANGES. As originally worded this ticket would have shipped a real regression: the sweep wrapper reschedules on a fixed 30s timer forever, so a toast fired on every sweep() call (not gated on real work done) would repeat every 30s once the library is caught up -- the same class of incident the author already hit once this session (a stuck census loop producing a "toast storm"). Rewrote Design/Acceptance to gate on an actual completed/failed delta, dropped the per-document "job start" toast (redundant with the already-shipped toolbar ambient indicators, and unworded for a per-sweep cadence anyway), and added `Blocked-by: 0699` since the failure count this ticket would display is currently known-buggy in both directions.
+2026-09-06T15:37Z claude note Corrected a stale reading of 0699: it is no longer 'zero acceptance boxes checked'. Its fix is in review as PR #387, and state.failed there is derived from the census (SDT_STATUS_CLASSES.failed) and recomputed only once scanned === total, so it is stable across a running census -- which is the property a per-sweep toast needs. The Blocked-by header still gates this ticket.
+2026-09-06T15:53Z sim note blocker 0699 closed — Blocked-by removed.
+2026-09-06T16:12Z claude note Implemented as the Design section rewrote it. The title still reads "on job start, completion, and failure"; the start toast was dropped in the Imagine phase and is not delivered, and a test now holds bootstrap.js to exactly one toast construction site so it cannot creep back. Two composers were factored out (describeSDTIndexed, describeSDTFailures) so the tooltip, the dialog banner and the toast cannot word one count three ways — the toast therefore introduces no new user-facing string, and ticket 0691's vocabulary table needs no amendment. The dismissal delay (8 s) is a presentation timing and lives in bootstrap.js beside the 1400 ms completion blink and the 100 ms redraw, not in SPEC.md, which owns gates, decision rules and budgets. Accessibility, which the Context section flagged: not verified, and not verifiable in any headless lane — a transient toast's screen-reader announcement needs a real Zotero window, which is ticket 0686's own open precondition. Nothing here claims it.
+2026-09-06T17:05Z claude note Title corrected. It read "on job start, completion, and failure" and promised a start toast the Imagine phase had dropped; the log disclosed the gap but a reader scanning history saw only the title. Renamed to what ships.
+2026-09-06T17:05Z claude note Review round 1 (PR #396), blocker, found independently by two seats: announceSDTSweep read `sitter.state` live with no generation check, unlike every other deferred callback in bootstrap.js. `sitter` is a module-level binding initialize() reassigns and shutdown() never clears, so a sweep suspended inside an uninterruptible ensure() during a disable, resumed after a re-enable, diffed one sitter's snapshot against another's counters — the plugin's own launch prompt advertises that flow, and initialize() restores `alive` before its modal confirm, so no click is needed. Fixed by gating the announcement on `token === generation` at the call site, the file's existing idiom. The second half of the blocker was that neither suite could see the class: both reached the toast, neither ran the loop, and a mutation welding the gate shut left all forty driven arms green. The loop is therefore hoisted out of initialize() as createSDTSweepLoop(token) and driven whole — real sweeps, a real disable/re-enable, a control arm requiring the toast when the generation does NOT change. `generation` and `timers` became `var` so a sandbox load can reach them; that is the same reason `sitter`, `journal` and `dialogs` already are.
+2026-09-06T17:05Z claude note DECISIONS.md (2026-09-06, sitter button placement) says to revisit the ruling "only if the plugin moves toward icon+toast as its primary interface (ticket 0696)". This ticket does not: the toolbar button, its tooltip and the status dialog remain the primary interface, and the toast is one transient summary at the end of a sweep that did work. The revisit clause is not triggered, and DECISIONS.md needs no entry.
+2026-09-06T17:52Z claude note Merged origin/main after PR #402 (ticket 0695) landed. Three things followed and none was cosmetic. (1) manifest.json collided: 0695 took 2.10.0, this branch had already used 2.10.0 and then 2.10.1 for two other payloads, so the tip goes to 2.11.0 — clear of a seat two siblings had just contested rather than one step past it. (2) Both tickets independently turned the same `let` bindings into `var` for the same sandbox reason; the merged comment records both rather than collapsing to one. (3) 0695 shipped a full Zotero mock that drives the real startup() and initialize(), which is the harness red team asked for and this branch did not have. The cross-generation regression is therefore now driven as the real sequence — real startup, disable mid-extraction, re-enable, resume — in tests/sdt_sitter_bootstrap.mjs, not as an equivalent mismatch. The mock gained Zotero.ProgressWindow, which is load-bearing rather than convenient: announceSDTSweep is guarded, so a mock without it records a swallowed toast-error where a toast belongs and the silence assertion would pass because the constructor threw. A control with the class removed reddens the scenario. Finally the five new mutants M23–M27 join verification/probes/sdt_sitter_bootstrap_mutants.py, so 0695's convention holds for this ticket too: 27/27 caught, and the "green mutation" red team found is now M25.
+2026-09-06T18:02Z sim closed — autoclosed — PR #396
+--- body ---
+## Context
+
+Split from ticket 0693 by the raid's Imagine phase (2026-09-06). This is
+**not** a direct author request: neither ticket 0686 nor the author's
+2026-09-06 remarks ask for a notification channel. It is motivated by
+ecosystem convention -- most widely-adopted Zotero plugins surface
+background-task feedback through a transient, non-blocking toast rather
+than requiring the user to keep a dialog open. That argument holds up, but
+it is this ticket's own synthesis, not a ratified decision, and it adds
+new accessibility surface (screen-reader announcement of transient toasts,
+timing, dismissal) on top of ticket 0686's already-open, still-unverified
+accessibility items. Get a quick author nod before building this -- it is
+cheap to ask and the alternative is stacking unverified a11y surface on
+unverified a11y surface.
+
+## Mechanism
+
+Use **`Zotero.ProgressWindow`** (Zotero's own bundled global) directly,
+not `zotero-plugin-toolkit`. This plugin has zero build tooling -- no
+`package.json`, no bundler; `bootstrap.js`/`scheduler.js` load raw via
+`Services.scriptloader.loadSubScript`. Pulling in `zotero-plugin-toolkit`
+would mean introducing a bundler for the first time solely to get a toast.
+`Zotero.ProgressWindow` needs no new dependency and no build step, and is
+the same primitive the toolkit wraps.
+
+## Design
+
+One completion/exceptions toast, gated on the sweep having actually
+processed something -- diff `state.completed`/`state.failed` before and
+after the `await sitter.sweep()` call (mirroring the existing
+`lastCompleted`/`completionBlinkUntil` diffing pattern already in
+bootstrap.js), and skip the toast entirely on an empty/idle sweep. The
+sweep wrapper reschedules on a fixed 30s timer for the life of the
+plugin -- it is not a bounded "overnight sweep" -- so a toast fired
+unconditionally on every call would repeat every 30 seconds forever once
+the library is caught up: strictly worse than the "dozens of toasts per
+run" this ticket already set out to avoid.
+
+No separate "job start" toast: it cannot be worded per-document (a sweep
+call can touch zero, one, or many files, so there is no single `<title>`
+to name "at sweep start"), and it is redundant with the toolbar's own
+already-shipped ambient indicators (spinning glyph while a file is
+active, opacity pulse during census).
+
+Text for the failure count depends on `state.failed`, which ticket 0699
+documented as both over- and under-reporting. 0699's fix is in review
+(PR #387): `state.failed` is now derived from the census through
+`SDT_STATUS_CLASSES.failed` rather than accumulated, and it is only
+recomputed once `scanned === total`, so it is stable across a running
+census. Read it after that PR merges; the `Blocked-by: 0699` header above
+is what gates this ticket, and until it clears, scope a first cut to a
+completion-only toast ("N fichiers indexes").
+
+## Acceptance
+
+- [x] Toasts use `Zotero.ProgressWindow`; no new dependency added.
+      (`announceSDTSweep` in bootstrap.js; the sitter still has no
+      `package.json`, asserted by
+      `test_the_toast_adds_no_dependency_and_uses_zoteros_own_primitive`.)
+- [x] Author has confirmed this ticket should proceed (recorded in the log).
+- [x] The toast fires only when a sweep call actually processed
+      candidates (completed/failed count changed), never on a bare timer
+      tick with nothing to report. (The wrapper snapshots both counts before
+      the await, and spends it only if `token === generation`; the gate is
+      driven with real sweeps in `tests/sdt_sitter_scheduler.mjs` — five
+      consecutive caught-up sweeps announce nothing, a newly added file
+      announces again, and a loop left over from a previous generation is
+      silent while the same suspend-and-resume within one generation is not.
+      Each arm's control was run against the committed tree.)
+- [x] No per-document or per-sweep-start toast; only a completion/
+      exceptions toast. (`test_no_toast_announces_the_start_of_a_sweep`
+      holds the file to one construction site and one call.)
+- [x] Toast text uses only the vocabulary from ticket 0691 -- no internal
+      jargon -- and the failure count it displays is the one 0699 fixes,
+      not the pre-fix count. (Headline "Assistant d’indexation" and both
+      lines come from 0691's table through the same two composers the
+      tooltip and the dialog use, so the toast adds no string of its own;
+      the failure driven arm asserts the census-derived total of 0699.)
