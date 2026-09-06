@@ -3,6 +3,7 @@ Title: Replace SDT jargon with plain-language sitter vocabulary
 Created: 2026-09-06
 Author: claude
 Blocked-by: github.com/MinhHaDuong/search-works-for-zotero#365
+Closed: autoclosed — PR #369
 
 --- log ---
 2026-09-06T00:00Z claude created
@@ -13,6 +14,7 @@ Blocked-by: github.com/MinhHaDuong/search-works-for-zotero#365
 2026-09-06T00:00Z claude note Consistency review round 3 (PR #369): describeError still led with the attachment's auto-generated title and appended the reference -- the same defect just fixed on the progress line, at a site this PR had already touched for the word swap. Root cause was two independent compositions, so both now go through one describeSDTFile(info, fallback) and a test asserts neither site composes its own label. Also: BANNED_IN_UI had drifted from the ban this ticket states ("item" missing), and the quietMessage strings were outside the checked site list; both closed.
 2026-09-06T00:00Z claude note Acceptance boxes 1-4 ticked against PR #369. Box 5 stays open deliberately: its "no bundling" half is met (this PR carries no externalization) but its "lands before 0692" half is a merge-order fact nothing can observe from inside the PR, so it closes when 0692 merges after it.
 
+2026-09-06T10:11Z sim closed — autoclosed — PR #369
 --- body ---
 ## Context
 

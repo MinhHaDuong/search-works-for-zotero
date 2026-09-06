@@ -2,13 +2,13 @@
 Title: Localize the sitter with Fluent, extensible past EN/FR/ES/VI
 Created: 2026-09-06
 Author: claude
-Blocked-by: 0691
 
 --- log ---
 2026-09-06T00:00Z claude created
 2026-09-06T00:00Z author decided Build i18n now, in this repo -- do not wait for the (still undecided) repo extraction.
 2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED, with the justification rebalanced. Only one string in the actual set is genuinely plural-sensitive; the strong reason for Fluent is that Zotero's own shipped code already treats .ftl as the default convention for user-facing strings (see verification/BRIDGE-0496.md:259), so Localization/Fluent parsing is already loaded in every Zotero window at zero marginal cost -- lead with that, not with plurals. Real cost flagged: this repo has zero npm dependencies of any kind; unit-testing the missing-id fallback needs either the repo's first dev dependency (e.g. @fluent/bundle) or a real-Zotero-window-only test -- pick one explicitly in Plan, don't leave it implicit. Wire via a plain imperative Localization instance (l10n.formatValue) at the existing .textContent/.setAttribute call sites -- document.l10n (markup-observing) is the wrong tool since this dialog's DOM is built imperatively with no data-l10n-id markup anywhere. Sequencing: 0691 must land first (confirmed still unimplemented); the open question of whether to wait for a possible repo-extraction before building i18n is unresolved anywhere else in the repo and must go back to the author, not be decided here.
 
+2026-09-06T10:11Z sim note blocker 0691 closed — Blocked-by removed.
 --- body ---
 ## Context
 

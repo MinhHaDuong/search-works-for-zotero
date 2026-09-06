@@ -2,12 +2,12 @@
 Title: Add sitter progress toasts on job start, completion, and failure
 Created: 2026-09-06
 Author: claude
-Blocked-by: 0691
 
 --- log ---
 2026-09-06T00:00Z claude created
 2026-09-06T00:00Z author decided Proceed -- add the toasts. Cadence: one per overnight sweep, not per document.
 
+2026-09-06T10:11Z sim note blocker 0691 closed — Blocked-by removed.
 --- body ---
 ## Context
 
