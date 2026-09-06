@@ -1,0 +1,102 @@
+%erg 0.1
+Title: Assert the host APIs the sitter names actually exist
+Created: 2026-09-07
+Author: sim
+
+--- log ---
+2026-09-06T22:43Z sim created
+2026-09-06T22:43Z claude note Filed from the roar sweep after the 2026-09-06/07 session. Three failures in one night shared one shape, which is what makes this a class rather than three bugs. The sweep itself found no fourth instance -- all three resource:// paths the plugin currently names do exist in the shipped Zotero, verified against /opt/zotero7 -- so this ticket is the standing guard, not a repair.
+
+--- body ---
+## Context
+
+Three defects in one evening, all the same shape: the plugin asked the host
+for something the host does not have, and every test agreed with it because
+every test supplied the thing itself.
+
+1. `ChromeUtils.importESModule('resource://gre/modules/Fluent.sys.mjs')`. No
+   such module in Zotero 10.0.1. The import threw on every startup the feature
+   ever had; the suites served Fluent through a MOCKED `importESModule`, so the
+   call they exercised was one the real host has never answered. Forty green
+   tests over a locale layer that was dead from its first commit.
+2. `Zotero.File.getContentsFromURLAsync(rootURI + 'locale/…/x.ftl')`. In an
+   installed add-on `rootURI` is `jar:file:///….xpi!/`, and that call cannot
+   parse a `jar:` URI at all (`NS_ERROR_FAILURE [nsIURI.username]`). The tests
+   served the `.ftl` files from disk by path, a delivery that has never once
+   happened in production.
+3. The same read for `manifest.json`, in `sitterStartupSelfCheck`. It has said
+   `version: "unreadable (NS_ERROR_FAILURE)"` on every startup since ticket
+   0688 added it -- in the field whose whole purpose is to name which build was
+   running when the plugin disappears.
+
+Each was found by the author running one line in his own Browser Console. None
+was findable from this repository, because the repository contains no statement
+of what the host provides that is checked against a host.
+
+## What this ticket asks for
+
+A guard that reads the plugin's host dependencies out of the source and asserts
+each one exists in an installed Zotero. Not a mock: the real `omni.ja`.
+
+Today that surface is small and entirely enumerable:
+
+- `resource://gre/modules/Timer.sys.mjs`
+- `resource://zotero/document-worker/structured-document-text.js`
+- `resource://zotero/document-worker/metadata.json`
+
+All three verified present on 2026-09-06 against `/opt/zotero7` -- the GRE jar
+carries `modules/Timer.sys.mjs`, the app jar carries `resource/document-worker/…`
+for the other two. The guard is what keeps that true, and what would have
+reddened on `Fluent.sys.mjs` the day it was written.
+
+## Relevant files
+
+- `plugins/sdt-sitter/bootstrap.js` — every `resource://` and `ChromeUtils`
+  call site
+- `tests/sdt_sitter_zotero_mock.mjs` — its `importESModule` now asserts an
+  unexpected spec loudly rather than answering it, which is the same rule
+  enforced from the other side
+- `/opt/zotero7/omni.ja`, `/opt/zotero7/app/omni.ja` — the two archives that
+  answer the question
+
+## Actions
+
+1. Grep the plugin source for `resource://…` literals and the host globals it
+   reads off the scope (`FluentBundle` was one; `Services`, `ChromeUtils`,
+   `IOUtils`, `PathUtils`, `Zotero` are the current set).
+2. For each `resource://` path, resolve it into the corresponding archive entry
+   (`resource://gre/x` -> `x` in the GRE jar; `resource://zotero/x` ->
+   `resource/x` in the app jar) and assert the entry exists.
+3. Mark it `slow` and SKIP -- explicitly, with a reason -- when no Zotero
+   install is found. A guard that silently passes on a machine without the
+   application is the failure this whole ticket is about, one level up.
+
+## Test
+
+The guard is the test. Its own control: point it at a path known to be absent
+(`resource://gre/modules/Fluent.sys.mjs` is the honest fixture, since that is
+the exact string that cost the evening) and confirm it reddens before trusting
+it green on the real set.
+
+## Verification
+
+- [ ] Reddens on `Fluent.sys.mjs`, the real historical defect, not an invented one
+- [ ] Greens on the three paths the plugin names today
+- [ ] Skips loudly, with a reason, where no Zotero install exists
+- [ ] `make check` passes
+
+## Invariants
+
+- It reads the archives, never a mock. A mocked host asserting about the host
+  is the defect, not the test.
+- It does not attempt to verify ambient globals (`FluentBundle` and friends)
+  the same way: those are compiled into the binary and named in no archive
+  entry, which is exactly why the console was the only way to settle them.
+  Naming that limit here is part of the guard; a guard whose blind spot is
+  undocumented gets trusted past it.
+
+## Exit criteria
+
+Every `resource://` the sitter names is asserted against a real Zotero
+installation, with a control run in both directions, and the guard says which
+it could not check rather than passing over it.
