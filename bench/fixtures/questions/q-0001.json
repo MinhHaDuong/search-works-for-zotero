@@ -1,0 +1,78 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0001",
+  "need": "Written before opening the document: what tariff did Vietnam's 2017 solar decision guarantee to grid-connected photovoltaic plants, in dong and in US cents per kWh?",
+  "query": "feed-in tariff for grid-connected solar power projects in Vietnam 2017",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "vn-decision-11-2017-qdttg-solar-fit-en",
+      "recipe_id": "vn-decision-11-2017-qdttg-solar-fit-en",
+      "attachment_id": null,
+      "attachment_key": "L68LPREA",
+      "section": "Article 12",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 10180,
+          "quote": "The buyer has the responsibility to purchase all generated energy from grid-connected projects at 2,086VND/kWh (excluding VAT, equivalent to 9.35 Uscents/ KWh"
+        }
+      ],
+      "chain": {
+        "title": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation)",
+        "author": "Thủ tướng Chính phủ (Prime Minister of Vietnam)",
+        "date": "2017",
+        "identifier": "https://faolex.fao.org/docs/pdf/vie179224.pdf",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": "Article 12. Feed in Tariff"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "014cf144a55d2810759ac8100a6c50d9fd98a6ccbbef2034d2fe2dd35ab6aa74",
+    "extraction": {
+      "reindex_mode": "complete",
+      "reindex_limits": "ignored",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "23980113a777c3ecec90692ee12c5b6205a95279dec61876c3ff13cc69f23716"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "L68LPREA",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 10180,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (ticket 0722 demonstrator)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}
