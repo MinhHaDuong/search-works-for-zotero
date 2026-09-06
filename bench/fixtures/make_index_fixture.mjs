@@ -101,6 +101,8 @@ function itemFields() { return itemSchema().item_types; }
 // Zotero stores a plain author under the item type's primary creator type (presenter on
 // a presentation, cartographer on a map), so that is what the export carries.
 function primaryCreatorType(itemType) { return (itemSchema().primary_creators ?? {})[itemType] ?? 'author'; }
+// A base field lives under the item type's own name (a statute's title is nameOfAct).
+function typeField(itemType, baseField) { return ((itemSchema().base_fields ?? {})[itemType] ?? {})[baseField] ?? baseField; }
 
 function canonicalCharset(label) {
   const key = String(label).trim().toLowerCase();
@@ -147,9 +149,9 @@ export function expectedParent(doc, collectionKey) {
   }
   const expected = {
     itemType,
-    title: doc.title,
+    [typeField(doc.item_type ?? 'document', 'title')]: doc.title,
     creators: [{ creatorType: primaryCreatorType(doc.item_type ?? 'document'), name: doc.author }],
-    date: String(doc.year),
+    [typeField(doc.item_type ?? 'document', 'date')]: String(doc.year),
     language: Object.hasOwn(doc, 'language_field') ? doc.language_field : doc.language,
     extra: extraLines.join('\n'),
     collections: [collectionKey],

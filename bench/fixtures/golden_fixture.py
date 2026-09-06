@@ -186,6 +186,13 @@ def item_fields(path: Path = ITEM_FIELDS_FILE) -> dict[str, list[str]]:
     return _item_schema(path)["item_types"]
 
 
+def type_field(item_type: str, base_field: str) -> str:
+    """The field name this item type stores a base field under: a statute keeps its
+    title in nameOfAct and its date in dateEnacted, and Zotero rewrites the base name
+    on write, so the desired item must name the type's field (padme, 2026-09-06)."""
+    return _item_schema().get("base_fields", {}).get(item_type, {}).get(base_field, base_field)
+
+
 def primary_creator_type(item_type: str) -> str:
     """The creator type Zotero stores a plain author under for this item type: 'author'
     for most, 'presenter' for a presentation, 'cartographer' for a map. Zotero rewrites
@@ -226,12 +233,17 @@ def write_item_fields(destination: Path = ITEM_FIELDS_FILE, schema_path: Path | 
         with urllib.request.urlopen(ZOTERO_SCHEMA_URL, timeout=60) as response:
             schema = json.load(response)
     reduced = {
-        "_source": f"{ZOTERO_SCHEMA_URL} (GET, unauthenticated), reduced to itemType -> field names and primary creator type; "
+        "_source": f"{ZOTERO_SCHEMA_URL} (GET, unauthenticated), reduced to itemType -> field names, base-field map and primary creator type; "
                    f"fetched {time.strftime('%Y-%m-%d')}. Regenerate with "
                    "`python3 bench/fixtures/golden_fixture.py item-fields [--schema <schema.json>]` "
                    "when Zotero's schema version moves.",
         "schema_version": schema["version"],
         "item_types": {entry["itemType"]: [field["field"] for field in entry["fields"]] for entry in schema["itemTypes"]},
+        "base_fields": {
+            entry["itemType"]: {field["baseField"]: field["field"] for field in entry["fields"] if "baseField" in field}
+            for entry in schema["itemTypes"]
+            if any("baseField" in field for field in entry["fields"])
+        },
         "primary_creators": {
             entry["itemType"]: next(c["creatorType"] for c in entry["creatorTypes"] if c.get("primary"))
             for entry in schema["itemTypes"] if entry.get("creatorTypes")
@@ -399,9 +411,9 @@ def _desired_parent(doc: dict, collection_key: str) -> dict:
     placed, citation_extra = _citation_placement(item_type, doc.get("citation", {}))
     desired = {
         "itemType": item_type,
-        "title": doc["title"],
+        type_field(item_type, "title"): doc["title"],
         "creators": [{"creatorType": primary_creator_type(item_type), "name": doc["author"]}],
-        "date": str(doc["year"]),
+        type_field(item_type, "date"): str(doc["year"]),
         "language": doc["language_field"] if "language_field" in doc else doc["language"],
         "extra": "\n".join(extra_lines + citation_extra),
         "tags": [{"tag": source_tag(doc["id"])}],
@@ -1015,9 +1027,12 @@ def _portable_item(item: dict) -> dict:
     elif data.get("itemType") == "note":
         allowed = common | {"parentItem", "note"}
     else:
+        item_type = str(data.get("itemType", "document"))
         allowed = common | {
             "creators", "date", "language", "url", "archive", "archiveLocation",
             "extra", "collections", "DOI", "ISBN",
+            # the item type's own names for title and date (a statute's nameOfAct, dateEnacted)
+            type_field(item_type, "title"), type_field(item_type, "date"),
         }
     public_data = {key: copy.deepcopy(data[key]) for key in allowed if key in data}
     if public_data.get("linkMode") == "linked_file" and isinstance(public_data.get("path"), str):
