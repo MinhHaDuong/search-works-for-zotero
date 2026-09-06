@@ -47,7 +47,6 @@ function render() {
     const silence = s.active === null ? null : Math.round((Date.now() - s.lastProgressAt) / 1000);
     const remaining = ['missing-pack', 'stale-source', 'stale-processor', 'invalid-pack']
       .reduce((n, key) => n + (s.counts[key] || 0), 0);
-    const mean = s.completed ? s.serviceMS / s.completed : null;
     const formatDuration = ms => {
       const minutes = Math.max(1, Math.round(ms / 60000));
       return minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
@@ -259,7 +258,9 @@ async function initialize(rootURI, token) {
 
   async function inspect(id) {
     const item = await Zotero.Items.getAsync(id);
-    if (!item?.isAttachment() || item.deleted || (item.parentItemID && (await Zotero.Items.getAsync(item.parentItemID))?.deleted)) return { status: 'excluded' };
+    if (!item?.isAttachment() || item.deleted) return { status: 'excluded' };
+    const parent = item.parentItemID ? await Zotero.Items.getAsync(item.parentItemID) : null;
+    if (parent?.deleted) return { status: 'excluded' };
     const processor = item.isPDFAttachment() ? 'pdf' : item.isEPUBAttachment() ? 'epub' : item.isSnapshotAttachment() ? 'snapshot' : null;
     if (!processor) return { status: 'unsupported' };
     const sourcePath = await item.getFilePathAsync();
@@ -267,7 +268,6 @@ async function initialize(rootURI, token) {
     const hash = await item.attachmentHash;
     const directory = Zotero.Attachments.getStorageDirectory(item).path;
     const path = PathUtils.join(directory, '.zotero-sdt-cache');
-    const parent = item.parentItemID ? await Zotero.Items.getAsync(item.parentItemID) : null;
     const [title, parentTitle] = await Promise.all([getItemTitle(item), getItemTitle(parent)]);
     const result = { status: 'missing-pack', directory,
       title: title || sourcePath.split(/[\\/]/).pop(),
@@ -291,20 +291,25 @@ async function initialize(rootURI, token) {
         },
       }, { inflate: bytes => pako.inflateRaw(bytes) });
       const metadata = await reader.getMetadata();
-      result.status = reader.header.packVersion !== versions.SDT_PACK_VERSION ||
-        String(reader.header.schemaVersion).split('.')[0] !== versions.SDT_SCHEMA_VERSION.split('.')[0]
-        ? 'unsupported-pack' : metadata.source?.hash !== hash ? 'stale-source'
-          : metadata.processor?.type !== processor || metadata.processor?.version !== versions.SDT_PROCESSOR_VERSIONS[processor]
-            ? 'stale-processor' : 'current';
+      const packVersionMismatch = reader.header.packVersion !== versions.SDT_PACK_VERSION ||
+        String(reader.header.schemaVersion).split('.')[0] !== versions.SDT_SCHEMA_VERSION.split('.')[0];
+      const sourceMismatch = metadata.source?.hash !== hash;
+      const processorMismatch = metadata.processor?.type !== processor ||
+        metadata.processor?.version !== versions.SDT_PROCESSOR_VERSIONS[processor];
+      if (packVersionMismatch) result.status = 'unsupported-pack';
+      else if (sourceMismatch) result.status = 'stale-source';
+      else if (processorMismatch) result.status = 'stale-processor';
+      else result.status = 'current';
       if (result.status === 'current') cache.remember(result.cacheKey, result.identity, fingerprint, result);
       else cache.drop(result.cacheKey);
     } catch (error) { result.status = 'invalid-pack'; }
     return result;
   }
 
+  const workerBusy = () => Zotero.PDFWorker?._processingQueue !== false || Zotero.PDFWorker?._queue?.length !== 0;
   async function blocked(info) {
     if (!alive) return 'disabled';
-    if (Zotero.PDFWorker?._processingQueue !== false || Zotero.PDFWorker?._queue?.length !== 0) return 'native-worker-busy';
+    if (workerBusy()) return 'native-worker-busy';
     try {
       // procfs reports a zero stat size. Read its tiny generated streams, not
       // IOUtils' regular-file size-based path. No library file uses this sync path.
@@ -331,7 +336,7 @@ async function initialize(rootURI, token) {
     }
     // Recheck after async resource reads; never deliberately queue behind native work.
     if (!alive) return 'disabled';
-    if (Zotero.PDFWorker._processingQueue || Zotero.PDFWorker._queue.length) return 'native-worker-busy';
+    if (workerBusy()) return 'native-worker-busy';
     return null;
   }
 
