@@ -35,7 +35,11 @@ var createSDTSitter = function (host) {
           if (!['missing-pack', 'stale-source', 'stale-processor', 'invalid-pack'].includes(status)) continue;
           candidates.push({ id, before, status });
         }
-        state.pending = candidates.map(({ id, before }) => ({ id, sourceBytes: before.sourceBytes, pages: before.pages }));
+        // Both titles travel with the queue. The attachment's own title is usually
+        // auto-generated ('Full Text PDF'), so the UI needs the parent reference to
+        // name anything a reader recognises.
+        state.pending = candidates.map(({ id, before }) => ({ id, title: before.title ?? null,
+          parentTitle: before.parentTitle ?? null, sourceBytes: before.sourceBytes, pages: before.pages }));
         if (state.enabled && host.censusComplete) {
           state.samples = await host.censusComplete();
           state.fittedSamples = state.samples.slice();
@@ -46,16 +50,19 @@ var createSDTSitter = function (host) {
           if (!state.enabled) break;
           const reason = await host.blocked(before);
           if (!state.enabled) break;
-          if (reason) {
-            // Queueing behind the native worker is the designed resting state, not a
-            // refusal; it repeats every sweep, so it is trace and never state.
+          // Journalled beside the halt rather than inside it, so the halt stays the
+          // one line verification/probes/sdt_sitter_scheduler_mutants.py anchors M4
+          // on. Queueing behind the native worker is the designed resting state,
+          // not a refusal; it repeats every sweep, so it is trace and never state.
+          if (reason && host.emit) {
             const idle = reason === 'native-worker-busy';
-            if (host.emit) host.emit(idle ? 'worker-idle-wait' : 'refuse', { reason }, idle ? 'trace' : 'state');
-            state.phase = reason; publish(); break;
+            host.emit(idle ? 'worker-idle-wait' : 'refuse', { reason }, idle ? 'trace' : 'state');
           }
+          if (reason) { state.phase = reason; publish(); break; }
           if (host.emit) host.emit('admit', { id, sourceBytes: before.sourceBytes, pages: before.pages });
           state.active = id; state.startedAt = host.now();
-          state.activeInfo = { sourceBytes: before.sourceBytes, pages: before.pages };
+          state.activeInfo = { title: before.title ?? null, parentTitle: before.parentTitle ?? null,
+            sourceBytes: before.sourceBytes, pages: before.pages };
           state.lastProgressAt = state.startedAt; state.progress = null;
           state.phase = 'extracting'; publish();
           if (host.emit) host.emit('submit', { id });

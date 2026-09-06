@@ -18,7 +18,7 @@ async function run() {
   let accepted = false;
   const acceptWindow = window => {
     const title = window.args?.title || window.document?.documentElement?.getAttribute('headertitle') || window.document?.title || '';
-    if (!title.includes('SDT Pack Sitter')) return;
+    if (!title.includes('Assistant d’indexation')) return;
     const dialog = window.document.querySelector('dialog');
     if (dialog?.getButton('accept')) { accepted = true; dialog.getButton('accept').click(); }
   };
