@@ -75,6 +75,9 @@ BUTTON_BLOCK = ('for (const button of buttons) {', 'for (const dialog of dialogs
 # ('sdt-document-status') and helper names (formatDocumentDuration) stay legal.
 UI_SITES = (
     ('function describeSDTTooltip(state) {', '\n}'),
+    ('function describeSDTIndexed(count) {', '\n}'),
+    ('function describeSDTFailures(count) {', '\n}'),
+    ('function announceSDTSweep(before) {', '\n}'),
     ('function describeSDTScope() {', '\n}'),
     ('function describeSDTCoverage(state) {', '\n}'),
     ('function describeSDTFile(info, fallback) {', '\n}'),
@@ -407,8 +410,8 @@ def test_toolbar_button_label_reads_index():
 
 
 def test_toolbar_tooltip_counts_files_not_packs():
-    site = _site('function describeSDTTooltip(state) {', '\n}')
-    assert 'fichiers indexés' in site
+    assert 'describeSDTIndexed(' in _site('function describeSDTTooltip(state) {', '\n}')
+    assert 'fichiers indexés' in _site('function describeSDTIndexed(count) {', '\n}')
     assert 'packs créés' not in BOOTSTRAP.read_text(encoding='utf-8')
 
 
@@ -519,7 +522,75 @@ def test_failure_summary_line_is_rendered_outside_the_diagnostics():
     assert "'sdt-failures'" in source, 'no failure-summary element is created'
     site = _site("getElementById('sdt-failures').textContent", ';')
     assert 's.failed' in site
-    assert 'fichiers n’ont pas pu être indexés' in site
+    assert 'describeSDTFailures(' in site, 'the banner composes its own plural'
+    assert 'fichiers n’ont pas pu être indexés' in \
+        _site('function describeSDTFailures(count) {', '\n}')
+
+
+def test_one_composer_owns_each_running_total():
+    """Ticket 0696. The two counts a reader is shown now reach three surfaces —
+    the tooltip, the dialog's failure banner and the end-of-sweep toast. Three
+    compositions of one plural is how the progress and error lines drifted apart
+    in ticket 0691 round 3, and how describeSDTCoverage came to exist."""
+    toast = _site('function announceSDTSweep(before) {', '\n}')
+    for composer in ('describeSDTIndexed(', 'describeSDTFailures('):
+        assert composer in toast, f'the toast composes its own {composer}'
+    # And the composers hold the wording, so a rename cannot leave a literal
+    # behind at one of the call sites.
+    for start, wording in (('function describeSDTIndexed(count) {', 'fichier indexé'),
+                           ('function describeSDTFailures(count) {',
+                            'fichier n’a pas pu être indexé')):
+        assert wording in _site(start, '\n}'), f'{start!r} lost its singular'
+    # An empty failure line at zero: a library with nothing wrong says nothing
+    # about failures rather than printing "0 fichier".
+    assert "return ''" in _site('function describeSDTFailures(count) {', '\n}')
+
+
+def test_the_sweep_toast_is_gated_on_work_the_sweep_actually_did():
+    """Ticket 0696, and the regression it was rewritten to avoid. The wrapper
+    reschedules on a fixed timer for the life of the plugin, so a toast fired on
+    the call rather than on a completed/failed delta would repeat every thirty
+    seconds forever once the library is caught up.
+
+    Read here rather than driven: the wrapper closes over `initialize`'s
+    generation token and its timer handles, so reaching it would mean standing up
+    the whole of initialize() and testing the stub. What the gate then does with
+    the snapshot is driven, with real sweeps, in tests/sdt_sitter_scheduler.mjs.
+    """
+    site = _site('const sweep = async () => {', 'pulse = timers.setInterval')
+    snapshot = site.index('sitter.state.completed')
+    swept = site.index('await sitter.sweep()')
+    announced = site.index('announceSDTSweep(before)')
+    assert snapshot < swept, 'the counts are snapshotted after the sweep changed them'
+    assert swept < announced, 'the toast is composed before the sweep it reports'
+    gate = _site('function announceSDTSweep(before) {', '\n}')
+    for read in ('before.completed', 'before.failed'):
+        assert read in gate, f'the gate never compares {read}'
+    assert 'return false' in gate, 'the gate has no silent path'
+    assert 'sitter.state.failed' in site
+
+
+def test_the_toast_adds_no_dependency_and_uses_zoteros_own_primitive():
+    """Acceptance line 1. This plugin has no build tooling — bootstrap.js and
+    scheduler.js load raw through Services.scriptloader — so pulling in
+    zotero-plugin-toolkit for a toast would mean introducing a bundler for the
+    first time to get the thing Zotero already ships."""
+    assert 'Zotero.ProgressWindow' in \
+        _site('function announceSDTSweep(before) {', '\n}')
+    source = BOOTSTRAP.read_text(encoding='utf-8')
+    assert 'zotero-plugin-toolkit' not in source
+    assert not (SITTER / 'package.json').exists(), 'the sitter acquired a build step'
+
+
+def test_no_toast_announces_the_start_of_a_sweep():
+    """A sweep touches zero, one or many files, so there is no single title to
+    name at its start, and the toolbar already spins on the active file and
+    pulses through the census. The assertion is on the one construction site:
+    exactly one toast exists, and it is the one the wrapper fires afterwards."""
+    source = BOOTSTRAP.read_text(encoding='utf-8')
+    assert source.count('new Zotero.ProgressWindow') == 1
+    assert source.count('announceSDTSweep(') == 2, \
+        'one definition and one call site — a second call is a second cadence'
 
 
 def test_native_fulltext_panel_is_the_text_search_index():

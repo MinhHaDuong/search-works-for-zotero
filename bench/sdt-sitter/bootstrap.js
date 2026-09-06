@@ -29,6 +29,12 @@ const closeJournalled = new WeakSet();
 const BUTTON = 'sdt-pack-sitter-button';
 const SWEEP_INTERVAL_MS = 30000;
 const IDLE_SWEEP_INTERVAL_MS = 10 * 60 * 1000;
+// How long the end-of-sweep toast stays up. Presentation, like the 1400 ms
+// completion blink and the 100 ms redraw beside it, so it lives here rather than
+// in SPEC.md, which owns gates, decision rules and budgets. Long enough to read
+// two short lines without looking up quickly, and comfortably shorter than the
+// 30 s floor above, so two toasts can never be on screen at once.
+const SWEEP_TOAST_MS = 8000;
 const DEBUG_PREF = 'extensions.sdt-pack-sitter.debug';
 // SPEC.md owns these two numbers; this file needs them to compare against, and
 // the diagnostics layer needs to print them. One statement each, so a threshold
@@ -114,6 +120,52 @@ function heartbeatTick() {
 function nextSweepDelayMS(state) {
   return state.phase === 'waiting' && state.candidates === 0
     ? IDLE_SWEEP_INTERVAL_MS : SWEEP_INTERVAL_MS;
+}
+
+/* Ticket 0696. One toast when a sweep actually did something, and nothing at all
+   otherwise.
+
+   THE GATE IS A DIFF, NOT A CALL. `nextSweepDelayMS` above reschedules for the
+   life of the plugin, so a toast fired on every sweep would arrive every thirty
+   seconds forever once the library is caught up — strictly worse than the
+   per-file storm this exists to replace. `before` is the wrapper's own snapshot,
+   taken ahead of the await: a sweep that admitted nothing, that the resource gate
+   refused, or that returned early because one was already running leaves both
+   counts equal and this says nothing.
+
+   `failed` belongs in the gate beside `completed` because of how scheduler.js
+   derives it — off the census, and only once the scan is whole — so it holds
+   still across an idle sweep and moves only when the library did. An accumulated
+   tally would drift by one sweep's failures every pass and toast on every one.
+
+   There is no start toast. A sweep touches zero, one or many files, so there is
+   no single title to name at its start, and the toolbar already spins on the
+   active file and pulses through the census.
+
+   Guarded whole, for the reason render() is. This runs on the sweep loop's own
+   path, and an unguarded throw would be caught by the wrapper's `catch` and
+   journalled as a sweep error — a record naming the wrong thing entirely. */
+function announceSDTSweep(before) {
+  if (!alive || !sitter) return false;
+  const s = sitter.state;
+  if (s.completed === before.completed && s.failed === before.failed) return false;
+  try {
+    const toast = new Zotero.ProgressWindow();
+    toast.changeHeadline('Assistant d’indexation');
+    // One line each, rather than one string with a newline in it: the two counts
+    // have different spans (the session's, and the last census's) and a reader
+    // meets them as two statements on the tooltip and in the dialog too.
+    for (const line of [describeSDTIndexed(s.completed), describeSDTFailures(s.failed)]) {
+      if (line) toast.addDescription(line);
+    }
+    toast.show();
+    toast.startCloseTimer(SWEEP_TOAST_MS);
+    emit('toast', { completed: s.completed, failed: s.failed });
+    return true;
+  } catch (error) {
+    emit('toast-error', { error: classifyError(error) }, 'error');
+    return false;
+  }
 }
 
 /* The failure half of settle. It goes to the session ring and Zotero.debug(),
@@ -231,9 +283,28 @@ function describeSDTScope() {
   } catch (_error) { return null; }
 }
 
+/* The two running totals a reader is shown, each composed once. Both now reach
+   three surfaces — the tooltip, the dialog, and the end-of-sweep toast — and
+   three sites agreeing on a plural by coincidence is how the progress and error
+   lines drifted apart in ticket 0691, the lesson describeSDTFile and
+   describeSDTCoverage already carry.
+
+   The failure line is empty at zero rather than "0 fichier": a library with
+   nothing wrong has nothing to say about failures, and the dialog's banner has
+   read that way since ticket 0699. The indexed line is not, because it is the
+   count itself and reads as a measurement even at zero. */
+function describeSDTIndexed(count) {
+  return count > 1 ? `${count} fichiers indexés` : `${count} fichier indexé`;
+}
+
+function describeSDTFailures(count) {
+  if (!count) return '';
+  return count > 1 ? `${count} fichiers n’ont pas pu être indexés`
+    : `${count} fichier n’a pas pu être indexé`;
+}
+
 function describeSDTTooltip(state) {
-  const indexed = state.completed > 1
-    ? `${state.completed} fichiers indexés` : `${state.completed} fichier indexé`;
+  const indexed = describeSDTIndexed(state.completed);
   const label = SDT_PHASE_LABELS[state.phase];
   const progress = label ? `${label} — ${indexed}` : indexed;
   // Before the first census there is no percentage, and the bare word "Index"
@@ -522,9 +593,7 @@ function renderState() {
       ? `Fin estimée vers ${finishAt(total.median)} (entre ${finishAt(total.low)} et ${finishAt(total.high)})` : '';
     doc.getElementById('sdt-global-estimate').textContent = globalEstimate;
     // Failures were reachable only by opening the diagnostics. Surface the count.
-    doc.getElementById('sdt-failures').textContent = s.failed === 0 ? ''
-      : s.failed > 1 ? `${s.failed} fichiers n’ont pas pu être indexés`
-        : `${s.failed} fichier n’a pas pu être indexé`;
+    doc.getElementById('sdt-failures').textContent = describeSDTFailures(s.failed);
     doc.getElementById('sdt-diagnostics').textContent = [
       `État : ${s.phase}`, `Recensement : ${s.scanned} / ${s.total}`,
       ...Object.entries(s.counts).map(([key, n]) => `${key} : ${n}`),
@@ -943,8 +1012,13 @@ async function initialize(rootURI, token) {
   // the sweep having returned normally — nor on this file being the only place a
   // throw can come from.
   const sweep = async () => {
+    // Snapshotted by the caller rather than remembered inside announceSDTSweep,
+    // so the two counts are read at a point no sweep is running: a sweep that
+    // throws halfway still leaves the wrapper holding them as they were before.
+    const before = { completed: sitter.state.completed, failed: sitter.state.failed };
     try {
       await sitter.sweep();
+      announceSDTSweep(before);
     } catch (error) {
       emit('sweep-error', { error: classifyError(error) }, 'error');
     } finally {
