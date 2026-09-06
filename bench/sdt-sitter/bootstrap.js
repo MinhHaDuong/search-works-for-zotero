@@ -92,10 +92,16 @@ function noteDialogClose(dialog) {
   emit('dialog-close', {});
 }
 
+/* `counts` is defaulted rather than dereferenced: the scheduler always
+   initialises it, but before the scope prefix landed the tooltip never read
+   coverage at all, so this function's required state shape widened onto the
+   render path — where a throw has no guard above it — without the caller's
+   shape being re-checked. */
 function getSDTCoverage(state) {
+  const counts = state.counts || {};
   return { known: state.scanned === state.total && state.phase !== 'ready',
-    current: state.counts.current || 0,
-    total: Math.max(0, state.total - (state.counts.excluded || 0) - (state.counts.unsupported || 0)) };
+    current: counts.current || 0,
+    total: Math.max(0, state.total - (counts.excluded || 0) - (counts.unsupported || 0)) };
 }
 
 /* Every phase a reader can meet on hover, in the user's vocabulary. A blocked or
@@ -103,7 +109,7 @@ function getSDTCoverage(state) {
    so each blocking reason gets its own plain sentence; the raw internal name
    stays in the diagnostics disclosure. `null` is the deliberate no-label case:
    the two healthy idle phases, where the count already says everything. An
-   unlisted phase falls back to the bare count rather than leaking its name. */
+   unlisted phase falls back to the scoped count rather than leaking its name. */
 var SDT_PHASE_LABELS = {
   ready: null,
   waiting: null,
@@ -120,11 +126,73 @@ var SDT_PHASE_LABELS = {
   'launch-declined; disable/re-enable to launch': 'Non lancé : désactiver puis réactiver l’extension',
 };
 
+/* One composer for the coverage percentage, so the toolbar strip and the tooltip
+   cannot round or space it two different ways — the lesson describeSDTFile
+   already carries for the file name. */
+function describeSDTCoverage(state) {
+  const coverage = getSDTCoverage(state);
+  return coverage.total > 0
+    ? ` ${Math.floor((coverage.current / coverage.total) * 100)} %` : '';
+}
+
+/* What the coverage figure is measured over. The button lives in the items
+   toolbar, whose scope is one library and one collection, while the census reads
+   every attachment in the database (see `list` below), so a reader is invited to
+   take the figure for the collection in view. Naming a single library would
+   replace one false scope with another; the honest prefix is the set the census
+   actually covers, read from Zotero's own records — "Ma bibliothèque" is the
+   user library's name, not a literal to hardcode, and a group library must read
+   as itself. Each record is asked for its name separately because a group
+   library is loaded lazily and can throw from its getter after a restart (the
+   defect bench/zotero-fulltext-plugin/bootstrap.js records). Past three names the
+   enumeration stops informing and the count does. Returns null when nothing can
+   be read: an unscoped tooltip is degraded, a thrown one would kill the render
+   loop.
+
+   Feeds are dropped, and that exclusion is the same requirement as the rest of
+   this function rather than a refinement of it. `Zotero.Libraries.getAll()`
+   enumerates the whole library cache, which `init` fills with feeds alongside
+   groups; a feed item carries no attachment, so no feed is in the set the census
+   measures. Listing "Nature News" beside the user library, or counting it into
+   "Toutes les bibliothèques (7)", would state a scope the figure was never
+   measured over — the very failure the prefix exists to end.
+
+   The whole body is inside the guard, not just the `getAll()` call: `render` and
+   the pulse timer carry no `try` of their own, so anything escaping here escapes
+   into a callback that fires ten times a second and would go on throwing for as
+   long as the sitter is alive. A first version guarded only the call, which left
+   the iteration itself — a `getAll()` returning something truthy and not
+   iterable — outside the guard it was written for. */
+function describeSDTScope() {
+  try {
+    const names = [];
+    for (const library of Zotero.Libraries.getAll() || []) {
+      let name;
+      try {
+        if (!library || library.libraryType === 'feed') continue;
+        name = library.name;
+      } catch (_error) { continue; }
+      if (typeof name === 'string' && name.trim()) names.push(name.trim());
+    }
+    if (names.length === 0) return null;
+    if (names.length === 1) return `Bibliothèque : ${names[0]}`;
+    if (names.length <= 3) return `Bibliothèques : ${names.join(', ')}`;
+    return `Toutes les bibliothèques (${names.length})`;
+  } catch (_error) { return null; }
+}
+
 function describeSDTTooltip(state) {
   const indexed = state.completed > 1
     ? `${state.completed} fichiers indexés` : `${state.completed} fichier indexé`;
   const label = SDT_PHASE_LABELS[state.phase];
-  return label ? `${label} — ${indexed}` : indexed;
+  const progress = label ? `${label} — ${indexed}` : indexed;
+  // Before the first census there is no percentage, and the bare word "Index"
+  // between two em dashes says nothing the rest of the line does not: the
+  // segment is dropped rather than left dangling. The scope is not — which
+  // libraries the sitter is about is true before any figure exists.
+  const percentage = describeSDTCoverage(state);
+  const segments = [describeSDTScope(), percentage && `Index${percentage}`, progress];
+  return segments.filter(Boolean).join(' — ');
 }
 
 /* The unit of work is one attachment, and Zotero names attachments for us
@@ -307,9 +375,10 @@ function render() {
   if (!alive || !sitter) return;
   const s = sitter.state;
   const coverage = getSDTCoverage(s);
-  const coverageLabel = coverage.total > 0
-    ? ` ${Math.floor((coverage.current / coverage.total) * 100)} %` : '';
   for (const button of buttons) {
+    // Composed here rather than hoisted, so the toolbar strip and the tooltip
+    // read as the two call sites of one composer at the sites themselves.
+    const coverageLabel = describeSDTCoverage(s);
     const working = s.phase === 'census' || s.active !== null;
     const now = Date.now();
     if (s.completed > lastCompleted) {

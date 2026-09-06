@@ -422,29 +422,103 @@ for (const phase of phases) {
   assert(phase in ui.SDT_PHASE_LABELS, `phase '${phase}' has no decided tooltip`);
 }
 
-const idle = ui.describeSDTTooltip({ phase: 'waiting', completed: 3 });
-assert.equal(idle, '3 fichiers indexés');
-assert.equal(ui.describeSDTTooltip({ phase: 'ready', completed: 1 }), '1 fichier indexé');
-assert.equal(ui.describeSDTTooltip({ phase: 'waiting', completed: 0 }), '0 fichier indexé');
-assert.equal(ui.describeSDTTooltip({ phase: 'census', completed: 2 }), 'Recensement — 2 fichiers indexés');
-// A bare count is reserved for the two healthy idle phases. Mapping any other
-// phase to null would silence it exactly as the raw-name removal once did.
+/* Ticket 0710: the tooltip also carries the scope the coverage figure is
+   measured over, because the button sits in a per-library, per-collection
+   toolbar while the census reads the whole database. The library names are
+   supplied here, never written into bootstrap.js, so a hardcoded "Ma
+   bibliothèque" could not satisfy these assertions. */
+const withLibraries = getAll => {
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => true }, Libraries: { getAll } };
+};
+const named = (...names) => withLibraries(() => names.map(name => ({ name })));
+// scanned === total, and of the 10 attachments 2 are excluded and 1 unsupported,
+// leaving 7 in the denominator, so the composer has a real percentage: 4 of 7.
+const tooltip = state => ui.describeSDTTooltip({ total: 10, scanned: 10,
+  counts: { current: 4, excluded: 2, unsupported: 1 }, ...state });
+
+named('Ma bibliothèque');
+const scope = 'Bibliothèque : Ma bibliothèque — Index 57 % — ';
+const idle = tooltip({ phase: 'waiting', completed: 3 });
+assert.equal(idle, `${scope}3 fichiers indexés`);
+assert.equal(tooltip({ phase: 'ready', completed: 1 }), `${scope}1 fichier indexé`);
+assert.equal(tooltip({ phase: 'waiting', completed: 0 }), `${scope}0 fichier indexé`);
+assert.equal(tooltip({ phase: 'census', completed: 2 }),
+  `${scope}Recensement — 2 fichiers indexés`);
+// A group library reads as itself. This is the assertion a "My Library" literal
+// would fail, and the reason the test supplies the names rather than grepping.
+named('Ma bibliothèque', 'Groupe Climat');
+assert.equal(tooltip({ phase: 'waiting', completed: 3 }),
+  'Bibliothèques : Ma bibliothèque, Groupe Climat — Index 57 % — 3 fichiers indexés');
+// A feed is in the library cache getAll() enumerates and holds no attachment, so
+// it is outside the set the census measures. Naming it would state a scope the
+// figure was never measured over — the failure the prefix exists to end.
+withLibraries(() => [{ name: 'Ma bibliothèque' },
+  { name: 'Nature News', libraryType: 'feed' }]);
+assert.equal(tooltip({ phase: 'waiting', completed: 3 }), idle);
+// Past three the enumeration stops informing and the count does.
+named('Ma bibliothèque', 'Groupe Climat', 'Groupe Énergie', 'Groupe Transport');
+assert.equal(tooltip({ phase: 'waiting', completed: 3 }),
+  'Toutes les bibliothèques (4) — Index 57 % — 3 fichiers indexés');
+// A group library is loaded lazily and its record can throw from the name getter
+// after a restart. One unreadable record must cost its own name, not the prefix:
+// without the per-record guard the outer guard catches instead and the whole
+// prefix goes, leaving the unscoped tooltip below.
+withLibraries(() => [{ name: 'Ma bibliothèque' },
+  { get name() { throw new Error('library not loaded'); } }]);
+assert.equal(tooltip({ phase: 'waiting', completed: 3 }), idle);
+const unscoped = 'Index 57 % — 3 fichiers indexés';
+// And when nothing at all can be read, the tooltip degrades to the unscoped
+// form rather than throwing into the render loop.
+withLibraries(() => { throw new Error('libraries unavailable'); });
+assert.equal(tooltip({ phase: 'waiting', completed: 3 }), unscoped);
+// The iteration is inside the guard too, not only the call: `render` and the
+// pulse timer have no try of their own, so a getAll() returning something truthy
+// and not iterable would throw ten times a second for the life of the sitter.
+withLibraries(() => ({ 0: { name: 'Ma bibliothèque' }, length: 1 }));
+assert.equal(tooltip({ phase: 'waiting', completed: 3 }), unscoped);
+named('Ma bibliothèque');
+// Before the first census there is no percentage. The segment goes rather than
+// leaving a bare "Index" between two em dashes; the scope stays, because which
+// libraries the sitter is about is true before any figure exists.
+assert.equal(ui.describeSDTTooltip({ total: 0, scanned: 0, counts: {},
+  phase: 'waiting', completed: 3 }), 'Bibliothèque : Ma bibliothèque — 3 fichiers indexés');
+// getSDTCoverage defaults `counts` rather than dereferencing it: the tooltip
+// began reading coverage only with the scope prefix, so this shape reaches the
+// render path, where nothing above it catches.
+assert.equal(ui.describeSDTTooltip({ total: 0, scanned: 0, phase: 'waiting', completed: 3 }),
+  'Bibliothèque : Ma bibliothèque — 3 fichiers indexés');
+// An unlabelled count is reserved for the two healthy idle phases. Mapping any
+// other phase to null would silence it exactly as the raw-name removal once did.
 const silent = [...phases].filter(phase => !ui.SDT_PHASE_LABELS[phase]).sort();
 assert.deepEqual(silent, ['ready', 'waiting'],
-  `only healthy idle phases may render a bare count: ${silent.join(' | ')}`);
+  `only healthy idle phases may render an unlabelled count: ${silent.join(' | ')}`);
 const stalled = [...phases].filter(phase => !silent.includes(phase) && phase !== 'census');
 const rendered = new Set();
+// Driven under a HYPHENATED library name on purpose. The identifier check below
+// reads a hyphen as the tell of a leaked internal phase name ('low-memory',
+// 'cpu-busy'), which it was until library names began flowing into the same
+// string; a hyphen is ordinary in a name the user chose. Running this loop under
+// "Ma bibliothèque" would leave the check's new scoping unexercised and green by
+// accident of the fixture -- which is what it was before this line.
+named('Groupe socio-technique');
+const hyphenated = 'Bibliothèque : Groupe socio-technique — Index 57 % — ';
+const hyphenatedIdle = tooltip({ phase: 'waiting', completed: 3 });
+assert.equal(hyphenatedIdle, `${hyphenated}3 fichiers indexés`);
 for (const phase of stalled) {
-  const tooltip = ui.describeSDTTooltip({ phase, completed: 3 });
-  assert(tooltip !== idle, `'${phase}' is indistinguishable from a healthy idle sitter`);
-  assert(!tooltip.includes(phase), `'${phase}' leaks its internal name: ${tooltip}`);
-  assert(!/[a-z]-[a-z]/.test(tooltip), `'${phase}' reads as an identifier, not a sentence: ${tooltip}`);
-  assert(tooltip.endsWith(idle), `'${phase}' dropped the count: ${tooltip}`);
-  rendered.add(tooltip);
+  const text = tooltip({ phase, completed: 3 });
+  assert(text !== hyphenatedIdle, `'${phase}' is indistinguishable from a healthy idle sitter`);
+  assert(!text.includes(phase), `'${phase}' leaks its internal name: ${text}`);
+  assert(text.endsWith('3 fichiers indexés'), `'${phase}' dropped the count: ${text}`);
+  assert(text.startsWith(hyphenated), `'${phase}' dropped the library scope: ${text}`);
+  assert(!/[a-z]-[a-z]/.test(text.slice(hyphenated.length)),
+    `'${phase}' reads as an identifier, not a sentence: ${text}`);
+  rendered.add(text);
 }
 assert.equal(rendered.size, stalled.length, 'two blocking phases share one tooltip');
-// An unlisted phase degrades to the bare count instead of leaking its name.
-assert.equal(ui.describeSDTTooltip({ phase: 'a-brand-new-phase', completed: 3 }), idle);
+// An unlisted phase degrades to the scoped count instead of leaking its name.
+assert.equal(tooltip({ phase: 'a-brand-new-phase', completed: 3 }), hyphenatedIdle);
+named('Ma bibliothèque');
+assert.equal(tooltip({ phase: 'waiting', completed: 3 }), idle);
 
 /* Zotero auto-names attachments, so the reference must lead. A line reading
    only 'Full Text PDF' identifies nothing, which is the whole point of
