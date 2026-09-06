@@ -11,12 +11,21 @@ produces. The sitter has already shipped several payloads under `2.2.0`.
 WHAT IS COMPARED, and it is anchored at the tip rather than swept over the
 whole history:
 
-1. **No regression.** No commit's manifest version is greater than the working
-   tree's. A number that goes backwards means the newer artifact looks older.
-2. **No reuse.** No earlier commit carries the working tree's version over a
+1. **No reuse.** No earlier commit carries the working tree's version over a
    DIFFERENT payload — the three files `build_sdt_sitter.DELIVERED` names,
    hashed together. Change one byte of `bootstrap.js` without bumping and this
    fires; bump and it clears.
+
+THE NO-REGRESSION CHECK WAS REMOVED 2026-09-06 (author's ruling, this ticket's
+DECISIONS.md entry): the sitter has never been released — no auto-update
+channel, no user-facing install outside the author's own hand-delivered
+XPI — so the numbering scheme itself was reset from `2.x.y` to `0.2.11`,
+which is numerically a decrease against everything already in history. A
+"no regression" rule protects against a number silently going backwards by
+accident; it has nothing useful to say about a deliberate, once-only, ruled
+reset, and firing on one anyway would only block it. What still matters, and
+is unaffected by any scheme reset, is that no two DIFFERENT payloads ever
+answer to the same number — that is rule 1 above, and it is unconditional.
 
 IT BITES INSIDE A BRANCH TOO, and that is intended rather than tolerated. An
 unbumped payload change fires against the branch's own previous commit, not
@@ -103,9 +112,11 @@ class Unreadable(Exception):
 def parse(version: str) -> tuple[int, ...]:
     """`"2.10.0"` → `(2, 10, 0)`. A dotted version sorts as numbers, not as text.
 
-    String order calls 2.10.0 older than 2.9.0, which is the direction that
-    lets a regression pass. A component that is not an integer is a manifest
-    this guard cannot order, and it says so rather than guessing.
+    String equality calls `"2.03.0"` and `"2.3.0"` two different versions;
+    numerically they are one, and the reuse check below needs to see that to
+    catch a changed payload hiding behind a reformatted number. A component
+    that is not an integer is a manifest this guard cannot order, and it says
+    so rather than guessing.
     """
     return tuple(int(part) for part in version.split("."))
 
@@ -197,16 +208,11 @@ def run(root: Path) -> tuple[list[str], str, int]:
         if was is None:
             continue
         read += 1
-        if parse(was) > current:
-            findings.append(
-                f"{sha[:12]} carries version {was}, ahead of the working tree's "
-                f"{current_version}. A version that goes backwards makes the newer "
-                "artifact look older to Zotero and to every bug report about it.")
-        # Numerically, like the regression check one line up, and not as text.
-        # `"2.03.0"` and `"2.3.0"` are one version to any dotted-number
-        # comparator, Zotero's included; string equality calls them two, so a
-        # leading zero slipped a changed payload past BOTH checks at once.
-        elif parse(was) == current and payload(reader) != current_payload:
+        # Numerically, not as text: `"2.03.0"` and `"2.3.0"` are one version to
+        # any dotted-number comparator, Zotero's included; string equality
+        # calls them two, so a leading zero would otherwise slip a changed
+        # payload past this check.
+        if parse(was) == current and payload(reader) != current_payload:
             findings.append(
                 f"{sha[:12]} already shipped a DIFFERENT payload under version "
                 f"{current_version}. Bump the manifest version: two builds sharing "
@@ -277,7 +283,7 @@ def main() -> int:
         log.error("FAIL: %s", finding)
     if findings:
         return 1
-    log.info("OK: version %s is ahead of all %d earlier revisions of %s, and no earlier "
+    log.info("OK: version %s, checked against %d earlier revisions of %s, and no earlier "
              "revision shipped a different payload under it", version, read, SITTER)
     return 0
 

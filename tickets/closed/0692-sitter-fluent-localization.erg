@@ -1,0 +1,107 @@
+%erg 0.1
+Title: Localize the sitter with Fluent, extensible past EN/FR/ES/VI
+Created: 2026-09-06
+Author: claude
+Closed: autoclosed — PR #403
+
+--- log ---
+2026-09-06T00:00Z claude created
+2026-09-06T00:00Z author decided Build i18n now, in this repo -- do not wait for the (still undecided) repo extraction.
+2026-09-06T00:00Z claude note Imagine phase (raid, sonnet): PROCEED, with the justification rebalanced. Only one string in the actual set is genuinely plural-sensitive; the strong reason for Fluent is that Zotero's own shipped code already treats .ftl as the default convention for user-facing strings (see verification/BRIDGE-0496.md:259), so Localization/Fluent parsing is already loaded in every Zotero window at zero marginal cost -- lead with that, not with plurals. Real cost flagged: this repo has zero npm dependencies of any kind; unit-testing the missing-id fallback needs either the repo's first dev dependency (e.g. @fluent/bundle) or a real-Zotero-window-only test -- pick one explicitly in Plan, don't leave it implicit. Wire via a plain imperative Localization instance (l10n.formatValue) at the existing .textContent/.setAttribute call sites -- document.l10n (markup-observing) is the wrong tool since this dialog's DOM is built imperatively with no data-l10n-id markup anywhere. Sequencing: 0691 must land first (confirmed still unimplemented); the open question of whether to wait for a possible repo-extraction before building i18n is unresolved anywhere else in the repo and must go back to the author, not be decided here.
+
+2026-09-06T10:11Z sim note blocker 0691 closed — Blocked-by removed.
+2026-09-06T00:00Z claude note Imagine phase round 2 (raid, sonnet): PROCEED WITH CHANGES. 0691 confirmed merged, gives this ticket exactly the vocabulary/DOM structure expected. Fixes applied: (1) closed the sequencing question with the same-day DECISIONS.md permahome ratification and ticket 0697's explicit wave dependency -- it was never actually open once that ruling landed; (2) corrected the plural-string count from one to two (tooltip AND the failures line); (3) rescoped acceptance to strings that exist today plus a forward rule for 0693/0696/0699; (4) dropped the verification/BRIDGE-0496.md citation -- it only shows the absence of a .ftl entry for an unrelated pref as evidence of a dev escape hatch, it doesn't establish Fluent parsing runs in every window; (5) specified FluentBundle/FluentResource fetched via the existing rootURI-read idiom, not Localization+L10nRegistry, since this addon has no chrome/resource-protocol registration for the latter to hook into.
+2026-09-06T16:27Z claude note Executed. Scope was the strings that exist TODAY, which is ~60 rather than the ~20 the ticket was drafted against: 0693's disclosure layers and 0699's coverage line landed in between. Two departures from the Design section, both recorded here because they were choices and not omissions. (1) No manifest line and no listing of any kind — the chain resolves by trying to fetch `locale/<tag>/…`, so an unshipped locale is a failed fetch, and adding a language is literally one file. A manifest key was the alternative and was dropped: an unrecognised manifest property is how a plugin quietly stops being installable, which ticket 0688 is about. (2) The English diagnostics latitude was not taken — every layer is translated in all four locales, because leaving layer 3 English would have left `describeSDTJournalTail`'s date format and `formatSDTBytes`'s decimal comma hardcoded anyway, and those are the locale literals the third criterion bans. Testing took the stub arm: tests/fluent_stub.mjs implements the .ftl subset these files use, and a new adherence-style test holds the files inside that subset so the stub and Gecko's real parser cannot read one file two ways. Both new grep guards were proven red once against a deliberately broken tree (a hardcoded `doc.title`, and a message dropped from fr.ftl) before being trusted.
+
+2026-09-06T17:45Z claude note Review round 1 (five perspectives; scope and correctness approve, consistency/doc-propagation/red-team comment). Folded in: the forward rule now sits in bootstrap.js's own header where a contributor adding a string will meet it, not only in test docstrings; `looks_like_a_sentence` no longer requires a capital or an accent -- red team walked through it with a lowercase ASCII `'unknown size'`, and the capital had only ever been standing in for the one internal phase key that reads like a sentence, which is now exempted by name; four malformed-`.ftl` arms added, with what they do NOT establish written down (this stub drops a whole resource on one bad entry where Gecko's Fluent is per-entry fault-tolerant, so production should do better and nothing here proves it); ticket 0725 filed for the 41 French lines missing their espace insécable. History squashed to one commit so no revision of this branch carries version 2.10.0.
+
+2026-09-06T17:46Z claude note Correction to the reported mechanism for that squash, because the fix was right and the reason given for it was not. The claim relayed was a guard failure on main "regardless of merge order". `check_sitter_version` compares each historical version against the WORKING TREE's version only -- `parse(was) > current` or `parse(was) == current` with a different payload -- and says so in its own docstring: "It says nothing about a collision between two purely historical versions." So two historical 2.10.0 commits under a tree at 2.10.1 do not fire. The hazard is real but conditional: it fires only if a tree carrying 2.10.0 lands with my differing 2.10.0 already an ancestor, i.e. if #402 merges after this PR, or if a manifest conflict resolves downward. Squashed anyway -- the fix costs one rewrite and removes the condition rather than relying on merge order holding -- but recorded here so nobody inherits the wrong model of what that guard checks.
+
+2026-09-06T18:08Z claude note Integrated 0696 (progress toasts), which landed first and is the forward rule's first live test -- it arrived with three new user-facing strings written for the pre-0692 world. Two of them were already better structured than my own work and the merge keeps THEIR shape: 0696 introduced `describeSDTIndexed`/`describeSDTFailures`, one composer per count, because both counts now reach three surfaces (tooltip, dialog banner, toast) and three sites agree only by coincidence. I had put the Fluent selector at each site instead. The union is the composers holding the message ids -- 0696's guarantee that the sites cannot drift, plus this ticket's guarantee that the plural is not a French rule written in JavaScript. The requirements are orthogonal and neither side had both. The third string, the toast's headline, was a French literal and now reads the same `dialog-title` message the status window's title does; the toast and the window are the same thing announcing itself. Its three functions are now in UI_SITES, so the ban covers them -- which is exactly the asymmetry that list's own comment warns about: a site that ARRIVES is silent.
+
+2026-09-06T18:14Z claude note Version set to 0.2.11 per the author's ruling (DECISIONS.md 2026-09-06, PR #405). Checked rather than assumed, because the instruction as relayed said the guard "should say OK" and the guard's surviving no-reuse rule is unconditional: had #405 also set main's manifest to 0.2.11, my differing payload under the same number would have been refused. It did not -- #405 retired the no-regression check and left main at 2.11.0 -- so 0.2.11 has never existed in this history and the reset is this PR's to make. Guard run: OK against 56 earlier revisions.
+
+2026-09-06T18:16Z sim closed — autoclosed — PR #403
+--- body ---
+## Context
+
+Author, 2026-09-06: wants multilingual EN/FR/ES/VN, extensible. Every
+user-facing string in the current sitter is hard-coded French.
+
+## Design
+
+- **Mechanism: Fluent `.ftl`**, the Zotero 7+/Firefox convention --
+  `locale/<lang>/sdt-pack-sitter.ftl`. Wire it via a plain imperative
+  `FluentBundle`/`FluentResource` (from
+  `resource://gre/modules/Fluent.sys.mjs`), fetching `.ftl` text the same
+  way `bootstrap.js` already fetches `manifest.json`
+  (`Zotero.File.getContentsFromURLAsync(rootURI + ...)`), and calling
+  `bundle.formatPattern(...)` at the existing `.textContent`/
+  `.setAttribute` call sites. NOT `Localization`+`L10nRegistry`
+  (`document.l10n`): this addon has no chrome/resource-protocol
+  registration (`Services.scriptloader.loadSubScript`, no
+  `chrome.manifest`), and `document.l10n` observes `data-l10n-id` markup,
+  but this dialog's DOM is built entirely imperatively with no markup to
+  observe. `L10nRegistry` would require new registration machinery this
+  addon has never had; the raw-fetch approach needs none.
+- Two strings are genuinely plural-sensitive today: the toolbar tooltip
+  file count (`describeSDTTooltip`, "N fichiers indexés"/"N fichier
+  indexé") and the failures line (`sdt-failures`, same singular/plural
+  split). Both need a Fluent `$count`-selector. Dates and durations
+  format through `Intl` per locale, replacing the current hard-coded
+  `fr-FR`.
+- **Extensible as data, not code.** A locale is a directory listing --
+  adding a fifth language later is one `.ftl` file plus one manifest line.
+  Fallback chain: requested locale -> its language without region -> `en`,
+  the source of truth every string id must exist in.
+- **Language selection** follows Zotero's own UI locale; no separate
+  in-plugin setting.
+- **Testing** with zero new dependencies (this repo has none, and
+  Gecko's Fluent modules aren't importable under plain Node regardless):
+  either a minimal hand-written stub sufficient to test the missing-id
+  fallback (mirroring the `vm.runInNewContext` pattern already used in
+  tests/sdt_sitter_scheduler.mjs), or route that one criterion through
+  `verification/probes/sdt-sitter-harness/` (an existing real-Zotero
+  smoke driver). Ticket 0695 is building a mocked Zotero test harness in
+  parallel -- a plausible future landing spot, but do not block this
+  ticket on it.
+
+## Sequencing
+
+RESOLVED, not open: DECISIONS.md (2026-09-06, RATIFIED) keeps the sitter
+in this repo -- no extraction, no re-wiring risk. Ticket 0697 (promote
+`bench/sdt-sitter/` -> `plugins/sdt-sitter/`) names this ticket explicitly
+as part of the wave that must land first; the `.ftl` files travel with
+that `git mv` either way. Nothing here is still pending an author answer.
+
+Scope this ticket to the ~20 strings that exist in the dialog's current
+flat structure. Tickets 0693, 0696, and 0699 are still open and will add
+new strings -- as each lands, route its new strings through the `.ftl`
+files rather than reintroducing hardcoded literals, or the "no locale
+literal" grep test below regresses on the very next PR.
+
+## Acceptance
+
+- [x] All four locales (en, fr, es, vi) complete for every string that
+      exists in the dialog today (0693 and 0699 had already landed, so that
+      is ~60 strings, not ~20); the diagnostics layer is translated too
+      rather than left English -- see the log note for why the latitude was
+      not taken. `test_the_four_locales_carry_exactly_the_english_id_set`.
+- [x] A missing-id fallback test, run with a deliberately truncated
+      `fr.ftl`, shows English text where the id is missing and raises no
+      exception. `tests/sdt_sitter_l10n.mjs`, every arm paired with the
+      complete-file control that keeps it from passing vacuously.
+- [x] No locale literal (e.g. `'fr-FR'`) remains in code -- grep test.
+      `test_no_locale_literal_survives_in_the_source`, which checks the
+      `Intl` and `toLocale*` call sites rather than one spelling of the tag.
+- [x] Wording from 0691 lands first; this ticket externalizes it, it does
+      not also change it. The French `.ftl` reproduces every string verbatim,
+      which is what lets the driven suites keep their existing assertions.
+- [x] Both plural-sensitive strings (tooltip file count, failures line)
+      use a Fluent `$count`-selector, not string concatenation.
+      `test_both_plural_sensitive_strings_use_a_count_selector`.
+- [x] Forward rule for 0696 and anything after it: a new string goes in all
+      four `.ftl` files and is read with `sdtText`. Enforced, not merely
+      asked -- `test_no_ui_site_keeps_a_sentence_of_its_own` reddens both on
+      a message hardcoded back into the source and on prose that is in no
+      locale at all.
