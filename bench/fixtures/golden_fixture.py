@@ -1063,7 +1063,7 @@ def _reindex_record(mode: str | None, observed: dict | None) -> dict:
         "limits": "applied" if mode == "stock" else "ignored",
         "complete_flag": REINDEX_MODES[mode],
         "observed_from": "the control plugin's status lastReindexMode after the reindex settled",
-        "plugin_version": (observed or {}).get("version"),
+        "plugin_version": (observed or {}).get("codeVersion") or (observed or {}).get("version"),
         "source": "bench/zotero-fulltext-plugin/bootstrap.js: Zotero.FullText.indexItems(ids, "
                   "{complete, ignoreErrors: true}); fulltext.js indexPDF(filePath, itemID, allPages)",
         "binding_record": "per-attachment indexed_pages/total_pages and indexed_chars/total_chars",
@@ -1087,7 +1087,7 @@ def _plugin_status(client) -> dict:
         value = prefs.get(name)
         if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
             raise GoldenFixtureError(f"the control plugin reports fulltext.{name} as {value!r}, not a positive integer")
-    version = status.get("version")
+    version = status.get("codeVersion") or status.get("version")
     if not isinstance(version, str) or not version.strip():
         raise GoldenFixtureError("the control plugin reports no version")
     mode = status.get("lastReindexMode")
@@ -1266,7 +1266,7 @@ def export_snapshot(
                                    + ("a bound on this extraction (stock reindex), checked against every "
                                       "captured counter" if observed_mode == "stock" else
                                       "profile provenance only, not a bound on this extraction (see reindex)"),
-                "plugin_version": observed["version"],
+                "plugin_version": observed.get("codeVersion") or observed["version"],
             },
             "reindex": _reindex_record(observed_mode, observed),
             "known_defects": [dict(defect) for defect in (known_defects or [])]

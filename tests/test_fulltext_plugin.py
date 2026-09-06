@@ -111,6 +111,7 @@ def test_status_reports_version_last_mode_and_live_preferences():
     result = drive({"keys": ["ATTACH01"], "complete": True})
     before, after = result["before"], result["after"]
     assert before["version"] == "9.9.9-test" and before["lastReindexMode"] is None
+    assert before["codeVersion"] == "0.3.0", "the code reports its own version beside the registered one"
     assert before["prefs"] == {"pdfMaxPages": 100, "textMaxLength": 500000}
     assert after["lastReindexMode"] == "uncapped"
     # The preference moved between the two reads; a cached value would still say 100.
@@ -121,6 +122,8 @@ def test_status_reports_version_last_mode_and_live_preferences():
 def test_manifest_version_matches_the_documented_contract():
     manifest = json.loads((PLUGIN / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["version"] == "0.3.0"
+    source = (PLUGIN / "bootstrap.js").read_text(encoding="utf-8")
+    assert "const CODE_VERSION = '0.3.0';" in source, "the code version the status reports equals the manifest's"
     readme = (PLUGIN / "README.md").read_text(encoding="utf-8")
     assert '"complete"' in readme and "lastReindexMode" in readme and "stock" in readme
     source = (PLUGIN / "bootstrap.js").read_text(encoding="utf-8")

@@ -31,6 +31,10 @@ let running = 0;
 let lastError = null;
 let lastReindexMode = null;
 let pluginVersion = null;
+//: The version of this file, kept equal to manifest.json's. The add-on manager hands
+//: startup() the version it REGISTERED, which lags a replaced xpi until the profile
+//: re-reads the manifest (padme, 2026-09-06: new code ran under a 0.1.1 label).
+const CODE_VERSION = '0.3.0';
 
 function reindexMode(complete) {
   return complete ? 'uncapped' : 'stock';
@@ -144,7 +148,7 @@ Status.prototype = {
     };
     return json(200, {
       busy: running > 0, running, lastError, stats, items,
-      version: pluginVersion, lastReindexMode, prefs,
+      version: pluginVersion, codeVersion: CODE_VERSION, lastReindexMode, prefs,
     });
   },
 };
