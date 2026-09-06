@@ -153,6 +153,19 @@ def test_sdt_sitter_dialog():
 
 
 @pytest.mark.integration
+def test_sdt_sitter_bootstrap():
+    """`initialize()`'s own closure, run against a mock Zotero host.
+
+    The scheduler suite above supplies its own `blocked`, `inspect` and cache, so
+    it exercises the admission contract and never the implementations bootstrap.js
+    passes it: the /proc reads, the pack reader, the cache file as the next
+    session finds it, the two windows, the two clocks. Ticket 0695.
+    """
+    subprocess.run(['node', 'tests/sdt_sitter_bootstrap.mjs'], cwd=ROOT,
+                   check=True, capture_output=True, text=True, timeout=60)
+
+
+@pytest.mark.integration
 def test_sdt_sitter_bootstrap_syntax():
     subprocess.run(['node', '--check', 'bench/sdt-sitter/bootstrap.js'], cwd=ROOT,
                    check=True, capture_output=True, text=True, timeout=30)
@@ -584,9 +597,10 @@ def test_every_deferred_callback_checks_the_generation_it_was_armed_in():
     advertises the flow — disable stops admissions, the file in flight finishes —
     and initialize() restores `alive` before its modal confirm, so no click is
     needed. The race itself is staged and driven in
-    tests/sdt_sitter_scheduler.mjs; what is asserted here is the file-wide
-    convention it broke, since a second deferred callback added without the check
-    would reintroduce the same class in a new place."""
+    tests/sdt_sitter_bootstrap.mjs, over a real startup/disable/re-enable, and
+    the gate alone in tests/sdt_sitter_scheduler.mjs; what is asserted here is
+    the file-wide convention it broke, since a second deferred callback added
+    without the check would reintroduce the same class in a new place."""
     loop = _site('function createSDTSweepLoop(token) {', '\n}')
     assert 'if (token === generation) announceSDTSweep(before)' in loop, \
         'the announcement is spent against whatever generation happens to be current'
@@ -596,8 +610,22 @@ def test_every_deferred_callback_checks_the_generation_it_was_armed_in():
     # regression test cannot stage it and this convention goes back to being
     # asserted by reading. `let` at script top level does not.
     source = BOOTSTRAP.read_text(encoding='utf-8')
-    for binding in ('var generation = 0;', 'var timers;'):
+    for binding in ('var generation = 0;', 'var timer, pulse, heartbeat, timers;'):
         assert binding in source, f'{binding!r} is out of reach of a driven test'
+
+
+def test_the_mock_host_carries_the_toast_primitive():
+    """`announceSDTSweep` is guarded, so a host without `Zotero.ProgressWindow`
+    does not fail — it journals `toast-error` and returns. The mock in
+    tests/sdt_sitter_zotero_mock.mjs must therefore carry the primitive, or every
+    scenario driven through it records a swallowed error where a toast belongs
+    and the one that checks for silence passes because the constructor threw. A
+    control run with the primitive removed reddens
+    `a disable, a re-enable, and the suspended sweep announces nothing`."""
+    mock = (ROOT / 'tests' / 'sdt_sitter_zotero_mock.mjs').read_text(encoding='utf-8')
+    assert 'class ProgressWindow' in mock, 'the mock host cannot show a toast'
+    assert 'ProgressWindow,' in mock, 'the class is never published on the Zotero stub'
+    assert 'toasts,' in mock, 'the harness exposes no toasts to assert on'
 
 
 def test_the_toast_adds_no_dependency_and_uses_zoteros_own_primitive():

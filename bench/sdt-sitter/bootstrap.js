@@ -24,12 +24,19 @@ var buttons = new Set(), dialogs = new Set(), renderFailing = false;
 // it reached. Both are `var` for the reason just above: tests/sdt_sitter_dialog.mjs
 // drives the layer against them without standing up the whole of initialize().
 var environment = {}, admission = null;
-let timer, pulse, heartbeat;
-// `var` for the reason the block above gives, and the reason is not decorative
-// here: the sweep loop reschedules through this handle, so a test that cannot
-// install a clock cannot run the loop at all — and a loop nothing runs is where
-// the cross-generation defect of ticket 0696 hid from two suites at once.
-var timers;
+// `var` for the same sandbox reason as everything above: shutdown()'s teardown is
+// driven directly by tests/sdt_sitter_scheduler.mjs, and the assertion that it
+// cleared the three handles and burned the generation token can only be written
+// against bindings a sandboxed load exposes. As `let` they were invisible, so the
+// half of shutdown() that stops the sitter from rescheduling itself was checked by
+// nothing (ticket 0695).
+//
+// Two tickets arrived at this line independently, which is worth recording rather
+// than collapsing: 0696 needed `timers` for the other half of the same loop. The
+// sweep reschedules through this handle, so a test that cannot install a clock
+// cannot run the loop at all — and a loop nothing runs is where 0696's
+// cross-generation defect hid from two suites at once, past a green mutation.
+var timer, pulse, heartbeat, timers;
 const closeJournalled = new WeakSet();
 const BUTTON = 'sdt-pack-sitter-button';
 const SWEEP_INTERVAL_MS = 30000;
@@ -48,13 +55,59 @@ const MIN_FREE_MEMORY = 4 * 1024 ** 3, MIN_FREE_DISK = 8 * 1024 ** 3;
 // Bootstrap reason constants are numeric here and named elsewhere; accept both.
 const SHUTDOWN_REASONS = { 2: 'app-shutdown', 3: 'enable', 4: 'disable',
   5: 'install', 6: 'uninstall', 7: 'upgrade', 8: 'downgrade' };
-// `var`, same reason as `sitter` and `timers`: the disable/re-enable race of
-// ticket 0696 IS a generation change, so a test that cannot move this number
-// cannot stage the defect, and the guard against it would be asserted by reading
-// the source — which is how the defect got in.
+// Also `var`, and 0696 needs it writable rather than merely readable: the
+// disable/re-enable race IS a generation change, so a test that cannot move this
+// number cannot stage the defect, and the guard against it would be asserted by
+// reading the source — which is how the defect got in.
 var generation = 0;
 let lastCompleted = 0;
 let completionBlinkUntil = 0;
+
+/* The clock every DURATION in this file is measured on.
+
+   `Date.now()` reads the calendar, and the calendar moves: NTP steps it, a
+   laptop resuming from suspend steps it, and the author setting his own clock
+   steps it by hours. A span computed across such a step is not merely imprecise,
+   it changes sign — an elapsed line reading "-42 min", an empirical upper bound
+   no document can exceed because the subtraction went negative, a heartbeat
+   whose age is in the future. Nothing downstream re-checks the sign, because
+   until now nothing could produce a negative one.
+
+   Wall-clock time keeps the two uses that are honestly about the calendar: a
+   journal record's `at`, and the projected finish time the dialog prints.
+   Everything else — elapsed, silence, service time, the duration samples the
+   estimator is fitted on, the age of a resource reading, the memoized-hash
+   window — is a span, and reads this.
+
+   Gecko's `ChromeUtils.now()` IS `TimeStamp::Now`, the process-monotonic clock
+   the platform measures itself with; `performance.now()` is that same clock
+   through the web API. Read at each call rather than resolved once into a
+   `const`: this file is evaluated before `startup()` runs, and `ChromeUtils` is
+   a global the host installs into the scope, so a load-time binding would
+   capture nothing. Both reads are guarded for the reason `classifyError`
+   carries — a diagnostic must never be the thing that stops the sitter.
+
+   The last resort is the wall clock ratcheted to its own high-water mark. It
+   cannot say how long a backwards step lasted, and no source without a
+   monotonic clock can; what it can do is refuse to answer a negative duration,
+   which is the failure this exists to end. */
+var monotonicFloor = 0;
+function monotonic() {
+  try {
+    if (typeof ChromeUtils === 'object' && typeof ChromeUtils.now === 'function') {
+      const reading = ChromeUtils.now();
+      if (Number.isFinite(reading)) return reading;
+    }
+  } catch (_error) { /* Fall through to the next source. */ }
+  try {
+    if (typeof performance === 'object' && typeof performance.now === 'function') {
+      const reading = performance.now();
+      if (Number.isFinite(reading)) return reading;
+    }
+  } catch (_error) { /* Fall through to the wall clock. */ }
+  monotonicFloor = Math.max(monotonicFloor, Date.now());
+  return monotonicFloor;
+}
 
 /* The sitter's whole diagnostic channel. Until the seal, the ring takes
    everything; Zotero.debug() takes everything but trace, which waits on the
@@ -110,7 +163,7 @@ function heartbeatTick() {
   if (!alive || !sitter) return;
   const s = sitter.state;
   if (!s.busy && s.active === null) return;
-  const age = since => (since == null ? null : Date.now() - since);
+  const age = since => (since == null ? null : monotonic() - since);
   emit('heartbeat', { id: s.active, phase: s.phase, progress: s.progress,
     elapsedMS: age(s.startedAt), sinceProgressMS: age(s.lastProgressAt),
     pending: s.pending.length }, 'trace');
@@ -206,7 +259,11 @@ function announceSDTSweep(before) {
    counters and toast whatever the subtraction happened to say.
 
    The reschedule below already carried the same check, for the neighbouring
-   reason: a stale loop that rescheduled would run two sweeps per interval.
+   reason: a stale loop that rescheduled would run two sweeps per interval. It is
+   in a `finally` because it is the single point whose loss stops the sitter for
+   the session, so it must not depend on the sweep having returned normally — nor
+   on this file being the only place a throw can come from. That is defence in
+   depth behind render()'s own guard (ticket 0702), not a substitute for it.
 
    The snapshot is a copy of the two numbers, taken outside the try. A reference
    to `sitter.state` would read the same object twice and compare it with itself,
@@ -439,7 +496,7 @@ function formatSDTAge(ms) {
 function describeSDTAdmission() {
   if (!admission) return 'Aucune mesure de ressources depuis le démarrage.';
   return [
-    `Dernière mesure il y a ${formatSDTAge(Date.now() - admission.at)} — une lecture par admission, aucune tant que la bibliothèque est à jour`,
+    `Dernière mesure il y a ${formatSDTAge(monotonic() - admission.at)} — une lecture par admission, aucune tant que la bibliothèque est à jour`,
     `Mémoire disponible : ${formatSDTBytes(admission.memoryAvailableBytes)} (seuil ${formatSDTBytes(MIN_FREE_MEMORY)})`,
     admission.load === undefined ? ''
       // The load average is a bare number from /proc and would otherwise print a
@@ -589,7 +646,10 @@ function renderState() {
     // read as the two call sites of one composer at the sites themselves.
     const coverageLabel = describeSDTCoverage(s);
     const working = s.phase === 'census' || s.active !== null;
-    const now = Date.now();
+    // The blink deadline and the two animation phases are all spans, so they
+    // read the monotonic clock: a wall-clock step backwards would otherwise
+    // freeze the spinner for as long as the step lasted.
+    const now = monotonic();
     if (s.completed > lastCompleted) {
       lastCompleted = s.completed;
       completionBlinkUntil = now + 1400;
@@ -609,8 +669,8 @@ function renderState() {
     const doc = dialog.document;
     const status = doc.getElementById('sdt-status');
     if (!status) continue;
-    const elapsed = s.active === null ? null : Math.round((Date.now() - s.startedAt) / 1000);
-    const silence = s.active === null ? null : Math.round((Date.now() - s.lastProgressAt) / 1000);
+    const elapsed = s.active === null ? null : Math.round((monotonic() - s.startedAt) / 1000);
+    const silence = s.active === null ? null : Math.round((monotonic() - s.lastProgressAt) / 1000);
     const formatDuration = ms => {
       const minutes = Math.max(1, Math.round(ms / 60000));
       return minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
@@ -624,14 +684,18 @@ function renderState() {
       `Durée estimée : ${formatDuration(prediction.median)} (entre ${formatDuration(prediction.low)} et ${formatDuration(prediction.high)})` : '';
     const activePrediction = s.active === null ? null : estimateSDTDuration(s.fittedSamples, s.activeInfo);
     const total = { low: 0, median: 0, high: 0 };
-    const overrun = activePrediction && Date.now() - s.startedAt > activePrediction.high;
+    const overrun = activePrediction && monotonic() - s.startedAt > activePrediction.high;
+    // The one wall-clock reading left in this loop, and it is not a span: a
+    // finish time is a point on the author's calendar, which is exactly what a
+    // monotonic clock cannot name. The offset added to it IS a span, so it comes
+    // from the totals above.
     const finishAt = ms => new Date(Date.now() + ms).toLocaleString('fr-FR',
       { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
     let unknown = 0;
     for (const item of s.pending) {
       const prediction = estimateSDTDuration(s.fittedSamples, item);
       if (!prediction) { unknown++; continue; }
-      const spent = item.id === s.active ? Date.now() - s.startedAt : 0;
+      const spent = item.id === s.active ? monotonic() - s.startedAt : 0;
       for (const key of ['low', 'median', 'high']) total[key] += Math.max(0, prediction[key] - spent);
     }
     if (unknown && s.fittedSamples.length >= 3) {
@@ -899,6 +963,13 @@ async function initialize(rootURI, token) {
   emit('cache-load', { records: Object.keys(raw.records).length });
   let seen = new Set();
   let compact = true;
+  // Latched exactly as render()'s guard is, and for the same reason: saveCache
+  // runs once at the end of the census and again after every settled duration,
+  // so a data directory that is unwritable for the session would emit on each of
+  // them and evict the ring that holds the evidence. One record per episode,
+  // released by the next write that works — so a second, later episode is still
+  // reported (ticket 0695).
+  let cacheFailing = false;
   const saveCache = async () => {
     const previous = Zotero.SDTPackSitterCacheWrite || Promise.resolve();
     const write = previous.catch(() => {}).then(async () => {
@@ -916,9 +987,21 @@ async function initialize(rootURI, token) {
         // This one resumes after an await, so disable can land under it. The seal
         // in shutdown() is what keeps it off the far side of the shutdown record.
         emit('cache-write', { rows: changes.length, compact });
+        cacheFailing = false;
         compact = false;
       }
-      catch (error) { if (alive && sitter) sitter.state.cacheWarning = `Cache non enregistré : ${error}`; }
+      catch (error) {
+        if (alive && sitter) sitter.state.cacheWarning = `Cache non enregistré : ${error}`;
+        // Contained is not silent. From the ring alone a cache that has stopped
+        // persisting anything looked exactly like one that is working, and the
+        // on-screen warning it did set sits three disclosures deep. The error's
+        // class travels and its message does not — the throw comes from the
+        // platform, and a platform message names the path it failed on.
+        if (!cacheFailing) {
+          cacheFailing = true;
+          emit('cache-error', { error: classifyError(error), compact }, 'error');
+        }
+      }
     });
     Zotero.SDTPackSitterCacheWrite = write;
     await write;
@@ -951,7 +1034,10 @@ async function initialize(rootURI, token) {
     try { source = await IOUtils.stat(sourcePath); }
     catch (_error) { return { status: 'missing-source' }; }
     const cacheKey = `${item.libraryID}/${item.key}`;
-    const hash = await sourceHashes.hash(cacheKey, sourcePath, source, Date.now(),
+    // The re-verify window is an age, so it is a span like every other: on the
+    // wall clock a backwards step shortens it and a forwards one can expire an
+    // entry verified a second ago.
+    const hash = await sourceHashes.hash(cacheKey, sourcePath, source, monotonic(),
       () => item.attachmentHash);
     const directory = Zotero.Attachments.getStorageDirectory(item).path;
     const path = PathUtils.join(directory, '.zotero-sdt-cache');
@@ -1014,7 +1100,7 @@ async function initialize(rootURI, token) {
       // diagnostics layer shows how far from each threshold the gate was, and a
       // reading taken on the refusing branch alone would be blank whenever the
       // sitter is healthy — which is most of the time it is looked at.
-      admission = { at: Date.now(), memoryAvailableBytes: available };
+      admission = { at: monotonic(), memoryAvailableBytes: available };
       if (!Number.isFinite(available)) return 'resources-unavailable';
       if (available < MIN_FREE_MEMORY) return 'low-memory';
       const load = Number(Zotero.File.getContents('/proc/loadavg').split(' ')[0]);
@@ -1048,7 +1134,9 @@ async function initialize(rootURI, token) {
       cache.prune(seen); sourceHashes.prune(seen); await saveCache(); return cache.samples();
     },
     observed: async (info, sample) => { cache.observe(info.cacheKey, info.identity, sample); await saveCache(); },
-    inspect, blocked, now: () => Date.now(), changed: render,
+    // Every number the scheduler stamps with this — startedAt, lastProgressAt,
+    // serviceMS, and the duration samples the estimator is fitted on — is a span.
+    inspect, blocked, now: monotonic, changed: render,
     // 0691's on-screen wording, this ticket's journal: describeError still shows
     // the author the file and the full error text, locally, and the failure that
     // reaches the journal is what replaced the retired on-disk error ledger.

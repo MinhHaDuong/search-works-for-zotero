@@ -6711,3 +6711,51 @@ to tune against, representative by construction, scored on the same rank
 and citation chain as the Menagerie. The Menagerie stays the pinned,
 public, adversarial, hand-judged instrument; the two are complements, not
 rivals. Filed as its own ticket.
+
+**2026-09-06 — RULED: the sitter measures every duration on a monotonic clock.**
+Ticket 0695 asked, among its adversarial scenarios, what the sitter does when the
+system clock steps backwards mid-session. It had no answer:
+`grep -n "performance.now\|monotonic" bootstrap.js` returned nothing, and every
+timing computation read `Date.now()`. The author ruled, before the ticket's
+Imagine pass ran: **"Add a monotonic clock now."**
+
+The failure being closed is not imprecision, it is a sign change. NTP steps the
+wall clock, a resume from suspend steps it, and the author setting his own clock
+steps it by hours; a span computed across such a step comes out negative, and
+nothing downstream re-checked the sign because until now nothing could produce
+one. What a reader would have seen: an elapsed line reading "-42 min", an
+empirical upper bound no document can exceed because the subtraction went the
+wrong way, so the finish-time projection is never withdrawn, and a duration
+sample poisoned into the disposable cache where it outlives the session.
+
+Implemented as `ChromeUtils.now()` — Gecko's own `TimeStamp::Now`, the clock the
+platform measures itself with — falling back to `performance.now()`, and last of
+all to the wall clock ratcheted to its own highest reading. The ratchet cannot
+say how long a backwards step lasted, since nothing without a monotonic source
+can; it can refuse to answer a negative duration, which is the failure at issue.
+Its other half is worth stating with the same plainness: the ratchet pins to the
+HIGHEST reading it has seen, so a single forward excursion — a clock corrected an
+hour ahead and then back — floors every later duration at zero for as long as the
+wall clock takes to catch up. That is the price of refusing the negative, and it
+is paid only where the platform offers no monotonic clock at all, which in Gecko
+is nowhere. The alternative considered and rejected was to clamp each
+subtraction at zero:
+that hides the step instead of measuring across it, and leaves every duration
+sample taken over the step silently short while looking exactly like a fast
+document.
+
+The split is by KIND, not by call site. A span reads the monotonic clock:
+elapsed, since-progress, service time, the duration observations the estimator is
+fitted on, the age of a resource reading, the memoized-hash re-verify window, and
+the spinner's own phase. A point on the calendar reads the wall clock, and there
+are exactly two — a journal record's timestamp, which the ring renders as a time
+of day, and the projected completion date and time, which is precisely what a
+monotonic clock cannot name.
+
+One consequence is worth stating rather than discovering: a monotonic clock does
+not advance while the machine is suspended, so the 24-hour hash re-verify window
+ruled on ticket 0701 now bounds 24 hours of running time, not of calendar time.
+A laptop closed for a week resumes with its memoized hashes still inside the
+window. That is the honest reading of "the session that runs for weeks", which is
+the case that ruling exists for, and it is stated in `SPEC.md` §5 beside the
+window itself.
