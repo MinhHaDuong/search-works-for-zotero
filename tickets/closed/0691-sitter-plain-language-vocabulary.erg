@@ -15,6 +15,7 @@ Closed: autoclosed — PR #369
 2026-09-06T00:00Z claude note Acceptance boxes 1-4 ticked against PR #369. Box 5 stays open deliberately: its "no bundling" half is met (this PR carries no externalization) but its "lands before 0692" half is a merge-order fact nothing can observe from inside the PR, so it closes when 0692 merges after it.
 
 2026-09-06T10:11Z sim closed — autoclosed — PR #369
+2026-09-06T12:14Z claude note Vocabulary table amended after close by ticket 0710: three rows for the coverage figure carried with the scope it is measured over (one library, several, more than three). Recorded here because the table is this ticket's artifact and an edit invisible in the log is an edit the store cannot audit; the ticket itself stays closed and its acceptance is unchanged.
 --- body ---
 ## Context
 
@@ -32,11 +33,19 @@ different vocabularies.
 | SDT pack sitter | Index assistant | Assistant d'indexation |
 | SDT pack | index (of a file) | index (du fichier) |
 | coverage | Index 43 % | Index 43 % |
+| coverage, with the scope it is measured over | Library: My Library — Index 43 % | Bibliothèque : Ma bibliothèque — Index 43 % |
+| that scope, several libraries | Libraries: My Library, Climate Group — Index 43 % | Bibliothèques : Ma bibliothèque, Groupe Climat — Index 43 % |
+| that scope, more than three | All libraries (4) — Index 43 % | Toutes les bibliothèques (4) — Index 43 % |
 | native full-text index (Zotero's own) | text search index | index de recherche textuelle |
 | attachment (the unit of work) | file | fichier |
 | item owning the attachment | reference | reference |
 | active attachment | Indexing: <reference> - <file> | Indexation : <reference> - <fichier> |
 | finished with exceptions | 12 files could not be indexed | 12 fichiers n'ont pas pu etre indexes |
+
+The three scoped rows were added by ticket 0710, after this ticket closed, so
+that one table stays the whole vocabulary rather than splitting across two
+tickets. The library names in them are examples: the sitter reads them from
+Zotero's own library records, never from a literal.
 
 "SDT", "pack", "processor", "fingerprint" survive only inside the
 diagnostics disclosure (see 0693), where a reader has explicitly asked for

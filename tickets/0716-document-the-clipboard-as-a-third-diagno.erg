@@ -1,0 +1,54 @@
+%erg 0.1
+Title: Document the clipboard as a third diagnostic-channel sink in SPEC.md
+Created: 2026-09-06
+Author: sim
+
+--- log ---
+2026-09-06T15:36Z sim created
+
+--- body ---
+
+## Context
+
+SPEC.md's R22 block (added by ticket 0698, PR #386) enumerates the sitter's
+diagnostic channel's sinks -- the volatile ring and Zotero's debug output --
+and states their shared privacy rule (no text, titles or source paths;
+`error.name` only). Ticket 0693 (PR #388) added a third sink: a "copy
+journal" clipboard action, already part of 0693's own authorized Design
+section (not scope creep -- the ticket explicitly planned a copy action). It
+correctly applies the same privacy rule (scrubs `rootURI` from ring records
+before serializing to the clipboard, proven by a positive-control test that
+first shows the unscrubbed defect, then the fix).
+
+What's missing is SPEC.md catching up: the R22 paragraph still describes only
+two sinks. A reader relying on SPEC.md as the authoritative description of
+where diagnostic data can go would miss the clipboard entirely.
+
+## Work
+
+- Add one sentence to SPEC.md's R22 diagnostic-channel paragraph (near the
+  existing sink enumeration, likely after line ~2261) naming the clipboard
+  copy action as a third sink, and stating it inherits the same privacy rule
+  (proof: `bench/sdt-sitter/bootstrap.js`'s `composeSDTJournalReport`, which
+  scrubs `rootURI` from each ring record before serialization).
+- Bump SPEC.md's `Date:` header per this document's date-is-version
+  convention.
+- Cross-check `verification/SDT-SITTER-LAUNCH.md` for the same gap (it may
+  also need the clipboard action named, per its existing "how to read the
+  sitter's state" content from ticket 0698).
+
+## Acceptance
+
+- [ ] SPEC.md names the clipboard as a third sink, with the same privacy
+      rule stated or cross-referenced (not restated in different words --
+      see AGENTS.md's "one statement per fact").
+- [ ] `bench/check_progress.py` run before and after to confirm no
+      unintended requirement-count change (this is design prose extending
+      an existing paragraph, not a new numbered requirement).
+
+## Scope
+
+Pure documentation, no code change -- the code already implements the
+correct behavior (verified in PR #388's own review). Small, matches the
+pattern of ticket 0698.
+

@@ -1,0 +1,52 @@
+%erg 0.1
+Title: Test that Zotero.Prefs.get's second arg is read as the fully-qualified flag, not a default
+Created: 2026-09-06
+Author: sim
+
+--- log ---
+2026-09-06T15:33Z sim created
+
+--- body ---
+
+## Context
+
+`bench/sdt-sitter/bootstrap.js:34` reads the sitter's debug pref as
+`Zotero.Prefs.get(DEBUG_PREF, true)`. Ticket 0698's SPEC.md documentation
+(merged via PR #386) states this as fact: the second argument is the
+"fully-qualified name" flag, not a default value, so an undeclared pref
+reads `undefined`, `!undefined` is `true`, and the sitter treats trace-level
+output as off by default.
+
+This reading is backed by external Zotero API knowledge and the code's own
+comment, but nothing in this repo independently establishes it. Every mock
+`Zotero.Prefs.get` in `tests/sdt_sitter_scheduler.mjs` returns `true`
+unconditionally, ignoring its arguments -- so the test suite cannot
+distinguish the documented reading from the inverted one, under which the
+second argument WOULD be a default and an undeclared pref would ship
+debug-trace output ON by default. If the documented reading is wrong, SPEC.md
+now states the opposite of shipped behavior and nothing catches it.
+
+## Work
+
+- Confirm the correct semantics of `Zotero.Prefs.get(name, global)` against
+  real Zotero source (the installed `/opt/zotero7/app/omni.ja`, as other
+  sitter tickets in this raid did) or Zotero's own documentation.
+- Add a test that discriminates the two readings: a mock `Zotero.Prefs.get`
+  that actually respects its arguments (returns `undefined`/throws for an
+  undeclared pref name, distinct behavior for the flag vs. a default), and
+  assert the sitter's trace-level gating behaves per the documented reading.
+
+## Acceptance
+
+- [ ] A test exists that would fail if `Zotero.Prefs.get`'s second argument
+      were misread as a default value rather than the fully-qualified-name
+      flag.
+- [ ] SPEC.md's paragraph (R22 block, near "declared nowhere and reads as
+      unset") is confirmed accurate, or corrected if the investigation finds
+      otherwise.
+
+## Scope
+
+Small, code-only. Split from ticket 0698 (documentation-only) because this
+requires a test/code change, which that ticket excluded.
+

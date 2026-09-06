@@ -13,12 +13,22 @@ var sitter, journal, alive = false, sealed = false;
 // script top level reaches the sandbox global — the assignment silently lands on
 // an unrelated property instead, and the reset reads as though it worked.
 var buttons = new Set(), dialogs = new Set(), renderFailing = false;
+// The two readings the diagnostics layer shows and nothing else needs.
+// `environment` identifies the running build to a bug report; `admission` is the
+// last set of resource numbers the gate actually read, as opposed to the verdict
+// it reached. Both are `var` for the reason just above: tests/sdt_sitter_dialog.mjs
+// drives the layer against them without standing up the whole of initialize().
+var environment = {}, admission = null;
 let timer, pulse, heartbeat, timers;
 const closeJournalled = new WeakSet();
 const BUTTON = 'sdt-pack-sitter-button';
 const SWEEP_INTERVAL_MS = 30000;
 const IDLE_SWEEP_INTERVAL_MS = 10 * 60 * 1000;
 const DEBUG_PREF = 'extensions.sdt-pack-sitter.debug';
+// SPEC.md owns these two numbers; this file needs them to compare against, and
+// the diagnostics layer needs to print them. One statement each, so a threshold
+// moved in the gate cannot leave a stale figure on screen beside the reading.
+const MIN_FREE_MEMORY = 4 * 1024 ** 3, MIN_FREE_DISK = 8 * 1024 ** 3;
 // Bootstrap reason constants are numeric here and named elsewhere; accept both.
 const SHUTDOWN_REASONS = { 2: 'app-shutdown', 3: 'enable', 4: 'disable',
   5: 'install', 6: 'uninstall', 7: 'upgrade', 8: 'downgrade' };
@@ -115,10 +125,16 @@ function noteDialogClose(dialog) {
   emit('dialog-close', {});
 }
 
+/* `counts` is defaulted rather than dereferenced: the scheduler always
+   initialises it, but before the scope prefix landed the tooltip never read
+   coverage at all, so this function's required state shape widened onto the
+   render path — where a throw has no guard above it — without the caller's
+   shape being re-checked. */
 function getSDTCoverage(state) {
+  const counts = state.counts || {};
   return { known: state.scanned === state.total && state.phase !== 'ready',
-    current: state.counts.current || 0,
-    total: Math.max(0, state.total - (state.counts.excluded || 0) - (state.counts.unsupported || 0)) };
+    current: counts.current || 0,
+    total: Math.max(0, state.total - (counts.excluded || 0) - (counts.unsupported || 0)) };
 }
 
 /* Every phase a reader can meet on hover, in the user's vocabulary. A blocked or
@@ -126,7 +142,7 @@ function getSDTCoverage(state) {
    so each blocking reason gets its own plain sentence; the raw internal name
    stays in the diagnostics disclosure. `null` is the deliberate no-label case:
    the two healthy idle phases, where the count already says everything. An
-   unlisted phase falls back to the bare count rather than leaking its name. */
+   unlisted phase falls back to the scoped count rather than leaking its name. */
 var SDT_PHASE_LABELS = {
   ready: null,
   waiting: null,
@@ -143,11 +159,73 @@ var SDT_PHASE_LABELS = {
   'launch-declined; disable/re-enable to launch': 'Non lancé : désactiver puis réactiver l’extension',
 };
 
+/* One composer for the coverage percentage, so the toolbar strip and the tooltip
+   cannot round or space it two different ways — the lesson describeSDTFile
+   already carries for the file name. */
+function describeSDTCoverage(state) {
+  const coverage = getSDTCoverage(state);
+  return coverage.total > 0
+    ? ` ${Math.floor((coverage.current / coverage.total) * 100)} %` : '';
+}
+
+/* What the coverage figure is measured over. The button lives in the items
+   toolbar, whose scope is one library and one collection, while the census reads
+   every attachment in the database (see `list` below), so a reader is invited to
+   take the figure for the collection in view. Naming a single library would
+   replace one false scope with another; the honest prefix is the set the census
+   actually covers, read from Zotero's own records — "Ma bibliothèque" is the
+   user library's name, not a literal to hardcode, and a group library must read
+   as itself. Each record is asked for its name separately because a group
+   library is loaded lazily and can throw from its getter after a restart (the
+   defect bench/zotero-fulltext-plugin/bootstrap.js records). Past three names the
+   enumeration stops informing and the count does. Returns null when nothing can
+   be read: an unscoped tooltip is degraded, a thrown one would kill the render
+   loop.
+
+   Feeds are dropped, and that exclusion is the same requirement as the rest of
+   this function rather than a refinement of it. `Zotero.Libraries.getAll()`
+   enumerates the whole library cache, which `init` fills with feeds alongside
+   groups; a feed item carries no attachment, so no feed is in the set the census
+   measures. Listing "Nature News" beside the user library, or counting it into
+   "Toutes les bibliothèques (7)", would state a scope the figure was never
+   measured over — the very failure the prefix exists to end.
+
+   The whole body is inside the guard, not just the `getAll()` call: `render` and
+   the pulse timer carry no `try` of their own, so anything escaping here escapes
+   into a callback that fires ten times a second and would go on throwing for as
+   long as the sitter is alive. A first version guarded only the call, which left
+   the iteration itself — a `getAll()` returning something truthy and not
+   iterable — outside the guard it was written for. */
+function describeSDTScope() {
+  try {
+    const names = [];
+    for (const library of Zotero.Libraries.getAll() || []) {
+      let name;
+      try {
+        if (!library || library.libraryType === 'feed') continue;
+        name = library.name;
+      } catch (_error) { continue; }
+      if (typeof name === 'string' && name.trim()) names.push(name.trim());
+    }
+    if (names.length === 0) return null;
+    if (names.length === 1) return `Bibliothèque : ${names[0]}`;
+    if (names.length <= 3) return `Bibliothèques : ${names.join(', ')}`;
+    return `Toutes les bibliothèques (${names.length})`;
+  } catch (_error) { return null; }
+}
+
 function describeSDTTooltip(state) {
   const indexed = state.completed > 1
     ? `${state.completed} fichiers indexés` : `${state.completed} fichier indexé`;
   const label = SDT_PHASE_LABELS[state.phase];
-  return label ? `${label} — ${indexed}` : indexed;
+  const progress = label ? `${label} — ${indexed}` : indexed;
+  // Before the first census there is no percentage, and the bare word "Index"
+  // between two em dashes says nothing the rest of the line does not: the
+  // segment is dropped rather than left dangling. The scope is not — which
+  // libraries the sitter is about is true before any figure exists.
+  const percentage = describeSDTCoverage(state);
+  const segments = [describeSDTScope(), percentage && `Index${percentage}`, progress];
+  return segments.filter(Boolean).join(' — ');
 }
 
 /* The unit of work is one attachment, and Zotero names attachments for us
@@ -164,6 +242,168 @@ function describeSDTActiveFile(state) {
   return describeSDTFile(state.activeInfo, `fichier n° ${state.active}`);
 }
 
+/* ---- the third layer: what a bug report asks for and a reader never does ---- */
+
+function formatSDTBytes(bytes) {
+  // Decimal comma, per this repository's number convention.
+  return Number.isFinite(bytes) ? `${(bytes / 1024 ** 3).toFixed(1).replace('.', ',')} Gio` : '?';
+}
+
+/* Which build is running, and where it was installed from. Ticket 0688 put this
+   in the debug log because a plugin that vanishes leaves nothing else behind;
+   the same facts belong on screen, because the author reading the window is the
+   one who will be asked which version he was running. */
+function describeSDTEnvironment() {
+  const native = environment.packVersions || {};
+  return [
+    `Version de l’extension : ${environment.version ?? '?'}`,
+    `Zotero : ${environment.zoteroVersion ?? '?'} (compatibilité déclarée ${environment.strictMinVersion ?? '?'} – ${environment.strictMaxVersion ?? '?'})`,
+    `Format natif : version ${native.SDT_PACK_VERSION ?? '?'}, schéma ${native.SDT_SCHEMA_VERSION ?? '?'}`,
+    `Extracteurs natifs : ${JSON.stringify(native.SDT_PROCESSOR_VERSIONS ?? null)}`,
+    `Installée dans : ${environment.rootURI ?? '?'}`,
+  ].join('\n');
+}
+
+function formatSDTAge(ms) {
+  const seconds = Math.max(0, Math.round(ms / 1000));
+  if (seconds < 60) return `${seconds} s`;
+  const minutes = Math.round(seconds / 60);
+  return minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
+}
+
+/* The numbers behind the gate's verdict. A sitter that says "En pause : mémoire
+   insuffisante" states a conclusion; only the reading says how far from the
+   threshold it was, which is the difference between waiting and closing a
+   browser. Absent until the first admission is attempted, and it says so rather
+   than printing zeros that would read as measurements.
+
+   The age leads, because these readings go stale silently and there is no
+   plausible way to keep them fresh: blocked() is called once per candidate, so
+   a caught-up library stops taking readings altogether and the panel would
+   otherwise show hours-old numbers indistinguishable from live ones. Saying
+   when, and why there may be no newer reading, is the honest fix; polling
+   /proc from render() ten times a second to keep a diagnostic warm is not. */
+function describeSDTAdmission() {
+  if (!admission) return 'Aucune mesure de ressources depuis le démarrage.';
+  return [
+    `Dernière mesure il y a ${formatSDTAge(Date.now() - admission.at)} — une lecture par admission, aucune tant que la bibliothèque est à jour`,
+    `Mémoire disponible : ${formatSDTBytes(admission.memoryAvailableBytes)} (seuil ${formatSDTBytes(MIN_FREE_MEMORY)})`,
+    admission.load === undefined ? ''
+      // The load average is a bare number from /proc and would otherwise print a
+      // decimal point beside two readings that carry a comma.
+      : `Charge processeur : ${String(admission.load).replace('.', ',')} sur ${admission.cpus} cœurs`,
+    admission.diskAvailableBytes === undefined ? ''
+      : `Espace disque : ${formatSDTBytes(admission.diskAvailableBytes)} (seuil ${formatSDTBytes(MIN_FREE_DISK)})`,
+  ].filter(Boolean).join('\n');
+}
+
+/* The ring, rendered whole rather than field by field, and unlike the clipboard
+   copy below it is NOT scrubbed: this is the author's own screen, reading his
+   own machine, and the panel prints the install path two lines above anyway.
+   A whitelist here would only hide a record kind added later. Guarded because
+   this runs from render(), and a throw there stops the redraw loop. */
+function describeSDTJournalTail(limit = 50) {
+  try {
+    return Array.from(journal ? journal.tail(limit) : [], record => {
+      const { at, kind, level, ...rest } = record;
+      return `${new Date(at).toLocaleTimeString('fr-FR', { hour12: false })} ${level} ${kind} ${JSON.stringify(rest)}`;
+    }).join('\n');
+  } catch (error) {
+    return `Journal illisible : ${classifyError(error)}`;
+  }
+}
+
+/* The ring is path-free where the sitter writes it — that is emit()'s and
+   classifyError()'s whole job. One record is not, and it is not an accident:
+   ticket 0688's `startup` carries the install root deliberately, so a plugin
+   that vanishes can be traced back to a build. That decision is about Zotero's
+   debug log, which the author opts into knowingly.
+
+   This button is a new door, opened here, and it must not widen what leaves by
+   a field nobody asked it to carry. The ring survives a disable/re-enable
+   (`journal ??=` in initialize) — which the sitter's own "désactiver puis
+   réactiver" wording tells the author to do — so on that second startup the
+   record lands in the ring as well, and a verbatim tail would put a home
+   directory on the clipboard. Omitting `rootURI` as a top-level field is not
+   enough; it has to be dropped from the records too.
+
+   Dropped by name, and that is sound here where 0689's token-wise scrubbing of
+   prose was not: this is a structured field with a known key, so the drop is
+   total and has no partial case. What it does not cover is a future record kind
+   carrying a path under some other key — no pattern can promise that either, so
+   the guard is the assertion in tests/sdt_sitter_dialog.mjs that the composed
+   text holds no scheme and no home directory, run against a ring the real
+   startup path contaminated. */
+const CLIPBOARD_OMITTED = ['rootURI'];
+
+function scrubSDTRecord(record) {
+  const copy = { ...record };
+  for (const field of CLIPBOARD_OMITTED) delete copy[field];
+  return copy;
+}
+
+/* What the copy action puts on the clipboard, and therefore what may be pasted
+   into a bug report. The install path stays on screen, two lines above in the
+   same panel, where the author is reading his own machine. The versions travel,
+   because a ring with no build attached answers nothing. */
+function composeSDTJournalReport() {
+  try {
+    return JSON.stringify({
+      version: environment.version ?? null,
+      zoteroVersion: environment.zoteroVersion ?? null,
+      nativeVersions: environment.packVersions ?? null,
+      records: journal ? Array.from(journal.tail(50), scrubSDTRecord) : [],
+    }, null, 2);
+  } catch (error) {
+    return `Journal illisible : ${classifyError(error)}`;
+  }
+}
+
+/* Two clipboards, because the one a chrome about:blank window has is not the one
+   Zotero exposes and neither is guaranteed across host versions. The boolean is
+   the point: a copy that silently does nothing is worse than one that says so. */
+function copySDTText(text) {
+  try { Zotero.Utilities.Internal.copyTextToClipboard(text); return true; }
+  catch (_error) { /* Fall through to the platform service. */ }
+  try {
+    Cc['@mozilla.org/widget/clipboardhelper;1'].getService(Ci.nsIClipboardHelper).copyString(text);
+    return true;
+  } catch (_error) { return false; }
+}
+
+/* Layer 3, built once with the dialog. Native controls only — a <details>, a
+   checkbox carrying a real <label for>, a <button> — so keyboard reach comes
+   from the platform instead of from key handling this file would have to get
+   right, which is the half of 0686 a source review cannot certify anyway. */
+function buildSDTDiagnostics(doc, element) {
+  const group = element('details', 'sdt-tech-details');
+  const summary = element('summary', 'sdt-tech-title');
+  summary.textContent = 'Diagnostics techniques';
+  const row = element('div', 'sdt-debug-row');
+  const toggle = element('input', 'sdt-debug');
+  toggle.setAttribute('type', 'checkbox');
+  const label = element('label', 'sdt-debug-label');
+  label.setAttribute('for', toggle.id);
+  label.textContent = 'Consigner chaque étape dans la sortie de débogage de Zotero';
+  row.append(toggle, label);
+  toggle.addEventListener('change', () => {
+    // Fully qualified, like every other read of this pref.
+    try { Zotero.Prefs.set(DEBUG_PREF, !!toggle.checked, true); }
+    catch (_error) { /* An unwritable pref is reported by the next render's reread. */ }
+    emit('debug-pref', { enabled: !!toggle.checked });
+  });
+  const copy = element('button', 'sdt-journal-copy');
+  copy.setAttribute('type', 'button');
+  copy.textContent = 'Copier le journal';
+  copy.addEventListener('click', () => {
+    doc.getElementById('sdt-journal-copy-status').textContent = copySDTText(composeSDTJournalReport())
+      ? 'Journal copié dans le presse-papiers.' : 'Copie impossible : presse-papiers indisponible.';
+  });
+  group.append(summary, row, element('pre', 'sdt-environment'), element('pre', 'sdt-admission'),
+    copy, element('pre', 'sdt-journal-copy-status'), element('pre', 'sdt-journal'));
+  return group;
+}
+
 /* Ticket 0702. renderState() runs unguarded DOM work over `dialogs`, and it is
    reached from publish(), which the scheduler calls from inside its own finally.
    A throw there — a dead XUL dialog after its window closed, getElementById
@@ -174,7 +414,8 @@ function describeSDTActiveFile(state) {
    The failure is recorded on its transition, not on its tick: the pulse calls
    this at 10 Hz, and a persistent broken dialog emitting every time would evict
    the whole 2000-record ring in under four minutes — destroying exactly the
-   evidence ticket 0703 keeps. */
+   evidence ticket 0703 keeps. The layer above widens what runs under it, which
+   is the reason this guard is worth more now than when it was written. */
 function render() {
   try {
     renderState();
@@ -190,9 +431,10 @@ function renderState() {
   if (!alive || !sitter) return;
   const s = sitter.state;
   const coverage = getSDTCoverage(s);
-  const coverageLabel = coverage.total > 0
-    ? ` ${Math.floor((coverage.current / coverage.total) * 100)} %` : '';
   for (const button of buttons) {
+    // Composed here rather than hoisted, so the toolbar strip and the tooltip
+    // read as the two call sites of one composer at the sites themselves.
+    const coverageLabel = describeSDTCoverage(s);
     const working = s.phase === 'census' || s.active !== null;
     const now = Date.now();
     if (s.completed > lastCompleted) {
@@ -278,6 +520,28 @@ function renderState() {
     progress.hidden = s.active === null;
     if (s.active !== null && Number.isFinite(s.progress)) progress.value = s.progress;
     else progress.removeAttribute('value');
+    // Layer 2. What the estimates above rest on: how many durations were kept,
+    // and which covariate carried the fit. An estimate whose basis is unreadable
+    // is a number the reader has no way to disbelieve.
+    const fit = s.activeInfo ? estimateSDTDuration(s.fittedSamples, s.activeInfo) : null;
+    doc.getElementById('sdt-observations').textContent = s.fittedSamples.length < 3
+      ? `Durées observées : ${s.fittedSamples.length} (3 nécessaires avant toute estimation)`
+      : `Durées observées : ${s.fittedSamples.length}${fit ? ` — base de calcul : ${fit.basis === 'pages' ? 'par page' : 'par octet'}` : ''}`;
+    // Layer 3. The checkbox is reread rather than written once, so a pref changed
+    // from Zotero's own advanced settings is not silently contradicted here.
+    const technical = doc.getElementById('sdt-tech-details');
+    const toggle = doc.getElementById('sdt-debug');
+    try {
+      const enabled = !!Zotero.Prefs.get(DEBUG_PREF, true);
+      if (toggle.checked !== enabled) toggle.checked = enabled;
+    } catch (_error) { /* An unreadable pref must not fight the checkbox. */ }
+    // Only while it is open. This loop runs ten times a second and the ring is
+    // rendered whole; behind a closed disclosure that is work nobody can see.
+    if (technical.open) {
+      doc.getElementById('sdt-environment').textContent = describeSDTEnvironment();
+      doc.getElementById('sdt-admission').textContent = describeSDTAdmission();
+      doc.getElementById('sdt-journal').textContent = describeSDTJournalTail(50);
+    }
   }
 }
 
@@ -324,20 +588,29 @@ function openDialog(window) {
       }
       body.append(group);
     };
+    // Layer 1, always visible and always first: progress, what is being worked
+    // on, how long it has taken and when it should end. Nothing below is needed
+    // to read any of it.
     section('sdt-global-section', 'Progression globale — bibliothèque', [
       ['pre', 'sdt-status'], ['progress', 'sdt-global-progress'], ['pre', 'sdt-global-estimate'],
       ['pre', 'sdt-failures']]);
     section('sdt-document-section', 'Indexation en cours', [
       ['pre', 'sdt-document-status'], ['progress', 'sdt-progress'], ['pre', 'sdt-document-estimate']]);
+    // Layer 2, closed: the counts and the fit behind the estimates. 0686 asked
+    // for exactly this — technical detail kept, moved below primary progress.
     const details = element('details', 'sdt-details');
     const summary = element('summary', 'sdt-details-title');
     summary.textContent = 'Détails';
-    details.append(summary, element('pre', 'sdt-diagnostics'));
+    details.append(summary, element('pre', 'sdt-observations'), element('pre', 'sdt-diagnostics'));
     const indexDetails = element('details', 'sdt-index-details');
     const indexSummary = element('summary', 'sdt-index-title');
     indexSummary.textContent = 'Index de recherche textuelle';
     indexDetails.append(indexSummary, element('pre', 'sdt-fulltext'));
-    details.append(indexDetails); body.append(details);
+    details.append(indexDetails);
+    // Layer 3, nested inside layer 2 and closed in its turn. Discoverable
+    // without being in the way, which is the whole of the author's request.
+    details.append(buildSDTDiagnostics(doc, element));
+    body.append(details);
     dialogs.add(dialog); render();
     try {
       const stats = await Zotero.Fulltext.getIndexStats();
@@ -408,11 +681,20 @@ async function initialize(rootURI, token) {
   // First thing after the host is up, and before any of the work below can throw:
   // a disappearance that leaves no `startup` record happened earlier than this
   // point. It goes through 0689's channel rather than a Zotero.debug() of its own
-  // — one diagnostic channel, already guarded, already sealed at shutdown. The
-  // ring is not up yet (scheduler.js loads below), so this record reaches the
-  // debug log only; that is the half a vanished plugin leaves behind anyway.
+  // — one diagnostic channel, already guarded, already sealed at shutdown.
+  //
+  // On the FIRST startup the ring is not up yet (scheduler.js loads below), so
+  // this record reaches the debug log alone. On every later one it does not: the
+  // ring survives a disable/re-enable through the `??=` below, and this record
+  // then lands in it too, install path and all. That asymmetry is why
+  // composeSDTJournalReport drops `rootURI` at the clipboard boundary rather
+  // than trusting the ring to be path-free.
   try {
-    emit('startup', await sitterStartupSelfCheck(rootURI));
+    // Kept, not just logged: the diagnostics layer shows the same record on
+    // screen, and a second read of the manifest could disagree with the one the
+    // log carries. One read, two readers.
+    environment = await sitterStartupSelfCheck(rootURI);
+    emit('startup', environment);
   } catch (_error) { /* Diagnostics must never throw into startup. */ }
   await Zotero.uiReadyPromise;
   if (token !== generation) return;
@@ -434,6 +716,7 @@ async function initialize(rootURI, token) {
   const SDT = win.require('resource://zotero/document-worker/structured-document-text.js');
   const pako = win.require('pako');
   const versions = JSON.parse(await Zotero.File.getContentsFromURLAsync('resource://zotero/document-worker/metadata.json'));
+  environment = { ...environment, packVersions: versions };
   if (token !== generation) return;
   const cachePath = PathUtils.join(Zotero.DataDirectory.dir, 'sdt-sitter-cache.jsonl');
   await Zotero.SDTPackSitterCacheWrite?.catch(() => {});
@@ -563,10 +846,16 @@ async function initialize(rootURI, token) {
       // IOUtils' regular-file size-based path. No library file uses this sync path.
       const memory = Zotero.File.getContents('/proc/meminfo');
       const available = Number(memory.match(/^MemAvailable:\s+(\d+) kB$/m)?.[1]) * 1024;
+      // Recorded where it is read, not where the verdict is returned: the
+      // diagnostics layer shows how far from each threshold the gate was, and a
+      // reading taken on the refusing branch alone would be blank whenever the
+      // sitter is healthy — which is most of the time it is looked at.
+      admission = { at: Date.now(), memoryAvailableBytes: available };
       if (!Number.isFinite(available)) return 'resources-unavailable';
-      if (available < 4 * 1024 ** 3) return 'low-memory';
+      if (available < MIN_FREE_MEMORY) return 'low-memory';
       const load = Number(Zotero.File.getContents('/proc/loadavg').split(' ')[0]);
       const cpus = win.navigator.hardwareConcurrency;
+      admission.load = load; admission.cpus = cpus;
       if (!Number.isFinite(load) || !cpus) return 'resources-unavailable';
       if (load >= cpus) return 'cpu-busy';
       let directory = info.directory;
@@ -577,7 +866,8 @@ async function initialize(rootURI, token) {
       }
       const file = Zotero.File.pathToFile(directory);
       if (!file.isWritable()) return 'storage-unavailable';
-      if (file.diskSpaceAvailable < 8 * 1024 ** 3) return 'low-disk';
+      admission.diskAvailableBytes = file.diskSpaceAvailable;
+      if (file.diskSpaceAvailable < MIN_FREE_DISK) return 'low-disk';
     } catch (error) {
       if (alive && sitter) sitter.state.error = `Lecture des ressources : ${error}`;
       return 'resources-unavailable';
