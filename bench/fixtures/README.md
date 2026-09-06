@@ -245,6 +245,18 @@ only for an unserved content type with the reindex's own `indexed`
 observation; the same 404 on a PDF is vanished text and stays refused. The
 replay lists it in the census and answers 404 on its route, as Zotero does.
 
+## The question bank and the golden gate
+
+`questions/` is the fourth layer, the Menagerie question bank (schema
+`menagerie-bank/v2`, ticket 0722): one JSON file per question pinning rows of
+the export by attachment key, quoted span and printed page, with the citation
+chain a complete reply carries. `questions/README.md` documents the record,
+the closed vocabularies, the replies schema the runner writes and the report
+the scorer produces; `questions/bank.schema.json` is the same record as a JSON
+Schema. `make golden` validates the bank against `export/` (every quote located
+and its offset stamped) and scores `bench/results/golden/replies.json`;
+`make golden-run` produces that file from a built `fork/` over the replay.
+
 ## Re-pinning
 
 Run `python3 bench/fixtures/fetch_recipe.py`. Every document reports one of

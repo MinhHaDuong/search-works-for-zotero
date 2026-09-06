@@ -1,0 +1,1074 @@
+{
+  "expected_miss": {
+    "by_mechanism": {
+      "no-answer: Decision 11/2017 covers solar power only and no document of the export sets a wind tariff; the empty pinned set is the ruling's no-answer case": 1
+    },
+    "count": 1,
+    "pass": 1,
+    "per_question": {
+      "q-0005/lexical": "pass"
+    },
+    "unexpected_hit": 0
+  },
+  "expected_miss_count": 1,
+  "export_sha256": "014cf144a55d2810759ac8100a6c50d9fd98a6ccbbef2034d2fe2dd35ab6aa74",
+  "k": 10,
+  "ladder": {
+    "all_strata_macro_by_lane": {
+      "lanes": 3,
+      "mrr": 1.0,
+      "near_or_better_rate": 1.0,
+      "win_rate": 0.3333333333333333
+    },
+    "all_strata_weighted": {
+      "chain_completeness": {
+        "mean": 0.7666666666666667,
+        "measured": 4
+      },
+      "count": 4,
+      "miss": 0,
+      "mrr": 1.0,
+      "near_or_better_rate": 1.0,
+      "near_win": 3,
+      "r34": {
+        "absent": 0,
+        "present": 4
+      },
+      "ranks": {
+        "q-0001": 1,
+        "q-0002": 1,
+        "q-0003": 1,
+        "q-0004": 1
+      },
+      "win": 1,
+      "win_rate": 0.25
+    },
+    "by_stratum": {
+      "core": {
+        "all": {
+          "chain_completeness": {
+            "mean": 0.7666666666666667,
+            "measured": 4
+          },
+          "count": 4,
+          "miss": 0,
+          "mrr": 1.0,
+          "near_or_better_rate": 1.0,
+          "near_win": 3,
+          "r34": {
+            "absent": 0,
+            "present": 4
+          },
+          "ranks": {
+            "q-0001": 1,
+            "q-0002": 1,
+            "q-0003": 1,
+            "q-0004": 1
+          },
+          "win": 1,
+          "win_rate": 0.25
+        },
+        "by_facet": {
+          "core": {
+            "chain_completeness": {
+              "mean": 0.7666666666666667,
+              "measured": 4
+            },
+            "count": 4,
+            "miss": 0,
+            "mrr": 1.0,
+            "near_or_better_rate": 1.0,
+            "near_win": 3,
+            "r34": {
+              "absent": 0,
+              "present": 4
+            },
+            "ranks": {
+              "q-0001": 1,
+              "q-0002": 1,
+              "q-0003": 1,
+              "q-0004": 1
+            },
+            "win": 1,
+            "win_rate": 0.25
+          },
+          "deep-body": {
+            "count": 0,
+            "state": "not-measured"
+          },
+          "group": {
+            "count": 0,
+            "state": "not-measured"
+          },
+          "notes": {
+            "count": 0,
+            "state": "not-measured"
+          }
+        },
+        "by_format": {
+          "html": {
+            "count": 0,
+            "state": "not-measured"
+          },
+          "other": {
+            "count": 0,
+            "state": "not-measured"
+          },
+          "pdf": {
+            "chain_completeness": {
+              "mean": 0.7666666666666667,
+              "measured": 4
+            },
+            "count": 4,
+            "miss": 0,
+            "mrr": 1.0,
+            "near_or_better_rate": 1.0,
+            "near_win": 3,
+            "r34": {
+              "absent": 0,
+              "present": 4
+            },
+            "ranks": {
+              "q-0001": 1,
+              "q-0002": 1,
+              "q-0003": 1,
+              "q-0004": 1
+            },
+            "win": 1,
+            "win_rate": 0.25
+          }
+        },
+        "by_lane": {
+          "en->en": {
+            "chain_completeness": {
+              "mean": 0.8,
+              "measured": 2
+            },
+            "count": 2,
+            "miss": 0,
+            "mrr": 1.0,
+            "near_or_better_rate": 1.0,
+            "near_win": 2,
+            "r34": {
+              "absent": 0,
+              "present": 2
+            },
+            "ranks": {
+              "q-0001": 1,
+              "q-0003": 1
+            },
+            "win": 0,
+            "win_rate": 0.0
+          },
+          "fr->en": {
+            "chain_completeness": {
+              "mean": 0.8,
+              "measured": 1
+            },
+            "count": 1,
+            "miss": 0,
+            "mrr": 1.0,
+            "near_or_better_rate": 1.0,
+            "near_win": 1,
+            "r34": {
+              "absent": 0,
+              "present": 1
+            },
+            "ranks": {
+              "q-0002": 1
+            },
+            "win": 0,
+            "win_rate": 0.0
+          },
+          "fr->fr": {
+            "chain_completeness": {
+              "mean": 0.6666666666666666,
+              "measured": 1
+            },
+            "count": 1,
+            "miss": 0,
+            "mrr": 1.0,
+            "near_or_better_rate": 1.0,
+            "near_win": 0,
+            "r34": {
+              "absent": 0,
+              "present": 1
+            },
+            "ranks": {
+              "q-0004": 1
+            },
+            "win": 1,
+            "win_rate": 1.0
+          }
+        },
+        "by_mode": {
+          "hybrid": {
+            "count": 0,
+            "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+            "state": "not-measured"
+          },
+          "lexical": {
+            "chain_completeness": {
+              "mean": 0.7666666666666667,
+              "measured": 4
+            },
+            "count": 4,
+            "miss": 0,
+            "mrr": 1.0,
+            "near_or_better_rate": 1.0,
+            "near_win": 3,
+            "r34": {
+              "absent": 0,
+              "present": 4
+            },
+            "ranks": {
+              "q-0001": 1,
+              "q-0002": 1,
+              "q-0003": 1,
+              "q-0004": 1
+            },
+            "win": 1,
+            "win_rate": 0.25
+          },
+          "semantic": {
+            "count": 0,
+            "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+            "state": "not-measured"
+          }
+        },
+        "by_set_kind": {
+          "all-of": {
+            "chain_completeness": {
+              "mean": 0.8,
+              "measured": 1
+            },
+            "count": 1,
+            "miss": 0,
+            "mrr": 1.0,
+            "near_or_better_rate": 1.0,
+            "near_win": 1,
+            "r34": {
+              "absent": 0,
+              "present": 1
+            },
+            "ranks": {
+              "q-0003": 1
+            },
+            "win": 0,
+            "win_rate": 0.0
+          },
+          "any-of": {
+            "chain_completeness": {
+              "mean": 0.7555555555555555,
+              "measured": 3
+            },
+            "count": 3,
+            "miss": 0,
+            "mrr": 1.0,
+            "near_or_better_rate": 1.0,
+            "near_win": 2,
+            "r34": {
+              "absent": 0,
+              "present": 3
+            },
+            "ranks": {
+              "q-0001": 1,
+              "q-0002": 1,
+              "q-0004": 1
+            },
+            "win": 1,
+            "win_rate": 0.3333333333333333
+          }
+        },
+        "by_signal": {
+          "agreement": {
+            "count": 0,
+            "state": "not-measured"
+          },
+          "exact": {
+            "chain_completeness": {
+              "mean": 0.7555555555555555,
+              "measured": 3
+            },
+            "count": 3,
+            "miss": 0,
+            "mrr": 1.0,
+            "near_or_better_rate": 1.0,
+            "near_win": 2,
+            "r34": {
+              "absent": 0,
+              "present": 3
+            },
+            "ranks": {
+              "q-0001": 1,
+              "q-0003": 1,
+              "q-0004": 1
+            },
+            "win": 1,
+            "win_rate": 0.3333333333333333
+          },
+          "paraphrase": {
+            "chain_completeness": {
+              "mean": 0.8,
+              "measured": 1
+            },
+            "count": 1,
+            "miss": 0,
+            "mrr": 1.0,
+            "near_or_better_rate": 1.0,
+            "near_win": 1,
+            "r34": {
+              "absent": 0,
+              "present": 1
+            },
+            "ranks": {
+              "q-0002": 1
+            },
+            "win": 0,
+            "win_rate": 0.0
+          }
+        }
+      },
+      "reserve": {
+        "all": {
+          "count": 0,
+          "state": "not-measured"
+        },
+        "by_facet": {
+          "core": {
+            "count": 0,
+            "state": "not-measured"
+          },
+          "deep-body": {
+            "count": 0,
+            "state": "not-measured"
+          },
+          "group": {
+            "count": 0,
+            "state": "not-measured"
+          },
+          "notes": {
+            "count": 0,
+            "state": "not-measured"
+          }
+        },
+        "by_format": {
+          "html": {
+            "count": 0,
+            "state": "not-measured"
+          },
+          "other": {
+            "count": 0,
+            "state": "not-measured"
+          },
+          "pdf": {
+            "count": 0,
+            "state": "not-measured"
+          }
+        },
+        "by_lane": {},
+        "by_mode": {
+          "hybrid": {
+            "count": 0,
+            "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+            "state": "not-measured"
+          },
+          "lexical": {
+            "count": 0,
+            "state": "not-measured"
+          },
+          "semantic": {
+            "count": 0,
+            "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+            "state": "not-measured"
+          }
+        },
+        "by_set_kind": {
+          "all-of": {
+            "count": 0,
+            "state": "not-measured"
+          },
+          "any-of": {
+            "count": 0,
+            "state": "not-measured"
+          }
+        },
+        "by_signal": {
+          "agreement": {
+            "count": 0,
+            "state": "not-measured"
+          },
+          "exact": {
+            "count": 0,
+            "state": "not-measured"
+          },
+          "paraphrase": {
+            "count": 0,
+            "state": "not-measured"
+          }
+        }
+      }
+    }
+  },
+  "modes_not_run": {
+    "hybrid": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+    "semantic": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors"
+  },
+  "not_run_count": 10,
+  "question_count": 5,
+  "questions": {
+    "q-0001/hybrid": {
+      "expected_miss": false,
+      "facet": "core",
+      "format": "pdf",
+      "id": "q-0001",
+      "lane": "en->en",
+      "mode": "hybrid",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "set_kind": "any-of",
+      "signal": "exact",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0001/lexical": {
+      "chain": {
+        "fraction": 0.8,
+        "matched": 4,
+        "mismatched": [],
+        "missing": [
+          "section_heading"
+        ],
+        "of": 5
+      },
+      "expected_miss": false,
+      "facet": "core",
+      "format": "pdf",
+      "id": "q-0001",
+      "lane": "en->en",
+      "level": "near-win",
+      "mode": "lexical",
+      "r34_present": true,
+      "rank": 1,
+      "reciprocal_rank": 1.0,
+      "rows": [
+        {
+          "attachment_key": "L68LPREA",
+          "chain": {
+            "fraction": 0.8,
+            "matched": 4,
+            "mismatched": [],
+            "missing": [
+              "section_heading"
+            ],
+            "of": 5
+          },
+          "evidence": {
+            "how": null,
+            "matched": false,
+            "overlap": 0.222,
+            "why": "item-without-evidence"
+          },
+          "level": "near-win",
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "section": "Article 12",
+          "work_id": "vn-decision-11-2017-qdttg-solar-fit-en"
+        }
+      ],
+      "rows_found": {
+        "count": 1,
+        "fraction": 1.0,
+        "of": 1
+      },
+      "set_kind": "any-of",
+      "signal": "exact",
+      "state": "scored",
+      "stratum": "core",
+      "top_k_item_keys": [
+        "GEWEZPJ4",
+        "VSN32JSP",
+        "R3YNUA6N",
+        "HYI6JTZ8",
+        "G3IXLJC6"
+      ]
+    },
+    "q-0001/semantic": {
+      "expected_miss": false,
+      "facet": "core",
+      "format": "pdf",
+      "id": "q-0001",
+      "lane": "en->en",
+      "mode": "semantic",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "set_kind": "any-of",
+      "signal": "exact",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0002/hybrid": {
+      "expected_miss": false,
+      "facet": "core",
+      "format": "pdf",
+      "id": "q-0002",
+      "lane": "fr->en",
+      "mode": "hybrid",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "set_kind": "any-of",
+      "signal": "paraphrase",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0002/lexical": {
+      "chain": {
+        "fraction": 0.8,
+        "matched": 4,
+        "mismatched": [],
+        "missing": [
+          "section_heading"
+        ],
+        "of": 5
+      },
+      "expected_miss": false,
+      "facet": "core",
+      "format": "pdf",
+      "id": "q-0002",
+      "lane": "fr->en",
+      "level": "near-win",
+      "mode": "lexical",
+      "r34_present": true,
+      "rank": 1,
+      "reciprocal_rank": 1.0,
+      "rows": [
+        {
+          "attachment_key": "L68LPREA",
+          "chain": {
+            "fraction": 0.8,
+            "matched": 4,
+            "mismatched": [],
+            "missing": [
+              "section_heading"
+            ],
+            "of": 5
+          },
+          "evidence": {
+            "how": null,
+            "matched": false,
+            "overlap": 0.158,
+            "why": "item-without-evidence"
+          },
+          "level": "near-win",
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "section": "Article 3",
+          "work_id": "vn-decision-11-2017-qdttg-solar-fit-en"
+        }
+      ],
+      "rows_found": {
+        "count": 1,
+        "fraction": 1.0,
+        "of": 1
+      },
+      "set_kind": "any-of",
+      "signal": "paraphrase",
+      "state": "scored",
+      "stratum": "core",
+      "top_k_item_keys": [
+        "GEWEZPJ4",
+        "WDHDGA89",
+        "VSN32JSP",
+        "NXIPLWTH",
+        "UDI7E8I2",
+        "5F9HCZ8B",
+        "R3YNUA6N",
+        "HIQIHFD2",
+        "4AZTUVYF",
+        "6J5AEUMZ"
+      ]
+    },
+    "q-0002/semantic": {
+      "expected_miss": false,
+      "facet": "core",
+      "format": "pdf",
+      "id": "q-0002",
+      "lane": "fr->en",
+      "mode": "semantic",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "set_kind": "any-of",
+      "signal": "paraphrase",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0003/hybrid": {
+      "expected_miss": false,
+      "facet": "core",
+      "format": "pdf",
+      "id": "q-0003",
+      "lane": "en->en",
+      "mode": "hybrid",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "set_kind": "all-of",
+      "signal": "exact",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0003/lexical": {
+      "chain": {
+        "fraction": 0.8,
+        "matched": 8,
+        "of": 10
+      },
+      "expected_miss": false,
+      "facet": "core",
+      "format": "pdf",
+      "id": "q-0003",
+      "lane": "en->en",
+      "level": "near-win",
+      "mode": "lexical",
+      "r34_present": true,
+      "rank": 1,
+      "reciprocal_rank": 1.0,
+      "rows": [
+        {
+          "attachment_key": "L68LPREA",
+          "chain": {
+            "fraction": 0.8,
+            "matched": 4,
+            "mismatched": [],
+            "missing": [
+              "section_heading"
+            ],
+            "of": 5
+          },
+          "evidence": {
+            "how": null,
+            "matched": false,
+            "overlap": 0.167,
+            "why": "item-without-evidence"
+          },
+          "level": "near-win",
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "section": "Article 12",
+          "work_id": "vn-decision-11-2017-qdttg-solar-fit-en"
+        },
+        {
+          "attachment_key": "L68LPREA",
+          "chain": {
+            "fraction": 0.8,
+            "matched": 4,
+            "mismatched": [],
+            "missing": [
+              "section_heading"
+            ],
+            "of": 5
+          },
+          "evidence": {
+            "how": "evidence-overlap",
+            "matched": true,
+            "overlap": 0.625
+          },
+          "level": "win",
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "section": "Article 16",
+          "work_id": "vn-decision-11-2017-qdttg-solar-fit-en"
+        }
+      ],
+      "rows_found": {
+        "count": 2,
+        "fraction": 1.0,
+        "of": 2
+      },
+      "set_kind": "all-of",
+      "signal": "exact",
+      "state": "scored",
+      "stratum": "core",
+      "top_k_item_keys": [
+        "GEWEZPJ4",
+        "R3YNUA6N",
+        "HYI6JTZ8",
+        "5F9HCZ8B",
+        "NXIPLWTH"
+      ]
+    },
+    "q-0003/semantic": {
+      "expected_miss": false,
+      "facet": "core",
+      "format": "pdf",
+      "id": "q-0003",
+      "lane": "en->en",
+      "mode": "semantic",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "set_kind": "all-of",
+      "signal": "exact",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0004/hybrid": {
+      "expected_miss": false,
+      "facet": "core",
+      "format": "pdf",
+      "id": "q-0004",
+      "lane": "fr->fr",
+      "mode": "hybrid",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "set_kind": "any-of",
+      "signal": "exact",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0004/lexical": {
+      "chain": {
+        "fraction": 0.6666666666666666,
+        "matched": 4,
+        "mismatched": [],
+        "missing": [
+          "section_heading",
+          "page_printed"
+        ],
+        "of": 6
+      },
+      "expected_miss": false,
+      "facet": "core",
+      "format": "pdf",
+      "id": "q-0004",
+      "lane": "fr->fr",
+      "level": "win",
+      "mode": "lexical",
+      "r34_present": true,
+      "rank": 1,
+      "reciprocal_rank": 1.0,
+      "rows": [
+        {
+          "attachment_key": "3A2CSURL",
+          "chain": {
+            "fraction": 0.6666666666666666,
+            "matched": 4,
+            "mismatched": [],
+            "missing": [
+              "section_heading",
+              "page_printed"
+            ],
+            "of": 6
+          },
+          "evidence": {
+            "how": "evidence-overlap",
+            "matched": true,
+            "overlap": 0.87
+          },
+          "level": "win",
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "section": "Préface de la quatrième édition",
+          "work_id": "walras-1900-elements"
+        }
+      ],
+      "rows_found": {
+        "count": 1,
+        "fraction": 1.0,
+        "of": 1
+      },
+      "set_kind": "any-of",
+      "signal": "exact",
+      "state": "scored",
+      "stratum": "core",
+      "top_k_item_keys": [
+        "WDHDGA89",
+        "UDI7E8I2",
+        "NXIPLWTH",
+        "6J5AEUMZ",
+        "HIQIHFD2"
+      ]
+    },
+    "q-0004/semantic": {
+      "expected_miss": false,
+      "facet": "core",
+      "format": "pdf",
+      "id": "q-0004",
+      "lane": "fr->fr",
+      "mode": "semantic",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "set_kind": "any-of",
+      "signal": "exact",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0005/hybrid": {
+      "expected_miss": true,
+      "facet": "core",
+      "format": "none",
+      "id": "q-0005",
+      "lane": "en->en",
+      "mode": "hybrid",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "set_kind": "any-of",
+      "signal": "exact",
+      "state": "not-run",
+      "stratum": "core"
+    },
+    "q-0005/lexical": {
+      "expected_miss": true,
+      "facet": "core",
+      "format": "none",
+      "id": "q-0005",
+      "lane": "en->en",
+      "mechanism": "no-answer: Decision 11/2017 covers solar power only and no document of the export sets a wind tariff; the empty pinned set is the ruling's no-answer case",
+      "mode": "lexical",
+      "outcome": "pass",
+      "rows": [],
+      "set_kind": "any-of",
+      "signal": "exact",
+      "state": "expected-miss",
+      "stratum": "core",
+      "top_k_item_keys": [
+        "GEWEZPJ4",
+        "VSN32JSP",
+        "HYI6JTZ8",
+        "5F9HCZ8B",
+        "WDHDGA89",
+        "G3IXLJC6",
+        "UDI7E8I2",
+        "R3YNUA6N"
+      ]
+    },
+    "q-0005/semantic": {
+      "expected_miss": true,
+      "facet": "core",
+      "format": "none",
+      "id": "q-0005",
+      "lane": "en->en",
+      "mode": "semantic",
+      "reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "set_kind": "any-of",
+      "signal": "exact",
+      "state": "not-run",
+      "stratum": "core"
+    }
+  },
+  "readings": {
+    "r34": {
+      "missing": {},
+      "question_count": 4,
+      "state": "pass"
+    },
+    "stability": {
+      "below_cutoff_count": 0,
+      "below_cutoff_fraction": 0.0,
+      "failed_rules": [],
+      "mean_jaccard": 1.0,
+      "minimum_jaccard": 1.0,
+      "per_query": {
+        "q-0001/lexical": 1.0,
+        "q-0002/lexical": 1.0,
+        "q-0003/lexical": 1.0,
+        "q-0004/lexical": 1.0,
+        "q-0005/lexical": 1.0
+      },
+      "previous_run": {
+        "build": {
+          "elapsed_s": 3,
+          "exit_code": 0,
+          "status": {
+            "builtFromVersion": 17,
+            "documents": 415,
+            "embedder": "none (keyword-only)",
+            "embedderActive": false,
+            "embedderConfigured": "off",
+            "fulltextEnabled": true,
+            "fulltextItems": 11,
+            "fulltextItemsScanned": 16,
+            "fulltextItemsTotal": 16,
+            "fulltextPassages": 398,
+            "fulltextVersion": 0,
+            "items": 17,
+            "itemsAvailable": 17,
+            "itemsFetched": 17,
+            "itemsRemoved": 0,
+            "itemsTotal": 17,
+            "library": "user",
+            "libraryBackend": "local",
+            "libraryVersion": 84,
+            "operation": "build",
+            "ownWordsEnabled": true,
+            "ownWordsItems": 0,
+            "ownWordsPassages": 0,
+            "passages": 415,
+            "phase": "fulltext",
+            "state": "done",
+            "storage": "sqlite",
+            "vectors": 0
+          }
+        },
+        "build_sha": "34d6c2681b1452aeaa2f8e8e90abe6e6b0f8df41",
+        "chunker": "not-reported by zotero_index status",
+        "date": "2026-09-06",
+        "embedder": "none (keyword-only)",
+        "export_sha256": "014cf144a55d2810759ac8100a6c50d9fd98a6ccbbef2034d2fe2dd35ab6aa74",
+        "extraction": {
+          "caps": {
+            "fulltext.pdfMaxPages": 100,
+            "fulltext.textMaxLength": 500000
+          },
+          "index_fulltext_max_chars": 40000,
+          "recipe_sha256": "23980113a777c3ecec90692ee12c5b6205a95279dec61876c3ff13cc69f23716",
+          "reindex_limits": "ignored",
+          "reindex_mode": "complete"
+        },
+        "index_schema": "2",
+        "index_status": {
+          "builtFromVersion": 17,
+          "documents": 415,
+          "embedder": "none (keyword-only)",
+          "embedderActive": false,
+          "embedderConfigured": "off",
+          "fulltextEnabled": true,
+          "fulltextItems": 11,
+          "fulltextItemsScanned": 0,
+          "fulltextItemsTotal": 0,
+          "fulltextPassages": 398,
+          "fulltextVersion": 0,
+          "items": 17,
+          "itemsAvailable": 17,
+          "itemsFetched": 0,
+          "itemsRemoved": 0,
+          "itemsTotal": 17,
+          "library": "user",
+          "libraryBackend": "local",
+          "libraryVersion": 84,
+          "operation": "build",
+          "ownWordsEnabled": false,
+          "ownWordsItems": 0,
+          "ownWordsPassages": 0,
+          "passages": 415,
+          "phase": "metadata",
+          "state": "idle",
+          "storage": "sqlite",
+          "vectors": 0
+        },
+        "k": 10,
+        "recipe_sha256": "23980113a777c3ecec90692ee12c5b6205a95279dec61876c3ff13cc69f23716",
+        "reply_shape": {
+          "attachment_key_carried": false,
+          "chain_from_replay_items_by_item_key": [
+            "author",
+            "date",
+            "identifier"
+          ],
+          "chain_from_reply": [
+            "title"
+          ],
+          "chain_never_carried": [
+            "section_heading",
+            "page_printed",
+            "part_title",
+            "part_byline"
+          ],
+          "hit_fields": [
+            "itemKey",
+            "score",
+            "snippet",
+            "source",
+            "title"
+          ],
+          "page_carried": false
+        },
+        "retrieval_mode": "keyword (BM25 over passages) reported as lexical; semantic and hybrid not-run",
+        "server_info": {
+          "name": "zoteus",
+          "version": "1.14.0"
+        },
+        "tool": "zotero_semantic_search"
+      },
+      "query_count": 5,
+      "state": "pass"
+    }
+  },
+  "reply_count": 15,
+  "run": {
+    "build": null,
+    "build_sha": "34d6c2681b1452aeaa2f8e8e90abe6e6b0f8df41",
+    "chunker": "not-reported by zotero_index status",
+    "date": "2026-09-06",
+    "embedder": "none (keyword-only)",
+    "export_sha256": "014cf144a55d2810759ac8100a6c50d9fd98a6ccbbef2034d2fe2dd35ab6aa74",
+    "extraction": {
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "23980113a777c3ecec90692ee12c5b6205a95279dec61876c3ff13cc69f23716",
+      "reindex_limits": "ignored",
+      "reindex_mode": "complete"
+    },
+    "index_schema": "2",
+    "index_status": {
+      "builtFromVersion": 17,
+      "documents": 415,
+      "embedder": "none (keyword-only)",
+      "embedderActive": false,
+      "embedderConfigured": "off",
+      "fulltextEnabled": true,
+      "fulltextItems": 11,
+      "fulltextItemsScanned": 0,
+      "fulltextItemsTotal": 0,
+      "fulltextPassages": 398,
+      "fulltextVersion": 0,
+      "items": 17,
+      "itemsAvailable": 17,
+      "itemsFetched": 0,
+      "itemsRemoved": 0,
+      "itemsTotal": 17,
+      "library": "user",
+      "libraryBackend": "local",
+      "libraryVersion": 84,
+      "operation": "build",
+      "ownWordsEnabled": false,
+      "ownWordsItems": 0,
+      "ownWordsPassages": 0,
+      "passages": 415,
+      "phase": "metadata",
+      "state": "idle",
+      "storage": "sqlite",
+      "vectors": 0
+    },
+    "k": 10,
+    "recipe_sha256": "23980113a777c3ecec90692ee12c5b6205a95279dec61876c3ff13cc69f23716",
+    "reply_shape": {
+      "attachment_key_carried": false,
+      "chain_from_replay_items_by_item_key": [
+        "author",
+        "date",
+        "identifier"
+      ],
+      "chain_from_reply": [
+        "title"
+      ],
+      "chain_never_carried": [
+        "section_heading",
+        "page_printed",
+        "part_title",
+        "part_byline"
+      ],
+      "hit_fields": [
+        "itemKey",
+        "score",
+        "snippet",
+        "source",
+        "title"
+      ],
+      "page_carried": false
+    },
+    "retrieval_mode": "keyword (BM25 over passages) reported as lexical; semantic and hybrid not-run",
+    "server_info": {
+      "name": "zoteus",
+      "version": "1.14.0"
+    },
+    "tool": "zotero_semantic_search"
+  },
+  "schema": "golden-gate-report/v2",
+  "scored_count": 4,
+  "state": "pass",
+  "threshold_source": "SPEC.md §5.2.8",
+  "unanswered_questions": []
+}

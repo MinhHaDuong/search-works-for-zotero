@@ -35,6 +35,16 @@ REPO = Path(__file__).resolve().parent.parent
 
 #: Where measurement artifacts live. The only tree this guard reads.
 ARTIFACTS = "bench/results"
+#: Subtrees of ARTIFACTS the guard does not read, each with the reason. The golden
+#: fixture corpus is private-free by construction (DECISIONS.md, 2026-09-02): every
+#: document is a public-domain or openly licensed work whose title and author are
+#: already committed in bench/fixtures/export/items.json, so a name there discloses
+#: nothing about the author's library. The golden replies MUST carry names, because
+#: the citation chain (title, author, date, identifier, ...) is what the scorer
+#: measures for completeness (ticket 0722). Any other results subtree stays covered.
+EXEMPT_SUBTREES = {
+    "bench/results/golden/": "golden fixture replies: public-domain corpus, chain fields are the measurement",
+}
 
 #: Fields that name a document rather than addressing it. `titles` and
 #: `first_title` are here because both actually shipped: the rule has to catch
@@ -71,8 +81,12 @@ def run(repo: Path) -> int:
 
     scanned = 0
     failures = 0
+    exempted = 0
     for path in sorted(root.rglob("*.json")):
         relative = path.relative_to(repo).as_posix()
+        if any(relative.startswith(prefix) for prefix in EXEMPT_SUBTREES):
+            exempted += 1
+            continue
         try:
             document = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, ValueError) as why:
@@ -99,6 +113,7 @@ def run(repo: Path) -> int:
     print(
         f"{scanned} artifacts scanned, {len(NAME_FIELDS)} name fields tracked: "
         f"documents are addressed by key, not named"
+        + (f" ({exempted} exempted under {sorted(EXEMPT_SUBTREES)})" if exempted else "")
     )
     return 0
 
