@@ -1,0 +1,61 @@
+%erg 0.1
+Title: Library census: sampling frame for the Menagerie's representative core
+Created: 2026-09-06
+Author: claude
+
+--- log ---
+2026-09-06T09:51Z claude created
+
+2026-09-06T10:02Z claude note census run on doudou against Zotero 10.0.1 (library version 1257): 17 532 items, 3 min 42 s wall, counters from the control plugin; artifact bench/results/0029-library-census/census.json
+--- body ---
+
+## Context
+
+Child of tracker 0029. The Multilingual Menagerie's representative core has to
+match a real library, and until now nothing said which one or how
+(`conception/0029-golden-fixture-structure-review.md` §3, the author's own
+proposal: "derive library size, item-type distribution, attachment file-type
+distribution, attachments-per-item distribution from the author's existing
+real library; record the sampling method and comparison so the fixture can
+claim representativeness"). This ticket builds that sampling frame: a
+read-only census of the author's Zotero library over the local API, producing
+the marginal distributions a quota sample of documents must reproduce.
+
+The fixture perimeter follows the 2026-08-31 ruling: what Zotero shows, so the
+group library is in and the trash and feeds are out. The census counts all
+three, and reports the last two apart so the exclusion is a measured one.
+
+## Relevant files
+
+- `bench/library_census.py` — the probe: local API listing, full-text
+  counters from the control plugin (`bench/zotero-fulltext-plugin/`) with the
+  API's `/fulltext` route as fallback, an immutable SQLite read for the two
+  marginals the API does not expose (annotations by type, feed libraries)
+- `tests/test_library_census.py` — fixture API of known composition; the
+  read-only proof (source, monkeypatched transport, and a real HTTP server
+  recording methods); the aggregate-only proof (no key, title, file name or
+  note text in the artifact)
+- `bench/results/0029-library-census/census.json` — the committed artifact
+- `verification/LIBRARY-CENSUS-0029.md` — method, provenance, the marginals
+  as tables, and what they imply for the representative core
+- `bench/check_figures.py` — every figure the report quotes, declared
+
+## Privacy and safety
+
+The artifact carries counts and quantiles only. Every request is a GET; the
+SQLite handle is `mode=ro&immutable=1`. Both properties are asserted by tests,
+including one against a real server that records the methods it saw.
+
+## Exit criteria
+
+- [ ] `bench/library_census.py` runs against Zotero 10 with `--base-url`,
+      `--output`, `--include-group`, `--sqlite`; no hardcoded paths
+- [ ] `tests/test_library_census.py` in the fast tier proves the counts on a
+      known fixture and proves the tool never issues a write
+- [ ] the real census committed under `bench/results/0029-library-census/`
+      with host, date, Zotero version in its provenance
+- [ ] `verification/LIBRARY-CENSUS-0029.md` reports the marginals and reads
+      them for the representative core: which cells are large, which are
+      rare but present, which the API cannot measure
+- [ ] the child row and a log line on tracker 0029
+- [ ] `make check` green
