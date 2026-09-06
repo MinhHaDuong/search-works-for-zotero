@@ -223,6 +223,16 @@ An indexed attachment is refused when the reindex left its fulltext version
 unchanged, since Zotero resets that version on every local extraction and an
 unchanged one means the client held the item but never read the file.
 
+A third row shape, `indexed-not-served`, records a fact of the local API
+found on the first real run: `/items/<key>/fulltext` answers 404 for every
+content type outside `Zotero.Fulltext.isCachedMIMEType` (PDF, HTML, EPUB), so
+a plain-text attachment Zotero has indexed — the three Wikisource `wikitext`
+records, in the census with their character counts — has no body to fetch,
+and the product indexes it from metadata only. The export accepts such a row
+only for an unserved content type with the reindex's own `indexed`
+observation; the same 404 on a PDF is vanished text and stays refused. The
+replay lists it in the census and answers 404 on its route, as Zotero does.
+
 ## Re-pinning
 
 Run `python3 bench/fixtures/fetch_recipe.py`. Every document reports one of

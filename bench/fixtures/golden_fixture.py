@@ -48,6 +48,17 @@ CONTENT_TYPES = {
     "txt": "text/plain; charset=utf-8",
     "epub": "application/epub+zip",
 }
+#: The content types whose extracted text Zotero's local API serves on
+#: /items/<key>/fulltext: exactly Zotero.Fulltext.isCachedMIMEType (fulltext.js),
+#: which server_localAPI.js's ItemFullText handler answers 404 for everything
+#: else.  A text/plain attachment Zotero has indexed (census row, char counts)
+#: is therefore never served -- found on the real run, padme, 2026-09-06.
+SERVED_CONTENT_TYPES = frozenset({"application/pdf", "text/html", "application/epub+zip"})
+NOT_SERVED_REASON = (
+    "Zotero's local API serves /items/<key>/fulltext only for cached MIME types "
+    "(application/pdf, text/html, application/epub+zip; Zotero.Fulltext.isCachedMIMEType); "
+    "this content type is indexed from the file and its fulltext route answers 404"
+)
 
 
 class GoldenFixtureError(RuntimeError):
@@ -373,6 +384,28 @@ def _control_row(
     return row
 
 
+def _not_served_row(
+    doc: dict, source: dict, parent_key: str, attachment_key: str, observed: dict, census_version: int,
+) -> dict:
+    """The export row of an attachment Zotero indexed but the local API never serves."""
+    row = {
+        "recipe_id": doc["id"], "parent_key": parent_key, "attachment_key": attachment_key,
+        "terminal_state": "indexed-not-served", "fulltext_file": None,
+        "fulltext_version": census_version, "body": None,
+        "observed_state": observed.get("state"), "not_served_reason": NOT_SERVED_REASON,
+    }
+    if "attachments" in doc:
+        row.update(attachment_id=source["id"], role=source["role"],
+                   relation=source["relation"], language=source["language"],
+                   bytes_format=source.get("bytes_format", "pdf"),
+                   selection_expectation=source["selection_expectation"],
+                   cap_expectations=source["cap_expectations"],
+                   skip_reason=source.get("skip_reason", ""))
+    row.update(indexed_pages=None, total_pages=None,
+               indexed_chars=observed.get("indexedChars"), total_chars=observed.get("totalChars"))
+    return row
+
+
 def _snapshot_rows(
     recipe: list[dict], client, source_paths: dict[str, Path], collection_key: str,
     *, library_type: str = "user", settled: dict[str, dict] | None = None,
@@ -500,6 +533,19 @@ def _snapshot_rows(
                 raise GoldenFixtureError(f"{source['id']}: attachment has no /fulltext census entry")
             fulltext = _fulltext_or_none(client, attachment_key)
             if fulltext is None:
+                content_type = CONTENT_TYPES.get(source.get("bytes_format", "pdf"), "application/octet-stream")
+                if observed is not None and content_type not in SERVED_CONTENT_TYPES:
+                    # Indexed by Zotero (the reindex just saw it, the census lists it) yet
+                    # never served by the local API: the product indexes such an item from
+                    # metadata only.  Captured as what it is, not as vanished text -- which
+                    # is what a 404 on a served content type still means.
+                    if not isinstance(census[attachment_key], int) or census[attachment_key] < 0:
+                        raise GoldenFixtureError(f"{source['id']}: invalid /fulltext census version")
+                    items.append(child)
+                    attachments.append(
+                        _not_served_row(doc, source, parent_key, attachment_key, observed, census[attachment_key])
+                    )
+                    continue
                 raise GoldenFixtureError(f"{source['id']}: attachment has no /fulltext response")
             if not isinstance(census[attachment_key], int) or census[attachment_key] < 0:
                 raise GoldenFixtureError(f"{source['id']}: invalid /fulltext census version")
@@ -723,7 +769,8 @@ def export_snapshot(
             "parent_item_count": len(recipe),
             "attachment_count": len(public_rows),
             "indexed_attachment_count": sum(row["terminal_state"] == "indexed" for row in public_rows),
-            "failure_control_count": sum(row["terminal_state"] != "indexed" for row in public_rows),
+            "indexed_not_served_count": sum(row["terminal_state"] == "indexed-not-served" for row in public_rows),
+            "failure_control_count": sum(row["terminal_state"] == "unindexed" for row in public_rows),
             "source_byte_count": sum(path.stat().st_size for path in source_paths.values()),
             "recipe_sha256": recipe_digest(recipe),
             "library": {
