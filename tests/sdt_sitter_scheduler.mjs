@@ -484,13 +484,24 @@ await test('a torn-down dialog cannot throw out of render, and says so once', as
   ui.dialogs.add({ closed: false,
     document: { getElementById: id => (id === 'sdt-status' ? {} : null) } });
   ui.render(); ui.render(); ui.render();
+  const errors = () => Array.from(ring.tail(50)).filter(record => record.kind === 'render-error');
+  // Once, not three times: the pulse renders at 10 Hz, and a record per tick
+  // would evict the whole ring in minutes — losing the evidence 0703 keeps.
+  assert.equal(errors().length, 1);
+  assert.equal(errors()[0].level, 'error');
+  assert.equal(errors()[0].error, 'TypeError');
+  // The latch releases on a render that works, so a second, later episode is
+  // still reported. Without this arm a guard that simply never records twice
+  // passes everything above — and the arm is also what proves the reset above
+  // reaches the sandbox at all, which as a `let` it silently did not.
   ui.dialogs.clear();
-  const failures = Array.from(ring.tail(50)).filter(record => record.kind === 'render-error');
-  // Once, not three times: the pulse renders at 10 Hz, and a beat per tick would
-  // evict the whole ring in minutes — losing the evidence 0703 exists to keep.
-  assert.equal(failures.length, 1);
-  assert.equal(failures[0].level, 'error');
-  assert.equal(failures[0].error, 'TypeError');
+  ui.render();
+  assert.equal(errors().length, 1);
+  ui.dialogs.add({ closed: false,
+    document: { getElementById: id => (id === 'sdt-status' ? {} : null) } });
+  ui.render(); ui.render();
+  assert.equal(errors().length, 2);
+  ui.dialogs.clear();
 });
 /* The scheduler still rejects when the UI it publishes to throws — that is by
    design, and it is why the guard belongs in bootstrap.js rather than here. What

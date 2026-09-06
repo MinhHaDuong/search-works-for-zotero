@@ -9,9 +9,11 @@ var createSDTSourceHashes;
 // script global a sandboxed load exposes.
 var sitter, journal, alive = false, sealed = false;
 // Same reason: the render guard's test drives a torn-down dialog through this
-// set, and a `const` at script top level never reaches the sandbox global.
-var buttons = new Set(), dialogs = new Set();
-let timer, pulse, heartbeat, timers, renderFailing = false;
+// set and resets the latch between cases, and neither a `const` nor a `let` at
+// script top level reaches the sandbox global — the assignment silently lands on
+// an unrelated property instead, and the reset reads as though it worked.
+var buttons = new Set(), dialogs = new Set(), renderFailing = false;
+let timer, pulse, heartbeat, timers;
 const closeJournalled = new WeakSet();
 const BUTTON = 'sdt-pack-sitter-button';
 const SWEEP_INTERVAL_MS = 30000;
@@ -515,9 +517,17 @@ async function initialize(rootURI, token) {
     result.sourceBytes = source.size;
     result.pages = processor === 'pdf' ? await Zotero.DB.valueQueryAsync(
       'SELECT totalPages FROM fulltextItems WHERE itemID = ?', [id]) : null;
-    if (!(await IOUtils.exists(path))) { cache.drop(result.cacheKey); return result; }
+    // The same collapse as the source file above, in the same census walk: this
+    // exists() and the stat() that followed it asked one file one question.
+    // An absent pack takes the branch it always took. One case does move: a pack
+    // present but unstattable (permissions) now reads 'missing-pack' where it
+    // read 'invalid-pack'. Both re-extract, so only the diagnostic bucket
+    // differs, and 'missing-pack' is the truer of the two for a file the
+    // filesystem will not describe.
+    let stat;
+    try { stat = await IOUtils.stat(path); }
+    catch (_error) { cache.drop(result.cacheKey); return result; }
     try {
-      const stat = await IOUtils.stat(path);
       const fingerprint = JSON.stringify([stat.size, stat.lastModified]);
       const cached = cache.check(result.cacheKey, result.identity, fingerprint);
       if (cached) return { ...result, status: 'current', cached: true };
