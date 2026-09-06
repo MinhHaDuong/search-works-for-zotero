@@ -174,6 +174,9 @@ PATH_OWNERS = {
     "bench",
     "spec",
     "tests",
+    # The Menagerie RIS package's L1 links (`attachments/<id>.<ext>`, ticket 0721) open a
+    # path relative to the RIS file; the fixture ids under it read like model names.
+    "attachments",
     "tickets",
     "verification",
     "results",
