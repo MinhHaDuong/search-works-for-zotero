@@ -1,0 +1,149 @@
+%erg 0.1
+Title: Read structured text from the SDT plugin, fall back to the flat full-text cache
+Created: 2026-09-02
+Author: claude
+Blocked-by: 0726
+
+--- log ---
+2026-09-02T06:55Z claude created
+
+2026-09-02T07:13Z claude note ratified by the author 2026-09-02 as a mechanism under R24, not a new requirement (his words: an under-the-hood mechanism). SPEC.md R24, C1, C2, 5.2.4 and 5.2.2 edited in PR 170; the needs-human label comes off, Blocked-by 0028 stays
+2026-09-02T15:29Z codex note author made the pack reader permanent in design and deferred implementation until Zotero 6012 makes packs library-wide
+2026-09-03T15:32Z MinhHaDuong note blocker 0028 closed — Blocked-by removed.
+2026-09-06T21:31Z claude note RE-CUT onto the plugin, on the author's premise of this session: he will write a Zotero plugin serving SDT-derived full text and chunks, repackaging #6012's chunker. The mechanism changes from a zoteus-side read of the binary pack to an HTTP read of a versioned contract (ticket 0726), so the TypeScript port of sdt_read.py, the pack-version gate and the truncated-pack handling all leave this ticket. Two premises of the old body were also obsolete independently of the plugin and are corrected in place rather than left standing: the deferral rested on 2 packs among 13 630 flat caches, and the sitter has since produced 7 781 (doudou, 2026-09-06); and the deferral's checkpoint was "#6012 ships", which the plugin replaces with a checkpoint the author controls. The `deferred` label comes off and `Blocked-by: 0726` goes on. Implementation still waits for the feature freeze to lift on 2026-09-21 (STATE.md).
+
+--- body ---
+## Context
+
+The author's idea, 2026-09-02: the indexer SHOULD use Zotero's structured
+text when it exists and fall back on the flat full-text cache otherwise.
+Ratified the same day as a mechanism under R24, no new R-item.
+
+**What changed, 2026-09-06.** The author will write a Zotero plugin that
+serves that structured text — and chunks made by #6012's chunker,
+repackaged — over the local API's own HTTP server. So this ticket stops being
+a binary-format reader and becomes a client of a versioned contract, ticket
+0726. Everything the 2026-09-02 ruling fixed about *identity, structure,
+reporting and fallback* survives the re-cut unchanged; only the transport and
+the reader move.
+
+Three consequences, each of which removes work this ticket used to carry.
+
+- **No pack reader in zoteus.** No port of `verification/probes/sdt_read.py`
+  to TypeScript, no pack-version gate, no truncated-pack case, no schema
+  tracking. `SPEC.md` C2's objection to depending on an internal, publicly
+  unversioned format stops being ours: the contract stands in front of it.
+- **No AGPL question.** The old body carried "the reader is written from the
+  format, under whatever the AGPL-reimplementation ruling decides". With
+  #6012's code inside a plugin the author licenses himself and zoteus
+  consuming only HTTP output, the question is dissolved rather than answered.
+- **The checkpoint is ours.** The deferral waited on #6012 shipping. It now
+  waits on 0726, which the author controls.
+
+**Two obsolete premises, corrected rather than left standing.** The deferral
+argued that 2 packs among 13 630 flat caches did not justify maintaining a
+reader. The sitter has since produced **7 781** packs on the author's library
+(doudou, 2026-09-06), so the coverage argument for deferring has evaporated
+on its own. And the measured gain is now known: over the 4 762 PDFs carrying
+both a pack and a flat cache, pack text equals flat text at the median (1,00,
+both extractor generations, excluded flows 2,5 % of pack words), so the
+structured route's payoff is **structure and uncapped pages**, not better
+words — in 486 of the 4 031 current-generation pairs the flat cache stops at
+exactly page 100 while the pack continues, median 1,79x more text. The
+earlier 0,91/0,99 figure was a reader artifact, corrected in DECISIONS.md
+2026-09-06.
+
+What is still true and should not be re-established: the pack is
+`storage/<KEY>/.zotero-sdt-cache`, pack version 1, schema 1.1.0, processor
+pdf/3; only Zotero's reader and our sitter write one; upstream #6012 keys its
+own source on the processor version.
+
+## Relevant files
+
+- `tickets/0726` — the contract this codes against. Nothing here starts
+  before its two open decisions are ratified.
+- `SPEC.md` §5.2.4 (source selection, re-cut in this change), §5.2.2 (the
+  chunk key and the segmenter's tier-0 signal), §5.2.7 (the conductor's
+  signal order), R17, R24, C1, C2.
+- `verification/probes/sdt_read.py` — no longer a port target; it is the
+  oracle 0726's endpoint is checked against.
+- Tickets 0557 (the ladder this is tier 0 of), 0606 (producing packs
+  ourselves, which the plugin supersedes — see its own note), 0480, 0483,
+  0120.
+
+## Actions
+
+1. Done 2026-09-02 with the ruling: `SPEC.md` R24, C1, C2, §5.2.4 and §5.2.2
+   edited. Re-cut onto the plugin in the same change as this rewrite.
+2. **Source selection.** Per attachment, ask the plugin's endpoint; use its
+   answer when it comes back with a contract version we know and an identity
+   we can key on; otherwise the ruled fallback, the local API's `/fulltext`.
+   Never a direct read of `.zotero-ft-cache`, and never a direct read of the
+   pack either — that route is the plugin's now.
+3. **Extractor identity.** The C1 key for a structured-sourced attachment is
+   (source hash, processor version) as the response reports them; for a
+   flat-sourced one it stays what §5.2.4 has today. Record which, per
+   attachment, in the ledger. Where chunks are consumed from the plugin, the
+   chunker identity in the response feeds the chunk key — a plugin upgrade
+   that moves a boundary must land as a key bump, not as silent drift.
+4. **Text and structure.** Blocks joined so a passage's extent maps back to
+   them, excluded flows dropped; block types and page anchors to the
+   segmenter as the tier-0 signal above 0560's outline. Do not overlay
+   structure onto the flat text: one attachment has one source.
+5. **Reporting.** R17 counts structured-sourced and flat-sourced attachments
+   apart; R24's locator says "page" for a block anchor and keeps D10's
+   "estimated" label for flat-sourced hits.
+6. **Streaming.** Consume the endpoint page by page. C3 bounds peak memory to
+   a section batch and the conductor never materializes a document; a
+   consumer that assembles the whole response first breaks that inside this
+   ticket rather than at the first 2 913-page volume.
+7. Write the tests below before the code.
+
+## Test
+
+- Red first: an attachment whose structured text and flat cache differ in a
+  known way (a running head present only in the flat cache). Assert the
+  indexed text is the structured one. Run it against the tree before the
+  change: it must fail there.
+- Plugin absent, and plugin answering with a contract version we do not
+  know: assert the attachment falls back to the flat path, that the ledger
+  records the reason, and that nothing else about the build changes.
+- A response missing the chunker identity while serving chunks: assert the
+  attachment falls back rather than keying on an unnamed chunker.
+- A processor-version change with the same source hash: assert the next
+  census marks the attachment stale (0480's class).
+- `GMAP993G` and `BSMCQ6BM` end to end: the indexed text matches what
+  `sdt_read.py` reads from the same packs, and a hit inside `GMAP993G`
+  returns the block's page rather than an estimate.
+
+## Verification
+
+- [ ] `make check` green.
+- [ ] R17's report separates structured-sourced from flat-sourced, and the
+      count agrees with a hand count of packs the plugin covers.
+- [ ] A hit inside `GMAP993G` returns the block's page, not an estimate.
+- [ ] With the plugin uninstalled, a build produces what it produces today.
+
+## Invariants
+
+- seg/1 and the pdf.js tiers are never degraded: structured text is a signal
+  above them, and its absence changes nothing about today's path.
+- No AGPL code vendored into zoteus (MIT). #6012's chunker stays inside the
+  plugin; zoteus sees HTTP output only.
+- C3: the consumer streams block groups; no document is held whole beside the
+  query embedder.
+- Nothing is filed upstream by this ticket; #6012 is read, not touched.
+
+## Exit criteria
+
+- [x] The awaiting entry is ratified (2026-09-02: mechanism under R24).
+- [x] SPEC.md matches the ruling and its date is bumped; README.md needs no
+      change since no requirement was added.
+- [ ] 0726's contract is ratified and its endpoint serves.
+- [ ] The feature freeze has lifted (2026-09-21, STATE.md).
+- [ ] Source selection lands in the fork with the tests above, the red-first
+      one having failed against the unfixed tree.
+- [ ] Per-source counts appear in R17's report and a block anchor reaches
+      R24's locator.
+- [ ] 0557's tracker names structured text as tier 0 and 0560/0561 as the
+      tiers below it.

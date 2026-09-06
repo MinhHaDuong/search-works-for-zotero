@@ -1,0 +1,60 @@
+%erg 0.1
+Title: Name the embedder behind the cross-lingual near-zero, then re-read R29's verdict
+Created: 2026-09-07
+Author: claude
+
+--- log ---
+2026-09-07T09:10Z claude created
+
+--- body ---
+## Context
+
+The library-level bench (ticket 0719, merged in PR #406) put 100 questions
+from the author's own library to the reviewed zoteus build and found
+cross-lingual retrieval near zero, in every retrieval mode:
+
+| lane | n | win | near-win | miss |
+|---|---|---|---|---|
+| en→en | 59 | 20 | 35 | 4 |
+| vi→vi | 8 | 1 | 5 | 2 |
+| fr→en | 12 | 1 | 4 | 7 |
+| vi→en | 10 | 0 | 0 | 10 |
+
+Keyword found the work in 3 of 30 cross-lingual cases, vectors in 9, hybrid
+in 9, so the failure is not a mode effect. Same-language retrieval is healthy
+at 0,76 reciprocal rank for English.
+
+**What the run did not record is which model produced those vectors.** The
+run identity says the embedder is local and active; it does not name it. That
+single fact decides what the finding means, and the two readings are opposite:
+
+- If the build loaded a **multilingual** embedder, this is a failure of a
+  requirement the project has ratified, and R29 is broken at library level in
+  the direction ruling 2 of 2026-09-06 added, a Vietnamese query against
+  English content.
+- If the build loaded the **English-only incumbent** (`all-MiniLM-L6-v2`, the
+  model the feasibility runs used), then the numbers are the expected
+  behaviour of a monolingual model and say nothing about R29. What they would
+  then be evidence for is a shipped default that cannot keep R7 or R29 at all.
+
+Reporting either reading before the model is named would be a verdict dressed
+as a finding (`rules/workflow.md` § Diagnosis discipline).
+
+## Actions
+
+1. Read, from the reviewed build's own source and configuration rather than
+   from documentation, which model the default path loads: the registry entry,
+   the resolved model id, its dtype and pooling.
+2. Record the model id, revision and pooling in the bench's `run` block, so no
+   future run can be read without it. SPEC.md §5.2.10 already requires a run
+   identity; this is the field it is missing.
+3. Re-run the cross-lingual lanes and state the verdict against R29 explicitly,
+   naming the model.
+4. If the default is monolingual, say so where a reader of the requirement
+   will meet it, and open the question of what the shipped default should be.
+
+## Exit criteria
+- [ ] the embedder actually loaded by the default path is named, from source
+- [ ] the bench's run identity carries model id, revision, dtype and pooling
+- [ ] the cross-lingual lanes re-run and their verdict against R29 stated with
+      the model named

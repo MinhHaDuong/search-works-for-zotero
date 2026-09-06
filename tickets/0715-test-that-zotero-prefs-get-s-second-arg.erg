@@ -6,11 +6,12 @@ Author: sim
 --- log ---
 2026-09-06T15:33Z sim created
 
+2026-09-06T18:39Z claude note Body pointer repathed by 0697: the sitter's payload moved from bench/sdt-sitter/ to plugins/sdt-sitter/. No change of scope.
 --- body ---
 
 ## Context
 
-`bench/sdt-sitter/bootstrap.js:34` reads the sitter's debug pref as
+`plugins/sdt-sitter/bootstrap.js:34` reads the sitter's debug pref as
 `Zotero.Prefs.get(DEBUG_PREF, true)`. Ticket 0698's SPEC.md documentation
 (merged via PR #386) states this as fact: the second argument is the
 "fully-qualified name" flag, not a default value, so an undeclared pref
