@@ -18,10 +18,11 @@ let generation = 0;
 let lastCompleted = 0;
 let completionBlinkUntil = 0;
 
-/* The sitter's whole diagnostic channel. The ring always records; Zotero.debug()
-   is the readable one and carries everything but trace unless the pref is set.
-   The whole body is guarded: the invariant is that no diagnostic ever throws
-   into the sitter loop, and a `detail` the ring rejects must not either. */
+/* The sitter's whole diagnostic channel. Until the seal, the ring takes
+   everything; Zotero.debug() takes everything but trace, which waits on the
+   pref. The whole body is guarded: the invariant is that no diagnostic ever
+   throws into the sitter loop, and a `detail` the ring rejects must not
+   either. */
 function emit(kind, detail, level = 'state') {
   // Sealed at shutdown, so nothing can land behind the shutdown record — an
   // invariant of the channel rather than a guard each call site has to remember.
