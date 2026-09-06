@@ -1,0 +1,28 @@
+%erg 0.1
+Title: Fix sitter repeated census and lost diagnostics
+Created: 2026-09-06
+Author: codex
+Closed: Census loop and journal creation fixed; scheduler regressions and isolated Zotero smoke passed; corrected 0.2.2 XPI built
+
+--- log ---
+2026-09-06T06:28Z codex created
+
+2026-09-06T06:31Z codex note Fixed census restart loop and missing-file journal append; surfaced inspection/cache diagnostics; corrected manifest to 0.2.2. Scheduler regressions and isolated Zotero smoke passed; evidence in verification/SDT-SITTER-RESUME-0688.md.
+2026-09-06T06:31Z Minh Ha-Duong closed — Census loop and journal creation fixed; scheduler regressions and isolated Zotero smoke passed; corrected 0.2.2 XPI built
+--- body ---
+
+## Scope
+
+Fix the reported repeated census and lost error journal in the native sitter.
+Keep pending work across resource waits, surface inspection exceptions, and
+correct the manifest to the author-specified version `0.2.2`.
+
+## Evidence
+
+- Production code: `bench/sdt-sitter/`.
+- Regression tests: `tests/sdt_sitter_scheduler.mjs` and
+  `verification/probes/sdt-sitter-harness/bootstrap.js`.
+- Findings and validation: `verification/SDT-SITTER-RESUME-0688.md`.
+
+Historical inspection failures and the suspected overnight suspend remain
+unattributed; the old build did not preserve the inspection exception.

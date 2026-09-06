@@ -99,6 +99,8 @@ function render() {
       ...Object.entries(s.counts).map(([key, n]) => `${key} : ${n}`),
       `Créés cette session : ${s.completed} ; échecs : ${s.failed}`,
       s.error ? `Erreur : ${s.error}` : '',
+      s.inspectionError || '',
+      s.cacheWarning || '',
     ].filter(Boolean).join('\n');
     const progress = doc.getElementById('sdt-progress');
     progress.hidden = s.active === null;
@@ -237,7 +239,7 @@ async function initialize(rootURI, token) {
       const bytes = new TextEncoder().encode(changes.map(change => JSON.stringify({ versions: raw.versions, ...change })).join('\n') + '\n');
       try {
         // Compact once per activation; subsequent writes contain changed rows only.
-        await IOUtils.write(cachePath, bytes, compact ? { tmpPath: `${cachePath}.tmp` } : { mode: 'append' });
+        await IOUtils.write(cachePath, bytes, compact ? { tmpPath: `${cachePath}.tmp` } : { mode: 'appendOrCreate' });
         cache.saved(changes); compact = false;
       }
       catch (error) { if (alive) sitter.state.cacheWarning = `Cache non enregistré : ${error}`; }
@@ -339,7 +341,7 @@ async function initialize(rootURI, token) {
         parent: info.parentTitle || null, identity: info.identity || null, error: String(error),
       }) + '\n';
       try {
-        await IOUtils.write(errorPath, new TextEncoder().encode(line), { mode: 'append' });
+        await IOUtils.write(errorPath, new TextEncoder().encode(line), { mode: 'appendOrCreate' });
       } catch (writeError) {
         if (alive) sitter.state.error = `${sitter.state.error} (journal non enregistré : ${writeError})`;
       }

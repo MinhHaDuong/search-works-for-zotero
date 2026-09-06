@@ -61,7 +61,7 @@ await test('failure suppresses same source for session but changed source retrie
   const f = fixture(); f.host.ensure = async id => { f.calls.push(id); return false; };
   await f.api.sweep(); await f.api.sweep(); assert.deepEqual(f.calls, [1, 2]);
   f.host.inspect = async id => ({ status: 'missing-pack', identity: `${id}/changed` });
-  await f.api.sweep(); assert.deepEqual(f.calls, [1, 2, 1, 2]);
+  await f.api.sweep({ rescan: true }); assert.deepEqual(f.calls, [1, 2, 1, 2]);
 });
 await test('native success without current persisted cache counts as failure', async () => {
   const f = fixture(); f.host.ensure = async () => true;
@@ -72,6 +72,32 @@ await test('unsupported, missing and future-version packs are never overwritten'
     const f = fixture(); f.host.inspect = async () => ({ status });
     await f.api.sweep(); assert.equal(f.calls.length, 0);
   }
+});
+await test('automatic ticks reuse completed census and retain blocked frontier', async () => {
+  const f = fixture(); let lists = 0, blocks = 0;
+  f.host.list = async () => { lists++; return [1, 2]; };
+  f.host.blocked = async () => ++blocks === 2 ? 'cpu-busy' : null;
+  await f.api.sweep();
+  assert.deepEqual(f.calls, [1]); assert.equal(f.api.state.pending.length, 1);
+  await f.api.sweep(); await f.api.sweep();
+  assert.equal(lists, 1); assert.deepEqual(f.calls, [1, 2]);
+  assert.equal(f.api.state.counts.current, 2);
+});
+await test('native work completed during a resource wait is not resubmitted', async () => {
+  const f = fixture(); f.host.blocked = async () => 'native-worker-busy';
+  await f.api.sweep(); f.cached.add(1);
+  f.host.blocked = async () => null;
+  await f.api.sweep(); assert.deepEqual(f.calls, [2]);
+  assert.equal(f.api.state.counts.current, 2);
+});
+await test('inspection failures retain diagnostics and do not block healthy items', async () => {
+  const f = fixture(), inspect = f.host.inspect, reports = [];
+  f.host.inspect = async id => { if (id === 1) throw new Error('source unreadable'); return inspect(id); };
+  f.host.reportError = async (info, error) => reports.push(String(error));
+  await f.api.sweep();
+  assert.equal(f.api.state.counts['inspection-error'], 1);
+  assert.match(f.api.state.inspectionError, /document 1.*source unreadable/);
+  assert.deepEqual(reports, ['Error: source unreadable']); assert.deepEqual(f.calls, [2]);
 });
 console.log(JSON.stringify({ tests: results, result: 'pass' }));
 

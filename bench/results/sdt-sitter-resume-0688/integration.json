@@ -1,0 +1,60 @@
+{
+  "arena": "/home/haduong/CNRS/code/search-works-for-zotero/corpus-cache/sdt-diagnostic-hh9mtv4_",
+  "returncode": 0,
+  "deadlineReached": false,
+  "wallSeconds": 18.170603595965076,
+  "pluginSourceSHA256": {
+    "sdt-sitter/bootstrap.js": "39897b478656f2f31a93b16d2e9c92943ef49edee8b44a6ba39b50af27731cf5",
+    "sdt-sitter/manifest.json": "b2debd1194958e06edc25e7d52281f4866074188c80472feef44a50677a81596",
+    "sdt-sitter/scheduler.js": "e3b4494f31ea97ebd49f14826721a155ceb45c3304f4d7ed4764726b230cffd8",
+    "sdt-sitter-harness/bootstrap.js": "58cc7dd3ef2d00f11411592e407ef5d61b401afb1a49386957d46261527ea778",
+    "sdt-sitter-harness/manifest.json": "2a6569b7f95b8e6a5950a01734808bee1da5459a097cf20245d4e0f40d7912f3"
+  },
+  "network": "unshared",
+  "filesystem": "host read-only, arena writable",
+  "report": {
+    "tests": [
+      {
+        "name": "confirmed automatic sweep produces native PDF and EPUB packs",
+        "result": "pass"
+      },
+      {
+        "name": "global verified coverage and document progress have separate labelled groups",
+        "result": "pass"
+      },
+      {
+        "name": "toolbar has text width and dialog has opaque wrapping surface",
+        "result": "pass",
+        "buttonWidth": 80,
+        "surface": "rgb(44, 44, 44)",
+        "foreground": "rgb(247, 247, 247)",
+        "darkSystemTheme": true
+      },
+      {
+        "name": "toolbar opens status with native fulltext statistics",
+        "result": "pass"
+      },
+      {
+        "name": "re-click preserves the existing dialog contents",
+        "result": "pass"
+      },
+      {
+        "name": "disable removes UI and API",
+        "result": "pass"
+      },
+      {
+        "name": "reload restores duration observations and reuses verified census cache without extraction",
+        "result": "pass"
+      },
+      {
+        "name": "first native failure creates diagnostic journal in real IOUtils",
+        "result": "pass"
+      }
+    ],
+    "version": "10.0.1",
+    "scope": "isolated unmodified production sitter, synthetic attachments",
+    "lastState": null,
+    "accepted": true,
+    "finished": "2026-09-06T06:30:32.252Z"
+  }
+}

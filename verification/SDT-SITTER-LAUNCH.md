@@ -43,7 +43,10 @@ verdicts and the remaining accessibility/wording recommendations.
 
 Disable the extension to stop further admissions. The already submitted native
 job can finish and persist its pack. Re-enabling asks for confirmation again
-and reconstructs coverage from native caches. Session failures are forgotten,
+and reconstructs coverage from native caches. During an activation, automatic
+ticks resume the pending queue after resource waits without repeating the
+completed census. Newly added or externally changed attachments outside that
+queue are picked up on reactivation. Session failures are forgotten,
 so re-enabling can retry them. No unresolved native promise is retried.
 
 ## Experimental limits
@@ -91,3 +94,20 @@ removed the UI on disable. Snapshot extraction and a whole-library overnight
 run are not established by these synthetic fixtures. Scheduler disable during
 unresolved work is tested independently by the asynchronous unit host; earlier
 native graceful completion evidence belongs to `SDT-DIAGNOSTIC-LIVE.md`.
+
+## Census and diagnostics correction
+
+Ticket 0688 fixes automatic full rescans after resource waits and after a
+finished sweep. The in-memory frontier survives those waits; the next candidate
+is inspected again before admission to account for intervening native work.
+Inspection exceptions now appear in the diagnostics panel and error journal.
+The journal uses `appendOrCreate`, since IOUtils `append` rejects a missing
+file ([Mozilla API](https://searchfox.org/firefox-main/source/dom/chrome-webidl/IOUtils.webidl)).
+The cache uses the same creation-capable append mode, and cache write failures
+are visible in the panel. Native ensure failures include its boolean result
+and the post-extraction inspection status.
+
+This corrects the release metadata to the author's version `0.2.2`.
+It does not establish the cause of inspection failures discarded by the old
+build or prevent OS suspend. Verification for this correction is recorded in
+`verification/SDT-SITTER-RESUME-0688.md`.

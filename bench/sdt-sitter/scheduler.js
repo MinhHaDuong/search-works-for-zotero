@@ -5,45 +5,76 @@ var createSDTSitter = function (host) {
     scanned: 0, total: 0, counts: {}, serviceMS: 0, samples: [], activeInfo: null,
     fittedSamples: [], pending: [], error: null };
   const failed = new Set();
-  let busy = false;
+  let busy = false, censusComplete = false;
+  let candidates = [];
   const publish = () => { if (state.enabled) host.changed(state); };
   return {
     state,
     stop() { state.enabled = false; },
-    async sweep() {
+    async sweep({ rescan = false } = {}) {
       if (!state.enabled || busy) return;
       busy = true;
       try {
-        state.phase = 'census'; state.scanned = 0; state.counts = {};
-        const ids = await host.list();
-        if (!state.enabled) return;
-        state.total = ids.length; publish();
-        const candidates = [];
-        for (const id of ids) {
-          if (!state.enabled) break;
-          await host.yield();
-          if (!state.enabled) break;
-          let before;
-          try { before = await host.inspect(id); }
-          catch (error) { before = { status: 'inspection-error', error: String(error) }; }
-          if (!state.enabled) break;
-          state.scanned++;
-          let status = before.status;
-          if (before.identity && failed.has(before.identity)) status = 'failed-session';
-          state.counts[status] = (state.counts[status] || 0) + 1;
-          publish();
-          if (!['missing-pack', 'stale-source', 'stale-processor', 'invalid-pack'].includes(status)) continue;
-          candidates.push({ id, before, status });
-        }
-        state.pending = candidates.map(({ id, before }) => ({ id, sourceBytes: before.sourceBytes, pages: before.pages }));
-        if (state.enabled && host.censusComplete) {
-          state.samples = await host.censusComplete();
-          state.fittedSamples = state.samples.slice();
+        if (!censusComplete || rescan) {
+          state.phase = 'census'; state.scanned = 0; state.counts = {};
+          const ids = await host.list();
+          if (!state.enabled) return;
+          state.total = ids.length; publish();
+          candidates = [];
+          for (const id of ids) {
+            if (!state.enabled) break;
+            await host.yield();
+            if (!state.enabled) break;
+            let before;
+            try { before = await host.inspect(id); }
+            catch (error) {
+              before = { status: 'inspection-error', title: `document ${id}`, error: String(error) };
+              if (state.enabled) {
+                state.inspectionError = `Inspection du document ${id} : ${String(error)}`;
+                if (host.reportError) await host.reportError(before, error);
+              }
+            }
+            if (!state.enabled) break;
+            state.scanned++;
+            let status = before.status;
+            if (before.identity && failed.has(before.identity)) status = 'failed-session';
+            state.counts[status] = (state.counts[status] || 0) + 1;
+            publish();
+            if (!['missing-pack', 'stale-source', 'stale-processor', 'invalid-pack'].includes(status)) continue;
+            candidates.push({ id, before, status });
+          }
+          state.pending = candidates.map(({ id, before }) => ({ id, sourceBytes: before.sourceBytes, pages: before.pages }));
+          if (state.enabled && host.censusComplete) {
+            state.samples = await host.censusComplete();
+            state.fittedSamples = state.samples.slice();
+          }
+          if (!state.enabled) return;
+          censusComplete = true;
         }
         publish();
-        for (const { id, before, status } of candidates) {
+        while (candidates.length) {
+          let { id, before, status } = candidates[0];
           await host.yield();
           if (!state.enabled) break;
+          // Resource waits retain the frontier, but the source may change while waiting.
+          let fresh;
+          try { fresh = await host.inspect(id); }
+          catch (error) {
+            fresh = { status: 'inspection-error' };
+            if (state.enabled) {
+              state.inspectionError = `Inspection du document ${id} : ${String(error)}`;
+              if (host.reportError) await host.reportError(before, error);
+            }
+          }
+          if (!state.enabled) break;
+          const freshStatus = fresh.identity && failed.has(fresh.identity) ? 'failed-session' : fresh.status;
+          if (!['missing-pack', 'stale-source', 'stale-processor', 'invalid-pack'].includes(freshStatus)) {
+            state.counts[status]--;
+            state.counts[freshStatus] = (state.counts[freshStatus] || 0) + 1;
+            candidates.shift(); state.pending = state.pending.filter(item => item.id !== id);
+            publish(); continue;
+          }
+          before = fresh;
           const reason = await host.blocked(before);
           if (!state.enabled) break;
           if (reason) { state.phase = reason; publish(); break; }
@@ -59,7 +90,7 @@ var createSDTSitter = function (host) {
             if (!state.enabled) break;
             const after = await host.inspect(id);
             if (!state.enabled) break;
-            if (!ok || after.status !== 'current') throw new Error('Native SDT did not persist a current pack');
+            if (!ok || after.status !== 'current') throw new Error(`Native SDT did not persist a current pack (ensure=${ok}; inspection=${after.status})`);
             state.completed++; state.serviceMS += host.now() - state.startedAt;
             state.samples.push({ sourceBytes: before.sourceBytes, pages: before.pages,
               milliseconds: host.now() - state.startedAt });
@@ -73,11 +104,13 @@ var createSDTSitter = function (host) {
             if (host.reportError) await host.reportError(before, error);
             state.counts[status]--; state.counts['failed-session'] = (state.counts['failed-session'] || 0) + 1;
           } finally {
+            candidates.shift();
             state.active = null;
             state.pending = state.pending.filter(item => item.id !== id);
           }
           publish();
         }
+        if (state.enabled && !candidates.length) state.phase = 'waiting';
         if (state.enabled && state.phase === 'extracting') state.phase = 'waiting';
         else if (state.enabled && state.phase === 'census') state.phase = 'waiting';
       } catch (error) {

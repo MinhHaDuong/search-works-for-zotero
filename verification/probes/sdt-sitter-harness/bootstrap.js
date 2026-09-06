@@ -119,6 +119,19 @@ async function run() {
     assert((await restored.inspect(pdf.id)).cached === true, 'verified census metadata was not cached');
     report.tests.push({ name: 'reload restores duration observations and reuses verified census cache without extraction', result: 'pass' });
     await addon.disable();
+    const failingPDF = await Zotero.Attachments.importFromFile({ file: config.pdf });
+    const nativeEnsure = Zotero.SDT.ensure;
+    try {
+      Zotero.SDT.ensure = async (id, options) => id === failingPDF.id ? false : nativeEnsure.call(Zotero.SDT, id, options);
+      await addon.enable();
+      for (let i = 0; i < 600 && !Zotero.SDTPackSitter?.state.failed; i++) { acceptExisting(); await sleep(100); }
+      const errorPath = PathUtils.join(Zotero.DataDirectory.dir, 'sdt-sitter-errors.jsonl');
+      const errors = (await IOUtils.readUTF8(errorPath)).trim().split('\n').map(line => JSON.parse(line));
+      assert(errors.some(row => row.error.includes('ensure=false')), 'first failure did not create the journal');
+      assert(!Zotero.SDTPackSitter.state.error.includes('journal non enregistré'), 'journal creation failed');
+      report.tests.push({ name: 'first native failure creates diagnostic journal in real IOUtils', result: 'pass' });
+    } finally { Zotero.SDT.ensure = nativeEnsure; }
+    await addon.disable();
   } catch (error) { report.fatal = String(error); report.stack = error.stack; }
   finally { clearInterval(promptPoll); Services.ww.unregisterNotification(observer); observer = null; }
   report.finished = new Date().toISOString(); await save();
