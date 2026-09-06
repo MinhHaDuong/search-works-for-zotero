@@ -158,15 +158,26 @@ function sdtRequestedLocale() {
 }
 
 /* Built once at startup, before anything renders. Nothing here may stop
-   startup: a host with no Fluent module, an unshipped locale, an unparseable
+   startup: an absent Fluent global, an unshipped locale, an unparseable
    `.ftl` — each leaves the chain shorter and the window naming its own ids,
-   which is legible and harmless, where a throw would take the plugin with it. */
+   which is legible and harmless, where a throw would take the plugin with it.
+
+   `FluentBundle` and `FluentResource` are read as ambient globals, never
+   imported. A live check against Zotero 10.0.1 (`typeof FluentBundle` etc.
+   in the Browser Console) confirmed they, and `L10nRegistry`/`L10nFileSource`
+   beside them, are already in scope in privileged JS -- the same way
+   `Services` and `ChromeUtils` are -- with no `resource://gre/modules/...`
+   file backing them at all. The original code imported
+   `resource://gre/modules/Fluent.sys.mjs`, which does not exist in this
+   build; the import always threw, this whole function always fell to its
+   catch, and every string in the shipped UI silently rendered as its own
+   Fluent id. No test caught it because every test drives a hand-written
+   stub through `ChromeUtils.importESModule`, which cannot be wrong about
+   an import the real host never makes. Ticket 0692 round 2. */
 async function loadSDTLocalization(rootURI, requested) {
   const bundles = [];
   let active = 'en';
   try {
-    const { FluentBundle, FluentResource } =
-      ChromeUtils.importESModule('resource://gre/modules/Fluent.sys.mjs');
     for (const tag of sdtLocaleChain(requested)) {
       let source;
       try {
@@ -181,9 +192,11 @@ async function loadSDTLocalization(rootURI, requested) {
         bundle.addResource(new FluentResource(source));
         if (bundles.length === 0) active = tag;
         bundles.push(bundle);
-      } catch (_error) { /* An unparseable locale is one the chain skips. */ }
+      } catch (_error) { /* An unparseable locale, or no Fluent global at
+                             all, is one the chain skips. */ }
     }
-  } catch (_error) { /* No Fluent module: every string falls back to its id. */ }
+  } catch (_error) { /* Defensive: sdtLocaleChain itself cannot throw, but
+                         nothing here may take startup down with it either. */ }
   SDT_BUNDLES = bundles;
   SDT_LOCALE = active;
   emit('localization', { locale: active, bundles: bundles.length });
