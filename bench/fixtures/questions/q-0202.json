@@ -2,7 +2,7 @@
   "schema": "menagerie-bank/v2",
   "id": "q-0202",
   "need": "Written before opening the document: did the founder of mathematical economics expect his equations to yield figures? I want the place where he answers the objection that symbols are useless because the subject admits no numerical determination — and says what algebra is for instead.",
-  "query": "à quoi bon les signes mathématiques si la théorie ne permet aucun chiffrage des valeurs",
+  "query": "à quoi bon les signes mathématiques si la théorie ne permet aucun chiffrage numérique",
   "question_language": "fr",
   "answer_language": "fr",
   "lane": "fr->fr",

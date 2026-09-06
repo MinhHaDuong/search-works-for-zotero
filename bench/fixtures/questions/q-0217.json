@@ -2,7 +2,7 @@
   "schema": "menagerie-bank/v2",
   "id": "q-0217",
   "need": "Written before opening the document: 'irreversible' means two quite different things in this literature — a state you cannot get back to, and a decision that narrows what you can decide later. I want the passage that separates the two senses, without knowing the words the author uses for them.",
-  "query": "en quoi une décision qui restreint les options futures diffère-t-elle d'une transformation sans retour possible",
+  "query": "en quoi une décision restreignant nos options futures diffère-t-elle d'une transformation qu'on ne peut défaire",
   "question_language": "fr",
   "answer_language": "fr",
   "lane": "fr->fr",

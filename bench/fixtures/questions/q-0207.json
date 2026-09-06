@@ -2,7 +2,7 @@
   "schema": "menagerie-bank/v2",
   "id": "q-0207",
   "need": "Written before opening the document: the bilingual edition prints the Annamese verse on the left-hand page and the French on the facing right-hand page. A French reader who has just read the line about the Vương household of middling fortune wants the Annamese verse that faces it. The query is French; the answer paragraph is the Vietnamese text.",
-  "query": "vers annamite en regard de la traduction où il est dit que la maison du Viên ngoai Vuong jouissait d'une fortune médiocre",
+  "query": "le distique annamite qui présente la maison du fonctionnaire retraité et sa fortune moyenne",
   "question_language": "fr",
   "answer_language": "vi",
   "lane": "fr->vi",

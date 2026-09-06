@@ -2,7 +2,7 @@
   "schema": "menagerie-bank/v2",
   "id": "q-0239",
   "need": "Hazard row: a figure caption in a pageless HTML document, carrying a number written in the French convention (0,9 W/m2 with a comma decimal and a non-breaking space before the unit). An English-speaking reader looking for Earth's present radiative imbalance would type the point form. The caption is loose text under an image, so it is not a paragraph of the article and there is no printed page to cite — only a character offset.",
-  "query": "current greenhouse gas levels cause a radiative imbalance of about 0.9 W/m2 energy flows between space atmosphere and Earth surface",
+  "query": "current greenhouse gas levels cause a radiative imbalance of about 0.9 W/m2 as energy moves between space, the atmosphere and the ground",
   "question_language": "en",
   "answer_language": "fr",
   "lane": "en->fr",

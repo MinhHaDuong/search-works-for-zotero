@@ -6,7 +6,7 @@
   "question_language": "vi",
   "answer_language": "fr",
   "lane": "vi->fr",
-  "signal": "paraphrase",
+  "signal": "exact",
   "mode": "any",
   "facet": "core",
   "stratum": "core",

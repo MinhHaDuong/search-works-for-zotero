@@ -6,7 +6,7 @@
   "question_language": "en",
   "answer_language": "es",
   "lane": "en->es",
-  "signal": "paraphrase",
+  "signal": "exact",
   "mode": "any",
   "facet": "core",
   "stratum": "core",
