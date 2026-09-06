@@ -3,14 +3,14 @@ Title: Fix sitter failure accounting to count every non-indexed document
 Created: 2026-09-06
 Author: claude
 Blocked-by: github.com/MinhHaDuong/search-works-for-zotero#365
-Closed: autoclosed — PR #378
 
 --- log ---
 2026-09-06T00:00Z claude created
 2026-09-06T00:00Z claude note Fable 5.1 deep-QA pass found three sibling gaps, folded into this ticket's scope: `unsupported-pack`/`missing-source` documents sit in the coverage denominator but are never candidates and never counted as failures, so coverage can never reach 100% with no explanation shown; `host.observed()` throwing on an already-persisted pack counts a success as a failure and blacklists it for the session (a false negative in the opposite direction from the two gaps already described above); `state.cacheWarning` is set but never rendered anywhere, so cache-write failures are invisible even though the data exists.
 2026-09-06T00:00Z claude note Author, live: "Do not assume the 1 Zotero entry = 1 PDF fulltext. Its more messy." Corrected the reconciliation target below from "library's total item count" to "total attachment count" (what the census actually enumerates via `itemAttachments`) and added a mixed-cardinality fixture requirement to the acceptance checkbox -- the original wording would have let an Execute agent build a reconciliation test that silently assumed one attachment per item and passed on a fixture that never exercises the real, messier cardinality.
-
 2026-09-06T09:48Z sim closed — autoclosed — PR #378
+2026-09-06T00:00Z claude note Reopened. PR #378 corrected this ticket's own wording (attachment count vs item count) but did not do any of the actual work below -- none of the acceptance boxes are checked, scheduler.js is untouched. It should have used `Ticket-ref:` instead of `**Ticket:**`, closing the ticket by mistake. My error, caught immediately on inspecting the merged result.
+
 --- body ---
 ## Context
 
