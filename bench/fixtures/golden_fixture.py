@@ -8,7 +8,11 @@ export and are never written under ``bench/fixtures``.
 
 Injection is an idempotent reconciliation.  Stable, namespaced tags associate Zotero
 items with recipe ids; a second run updates drift and creates nothing.  Export fails
-closed unless every recipe record has exactly one linked attachment with indexed text.
+closed unless every recipe attachment either carries indexed text or is a declared
+failure control (``failure_control`` on the recipe record) that the reindex of this very
+run watched Zotero leave at the declared state -- a document Zotero cannot extract (a
+DjVu container, an un-OCR'd scan) is real ground truth the fixture exists to carry, and
+is exported with no full text, its expected degradation, and no answer-set part.
 The client version and both extraction preferences are required inputs: silently using
 defaults would make two exports from different Zotero profiles look like one corpus.
 """
@@ -22,6 +26,7 @@ import re
 import shutil
 import tempfile
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -43,6 +48,17 @@ CONTENT_TYPES = {
     "txt": "text/plain; charset=utf-8",
     "epub": "application/epub+zip",
 }
+#: The content types whose extracted text Zotero's local API serves on
+#: /items/<key>/fulltext: exactly Zotero.Fulltext.isCachedMIMEType (fulltext.js),
+#: which server_localAPI.js's ItemFullText handler answers 404 for everything
+#: else.  A text/plain attachment Zotero has indexed (census row, char counts)
+#: is therefore never served -- found on the real run, padme, 2026-09-06.
+SERVED_CONTENT_TYPES = frozenset({"application/pdf", "text/html", "application/epub+zip"})
+NOT_SERVED_REASON = (
+    "Zotero's local API serves /items/<key>/fulltext only for cached MIME types "
+    "(application/pdf, text/html, application/epub+zip; Zotero.Fulltext.isCachedMIMEType); "
+    "this content type is indexed from the file and its fulltext route answers 404"
+)
 
 
 class GoldenFixtureError(RuntimeError):
@@ -334,10 +350,75 @@ def _last_item_page_versions(client) -> list[int]:
     return list(versions) if versions is not None else [_observed_item_version(client)]
 
 
+def _fulltext_or_none(client, key: str):
+    """The /fulltext body, or None when Zotero has none to serve (404; the in-memory
+    control raises a lookup error).  Any other failure still propagates."""
+    try:
+        return client.get_fulltext(key)
+    except (KeyError, LookupError):
+        return None
+
+
+def _control_row(
+    doc: dict, source: dict, parent_key: str, attachment_key: str, observed: dict,
+    census_version: int | None,
+) -> dict:
+    """The export row of a declared failure control: no full text, its declared
+    expectation copied from the recipe, the state the reindex just observed, and
+    the census version Zotero listed it at (0 for an empty missing-marked row,
+    None when it has no row), so the replay answers the census as Zotero did."""
+    row = {
+        "recipe_id": doc["id"], "parent_key": parent_key, "attachment_key": attachment_key,
+        "terminal_state": "unindexed", "fulltext_file": None, "fulltext_version": census_version,
+        "body": None, "failure_control": copy.deepcopy(source["failure_control"]),
+        "observed_state": observed.get("state"),
+    }
+    if "attachments" in doc:
+        row.update(attachment_id=source["id"], role=source["role"],
+                   relation=source["relation"], language=source["language"],
+                   bytes_format=source.get("bytes_format", "pdf"),
+                   selection_expectation=source["selection_expectation"],
+                   cap_expectations=source["cap_expectations"],
+                   skip_reason=source.get("skip_reason", ""))
+    row.update(indexed_pages=None, total_pages=None, indexed_chars=None, total_chars=None)
+    return row
+
+
+def _not_served_row(
+    doc: dict, source: dict, parent_key: str, attachment_key: str, observed: dict, census_version: int,
+) -> dict:
+    """The export row of an attachment Zotero indexed but the local API never serves."""
+    row = {
+        "recipe_id": doc["id"], "parent_key": parent_key, "attachment_key": attachment_key,
+        "terminal_state": "indexed-not-served", "fulltext_file": None,
+        "fulltext_version": census_version, "body": None,
+        "observed_state": observed.get("state"), "not_served_reason": NOT_SERVED_REASON,
+    }
+    if "attachments" in doc:
+        row.update(attachment_id=source["id"], role=source["role"],
+                   relation=source["relation"], language=source["language"],
+                   bytes_format=source.get("bytes_format", "pdf"),
+                   selection_expectation=source["selection_expectation"],
+                   cap_expectations=source["cap_expectations"],
+                   skip_reason=source.get("skip_reason", ""))
+    row.update(indexed_pages=None, total_pages=None,
+               indexed_chars=observed.get("indexedChars"), total_chars=observed.get("totalChars"))
+    return row
+
+
 def _snapshot_rows(
     recipe: list[dict], client, source_paths: dict[str, Path], collection_key: str,
-    *, library_type: str = "user",
+    *, library_type: str = "user", settled: dict[str, dict] | None = None,
 ) -> tuple[list[dict], list[dict], int]:
+    """Capture every recipe attachment from the live API.
+
+    ``settled`` is what ``reindex_fulltext`` observed per attachment key once Zotero
+    went idle in this very run (``state``, the plugin's counters, ``version`` and
+    ``previous_version``).  It is the only evidence on which an attachment may be
+    exported without full text, and only when the recipe declares it a failure
+    control expecting exactly that state.  ``None`` means no observation was made,
+    which keeps the strict behaviour: every attachment must carry indexed text.
+    """
     parents = client.list_top_items()
     opening_versions = _last_item_page_versions(client)
     if not opening_versions or len(set(opening_versions)) != 1:
@@ -397,12 +478,75 @@ def _snapshot_rows(
             if attachment_key in seen_item_keys:
                 raise GoldenFixtureError(f"duplicate exported Zotero item key {attachment_key}")
             seen_item_keys.add(attachment_key)
+            control = source.get("failure_control")
+            observed = None if settled is None else settled.get(attachment_key)
+            if control is not None:
+                # A declared failure control is accepted without full text only on
+                # evidence from THIS run: the reindex just watched Zotero finish and
+                # leave the attachment at the declared state, and the /fulltext census
+                # has no row for it.  Mere absence from the census is refused below,
+                # because absence also describes previously indexed text that vanished
+                # (test_export_is_raw_complete_atomic_and_bound_to_recipe).
+                if observed is None:
+                    raise GoldenFixtureError(
+                        f"{source['id']}: declared failure control has no settled reindex "
+                        "observation from this run"
+                    )
+                if observed.get("state") != control["expected_state"]:
+                    raise GoldenFixtureError(
+                        f"{source['id']}: failure control expected {control['expected_state']}, "
+                        f"the reindex settled at {observed.get('state')!r}"
+                    )
+                # Zotero records a PDF it found no text in through recordMissingContent
+                # (fulltext.js): an empty fulltextItems row at version 0, marked missing,
+                # listed by the census at 0 while the fulltext route answers 404.  A
+                # container it never dispatches (DjVu) gets no row at all.  Both are
+                # unindexed; a census version above 0, or a body served, is not.
+                census_version = census.get(attachment_key)
+                if census_version is not None and census_version != 0:
+                    raise GoldenFixtureError(
+                        f"{source['id']}: failure control has a /fulltext census entry at "
+                        f"version {census_version}; it is not unindexed"
+                    )
+                if _fulltext_or_none(client, attachment_key) is not None:
+                    raise GoldenFixtureError(
+                        f"{source['id']}: failure control serves full text; it is not unindexed"
+                    )
+                items.append(child)
+                attachments.append(
+                    _control_row(doc, source, parent_key, attachment_key, observed, census_version)
+                )
+                continue
+            if observed is not None:
+                if observed.get("state") != "indexed":
+                    raise GoldenFixtureError(
+                        f"{source['id']}: the reindex settled at {observed.get('state')!r}; only a "
+                        "declared failure control may be exported without full text"
+                    )
+                previous = observed.get("previous_version")
+                if isinstance(previous, int) and previous > 0 and observed.get("version") == previous:
+                    raise GoldenFixtureError(
+                        f"{source['id']}: the reindex left the fulltext version at {previous}; "
+                        "nothing was re-extracted (is the file present on this client?)"
+                    )
             if attachment_key not in census:
                 raise GoldenFixtureError(f"{source['id']}: attachment has no /fulltext census entry")
-            try:
-                fulltext = client.get_fulltext(attachment_key)
-            except (KeyError, LookupError) as error:
-                raise GoldenFixtureError(f"{source['id']}: attachment has no /fulltext response") from error
+            fulltext = _fulltext_or_none(client, attachment_key)
+            if fulltext is None:
+                content_type = CONTENT_TYPES.get(source.get("bytes_format", "pdf"), "application/octet-stream")
+                if observed is not None and content_type not in SERVED_CONTENT_TYPES:
+                    # Indexed by Zotero (the reindex just saw it, the census lists it) yet
+                    # never served by the local API: the product indexes such an item from
+                    # metadata only.  Captured as what it is, not as vanished text -- which
+                    # is what a 404 on a served content type still means.
+                    if not isinstance(census[attachment_key], int) or census[attachment_key] < 0:
+                        raise GoldenFixtureError(f"{source['id']}: invalid /fulltext census version")
+                    items.append(child)
+                    attachments.append(
+                        _not_served_row(doc, source, parent_key, attachment_key, observed, census[attachment_key])
+                    )
+                    continue
+                raise GoldenFixtureError(f"{source['id']}: attachment has no /fulltext response")
             if not isinstance(census[attachment_key], int) or census[attachment_key] < 0:
                 raise GoldenFixtureError(f"{source['id']}: invalid /fulltext census version")
             if not isinstance(fulltext, dict) or not isinstance(fulltext.get("content"), str) or not fulltext["content"].strip():
@@ -420,7 +564,7 @@ def _snapshot_rows(
             items.append(child)
             row = {
                 "recipe_id": doc["id"], "parent_key": parent_key,
-                "attachment_key": attachment_key,
+                "attachment_key": attachment_key, "terminal_state": "indexed",
                 "fulltext_file": f"fulltext/{attachment_key}.json",
                 "fulltext_version": census[attachment_key], "body": fulltext,
             }
@@ -470,12 +614,13 @@ def canonical_json(value) -> str:
 def _refresh_fulltext_from_pinned_sources(
     recipe: list[dict], client, source_paths: dict[str, Path], collection_key: str,
     cache_dir: Path, *, library_type: str = "user",
-) -> None:
+) -> dict[str, dict] | None:
     """Force the export's extraction from the bytes verified around this operation.
 
     reindex_fulltext (the plugin call) is what forces the actual re-extraction; no
     item write is needed to trigger it, and the metadata equality check just above
-    already proves the live item matches what the recipe wants."""
+    already proves the live item matches what the recipe wants.  Returns the per-key
+    settled state the reindex observed, or None when the client reports none."""
     parents = client.list_top_items()
     keys = []
     for doc in recipe:
@@ -496,10 +641,15 @@ def _refresh_fulltext_from_pinned_sources(
                 raise GoldenFixtureError(f"{source['id']}: attachment metadata drifted from the source recipe")
             keys.append(_key(attachment))
 
-    client.reindex_fulltext(keys)
+    settled = client.reindex_fulltext(keys)
     # A linked file can change while Zotero is reading it.  Do not attest or export
     # unless the complete source set still has the recipe hashes after extraction.
     verify_source_bytes(recipe, cache_dir)
+    if settled is None:
+        return None
+    if not isinstance(settled, dict) or set(settled) != set(keys):
+        raise GoldenFixtureError("the reindex did not report a settled state for every attachment")
+    return settled
 
 
 def _portable_item(item: dict) -> dict:
@@ -507,7 +657,7 @@ def _portable_item(item: dict) -> dict:
     data = _data(item)
     common = {"key", "version", "itemType", "title", "tags"}
     if data.get("itemType") == "attachment":
-        allowed = common | {"parentItem", "linkMode", "contentType", "path", "filename", "extra"}
+        allowed = common | {"parentItem", "linkMode", "contentType", "charset", "path", "filename", "extra"}
     else:
         allowed = common | {
             "creators", "date", "language", "url", "archive", "archiveLocation",
@@ -565,6 +715,51 @@ def _safe_export_destination(destination: Path) -> tuple[Path, bool]:
     return candidate, True
 
 
+#: What the control plugin asks of Zotero.  bench/zotero-fulltext-plugin/bootstrap.js
+#: calls Zotero.FullText.indexItems(ids, {complete: true, ignoreErrors: true}), and
+#: fulltext.js documents `complete` as "ignore page/character limits" (indexPDF passes
+#: null for maxPages when allPages is set).  The two preferences the manifest records
+#: therefore describe the injecting profile, not a bound on this extraction; the
+#: per-attachment counters are the binding record.
+REINDEX_MODE = {
+    "mode": "complete",
+    "limits": "ignored",
+    "source": "bench/zotero-fulltext-plugin/bootstrap.js: Zotero.FullText.indexItems(ids, "
+              "{complete: true, ignoreErrors: true}); fulltext.js indexPDF(filePath, itemID, allPages)",
+    "binding_record": "per-attachment indexed_pages/total_pages and indexed_chars/total_chars",
+}
+
+
+def _detected_defects(items: list[dict], attachment_rows: list[dict], source_paths: dict[str, Path]) -> list[dict]:
+    """Defects the export can see for itself.  Today one: a text attachment whose charset
+    Zotero guessed because the injection wrote none, so the text it indexed is the file's
+    bytes decoded one per character -- indexed_chars equals the byte length while a UTF-8
+    reading of the same bytes is shorter."""
+    by_key = {_key(item): _data(item) for item in items}
+    found = []
+    for row in attachment_rows:
+        data = by_key.get(row["attachment_key"], {})
+        content_type = str(data.get("contentType", ""))
+        charset = data.get("charset")
+        if not content_type.startswith("text/") or not charset or charset.lower() in {"utf-8", "utf8"}:
+            continue
+        source_id = row.get("attachment_id", row["recipe_id"])
+        raw = source_paths[source_id].read_bytes()
+        utf8_chars = len(raw.decode("utf-8", errors="replace"))
+        indexed = row.get("indexed_chars")
+        if isinstance(indexed, int) and indexed == len(raw) and utf8_chars < len(raw):
+            found.append({
+                "recipe_id": row["recipe_id"], "attachment_key": row["attachment_key"],
+                "defect": "charset guessed by Zotero: the injection wrote a bare "
+                          f"{content_type} attachment with no charset, Zotero recorded "
+                          f"{charset}, and the indexed text is the file's bytes decoded one "
+                          "per character (mojibake for non-ASCII text)",
+                "evidence": {"indexed_chars": indexed, "source_bytes": len(raw), "utf8_chars": utf8_chars},
+                "remedy": "re-inject with an explicit charset and re-pin",
+            })
+    return found
+
+
 def export_snapshot(
     recipe: list[dict],
     client,
@@ -577,8 +772,13 @@ def export_snapshot(
     text_max_length: int,
     index_max_chars: int,
     cache_dir: Path,
+    known_defects: list[dict] | None = None,
 ) -> Path:
-    """Capture raw items/fulltext into an atomically replaced snapshot directory."""
+    """Capture raw items/fulltext into an atomically replaced snapshot directory.
+
+    ``known_defects`` are declared by the operator (recipe id and a description a
+    reader can check against the bytes); the export adds the defects it detects
+    itself.  Both are recorded, never repaired: the export is what Zotero holds."""
     if library.get("type") not in {"user", "group"} or not isinstance(library.get("id"), int):
         raise GoldenFixtureError("the fixture export must identify its public Zotero library")
     if not zotero_client_version.strip():
@@ -592,11 +792,11 @@ def export_snapshot(
             raise GoldenFixtureError(f"{name} must be recorded as a positive integer")
 
     source_paths = verify_source_bytes(recipe, cache_dir)
-    _refresh_fulltext_from_pinned_sources(
+    settled = _refresh_fulltext_from_pinned_sources(
         recipe, client, source_paths, collection_key, cache_dir, library_type=library["type"]
     )
     items, attachment_rows, library_version = _snapshot_rows(
-        recipe, client, source_paths, collection_key, library_type=library["type"]
+        recipe, client, source_paths, collection_key, library_type=library["type"], settled=settled,
     )
     # This is deliberately after the API capture and immediately before staging the
     # snapshot: extraction must still be attributable to the exact pinned source bytes.
@@ -611,12 +811,16 @@ def export_snapshot(
         public_rows = []
         for row in attachment_rows:
             body = row.pop("body")
-            _write_json(temp / row["fulltext_file"], _portable_fulltext(body))
+            if row["terminal_state"] == "indexed":
+                _write_json(temp / row["fulltext_file"], _portable_fulltext(body))
             public_rows.append(row)
         manifest = {
             "schema_version": 1,
             "parent_item_count": len(recipe),
             "attachment_count": len(public_rows),
+            "indexed_attachment_count": sum(row["terminal_state"] == "indexed" for row in public_rows),
+            "indexed_not_served_count": sum(row["terminal_state"] == "indexed-not-served" for row in public_rows),
+            "failure_control_count": sum(row["terminal_state"] == "unindexed" for row in public_rows),
             "source_byte_count": sum(path.stat().st_size for path in source_paths.values()),
             "recipe_sha256": recipe_digest(recipe),
             "library": {
@@ -627,7 +831,12 @@ def export_snapshot(
                 "client_version": zotero_client_version,
                 "fulltext.pdfMaxPages": pdf_max_pages,
                 "fulltext.textMaxLength": text_max_length,
+                "preferences_are": "the injecting profile's values as read at run time; not a "
+                                   "bound on this extraction, see reindex",
             },
+            "reindex": dict(REINDEX_MODE),
+            "known_defects": [dict(defect) for defect in (known_defects or [])]
+                             + _detected_defects(items, public_rows, source_paths),
             "index_fulltext_max_chars": index_max_chars,
             "items_file": "items.json",
             "normalizations": {
@@ -836,7 +1045,15 @@ class ZoteroLocalClient:
         return result
 
     def get_fulltext(self, key):
-        result, headers = self._request(f"/items/{urllib.parse.quote(key, safe='')}/fulltext")
+        """The /fulltext body, or None on Zotero's 404 for an attachment with no
+        content (an empty missing-marked row, or no row).  Other failures raise."""
+        try:
+            result, headers = self._request(f"/items/{urllib.parse.quote(key, safe='')}/fulltext")
+        except GoldenFixtureError as error:
+            cause = error.__cause__
+            if isinstance(cause, urllib.error.HTTPError) and cause.code == 404:
+                return None
+            raise
         version = headers.get("Last-Modified-Version")
         if not version or not version.isdigit():
             raise GoldenFixtureError("Zotero fulltext response omitted Last-Modified-Version")
@@ -859,8 +1076,10 @@ class ZoteroLocalClient:
                 f"{error}"
             ) from error
 
-    def reindex_fulltext(self, keys: list[str], *, poll: float = 1.0, max_wait: float = 3600) -> None:
-        """Force extraction to run and settle; accept whatever terminal state results.
+    def reindex_fulltext(
+        self, keys: list[str], *, poll: float = 1.0, max_wait: float = 3600,
+    ) -> dict[str, dict]:
+        """Force extraction to run and settle; return the terminal state of every key.
 
         A forced reindex is not guaranteed to reach ``indexed``: a document with
         no extractable text (an un-OCR'd scan) or an unsupported container
@@ -877,8 +1096,23 @@ class ZoteroLocalClient:
         is trusted. A state read the instant after queuing, before Zotero has
         started, is not evidence of anything, so idleness must hold across two
         consecutive polls before it is accepted.
+
+        The returned rows are what the export trusts: ``state`` and the plugin's
+        page/character counters as observed once idle, ``version`` after the run
+        and ``previous_version`` before it.  Zotero resets ``fulltextItems.version``
+        to 0 on every local extraction (fulltext.js, ``setFulltextItem``), so a
+        synced version surviving the reindex unchanged means the file was never
+        read -- on a client that holds the item but not its bytes, ``indexItems``
+        logs "No file to index" and moves on, and nothing else would notice.
         """
         wanted = set(keys)
+        query = "status?keys=" + urllib.parse.quote(",".join(keys), safe=",")
+        before = self._plugin_request(query)
+        previous_versions = {
+            row.get("key"): row.get("version")
+            for row in (before.get("items", []) if isinstance(before, dict) else [])
+            if isinstance(row, dict)
+        }
         queued = self._plugin_request("reindex", {"keys": keys})
         if not isinstance(queued, dict):
             raise GoldenFixtureError("the full-text plugin returned a malformed reindex response")
@@ -888,7 +1122,6 @@ class ZoteroLocalClient:
         if queued_keys != wanted or queued.get("missing") or queued.get("notAttachments"):
             raise GoldenFixtureError("the full-text plugin did not queue every fixture attachment")
         started = time.monotonic()
-        query = "status?keys=" + urllib.parse.quote(",".join(keys), safe=",")
         idle_since = None
         while time.monotonic() - started < max_wait:
             status = self._plugin_request(query)
@@ -911,7 +1144,18 @@ class ZoteroLocalClient:
                 if idle_since is None:
                     idle_since = time.monotonic()
                 elif time.monotonic() - idle_since >= poll:
-                    return
+                    return {
+                        key: {
+                            "state": by_key[key].get("state"),
+                            "indexedPages": by_key[key].get("indexedPages"),
+                            "totalPages": by_key[key].get("totalPages"),
+                            "indexedChars": by_key[key].get("indexedChars"),
+                            "totalChars": by_key[key].get("totalChars"),
+                            "version": by_key[key].get("version"),
+                            "previous_version": previous_versions.get(key),
+                        }
+                        for key in keys
+                    }
             else:
                 idle_since = None
             time.sleep(poll)
@@ -955,7 +1199,17 @@ def main() -> int:
     export_parser.add_argument("--pdf-max-pages", type=int, required=True)
     export_parser.add_argument("--text-max-length", type=int, required=True)
     export_parser.add_argument("--index-max-chars", type=int, required=True)
+    export_parser.add_argument(
+        "--known-defect", action="append", default=[], metavar="RECIPE_ID: DESCRIPTION",
+        help="a defect of the injected fixture to record in the manifest, never repaired (repeatable)",
+    )
     args = parser.parse_args()
+    known_defects = []
+    for entry in getattr(args, "known_defect", []):
+        recipe_id, separator, description = entry.partition(":")
+        if not separator or not recipe_id.strip() or not description.strip():
+            raise GoldenFixtureError(f"--known-defect must read 'RECIPE_ID: DESCRIPTION', got {entry!r}")
+        known_defects.append({"recipe_id": recipe_id.strip(), "defect": description.strip(), "declared_by": "operator"})
     recipe = _load_recipe(args.recipe)
     if args.command == "inject":
         result = inject(
@@ -976,6 +1230,7 @@ def main() -> int:
                     text_max_length=args.text_max_length,
                     index_max_chars=args.index_max_chars,
                     cache_dir=args.cache_dir,
+                    known_defects=known_defects,
                 )
             )
         }

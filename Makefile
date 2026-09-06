@@ -20,7 +20,10 @@ include UPSTREAM
 
 # Where the acceptance layer's arenas live: outside the repository, because the
 # residue sweep fills them with a target's derived state and bench/ is scanned
-# by the guards above. Override to put them elsewhere.
+# by the guards above. Override to put them elsewhere. A base arena is bounded
+# by the driver itself, not by a clean target: each run removes completed
+# previous runs beyond `--keep-runs` (run.py's DEFAULT_KEEP_RUNS) before it
+# allocates its own, and touches nothing outside the run layout (ticket 0720).
 ACCEPTANCE_ARENA ?= $(HOME)/data/acceptance-arena
 
 # Disk-backed scratch for `test-fork` (ticket 0714 — see the header above).

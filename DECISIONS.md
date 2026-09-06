@@ -4235,6 +4235,35 @@ retracted on purpose, not overlooked. Both the count and the reuse floor
 keep the same standing as the number they replace: first-pass, adjustable,
 not proof. The full tally table lives in ticket 0029.
 
+### 2026-09-06 — Pack text equals the flat cache; the 0,91/0,99 figures were a reader artifact (factual correction)
+
+The 2026-09-02 item under "Awaiting ratification" below (the extract stage
+SHOULD index from the structured-text pack, ticket 0572) states that the
+pack's text "is 0,91 and 0,99 of the flat cache's, the difference being the
+excluded flows." That figure was
+produced by `verification/probes/sdt_read.py`, whose `block_text` joined only
+top-level `text` runs. A `list` block's content is `listitem` blocks, each with
+its own runs, so every list read as empty — and bibliographies are typed as
+lists. The reader was fixed in PR #399 (hotfix, no ticket, by the author's
+ruling that a one-liner does not deserve one).
+
+Re-measured with the fixed reader on doudou, 2026-09-06, over the 4 762 PDFs
+in `~/data/Zotero/storage` carrying both a pack and a flat cache: pack words
+over flat words is 1,00 at the median in both extractor generations (731 old,
+4 031 current), with the excluded flows at 2,5 % of pack words. Two facts
+survive the correction and one is new. The pack normalises ligatures (0 raw
+glyphs against 28 779 in 243 old-generation caches) and anchors every block to
+a page. New: native SDT ignores `fulltext.pdfMaxPages`, so in 486 of the
+4 031 current-generation pairs the flat cache stops at exactly page 100 while
+the pack continues, median 1,79x more text. Excluded text, not text quality,
+is what the pack adds on documents under the cap.
+
+Consequence analysis: §5.2.4's "pack first" ruling stands on structure and
+page anchors, not on a text delta, and nothing in R24, C1 or ticket 0572
+changes. The verification note `verification/SDT-CAPS-0483.md` §4 measured
+bytes, not words, and is unaffected. Ticket 0606's stated size ratio is
+likewise bytes and stands.
+
 ## Awaiting ratification
 
 - **Whether zoteus serves its own extraction in place of a platform full-text
@@ -6607,3 +6636,78 @@ the reuse window, the 24-hour bound and the in-session-only lifetime stated wher
 the promise is made. The same edit discloses the census cadence — 30 seconds
 after a sweep, 10 minutes after an idle one — which ticket 0701 also introduced
 and which no section owned.
+
+**2026-09-06 — RULED, point by point after the panel: the Menagerie's
+construction (conception/0029-golden-fixture-structure-review.md, Parts C
+and D).** The author read the panel record and ruled on each of the ten
+points. Two points wait on a clearer explanation before a ruling (5, 8).
+
+1. *Strata*: ratified as the panel amended it. Two sampled strata, the
+   representative core carrying the census's measured defect rates, and a
+   non-sampled appendix of generated scale surrogates outside every average.
+2. *Language*: the requirement as framed was ill-formed, and the lane matrix
+   is set aside with it. The unit is the chain question → research → answer
+   paragraph, and Zotero's language field is a weak indicator that has
+   little to do with that chain. The Menagerie holds documents in every
+   language of R7, including multilingual documents; questions in every
+   language; and answers whose paragraph is not in the question's language.
+   Legacy encodings of the 1990s are a dimension of the corpus in their own
+   right. A lane, where one is named, is the pair (question language,
+   answer-paragraph language); which pairs bind stays R7's and R29's.
+3. *Theme*: animals are the metaphor behind the name and nothing more. The
+   corpus is decontaminated of animals. Its topics are the author's own
+   library's: economics, uncertainty, energy, environment, development,
+   science and technology studies, and the humanities and social sciences.
+   The workshop's demonstrator questions are re-authored on those topics.
+4. *Wikipedia*: one source of text among others, admitted under the standing
+   five-part test with no special status and no special limit. Of the panel's
+   caution only truthful relation labelling survives: an interlanguage link
+   is recorded as same-subject, not as a translation, because that is what it
+   is, not because of where it comes from.
+5. *Grades*: not ruled. The author asked what "grade" stands for; the answer
+   is given in the session and the point is restated under ruling 7's
+   locator contract, which changes what a score is.
+6. *No-answer questions*: this is retrieval, not generation, so a no-answer
+   question has an empty pinned set. The bank holds several questions the
+   library does not cover, scored as expected-miss. No abstention rule is
+   invented for the oracle.
+7. *The answer and its locator*: an answer is a paragraph in a page in a file
+   attached to a Zotero entry; a pageless file locates by character number.
+   A perfect score requires the reply to carry the title, author, date and
+   identifier (DOI, ISBN or URL) of the entry, the section heading, the page
+   number as printed in the text (front matter in roman numerals, never the
+   PDF index), and, for a compound document, the chapter, talk or entry title
+   and its byline. This extends R24's page clause to a full citation chain;
+   what it demands of the system, printed page labels among other things, is
+   SPEC.md's to state.
+8. *Development and acceptance*: the panel's replacement is provisionally
+   accepted as correct; the author asked for a digestible explanation before
+   ruling.
+9. *The SPEC section*: §5.2.10 stands. Guards on prose are unnecessary fat:
+   no marker protection for the scorer's sentences, no move ratchet.
+10. *Process*: an agent builds the library and the question bank in one shot;
+    review rounds against checklists find what is missing; the construction
+    converges in a few rounds. Checklists and reviews, no automatic guard.
+    This governs the pathology ledger and, by extension, the panel's added
+    items on a red state for the bank, which become a one-time review
+    exercise rather than machinery.
+
+**2026-09-06 — RULED, second round on the same points, closing 2, 4, 5 and
+8.** Point 2's reading is confirmed as recorded. Point 4: the fixture's
+format mix follows the census of the author's library, so HTML and PDF are
+commensurate with what that library holds (PDF 56,9 %, HTML 33,0 %, other
+formats 9,2 % of file attachments, census of 2026-09-06). Point 5: under
+ruling 7 a reply is scored on the rank of the answer paragraph and on the
+completeness of its citation chain; a reply that returns the same work in
+another rendering or language in place of the answer paragraph is a
+near-win, not a miss, so the ladder is win, near-win, miss. Point 8: the
+workshop is the artisan's own, this repository, not an event with
+participants, so no cohort authors held-out questions. What the point was
+reaching for is a fifth deliverable, named by the author: a system that
+generates about a hundred questions on the fly from the author's real
+library and benches the search engine against them. It is the library
+level of §5.2.8 made routine: private, regenerated at each run, impossible
+to tune against, representative by construction, scored on the same rank
+and citation chain as the Menagerie. The Menagerie stays the pinned,
+public, adversarial, hand-judged instrument; the two are complements, not
+rivals. Filed as its own ticket.

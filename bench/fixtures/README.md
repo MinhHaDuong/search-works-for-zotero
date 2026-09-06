@@ -183,6 +183,68 @@ an error page; default 1 000), `archive_checksums` (the archive's own md5 or
 sha1 where it publishes one), `page_count`, `provenance_check`,
 `wayback_capture` (for the unversioned database of record), `notes`.
 
+Optional, and checked by the validator when present: `failure_control`, the
+declaration the 2026-09-03 ruling requires of every failure control — an
+object with exactly `expected_state` (`unindexed`, Zotero's own name for an
+attachment it finished trying and left without full text),
+`expected_degradation` (why, in words a reader can check against the bytes),
+and `answer_set_participation` (`none`: a control is never a pinned answer).
+Three records carry it (author's rulings of 2026-09-04 and 2026-09-06): the
+Trần Trọng Kim DjVu, which Zotero's extraction dispatch never processes, and
+the two un-OCR'd scans, Trần Trọng Kim volume II and Ramsey 1931, which yield
+no text.
+
+## The pinned subset and the export
+
+`recipe-pinned.json` is derived data, not a second recipe: `select_hashed.py`
+writes it from `recipe.json` as the records whose every attachment carries a
+sha256, in the parent's order, and a test holds it byte-identical to that
+output. It is the one file `golden_fixture.py inject`, `golden_fixture.py
+export` and the offline replay all read, so the export manifest's
+`recipe_sha256` pins exactly the content the replay re-derives. Regenerate it
+whenever `recipe.json` gains a pinned hash, and re-export.
+
+The export (`golden_fixture.py export`, destination `export/`) is a raw
+capture of the live API: `items.json`, one `fulltext/<key>.json` per indexed
+attachment, and `manifest.json` binding each attachment row to its recipe
+record. A declared failure control is exported with `terminal_state`
+`unindexed`, no fulltext file, its declaration copied from the recipe and the
+state the reindex observed. It is accepted on evidence from the run itself:
+the reindex must have watched Zotero go idle and leave the attachment at the
+declared state, and Zotero must hold no text for it — either no `/fulltext`
+census row (a DjVu, never dispatched) or the empty, missing-marked row at
+version 0 that Zotero's `recordMissingContent` writes for a PDF with no text,
+with the fulltext route answering 404. Mere absence from the census is
+refused, because absence also describes text that was indexed once and
+vanished. The replay answers for a control as Zotero did: the census entry
+at 0 when Zotero kept one, 404 on its fulltext route, the item itself still
+served.
+An indexed attachment is refused when the reindex left its fulltext version
+unchanged, since Zotero resets that version on every local extraction and an
+unchanged one means the client held the item but never read the file.
+
+The manifest's two extraction preferences describe the injecting profile,
+not a bound on the extraction: the control plugin reindexes with
+`complete: true`, which Zotero documents as ignoring the page and character
+limits, and the manifest says so under `reindex` beside them. The binding
+record is each row's observed `indexed_pages`/`total_pages` and
+`indexed_chars`/`total_chars`. `known_defects` lists what the export knows is
+wrong with the fixture as injected — declared by the operator with
+`--known-defect`, or detected by the export itself (a text attachment whose
+charset Zotero guessed, so its indexed text is one character per byte) — and
+records them without repairing anything, because the export is what Zotero
+holds.
+
+A third row shape, `indexed-not-served`, records a fact of the local API
+found on the first real run: `/items/<key>/fulltext` answers 404 for every
+content type outside `Zotero.Fulltext.isCachedMIMEType` (PDF, HTML, EPUB), so
+a plain-text attachment Zotero has indexed — the three Wikisource `wikitext`
+records, in the census with their character counts — has no body to fetch,
+and the product indexes it from metadata only. The export accepts such a row
+only for an unserved content type with the reindex's own `indexed`
+observation; the same 404 on a PDF is vanished text and stays refused. The
+replay lists it in the census and answers 404 on its route, as Zotero does.
+
 ## Re-pinning
 
 Run `python3 bench/fixtures/fetch_recipe.py`. Every document reports one of

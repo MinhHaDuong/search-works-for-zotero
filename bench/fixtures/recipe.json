@@ -132,7 +132,12 @@
   "page_count": 340,
   "license_basis": "Public domain everywhere: Ramsey died 1930, life+70 expired 2000. NOT via the pre-1931 US bright-line -- published 1931 (95 years ago only as of 2026, so it enters US public domain 2027-01-01, not yet). Age (life+70) carries this one cleanly regardless.",
   "provenance_check": "Rendered and visually inspected the title page and table of contents (pages 8 and 10 of the scan): 'The Foundations of Mathematics and other Logical Essays ... By Frank Plumpton Ramsey, M.A. ... Edited by R. B. Braithwaite ... With a Preface by G. E. Moore ... London: Kegan Paul, Trench, Trubner & Co., Ltd. / New York: Harcourt, Brace and Company. 1931.' Table of contents confirms 'VII. Truth and Probability (1926) ... 156', with subsections A. Reasonable Degree of Belief, B. Statistics, C. Chance. This is the genuine first (1931) Kegan Paul edition, not a later reprint -- 'Printed in Great Britain' colophon, no reprint or 'Electronic Edition' language anywhere.",
-  "notes": "Replaces the closed PR's private 'Electronic Edition' of the essay. 'Truth and Probability' is chapter VII, from p. 156 of the printed volume: a pinned page range inside a longer book, which is what R24's locator needs."
+  "notes": "Replaces the closed PR's private 'Electronic Edition' of the essay. 'Truth and Probability' is chapter VII, from p. 156 of the printed volume: a pinned page range inside a longer book, which is what R24's locator needs.",
+  "failure_control": {
+   "expected_state": "unindexed",
+   "expected_degradation": "no full text: an un-OCR'd scan with no text layer and zero embedded fonts (pdftotext extracts 340 bytes over 340 pages, pdffonts lists none), so indexPDF gets no text, writes no fulltextItems row, and /fulltext has no census entry",
+   "answer_set_participation": "none"
+  }
  },
  {
   "id": "depitre-1908-oeuvres-cournot",
@@ -327,7 +332,12 @@
   "page_count": 294,
   "license_basis": "Author died 1953; life+70 expired 2024. Public domain.",
   "provenance_check": "Commons file page carries a PD-old tag; scan of a colonial-era printing, no reprint publisher in the file metadata.",
-  "notes": "Scan shape of the same work whose transcription is tran-trong-kim-1920-viet-nam-su-luoc-wikisource; the pair lets the gate compare the DjVu path against the HTML path on identical content."
+  "notes": "Scan shape of the same work whose transcription is tran-trong-kim-1920-viet-nam-su-luoc-wikisource; the pair lets the gate compare the DjVu path against the HTML path on identical content.",
+  "failure_control": {
+   "expected_state": "unindexed",
+   "expected_degradation": "no full text: image/vnd.djvu is never eligible for extraction -- Zotero's own dispatch (fulltext.js, indexItem) handles application/pdf, application/epub+zip and text/* only, so no fulltextItems row is ever written and /fulltext has no census entry",
+   "answer_set_participation": "none"
+  }
  },
  {
   "id": "tran-trong-kim-1928-viet-nam-su-luoc-q2",
@@ -348,7 +358,12 @@
   "page_count": 347,
   "license_basis": "Author died 1953; life+70 expired 2024. Public domain.",
   "provenance_check": "1928 printing per the file's own title; pdfinfo page count matches the Commons API count.",
-  "notes": "347 pages of Vietnamese prose: the deep-body probe for the 100-page client cap in a MUST-tier language."
+  "notes": "347 pages of Vietnamese prose: the deep-body probe for the 100-page client cap in a MUST-tier language.",
+  "failure_control": {
+   "expected_state": "unindexed",
+   "expected_degradation": "no full text: an un-OCR'd scan with no text layer (pdftotext extracts 347 bytes over 347 pages, one page break per page), so indexPDF gets no text, writes no fulltextItems row, and /fulltext has no census entry",
+   "answer_set_participation": "none"
+  }
  },
  {
   "id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource",
