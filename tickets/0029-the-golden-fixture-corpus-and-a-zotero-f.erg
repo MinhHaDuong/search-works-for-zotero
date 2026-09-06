@@ -284,10 +284,18 @@ document-specific exceptions, not reopened by this test.
 - [x] injection script: collection in a public library, stored attachments
       uploaded against the group owner's Zotero storage plan, client version
       and the two indexing preferences recorded; 17/17 pinned records injected
-- [ ] export snapshot committed (items JSON + `/fulltext` JSON per attachment),
+- [x] export snapshot committed (items JSON + `/fulltext` JSON per attachment),
       with the re-pin procedure documented as re-export, diff as review artifact
-- [ ] Zotero-free index-build harness in bench/ replaying the export through
-      0026's mock local API
+      — `bench/fixtures/export/`, 2026-09-06, from padme's client; ticked with
+      a note (0632): eight recorded `known_defects` (three text/plain
+      attachments injected without a charset, indexed as mojibake; two
+      Wikisource transclusion skeletons) and a limits-ignored reindex behind
+      stock recorded preferences, so a re-injection and a re-pin are owed
+      before this export stands as the fixture
+- [x] Zotero-free index-build harness in bench/ replaying the export through
+      0026's mock local API — `make_index_fixture.mjs --replay-export`, real
+      zoteus build against the replay: 17 items, 415 passages (2026-09-06);
+      same note as above
 - [ ] a cross-lingual slice: EN and FR queries whose pinned answer sets are
       Vietnamese entries, gated separately from the monolingual queries so a
       regression names which of R7 and R29 it broke (R29 ratified 2026-08-31;
@@ -317,6 +325,6 @@ created.
 
 | child | scope | state |
 |---|---|---|
-| 0632 | harness triplet (injection script, export snapshot, Zotero-free replay), against the 17 already-hashed documents | stored-attachment ruling implemented and 17/17 injected; the three failure controls (two Vietnamese volumes, Ramsey — all ruled to stay) are declared in the recipe and the export accepts them on the reindex's own settled observation, never on census absence (2026-09-06); the real export run waits for the injecting client (padme's Zotero) to be started by hand; the proposed RDF/full-text split remains open in 0632 |
+| 0632 | harness triplet (injection script, export snapshot, Zotero-free replay), against the 17 already-hashed documents | 17/17 injected; real export committed and replayed 2026-09-06 (11 indexed, 3 indexed-not-served text/plain, 3 failure controls); eight known defects recorded in its manifest (charset-less text injection, two Wikisource skeletons) plus a limits-ignored reindex, so a re-injection and re-pin are owed; the proposed RDF/full-text split remains open in 0632 |
 | — | re-sourcing bounded by the 200-question tally (ruling, 2026-09-04): close the 4 HAL + 1 Malynes browser-only fetches, replace the 4 dropped Gallica records including the FR-VN cross-lingual anchor pair, rebalance the mix toward articles, draw on Gutenberg/arXiv/the Wikipedia constellation as the tally needs them | browser-only fetches are human-hands work; the rest is open research, not a raid candidate as a whole |
 | — | question-bank authoring per the tally above | not yet filed; blocked on the harness child existing to test against |
