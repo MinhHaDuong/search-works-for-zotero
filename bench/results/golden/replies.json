@@ -1,0 +1,1776 @@
+{
+  "previous_run": {
+    "replies": [
+      {
+        "id": "q-0001",
+        "mode": "lexical",
+        "results": [
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Thủ tướng Chính phủ (Prime Minister of Vietnam)",
+              "date": "2017",
+              "identifier": "https://faolex.fao.org/docs/pdf/vie179224.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation)"
+            },
+            "evidence": "r projects shall be the same as those granted to projects eligible for investment incentives in accordance with effective regulations Article 11. Land incentives 1. Grid-connected solar power projects, transmission lines and substations …",
+            "item_key": "GEWEZPJ4",
+            "page": null,
+            "rank": 1,
+            "score": 0.01639344262295082,
+            "source": "fulltext",
+            "work_id": "vn-decision-11-2017-qdttg-solar-fit-en"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Quốc hội Việt Nam (official translation)",
+              "date": "1992",
+              "identifier": "https://en.wikisource.org/w/index.php?title=Constitution_of_Vietnam_(1992)&action=raw&oldid=16201311",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "Constitution of Vietnam (1992), English text"
+            },
+            "evidence": "Constitution of Vietnam (1992), English text. Quốc hội Việt Nam (official translation). zoteus-golden-source:vn-constitution-1992-en. 1992",
+            "item_key": "VSN32JSP",
+            "page": null,
+            "rank": 2,
+            "score": 0.012658227848101266,
+            "source": null,
+            "work_id": "vn-constitution-1992-en"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Albert Einstein and Hermann Minkowski, translated by M. N. Saha and S. N. Bose",
+              "date": "1920",
+              "identifier": "https://archive.org/download/theprincipleofre00einsuoft/theprincipleofre00einsuoft.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "The Principle of Relativity: Original Papers by A. Einstein and H. Minkowski"
+            },
+            "evidence": "… displacement of the Praunhofer lines is a necessary and fundamental condition for the acceptance of his theory. But Eddington has pointed out that even if this test fails, the logical conclusion would seem to be that while Einstein's law of …",
+            "item_key": "R3YNUA6N",
+            "page": null,
+            "rank": 3,
+            "score": 0.0125,
+            "source": "fulltext",
+            "work_id": "einstein-minkowski-1920-principle-of-relativity"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Gertrude Stein",
+              "date": "1925",
+              "identifier": "https://archive.org/download/makingofamerican0000unse_j2t9/makingofamerican0000unse_j2t9.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "The Making of Americans"
+            },
+            "evidence": "ading, I say, you know I like to know just what I am getting for my money and you children do certainly cost a great deal of my money, now I say, tell me, I am glad to listen to you, I say you tell me just what you are going to do, to make …",
+            "item_key": "HYI6JTZ8",
+            "page": null,
+            "rank": 4,
+            "score": 0.012345679012345678,
+            "source": "fulltext",
+            "work_id": "stein-1925-making-of-americans"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Samuel Johnson",
+              "date": "1785",
+              "identifier": "https://archive.org/download/dictionaryofengl01johnuoft/dictionaryofengl01johnuoft.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "A Dictionary of the English Language, Vol. 1 (6th ed.)"
+            },
+            "evidence": "… churches. It is, however, my opinion, that the French generally fupplied us j for we hav^ few Latin words, among the terms of domeftick ufe, which are not French; but many French, which are very remote from Latin. Even in words of Jwhich …",
+            "item_key": "G3IXLJC6",
+            "page": null,
+            "rank": 5,
+            "score": 0.012048192771084338,
+            "source": "fulltext",
+            "work_id": "johnson-1785-dictionary"
+          }
+        ],
+        "tool_reply": {
+          "embedder": "none (keyword-only)",
+          "embedderActive": false,
+          "embedderConfigured": "off",
+          "fulltextEnabled": true,
+          "ownWordsEnabled": false
+        }
+      },
+      {
+        "id": "q-0001",
+        "mode": "semantic",
+        "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+        "results": null
+      },
+      {
+        "id": "q-0001",
+        "mode": "hybrid",
+        "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+        "results": null
+      },
+      {
+        "id": "q-0002",
+        "mode": "lexical",
+        "results": [
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Thủ tướng Chính phủ (Prime Minister of Vietnam)",
+              "date": "2017",
+              "identifier": "https://faolex.fao.org/docs/pdf/vie179224.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation)"
+            },
+            "evidence": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation). Thủ tướng Chính phủ (Prime Minister of Vietnam). …",
+            "item_key": "GEWEZPJ4",
+            "page": null,
+            "rank": 1,
+            "score": 0.01639344262295082,
+            "source": null,
+            "work_id": "vn-decision-11-2017-qdttg-solar-fit-en"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Léon Walras",
+              "date": "1900",
+              "identifier": "https://archive.org/download/elementsdeconomi00walr/elementsdeconomi00walr.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale (4e éd.)"
+            },
+            "evidence": "… pour s’accorder avec leurs substantifs, je me suis incliné devant leur décision, la supposant fondée sur 1 usage. I ï' mî IX par un individu de .son revenu entre ses diverses esiièces de besoins, que j’appelle problème de l'utilité maxima …",
+            "item_key": "WDHDGA89",
+            "page": null,
+            "rank": 2,
+            "score": 0.015384615384615385,
+            "source": "fulltext",
+            "work_id": "walras-1900-elements"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Quốc hội Việt Nam (official translation)",
+              "date": "1992",
+              "identifier": "https://en.wikisource.org/w/index.php?title=Constitution_of_Vietnam_(1992)&action=raw&oldid=16201311",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "Constitution of Vietnam (1992), English text"
+            },
+            "evidence": "Constitution of Vietnam (1992), English text. Quốc hội Việt Nam (official translation). zoteus-golden-source:vn-constitution-1992-en. 1992",
+            "item_key": "VSN32JSP",
+            "page": null,
+            "rank": 3,
+            "score": 0.015151515151515152,
+            "source": null,
+            "work_id": "vn-constitution-1992-en"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Jean Bonet",
+              "date": "1899",
+              "identifier": "https://archive.org/download/dictionnaireanna01bone/dictionnaireanna01bone.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 1"
+            },
+            "evidence": "… toute confusion impossible. Pour le sens de chaque mot, nous donnons une définition complète, quoique brève. Les termes les plus usités sont suivis de nombreux exemples sous forme d'expressions composées, de phrases dialoguées, de …",
+            "item_key": "NXIPLWTH",
+            "page": null,
+            "rank": 4,
+            "score": 0.014925373134328358,
+            "source": "fulltext",
+            "work_id": "bonet-1899-dictionnaire-annamite-francais-t1"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Marie Curie",
+              "date": "1904",
+              "identifier": "https://archive.org/download/recherchessurles00curi/recherchessurles00curi.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "Recherches sur les substances radioactives"
+            },
+            "evidence": ". 11 devenait dès lors très probable que si la pechblende, la chalcolite, l'autunite ont une activité si forte, c'est que ces substances renferment en petite quantité une matière fortement radioactive, diilerente de l'uranium, du thorium …",
+            "item_key": "UDI7E8I2",
+            "page": null,
+            "rank": 5,
+            "score": 0.014705882352941176,
+            "source": "fulltext",
+            "work_id": "curie-1904-recherches-substances-radioactives"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Hermann Minkowski",
+              "date": "1896",
+              "identifier": "https://archive.org/download/geometriederzahl00minkuoft/geometriederzahl00minkuoft.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "Geometrie der Zahlen"
+            },
+            "evidence": "… von Strahldistanzen. S. 9, — 8. Der Aichkörper einhelliger Strahldistanzen. S. 11. — 9. Die einfachsten, durch Ebenen bestimmten Bereiche. S. 14. — 10. Zellen im Aichkörper. S. 17. — 11. Die Aichfläche als Begrenzung des Aichkörpers. S. 18. …",
+            "item_key": "5F9HCZ8B",
+            "page": null,
+            "rank": 6,
+            "score": 0.013157894736842105,
+            "source": "fulltext",
+            "work_id": "minkowski-1896-geometrie-der-zahlen"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Albert Einstein and Hermann Minkowski, translated by M. N. Saha and S. N. Bose",
+              "date": "1920",
+              "identifier": "https://archive.org/download/theprincipleofre00einsuoft/theprincipleofre00einsuoft.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "The Principle of Relativity: Original Papers by A. Einstein and H. Minkowski"
+            },
+            "evidence": "… succeeded in obtaining a \\alne for Fresnelian co-efficient equal to 1 — 11^- , and consequently stood totally condemned from the optical point of view. Certain direct electromagnetic experiments involvingrelative motion of polarised …",
+            "item_key": "R3YNUA6N",
+            "page": null,
+            "rank": 7,
+            "score": 0.012345679012345678,
+            "source": "fulltext",
+            "work_id": "einstein-minkowski-1920-principle-of-relativity"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Charles Baudelaire",
+              "date": "1857",
+              "identifier": "https://archive.org/download/lesfleursdum00baud/lesfleursdum00baud.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "Les Fleurs du Mal (1re éd.)"
+            },
+            "evidence": "… Les parfums, les couleurs et les sons se répondent. iO LES FLEURS DU MAL 11 est des parfums frais comme des chairs d'enfants , Doux comme les hautbois, verts comme les prairies , Et d'autres, corrompus, riches et triomphants , Ayant …",
+            "item_key": "HIQIHFD2",
+            "page": null,
+            "rank": 8,
+            "score": 0.011764705882352941,
+            "source": "fulltext",
+            "work_id": "baudelaire-1857-fleurs-du-mal"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Jean Bonet",
+              "date": "1899",
+              "identifier": "https://archive.org/download/dictionnaireanna02bone/dictionnaireanna02bone.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 2"
+            },
+            "evidence": "… Nà tôt câij trài o ^ . vallée S(; U'anscrit aussi par le car. fi? . 11. lurniuenu !«atioralc. fertile et bien exposée. — Rmng nh un o , rizière de vallée. — Bàu na ^O, où cela? où est-il? faites voir? — Qm m o, tancer d'impor tance, …",
+            "item_key": "4AZTUVYF",
+            "page": null,
+            "rank": 9,
+            "score": 0.011494252873563218,
+            "source": "fulltext",
+            "work_id": "bonet-1899-dictionnaire-annamite-francais-t2"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Mathieu de La Porte",
+              "date": "1770",
+              "identifier": "https://archive.org/download/lasciencedesnego00lapo/lasciencedesnego00lapo.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "La Science des négocians et teneurs de livres"
+            },
+            "evidence": "… tenir au moins un Livre Journal , fuivant qu'il eft preferit par l'Ordonnance. 11 ne doit pas y avoir la même rigueur , & on s'eft relâché fur la forme preferire par l'Article III de l'Or icnr.ance , qui porte que les Livres feront cottes & …",
+            "item_key": "6J5AEUMZ",
+            "page": null,
+            "rank": 10,
+            "score": 0.011363636363636364,
+            "source": "fulltext",
+            "work_id": "porte-1770-science-des-negocians"
+          }
+        ],
+        "tool_reply": {
+          "embedder": "none (keyword-only)",
+          "embedderActive": false,
+          "embedderConfigured": "off",
+          "fulltextEnabled": true,
+          "ownWordsEnabled": false
+        }
+      },
+      {
+        "id": "q-0002",
+        "mode": "semantic",
+        "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+        "results": null
+      },
+      {
+        "id": "q-0002",
+        "mode": "hybrid",
+        "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+        "results": null
+      },
+      {
+        "id": "q-0003",
+        "mode": "lexical",
+        "results": [
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Thủ tướng Chính phủ (Prime Minister of Vietnam)",
+              "date": "2017",
+              "identifier": "https://faolex.fao.org/docs/pdf/vie179224.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation)"
+            },
+            "evidence": "… projects, the contracts for which are signed before the effective date of this Decision, the parties are responsible for signing contract revisions in accordance with this Decision. Article 16. Effect 1. This Decision takes effect from 01 …",
+            "item_key": "GEWEZPJ4",
+            "page": null,
+            "rank": 1,
+            "score": 0.01639344262295082,
+            "source": "fulltext",
+            "work_id": "vn-decision-11-2017-qdttg-solar-fit-en"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Albert Einstein and Hermann Minkowski, translated by M. N. Saha and S. N. Bose",
+              "date": "1920",
+              "identifier": "https://archive.org/download/theprincipleofre00einsuoft/theprincipleofre00einsuoft.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "The Principle of Relativity: Original Papers by A. Einstein and H. Minkowski"
+            },
+            "evidence": "… succeeded in obtaining a \\alne for Fresnelian co-efficient equal to 1 — 11^- , and consequently stood totally condemned from the optical point of view. Certain direct electromagnetic experiments involvingrelative motion of polarised …",
+            "item_key": "R3YNUA6N",
+            "page": null,
+            "rank": 2,
+            "score": 0.0136986301369863,
+            "source": "fulltext",
+            "work_id": "einstein-minkowski-1920-principle-of-relativity"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Gertrude Stein",
+              "date": "1925",
+              "identifier": "https://archive.org/download/makingofamerican0000unse_j2t9/makingofamerican0000unse_j2t9.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "The Making of Americans"
+            },
+            "evidence": "… ever show that you can work hard to deserve it. Well you got your literary effect and your new fangled notions and all kinds of education and you all always explain to me how well you know how to do it, I say it will be soon now when I can …",
+            "item_key": "HYI6JTZ8",
+            "page": null,
+            "rank": 3,
+            "score": 0.011627906976744186,
+            "source": "fulltext",
+            "work_id": "stein-1925-making-of-americans"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Hermann Minkowski",
+              "date": "1896",
+              "identifier": "https://archive.org/download/geometriederzahl00minkuoft/geometriederzahl00minkuoft.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "Geometrie der Zahlen"
+            },
+            "evidence": "… ihres Volumens mehr als einen Punkt mit ganzzahligen Coordinaten enthalten. 30. Arithmetischer Satz über die nirgends concaven Körper mit Mittelpunkt. S. 73. — 31. Stuteu im Zahlengitter. S. 77. — 32. Stufen grössten Volumenb. S. 81. — 33. …",
+            "item_key": "5F9HCZ8B",
+            "page": null,
+            "rank": 4,
+            "score": 0.011363636363636364,
+            "source": "fulltext",
+            "work_id": "minkowski-1896-geometrie-der-zahlen"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Jean Bonet",
+              "date": "1899",
+              "identifier": "https://archive.org/download/dictionnaireanna01bone/dictionnaireanna01bone.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 1"
+            },
+            "evidence": "… 15 Quinze 16 Seize 17 Dix-sept 18 Dix-huit 19 Dix-neuf 20 Vingt 21 Vingt et un 30 Trente àO Quarante 50 Cinquante 60 Soi.xante 70 Soixante-dix. . . 80 Quatre-vingts . . 90 Quatre-vingt-dix Mwon lam. Mwon sàu. Mwo'i bày. Mwon tàm. Mwon chin. …",
+            "item_key": "NXIPLWTH",
+            "page": null,
+            "rank": 5,
+            "score": 0.011111111111111112,
+            "source": "fulltext",
+            "work_id": "bonet-1899-dictionnaire-annamite-francais-t1"
+          }
+        ],
+        "tool_reply": {
+          "embedder": "none (keyword-only)",
+          "embedderActive": false,
+          "embedderConfigured": "off",
+          "fulltextEnabled": true,
+          "ownWordsEnabled": false
+        }
+      },
+      {
+        "id": "q-0003",
+        "mode": "semantic",
+        "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+        "results": null
+      },
+      {
+        "id": "q-0003",
+        "mode": "hybrid",
+        "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+        "results": null
+      },
+      {
+        "id": "q-0004",
+        "mode": "lexical",
+        "results": [
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Léon Walras",
+              "date": "1900",
+              "identifier": "https://archive.org/download/elementsdeconomi00walr/elementsdeconomi00walr.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale (4e éd.)"
+            },
+            "evidence": "… un régime hypothétique de libre i currence absolue '. L’ensemble de toutes les choses, matérielles ou immatérielles, qui sont susceptibles d’avoir un prix parce qu’elles sont rares, c’est-à-dire à la fois utiles et limitées en quantité, …",
+            "item_key": "WDHDGA89",
+            "page": null,
+            "rank": 1,
+            "score": 0.01639344262295082,
+            "source": "fulltext",
+            "work_id": "walras-1900-elements"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Marie Curie",
+              "date": "1904",
+              "identifier": "https://archive.org/download/recherchessurles00curi/recherchessurles00curi.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "Recherches sur les substances radioactives"
+            },
+            "evidence": "… des éléments répandus, j'ai étudié plusieurs composés; dans le cas des corps rares, jai étudié les composés que j'ai pu me procurer. Voici la liste des substances qui ont fait partie de mon étude sous forme d'élément ou de condjinaison : …",
+            "item_key": "UDI7E8I2",
+            "page": null,
+            "rank": 2,
+            "score": 0.014705882352941176,
+            "source": "fulltext",
+            "work_id": "curie-1904-recherches-substances-radioactives"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Jean Bonet",
+              "date": "1899",
+              "identifier": "https://archive.org/download/dictionnaireanna01bone/dictionnaireanna01bone.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 1"
+            },
+            "evidence": "… toute confusion impossible. Pour le sens de chaque mot, nous donnons une définition complète, quoique brève. Les termes les plus usités sont suivis de nombreux exemples sous forme d'expressions composées, de phrases dialoguées, de …",
+            "item_key": "NXIPLWTH",
+            "page": null,
+            "rank": 3,
+            "score": 0.013513513513513514,
+            "source": "fulltext",
+            "work_id": "bonet-1899-dictionnaire-annamite-francais-t1"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Mathieu de La Porte",
+              "date": "1770",
+              "identifier": "https://archive.org/download/lasciencedesnego00lapo/lasciencedesnego00lapo.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "La Science des négocians et teneurs de livres"
+            },
+            "evidence": "… cette Science efl: une des plus néceflaires, des plus importantes &: des plus utiles: Se un de mes étonnemens efl , que non-feulement en France ou le Commerce efl: conlidérable , mais même dans d'autres Etats ou il efl d'une plus grande …",
+            "item_key": "6J5AEUMZ",
+            "page": null,
+            "rank": 4,
+            "score": 0.013333333333333334,
+            "source": "fulltext",
+            "work_id": "porte-1770-science-des-negocians"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Charles Baudelaire",
+              "date": "1857",
+              "identifier": "https://archive.org/download/lesfleursdum00baud/lesfleursdum00baud.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "Les Fleurs du Mal (1re éd.)"
+            },
+            "evidence": "… prendre en faute, M'a dit : « Je voudrais bien savoir, Parmi toutes les belles choses Dont est fait son enchantement. Parmi les objets noirs ou roses Qui composent son corps charmant. Sli LES FLEURS DU MAL Quel est le.plus doux. » —- mon …",
+            "item_key": "HIQIHFD2",
+            "page": null,
+            "rank": 5,
+            "score": 0.011764705882352941,
+            "source": "fulltext",
+            "work_id": "baudelaire-1857-fleurs-du-mal"
+          }
+        ],
+        "tool_reply": {
+          "embedder": "none (keyword-only)",
+          "embedderActive": false,
+          "embedderConfigured": "off",
+          "fulltextEnabled": true,
+          "ownWordsEnabled": false
+        }
+      },
+      {
+        "id": "q-0004",
+        "mode": "semantic",
+        "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+        "results": null
+      },
+      {
+        "id": "q-0004",
+        "mode": "hybrid",
+        "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+        "results": null
+      },
+      {
+        "id": "q-0005",
+        "mode": "lexical",
+        "results": [
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Thủ tướng Chính phủ (Prime Minister of Vietnam)",
+              "date": "2017",
+              "identifier": "https://faolex.fao.org/docs/pdf/vie179224.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation)"
+            },
+            "evidence": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation). Thủ tướng Chính phủ (Prime Minister of Vietnam). …",
+            "item_key": "GEWEZPJ4",
+            "page": null,
+            "rank": 1,
+            "score": 0.01639344262295082,
+            "source": null,
+            "work_id": "vn-decision-11-2017-qdttg-solar-fit-en"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Quốc hội Việt Nam (official translation)",
+              "date": "1992",
+              "identifier": "https://en.wikisource.org/w/index.php?title=Constitution_of_Vietnam_(1992)&action=raw&oldid=16201311",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "Constitution of Vietnam (1992), English text"
+            },
+            "evidence": "Constitution of Vietnam (1992), English text. Quốc hội Việt Nam (official translation). zoteus-golden-source:vn-constitution-1992-en. 1992",
+            "item_key": "VSN32JSP",
+            "page": null,
+            "rank": 2,
+            "score": 0.0136986301369863,
+            "source": null,
+            "work_id": "vn-constitution-1992-en"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Gertrude Stein",
+              "date": "1925",
+              "identifier": "https://archive.org/download/makingofamerican0000unse_j2t9/makingofamerican0000unse_j2t9.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "The Making of Americans"
+            },
+            "evidence": "… under vast skies, and always here and there was a great tree waving in the wind and wading knee deep in the rough radiant leafy tide. Yes the Dehnings in the country were simple pleasant people. There they were a contented joyous household. …",
+            "item_key": "HYI6JTZ8",
+            "page": null,
+            "rank": 3,
+            "score": 0.01282051282051282,
+            "source": "fulltext",
+            "work_id": "stein-1925-making-of-americans"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Hermann Minkowski",
+              "date": "1896",
+              "identifier": "https://archive.org/download/geometriederzahl00minkuoft/geometriederzahl00minkuoft.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "Geometrie der Zahlen"
+            },
+            "evidence": "… von Strahldistanzen. S. 9, — 8. Der Aichkörper einhelliger Strahldistanzen. S. 11. — 9. Die einfachsten, durch Ebenen bestimmten Bereiche. S. 14. — 10. Zellen im Aichkörper. S. 17. — 11. Die Aichfläche als Begrenzung des Aichkörpers. S. 18. …",
+            "item_key": "5F9HCZ8B",
+            "page": null,
+            "rank": 4,
+            "score": 0.012345679012345678,
+            "source": "fulltext",
+            "work_id": "minkowski-1896-geometrie-der-zahlen"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Léon Walras",
+              "date": "1900",
+              "identifier": "https://archive.org/download/elementsdeconomi00walr/elementsdeconomi00walr.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale (4e éd.)"
+            },
+            "evidence": "… déjà exis ce taux les prix des services de ces capitaux salaires et intérêts. 11 reste seulement a trou circulants, et à savoir ce que deviennent luméraire est en même temps monnaie. ' de la circulation et de la monnaie. MU- Pdition, …",
+            "item_key": "WDHDGA89",
+            "page": null,
+            "rank": 5,
+            "score": 0.012195121951219513,
+            "source": "fulltext",
+            "work_id": "walras-1900-elements"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Samuel Johnson",
+              "date": "1785",
+              "identifier": "https://archive.org/download/dictionaryofengl01johnuoft/dictionaryofengl01johnuoft.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "A Dictionary of the English Language, Vol. 1 (6th ed.)"
+            },
+            "evidence": "… repeat 4f>d repetition. ' Some combinations of letters having the fame power, are ufed indifirrently without any difcoverable reafon of choice, as in choak, choke ; /oap,fope ; fewel, fuel, and many others; which I have fomctimes infcrted …",
+            "item_key": "G3IXLJC6",
+            "page": null,
+            "rank": 6,
+            "score": 0.012048192771084338,
+            "source": "fulltext",
+            "work_id": "johnson-1785-dictionary"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Marie Curie",
+              "date": "1904",
+              "identifier": "https://archive.org/download/recherchessurles00curi/recherchessurles00curi.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "Recherches sur les substances radioactives"
+            },
+            "evidence": "… l'uranium et ses composés émettent des rayons particuliers : rayons uraniqucs. 11 prouva que ces rayons peuvent traverser des écrans iné talliques minces et qu'ils déchargent les corps électrisés. Il fit aussi des expériences d'après …",
+            "item_key": "UDI7E8I2",
+            "page": null,
+            "rank": 7,
+            "score": 0.011764705882352941,
+            "source": "fulltext",
+            "work_id": "curie-1904-recherches-substances-radioactives"
+          },
+          {
+            "attachment_key": null,
+            "chain": {
+              "author": "Albert Einstein and Hermann Minkowski, translated by M. N. Saha and S. N. Bose",
+              "date": "1920",
+              "identifier": "https://archive.org/download/theprincipleofre00einsuoft/theprincipleofre00einsuoft.pdf",
+              "page_printed": null,
+              "part_byline": null,
+              "part_title": null,
+              "section_heading": null,
+              "title": "The Principle of Relativity: Original Papers by A. Einstein and H. Minkowski"
+            },
+            "evidence": "… succeeded in obtaining a \\alne for Fresnelian co-efficient equal to 1 — 11^- , and consequently stood totally condemned from the optical point of view. Certain direct electromagnetic experiments involvingrelative motion of polarised …",
+            "item_key": "R3YNUA6N",
+            "page": null,
+            "rank": 8,
+            "score": 0.011494252873563218,
+            "source": "fulltext",
+            "work_id": "einstein-minkowski-1920-principle-of-relativity"
+          }
+        ],
+        "tool_reply": {
+          "embedder": "none (keyword-only)",
+          "embedderActive": false,
+          "embedderConfigured": "off",
+          "fulltextEnabled": true,
+          "ownWordsEnabled": false
+        }
+      },
+      {
+        "id": "q-0005",
+        "mode": "semantic",
+        "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+        "results": null
+      },
+      {
+        "id": "q-0005",
+        "mode": "hybrid",
+        "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+        "results": null
+      }
+    ],
+    "run": {
+      "build": {
+        "elapsed_s": 3,
+        "exit_code": 0,
+        "status": {
+          "builtFromVersion": 17,
+          "documents": 415,
+          "embedder": "none (keyword-only)",
+          "embedderActive": false,
+          "embedderConfigured": "off",
+          "fulltextEnabled": true,
+          "fulltextItems": 11,
+          "fulltextItemsScanned": 16,
+          "fulltextItemsTotal": 16,
+          "fulltextPassages": 398,
+          "fulltextVersion": 0,
+          "items": 17,
+          "itemsAvailable": 17,
+          "itemsFetched": 17,
+          "itemsRemoved": 0,
+          "itemsTotal": 17,
+          "library": "user",
+          "libraryBackend": "local",
+          "libraryVersion": 84,
+          "operation": "build",
+          "ownWordsEnabled": true,
+          "ownWordsItems": 0,
+          "ownWordsPassages": 0,
+          "passages": 415,
+          "phase": "fulltext",
+          "state": "done",
+          "storage": "sqlite",
+          "vectors": 0
+        }
+      },
+      "build_sha": "34d6c2681b1452aeaa2f8e8e90abe6e6b0f8df41",
+      "chunker": "not-reported by zotero_index status",
+      "date": "2026-09-06",
+      "embedder": "none (keyword-only)",
+      "export_sha256": "014cf144a55d2810759ac8100a6c50d9fd98a6ccbbef2034d2fe2dd35ab6aa74",
+      "extraction": {
+        "caps": {
+          "fulltext.pdfMaxPages": 100,
+          "fulltext.textMaxLength": 500000
+        },
+        "index_fulltext_max_chars": 40000,
+        "recipe_sha256": "23980113a777c3ecec90692ee12c5b6205a95279dec61876c3ff13cc69f23716",
+        "reindex_limits": "ignored",
+        "reindex_mode": "complete"
+      },
+      "index_schema": "2",
+      "index_status": {
+        "builtFromVersion": 17,
+        "documents": 415,
+        "embedder": "none (keyword-only)",
+        "embedderActive": false,
+        "embedderConfigured": "off",
+        "fulltextEnabled": true,
+        "fulltextItems": 11,
+        "fulltextItemsScanned": 0,
+        "fulltextItemsTotal": 0,
+        "fulltextPassages": 398,
+        "fulltextVersion": 0,
+        "items": 17,
+        "itemsAvailable": 17,
+        "itemsFetched": 0,
+        "itemsRemoved": 0,
+        "itemsTotal": 17,
+        "library": "user",
+        "libraryBackend": "local",
+        "libraryVersion": 84,
+        "operation": "build",
+        "ownWordsEnabled": false,
+        "ownWordsItems": 0,
+        "ownWordsPassages": 0,
+        "passages": 415,
+        "phase": "metadata",
+        "state": "idle",
+        "storage": "sqlite",
+        "vectors": 0
+      },
+      "k": 10,
+      "recipe_sha256": "23980113a777c3ecec90692ee12c5b6205a95279dec61876c3ff13cc69f23716",
+      "reply_shape": {
+        "attachment_key_carried": false,
+        "chain_from_replay_items_by_item_key": [
+          "author",
+          "date",
+          "identifier"
+        ],
+        "chain_from_reply": [
+          "title"
+        ],
+        "chain_never_carried": [
+          "section_heading",
+          "page_printed",
+          "part_title",
+          "part_byline"
+        ],
+        "hit_fields": [
+          "itemKey",
+          "score",
+          "snippet",
+          "source",
+          "title"
+        ],
+        "page_carried": false
+      },
+      "retrieval_mode": "keyword (BM25 over passages) reported as lexical; semantic and hybrid not-run",
+      "server_info": {
+        "name": "zoteus",
+        "version": "1.14.0"
+      },
+      "tool": "zotero_semantic_search"
+    }
+  },
+  "replies": [
+    {
+      "id": "q-0001",
+      "mode": "lexical",
+      "results": [
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Thủ tướng Chính phủ (Prime Minister of Vietnam)",
+            "date": "2017",
+            "identifier": "https://faolex.fao.org/docs/pdf/vie179224.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation)"
+          },
+          "evidence": "r projects shall be the same as those granted to projects eligible for investment incentives in accordance with effective regulations Article 11. Land incentives 1. Grid-connected solar power projects, transmission lines and substations …",
+          "item_key": "GEWEZPJ4",
+          "page": null,
+          "rank": 1,
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "work_id": "vn-decision-11-2017-qdttg-solar-fit-en"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam (official translation)",
+            "date": "1992",
+            "identifier": "https://en.wikisource.org/w/index.php?title=Constitution_of_Vietnam_(1992)&action=raw&oldid=16201311",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Constitution of Vietnam (1992), English text"
+          },
+          "evidence": "Constitution of Vietnam (1992), English text. Quốc hội Việt Nam (official translation). zoteus-golden-source:vn-constitution-1992-en. 1992",
+          "item_key": "VSN32JSP",
+          "page": null,
+          "rank": 2,
+          "score": 0.012658227848101266,
+          "source": null,
+          "work_id": "vn-constitution-1992-en"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Albert Einstein and Hermann Minkowski, translated by M. N. Saha and S. N. Bose",
+            "date": "1920",
+            "identifier": "https://archive.org/download/theprincipleofre00einsuoft/theprincipleofre00einsuoft.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "The Principle of Relativity: Original Papers by A. Einstein and H. Minkowski"
+          },
+          "evidence": "… displacement of the Praunhofer lines is a necessary and fundamental condition for the acceptance of his theory. But Eddington has pointed out that even if this test fails, the logical conclusion would seem to be that while Einstein's law of …",
+          "item_key": "R3YNUA6N",
+          "page": null,
+          "rank": 3,
+          "score": 0.0125,
+          "source": "fulltext",
+          "work_id": "einstein-minkowski-1920-principle-of-relativity"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Gertrude Stein",
+            "date": "1925",
+            "identifier": "https://archive.org/download/makingofamerican0000unse_j2t9/makingofamerican0000unse_j2t9.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "The Making of Americans"
+          },
+          "evidence": "ading, I say, you know I like to know just what I am getting for my money and you children do certainly cost a great deal of my money, now I say, tell me, I am glad to listen to you, I say you tell me just what you are going to do, to make …",
+          "item_key": "HYI6JTZ8",
+          "page": null,
+          "rank": 4,
+          "score": 0.012345679012345678,
+          "source": "fulltext",
+          "work_id": "stein-1925-making-of-americans"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Samuel Johnson",
+            "date": "1785",
+            "identifier": "https://archive.org/download/dictionaryofengl01johnuoft/dictionaryofengl01johnuoft.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "A Dictionary of the English Language, Vol. 1 (6th ed.)"
+          },
+          "evidence": "… churches. It is, however, my opinion, that the French generally fupplied us j for we hav^ few Latin words, among the terms of domeftick ufe, which are not French; but many French, which are very remote from Latin. Even in words of Jwhich …",
+          "item_key": "G3IXLJC6",
+          "page": null,
+          "rank": 5,
+          "score": 0.012048192771084338,
+          "source": "fulltext",
+          "work_id": "johnson-1785-dictionary"
+        }
+      ],
+      "tool_reply": {
+        "embedder": "none (keyword-only)",
+        "embedderActive": false,
+        "embedderConfigured": "off",
+        "fulltextEnabled": true,
+        "ownWordsEnabled": false
+      }
+    },
+    {
+      "id": "q-0001",
+      "mode": "semantic",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "results": null
+    },
+    {
+      "id": "q-0001",
+      "mode": "hybrid",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "results": null
+    },
+    {
+      "id": "q-0002",
+      "mode": "lexical",
+      "results": [
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Thủ tướng Chính phủ (Prime Minister of Vietnam)",
+            "date": "2017",
+            "identifier": "https://faolex.fao.org/docs/pdf/vie179224.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation)"
+          },
+          "evidence": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation). Thủ tướng Chính phủ (Prime Minister of Vietnam). …",
+          "item_key": "GEWEZPJ4",
+          "page": null,
+          "rank": 1,
+          "score": 0.01639344262295082,
+          "source": null,
+          "work_id": "vn-decision-11-2017-qdttg-solar-fit-en"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Léon Walras",
+            "date": "1900",
+            "identifier": "https://archive.org/download/elementsdeconomi00walr/elementsdeconomi00walr.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale (4e éd.)"
+          },
+          "evidence": "… pour s’accorder avec leurs substantifs, je me suis incliné devant leur décision, la supposant fondée sur 1 usage. I ï' mî IX par un individu de .son revenu entre ses diverses esiièces de besoins, que j’appelle problème de l'utilité maxima …",
+          "item_key": "WDHDGA89",
+          "page": null,
+          "rank": 2,
+          "score": 0.015384615384615385,
+          "source": "fulltext",
+          "work_id": "walras-1900-elements"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam (official translation)",
+            "date": "1992",
+            "identifier": "https://en.wikisource.org/w/index.php?title=Constitution_of_Vietnam_(1992)&action=raw&oldid=16201311",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Constitution of Vietnam (1992), English text"
+          },
+          "evidence": "Constitution of Vietnam (1992), English text. Quốc hội Việt Nam (official translation). zoteus-golden-source:vn-constitution-1992-en. 1992",
+          "item_key": "VSN32JSP",
+          "page": null,
+          "rank": 3,
+          "score": 0.015151515151515152,
+          "source": null,
+          "work_id": "vn-constitution-1992-en"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Jean Bonet",
+            "date": "1899",
+            "identifier": "https://archive.org/download/dictionnaireanna01bone/dictionnaireanna01bone.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 1"
+          },
+          "evidence": "… toute confusion impossible. Pour le sens de chaque mot, nous donnons une définition complète, quoique brève. Les termes les plus usités sont suivis de nombreux exemples sous forme d'expressions composées, de phrases dialoguées, de …",
+          "item_key": "NXIPLWTH",
+          "page": null,
+          "rank": 4,
+          "score": 0.014925373134328358,
+          "source": "fulltext",
+          "work_id": "bonet-1899-dictionnaire-annamite-francais-t1"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Marie Curie",
+            "date": "1904",
+            "identifier": "https://archive.org/download/recherchessurles00curi/recherchessurles00curi.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Recherches sur les substances radioactives"
+          },
+          "evidence": ". 11 devenait dès lors très probable que si la pechblende, la chalcolite, l'autunite ont une activité si forte, c'est que ces substances renferment en petite quantité une matière fortement radioactive, diilerente de l'uranium, du thorium …",
+          "item_key": "UDI7E8I2",
+          "page": null,
+          "rank": 5,
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "work_id": "curie-1904-recherches-substances-radioactives"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Hermann Minkowski",
+            "date": "1896",
+            "identifier": "https://archive.org/download/geometriederzahl00minkuoft/geometriederzahl00minkuoft.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Geometrie der Zahlen"
+          },
+          "evidence": "… von Strahldistanzen. S. 9, — 8. Der Aichkörper einhelliger Strahldistanzen. S. 11. — 9. Die einfachsten, durch Ebenen bestimmten Bereiche. S. 14. — 10. Zellen im Aichkörper. S. 17. — 11. Die Aichfläche als Begrenzung des Aichkörpers. S. 18. …",
+          "item_key": "5F9HCZ8B",
+          "page": null,
+          "rank": 6,
+          "score": 0.013157894736842105,
+          "source": "fulltext",
+          "work_id": "minkowski-1896-geometrie-der-zahlen"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Albert Einstein and Hermann Minkowski, translated by M. N. Saha and S. N. Bose",
+            "date": "1920",
+            "identifier": "https://archive.org/download/theprincipleofre00einsuoft/theprincipleofre00einsuoft.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "The Principle of Relativity: Original Papers by A. Einstein and H. Minkowski"
+          },
+          "evidence": "… succeeded in obtaining a \\alne for Fresnelian co-efficient equal to 1 — 11^- , and consequently stood totally condemned from the optical point of view. Certain direct electromagnetic experiments involvingrelative motion of polarised …",
+          "item_key": "R3YNUA6N",
+          "page": null,
+          "rank": 7,
+          "score": 0.012345679012345678,
+          "source": "fulltext",
+          "work_id": "einstein-minkowski-1920-principle-of-relativity"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Charles Baudelaire",
+            "date": "1857",
+            "identifier": "https://archive.org/download/lesfleursdum00baud/lesfleursdum00baud.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Les Fleurs du Mal (1re éd.)"
+          },
+          "evidence": "… Les parfums, les couleurs et les sons se répondent. iO LES FLEURS DU MAL 11 est des parfums frais comme des chairs d'enfants , Doux comme les hautbois, verts comme les prairies , Et d'autres, corrompus, riches et triomphants , Ayant …",
+          "item_key": "HIQIHFD2",
+          "page": null,
+          "rank": 8,
+          "score": 0.011764705882352941,
+          "source": "fulltext",
+          "work_id": "baudelaire-1857-fleurs-du-mal"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Jean Bonet",
+            "date": "1899",
+            "identifier": "https://archive.org/download/dictionnaireanna02bone/dictionnaireanna02bone.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 2"
+          },
+          "evidence": "… Nà tôt câij trài o ^ . vallée S(; U'anscrit aussi par le car. fi? . 11. lurniuenu !«atioralc. fertile et bien exposée. — Rmng nh un o , rizière de vallée. — Bàu na ^O, où cela? où est-il? faites voir? — Qm m o, tancer d'impor tance, …",
+          "item_key": "4AZTUVYF",
+          "page": null,
+          "rank": 9,
+          "score": 0.011494252873563218,
+          "source": "fulltext",
+          "work_id": "bonet-1899-dictionnaire-annamite-francais-t2"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Mathieu de La Porte",
+            "date": "1770",
+            "identifier": "https://archive.org/download/lasciencedesnego00lapo/lasciencedesnego00lapo.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "La Science des négocians et teneurs de livres"
+          },
+          "evidence": "… tenir au moins un Livre Journal , fuivant qu'il eft preferit par l'Ordonnance. 11 ne doit pas y avoir la même rigueur , & on s'eft relâché fur la forme preferire par l'Article III de l'Or icnr.ance , qui porte que les Livres feront cottes & …",
+          "item_key": "6J5AEUMZ",
+          "page": null,
+          "rank": 10,
+          "score": 0.011363636363636364,
+          "source": "fulltext",
+          "work_id": "porte-1770-science-des-negocians"
+        }
+      ],
+      "tool_reply": {
+        "embedder": "none (keyword-only)",
+        "embedderActive": false,
+        "embedderConfigured": "off",
+        "fulltextEnabled": true,
+        "ownWordsEnabled": false
+      }
+    },
+    {
+      "id": "q-0002",
+      "mode": "semantic",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "results": null
+    },
+    {
+      "id": "q-0002",
+      "mode": "hybrid",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "results": null
+    },
+    {
+      "id": "q-0003",
+      "mode": "lexical",
+      "results": [
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Thủ tướng Chính phủ (Prime Minister of Vietnam)",
+            "date": "2017",
+            "identifier": "https://faolex.fao.org/docs/pdf/vie179224.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation)"
+          },
+          "evidence": "… projects, the contracts for which are signed before the effective date of this Decision, the parties are responsible for signing contract revisions in accordance with this Decision. Article 16. Effect 1. This Decision takes effect from 01 …",
+          "item_key": "GEWEZPJ4",
+          "page": null,
+          "rank": 1,
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "work_id": "vn-decision-11-2017-qdttg-solar-fit-en"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Albert Einstein and Hermann Minkowski, translated by M. N. Saha and S. N. Bose",
+            "date": "1920",
+            "identifier": "https://archive.org/download/theprincipleofre00einsuoft/theprincipleofre00einsuoft.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "The Principle of Relativity: Original Papers by A. Einstein and H. Minkowski"
+          },
+          "evidence": "… succeeded in obtaining a \\alne for Fresnelian co-efficient equal to 1 — 11^- , and consequently stood totally condemned from the optical point of view. Certain direct electromagnetic experiments involvingrelative motion of polarised …",
+          "item_key": "R3YNUA6N",
+          "page": null,
+          "rank": 2,
+          "score": 0.0136986301369863,
+          "source": "fulltext",
+          "work_id": "einstein-minkowski-1920-principle-of-relativity"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Gertrude Stein",
+            "date": "1925",
+            "identifier": "https://archive.org/download/makingofamerican0000unse_j2t9/makingofamerican0000unse_j2t9.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "The Making of Americans"
+          },
+          "evidence": "… ever show that you can work hard to deserve it. Well you got your literary effect and your new fangled notions and all kinds of education and you all always explain to me how well you know how to do it, I say it will be soon now when I can …",
+          "item_key": "HYI6JTZ8",
+          "page": null,
+          "rank": 3,
+          "score": 0.011627906976744186,
+          "source": "fulltext",
+          "work_id": "stein-1925-making-of-americans"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Hermann Minkowski",
+            "date": "1896",
+            "identifier": "https://archive.org/download/geometriederzahl00minkuoft/geometriederzahl00minkuoft.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Geometrie der Zahlen"
+          },
+          "evidence": "… ihres Volumens mehr als einen Punkt mit ganzzahligen Coordinaten enthalten. 30. Arithmetischer Satz über die nirgends concaven Körper mit Mittelpunkt. S. 73. — 31. Stuteu im Zahlengitter. S. 77. — 32. Stufen grössten Volumenb. S. 81. — 33. …",
+          "item_key": "5F9HCZ8B",
+          "page": null,
+          "rank": 4,
+          "score": 0.011363636363636364,
+          "source": "fulltext",
+          "work_id": "minkowski-1896-geometrie-der-zahlen"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Jean Bonet",
+            "date": "1899",
+            "identifier": "https://archive.org/download/dictionnaireanna01bone/dictionnaireanna01bone.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 1"
+          },
+          "evidence": "… 15 Quinze 16 Seize 17 Dix-sept 18 Dix-huit 19 Dix-neuf 20 Vingt 21 Vingt et un 30 Trente àO Quarante 50 Cinquante 60 Soi.xante 70 Soixante-dix. . . 80 Quatre-vingts . . 90 Quatre-vingt-dix Mwon lam. Mwon sàu. Mwo'i bày. Mwon tàm. Mwon chin. …",
+          "item_key": "NXIPLWTH",
+          "page": null,
+          "rank": 5,
+          "score": 0.011111111111111112,
+          "source": "fulltext",
+          "work_id": "bonet-1899-dictionnaire-annamite-francais-t1"
+        }
+      ],
+      "tool_reply": {
+        "embedder": "none (keyword-only)",
+        "embedderActive": false,
+        "embedderConfigured": "off",
+        "fulltextEnabled": true,
+        "ownWordsEnabled": false
+      }
+    },
+    {
+      "id": "q-0003",
+      "mode": "semantic",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "results": null
+    },
+    {
+      "id": "q-0003",
+      "mode": "hybrid",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "results": null
+    },
+    {
+      "id": "q-0004",
+      "mode": "lexical",
+      "results": [
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Léon Walras",
+            "date": "1900",
+            "identifier": "https://archive.org/download/elementsdeconomi00walr/elementsdeconomi00walr.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale (4e éd.)"
+          },
+          "evidence": "… un régime hypothétique de libre i currence absolue '. L’ensemble de toutes les choses, matérielles ou immatérielles, qui sont susceptibles d’avoir un prix parce qu’elles sont rares, c’est-à-dire à la fois utiles et limitées en quantité, …",
+          "item_key": "WDHDGA89",
+          "page": null,
+          "rank": 1,
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "work_id": "walras-1900-elements"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Marie Curie",
+            "date": "1904",
+            "identifier": "https://archive.org/download/recherchessurles00curi/recherchessurles00curi.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Recherches sur les substances radioactives"
+          },
+          "evidence": "… des éléments répandus, j'ai étudié plusieurs composés; dans le cas des corps rares, jai étudié les composés que j'ai pu me procurer. Voici la liste des substances qui ont fait partie de mon étude sous forme d'élément ou de condjinaison : …",
+          "item_key": "UDI7E8I2",
+          "page": null,
+          "rank": 2,
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "work_id": "curie-1904-recherches-substances-radioactives"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Jean Bonet",
+            "date": "1899",
+            "identifier": "https://archive.org/download/dictionnaireanna01bone/dictionnaireanna01bone.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Dictionnaire annamite-français (langue officielle et langue vulgaire), tome 1"
+          },
+          "evidence": "… toute confusion impossible. Pour le sens de chaque mot, nous donnons une définition complète, quoique brève. Les termes les plus usités sont suivis de nombreux exemples sous forme d'expressions composées, de phrases dialoguées, de …",
+          "item_key": "NXIPLWTH",
+          "page": null,
+          "rank": 3,
+          "score": 0.013513513513513514,
+          "source": "fulltext",
+          "work_id": "bonet-1899-dictionnaire-annamite-francais-t1"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Mathieu de La Porte",
+            "date": "1770",
+            "identifier": "https://archive.org/download/lasciencedesnego00lapo/lasciencedesnego00lapo.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "La Science des négocians et teneurs de livres"
+          },
+          "evidence": "… cette Science efl: une des plus néceflaires, des plus importantes &: des plus utiles: Se un de mes étonnemens efl , que non-feulement en France ou le Commerce efl: conlidérable , mais même dans d'autres Etats ou il efl d'une plus grande …",
+          "item_key": "6J5AEUMZ",
+          "page": null,
+          "rank": 4,
+          "score": 0.013333333333333334,
+          "source": "fulltext",
+          "work_id": "porte-1770-science-des-negocians"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Charles Baudelaire",
+            "date": "1857",
+            "identifier": "https://archive.org/download/lesfleursdum00baud/lesfleursdum00baud.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Les Fleurs du Mal (1re éd.)"
+          },
+          "evidence": "… prendre en faute, M'a dit : « Je voudrais bien savoir, Parmi toutes les belles choses Dont est fait son enchantement. Parmi les objets noirs ou roses Qui composent son corps charmant. Sli LES FLEURS DU MAL Quel est le.plus doux. » —- mon …",
+          "item_key": "HIQIHFD2",
+          "page": null,
+          "rank": 5,
+          "score": 0.011764705882352941,
+          "source": "fulltext",
+          "work_id": "baudelaire-1857-fleurs-du-mal"
+        }
+      ],
+      "tool_reply": {
+        "embedder": "none (keyword-only)",
+        "embedderActive": false,
+        "embedderConfigured": "off",
+        "fulltextEnabled": true,
+        "ownWordsEnabled": false
+      }
+    },
+    {
+      "id": "q-0004",
+      "mode": "semantic",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "results": null
+    },
+    {
+      "id": "q-0004",
+      "mode": "hybrid",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "results": null
+    },
+    {
+      "id": "q-0005",
+      "mode": "lexical",
+      "results": [
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Thủ tướng Chính phủ (Prime Minister of Vietnam)",
+            "date": "2017",
+            "identifier": "https://faolex.fao.org/docs/pdf/vie179224.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation)"
+          },
+          "evidence": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation). Thủ tướng Chính phủ (Prime Minister of Vietnam). …",
+          "item_key": "GEWEZPJ4",
+          "page": null,
+          "rank": 1,
+          "score": 0.01639344262295082,
+          "source": null,
+          "work_id": "vn-decision-11-2017-qdttg-solar-fit-en"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Quốc hội Việt Nam (official translation)",
+            "date": "1992",
+            "identifier": "https://en.wikisource.org/w/index.php?title=Constitution_of_Vietnam_(1992)&action=raw&oldid=16201311",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Constitution of Vietnam (1992), English text"
+          },
+          "evidence": "Constitution of Vietnam (1992), English text. Quốc hội Việt Nam (official translation). zoteus-golden-source:vn-constitution-1992-en. 1992",
+          "item_key": "VSN32JSP",
+          "page": null,
+          "rank": 2,
+          "score": 0.0136986301369863,
+          "source": null,
+          "work_id": "vn-constitution-1992-en"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Gertrude Stein",
+            "date": "1925",
+            "identifier": "https://archive.org/download/makingofamerican0000unse_j2t9/makingofamerican0000unse_j2t9.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "The Making of Americans"
+          },
+          "evidence": "… under vast skies, and always here and there was a great tree waving in the wind and wading knee deep in the rough radiant leafy tide. Yes the Dehnings in the country were simple pleasant people. There they were a contented joyous household. …",
+          "item_key": "HYI6JTZ8",
+          "page": null,
+          "rank": 3,
+          "score": 0.01282051282051282,
+          "source": "fulltext",
+          "work_id": "stein-1925-making-of-americans"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Hermann Minkowski",
+            "date": "1896",
+            "identifier": "https://archive.org/download/geometriederzahl00minkuoft/geometriederzahl00minkuoft.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Geometrie der Zahlen"
+          },
+          "evidence": "… von Strahldistanzen. S. 9, — 8. Der Aichkörper einhelliger Strahldistanzen. S. 11. — 9. Die einfachsten, durch Ebenen bestimmten Bereiche. S. 14. — 10. Zellen im Aichkörper. S. 17. — 11. Die Aichfläche als Begrenzung des Aichkörpers. S. 18. …",
+          "item_key": "5F9HCZ8B",
+          "page": null,
+          "rank": 4,
+          "score": 0.012345679012345678,
+          "source": "fulltext",
+          "work_id": "minkowski-1896-geometrie-der-zahlen"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Léon Walras",
+            "date": "1900",
+            "identifier": "https://archive.org/download/elementsdeconomi00walr/elementsdeconomi00walr.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale (4e éd.)"
+          },
+          "evidence": "… déjà exis ce taux les prix des services de ces capitaux salaires et intérêts. 11 reste seulement a trou circulants, et à savoir ce que deviennent luméraire est en même temps monnaie. ' de la circulation et de la monnaie. MU- Pdition, …",
+          "item_key": "WDHDGA89",
+          "page": null,
+          "rank": 5,
+          "score": 0.012195121951219513,
+          "source": "fulltext",
+          "work_id": "walras-1900-elements"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Samuel Johnson",
+            "date": "1785",
+            "identifier": "https://archive.org/download/dictionaryofengl01johnuoft/dictionaryofengl01johnuoft.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "A Dictionary of the English Language, Vol. 1 (6th ed.)"
+          },
+          "evidence": "… repeat 4f>d repetition. ' Some combinations of letters having the fame power, are ufed indifirrently without any difcoverable reafon of choice, as in choak, choke ; /oap,fope ; fewel, fuel, and many others; which I have fomctimes infcrted …",
+          "item_key": "G3IXLJC6",
+          "page": null,
+          "rank": 6,
+          "score": 0.012048192771084338,
+          "source": "fulltext",
+          "work_id": "johnson-1785-dictionary"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Marie Curie",
+            "date": "1904",
+            "identifier": "https://archive.org/download/recherchessurles00curi/recherchessurles00curi.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "Recherches sur les substances radioactives"
+          },
+          "evidence": "… l'uranium et ses composés émettent des rayons particuliers : rayons uraniqucs. 11 prouva que ces rayons peuvent traverser des écrans iné talliques minces et qu'ils déchargent les corps électrisés. Il fit aussi des expériences d'après …",
+          "item_key": "UDI7E8I2",
+          "page": null,
+          "rank": 7,
+          "score": 0.011764705882352941,
+          "source": "fulltext",
+          "work_id": "curie-1904-recherches-substances-radioactives"
+        },
+        {
+          "attachment_key": null,
+          "chain": {
+            "author": "Albert Einstein and Hermann Minkowski, translated by M. N. Saha and S. N. Bose",
+            "date": "1920",
+            "identifier": "https://archive.org/download/theprincipleofre00einsuoft/theprincipleofre00einsuoft.pdf",
+            "page_printed": null,
+            "part_byline": null,
+            "part_title": null,
+            "section_heading": null,
+            "title": "The Principle of Relativity: Original Papers by A. Einstein and H. Minkowski"
+          },
+          "evidence": "… succeeded in obtaining a \\alne for Fresnelian co-efficient equal to 1 — 11^- , and consequently stood totally condemned from the optical point of view. Certain direct electromagnetic experiments involvingrelative motion of polarised …",
+          "item_key": "R3YNUA6N",
+          "page": null,
+          "rank": 8,
+          "score": 0.011494252873563218,
+          "source": "fulltext",
+          "work_id": "einstein-minkowski-1920-principle-of-relativity"
+        }
+      ],
+      "tool_reply": {
+        "embedder": "none (keyword-only)",
+        "embedderActive": false,
+        "embedderConfigured": "off",
+        "fulltextEnabled": true,
+        "ownWordsEnabled": false
+      }
+    },
+    {
+      "id": "q-0005",
+      "mode": "semantic",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): the index holds no vectors",
+      "results": null
+    },
+    {
+      "id": "q-0005",
+      "mode": "hybrid",
+      "not_run_reason": "embeddings are off in the offline replay (ZOTEUS_EMBEDDINGS=off): hybrid would degrade to keyword and say so",
+      "results": null
+    }
+  ],
+  "run": {
+    "build": null,
+    "build_sha": "34d6c2681b1452aeaa2f8e8e90abe6e6b0f8df41",
+    "chunker": "not-reported by zotero_index status",
+    "date": "2026-09-06",
+    "embedder": "none (keyword-only)",
+    "export_sha256": "014cf144a55d2810759ac8100a6c50d9fd98a6ccbbef2034d2fe2dd35ab6aa74",
+    "extraction": {
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "23980113a777c3ecec90692ee12c5b6205a95279dec61876c3ff13cc69f23716",
+      "reindex_limits": "ignored",
+      "reindex_mode": "complete"
+    },
+    "index_schema": "2",
+    "index_status": {
+      "builtFromVersion": 17,
+      "documents": 415,
+      "embedder": "none (keyword-only)",
+      "embedderActive": false,
+      "embedderConfigured": "off",
+      "fulltextEnabled": true,
+      "fulltextItems": 11,
+      "fulltextItemsScanned": 0,
+      "fulltextItemsTotal": 0,
+      "fulltextPassages": 398,
+      "fulltextVersion": 0,
+      "items": 17,
+      "itemsAvailable": 17,
+      "itemsFetched": 0,
+      "itemsRemoved": 0,
+      "itemsTotal": 17,
+      "library": "user",
+      "libraryBackend": "local",
+      "libraryVersion": 84,
+      "operation": "build",
+      "ownWordsEnabled": false,
+      "ownWordsItems": 0,
+      "ownWordsPassages": 0,
+      "passages": 415,
+      "phase": "metadata",
+      "state": "idle",
+      "storage": "sqlite",
+      "vectors": 0
+    },
+    "k": 10,
+    "recipe_sha256": "23980113a777c3ecec90692ee12c5b6205a95279dec61876c3ff13cc69f23716",
+    "reply_shape": {
+      "attachment_key_carried": false,
+      "chain_from_replay_items_by_item_key": [
+        "author",
+        "date",
+        "identifier"
+      ],
+      "chain_from_reply": [
+        "title"
+      ],
+      "chain_never_carried": [
+        "section_heading",
+        "page_printed",
+        "part_title",
+        "part_byline"
+      ],
+      "hit_fields": [
+        "itemKey",
+        "score",
+        "snippet",
+        "source",
+        "title"
+      ],
+      "page_carried": false
+    },
+    "retrieval_mode": "keyword (BM25 over passages) reported as lexical; semantic and hybrid not-run",
+    "server_info": {
+      "name": "zoteus",
+      "version": "1.14.0"
+    },
+    "tool": "zotero_semantic_search"
+  },
+  "schema": "menagerie-replies/v2"
+}

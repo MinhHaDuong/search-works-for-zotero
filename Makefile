@@ -12,7 +12,7 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate schema-gate sitter-version sitter-install sitter-verify-install
+.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate schema-gate sitter-version sitter-install sitter-verify-install golden golden-run
 
 # Where the acceptance layer's arenas live: outside the repository, because the
 # residue sweep fills them with a target's derived state and bench/ is scanned
@@ -144,6 +144,8 @@ help:
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
 	@echo "make upstream-catchup  — QUIET or TOUCHED: did upstream move anything of ours"
 	@echo "make upstream-rebaseline — the UPSTREAM block for the current tip, computed, and the recipe"
+	@echo "make golden      — the golden gate: validate the question bank against the committed export, then score bench/results/golden/replies.json (exit 3 not-run when absent)"
+	@echo "make golden-run  — drive the bank through fork/dist/index.js over the replayed export and write bench/results/golden/replies.json"
 
 check: deps lint figures models names progress tickets ticket-logs sitter-version check-fast
 
@@ -339,6 +341,43 @@ schema-gate:
 	@python3 bench/upstream_catchup.py >/dev/null 2>&1 || true
 	SCHEMA_LEG_STRICT=1 python3 -m pytest tests/test_index_schema_fixtures.py -q \
 	  -k the_declaration_matches_upstreams_own_constant
+
+# The golden gate (SPEC.md §5.2.8, ticket 0722). Deliberately NOT in `check`: the
+# scorer reads a replies file a real build produced, and `check` must stay green on
+# a machine that has never built one — a prerequisite that cannot look would be
+# waived, and a waiver is a green that means "we decided not to look". The bank's
+# own discipline (structure, reachability against the committed export) is in
+# tests/test_golden_gate.py, which needs no build.
+#
+# Exit codes: 0 pass, 1 fail, 2 input error, 3 not-run (no replies file yet: the
+# bank's shape is printed instead, with the reason).
+GOLDEN_BANK ?= bench/fixtures/questions
+GOLDEN_EXPORT ?= bench/fixtures/export
+GOLDEN_REPLIES ?= bench/results/golden/replies.json
+GOLDEN_REPORT ?= bench/results/golden/report.json
+GOLDEN_SERVER ?= fork/dist/index.js
+GOLDEN_DATA_DIR ?= $(HOME)/data/golden-replay-index
+
+golden:
+	python3 bench/golden_gate.py validate --bank "$(GOLDEN_BANK)" --export "$(GOLDEN_EXPORT)"
+	python3 bench/golden_gate.py score --bank "$(GOLDEN_BANK)" --export "$(GOLDEN_EXPORT)" \
+	  --replies "$(GOLDEN_REPLIES)" --output "$(GOLDEN_REPORT)"
+
+# The runner: builds the replay index into an EMPTY $(GOLDEN_DATA_DIR) (created here;
+# refused by the replay if it already holds anything), starts the mock local API
+# again for the query side, and asks every question at k from SPEC §5.2.8 in the
+# lexical mode. Needs a built checkout: `make upstream-checkout && cd fork && npm ci
+# && npm run build`. Pass GOLDEN_PREVIOUS=<earlier replies.json> to embed the
+# previous run for the stability reading.
+GOLDEN_PREVIOUS ?=
+
+golden-run:
+	@test -f "$(GOLDEN_SERVER)" || { echo "No built server at $(GOLDEN_SERVER): make upstream-checkout, then npm ci && npm run build in fork/" >&2; exit 3; }
+	@test ! -e "$(GOLDEN_DATA_DIR)" || { echo "Refusing to build into existing $(GOLDEN_DATA_DIR); remove it or set GOLDEN_DATA_DIR" >&2; exit 2; }
+	mkdir -p "$(GOLDEN_DATA_DIR)"
+	python3 bench/golden_run.py --bank "$(GOLDEN_BANK)" --export "$(GOLDEN_EXPORT)" \
+	  --server "$(GOLDEN_SERVER)" --data-dir "$(GOLDEN_DATA_DIR)" --output "$(GOLDEN_REPLIES)" \
+	  $(if $(GOLDEN_PREVIOUS),--previous "$(GOLDEN_PREVIOUS)",)
 
 upstream-checkout:
 	@test ! -e fork || { echo "Refusing to overwrite existing fork/" >&2; exit 1; }

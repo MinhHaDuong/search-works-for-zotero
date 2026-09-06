@@ -1255,6 +1255,14 @@ def render_report(report: dict[str, Any]) -> str:
             f"minimum {stability['minimum_jaccard']:.3f}"
             + (f", failed {stability['failed_rules']}" if stability["failed_rules"] else "")
         )
+        previous_sha = (stability.get("previous_run") or {}).get("build_sha")
+        current_sha = (report.get("run") or {}).get("build_sha")
+        if previous_sha and previous_sha == current_sha:
+            lines.append(
+                f"  previous run is the SAME build ({previous_sha[:12]}): a determinism control, not a drift reading"
+            )
+        elif previous_sha:
+            lines.append(f"  previous run build {previous_sha[:12]} vs this run {str(current_sha)[:12]}")
     for stratum in STRATA:
         axes = report["ladder"]["by_stratum"][stratum]
         lines.append(f"stratum {stratum}:")
