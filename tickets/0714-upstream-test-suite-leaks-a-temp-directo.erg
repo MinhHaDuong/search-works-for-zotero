@@ -1,0 +1,79 @@
+%erg 0.1
+Title: Upstream test suite leaks a temp directory per test and filled /tmp
+Created: 2026-09-06
+Author: sim
+
+--- log ---
+2026-09-06T15:40Z sim created
+
+--- body ---
+## Context
+On 2026-09-06 `/tmp` (a 12 GB tmpfs, mounted `usrquota`, per-user cap 80 %
+set by systemd 259 at login) filled up. Every Bash call in three open Claude
+sessions died with EDQUOT from about 12:40, and the machine was rebooted at
+16:38. The author purged the filler by hand before rebooting; the shell
+history names it: `/tmp/zoteus-wrong*`, `/tmp/zoteus-validation-*`, then
+`/tmp/zot*`.
+
+Those names come from the upstream zoteus vitest suite. Test files call
+`mkdtempSync(join(tmpdir(), 'zoteus-<name>-'))` and never remove the
+directory. In the reviewed upstream checkout (`zoteus-fts5/fork`, v1.6.0)
+9 test files create such directories and 1 cleans up. In the
+`fork-0091` checkout (branch `pr3-droplist`, where Codex added the
+`zoteus-validation-*` and `zoteus-wrong-*` tests on 2026-09-01/02) it is 22
+files with no cleanup at all.
+
+Measured here, one `npx vitest run` in `fork-0091` under a private `TMPDIR`:
+
+| leftover directories | size |
+|---|---|
+| 116 | 16 MB |
+
+That is per run. vitest in watch mode re-runs on every save, and Codex and
+Claude sessions ran the suite repeatedly from 2026-09-02 to 09-06 on a host
+that had not rebooted since 09-02. The run count and the size of the purged
+set were not recorded, so the arithmetic from 16 MB per run to a full tmpfs
+is not established; the mechanism and the names are.
+
+The temp root is RAM. Filling it is also filling memory, which is why the
+host became unresponsive before the quota error even appeared.
+
+## Relevant files
+- `~/CNRS/projets/actifs/zoteus-fts5/fork/vitest.config.ts` — no `globalSetup`, no teardown hook
+- `~/CNRS/projets/actifs/zoteus-fts5/fork/tests/features/search-backends.test.ts` — `mkdtempSync(join(tmpdir(), 'zoteus-…'))` with no `rmSync`
+- `~/data/projets/zoteus-bench/fork-0091/tests/features/embedder-degradation.test.ts` — the `zoteus-validation-*` / `zoteus-wrong-*` creators
+- `bench/smoke_upstream.py` — `TemporaryDirectory(prefix="zoteus-smoke-")`, cleaned on normal exit only
+- `bench/acceptance/adapters/zoteus.py` — already redirects `TMPDIR` into the arena; the harness side is fine
+
+## Actions
+1. Upstream fix, one file: a vitest `globalSetup` that points `TMPDIR` at a
+   fresh per-run directory and removes it in the returned teardown. This
+   catches every present and future `tmpdir()` caller without touching the
+   22 test files. Per the repo's standing rule the fix ships inside the
+   upstream PR being prepared, not as a standalone filing; record it in the
+   upstream-PR candidate list.
+2. Local mitigation until upstream lands: run the fork suite with `TMPDIR`
+   under `~/data` (disk, not RAM), or add a `make test-fork` wrapper that
+   does so. Decide which; do not do both.
+3. Check `bench/smoke_upstream.py` for the same shape: a killed run leaves
+   `zoteus-smoke-*` behind. If the copied index is large, move the scratch
+   under the data dir.
+
+## Test
+- Run the fork suite once with `TMPDIR` set to an empty directory and assert
+  the directory is empty afterwards. Red on the unfixed tree (116 entries),
+  green with the teardown.
+
+## Verification
+- [ ] Positive control recorded: leftover count on the unfixed tree
+- [ ] The teardown test is green on the fixed tree
+- [ ] `ls /tmp | grep -c zoteus-` stays at 0 across a day of sessions
+
+## Invariants
+- The 949 upstream tests still pass
+- The acceptance harness's arena-scoped `TMPDIR` is unchanged
+
+## Exit criteria
+- [ ] Upstream teardown drafted and listed in the upstream PR candidates
+- [ ] Local mitigation in place, or a written reason it is unnecessary
+- [ ] `make check` passes
