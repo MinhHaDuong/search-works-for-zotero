@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0001",
   "need": "Written before opening the document: what tariff did Vietnam's 2017 solar decision guarantee to grid-connected photovoltaic plants, in dong and in US cents per kWh?",
   "query": "feed-in tariff for grid-connected solar power projects in Vietnam 2017",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-decision-11-2017-qdttg-solar-fit-en",
       "recipe_id": "vn-decision-11-2017-qdttg-solar-fit-en",

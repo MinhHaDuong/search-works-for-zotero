@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0314",
   "need": "Viết trước khi mở tài liệu: hộ đông người thì lượng điện tính trên mỗi đầu người giảm bao nhiêu kWh mỗi tháng khi thêm một thành viên? (một ô trong bảng kết quả)",
   "query": "hộ gia đình đông thành viên thì lượng điện tính trên mỗi đầu người thấp đi bao nhiêu kilowatt giờ hằng tháng",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "table"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "hal-04332519-economies-of-scale",
       "recipe_id": "hal-04332519-economies-of-scale",

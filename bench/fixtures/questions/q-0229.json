@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0229",
   "need": "Hazard row, all-of: the inverted-U claim is carried by two structures on facing pages and neither is prose. Gráfica 1 on page 106 is a chart whose caption and axis labels ('Curva de Kuznets', 'Inequidad', 'Ingreso per cápita') are separate text boxes, and Cuadro 1 on page 107 is the Paukert table of Gini coefficients by income band, whose columns the extraction flattens into one run and whose figures use the Spanish decimal comma. An answer that shows the claim needs both; either alone leaves the reader without the evidence.",
   "query": "Gráfica 1 curva de Kuznets y Cuadro 1 clasificación de países por rangos de ingreso y coeficiente de Gini fuente Paukert 1973",
@@ -10,7 +10,7 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-table",
     "structural-figure-caption",
     "column-flattening",
@@ -18,7 +18,7 @@
   ],
   "generator": "hazard",
   "set_kind": "all-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "macias-2014-crecimiento-desigualdad-pobreza",
       "recipe_id": "macias-2014-crecimiento-desigualdad-pobreza",

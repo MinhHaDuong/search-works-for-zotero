@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0245",
   "need": "Hazard row, the cap by a hair. Poincaré's twenty-three-page introduction fills the index budget: chapter I, 'Définition des probabilités', begins at character 40 481 of the extraction — 481 characters past the 40 000-character index cap. The book's central definition, the ratio of favourable to possible cases, and the two-urn puzzle that follows it on page 25 are both in the export and neither is in the index. Nothing about a boundary that falls four hundred characters into a chapter is visible to a reader.",
   "query": "Poincaré définition la probabilité d'un événement est le rapport du nombre des cas favorables au nombre total des cas possibles deux urnes boules blanches et noires",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "index-char-cap-crossing",
     "answer-past-index-cap"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "poincare-1912-calcul-des-probabilites",
       "recipe_id": "poincare-1912-calcul-des-probabilites",

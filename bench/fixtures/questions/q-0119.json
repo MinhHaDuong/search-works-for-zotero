@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0119",
   "need": "Viết trước khi mở tài liệu: vì sao Bộ Năng lượng Hoa Kỳ phải chọn lọc giữa nhiều hướng công nghệ đều khả thi về mặt kỹ thuật? Câu hỏi bằng tiếng Việt, đoạn trả lời bằng tiếng Anh.",
   "query": "vì sao Bộ Năng lượng Hoa Kỳ phải chọn lọc giữa nhiều hướng công nghệ đều khả thi về mặt kỹ thuật",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-lingual"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "doe-2011-quadrennial-technology-review",
       "recipe_id": "doe-2011-quadrennial-technology-review",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0129",
   "need": "Viết trước khi mở tài liệu: có thước đo rủi ro nào giải thích lợi suất kỳ vọng của cổ phiếu tốt hơn hệ số beta của mô hình CAPM không? Câu hỏi tiếng Việt, đoạn trả lời tiếng Anh.",
   "query": "thước đo rủi ro nào giải thích lợi suất kỳ vọng của cổ phiếu tốt hơn hệ số beta",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-lingual"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "ormos-2014-entropy-asset-pricing",
       "recipe_id": "ormos-2014-entropy-asset-pricing",

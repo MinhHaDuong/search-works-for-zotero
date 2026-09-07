@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0359",
   "need": "在打開文獻之前寫下：官修正史裡那些神話式的段落——龍君、金龜、山精水精——編者自己是怎麼交代取捨標準的？他們是照抄野史，還是聲明刪去過分荒誕的部分？",
   "query": "官修史書的編者如何自述對民間傳聞中荒誕部分的取捨標準",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "han-script-no-word-spaces"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "dai-viet-su-ky-toan-thu-quyen-thu-zh",
       "recipe_id": "dai-viet-su-ky-toan-thu-quyen-thu-zh",

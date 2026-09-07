@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0334",
   "need": "Viết trước khi mở tài liệu: 'trộm cắp điện' trong luật Việt Nam có bao gồm việc thông đồng với người ghi công tơ để ghi sai chỉ số không, hay chỉ là câu móc dây ngoài công tơ?",
   "query": "trộm cắp điện là hành vi lấy điện trái phép không qua công tơ làm sai lệch chỉ số đo đếm Luật Điện lực",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "compound-document-chain"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-law-electricity-2004-vi",
       "recipe_id": "vn-law-electricity-2004-vi",

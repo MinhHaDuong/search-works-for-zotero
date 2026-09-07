@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0109",
   "need": "Hazard row for the structural-footnote mechanism: the bibliographic detail asked for sits in a footnote at the foot of the page, in smaller type, and the OCR of this 1865 scan mangles one word of it ('and' comes out as 'au<l').",
   "query": "Jevons footnote citing A History and Description of Fossil Fuel London 1835 chapter xxiv",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-footnote",
     "ocr-noise"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "jevons-1865-coal-question",
       "recipe_id": "jevons-1865-coal-question",

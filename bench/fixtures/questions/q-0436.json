@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0436",
   "need": "The harness canary. Deliberately trivial and unambiguous: the exact title of the only Karamzin chapter in the corpus, matched against its own heading line at character 49 of the extraction. If this row misses, the replay harness is miswired and every other row in the bank should be distrusted; it is not a statement about the corpus.",
   "query": "Карамзин История государства Российского глава I О народах, издревле обитавших в России. О славянах вообще",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "harness-canary",
     "known-item"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "karamzin-1818-istoriya-gosudarstva-rossiyskogo-t1-gl1",
       "recipe_id": "karamzin-1818-istoriya-gosudarstva-rossiyskogo-t1-gl1",

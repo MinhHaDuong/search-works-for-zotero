@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0184",
   "need": "Written before opening the document: the table updating the Kyoto Protocol mechanisms — how far did CDM registrations fall in 2014?",
   "query": "Table 1 market and policy update of mechanisms under the Kyoto Protocol CDM projects registered in 2014",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-table",
     "index_fulltext_max_chars"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "worldbank-2015-state-trends-carbon-pricing",
       "recipe_id": "worldbank-2015-state-trends-carbon-pricing",

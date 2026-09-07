@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0217",
   "need": "Written before opening the document: 'irreversible' means two quite different things in this literature — a state you cannot get back to, and a decision that narrows what you can decide later. I want the passage that separates the two senses, without knowing the words the author uses for them.",
   "query": "en quoi une décision restreignant nos options futures diffère-t-elle d'une transformation qu'on ne peut défaire",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "indirect-description",
     "polysemy"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "ha-duong-1998-irreversibilite-these",
       "recipe_id": "ha-duong-1998-irreversibilite-these",

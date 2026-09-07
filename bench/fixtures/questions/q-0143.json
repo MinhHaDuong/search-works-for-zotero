@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0143",
   "need": "Hazard row for the record-only mechanism on a compound work: 'The application of probability to conduct' is catalogued as a bookSection with no attachment of its own. Its text lives in the parent Treatise's scan, and the export's declared relation between them is 'book-chapter', which the scorer does not count as a same-work twin — so no row of this work can be pinned, in either direction.",
   "query": "Keynes the application of probability to conduct chapter of A Treatise on Probability",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "record-only",
     "compound-document-entries",
     "work-identity-relation"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [],
+  "primary": [],
   "expected_miss": true,
   "expected_miss_mechanism": "record-only bookSection: the export holds parent item BX8KC9XP with zero attachments (record_only true), so the chapter has no file and no fulltext; the chapter's text is in the parent Treatise's own record, which the export relates by 'book-chapter' — not one of the twin relations (translation, same-work) that would let a hit on the parent score as this work",
   "reachability": {

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0101",
   "need": "Écrit avant d'ouvrir le document : Keynes soutient-il que toute probabilité peut recevoir une valeur numérique, ou admet-il des probabilités non mesurables et même non comparables entre elles ?",
   "query": "Keynes toutes les probabilités sont-elles mesurables numériquement ou comparables",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "index_fulltext_max_chars"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "keynes-1921-treatise-on-probability",
       "recipe_id": "keynes-1921-treatise-on-probability",

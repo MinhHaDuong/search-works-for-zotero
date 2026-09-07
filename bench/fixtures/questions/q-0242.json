@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0242",
   "need": "Written before opening the document: the standard dismissal of probability is that chance is only a name for our ignorance. Poincaré answers it with an example from insurance — the actuary who does not know when anyone will die and still pays a dividend. I want that passage.",
   "query": "Poincaré directeur d'une compagnie d'assurances sur la vie ignore quand mourra chacun de ses assurés loi des grands nombres dividendes",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "known-item"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "poincare-1912-calcul-des-probabilites",
       "recipe_id": "poincare-1912-calcul-des-probabilites",

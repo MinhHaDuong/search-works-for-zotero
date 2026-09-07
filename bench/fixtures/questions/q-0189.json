@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0189",
   "need": "Written before opening the document: the caption of the two-millennium temperature reconstruction figure — which proxies does it name (tree rings, corals, ice cores) and how are the observed data drawn?",
   "query": "global surface temperature reconstruction over the past 2000 years proxy data tree rings corals ice cores",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-figure-caption"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-climate-change-en",
       "recipe_id": "wp-climate-change-en",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0206",
   "need": "Written before opening the document: a Vietnamese reader who knows the opening of Truyện Kiều by heart — the Vương household, Vương Quan the son, Thúy Kiều and Thúy Vân the two elder sisters — wants to see how the nineteenth-century French translator rendered those lines. The query is Vietnamese; the answer paragraph is French.",
   "query": "Vương Quan là chữ nối dòng nho gia Thúy Kiều là chị em là Thúy Vân",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-language",
     "transliteration-mismatch"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "des-michels-1884-kim-van-kieu-t1",
       "recipe_id": "des-michels-1884-kim-van-kieu-t1",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0147",
   "need": "Hazard row for an unindexable office format carrying the whole payload: the Schindler et al. supplementary material is the literature table of 77 articles behind an alien-species health review, and it exists only as an .xlsx workbook. The dataset record's substance is entirely inside a container Zotero's extractor does not open.",
   "query": "Schindler alien species public health impacts Europe literature table 77 articles supplementary material",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "unindexable-office-format",
     "declared-failure-control",
     "dataset-deposit"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [],
+  "primary": [],
   "expected_miss": true,
   "expected_miss_mechanism": "unindexable format, declared failure control: attachment PPE7BXDQ is an Office Open XML spreadsheet; Zotero's extractor reads PDF, HTML, EPUB and plain text only, so the attachment finishes unindexed with answer_set_participation 'none' and the deposit's 77-row table can never be reached",
   "reachability": {

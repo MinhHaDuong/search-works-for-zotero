@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0369",
   "need": "Hazard: a Vietnamese lexical false positive. 'Mày râu' reads literally as eyebrows and beard, and a body-part query retrieves it as such; in the verse it is the whole of a man's grooming and, by extension, the man himself, and the couplet is a portrait of the buyer Mã Giám Sinh, not a description of facial hair. 'Trạc ngoại tứ tuần' compounds it: 'tuần' is a ten-day period elsewhere in the language and a decade of age here, so a reader who resolves the words one by one gets forty days rather than forty years.",
   "query": "câu thơ nào trong Truyện Kiều tả một người đàn ông ngoài bốn mươi tuổi, mặt nhẵn không râu, ăn mặc chải chuốt",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "lexical-false-positive",
     "indirect-description"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "nguyen-du-truyen-kieu-vi-wikisource",
       "recipe_id": "nguyen-du-truyen-kieu-vi-wikisource",

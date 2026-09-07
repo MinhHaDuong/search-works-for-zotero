@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0431",
   "need": "Hazard row for source-format coverage: the second EPUB in the corpus is indexed but its extracted body is blank — 27 characters, all whitespace, against a full book of text. The failure is silent: the attachment reports terminal state 'indexed' and a fulltext route that answers, so nothing in the counters says the text is missing. This row makes that visible.",
   "query": "Jevons value depends entirely upon utility theory of political economy",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "source-format-epub",
     "blank-body-extraction",
     "silent-degradation"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "jevons-1871-theory-of-political-economy",
       "recipe_id": "jevons-1871-theory-of-political-economy",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0435",
   "need": "Hazard row for the group-library slice: the whole fixture lives in closed Zotero group library 6659303, collection 3AY48MA5, not in a personal library. This row asserts that an ordinary body-text answer is retrievable from the group exactly as it would be from the personal library — the D4 reading that the library is a filter facet over one merged index, not a separate index.",
   "query": "ИПЦ индекс Ласпейреса фиксированная корзина товаров измерение инфляции",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "group",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "group-library-slice",
     "should-language-russian"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-inflation-ru",
       "recipe_id": "wp-inflation-ru",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0406",
   "need": "Written before opening the document: how many deaths does the World Health Organization attribute to one named European heatwave, and which summer was it?",
   "query": "сильная жара в Европе летом 2003 года число случаев смерти ВОЗ",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "should-language-russian",
     "extraction-cap-crossing-inside",
     "cyrillic-multibyte-offsets"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-climate-change-ru",
       "recipe_id": "wp-climate-change-ru",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0124",
   "need": "Hazard row for the index-cap mechanism: this chapter extracts to 351 563 characters but the product indexes the first 40 000 only, so everything from roughly printed page 3-11 onward is in the export and outside the index. Table 3-20 on printed p. 3-40 is the test case.",
   "query": "Table 3-20 adjusted consumption of fossil fuels for non-energy uses TBtu industrial coking coal",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "index-cap-crossing",
     "structural-table"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "epa-2016-ghg-inventory-1990-2014",
       "recipe_id": "epa-2016-ghg-inventory-1990-2014",

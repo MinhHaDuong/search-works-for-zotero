@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0325",
   "need": "Written before opening the document: what incentive did Vietnam's Decision 53 (1999) give to investment projects in difficult areas that export half their output and employ over 500 workers?",
   "query": "Vietnam Decision 53 incentives for projects in difficult areas exporting 50% of output and employing over 500 workers",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "declared-charset-mismatch"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vnembassy-usa-1999-tinh-hinh-lao-dong",
       "recipe_id": "vnembassy-usa-1999-tinh-hinh-lao-dong",

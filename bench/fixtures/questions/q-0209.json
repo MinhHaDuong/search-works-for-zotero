@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0209",
   "need": "Hazard row: this edition carries two structural layers under the translation — numbered 'Litt. :' notes giving the word-for-word rendering, and longer philological notes with Chinese characters. Both sit in smaller type at the foot of the page and the extraction runs them straight into the verse above. Can a 'Litt. :' gloss be retrieved as itself, on its own printed page?",
   "query": "Litt. Sa fortune en la comparant tout aussi bien était ordinaire et de degré moyen",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-footnote",
     "interlinear-gloss-apparatus"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "des-michels-1884-kim-van-kieu-t1",
       "recipe_id": "des-michels-1884-kim-van-kieu-t1",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0107",
   "need": "Écrit avant d'ouvrir le document : sur quoi repose, d'après un ingénieur des mines cité par Jevons, la croyance que les réserves de charbon britanniques seraient inépuisables ? Je pose la question en français ; le paragraphe qui répond est en anglais.",
   "query": "sur quel fondement repose la croyance que les réserves britanniques seraient inépuisables, selon l'ingénieur cité par Jevons",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-lingual"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "jevons-1865-coal-question",
       "recipe_id": "jevons-1865-coal-question",

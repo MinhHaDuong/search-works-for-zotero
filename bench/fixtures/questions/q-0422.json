@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0422",
   "need": "Written before opening the document: what is the name for a worker's mistaken sense of being richer after a nominal pay rise smaller than the price rise? Asked in English against a Chinese article.",
   "query": "the mistaken belief that a nominal pay rise has made you wealthier when prices rose faster",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "should-language-chinese",
     "cross-lingual-en-to-zh",
     "han-script"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-inflation-zh",
       "recipe_id": "wp-inflation-zh",

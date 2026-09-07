@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0216",
   "need": "Written before opening the document: a doctoral thesis states its claim once, in a single sentence, usually set off in the introduction. For this thesis on irreversibility and climate policy I want that sentence — what the work sets out to establish about near-term emission reductions.",
   "query": "thèse prise en compte de l'irréversibilité justifie une action de réduction des émissions de GES sensible à court terme",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "known-item"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "ha-duong-1998-irreversibilite-these",
       "recipe_id": "ha-duong-1998-irreversibilite-these",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0137",
   "need": "Hazard row for the compound-document mechanism crossed with the index cap: a dictionary entry is the unit a reader cites, and in this volume the entries begin only at character 345 000 of a 577 643-character extraction — the whole A-to-K word list lies past the 40 000-character index cap, behind 74 pdf pages of front matter. The long s of the 1785 printing also turns every 's' into an 'f' in the extraction.",
   "query": "Johnson dictionary entry To ABANDON to give up refign or quit often followed by the particle to",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "deep-body",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "compound-document-entries",
     "index-cap-crossing",
     "early-modern-typography"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "johnson-1785-dictionary",
       "recipe_id": "johnson-1785-dictionary",

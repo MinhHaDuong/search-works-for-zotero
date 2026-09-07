@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0366",
   "need": "Written before opening the document: Yan Fu's 1902 Chinese Wealth of Nations was made from some particular English edition. Which one, and who had edited it? The question is asked in English of a work whose only text in this corpus is classical Chinese, and the answer paragraph names the editor by a phonetic transcription (羅哲斯) that no English index will hold.",
   "query": "which English edition of the Wealth of Nations did Yan Fu translate from, and who edited it",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-lingual-anchor",
     "han-script-no-word-spaces",
     "transliterated-proper-name"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "yan-fu-1902-yuanfu-yishi-liyan",
       "recipe_id": "yan-fu-1902-yuanfu-yishi-liyan",

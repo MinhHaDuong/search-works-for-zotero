@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0322",
   "need": "Viết trước khi mở tài liệu: tác giả định nghĩa sách là gì — vừa văn hoá phẩm, vừa hàng hoá, vừa vật thiêng?",
   "query": "bản chất kép của quyển in: thương mại nơi xưởng ấn loát, thiêng liêng nơi chùa chiền",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "hal-04826774-lich-su-sach-nam-ky",
       "recipe_id": "hal-04826774-lich-su-sach-nam-ky",

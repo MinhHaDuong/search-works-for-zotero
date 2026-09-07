@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0204",
   "need": "Hazard row: the extraction stops at the hundredth page of the scan, which is printed page 79. Chapter XI, 'Du revenu social', begins at printed page 146 and is therefore in the book but not in the export. A reader asking for Cournot's account of social revenue must come away empty-handed.",
   "query": "Cournot chapitre Du revenu social répartition du fonds de consommation perturbation d'un élément du système",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "page-cap-crossing",
     "answer-past-extraction-cap"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "cournot-1838-recherches",
       "recipe_id": "cournot-1838-recherches-ia",

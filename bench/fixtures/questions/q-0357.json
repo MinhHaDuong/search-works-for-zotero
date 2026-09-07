@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0357",
   "need": "Hazard row for the un-OCR'd scan: Việt Nam sử lược, quyển II (1928 printing) is a 347-page scan with no text layer — pdftotext extracts 347 bytes over 347 pages, one page break per page. indexPDF therefore gets no text, writes no fulltextItems row, and the attachment is a declared failure control. This is the second half of the same work whose first half fails for a different reason (q-0356): one document, two distinct unindexable mechanisms, and a reader who cannot tell them apart from the outside.",
   "query": "Việt Nam sử lược quyển II Trần Trọng Kim nhà Nguyễn thời kỳ Pháp thuộc bản in 1928",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "no-text-layer-scan",
     "declared-failure-control"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [],
+  "primary": [],
   "expected_miss": true,
   "expected_miss_mechanism": "no-text-layer scan, declared failure control: attachment 5MZPTISM (tran-trong-kim-1928-viet-nam-su-luoc-q2) finishes unindexed with expected_degradation 'an un-OCR'd scan with no text layer (pdftotext extracts 347 bytes over 347 pages)', and its answer_set_participation is 'none', so no row of this printing may be pinned at all",
   "reachability": {

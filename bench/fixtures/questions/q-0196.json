@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0196",
   "need": "Viết trước khi mở tài liệu: lạm phát do cầu kéo được gây ra bởi điều gì — tổng cầu tăng vì chi tiêu tư nhân và chính phủ tăng?",
   "query": "lạm phát do cầu kéo tổng cầu tăng chi tiêu tư nhân và chính phủ",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-lingual-anchor",
     "index_fulltext_max_chars"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-inflation-en",
       "recipe_id": "wp-inflation-en",

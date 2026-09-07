@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0312",
   "need": "Viết trước khi mở tài liệu: Lữ Gia đã làm gì khi Cù thị và Ai Vương định đem nước Nam Việt dâng nhà Hán?",
   "query": "tể tướng Nam Việt chống việc dâng nước cho phương Bắc, ra tay hạ sát thái hậu và vị vua trẻ",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch4",
       "recipe_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch4",

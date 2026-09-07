@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0163",
   "need": "Written before opening the document: is the Vietnam 2035 report published under a Creative Commons licence, and which one? The rights page should say.",
   "query": "Vietnam 2035 report is released under Creative Commons Attribution 3.0 IGO",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "deep-body",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wb-2016-vietnam-2035-en",
       "recipe_id": "wb-2016-vietnam-2035-en",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0305",
   "need": "Viết trước khi mở tài liệu: theo Việt Nam sử lược, Lạc Long Quân nói gì với Âu Cơ khi chia trăm người con?",
   "query": "Lạc Long Quân bảo Âu Cơ đem 50 con lên núi, 50 con xuống bể Nam Hải",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch1",
       "recipe_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch1",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0133",
   "need": "Hazard row for the structural-footnote mechanism: the paper's alternative name for the trap is given only in footnote 1 of page 1, in smaller type below a rule, and the footnote ends with a Cyrillic abbreviation the extraction preserves.",
   "query": "footnote terminology of non-linear dynamics low-level equilibrium attractor Malthusian trap",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-footnote"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "korotayev-2015-east-africa-malthusian-trap",
       "recipe_id": "korotayev-2015-east-africa-malthusian-trap",

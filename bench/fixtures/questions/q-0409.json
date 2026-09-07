@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0409",
   "need": "Written before opening the document: which economist illustrated shortage-by-price-control with a grocery example, and what was the commodity and the capped price?",
   "query": "Милтон Фридман помидоры два цента за фунт закон дефицит",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "should-language-russian"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-inflation-ru",
       "recipe_id": "wp-inflation-ru",

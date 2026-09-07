@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0112",
   "need": "Écrit avant d'ouvrir le document : Cournot prend l'exemple d'un livre rare que l'on réimprime — combien d'exemplaires subsistaient et à quel prix montait l'enchère ? Je lis le français, mais la bibliothèque contient à la fois l'original de 1838 et sa traduction anglaise de 1897 : la réponse peut arriver dans l'une ou l'autre langue.",
   "query": "Cournot : l'exemple du livre rare réimprimé, combien d'exemplaires subsistants et à quel prix aux enchères",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "work-identity-translation",
     "cross-lingual"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "cournot-1897-researches-bacon",
       "recipe_id": "cournot-1897-researches-bacon",

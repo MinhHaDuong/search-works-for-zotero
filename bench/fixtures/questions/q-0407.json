@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0407",
   "need": "Hazard row, paired with q-0406 in the same document: the same article's answer to 'what does a ten-year delay in mitigation cost in required annual emission-reduction rates?' sits past character 40 000 of the extracted text. In a Cyrillic document every character is two UTF-8 bytes, so this row exercises the cap arithmetic on the character axis rather than the byte axis.",
   "query": "задержка на 10 лет темпы снижения эмиссии СО2 с 5,5 % до 9 % в год Raupach",
@@ -10,7 +10,7 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "extraction-cap-crossing-past",
     "index-fulltext-max-chars-40000",
     "cyrillic-multibyte-offsets",
@@ -18,7 +18,7 @@
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-climate-change-ru",
       "recipe_id": "wp-climate-change-ru",

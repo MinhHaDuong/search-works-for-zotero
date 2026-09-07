@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0150",
   "need": "Written before opening the document: Smith's pin-factory example — into how many distinct operations does he say pin-making is divided? The library holds the Gutenberg text in more than one file format; either rendering answers.",
   "query": "Adam Smith pin making divided into about eighteen distinct operations",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "gutenberg-cap-crossing-pair",
     "same-text-different-format",
     "epub"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "smith-1776-wealth-of-nations",
       "recipe_id": "smith-1776-wealth-of-nations",

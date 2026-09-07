@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0103",
   "need": "Viết trước khi mở tài liệu: Keynes phân biệt niềm tin hợp lý (rational belief) với tri thức (knowledge) như thế nào — mức độ cao nhất của niềm tin hợp lý có trùng với tri thức không?",
   "query": "Keynes mức độ cao nhất của niềm tin hợp lý tương ứng với tri thức",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "keynes-1921-treatise-on-probability",
       "recipe_id": "keynes-1921-treatise-on-probability",

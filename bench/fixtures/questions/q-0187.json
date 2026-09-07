@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0187",
   "need": "Written before opening the document: is the 2015 value of the world's carbon pricing instruments just under US$50 billion, with ETSs about 70 percent of it?",
   "query": "carbon pricing instruments worth just under US$50 billion in 2015, about 70 percent from emissions trading systems",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "worldbank-2015-state-trends-carbon-pricing",
       "recipe_id": "worldbank-2015-state-trends-carbon-pricing",

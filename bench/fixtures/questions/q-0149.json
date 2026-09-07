@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0149",
   "need": "Hazard row for a recipe record that never reached the library: Malynes's Lex Mercatoria is one of the 104 recipe records, but the export holds 103 parent items and no parent binds recipe_id 'malynes-1622-lex-mercatoria'. Its source is a 352 593 392-byte early-English-books scan above the sourcing run's 300 MB cap, so nothing was ingested. A question about it is the control that separates 'the library answered badly' from 'the library has no such record at all'.",
   "query": "Malynes Consuetudo vel Lex Mercatoria the ancient law-merchant 1622 bills of exchange",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "deep-body",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "absent-from-library",
     "oversized-source-file",
     "early-modern-typography"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [],
+  "primary": [],
   "expected_miss": true,
   "expected_miss_mechanism": "absent from the export: the recipe declares malynes-1622-lex-mercatoria with one 352 MB Internet Archive PDF, and the export manifest holds no parent item and no attachment for that recipe_id, so no row can be pinned and no reply can contain one",
   "reachability": {

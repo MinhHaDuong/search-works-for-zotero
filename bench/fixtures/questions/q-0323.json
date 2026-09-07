@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0323",
   "need": "Viết trước khi mở tài liệu: bản tin Nhân Dân 21-6-1998 — Vinacafe cho biết 5 tháng đầu năm xuất khẩu bao nhiêu tấn cà-phê, thu bao nhiêu USD?",
   "query": "Vinacafe xuất khẩu cà phê 5 tháng đầu năm 1998 đạt 270 triệu USD",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "undecodable-legacy-charset"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "nhandan-1998-06-21-tin-kinh-te",
       "recipe_id": "nhandan-1998-06-21-tin-kinh-te",

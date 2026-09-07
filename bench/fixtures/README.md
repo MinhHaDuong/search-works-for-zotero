@@ -428,7 +428,7 @@ replay lists it in the census and answers 404 on its route, as Zotero does.
 ## The question bank and the golden gate
 
 `questions/` is the fourth layer, the Menagerie question bank (schema
-`menagerie-bank/v2`, ticket 0722): one JSON file per question pinning rows of
+`menagerie-bank/v3`, ticket 0722): one JSON file per question pinning rows of
 the export by attachment key, quoted span and printed page, with the citation
 chain a complete reply carries. `questions/README.md` documents the record,
 the closed vocabularies, the replies schema the runner writes and the report

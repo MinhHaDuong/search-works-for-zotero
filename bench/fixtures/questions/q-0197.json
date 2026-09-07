@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0197",
   "need": "Written before opening the document: does the article quote Friedman's dictum that inflation is always and everywhere a monetary phenomenon?",
   "query": "Friedman: inflation is always and everywhere a monetary phenomenon",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-inflation-en",
       "recipe_id": "wp-inflation-en",

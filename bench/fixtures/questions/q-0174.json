@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0174",
   "need": "Écrit avant d'ouvrir le document : le cadre d'évaluation du photovoltaïque intégré au bâti compte-t-il l'énergie grise (l'énergie incorporée dans les composants) dans les émissions de gaz à effet de serre ?",
   "query": "cadre BIPV les émissions liées à l'énergie grise sont-elles comptées",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "wrong-item-type"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wittkopf-2016-bipv-methodological-framework",
       "recipe_id": "wittkopf-2016-bipv-methodological-framework",

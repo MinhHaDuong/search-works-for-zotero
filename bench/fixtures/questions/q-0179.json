@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0179",
   "need": "Written before opening the document: the annex listing potentially feasible sector-wide interventions — what is the first renewable-energy intervention it tables for electricity generation, and at what GHG reduction potential?",
   "query": "Annex 3 potentially feasible sector wide interventions E1 renewable energy utilization of hydro power",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-annex",
     "index_fulltext_max_chars"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "worldbank-2009-vietnam-energy-mitigation",
       "recipe_id": "worldbank-2009-vietnam-energy-mitigation",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0244",
   "need": "Written before opening the document: a reader working in English wants Poincaré's textbook illustration of unstable equilibrium — the cone balanced on its point, which must fall but gives no reason to prefer one direction. The query is English; the answer paragraph is French.",
   "query": "Poincare unstable equilibrium a cone resting on its point we know it will fall but not on which side chance alone decides",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-language"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "poincare-1912-calcul-des-probabilites",
       "recipe_id": "poincare-1912-calcul-des-probabilites",

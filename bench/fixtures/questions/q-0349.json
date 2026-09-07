@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0349",
   "need": "Viết trước khi mở tài liệu (tên khoa học đối với tên thường gọi): trong đoạn tả tiết Thanh minh, cây nở hoa trắng là cây gì? Người đọc chỉ biết tên chi thực vật Pyrus chứ không biết chữ Nôm nào ứng với nó.",
   "query": "loài cây thuộc chi Pyrus nở hoa trắng trên nền cỏ mùa xuân trong đoạn tả tiết Thanh minh của Nguyễn Du",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "scientific-vs-common-name"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "nguyen-du-truyen-kieu-vi-wikisource",
       "recipe_id": "nguyen-du-truyen-kieu-vi-wikisource",

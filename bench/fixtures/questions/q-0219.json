@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0219",
   "need": "Written before opening the document: the English-language literature on climate decision under uncertainty speaks of option value and the irreversibility effect. A reader working in English wants the place where a French thesis takes those two notions up and applies them to the greenhouse-gas stock and to deforestation. The query is English; the answer paragraph is French.",
   "query": "economists have long recognised option value and the irreversibility effect greenhouse gas stock deforestation irreversible",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-language"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "ha-duong-1998-irreversibilite-these",
       "recipe_id": "ha-duong-1998-irreversibilite-these",

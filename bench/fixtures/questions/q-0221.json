@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0221",
   "need": "Written before opening the document: a Swiss engineering academy's report on renewables. What share of Swiss final energy consumption did renewables actually reach, in the most recent year the report has figures for, and how much of the electricity came from hydropower?",
   "query": "Anteil der erneuerbaren Energien am gesamten Endenergieverbrauch Schweiz 2009 Wasserkraft Stromerzeugung Prozent",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "known-item"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "satw-2011-erneuerbare-energien",
       "recipe_id": "satw-2011-erneuerbare-energien",

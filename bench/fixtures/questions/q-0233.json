@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0233",
   "need": "Hazard row and positive control for the two preceding questions. q-0231 and q-0232 both expect a miss, and a probe whose only outcome is nothing proves nothing: it cannot tell 'the text layer holds no book' from 'the retrieval is broken'. This question asks for the one thing the Menger 1871 attachment really does carry — Google's English digitisation notice — and expects it found. If this misses too, the fault is not the scan.",
   "query": "This is a digital copy of a book that was preserved for generations on library shelves before it was carefully scanned by Google",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "boilerplate-only-text-layer",
     "positive-control"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "menger-1871-grundsaetze",
       "recipe_id": "menger-1871-grundsaetze",

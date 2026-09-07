@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0317",
   "need": "Written before opening the document: what share of Vietnamese households had access to the national grid around 2018, making the country a good case for a nationally representative study?",
   "query": "By 2018 about 98% of Vietnamese households were connected to the national power grid (VHLSS)",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "hal-04332519-economies-of-scale",
       "recipe_id": "hal-04332519-economies-of-scale",

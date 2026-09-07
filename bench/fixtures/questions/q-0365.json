@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0365",
   "need": "在打開文獻之前寫下：嚴復譯亞當·斯密之書時，為 economics 一詞自造了一個譯名，而不用日本的「經濟」，也不用中國舊有的「理財」。他給出的理由是什麼？",
   "query": "嚴復 為何不用經濟 不用理財 而以計學當之 太廓 過陿",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "han-script-no-word-spaces"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "yan-fu-1902-yuanfu-yishi-liyan",
       "recipe_id": "yan-fu-1902-yuanfu-yishi-liyan",

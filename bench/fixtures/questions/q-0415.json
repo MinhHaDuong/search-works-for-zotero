@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0415",
   "need": "Hazard row, paired with q-0414 in the same document: Adin Ballou's passage on a congress voting war in the citizen's name lies in the last 1 100 characters of a 42 107-character extraction — past the 40 000-character index cap by a narrow margin, which is exactly the boundary worth testing.",
   "query": "Конгресс уполномочивает объявить войну мои представители злодеяние от моего имени",
@@ -10,7 +10,7 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "extraction-cap-crossing-past",
     "index-fulltext-max-chars-40000",
     "cyrillic-multibyte-offsets",
@@ -18,7 +18,7 @@
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "tolstoy-1910-sueverie-gosudarstva",
       "recipe_id": "tolstoy-1910-sueverie-gosudarstva",

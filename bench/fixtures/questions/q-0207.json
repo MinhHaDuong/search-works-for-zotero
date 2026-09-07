@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0207",
   "need": "Written before opening the document: the bilingual edition prints the Annamese verse on the left-hand page and the French on the facing right-hand page. A French reader who has just read the line about the Vương household of middling fortune wants the Annamese verse that faces it. The query is French; the answer paragraph is the Vietnamese text.",
   "query": "le distique annamite qui présente la maison du fonctionnaire retraité et sa fortune moyenne",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-language",
     "facing-page-bilingual",
     "ocr-mangled-diacritics"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "des-michels-1884-kim-van-kieu-t1",
       "recipe_id": "des-michels-1884-kim-van-kieu-t1",

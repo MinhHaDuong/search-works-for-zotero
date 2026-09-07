@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0375",
   "need": "Écrit avant d'ouvrir le document : la constitution vietnamienne de 1992 énonce-t-elle l'indépendance du juge, et dans quels termes ? Le paragraphe de réponse est en vietnamien et se trouve dans la bibliothèque de groupe fermée : la question demande donc au lot « groupe » de répondre à une requête française comme le ferait la bibliothèque personnelle.",
   "query": "indépendance des juges et des assesseurs populaires dans la constitution vietnamienne de 1992 : ils n'obéissent qu'à la loi",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "group",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "group-library-slice",
     "cross-lingual-anchor",
     "compound-document-chain"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-constitution-1992-vi-chuong-x",
       "recipe_id": "vn-constitution-1992-vi-chuong-x",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0311",
   "need": "Viết trước khi mở tài liệu: Triệu Đà lập nước Nam Việt, xưng hiệu gì và đóng đô ở đâu?",
   "query": "Triệu Đà lập nước Nam Việt xưng Vũ Vương đóng đô ở Phiên Ngung gần Quảng Châu",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch4",
       "recipe_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch4",

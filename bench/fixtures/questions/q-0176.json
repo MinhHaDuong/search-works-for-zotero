@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0176",
   "need": "Written before opening the document: does the framework tie the real discount rate to the actors' time preference and to the risk of the measures assessed?",
   "query": "in the BIPV framework the real discount rate reflects the actors' time preference and the risk of the measures",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "wrong-item-type"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wittkopf-2016-bipv-methodological-framework",
       "recipe_id": "wittkopf-2016-bipv-methodological-framework",

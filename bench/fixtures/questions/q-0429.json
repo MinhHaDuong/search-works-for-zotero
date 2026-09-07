@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0429",
   "need": "Hazard row for source-format coverage: an authentic EPUB container, indexed without conversion. Smith's butcher-brewer-baker sentence is the least ambiguous known passage in the book and sits at character 33 851, inside the 40 000-character index cap. An EPUB is pageless, so the answer locates by character offset only.",
   "query": "not from the benevolence of the butcher the brewer or the baker that we expect our dinner",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "source-format-epub",
     "extraction-cap-crossing-inside",
     "pageless-locator"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "smith-1776-wealth-of-nations",
       "recipe_id": "smith-1776-wealth-of-nations",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0304",
   "need": "Écrit avant d'ouvrir le document : Trần Trọng Kim avance un chiffre de population du Viêt-nam ; d'où le tient-il et le juge-t-il fiable ? (une note de bas de page)",
   "query": "d'où vient le chiffre de dix-neuf millions d'habitants cité par Trần Trọng Kim — la géographie de H. Russier",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "footnote"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-nuoc-viet-nam",
       "recipe_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-nuoc-viet-nam",

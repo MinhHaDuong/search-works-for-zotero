@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0331",
   "need": "Écrit avant d'ouvrir le document : la constitution vietnamienne de 1992 pose-t-elle explicitement l'égalité de rémunération entre travailleuses et travailleurs, ou se borne-t-elle à une clause générale de non-discrimination ?",
   "query": "à travail égal salaire égal entre les femmes et les hommes — la constitution vietnamienne de 1992 le dit-elle explicitement",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "compound-document-chain"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-constitution-1992-vi-chuong-v",
       "recipe_id": "vn-constitution-1992-vi-chuong-v",

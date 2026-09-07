@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0370",
   "need": "Écrit avant d'ouvrir le document : avant que le réchauffement ne devienne visible, on a d'abord mesuré l'inverse — moins de lumière solaire au sol pendant trois décennies. Une source francophone du corpus soutient-elle que cette baisse a bien été observée de 1961 à 1990, et qu'on l'attribue aux aérosols de combustion ?",
   "query": "de 1961 à 1990 la quantité de lumière solaire atteignant la surface de la Terre a diminué, un assombrissement global attribué aux aérosols de combustion",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "pageless-html"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-climate-change-fr",
       "recipe_id": "wp-climate-change-fr",

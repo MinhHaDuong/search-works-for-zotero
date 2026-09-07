@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0212",
   "need": "Hazard row: the 1770 type sets the long s, and the scan's OCR reads it as an f throughout — 'eft', 'fur', 'fommes', 'Regiftre', 'Profeffeur'. A reader types modern French. Every content word of the query that carries an s inside it therefore fails to match the page, and only the words with no medial s can carry the retrieval.",
   "query": "le journal doit être un volume in-folio réglé d'une ligne à la marge et de trois sur le bord pour tirer les sommes",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "long-s-orthography",
     "ocr-substitution-f-for-long-s",
     "lexical-false-negative"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "porte-1770-science-des-negocians",
       "recipe_id": "porte-1770-science-des-negocians",

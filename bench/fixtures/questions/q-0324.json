@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0324",
   "need": "Viết trước khi mở tài liệu: theo Tổng cục Thống kê, số lao động trong các ngành kinh tế quốc dân tăng từ bao nhiêu lên bao nhiêu trong thời kỳ 1990-1998?",
   "query": "số lao động làm việc trong các ngành kinh tế quốc dân tăng từ 30,2 triệu lên 38,2 triệu người thời kỳ 1990-1998",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "legacy-charset-in-html-entities"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vnembassy-usa-1999-tinh-hinh-lao-dong",
       "recipe_id": "vnembassy-usa-1999-tinh-hinh-lao-dong",

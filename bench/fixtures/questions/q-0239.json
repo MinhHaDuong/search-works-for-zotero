@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0239",
   "need": "Hazard row: a figure caption in a pageless HTML document, carrying a number written in the French convention (0,9 W/m2 with a comma decimal and a non-breaking space before the unit). An English-speaking reader looking for Earth's present radiative imbalance would type the point form. The caption is loose text under an image, so it is not a paragraph of the article and there is no printed page to cite — only a character offset.",
   "query": "current greenhouse gas levels cause a radiative imbalance of about 0.9 W/m2 as energy moves between space, the atmosphere and the ground",
@@ -10,7 +10,7 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-language",
     "structural-figure-caption",
     "pageless-html",
@@ -18,7 +18,7 @@
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-climate-change-fr",
       "recipe_id": "wp-climate-change-fr",

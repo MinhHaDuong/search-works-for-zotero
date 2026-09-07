@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0230",
   "need": "Hazard row: a numbered footnote in Spanish, set in small type at the foot of a two-column page and separated from its call by the whole of the page's body. The extraction places it after the figure caption and before the next page's running head, so the note's own page is recoverable only from the surrounding page markers. Can the note be retrieved as itself and cited to page 106?",
   "query": "nota al pie Lewis 1954 modelo de desarrollo con oferta ilimitada de trabajo sustenta la hipótesis de Kuznets",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-footnote",
     "multi-column"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "macias-2014-crecimiento-desigualdad-pobreza",
       "recipe_id": "macias-2014-crecimiento-desigualdad-pobreza",

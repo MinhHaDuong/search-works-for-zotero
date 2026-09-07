@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0231",
   "need": "Hazard row: Menger's definition of a good — the four conditions under which a thing becomes a Gut — is on printed page 2 and a German reader would type it almost verbatim. The Google scan of this copy carries a text layer, so nothing about the attachment looks broken; but the layer holds only Google's English usage notice, 2 951 characters of it, and not one word of the book. A text layer is not a transcription.",
   "query": "Menger Dinge welche die Tauglichkeit haben in Causalzusammenhang mit der Befriedigung menschlicher Bedürfnisse gesetzt zu werden nennen wir Güter",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "boilerplate-only-text-layer",
     "no-usable-ocr"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "menger-1871-grundsaetze",
       "recipe_id": "menger-1871-grundsaetze",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0423",
   "need": "Written before opening the document: this 1915 Hindi political economy opens its second chapter on labour with a one-line thesis about labour's place among the causes of wealth. What is that thesis? Printed page ५ (pdf page 23) read on the page.",
   "query": "परिश्रम सम्पत्तिके उत्पादनमें एक आवश्यक कारण दूसरा प्रकरण",
@@ -10,7 +10,7 @@
   "mode": "any",
   "facet": "deep-body",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "should-language-hindi",
     "devanagari-script",
     "monster-non-latin-script",
@@ -19,7 +19,7 @@
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "dli-1915-arthashastra-hindi",
       "recipe_id": "dli-1915-arthashastra-hindi",

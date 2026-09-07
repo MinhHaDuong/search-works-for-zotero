@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0358",
   "need": "在打開文獻之前寫下：《大越史記全書》的凡例怎樣處理北朝（中國）歷代君主的稱謂——書「帝」還是書「主」？所持的理由是什麼？",
   "query": "大越史記全書 凡例 北朝歷代主皆書帝 與我各帝一方",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "han-script-no-word-spaces"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "dai-viet-su-ky-toan-thu-quyen-thu-zh",
       "recipe_id": "dai-viet-su-ky-toan-thu-quyen-thu-zh",

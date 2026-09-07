@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0449",
   "need": "Hazard row on the Arabic monograph's other attachment: the Internet Archive's plain-text rendering of the same 1904 Būlāq print, 660 474 characters of which Zotero indexed 500 000 — the fulltext.textMaxLength cap, a third cap axis beside the 40 000-character index cap and the 100-page PDF cap. Two degradations stack: the text past character 500 000 was never indexed, and text/plain is not a cached MIME type, so the export carries no fulltext file for this attachment at all.",
   "query": "مقدمة ابن خلدون العصبية والملك النص الكامل ملف نصي",
@@ -10,7 +10,7 @@
   "mode": "any",
   "facet": "deep-body",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "source-format-plain-text",
     "indexed-not-served",
     "extraction-cap-crossing-past",
@@ -21,7 +21,7 @@
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "ibn-khaldun-1904-muqaddimah",
       "recipe_id": "ibn-khaldun-1904-muqaddimah",

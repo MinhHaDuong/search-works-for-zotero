@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0151",
   "need": "Written before opening the document: the passage where Smith says we owe our dinner not to the goodwill of tradesmen but to their pursuit of their own advantage.",
   "query": "we get our meal from tradesmen's self-love rather than their goodwill",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "gutenberg-cap-crossing-pair"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "smith-1776-wealth-of-nations",
       "recipe_id": "smith-1776-wealth-of-nations",

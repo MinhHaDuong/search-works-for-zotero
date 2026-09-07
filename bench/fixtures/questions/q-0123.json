@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0123",
   "need": "Hazard row for the structural-table mechanism: unweighted kiloton figures appear only in Table 3-2; the body text gives the CO2-equivalent version instead, so a reply that missed the table cannot answer in kilotons.",
   "query": "Table 3-2 CO2 CH4 N2O emissions from energy kt fossil fuel combustion 1990 2014 unweighted kilotons",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-table"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "epa-2016-ghg-inventory-1990-2014",
       "recipe_id": "epa-2016-ghg-inventory-1990-2014",

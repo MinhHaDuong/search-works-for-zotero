@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0348",
   "need": "Viết trước khi mở tài liệu (câu hỏi tiếng Việt, đoạn trả lời bằng tiếng Pháp): người dịch Truyện Kiều sang tiếng Pháp cuối thế kỷ XIX đã chuyển hai câu mở đầu — cái đối lập giữa tài và mệnh — thành câu tiếng Pháp như thế nào?",
   "query": "bản dịch tiếng Pháp cuối thế kỷ XIX chuyển hai câu mở đầu Truyện Kiều về tài và mệnh thành câu gì",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-lingual-anchor",
     "declared-translation"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "des-michels-1884-kim-van-kieu-t1",
       "recipe_id": "des-michels-1884-kim-van-kieu-t1",

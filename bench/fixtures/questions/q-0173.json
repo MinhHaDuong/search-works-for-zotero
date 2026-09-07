@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0173",
   "need": "Written before opening the document: the appendix that defines the global cost method as the present value of investment, replacement and running costs over a calculation period.",
   "query": "appendix A-1 global cost method present value of all investment costs Ott Bolliger Ritter 2015",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-appendix",
     "wrong-item-type"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wittkopf-2016-bipv-methodological-framework",
       "recipe_id": "wittkopf-2016-bipv-methodological-framework",

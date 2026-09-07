@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0402",
   "need": "Hazard row: a structural mark — a figure caption — in Arabic script. The Vostok ice core graph's caption is the only place in the article where the 450 000-year record is named; a hit must locate the caption, not the surrounding body text.",
   "query": "قالب جليد فوستوك Vostok ice core علاقة ثاني أكسيد الكربون ودرجة الحرارة 450,000 سنة",
@@ -10,7 +10,7 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "structural-figure-caption",
     "structural-marks-x-script",
     "should-language-arabic",
@@ -18,7 +18,7 @@
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-climate-change-ar",
       "recipe_id": "wp-climate-change-ar",

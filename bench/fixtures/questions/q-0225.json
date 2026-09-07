@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0225",
   "need": "Hazard row: this report is only 32 pages and every page was extracted, so the page cap never bites — but its two-column body runs to 83 187 characters, and the 40 000-character index cap falls in the middle of page 17. The RWI figure on the subsidy per German photovoltaic job, printed on page 18, is therefore in the export and out of the index. A short document is not automatically a fully indexed one.",
   "query": "RWI 2008 jeder deutsche Arbeitsplatz in der Photovoltaik-Branche mit 175 000 Euro unterstützt",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "index-char-cap-crossing",
     "answer-past-index-cap"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "satw-2011-erneuerbare-energien",
       "recipe_id": "satw-2011-erneuerbare-energien",

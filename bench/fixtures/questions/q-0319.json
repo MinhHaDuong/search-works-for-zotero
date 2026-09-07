@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0319",
   "need": "Écrit avant d'ouvrir le document : combien de titres de périodiques et de livres en vietnamien la BnF conserve-t-elle grâce au dépôt légal de l'Indochine ?",
   "query": "combien de titres vietnamiens la Bibliothèque nationale de France conserve-t-elle grâce au dépôt légal de l'Indochine",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "hal-04826774-lich-su-sach-nam-ky",
       "recipe_id": "hal-04826774-lich-su-sach-nam-ky",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0336",
   "need": "Hazard: the rural, mountain and island electrification chapter opens at character 66 611 of a 79 632-character page, well past the 40 000-character index cap, so the whole of Chương VIII is in the export and absent from the index — the reader who asks about điện nông thôn gets nothing.",
   "query": "chính sách phát triển điện nông thôn miền núi hải đảo điện khí hoá đẩy nhanh Luật Điện lực 2004",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "compound-document-chain",
     "index_fulltext_max_chars"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-law-electricity-2004-vi",
       "recipe_id": "vn-law-electricity-2004-vi",

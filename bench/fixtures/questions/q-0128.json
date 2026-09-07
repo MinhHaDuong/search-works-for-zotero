@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0128",
   "need": "Hazard row for the figure-caption mechanism: the bearish-sample result is named only in a figure caption; the body refers to it as 'Fig. 6' without repeating what the figure shows.",
   "query": "Fig 6 explanatory power of risk measures in bearish sample Ormos Zibriczky",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-caption"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "ormos-2014-entropy-asset-pricing",
       "recipe_id": "ormos-2014-entropy-asset-pricing",

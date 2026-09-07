@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0144",
   "need": "Hazard row for the near-duplicate-publication pair: the Scientific Reports version of record of Bettencourt, Samaniego and Youn is in the library as metadata only, with no PDF, while the 2012 arXiv preprint of the same work carries the text. A reader who asks for the published version by its journal and DOI has nothing to be served from this record, and the pair's declared relation is 'near-duplicate-publication', not a twin relation.",
   "query": "Professional diversity and the productivity of cities Scientific Reports 2014 doi 10.1038/srep05393 full text",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "record-only",
     "near-duplicate-publication",
     "work-identity-relation"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [],
+  "primary": [],
   "expected_miss": true,
   "expected_miss_mechanism": "record-only version of record: parent item 9XH5U5SM carries no attachment (record_only true), so the 2014 Scientific Reports rendering has no fulltext in the export; and because the pair is declared 'near-duplicate-publication' rather than 'same-work', a hit on the arXiv preprint does not score as this work either",
   "reachability": {

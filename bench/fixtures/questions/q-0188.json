@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0188",
   "need": "Written before opening the document: the article's lead defines present-day climate change as global warming plus its wider effects on the climate system; I want that sentence.",
   "query": "present-day climate change includes both global warming and its wider effects on Earth's climate system",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-climate-change-en",
       "recipe_id": "wp-climate-change-en",

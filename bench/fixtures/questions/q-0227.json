@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0227",
   "need": "Written before opening the document: Kuznets's inverted-U claims that inequality first rises and then falls as income per head grows. An English-speaking reader wants a review that states the hypothesis and contrasts it with trickle-down. The query is English; the answer paragraph is Spanish.",
   "query": "Kuznets hypothesis empirical regularity between inequality and income per head contrasted with trickle-down theory",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-language"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "macias-2014-crecimiento-desigualdad-pobreza",
       "recipe_id": "macias-2014-crecimiento-desigualdad-pobreza",

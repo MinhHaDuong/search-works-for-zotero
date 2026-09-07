@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0004",
   "need": "Écrit avant d'ouvrir le document : comment Walras définit-il la richesse sociale dans la préface de la quatrième édition des Éléments ?",
   "query": "Walras richesse sociale définition choses rares utiles et limitées en quantité",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "walras-1900-elements",
       "recipe_id": "walras-1900-elements",

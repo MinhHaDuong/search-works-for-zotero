@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0446",
   "need": "Hazard row for a declared failure control — visible, not silent, degradation. The companion statistical plate shows Pas-de-Calais coal output since 1850 as a printed table inside the image; a query for the output series would expect it. The export declares this attachment answer_set_participation = 'none', so the correct behaviour is that it never appears in an answer set and the degradation is legible in the counters rather than showing up as a plausible-looking wrong hit.",
   "query": "Vuillemin production du bassin houiller du Pas-de-Calais depuis 1850 tableau",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "failure-control",
     "source-format-raster-image",
     "visible-not-silent-degradation"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [],
+  "primary": [],
   "expected_miss": true,
   "expected_miss_mechanism": "declared failure control, unindexable format: a JPEG raster (1630x925 px) of a printed statistical plate; the full-text indexer reads PDF, HTML, EPUB and plain text only, so the attachment finishes with no full text (attachment vuillemin-1875-production-pas-de-calais-jpg, key CWZ44G2H)",
   "reachability": {

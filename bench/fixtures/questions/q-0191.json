@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0191",
   "need": "Viết trước khi mở tài liệu: theo IPCC, mực nước biển sẽ dâng bao nhiêu cm trong thế kỷ 21 theo các kịch bản phát thải thấp, trung bình và rất cao?",
   "query": "IPCC dự báo nước biển dâng thế kỷ 21 kịch bản phát thải thấp trung bình rất cao cm",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-lingual-anchor"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-climate-change-en",
       "recipe_id": "wp-climate-change-en",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0247",
   "need": "Écrit avant d'ouvrir le document : on répète que le protocole de Montréal est le succès exemplaire de la politique d'environnement global. Reste que la consommation mondiale de substances appauvrissant la couche d'ozone n'a pas plafonné à la signature du traité mais un an après. Une source française du corpus confirme-t-elle que la consommation est repartie à la hausse en 1982, faute de réglementation internationale, jusqu'à un maximum vers 1988 ?",
   "query": "faute de réglementation internationale la consommation de substances appauvrissant la couche d'ozone est repartie à la hausse en 1982 et n'a culminé qu'en 1988, un an après la signature du protocole de Montréal",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "ha-duong-2005-modeles-de-precaution-hdr",
       "recipe_id": "ha-duong-2005-modeles-de-precaution-hdr",

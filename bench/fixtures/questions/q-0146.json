@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0146",
   "need": "Hazard row for the no-text-layer scan: Ramsey's Foundations of Mathematics is a 340-page scan with no OCR and no embedded fonts. pdftotext extracts 340 bytes over 340 pages, Zotero's indexPDF writes no fulltextItems row, and the attachment is a declared failure control that never joins an answer set — so the answer is legible to a human eye on the page and invisible to every retrieval path.",
   "query": "Ramsey truth and probability degrees of belief foundations of mathematics 1931",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "no-text-layer-scan",
     "declared-failure-control"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [],
+  "primary": [],
   "expected_miss": true,
   "expected_miss_mechanism": "no-text-layer scan, declared failure control: attachment K6VK5Y68 finishes unindexed with expected_degradation 'no full text: an un-OCR'd scan with no text layer and zero embedded fonts', and its answer_set_participation is 'none', so no row of this work may be pinned at all",
   "reachability": {

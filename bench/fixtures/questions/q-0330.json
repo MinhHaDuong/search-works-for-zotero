@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0330",
   "need": "Hazard: the chapter heading of Chương IV is transcribed on Wikisource in all lower case ('Bảo vệ tổ quốc việt nam xã hội chủ nghĩa') where every sibling chapter heading is title-cased, so a chain check that compares the section heading case-sensitively against the recipe's own section field fails on this chapter alone.",
   "query": "Hiến pháp 1992 Chương IV Bảo vệ Tổ quốc Việt Nam xã hội chủ nghĩa giữ vững an ninh quốc gia là sự nghiệp của toàn dân",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "compound-document-chain",
     "section-heading-case-variant"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-constitution-1992-vi-chuong-iv",
       "recipe_id": "vn-constitution-1992-vi-chuong-iv",

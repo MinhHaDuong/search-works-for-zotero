@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0117",
   "need": "Hazard row for the structural-table mechanism with a glyph defect inside the same table: the three criteria the Department says it judges a technology by are set as a box of table cells, not as prose. One cell extracts cleanly, its neighbour is mojibake because the small-caps display font has no usable ToUnicode map — the same cell, the same table, two different fates.",
   "query": "DOE criteria maturity materiality market potential technologies consequential impact on meeting national energy goals",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-table",
     "broken-glyph-mapping"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "doe-2011-quadrennial-technology-review",
       "recipe_id": "doe-2011-quadrennial-technology-review",

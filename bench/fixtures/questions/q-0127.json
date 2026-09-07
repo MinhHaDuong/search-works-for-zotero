@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0127",
   "need": "Hazard row for the structural-table mechanism: the per-sample R-squared figures asked for exist only as cells of Table 1, which the typesetter placed at the top of a page with no prose around it.",
   "query": "Table 1 efficiency of explaining and predicting risk premium Shannon entropy 12.98% standard deviation 7.83%",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-table"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "ormos-2014-entropy-asset-pricing",
       "recipe_id": "ormos-2014-entropy-asset-pricing",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0419",
   "need": "Written before opening the document: which two index series does India actually use to measure inflation, and for which population is the consumer index computed?",
   "query": "भारत में मुद्रा स्फीति का मापन थोक मूल्य सूचकांक और औद्योगिक श्रमिक उपभोक्ता मूल्य सूचकांक",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "should-language-hindi",
     "devanagari-script"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-inflation-hi",
       "recipe_id": "wp-inflation-hi",

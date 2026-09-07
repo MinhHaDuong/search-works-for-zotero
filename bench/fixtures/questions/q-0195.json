@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0195",
   "need": "Écrit avant d'ouvrir le document : à partir de quel taux mensuel parle-t-on d'hyperinflation selon l'usage courant rapporté par l'article ?",
   "query": "seuil mensuel à partir duquel on parle d'hyperinflation",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-lingual-anchor"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-inflation-en",
       "recipe_id": "wp-inflation-en",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0161",
   "need": "Written before opening the document: does Decision 11/2017 settle rooftop solar through net metering, with surplus generation carried forward between billing cycles?",
   "query": "rooftop solar in Vietnam is settled by net metering with two-way meters and surplus carried to the next cycle",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-decision-11-2017-qdttg-solar-fit-en",
       "recipe_id": "vn-decision-11-2017-qdttg-solar-fit-en",

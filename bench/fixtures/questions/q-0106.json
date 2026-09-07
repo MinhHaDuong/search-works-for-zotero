@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0106",
   "need": "Written before opening the document: I need the passage where Jevons states his central paradox — that burning coal more economically does not lower how much of it the country burns, but raises it.",
   "query": "rendering its employment more profitable the present demand for coal is increased",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "jevons-1865-coal-question",
       "recipe_id": "jevons-1865-coal-question",

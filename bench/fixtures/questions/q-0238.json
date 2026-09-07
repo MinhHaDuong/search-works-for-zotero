@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0238",
   "need": "Written before opening the document: which two gases account for the bulk of human greenhouse-gas emissions, and what share do they make between them? I want the encyclopedia's own sentence, in French, not a figure I have to derive.",
   "query": "dioxyde de carbone et méthane représentent 90 % des émissions de gaz à effet de serre dues aux activités humaines",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "should-language-row",
     "pageless-html"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-climate-change-fr",
       "recipe_id": "wp-climate-change-fr",

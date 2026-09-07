@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0002",
   "need": "Écrit avant d'ouvrir le document : au sens de la décision vietnamienne de 2017 sur le solaire, qu'est-ce qu'un projet « sur toiture » ?",
   "query": "définition d'un projet solaire sur toiture dans la décision 11/2017 du Vietnam",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-decision-11-2017-qdttg-solar-fit-en",
       "recipe_id": "vn-decision-11-2017-qdttg-solar-fit-en",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0183",
   "need": "Written before opening the document: the introduction calls 2014 the warmest year on record and footnotes when the record starts; I want that footnote.",
   "query": "since what year have global thermometer measurements been kept, NOAA source",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-footnote"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "worldbank-2015-state-trends-carbon-pricing",
       "recipe_id": "worldbank-2015-state-trends-carbon-pricing",

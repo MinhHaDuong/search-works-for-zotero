@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0307",
   "need": "Viết trước khi mở tài liệu: truyền thuyết nỏ thần — thần Kim Quy cho An Dương Vương vật gì để làm lẫy nỏ và nỏ ấy mạnh thế nào?",
   "query": "thần Kim Quy cho An Dương Vương cái móng chân làm lẫy nỏ, bắn một phát giặc chết hàng vạn",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch2",
       "recipe_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch2",

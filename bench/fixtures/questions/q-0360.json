@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0360",
   "need": "Viết trước khi mở tài liệu (câu hỏi tiếng Việt, đoạn trả lời bằng chữ Hán): truyền thuyết Lạc Long Quân lấy Âu Cơ sinh trăm trứng được chính sử chép ra sao — bản chữ Hán có ghi cái 'trăm trứng' như lời tục truyền, hay chỉ chép trăm người con?",
   "query": "chính sử chữ Hán chép Lạc Long Quân lấy Âu Cơ sinh một trăm người con, tục truyền là trăm trứng, tổ của Bách Việt",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-lingual-anchor",
     "han-script-no-word-spaces",
     "cultural-sense"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "dai-viet-su-ky-toan-thu-ngoai-ky-1-zh",
       "recipe_id": "dai-viet-su-ky-toan-thu-ngoai-ky-1-zh",

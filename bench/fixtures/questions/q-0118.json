@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0118",
   "need": "Hazard row for the figure-caption mechanism, isolated from the caps: the caption of Figure ES-1 sits on printed page IX, well inside both the page cap and the 40 000-character index cap, and it is still unreachable. Rendered at 110 dpi the page reads 'Figure ES-1. The QTR has framed six strategies to address national energy challenges.'; the extraction writes 'Figure ES1. 4HE 142 HAS FRAMED SIX STRATEGIES TO ADDRESS NATIONAL ENERGY CHALLENGES'. The only defect here is the glyph map.",
   "query": "Figure ES-1 the QTR has framed six strategies to address national energy challenges",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-caption",
     "broken-glyph-mapping",
     "extraction-mangled-span"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "doe-2011-quadrennial-technology-review",
       "recipe_id": "doe-2011-quadrennial-technology-review",

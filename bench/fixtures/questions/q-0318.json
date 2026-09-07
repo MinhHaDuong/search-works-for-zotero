@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0318",
   "need": "Viết trước khi mở tài liệu: kho lưu chiểu Đông Dương được thành lập năm nào và những ấn phẩm nào được đưa về Pháp qua hệ thống ấy?",
   "query": "kho lưu chiểu Đông Dương thành lập năm 1922 ấn phẩm không định kỳ đưa về Pháp",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "hal-04826774-lich-su-sach-nam-ky",
       "recipe_id": "hal-04826774-lich-su-sach-nam-ky",

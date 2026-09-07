@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0232",
   "need": "Hazard row, same work, other rendering: the same Zotero item also holds the Internet Archive's plain-text OCR of this book, 693 823 characters of it, and Zotero did index the first 500 000. The body really is in the index. But the local API serves /items/<key>/fulltext only for cached MIME types — PDF, HTML, EPUB — so text/plain answers 404 and the export carries no fulltext file for it. Indexed and unreadable are not the same failure, and this item shows both at once: the served rendering has no book text, the rendering with the book text is not served.",
   "query": "Menger Grundsätze erstes Capitel Ueber das Wesen der Güter Nützlichkeiten Causalzusammenhang Bedürfnisse",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "indexed-not-served",
     "same-text-different-format",
     "char-cap-crossing"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "menger-1871-grundsaetze",
       "recipe_id": "menger-1871-grundsaetze",

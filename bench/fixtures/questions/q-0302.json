@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0302",
   "need": "Viết trước khi mở tài liệu: chú thích cuối bài Tựa nói gì về danh mục sách soạn giả đã dùng để kê cứu?",
   "query": "soạn giả kể riêng những sách đã dùng để kê cứu ở trang cuối quyển để độc giả tra soát",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "footnote"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource",
       "recipe_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource",

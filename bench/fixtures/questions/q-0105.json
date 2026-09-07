@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0105",
   "need": "Written before opening the document: the library holds a record for Keynes's chapter 'The application of probability to conduct' as a book section of the Treatise; where does he say that the probable is the hypothesis on which it is rational to act?",
   "query": "Keynes the application of probability to conduct: the probable is the hypothesis on which it is rational for us to act",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "stock-page-cap",
     "record-only-book-chapter"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "keynes-1921-treatise-on-probability",
       "recipe_id": "keynes-1921-treatise-on-probability",

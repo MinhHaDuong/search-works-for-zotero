@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0170",
   "need": "Written before opening the document: on land, what does the Overview name as the main short-to-medium-term challenge for property rights — I recall it is about rent-seeking in valuing and converting land use. The booklet has 114 pages and the stock reindex stops at 100.",
   "query": "reduce the opportunities for rents in valuing and converting land use",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "compound-book-section",
     "stock-page-cap"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wb-2016-vietnam-2035-en-overview",
       "recipe_id": "wb-2016-vietnam-2035-en-overview",

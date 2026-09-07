@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0132",
   "need": "Hazard row for the figure-caption mechanism: the food-consumption series, its unit and its date range are stated only in the caption of Fig. 1, not in the surrounding prose.",
   "query": "Fig 1 average per capita food consumption dynamics kcal per capita per day North and East Africa 1961-2009",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-caption"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "korotayev-2015-east-africa-malthusian-trap",
       "recipe_id": "korotayev-2015-east-africa-malthusian-trap",

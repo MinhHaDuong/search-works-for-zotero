@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0329",
   "need": "Viết trước khi mở tài liệu: người ta hay nói giáo dục là 'quốc sách hàng đầu' của Việt Nam — Hiến pháp 1992 có thật sự dùng đúng công thức ấy, hay đó chỉ là khẩu hiệu của ngành giáo dục?",
   "query": "Hiến pháp 1992 khẳng định giáo dục và đào tạo là quốc sách hàng đầu",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "compound-document-chain"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-constitution-1992-vi-chuong-iii",
       "recipe_id": "vn-constitution-1992-vi-chuong-iii",

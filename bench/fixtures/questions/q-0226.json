@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0226",
   "need": "Written before opening the document: 'pro-poor growth' is used by development agencies as if it had one meaning. I want a review article that says plainly what the competing definitions are and why the ambiguity matters.",
   "query": "crecimiento pro-pobre definiciones redistribución del ingreso o reducción de la pobreza absoluta concepto útil",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "term-of-art-ambiguity"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "macias-2014-crecimiento-desigualdad-pobreza",
       "recipe_id": "macias-2014-crecimiento-desigualdad-pobreza",

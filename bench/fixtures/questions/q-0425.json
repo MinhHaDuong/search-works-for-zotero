@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0425",
   "need": "Hazard row on the other cap axis of the same document: Cairnes on the Australian and Californian gold discoveries is printed on page १०७, pdf page 120 of 265. Zotero's stock fulltext.pdfMaxPages is 100, so the export indexed the first 100 pdf pages only and this answer is absent from the export altogether — the page cap, not the character cap. Read on pdf page 120.",
   "query": "Cairnes on what Australia and California gained by giving their gold for other countries' goods",
@@ -10,7 +10,7 @@
   "mode": "any",
   "facet": "deep-body",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "extraction-cap-crossing-past",
     "pdf-page-cap-100",
     "monster-non-latin-script",
@@ -18,7 +18,7 @@
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "dli-1915-arthashastra-hindi",
       "recipe_id": "dli-1915-arthashastra-hindi",

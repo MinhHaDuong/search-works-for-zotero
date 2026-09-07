@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0413",
   "need": "Written before opening the document: which of Kuvrat's sons founded the Bulgarian state, in what year, and over which province? Asked in English against an 1818 Russian chronicle.",
   "query": "which son of Kuvrat founded the Bulgarian state in 679 after conquering Moesia",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "should-language-russian",
     "cross-lingual-en-to-ru",
     "legacy-encoding-windows-1251"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "karamzin-1818-istoriya-gosudarstva-rossiyskogo-t1-gl1",
       "recipe_id": "karamzin-1818-istoriya-gosudarstva-rossiyskogo-t1-gl1",

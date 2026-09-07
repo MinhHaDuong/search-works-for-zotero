@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0309",
   "need": "Viết trước khi mở tài liệu: phép tỉnh điền đời Ân, Chu chia ruộng thế nào (chữ tỉnh, công điền ở giữa)?",
   "query": "phép tỉnh điền chia đất ra làm chín khu hình chữ tỉnh, khu giữa làm công điền",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch3",
       "recipe_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch3",

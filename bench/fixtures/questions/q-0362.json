@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0362",
   "need": "在打開文獻之前寫下：《三國演義》開卷那句關於天下分合的論斷，原文究竟怎麼說？是先「分久必合」還是先「合久必分」？記憶裡兩種次序都有人引。",
   "query": "《三國演義》開卷論天下離合的那一句，原文是先說合還是先說分",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "han-script-no-word-spaces",
     "legacy-encoding-big5"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "sanguo-yanyi-ch01-chinapage-1999",
       "recipe_id": "sanguo-yanyi-ch01-chinapage-1999",
