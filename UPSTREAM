@@ -2,10 +2,12 @@
 UPSTREAM_REPOSITORY=https://github.com/oscardvs/zoteus.git
 FORK_REPOSITORY=https://github.com/MinhHaDuong/zoteus.git
 UPSTREAM_BRANCH=main
-# The reviewed SHA is both the v1.15.0 tag and `main`'s tip at review time. The
-# release notes name PRs #55 and #57; the source range also contains the citation
-# forwarding and local embedding-worker changes from #58 and #59. Ticket 0735.
-UPSTREAM_REVIEWED_SHA=037bba8898add4b6d0eac54b44316c2732d5004d
+# The reviewed SHA is `main` two registry-only commits past the v1.15.0 tag
+# (`037bba8`). The release notes name PRs #55 and #57; the source range also
+# contains the citation forwarding and local embedding-worker changes from #58
+# and #59. The two post-tag commits add registry display metadata and an Open
+# Plugins manifest; neither changes the shipped npm package. Ticket 0735.
+UPSTREAM_REVIEWED_SHA=5a81cee88be6d979e9ca1e99e897b6b6df25beef
 UPSTREAM_REVIEWED_VERSION=v1.15.0
 UPSTREAM_REVIEWED_DATE=2026-09-07
 # The index schema generation the bench drivers target: upstream's `SCHEMA_VERSION` in

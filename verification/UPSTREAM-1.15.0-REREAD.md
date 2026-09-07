@@ -6,12 +6,13 @@ touches design, `SPEC.md` remains the record.*
 ## Subject and method
 
 The subject is `oscardvs/zoteus` at
-`037bba8898add4b6d0eac54b44316c2732d5004d`, both the v1.15.0 release commit
-and current `main` when read. The comparison base is the previous reviewed tip
+`5a81cee88be6d979e9ca1e99e897b6b6df25beef`, current `main` when the review
+closed and two registry-only commits past the v1.15.0 release commit
+`037bba8`. The comparison base is the previous reviewed tip
 `34d6c2681b1452aeaa2f8e8e90abe6e6b0f8df41`, which contained v1.14.0 plus two
 documentation commits.
 
-All 24 commit subjects and the 45-file path inventory were inspected from the
+All 26 commit subjects and the 47-file path inventory were inspected from the
 repository's bare mirror. Every changed watched file and the material adjacent
 source, documentation and tests were read. The review follows the delta-bounded
 rule ratified after the prior bump: source was read broadly enough to catch
@@ -41,7 +42,11 @@ The index schema remains generation 2. The material changes are:
   OAuth state and Zotero-side authorization residue;
 - citation tools now forward `style` and `locale`, resolve renamed Chicago
   style ids, and consult the renamed-style map on a style 404. This is a real
-  release change but lies outside the semantic-search requirement surface.
+  release change but lies outside the semantic-search requirement surface;
+- the two post-tag commits add `title` and `websiteUrl` to `server.json`, plus
+  root Open Plugins manifests for directory discovery. The npm files list
+  excludes those manifests; no search, runtime, storage or requirement
+  mechanism changes.
 
 ## Affected requirement rows
 
@@ -108,7 +113,7 @@ check for the changed mechanisms passed **47/47 tests in seven files**:
 - `tests/features/styles.test.ts`
 
 This repository's `upstream-status` and strict `schema-gate` passed. The
-explicit old-to-new catch-up check reported 24 commits, twelve watched files
+explicit old-to-new catch-up check reported 26 commits, twelve watched files
 changed, and schema 2 unchanged. Three cited ranges changed: the two moved
 `index-manager.ts` anchors were re-pointed, while the `build.ts:617-620` range
 was re-read and remains the correct anchor. Ticket validation and the normal
@@ -116,6 +121,9 @@ repository suite passed: 1,270 tests, with 19 declared skips. This container
 lacked the `sqlite3` executable, so its two CLI integration tests ran through a
 temporary compatibility wrapper backed by Python's SQLite build, after FTS5
 and DBSTAT support were checked; no wrapper or generated database is committed.
+The two registry-only commits landed after that executable run; their three
+JSON files were read and parsed separately, and their diff does not invalidate
+any test or requirement result above.
 
 ## Consequence
 

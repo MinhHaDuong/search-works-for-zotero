@@ -6985,3 +6985,10 @@ current measurement claim on that path; R15 and R22 improve in source but stay
 owned by their existing fidelity trackers. Index schema generation remains 2.
 This is a baseline ruling, not permission to broaden the feature freeze or to
 post upstream.
+
+**2026-09-07 — CORRECTION before the v1.15.0 rebaseline merged.** Upstream
+`main` moved twice after the release notification: `cde613a` adds registry
+title and website metadata, and `5a81cee` adds root Open Plugins manifests.
+They change three registry JSON files and no shipped npm, search, storage or
+requirement mechanism. The reviewed tip is therefore `5a81cee` (v1.15.0+2),
+not the tag `037bba8`; the bounded verdicts and focused executable run stand.
