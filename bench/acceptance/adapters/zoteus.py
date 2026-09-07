@@ -149,13 +149,15 @@ UNSUPPORTED = {
     ),
 }
 
-#: The two foreign schema stamps, and they are this target's numbers rather than
-#: this harness's: `bench/smoke_upstream.py`'s `_restamp_and_open` has been
-#: writing exactly these since the damage-prevention half was first asserted, and
-#: a second pair would test a different thing while claiming to test the same one.
-#: Older is the one that matters — it is what every user holds the day the build's
-#: schema version is incremented.
-FOREIGN_STAMPS = {RESTAMP_OLDER: "0", RESTAMP_NEWER: "9999"}
+#: R23's newer arm is deliberately beyond every build under test: it models a
+#: rollback opening an index written by a later build, and therefore exercises
+#: the forwards-only refusal. The older arm is not a constant: `_foreign_stamp`
+#: derives one rung below the stamp the seeded index says this build wrote. Stamp
+#: 0 used to be both that case and the smoke probe's off-ladder case; since schema
+#: 2 they differ. The off-ladder refusal remains covered by
+#: `smoke_upstream.check_foreign_schema_is_sidelined` and does not masquerade as
+#: this serving/migration arm.
+NEWER_FOREIGN_STAMP = "9999"
 
 #: The key this target keeps its index schema version under, in the index's own
 #: `meta` table. Target knowledge, which is why it is here and not in the layer.
@@ -551,7 +553,7 @@ class Zoteus:
         it needs the process `running()` already has alive, which is where R22's
         checks call `perturb`.
         """
-        if what in FOREIGN_STAMPS:
+        if what in (RESTAMP_OLDER, RESTAMP_NEWER):
             return self._restamp(what)
         if what == RESET_TO_SEEDED_INDEX:
             return self._reset_to_seeded_index()
@@ -659,7 +661,8 @@ class Zoteus:
         right rule between the halves of one arm and the wrong one between arms:
         the second direction would then be applied to whatever the first arm's
         restart produced. This is the explicit request for the starting state, and
-        it is the only thing in this adapter that overwrites derived state.
+        it is the only thing in this adapter that removes and replaces derived
+        state, and it does so before the arm's graded window begins.
         """
         if self.seed_index is None:
             raise NotImplementedError(
@@ -670,6 +673,19 @@ class Zoteus:
         existing = self._index()
         was = self._stamp(existing) if existing is not None else None
         destination = self.data_dir / self.seed_index.name
+        # Copying only the main database is not a reset under WAL mode. A
+        # process killed after opening a fresh replacement can leave `-wal` and
+        # `-shm` beside it; SQLite then recovers those pages over the seed just
+        # copied into the same pathname. Remove the entire pathname family
+        # before copying, including any incompatible file left by the preceding
+        # arm. This happens while arming, before the stamp-to-query window whose
+        # no-hand-deletion clause is inventoried in `durability.py`.
+        removed: list[str] = []
+        for member in sorted(self.data_dir.iterdir()):
+            if member.name.startswith(destination.name) and (
+                    member.is_file() or member.is_symlink()):
+                member.unlink()
+                removed.append(member.name)
         shutil.copyfile(self.seed_index, destination)
         return {
             "perturbation": RESET_TO_SEEDED_INDEX,
@@ -677,8 +693,30 @@ class Zoteus:
             "index_found_before_reset": existing.name if existing is not None else None,
             "stamp_before_reset": was,
             "stamp_after_reset": self._stamp(destination),
-            "file_deleted_by_hand": False,
+            "removed_before_copy": removed,
+            "removal_phase": "arming, before the graded restamp-to-query window",
         }
+
+    @staticmethod
+    def _foreign_stamp(direction: str, current: str | None) -> tuple[str, str]:
+        """Return the stamp and the exact schema case an R23 arm exercises."""
+        if direction == RESTAMP_NEWER:
+            return NEWER_FOREIGN_STAMP, "newer-schema forwards-only refusal"
+        if direction != RESTAMP_OLDER:
+            raise ValueError(f"unknown restamp direction {direction!r}")
+        try:
+            generation = int(current) if current is not None else None
+        except ValueError as exc:
+            raise NotImplementedError(
+                f"the index's current schema stamp {current!r} is not an integer, so "
+                "the harness cannot derive the one-rung-older migration candidate"
+            ) from exc
+        if generation is None or generation < 1:
+            raise NotImplementedError(
+                f"the index's current schema stamp is {current!r}, so there is no "
+                "non-negative one-rung-older migration candidate to exercise"
+            )
+        return str(generation - 1), "one-rung-older migration candidate"
 
     def _restamp(self, direction: str) -> dict:
         """Write a foreign schema version into the index, the way a version change would.
@@ -695,10 +733,11 @@ class Zoteus:
                 "is nothing to restamp; seed the arena with a built index first"
             )
         was = self._stamp(index)
+        stamp, stamp_case = self._foreign_stamp(direction, was)
         con = sqlite3.connect(index)
         try:
             con.execute("UPDATE meta SET value=? WHERE key=?",
-                        (FOREIGN_STAMPS[direction], STAMP_KEY))
+                        (stamp, STAMP_KEY))
             con.commit()
         finally:
             con.close()
@@ -706,7 +745,8 @@ class Zoteus:
             "perturbation": direction,
             "index": index.name,
             "was": was,
-            "restamped_to": FOREIGN_STAMPS[direction],
+            "restamped_to": stamp,
+            "stamp_case": stamp_case,
             "file_deleted_by_hand": False,
         }
 

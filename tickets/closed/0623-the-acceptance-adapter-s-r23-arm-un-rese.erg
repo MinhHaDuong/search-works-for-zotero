@@ -2,10 +2,13 @@
 Title: The acceptance adapter's R23 arm un-resets itself, and its older stamp is off the ladder
 Created: 2026-09-03
 Author: claude
+Closed: adapter reset purges the SQLite pathname family before seed copy, the older arm derives N-1, and every R23 not-run preserves measured baseline and arm data
 
 --- log ---
 2026-09-03T12:49Z claude created
 
+2026-09-07T07:49Z codex note red-before: 3 discriminating failures (stale SQLite family, fixed older stamp 0, and measurement-free not-run); green-after: 29 focused tests and 250 acceptance tests passed; full gate passed with 1 270 tests, 21 skips, and the existing schema-source warning
+2026-09-07T07:49Z Codex closed — adapter reset purges the SQLite pathname family before seed copy, the older arm derives N-1, and every R23 not-run preserves measured baseline and arm data
 --- body ---
 
 ## Context
@@ -88,8 +91,8 @@ Red first, and it is already reproducible: arm B above. The fix is proven when
 arm B returns what arm C returns.
 
 ## Exit criteria
-- [ ] `R23-foreign-stamp-ends-up-serving` decides rather than reporting not-run,
+- [x] `R23-foreign-stamp-ends-up-serving` decides rather than reporting not-run,
       against a target where the reset actually took
-- [ ] The older arm exercises the migrate-in-place case, or says in its own
+- [x] The older arm exercises the migrate-in-place case, or says in its own
       comment why it deliberately does not
-- [ ] A `not-run` from this clause carries what it measured, not only prose
+- [x] A `not-run` from this clause carries what it measured, not only prose
