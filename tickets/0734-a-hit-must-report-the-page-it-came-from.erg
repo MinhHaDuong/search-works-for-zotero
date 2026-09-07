@@ -6,6 +6,7 @@ Author: claude
 --- log ---
 2026-09-07T02:34Z claude created
 2026-09-07T02:47Z claude note PARKED work-in-progress by coordinator ruling (sequential lanes, PR #409 first). The source trace answering exit criterion 1 is complete and recorded in the body under "Where the page is lost". Nothing implemented in fork/, no build run, no Zotero instance touched.
+2026-09-07T03:32Z claude note Exit criteria 2 and 3 closed; conception/0734-carrying-the-page-into-the-reply.md is the prepared upstream artifact. Read the migration ladder: no rebuild is implied by the schema (a side table, vector_codes precedent, no stamp bump, R23 both directions), but no rung can backfill the value because up(db) is synchronous and the chunker destroyed the raw position before the row existed, so a full re-chunk is implied and R3 forces the vector salvage. Measured the ceiling with the gate's own instruments: R34 official tops out at 15/195 on the form-feed ordinal and 85/195 on the printed folio, which the product has no source for. Criterion 4 left unticked, nothing built, no Zotero instance touched. Three questions recorded for the author.
 
 --- body ---
 ## Context
@@ -114,31 +115,103 @@ the query or fusion path, and not in the tool layer: it is upstream of all
 three, in the chunker's first statement and in a schema with nowhere to put a
 page.
 
-## What remains (for the successor)
+## The cost and the reply shape (2026-09-07)
 
-- **Exit criterion 2 (cost) — not written.** The shape of the answer is already
-  visible from the three losses above: carrying a page needs (a) an offset or
-  page on `Chunk` / `ChunkRecord`, (b) a new column on `passages`, and (c) a new
-  member on `SearchHit`. (b) is a schema change, so the open question is whether
-  upstream's migration ladder — moved for the first time since v1.7.0 by this
-  fork's own PR #46, per `SYNC.md` — can add a nullable column and backfill, or
-  whether a rebuild is implied. That is what bears on R23 and R3 and is the
-  expensive answer. **Not established. Do not assert it without reading
-  `sqlite-index.ts`'s migration code.**
-- **Exit criterion 3 (reply shape) — outline only.** A page or a page range per
-  hit plus the D10 estimate flag; the range rather than a number wherever a
-  passage straddles a boundary, which is what makes the ruled intersection test
-  computable on both sides.
-- **Exit criterion 4 — nothing measured.** No build was run this session.
+Criteria 2 and 3 are answered in
+[`conception/0734-carrying-the-page-into-the-reply.md`](../conception/0734-carrying-the-page-into-the-reply.md),
+written as the reviewable upstream artifact criterion 4's action 4 asks for.
+The verdicts, so the ticket carries its own record:
+
+- **A fourth loss, upstream of the three recorded above.**
+  `fork/src/features/search/fulltext-source.ts:167-193` joins several
+  attachments' texts into one string and keeps only `ft.content`, discarding the
+  attachment key and the `indexedPages` / `totalPages` the router already
+  returned (`fork/src/api/web-client.ts:282`). The interface forbids carrying
+  them: `textFor` is `(itemKey) => Promise<string | undefined>`
+  (`fulltext-source.ts:26`), as is `fulltextFor` (`backend.ts:425`).
+- **Cost, criterion 2. No rebuild is implied by the schema; a full re-chunk is
+  implied by the chunker.** The migration ladder is dispatched on a `meta` row
+  read before any write (`sqlite-index.ts:528-547`, `585-645`, `655-667`,
+  `680-702`) and holds one rung, `to: 2` (`175-201`). A page can be added
+  without touching the stamp at all, following the `vector_codes` precedent the
+  file argues for in its own words (`53-61`, and the row-layout argument at
+  `946-949`): a side table created by `CREATE TABLE IF NOT EXISTS`, which every
+  older build ignores because every statement names its columns. That satisfies
+  **R23** in both directions, where a stamp bump satisfies it only forwards and
+  sidelines every existing index for an older build.
+- **A backfill has no source, and that is the finding.** `chunkText` collapses
+  whitespace at `chunker.ts:8` and slices the collapsed string at `21`; nothing
+  stored recovers the raw position. A rung cannot go and look either:
+  `SchemaMigration.up` is `up(db: Database): void` (`sqlite-index.ts:165`),
+  synchronous, its only argument the database handle, called inside
+  `BEGIN IMMEDIATE`. A rung can add the column and cannot fill it. Values arrive
+  only when the rows are written again.
+- **R3 is what forces the vector salvage.** A re-chunk is proportional to what
+  changed under C1 (SPEC.md:751-753) and is R3-conformant; a whole-library
+  re-embed is not, since the vector's inputs did not move. `adoptVector`
+  (`sqlite-index.ts:881-898`) already reuses a vector when id and text match byte
+  for byte, so a chunker whose output text is unchanged keeps every vector. But
+  the salvage is armed only in `priceOf` (`770-800`), reached only from
+  `sideline()`, so `action:"refresh"` today pays the full re-embed the file
+  prices at five and a half hours of local CPU (`53-61`, `143-146`).
+- **Reply shape, criterion 3.** `SearchHit` gains `attachmentKey?` and exactly
+  one of `page?: string` (printed folio or folio range, exact) or
+  `pageApprox?: string` (derived). The names and the presence-is-the-label rule
+  are reused verbatim from `fork/src/features/fulltext/passages.ts:5-15` rather
+  than invented; the one deviation is the type, `string` instead of `number`,
+  because a straddling passage needs a range and the gate's `page_set`
+  (`bench/golden_gate.py:269-289`) reads `"12-13"` as `{12, 13}`.
+- **`page` is not fillable today.** No page-label reader exists anywhere in
+  `fork/src`; `annotate.ts:225` shows the product's convention is
+  `String(pageIndex + 1)`, an ordinal used as a label. `pdfjs-dist` does expose
+  `getPageLabels()` (`fork/node_modules/pdfjs-dist/types/src/display/api.d.ts:945`)
+  but only on the PDF-file path the index build never takes.
+
+## What criterion 4 would cost (stated, not run)
+
+Nothing was built. `make golden-run` needs `fork/dist/index.js`
+(`Makefile:371`, `388`), so it implies `make upstream-checkout` then
+`npm ci && npm run build` in `fork/`, plus an empty `GOLDEN_DATA_DIR`
+(`389`). Six fork files change, plus one harness edit in this repo:
+`bench/golden_run.py:172` does not read `pageApprox`.
+
+**Measured ceiling**, over the committed bank and export with the gate's own
+`page_set` and `Export.page_span` as the instrument: if the engine reported the
+extraction's form-feed ordinal perfectly, R34 official tops out at **15/195**;
+if it reported the printed folio perfectly, at **85/195**. 110 of the 195 scored
+questions carry no printed page on any alternate, and `official_page_verdict`
+(`bench/golden_gate.py:1066-1072`) returns unsatisfied on an empty target
+whatever the reply says. The ordinal is not the folio: of the 108 alternates
+carrying both a folio and a locatable offset, 18 agree and 90 differ, by
+per-work offsets from +1 to +28 and one of −100, with 30 folios not arabic at
+all. So closing this ticket as scoped moves the official reading off zero and
+moves it a little; it does not make the red-state exercise's nine arms
+distinguishable on the official score.
+
+## Open for the author (recorded, not answered)
+
+1. Is a ceiling of 85/195 the intended shape of the official reading, or should
+   it be scored over the questions that carry a printed page?
+2. Does a labelled estimate satisfy R34's official reading? If yes,
+   `golden_run.py:172` must read `pageApprox`; if no, the official reading
+   cannot move until the product gains a printed-folio source.
+3. D10 and `passages.ts` are two-valued over three sources (printed folio,
+   extraction ordinal, proportional estimate). The note maps the latter two onto
+   `pageApprox`. Confirm, or split the vocabulary.
+
+## Still to do
+
+- **Exit criterion 4 — nothing measured.** No build was run in either session.
 - **Nothing was implemented in `fork/`.** Note for whoever does: a
   worktree-isolated agent cannot run version-control commands inside `fork/`,
   because the isolation guard refuses any redirect into the shared checkout.
+  Reading it by absolute path works.
 
 ## Exit criteria
 - [x] where the page is lost between extraction and reply is established from
       source, not inferred
-- [ ] the cost of carrying it stated, including whether a rebuild is implied
-- [ ] a reply shape proposed that gives a page or a page range per hit, with
+- [x] the cost of carrying it stated, including whether a rebuild is implied
+- [x] a reply shape proposed that gives a page or a page range per hit, with
       the estimate flag D10 requires
 - [ ] R34's official score becomes measurable, and its first non-zero reading
       is recorded
