@@ -10,6 +10,7 @@ Closed: v1.15.0 baseline, affected-row reread and bounded verification complete;
 2026-09-07T06:48Z Codex note reviewed the full 34d6c26..037bba8 range: 24 commits, 45 files, schema 2 unchanged; release-note omissions #58 and #59 are accounted for without widening the acceptance scope
 2026-09-07T06:52Z Codex verified upstream build and 47 focused tests, then local baseline/schema gates, 1270 repository tests with 19 declared skips, ticket corpus and diff hygiene
 2026-09-07T06:52Z Codex closed — v1.15.0 baseline, affected-row reread and bounded verification complete; no live acceptance verdict manufactured
+2026-09-07T07:21Z Codex corrected the closing pin to upstream main 5a81cee after two registry-only commits landed post-tag; 26 commits and 47 files are now accounted for, with no requirement mechanism or focused test invalidated
 --- body ---
 
 ## Context
@@ -36,7 +37,8 @@ review baseline false.
 
 ## Exit criteria
 
-- [x] `UPSTREAM` names `037bba8`, v1.15.0, 2026-09-07 and schema 2
+- [x] `UPSTREAM` names current `main` at `5a81cee`, containing v1.15.0, dated
+      2026-09-07 and schema 2
 - [x] `verification/UPSTREAM-1.15.0-REREAD.md` accounts for the full delta and
       each affected requirement row
 - [x] stale source citations are corrected

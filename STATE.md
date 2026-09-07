@@ -33,7 +33,7 @@ Start with correctness/privacy acceptance gaps: R10 (0660–0664), R13
 
 ## Basic state
 
-Reviewed upstream: **v1.15.0** at `037bba8` (ticket 0735).
+Reviewed upstream: **v1.15.0+2** at `5a81cee` (ticket 0735).
 Requirements: **24 ratified** ([SPEC.md](SPEC.md)).
 Tickets: **78 ready, 39 blocked, 8 awaiting author** (`erg ready tickets/`).
 In flight: **none**.
