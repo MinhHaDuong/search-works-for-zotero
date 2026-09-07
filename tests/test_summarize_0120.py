@@ -13,7 +13,7 @@ docstring tests the docstring.
 
 import importlib.util
 import json
-import subprocess
+import sqlite3
 from pathlib import Path
 
 import pytest
@@ -42,6 +42,23 @@ RESULT = {
     "files": {"search-index.sqlite": 42975232, "search-index.sqlite-wal": 32964152,
               "search-index.sqlite-shm": 65536, "update-check.json": 122},
 }
+
+
+def make_fts_database(path: Path, rows: int = 1) -> sqlite3.Connection:
+    """Create the real FTS5 layout without depending on SQLite's optional CLI."""
+    connection = sqlite3.connect(path)
+    connection.executescript(
+        "CREATE TABLE passages(pid INTEGER PRIMARY KEY, text TEXT);"
+        "CREATE VIRTUAL TABLE passages_fts USING fts5(text, content='passages',"
+        " content_rowid='pid');"
+    )
+    connection.executemany(
+        "INSERT INTO passages(text) VALUES(hex(randomblob(400)))",
+        [()] * rows,
+    )
+    connection.execute("INSERT INTO passages_fts(passages_fts) VALUES('rebuild')")
+    connection.commit()
+    return connection
 
 
 def write_log(path: Path, results: list[dict], noise: bool = True) -> Path:
@@ -141,14 +158,7 @@ def test_decompose_splits_the_keyword_half_from_the_store(tmp_path):
     makes the platform look more attractive than it is.
     """
     db = tmp_path / "idx.sqlite"
-    subprocess.run(
-        ["sqlite3", str(db),
-         "CREATE TABLE passages(pid INTEGER PRIMARY KEY, text TEXT);"
-         "CREATE VIRTUAL TABLE passages_fts USING fts5(text, content='passages',"
-         " content_rowid='pid');"
-         "INSERT INTO passages(text) SELECT hex(randomblob(400)) FROM generate_series(1,400);"
-         "INSERT INTO passages_fts(passages_fts) VALUES('rebuild');"],
-        check=True, capture_output=True)
+    make_fts_database(db, rows=400).close()
     out = s.decompose(db)
     assert out["total_bytes"] == sum(out["bytes_by_object"].values())
     assert out["keyword_index_bytes"] + out["stored_text_and_addressing_bytes"] == out["total_bytes"]
@@ -163,18 +173,11 @@ def test_decompose_splits_the_keyword_half_from_the_store(tmp_path):
 def test_decompose_counts_every_fts_shadow_table_it_declares(tmp_path):
     """FTS_TABLES is the load-bearing constant; assert it against what FTS5 really makes."""
     db = tmp_path / "idx2.sqlite"
-    subprocess.run(
-        ["sqlite3", str(db),
-         "CREATE TABLE passages(pid INTEGER PRIMARY KEY, text TEXT);"
-         "CREATE VIRTUAL TABLE passages_fts USING fts5(text, content='passages',"
-         " content_rowid='pid');"
-         "INSERT INTO passages(text) VALUES('alpha beta gamma');"
-         "INSERT INTO passages_fts(passages_fts) VALUES('rebuild');"],
-        check=True, capture_output=True)
-    made = subprocess.run(
-        ["sqlite3", str(db),
-         "select name from sqlite_master where type='table' and name like 'passages_fts%';"],
-        check=True, capture_output=True, text=True).stdout.split()
+    with make_fts_database(db) as connection:
+        made = [row[0] for row in connection.execute(
+            "select name from sqlite_master "
+            "where type='table' and name like 'passages_fts%'"
+        )]
     assert set(made) <= set(s.FTS_TABLES) | {"passages_fts"}, (
         f"FTS5 made a shadow table the split does not know about: {set(made) - set(s.FTS_TABLES)}")
 

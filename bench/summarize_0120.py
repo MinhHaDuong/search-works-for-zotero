@@ -23,6 +23,7 @@ import json
 import logging
 import platform
 import re
+import sqlite3
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
@@ -152,13 +153,11 @@ def decompose(db: Path) -> dict:
     whatever indexes it, because the platform tables are contentless and cannot print a
     passage back.
     """
-    rows = subprocess.run(
-        ["sqlite3", str(db), "select name, sum(pgsize) from dbstat group by name;"],
-        capture_output=True, text=True, check=True).stdout.strip().splitlines()
-    by_name = {}
-    for row in rows:
-        name, _, size = row.rpartition("|")
-        by_name[name] = int(size)
+    with sqlite3.connect(db) as connection:
+        rows = connection.execute(
+            "select name, sum(pgsize) from dbstat group by name"
+        )
+        by_name = {name: size for name, size in rows}
     fts = sum(v for k, v in by_name.items() if k in FTS_TABLES)
     total = sum(by_name.values())
     return {
