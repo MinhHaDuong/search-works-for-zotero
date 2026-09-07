@@ -1,10 +1,13 @@
 {
   "arm": "lexical-off",
+  "blocked_on": "declared",
+  "control": false,
   "kind": "build",
   "letter": "C",
   "notes": [],
   "reason": "Blocked on arm B's prerequisite (no vectors exist in the offline replay), plus a way to suppress the lexical arm. If it becomes runnable, a run where both the exact and the paraphrase cells fall is measuring the absence of an index, not the absence of a lexical path.",
   "state": "not-run",
+  "summary": "arm C: semantic only, so the rare-exact-string questions should catch it",
   "target_lanes": [
     "en->en",
     "fr->fr",

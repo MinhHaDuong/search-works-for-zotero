@@ -14,6 +14,13 @@ control rather than a coverage tick:
   * each real transform must be non-identity, which is the positive control for the arms —
     a transform that changes nothing is precisely the vacuity this ticket exists to catch.
 
+What this file deliberately does NOT test is the ruled predicate itself. R34 lives in
+`golden_gate.py` and is tested in `tests/test_golden_gate.py`; `bench/redstate.py` reads the
+scores out of the gate's report and implements none. An earlier draft of this harness carried
+its own copy, written before the gate had the ruling, and the two drifted 24 questions apart
+on one bundle. `test_the_harness_implements_no_scoring_of_its_own` is the guard that keeps
+the copy from coming back.
+
 Fast tier: no build, no node, no network.
 """
 
@@ -30,24 +37,31 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "bench"))
 
 import redstate  # noqa: E402
+import golden_gate  # noqa: E402
 from golden_gate import InputError, load_replies  # noqa: E402
 
 BANK = REPO / "bench" / "fixtures" / "questions"
 EXPORT = REPO / "bench" / "fixtures" / "export"
+SPEC = REPO / "SPEC.md"
 BASELINE_REPORT = REPO / "bench" / "results" / "golden" / "report.json"
 BASELINE_REPLIES = REPO / "bench" / "results" / "golden" / "replies.json"
 
-#: Measured on the committed golden run (build b0e0bc8, export 579ab8dd…2296ccc), which is
-#: also what the ruling of 2026-09-07 was measured against before it was written into SPEC.
+#: Measured on the committed golden run (export 579ab8dd…2296ccc) by `make golden`, and read
+#: back out of the gate's own report — not recomputed here. The accommodating figure is 51 and
+#: not the 75 an earlier draft of this harness printed: that draft scored a pageless
+#: attachment by character span, which the gate refuses (22 questions), and located a snippet
+#: by progressive prefix trimming, which finds a different span (2 questions).
 HITS = 1928
 HITS_CARRYING_A_PAGE = 0
 SCORED = 195
+PRIMARY_ROWS = 202
 OFFICIAL_PRESENT = 0
-ACCOMMODATING_PRESENT = 75
+ACCOMMODATING_PRESENT = 51
 
-#: The two predicates the ruling superseded, kept so the reading can say what moved.
-SUPERSEDED_SHIPPED = 161
-SUPERSEDED_EVIDENCE_MATCHED = 42
+#: Rows the gate refused because the attachment carries no form feed. Fewer than the 99 rows
+#: whose attachment is pageless, because a row whose work never came back within k, or whose
+#: evidence is not located in the export, fails before the page question is reached.
+ROWS_WITHOUT_PAGE_STRUCTURE = 67
 
 
 @pytest.fixture(scope="module")
@@ -71,8 +85,8 @@ def report() -> dict:
 
 
 @pytest.fixture(scope="module")
-def ruled(baseline_bundle, bank, export) -> dict:
-    return redstate.score_bundle_ruled(baseline_bundle, bank, export, 10)
+def ruled(report) -> dict:
+    return redstate.ruled_scores(report)
 
 
 # --------------------------------------------------------------------------- the arms
@@ -127,6 +141,54 @@ def test_build_patches_still_match_the_fork_source():
 # --------------------------------------------------------------------------- the ruled scores
 
 
+def test_the_harness_implements_no_scoring_of_its_own():
+    """The guard against the defect this rewrite fixed: a private copy of the ruled predicate.
+
+    `bench/redstate.py` once carried its own R34 — a `RuledScore` class with its own page
+    index, its own locate and its own intersection test — written in the window before
+    `golden_gate.py` had the ruling. On the very same replies bundle the two read 24 questions
+    differently, all 24 in the copy's favour. A red-state exercise scored by a private copy
+    proves the copy can go red.
+
+    So the harness must hold no page arithmetic. This is a source-level assertion because
+    that is where the defect lives: a behavioural test would pass right up until the copy
+    drifted, which is exactly what happened.
+    """
+
+    source = (REPO / "bench" / "redstate.py").read_text(encoding="utf-8")
+    forbidden = {
+        "\\f": "a form-feed literal means this file is finding page breaks itself",
+        "page_of(": "a page index of its own",
+        "page_range(": "a page range of its own",
+        "_ranges_intersect": "an intersection test of its own",
+        "class RuledScore": "the scorer that drifted",
+        "class PageIndex": "the page index that drifted",
+    }
+    found = [why for needle, why in forbidden.items() if needle in source]
+    assert not found, "bench/redstate.py has grown scoring again: " + "; ".join(found)
+
+
+def test_the_reading_is_the_gates_own_numbers(report, ruled):
+    """Every figure the harness reports must be the gate's, not a recomputation that agrees.
+
+    Two implementations that happen to agree today are still two implementations. This ties
+    the harness's headline numbers to the report fields they are lifted from, so a future
+    edit that starts computing instead of reading fails here rather than in six months.
+    """
+
+    official = report["readings"]["r34"]["official"]
+    accommodating = report["readings"]["r34"]["accommodating"]
+    assert ruled["official_present"] == official["satisfied"]
+    assert ruled["accommodating_present"] == accommodating["satisfied"]
+    assert ruled["scored_questions"] == official["question_count"] == report["scored_count"]
+    assert ruled["hits"] == official["page_reporting"]["hits"]
+    assert ruled["hits_carrying_a_page"] == official["page_reporting"]["carrying_a_page"]
+    for key, entry in ruled["questions"].items():
+        block = report["questions"][key]["r34"]
+        assert entry[redstate.OFFICIAL] == block["official"]["satisfied"]
+        assert entry[redstate.ACCOMMODATING] == block["accommodating"]["satisfied"]
+
+
 def test_no_hit_in_the_golden_run_carries_a_page(ruled):
     """The measurement the ruling rests on, held as a fixture rather than quoted.
 
@@ -140,103 +202,140 @@ def test_no_hit_in_the_golden_run_carries_a_page(ruled):
 
 def test_the_official_score_is_zero_and_says_why(ruled):
     assert ruled["scored_questions"] == SCORED
+    assert ruled["primary_rows"] == PRIMARY_ROWS
     assert ruled["official_present"] == OFFICIAL_PRESENT
     reasons = ruled["official_rows_by_reason"]
-    assert reasons.get("no-reported-page"), "the official zero must be attributed to the missing page"
-    assert "reported-page-outside-target" not in reasons, (
-        "a row refused for a page outside the target would mean some page WAS reported"
+    assert reasons.get("the reply reports no page"), (
+        "the official zero must be attributed to the missing page, not left unexplained"
     )
+    assert "satisfied" not in reasons, "no row can be satisfied while no hit carries a page"
+
+
+def _plant_a_page(bundle, bank, export, page_of_target, limit=3):
+    """Rewrite `limit` replies so each returns its own row's parent item, carrying a page.
+
+    The target is the *printed folio* the bank pins on an alternate, because that is what
+    R34's official reading compares a reported page against — not the form-feed index the
+    accommodating reading derives. Planting the derived index instead is how a first draft of
+    this control failed while the reading was correct.
+
+    `page_of_target` picks the page out of that folio set, so the caller decides whether the
+    planted page lands inside it or outside. Returns the doctored bundle and the keys touched.
+    """
+
+    doctored = copy.deepcopy(bundle)
+    planted = []
+    for reply in doctored["replies"]:
+        question = bank.get(reply["id"])
+        if not question or reply.get("results") is None or question["expected_miss"]:
+            continue
+        if not question["primary"]:
+            continue
+        row = question["primary"][0]
+        target: set[str] = set()
+        for alternate in row["alternates"]:
+            target |= golden_gate.page_set(alternate["page_printed"])
+        pages = sorted((int(page) for page in target if page.isdigit()))
+        if not pages:
+            continue
+        reply["results"] = [{
+            "rank": 1,
+            "item_key": export.parent_of.get(row["attachment_key"]),
+            "attachment_key": row["attachment_key"],
+            "work_id": row["work_id"],
+            "evidence": row["alternates"][0]["quote"],
+            "page": str(page_of_target(pages)),
+            "chain": {},
+            "score": 1.0,
+        }]
+        planted.append(f'{reply["id"]}/{reply["mode"]}')
+        if len(planted) >= limit:
+            break
+    return doctored, planted
 
 
 def test_the_official_score_counts_a_reply_that_does_carry_the_page(bank, export, baseline_bundle):
     """The positive control. A zero whose probe cannot see anything is not a finding.
 
-    One reply is rewritten to carry the right work and a page inside the target's derived
-    range. If the official score still reads zero, the score is broken rather than the
-    system, and every other assertion here would be worthless.
+    Three replies are rewritten to carry the right work and a page inside the target's range,
+    and the whole bundle goes back through `golden_gate.evaluate`. If the official score still
+    reads zero, the reading is broken rather than the system, and every other number in this
+    exercise would be worthless.
     """
 
-    scorer = redstate.RuledScore(export, bank, 10)
-    doctored = copy.deepcopy(baseline_bundle)
-    planted = 0
-    for reply in doctored["replies"]:
-        question = bank.get(reply["id"])
-        if not question or reply.get("results") is None or question["expected_miss"] or not question["pinned"]:
-            continue
-        row = question["pinned"][0]
-        target = scorer.target_ranges(row, question)
-        if not target["derived"]:
-            continue
-        parent = export.parent_of.get(row["attachment_key"])
-        low = target["derived"][0][0]
-        reply["results"] = [{
-            "rank": 1, "item_key": parent, "attachment_key": row["attachment_key"],
-            "work_id": row["work_id"], "evidence": None, "page": str(low),
-            "chain": {}, "score": 1.0,
-        }]
-        planted += 1
-        if planted >= 3:
-            break
+    thresholds = golden_gate.load_thresholds(SPEC)
+    questions = golden_gate.load_bank(BANK)
+    doctored, planted = _plant_a_page(baseline_bundle, bank, export, lambda pages: pages[0])
+    assert len(planted) == 3, "the control could not be planted; the fixture has moved"
 
-    assert planted == 3, "the control could not be planted; the fixture has moved"
-    after = redstate.score_bundle_ruled(doctored, bank, export, 10)
-    assert after["hits_carrying_a_page"] == planted
-    assert after["official_present"] == planted, (
-        "the official score did not count a reply that carries the right work and an "
-        "intersecting page — the score is broken, not the system"
+    after = redstate.ruled_scores(
+        golden_gate.evaluate(questions, load_replies(doctored), export, thresholds)
     )
+    assert after["hits_carrying_a_page"] == len(planted)
+    assert after["official_present"] == len(planted), (
+        "the official score did not count a reply carrying the right work and an intersecting "
+        "page — the reading is broken, not the system"
+    )
+    assert set(planted) <= redstate.present_set(after, redstate.OFFICIAL)
 
 
-def test_the_official_score_refuses_a_page_outside_the_target(bank, export, baseline_bundle):
+def test_the_official_score_refuses_a_page_far_outside_the_target(bank, export, baseline_bundle):
     """The discriminating half of the control above: it must be able to come out the other way."""
 
-    scorer = redstate.RuledScore(export, bank, 10)
-    doctored = copy.deepcopy(baseline_bundle)
-    planted = 0
-    for reply in doctored["replies"]:
-        question = bank.get(reply["id"])
-        if not question or reply.get("results") is None or question["expected_miss"] or not question["pinned"]:
-            continue
-        row = question["pinned"][0]
-        target = scorer.target_ranges(row, question)
-        if not target["derived"]:
-            continue
-        reply["results"] = [{
-            "rank": 1, "item_key": export.parent_of.get(row["attachment_key"]),
-            "attachment_key": row["attachment_key"], "work_id": row["work_id"], "evidence": None,
-            "page": str(target["derived"][0][1] + 500), "chain": {}, "score": 1.0,
-        }]
-        planted += 1
-        if planted >= 3:
-            break
-    after = redstate.score_bundle_ruled(doctored, bank, export, 10)
-    assert after["hits_carrying_a_page"] == planted
+    thresholds = golden_gate.load_thresholds(SPEC)
+    questions = golden_gate.load_bank(BANK)
+    doctored, planted = _plant_a_page(baseline_bundle, bank, export, lambda pages: pages[-1] + 500)
+    assert len(planted) == 3
+
+    after = redstate.ruled_scores(
+        golden_gate.evaluate(questions, load_replies(doctored), export, thresholds)
+    )
+    assert after["hits_carrying_a_page"] == len(planted), "the planted pages must still be reported"
     assert after["official_present"] == 0
+    assert after["official_rows_by_reason"].get(
+        "the reported page does not intersect the target's page range"
+    ), "a page was reported and refused, and the reason must say which of the two happened"
 
 
 def test_the_accommodating_score_reproduces_the_committed_reading(ruled):
     assert ruled["accommodating_present"] == ACCOMMODATING_PRESENT
 
 
-def test_the_accommodating_score_uses_both_intersection_paths(ruled):
-    """Pages where the export has them, character spans where §5.2.10 says it must.
+def test_pageless_attachments_bound_the_accommodating_score(ruled, bank, export):
+    """What the accommodating score cannot reach, counted rather than described.
 
-    Both paths must actually carry rows, or the reading would be quoting a mechanism that
-    never fires.
+    The ruled reading derives a page from the extraction's own form feeds, so a row in an
+    attachment that carries none cannot be satisfied under it at all. That is not a defect in
+    the arms and no arm can redden it; it is a standing ceiling, and one of the two readings
+    left for the author (verification/RED-STATE-0722.md, question 2).
+
+    Two counts, kept apart because they answer different questions: how many rows the gate
+    actually refused for pagelessness, and how many rows sit in a pageless attachment at all.
     """
 
-    paths = ruled["rows_by_intersection_path"]
-    assert paths.get("page"), "no row went through the page-intersection path"
-    assert paths.get("char"), "no row went through the character-span path"
+    assert ruled["rows_without_page_structure"] == ROWS_WITHOUT_PAGE_STRUCTURE
+    assert ruled["accommodating_rows_by_reason"][redstate.NO_PAGE_STRUCTURE] == ROWS_WITHOUT_PAGE_STRUCTURE
+
+    pageless_rows = sum(
+        export.page_span(row["attachment_key"], 0, 1) is None
+        for question in bank.values()
+        if not question["expected_miss"]
+        for row in question["primary"]
+    )
+    assert pageless_rows == 99
+    assert pageless_rows > ruled["rows_without_page_structure"], (
+        "a row can fail before the page question is reached, so the refusal count must be the "
+        "smaller of the two; if they were equal the distinction would not be being made"
+    )
 
 
 def test_the_cross_lingual_must_cells_have_almost_no_headroom_under_either_score(ruled):
-    """The measurement that shapes the whole reading, recomputed under the ruling.
+    """The measurement that shapes the whole reading.
 
-    The predecessor's table was computed under the superseded evidence-matched predicate.
-    Under the ruled scores the picture is the same in kind and worse in degree: the official
-    score floors every cell at zero, and the accommodating score leaves five of the six
-    cross-lingual MUST cells at zero with vi->en holding one question.
+    The official score floors every cell at zero, because no hit carries a page. The
+    accommodating score leaves five of the six cross-lingual MUST cells at zero and vi->en
+    holding one question. An arm cannot redden a cell that is already at the floor, and the
+    differ has to say so rather than counting it as a failure to reach.
     """
 
     present = redstate.present_set(ruled, redstate.ACCOMMODATING)
@@ -250,59 +349,26 @@ def test_the_cross_lingual_must_cells_have_almost_no_headroom_under_either_score
     assert not redstate.present_set(ruled, redstate.OFFICIAL)
 
 
-def test_the_superseded_predicates_are_still_readable_for_the_record(report):
-    """Reported so the artifact can say what the ruling moved; never gated on."""
+def test_the_twin_reading_actually_fires_on_this_bank(report):
+    """The judgement 'a twin is not the right work' is live, not hypothetical.
 
-    assert len(redstate.superseded_present_set(report, "shipped")) == SUPERSEDED_SHIPPED
-    assert len(redstate.superseded_present_set(report, "evidence-matched")) == SUPERSEDED_EVIDENCE_MATCHED
-
-
-def test_a_translation_twin_is_not_the_right_work(bank, export):
-    """SPEC §5.2.10 asserts the other-language rendering distinct; R34's reading follows it.
-
-    The superseded shipped predicate let the twin path count as present. The ruled scores
-    must not, or a cross-lingual question would pass on exactly the miss R29 exists to catch.
+    `golden_gate.py` owns the rule and `tests/test_golden_gate.py` tests it. What belongs
+    here is its *weight*: a judgement whose case never arises costs nothing to get wrong. On
+    the committed run the twin path carries the best row of several questions, so the reading
+    the author is asked to confirm is load-bearing.
     """
 
-    scorer = redstate.RuledScore(export, bank, 10)
-    twinned = [(work, twins) for work, twins in export.twin_works.items() if twins]
-    assert twinned, "the export declares no twin works; this control cannot fire"
-    work, twins = twinned[0]
-    other = sorted(twins)[0]
-    twin_items = sorted(export.items_of_work.get(other, set()))
-    assert twin_items, "the twin work holds no item"
-    attachment = next(key for key, parent in export.parent_of.items()
-                      if export.work_of_item.get(parent) == work)
-    row = {"attachment_key": attachment, "work_id": work}
-    assert not scorer.right_work(
-        {"item_key": twin_items[0], "attachment_key": None}, row
-    ), "a twin item counted as the right work"
-    assert scorer.right_work(
-        {"item_key": export.parent_of[attachment], "attachment_key": None}, row
-    ), "the answer's own item did not count as the right work"
-
-
-def test_page_ranges_intersect_rather_than_match():
-    """Intersection, not equality — the ruling's own words, and the reason for them."""
-
-    assert redstate._ranges_intersect((3, 4), (4, 5))
-    assert redstate._ranges_intersect((3, 3), (3, 3))
-    assert not redstate._ranges_intersect((3, 4), (5, 6))
-    assert not redstate._ranges_intersect(None, (5, 6))
-
-
-def test_a_page_index_reads_the_extractions_own_breaks(export):
-    """Form feeds are the page structure; an attachment without them has none."""
-
-    pages = redstate.PageIndex(export)
-    with_pages = [key for key in sorted(export.attachments) if pages.has_pages(key)]
-    without = [key for key in sorted(export.attachments) if not pages.has_pages(key)]
-    assert with_pages and without, "the export must exercise both branches or the split is untested"
-    key = with_pages[0]
-    breaks = pages.breaks(key)
-    assert pages.page_of(key, 0) == 1
-    assert pages.page_of(key, breaks[0] + 1) == 2
-    assert pages.page_of(key, breaks[-1] + 1) == len(breaks) + 1
+    carried = {
+        key
+        for key, entry in report["questions"].items()
+        if entry["state"] == "scored"
+        and any((row["evidence"] or {}).get("why") == "work-twin" for row in entry["rows"])
+    }
+    assert carried, "no question's row is carried by a twin; this reading would be untested weight"
+    for key in carried:
+        assert not report["questions"][key]["r34"]["official"]["satisfied"], (
+            "a twin satisfied R34's official reading, which the ruling excludes"
+        )
 
 
 # --------------------------------------------------------------------------- the differ

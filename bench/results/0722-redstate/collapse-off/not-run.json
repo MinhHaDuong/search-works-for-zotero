@@ -1,0 +1,33 @@
+{
+  "arm": "collapse-off",
+  "blocked_on": "build",
+  "control": false,
+  "kind": "build",
+  "letter": "F",
+  "notes": [
+    "This breaks what the BUILD does with renderings. What the SCORER does with twins (TWIN_RELATIONS, Export.is_twin) is a different clause and this arm proves nothing about it."
+  ],
+  "reason": "no replies bundle under bench/results/0722-redstate/collapse-off to re-score, and this is a build arm: producing one means patching fork/src and rebuilding, which needs a built server at fork/dist/index.js (`make upstream-checkout`, then `npm ci && npm run build` in fork/). No reply-level simulation stands in for it — a simulation is evidence about a stipulated reply distribution, not about a build.",
+  "state": "not-run",
+  "summary": "arm F: entry collapse disabled — the per-item de-duplication in the query path removed, so the top k fills with several passages of one item",
+  "target_lanes": [
+    "en->en",
+    "fr->fr",
+    "vi->vi",
+    "en->fr",
+    "en->vi",
+    "fr->en",
+    "fr->vi",
+    "vi->en",
+    "vi->fr"
+  ],
+  "target_mechanisms": [
+    "work-identity",
+    "declared-translation",
+    "same-text-different-format",
+    "metadata-conflicting-duplicate",
+    "near-duplicate-publication",
+    "multi-attachment-parent",
+    "compound-document-entries"
+  ]
+}

@@ -1,10 +1,13 @@
 {
   "arm": "semantic-off",
+  "blocked_on": "declared",
+  "control": false,
   "kind": "build",
   "letter": "B",
   "notes": [],
   "reason": "This arm cannot be run as a degradation because it IS the shipped baseline: the committed run is embedder 'none (keyword-only)', vectors 0, with semantic and hybrid written not-run. There is no semantic baseline to degrade from, so the positive control has to be built first — a vectors-on run — and only then is keyword-only the broken arm. Simulating 'semantic off' from a run that never had semantic on is circular. make_index_fixture.mjs refuses --embeddings != off in two places, so a vectors-on run has to drive bench/run_build.py directly with a model runtime; that is its own ticket.",
   "state": "not-run",
+  "summary": "arm B: the semantic path disabled, so the paraphrase questions should catch it",
   "target_lanes": [
     "en->en",
     "fr->fr",

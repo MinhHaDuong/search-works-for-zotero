@@ -25,10 +25,10 @@ Two scores, because the author ruled on 2026-09-07 (SPEC §5.2.10, DECISIONS.md)
 answer came back" means: the right work AND a page intersecting the target's page range,
 intersection rather than equality since either side may straddle a boundary.
 
-  official       reads the page the system itself reports. Of 1 928 hits across the golden
-                 run's 843 replies, NONE carries a page — the schema has the field and the
-                 engine never fills it — so this score is zero everywhere and every arm
-                 leaves it there. That is a true statement about a system R24 already
+  official       reads the page the system itself reports. Of the 1 928 hits across the
+                 golden run's 843 replies, NONE carries a page — the schema has the field
+                 and the engine never fills it — so this score is zero everywhere and every
+                 arm leaves it there. That is a true statement about a system R24 already
                  obliges to lead the reader to a page, not an arm's failure, and it is
                  ticket 0734's subject.
   accommodating  derives the page from where the returned evidence falls in the export,
@@ -37,10 +37,13 @@ intersection rather than equality since either side may straddle a boundary.
                  where this exercise's red-state finding lives, because it is the only one
                  of the two with any headroom to consume.
 
-Both are computed here from the replies bundle and the export. `golden_gate.py` still
-implements the predicate the ruling superseded and is not patched by this harness; the two
-superseded readings are reported beside the ruled ones so the artifact can say which numbers
-the ruling moved.
+**Neither score is implemented here.** Both are read out of `golden_gate.py`'s own report,
+which has owned the ruled predicate since PR #430 landed it. This harness holds no scoring
+of its own, and that is the point: a red-state exercise whose scorer is a private copy of
+the gate's proves the copy can go red, not the gate. When this file carried its own R34 it
+read 24 questions differently from the gate on the very same bundle — 22 of them a
+character-span substitution for pageless attachments the gate refuses outright — which is
+exactly the drift a second implementation is for. One predicate, one home.
 
 Subcommands: `list`, `run`, `read`.
 """
@@ -48,7 +51,6 @@ Subcommands: `list`, `run`, `read`.
 from __future__ import annotations
 
 import argparse
-import bisect
 import copy
 import dataclasses
 import gzip
@@ -57,7 +59,6 @@ import json
 import logging
 import os
 import random
-import re
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -67,8 +68,12 @@ from typing import Any, Callable
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from golden_gate import (  # noqa: E402
-    REPLIES_SCHEMA,
     CHAIN_FIELDS,
+    # The gate's own refusal for a row whose attachment carries no form feed. Imported,
+    # never retyped: rows are tallied by this string, and a copy would read zero the day
+    # the gate reworded it — the silent kind of wrong.
+    NO_PAGE_STRUCTURE,
+    REPLIES_SCHEMA,  # noqa: F401  — re-exported: the arms stamp bundles the scorer must accept
     Export,
     InputError,
     evaluate,
@@ -76,7 +81,6 @@ from golden_gate import (  # noqa: E402
     load_export,
     load_replies,
     load_thresholds,
-    normalise_text,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(message)s", stream=sys.stderr)
@@ -111,341 +115,8 @@ OFFICIAL = "official"
 ACCOMMODATING = "accommodating"
 PREDICATES = (OFFICIAL, ACCOMMODATING)
 
-#: The two predicates the review gate escalated on and the author's ruling superseded. Kept
-#: as names so the reading can say which numbers the ruling moved, never as a score this
-#: harness gates or recommends on.
-SUPERSEDED_PREDICATES = ("shipped", "evidence-matched")
-
-#: The extraction's own page break. Zotero's text layer separates pages with a form feed; an
-#: attachment whose content carries none has no page structure in the export, which §5.2.10
-#: already anticipates ("a file that has no pages … locates by character number instead").
-PAGE_BREAK = "\f"
-
-#: How far a snippet is trimmed back before locating it is given up on. A reply's evidence is
-#: a display window: it begins and ends mid-word and is elided with "…", so an exact find of
-#: the whole string fails on text that is genuinely there.
-_LOCATE_PREFIXES = (None, 120, 60, 30)
-
 
 # --------------------------------------------------------------------------- the ruled scores
-
-
-def _strip_window(text: str) -> str:
-    """A snippet's own elision marks, removed. Display furniture, not text."""
-
-    return text.strip().strip("…").strip(". ").strip()
-
-
-def _locate_span(needle: str, norm: str, origin: list[int]) -> tuple[int, int] | None:
-    """Raw (start, end) of `needle` in the raw text behind (`norm`, `origin`), or None.
-
-    Progressive trimming, because the caller's needle is usually a display window rather than
-    a quotation: a failed exact find is not evidence that the passage is absent.
-    """
-
-    if not needle:
-        return None
-    for width in _LOCATE_PREFIXES:
-        probe = needle if width is None else needle[:width]
-        if len(probe) < 12:
-            continue
-        at = norm.find(probe)
-        if at < 0:
-            continue
-        return origin[at], origin[min(at + len(probe), len(origin)) - 1]
-    return None
-
-
-def _ranges_intersect(left: tuple[int, int] | None, right: tuple[int, int] | None) -> bool:
-    """Non-empty overlap. The ruling's test, and the reason it is not equality."""
-
-    if left is None or right is None:
-        return False
-    return max(left[0], right[0]) <= min(left[1], right[1])
-
-
-def _parse_page(value: Any) -> tuple[int, int] | None:
-    """A page as reported or printed, read as a range. Roman folios are not read."""
-
-    if value is None:
-        return None
-    numbers = [int(found) for found in re.findall(r"\d+", str(value))]
-    if not numbers:
-        return None
-    return (min(numbers), max(numbers))
-
-
-class PageIndex:
-    """The export read as page breaks and normalised text, cached per attachment.
-
-    Both live here because they share one expensive object — the normalised copy of a
-    fulltext with its origin map. Normalising a 500 kB document per hit would be the entire
-    runtime of the accommodating score; there are 92 fulltext attachments against 1 928 hits,
-    so each is normalised once.
-    """
-
-    def __init__(self, export: Export):
-        self.export = export
-        self._norm: dict[str, tuple[str, list[int]] | None] = {}
-        self._breaks: dict[str, list[int] | None] = {}
-        self.attachments_of: dict[str, list[str]] = {}
-        for attachment_key, parent in export.parent_of.items():
-            self.attachments_of.setdefault(parent, []).append(attachment_key)
-        for keys in self.attachments_of.values():
-            keys.sort()
-
-    def _content(self, attachment_key: str) -> str | None:
-        if attachment_key not in self.export.attachments:
-            return None
-        try:
-            return self.export.fulltext(attachment_key)
-        except InputError:
-            return None
-
-    def normalised(self, attachment_key: str) -> tuple[str, list[int]] | None:
-        if attachment_key not in self._norm:
-            content = self._content(attachment_key)
-            self._norm[attachment_key] = None if content is None else normalise_text(content)
-        return self._norm[attachment_key]
-
-    def breaks(self, attachment_key: str) -> list[int] | None:
-        """Raw offsets of the page breaks, or None when the export carries no page structure."""
-
-        if attachment_key not in self._breaks:
-            content = self._content(attachment_key)
-            found = None if content is None else [i for i, ch in enumerate(content) if ch == PAGE_BREAK]
-            self._breaks[attachment_key] = found or None
-        return self._breaks[attachment_key]
-
-    def has_pages(self, attachment_key: str) -> bool:
-        return self.breaks(attachment_key) is not None
-
-    def page_of(self, attachment_key: str, offset: int) -> int | None:
-        found = self.breaks(attachment_key)
-        if found is None:
-            return None
-        return bisect.bisect_right(found, offset) + 1
-
-    def page_range(self, attachment_key: str, span: tuple[int, int] | None) -> tuple[int, int] | None:
-        if span is None:
-            return None
-        low, high = self.page_of(attachment_key, span[0]), self.page_of(attachment_key, span[1])
-        if low is None or high is None:
-            return None
-        return (min(low, high), max(low, high))
-
-    def locate(self, attachment_key: str, needle: str) -> tuple[int, int] | None:
-        pair = self.normalised(attachment_key)
-        if pair is None:
-            return None
-        norm_needle, _ = normalise_text(needle)
-        return _locate_span(_strip_window(norm_needle), pair[0], pair[1])
-
-
-class RuledScore:
-    """R34 as ruled on 2026-09-07: the right work, and an intersecting page.
-
-    Neither score is read off `golden_gate.py`, which still implements the predicate the
-    ruling superseded, so both are computed here from the replies bundle and the export. The
-    scorer stays untouched — updating it is ticket 0722's own business and not this
-    exercise's — and the ruling is applied somewhere it can be reviewed against its text.
-    """
-
-    def __init__(self, export: Export, bank: dict[str, dict[str, Any]], k: int):
-        self.export = export
-        self.bank = bank
-        self.k = k
-        self.pages = PageIndex(export)
-
-    # -- the work half -------------------------------------------------------
-
-    def right_work(self, result: dict[str, Any], row: dict[str, Any]) -> bool:
-        """"The work the answer sits in", in the export's own item vocabulary.
-
-        A translation twin is NOT the right work: §5.2.10 asserts the other-language
-        rendering distinct, and returning it in place of the answer paragraph is precisely
-        the miss R29 exists to catch. The ladder still scores it near-win; R34's reading is a
-        different question and the ruling did not merge them.
-        """
-
-        parent = self.export.parent_of.get(row["attachment_key"])
-        if result["item_key"] == parent:
-            return True
-        if result.get("attachment_key") and result["attachment_key"] == row["attachment_key"]:
-            return True
-        return self.export.work_of_item.get(result["item_key"]) == row["work_id"]
-
-    # -- the page half -------------------------------------------------------
-
-    def target_ranges(self, row: dict[str, Any], question: dict[str, Any]) -> dict[str, Any]:
-        """The target's page range, both as the bank printed it and as the export locates it."""
-
-        key = row["attachment_key"]
-        stamped = {
-            (stamp_row.get("attachment_key"), index): alternate
-            for stamp_row in (question.get("reachability") or {}).get("rows", [])
-            for index, alternate in enumerate(stamp_row.get("alternates", []))
-        }
-        printed: list[tuple[int, int]] = []
-        derived: list[tuple[int, int]] = []
-        spans: list[tuple[int, int]] = []
-        for index, alternate in enumerate(row["alternates"]):
-            folio = _parse_page(alternate.get("page_printed"))
-            if folio:
-                printed.append(folio)
-            span = None
-            offset = (stamped.get((key, index)) or {}).get("char_offset")
-            if isinstance(offset, int):
-                norm_quote, _ = normalise_text(alternate["quote"])
-                span = (offset, offset + max(len(norm_quote) - 1, 0))
-            if span is None:
-                span = self.pages.locate(key, alternate["quote"])
-            if span is None:
-                continue
-            spans.append(span)
-            page_range = self.pages.page_range(key, span)
-            if page_range:
-                derived.append(page_range)
-        return {
-            "attachment_key": key,
-            "has_page_structure": self.pages.has_pages(key),
-            "printed": printed,
-            "derived": derived,
-            "char_spans": spans,
-        }
-
-    def row_official(
-        self, row: dict[str, Any], results: list[dict[str, Any]], target: dict[str, Any]
-    ) -> dict[str, Any]:
-        """The official reading of one pinned row: the page the system itself reports.
-
-        Where a reply carries no page the question is not satisfied, and the ruling says why
-        that is a true statement about the system rather than a scoring artifact: R24 already
-        obliges a hit to lead to the page it came from.
-        """
-
-        wanted = target["printed"] or target["derived"]
-        work_hits = [result for result in results[: self.k] if self.right_work(result, row)]
-        for result in work_hits:
-            reported = _parse_page(result.get("page"))
-            if reported is not None and any(_ranges_intersect(reported, candidate) for candidate in wanted):
-                return {"satisfied": True, "rank": result["rank"], "page": result.get("page"),
-                        "why": "reported-page-intersects"}
-        if not work_hits:
-            why = "work-not-returned"
-        elif not any(_parse_page(result.get("page")) for result in work_hits):
-            why = "no-reported-page"
-        else:
-            why = "reported-page-outside-target"
-        return {"satisfied": False, "why": why}
-
-    def row_accommodating(
-        self, row: dict[str, Any], results: list[dict[str, Any]], target: dict[str, Any]
-    ) -> dict[str, Any]:
-        """The accommodating reading: the page derived from where the evidence falls.
-
-        NOT OFFICIAL. It exists so development has a signal while the engine reports no page;
-        it is labelled wherever it appears and no gate reads it.
-
-        Where the export carries no page structure for the attachment — an HTML or plain-text
-        file — §5.2.10 already says the answer locates by character number instead, so the
-        intersection is taken over character spans. That substitution is this harness's
-        reading of the clause, not a ruling, and it is counted apart in
-        `rows_by_intersection_path` so a reviewer can see how much rides on it.
-        """
-
-        key = target["attachment_key"]
-        path = "page" if target["has_page_structure"] else "char"
-        work_hits = [result for result in results[: self.k] if self.right_work(result, row)]
-        located = 0
-        for result in work_hits:
-            span = self.pages.locate(key, result.get("evidence") or "")
-            if span is None:
-                continue
-            located += 1
-            if path == "page":
-                if any(_ranges_intersect(self.pages.page_range(key, span), c) for c in target["derived"]):
-                    return {"satisfied": True, "rank": result["rank"], "path": path,
-                            "why": "derived-page-intersects"}
-            elif any(_ranges_intersect(span, c) for c in target["char_spans"]):
-                return {"satisfied": True, "rank": result["rank"], "path": path,
-                        "why": "char-span-intersects"}
-        if not work_hits:
-            why = "work-not-returned"
-        elif not located:
-            why = "no-evidence-located-in-the-export"
-        else:
-            why = "located-evidence-outside-target"
-        return {"satisfied": False, "path": path, "why": why}
-
-    # -- the question --------------------------------------------------------
-
-    def score_question(self, question: dict[str, Any], reply: dict[str, Any]) -> dict[str, Any]:
-        results = reply.get("results") or []
-        rows = []
-        for row in question["pinned"]:
-            target = self.target_ranges(row, question)
-            rows.append({
-                "attachment_key": row["attachment_key"],
-                "work_id": row["work_id"],
-                "has_page_structure": target["has_page_structure"],
-                "official": self.row_official(row, results, target),
-                "accommodating": self.row_accommodating(row, results, target),
-            })
-        combine = any if question["set_kind"] == "any-of" else all
-        return {
-            "lane": question["lane"],
-            "stratum": question["stratum"],
-            "signal": question["signal"],
-            "set_kind": question["set_kind"],
-            "facet": question["facet"],
-            "rows": rows,
-            OFFICIAL: bool(rows) and combine(row["official"]["satisfied"] for row in rows),
-            ACCOMMODATING: bool(rows) and combine(row["accommodating"]["satisfied"] for row in rows),
-        }
-
-
-def score_bundle_ruled(
-    bundle: dict[str, Any], bank: dict[str, dict[str, Any]], export: Export, k: int
-) -> dict[str, Any]:
-    """Both ruled scores over one replies bundle, with the diagnostics the reading needs.
-
-    `hits_carrying_a_page` is the positive control for the official score. Without it, "the
-    official score is zero" and "my page comparison is broken" are the same output.
-    """
-
-    scorer = RuledScore(export, bank, k)
-    per_question: dict[str, dict[str, Any]] = {}
-    hits = 0
-    hits_with_page = 0
-    for reply in bundle["replies"]:
-        question = bank.get(reply["id"])
-        if question is None or reply.get("results") is None:
-            continue
-        for result in reply["results"]:
-            hits += 1
-            if _parse_page(result.get("page")) is not None:
-                hits_with_page += 1
-        if question["expected_miss"] or not question["pinned"]:
-            continue
-        per_question[f"{reply['id']}/{reply['mode']}"] = scorer.score_question(question, reply)
-    paths = Counter(
-        row["accommodating"].get("path") for entry in per_question.values() for row in entry["rows"]
-    )
-    why_official = Counter(
-        row["official"].get("why") for entry in per_question.values() for row in entry["rows"]
-    )
-    return {
-        "ruling": "SPEC §5.2.10, ruled 2026-09-07: the right work and an intersecting page",
-        "questions": per_question,
-        "hits": hits,
-        "hits_carrying_a_page": hits_with_page,
-        "official_present": sum(1 for entry in per_question.values() if entry[OFFICIAL]),
-        "accommodating_present": sum(1 for entry in per_question.values() if entry[ACCOMMODATING]),
-        "scored_questions": len(per_question),
-        "rows_by_intersection_path": dict(sorted(paths.items(), key=lambda kv: str(kv[0]))),
-        "official_rows_by_reason": dict(sorted(why_official.items(), key=lambda kv: str(kv[0]))),
-    }
 
 
 def scored_entries(report: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -456,26 +127,69 @@ def expected_miss_entries(report: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return {key: entry for key, entry in report["questions"].items() if entry["state"] == "expected-miss"}
 
 
-def superseded_present_set(report: dict[str, Any], predicate: str) -> set[str]:
-    """The two predicates the ruling superseded, for the reading's before-and-after only.
+def ruled_scores(report: dict[str, Any]) -> dict[str, Any]:
+    """The two ruled scores of one run, lifted out of `golden_gate.py`'s own report.
 
-    Reported so the artifact can say which numbers the ruling moved. Never a score this
-    harness gates, ranks or recommends on.
+    Nothing is recomputed. `golden_gate.py` has owned the ruled R34 predicate since PR #430
+    (SPEC §5.2.10, ruled 2026-09-07), and the whole value of this harness is that it breaks
+    the product and re-scores through *that* scorer, unpatched. What this function does is
+    reshape the report's per-question `r34` block into the flat form the differ reads, and
+    tally the per-row reasons the reading needs.
+
+    `hits_carrying_a_page` is the official score's positive control, and it comes from the
+    gate too (`readings.r34.official.page_reporting`). Without it, "the official score is
+    zero" and "the page comparison is broken" are the same output.
     """
 
-    out = set()
-    for key, entry in scored_entries(report).items():
-        if predicate == "shipped":
-            present = bool(entry["r34_present"])
-        else:
-            hows = [
-                (row.get("evidence") or {}).get("how") in {"evidence-overlap", "printed-page"}
-                for row in entry["rows"]
-            ]
-            present = any(hows) if entry["set_kind"] == "any-of" else all(hows)
-        if present:
-            out.add(key)
-    return out
+    scored = scored_entries(report)
+    questions: dict[str, Any] = {}
+    official_reasons: Counter[str] = Counter()
+    accommodating_reasons: Counter[str] = Counter()
+    for key, entry in scored.items():
+        rows = []
+        for row in entry["rows"]:
+            official = row["r34"][OFFICIAL]
+            accommodating = row["r34"][ACCOMMODATING]
+            official_reasons[str(official["reason"] or "satisfied")] += 1
+            accommodating_reasons[str(accommodating["reason"] or "satisfied")] += 1
+            rows.append({
+                "work_id": row["work_id"],
+                "section": row["section"],
+                "attachment_key": row["attachment_key"],
+                OFFICIAL: official,
+                ACCOMMODATING: accommodating,
+            })
+        questions[key] = {
+            "lane": entry["lane"],
+            "stratum": entry["stratum"],
+            "signal": entry["signal"],
+            "set_kind": entry["set_kind"],
+            "facet": entry["facet"],
+            "rows": rows,
+            OFFICIAL: entry["r34"][OFFICIAL]["satisfied"],
+            ACCOMMODATING: entry["r34"][ACCOMMODATING]["satisfied"],
+        }
+    pages = report["readings"]["r34"][OFFICIAL].get("page_reporting") or {}
+    rows_total = sum(official_reasons.values())
+    pageless = accommodating_reasons.get(NO_PAGE_STRUCTURE, 0)
+    return {
+        "source": "golden_gate.py's report; this harness implements no scoring of its own",
+        "ruling": "SPEC §5.2.10, ruled 2026-09-07: the right work and an intersecting page",
+        "questions": questions,
+        "hits": pages.get("hits"),
+        "hits_carrying_a_page": pages.get("carrying_a_page"),
+        "official_present": sum(1 for entry in questions.values() if entry[OFFICIAL]),
+        "accommodating_present": sum(1 for entry in questions.values() if entry[ACCOMMODATING]),
+        "scored_questions": len(questions),
+        "primary_rows": rows_total,
+        # What bounds the accommodating score: a row whose attachment carries no form feed
+        # cannot be satisfied under the ruled reading at all. Reported as a count of rows,
+        # never as a substitute reading — the substitution is one of the two questions left
+        # for the author (verification/RED-STATE-0722.md).
+        "rows_without_page_structure": pageless,
+        "official_rows_by_reason": dict(sorted(official_reasons.items())),
+        "accommodating_rows_by_reason": dict(sorted(accommodating_reasons.items())),
+    }
 
 
 def present_set(ruled: dict[str, Any], predicate: str) -> set[str]:
@@ -583,9 +297,10 @@ ARMS: tuple[Arm, ...] = (
         ),
         notes=(
             "Anything that stays present under a global shuffle is a defect in the bank or in the scorer.",
-            "Under the ruled scores a twin no longer counts as the right work, so the raised floor the "
-            "superseded shipped predicate gave the work-twin path is gone; the superseded readings are "
-            "still reported beside the ruled ones so the difference is visible.",
+            "Under the ruled scores a twin no longer counts as the right work — the gate admits only the "
+            "row's own parent item or its own attachment — so the raised floor a work-identity match used "
+            "to give is gone. The ladder still scores a twin near-win, and the ladder is reported beside "
+            "R34 so the difference between the two questions stays visible.",
         ),
     ),
     Arm(
@@ -643,7 +358,7 @@ ARMS: tuple[Arm, ...] = (
         runnable=False,
         not_run_reason=(
             "The break is already the shipped default and so is not injectable: the run block's "
-            "embedder_model.build_default reads Xenova/all-MiniLM-L6-v2, parsed out of the build's own source, "
+            "embedder_model.build_default reads Xenova/all-MiniLM-L6-v2, parsed out of the build's own source, "  # model-id-literal: names the model the committed run measured, in prose about why this arm cannot run
             "which is English-only. The configuration that would have to be BUILT to make this comparison is "
             "the multilingual one, which needs the same vectors-on run arm B is blocked on. Under the "
             "official score of the 2026-09-07 ruling the six cross-lingual MUST cells read zero present "
@@ -668,8 +383,10 @@ ARMS: tuple[Arm, ...] = (
         notes=(
             "The ticket's declared target — 'the cap-crossing questions' — is wrong, and showing that is the "
             "point of running it. 35 of the 39 cap-naming questions are expected-miss, whose pass condition is "
-            "'no pinned row in the top k'; a smaller cap makes them GREENER, and expected-miss outcomes enter "
-            "no gated reading at all. The honest target is computed from the bank's own stamps: every scored "
+            "'no primary row in the top k'; a smaller cap makes them GREENER, and greener is the wrong "
+            "direction for a red-state arm — the negative controls do gate (golden_gate.evaluate reads "
+            "them alongside R34's official score and stability), so an arm that only improves them has "
+            "reddened nothing. The honest target is computed from the bank's own stamps: every scored "
             "question whose reachability char_offset exceeds the new cap. That set is written into delta.json "
             "as computed_target_questions.",
             "The run block will report index_fulltext_max_chars 40 000 from the export manifest, which the "
@@ -924,15 +641,25 @@ def _group(entries: dict[str, dict[str, Any]], axis: str) -> dict[str, list[str]
 def _mechanisms(question: dict[str, Any] | None) -> list[str]:
     if not question:
         return []
-    return list(question.get("mechanisms") or [])
+    return list(question.get("mechanism") or [])
 
 
 def _why(entry: dict[str, Any], predicate: str) -> str:
-    """Why a question is where it is, from its first unsatisfied row — or 'satisfied'."""
+    """Why a question is where it is: 'satisfied', or the first unsatisfied row's reason.
 
+    The question-level verdict is read first, because an `any-of` question can be satisfied
+    with unsatisfied rows beside the one that carried it — reporting one of those as the
+    reason would print a refusal under a question that passed.
+
+    The string is `golden_gate.py`'s own refusal reason, verbatim, so a reading of this
+    artifact and a reading of the gate's report cannot disagree about why a row failed.
+    """
+
+    if entry[predicate]:
+        return "satisfied"
     for row in entry["rows"]:
         if not row[predicate]["satisfied"]:
-            return str(row[predicate].get("why"))
+            return str(row[predicate].get("reason"))
     return "satisfied"
 
 
@@ -1048,22 +775,22 @@ def compute_delta(
         "must_cells_that_did_not_go_red": did_not_go_red,
         "hits_carrying_a_page": after_ruled["hits_carrying_a_page"],
         "hits": after_ruled["hits"],
-        "rows_by_intersection_path": after_ruled["rows_by_intersection_path"],
+        "primary_rows": after_ruled["primary_rows"],
+        "rows_without_page_structure": after_ruled["rows_without_page_structure"],
         "official_rows_by_reason": after_ruled["official_rows_by_reason"],
+        "accommodating_rows_by_reason": after_ruled["accommodating_rows_by_reason"],
         "expected_miss_flips": {name: keys for name, keys in sorted(flips.items()) if keys},
-        "expected_miss_note": "expected-miss outcomes are computed and reported and enter no gated reading: "
-                              "golden_gate.evaluate() takes the gate state from R34 and stability alone",
-        "superseded_predicates": {
-            name: {
-                "present_before": len(superseded_present_set(before_report, name)),
-                "present_after": len(superseded_present_set(after_report, name)),
-            }
-            for name in SUPERSEDED_PREDICATES
-        },
+        "expected_miss_note": "expected-miss outcomes are the negative controls; golden_gate.evaluate() gates on "
+                              "them alongside R34's official reading and stability",
         "gate_state_before": before_report["state"],
         "gate_state_after": after_report["state"],
-        "gate_note": "the gate state is golden_gate.py's, which still implements the superseded shipped "
-                     "predicate; the ruled scores above are computed by bench/redstate.py and no gate reads them yet",
+        "gate_note": "both scores above are golden_gate.py's own, read out of its report; bench/redstate.py "
+                     "implements no scoring and patches no scorer",
+        # The gate's own ladder, reported beside R34 and gating nothing. It is the only
+        # reading with headroom in every cell, so an arm that moves retrieval shows here
+        # even where R34's official score is pinned at zero by the engine's silence.
+        "ladder_before": before_report["ladder"]["all_strata_weighted"],
+        "ladder_after": after_report["ladder"]["all_strata_weighted"],
     }
     if extra:
         document.update(extra)
@@ -1226,8 +953,48 @@ def run_build_arm(
 # --------------------------------------------------------------------------- subcommands
 
 
-def _bank_by_id(bank_dir: Path) -> dict[str, dict[str, Any]]:
-    return {question["id"]: question for question in load_bank(bank_dir)}
+def _rel(path: Path) -> str:
+    """A path as the repository names it, so a committed artifact carries no checkout of mine.
+
+    These strings end up in `not-run.json` and in `matrix.txt`, both of which are committed
+    and read on other machines; an absolute path baked into one is a worktree name masquerading
+    as a fact about the repository.
+    """
+
+    try:
+        return str(Path(path).resolve().relative_to(REPO))
+    except ValueError:
+        return str(path)
+
+
+def write_not_run(out_dir: Path, arm: Arm, reason: str, *, blocked_on: str) -> Path:
+    """Record an arm that did not run, in the shape the matrix reads.
+
+    An arm with no artifact and an arm that came back green are the same row in a matrix that
+    only lists what it found, so every arm writes something. `blocked_on` says which of the
+    two kinds of absence this is: `declared` — the arm cannot be a degradation of this build
+    at all, which is a finding about the build; `build` — the arm is well-formed and needs a
+    built `fork/dist`, which is a fact about this machine.
+    """
+
+    document = {
+        "arm": arm.name,
+        "letter": arm.letter,
+        "kind": arm.kind,
+        "control": arm.control,
+        "state": "not-run",
+        "blocked_on": blocked_on,
+        "reason": reason,
+        "summary": arm.summary,
+        "target_lanes": list(arm.target_lanes),
+        "target_mechanisms": list(arm.target_mechanisms),
+        "notes": list(arm.notes),
+    }
+    log.info("arm %s: not-run (%s) — %s", arm.name, blocked_on, reason[:90])
+    # An arm that did not run this time cannot also have a current delta. Leaving an older
+    # one behind would let the matrix show a green row for an arm nothing measured.
+    (out_dir / "delta.json").unlink(missing_ok=True)
+    return _write_json(document, out_dir / "not-run.json")
 
 
 def cmd_list(args: argparse.Namespace) -> int:
@@ -1270,7 +1037,7 @@ def cmd_run(args: argparse.Namespace) -> int:
     bank = {question["id"]: question for question in questions}
     baseline_bundle = _read_json(args.baseline)
     baseline_report = score_bundle(baseline_bundle, questions, export, thresholds)
-    baseline_ruled = score_bundle_ruled(baseline_bundle, bank, export, thresholds.k)
+    baseline_ruled = ruled_scores(baseline_report)
     args.out.mkdir(parents=True, exist_ok=True)
     _write_json(baseline_report, args.out / "baseline-report.json", compress=True)
     _write_json(baseline_ruled, args.out / "baseline-ruled.json", compress=True)
@@ -1286,39 +1053,44 @@ def cmd_run(args: argparse.Namespace) -> int:
         out_dir = args.out / arm.name
         out_dir.mkdir(parents=True, exist_ok=True)
         if not arm.runnable:
-            _write_json(
-                {"arm": arm.name, "letter": arm.letter, "kind": arm.kind, "state": "not-run",
-                 "reason": arm.not_run_reason, "target_lanes": list(arm.target_lanes),
-                 "target_mechanisms": list(arm.target_mechanisms), "notes": list(arm.notes)},
-                out_dir / "not-run.json",
-            )
-            log.info("arm %s: not-run — %s", arm.name, (arm.not_run_reason or "")[:90])
+            write_not_run(out_dir, arm, arm.not_run_reason or "", blocked_on="declared")
             continue
         if args.rescore:
             # Re-derive the scores and the delta from an arm's already-committed replies
-            # bundle, without re-running it. Used when the *reading* changes — as the ruling
-            # of 2026-09-07 changed it — rather than the arm. A pure function of the artifact:
-            # it can neither rebuild nor conceal a rebuild, since the run block is untouched.
+            # bundle, without re-running it. Used when the *reading* changes — as the move
+            # of the ruled predicate into golden_gate.py changed it — rather than the arm.
+            # A pure function of the artifact: it can neither rebuild nor conceal a rebuild,
+            # since the run block is untouched.
             if not _gz(out_dir / "replies.json").exists():
-                log.warning("arm %s: --rescore with no committed replies bundle — skipped", arm.name)
+                write_not_run(
+                    out_dir, arm,
+                    f"no replies bundle under {_rel(out_dir)} to re-score, and this is a {arm.kind} arm: "
+                    f"producing one means patching fork/src and rebuilding, which needs a built server "
+                    f"at {_rel(args.server)} (`make upstream-checkout`, then `npm ci && npm run build` in "
+                    "fork/). No reply-level simulation stands in for it — a simulation is evidence "
+                    "about a stipulated reply distribution, not about a build.",
+                    blocked_on="build",
+                )
                 continue
             bundle = _read_json(out_dir / "replies.json")
         elif arm.kind == "reply":
             bundle = run_reply_arm(arm, baseline_bundle, export, args.seed)
         else:
             if not args.server.is_file():
-                log.warning("arm %s: no built server at %s — skipped", arm.name, args.server)
-                _write_json(
-                    {"arm": arm.name, "state": "not-run",
-                     "reason": f"no built server at {args.server}: run `make upstream-checkout` then "
-                               f"`npm ci && npm run build` in fork/"},
-                    out_dir / "not-run.json",
+                write_not_run(
+                    out_dir, arm,
+                    f"no built server at {_rel(args.server)}: run `make upstream-checkout` then "
+                    "`npm ci && npm run build` in fork/. This arm patches fork/src and rebuilds, so "
+                    "there is no way to run it without a built checkout, and no reply-level "
+                    "simulation stands in for it — a simulation is evidence about a stipulated reply "
+                    "distribution, not about a build.",
+                    blocked_on="build",
                 )
                 continue
             bundle = run_build_arm(arm, args.server, args.data_root, out_dir, args.seed,
                                    args.bank, args.export, args.recipe)
         report = score_bundle(bundle, questions, export, thresholds)
-        ruled = score_bundle_ruled(bundle, bank, export, thresholds.k)
+        ruled = ruled_scores(report)
         _write_json(bundle, out_dir / "replies.json", compress=True)
         _write_json(report, out_dir / "report.json", compress=True)
         _write_json(ruled, out_dir / "ruled.json", compress=True)
@@ -1343,6 +1115,9 @@ def cmd_run(args: argparse.Namespace) -> int:
             for predicate in PREDICATES
         }
         _write_json({"arm": arm.name, "scores": deltas}, out_dir / "delta.json")
+        # Symmetric to write_not_run's unlink: this arm did run, so any earlier not-run
+        # record beside its delta is stale and would make the matrix report both.
+        (out_dir / "not-run.json").unlink(missing_ok=True)
         for predicate in PREDICATES:
             document = deltas[predicate]
             log.info(
@@ -1362,13 +1137,26 @@ def _matrix(out: Path) -> dict[str, Any]:
         if delta_path.exists():
             rows[arm.name] = _read_json(delta_path)["scores"]
         elif not_run_path.exists():
-            rows[arm.name] = {"state": "not-run", "reason": _read_json(not_run_path).get("reason")}
+            record = _read_json(not_run_path)
+            rows[arm.name] = {
+                "state": "not-run",
+                "blocked_on": record.get("blocked_on"),
+                "reason": record.get("reason"),
+            }
+        else:
+            # Nothing on disk at all. Said plainly, because "this arm was never run here" and
+            # "this arm came back with nothing to report" are different findings.
+            rows[arm.name] = {"state": "no-artifact", "blocked_on": None,
+                              "reason": f"no delta.json and no not-run.json under {_rel(out / arm.name)}"}
     return rows
 
 
 def cmd_read(args: argparse.Namespace) -> int:
     rows = _matrix(args.out)
-    if not rows:
+    if all(row.get("state") == "no-artifact" for row in rows.values()):
+        # Every arm absent means the directory holds no run at all, which is a different
+        # answer from "the arms ran and found nothing" — and the caller has to be able to
+        # tell them apart from the exit code alone.
         print(f"redstate: nothing under {args.out}", file=sys.stderr)
         return 3
     for predicate in PREDICATES:
@@ -1379,7 +1167,8 @@ def cmd_read(args: argparse.Namespace) -> int:
         for name, row in rows.items():
             arm = ARMS_BY_NAME[name]
             if "state" in row:
-                print(f"{name:22s} {arm.kind:6s} {'not-run':>15s} {'—':>7s}  {row['reason'][:60] if row.get('reason') else ''}")
+                state = f"{row['state']}[{row.get('blocked_on') or '?'}]"
+                print(f"{name:22s} {arm.kind:6s} {state:>15s} {'—':>7s}  {(row.get('reason') or '')[:60]}")
                 continue
             document = row[predicate]
             present = f"{document['present_before']} -> {document['present_after']}"

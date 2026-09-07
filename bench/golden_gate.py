@@ -97,6 +97,11 @@ CHAIN_FIELDS = (
 TWIN_RELATIONS = frozenset({"translation", "same-work"})
 QUESTION_ID = re.compile(r"^q-\d{4,}$")
 EVIDENCE_OVERLAP_MIN = 0.5
+
+#: The accommodating reading's refusal for a row whose attachment carries no form feed.
+#: Named rather than inlined because `bench/redstate.py` tallies rows by this reason, and a
+#: reason string retyped in a second file is a silent zero the day the wording here changes.
+NO_PAGE_STRUCTURE = "the extraction wrote no page break for this attachment: no page can be derived"
 WORK_ID_LINE = re.compile(r"^ticket-0029 work id:\s*(.+?)\s*$", re.MULTILINE)
 WORK_RELATIONS_LINE = re.compile(r"^ticket-0029 work relations:\s*(.+?)\s*$", re.MULTILINE)
 
@@ -1100,7 +1105,7 @@ def accommodating_page_verdict(result: dict[str, Any], row: dict[str, Any], expo
     reported_span = export.page_span(key, *evidence_span)
     if reported_span is None:
         return _unsatisfied(
-            "accommodating", "the extraction wrote no page break for this attachment: no page can be derived"
+            "accommodating", NO_PAGE_STRUCTURE
         )
     reported = {str(page) for page in range(reported_span[0], reported_span[1] + 1)}
     target: set[str] = set()

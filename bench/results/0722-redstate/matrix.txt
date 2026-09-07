@@ -3,23 +3,27 @@
 arm                    kind           present   delta  MUST cells that did not go red
 null-reply             reply           0 -> 0      +0  none
 control-build          build           0 -> 0      +0  none
+global-shuffle         build   not-run[build]       —  no replies bundle under bench/results/0722-redstate/global-s
 global-shuffle-sim     reply           0 -> 0      +0  en->en[no-headroom], fr->fr[no-headroom], vi->vi[no-headroom], en->fr[no-headroom], en->vi[no-headroom], fr->en[no-headroom], fr->vi[no-headroom], vi->en[no-headroom], vi->fr[no-headroom]
-semantic-off           build          not-run       —  This arm cannot be run as a degradation because it IS the sh
-lexical-off            build          not-run       —  Blocked on arm B's prerequisite (no vectors exist in the off
-english-embedder       build          not-run       —  The break is already the shipped default and so is not injec
+semantic-off           build  not-run[declared]       —  This arm cannot be run as a degradation because it IS the sh
+lexical-off            build  not-run[declared]       —  Blocked on arm B's prerequisite (no vectors exist in the off
+english-embedder       build  not-run[declared]       —  The break is already the shipped default and so is not injec
 index-cap              build           0 -> 0      +0  en->en[no-headroom], fr->fr[no-headroom], vi->vi[no-headroom], en->fr[no-headroom], en->vi[no-headroom], fr->en[no-headroom], fr->vi[no-headroom], vi->en[no-headroom], vi->fr[no-headroom]
+collapse-off           build   not-run[build]       —  no replies bundle under bench/results/0722-redstate/collapse
 collapse-off-sim       reply           0 -> 0      +0  en->en[no-headroom], fr->fr[no-headroom], vi->vi[no-headroom], en->fr[no-headroom], en->vi[no-headroom], fr->en[no-headroom], fr->vi[no-headroom], vi->en[no-headroom], vi->fr[no-headroom]
 
 === score: accommodating (NOT OFFICIAL — no gate reads this score) ===
 arm                    kind           present   delta  MUST cells that did not go red
-null-reply             reply         75 -> 75      +0  none
-control-build          build         75 -> 75      +0  none
-global-shuffle-sim     reply          75 -> 0     -75  en->fr[no-headroom], en->vi[no-headroom], fr->en[no-headroom], fr->vi[no-headroom], vi->fr[no-headroom]
-semantic-off           build          not-run       —  This arm cannot be run as a degradation because it IS the sh
-lexical-off            build          not-run       —  Blocked on arm B's prerequisite (no vectors exist in the off
-english-embedder       build          not-run       —  The break is already the shipped default and so is not injec
-index-cap              build         75 -> 22     -53  en->fr[no-headroom], en->vi[no-headroom], fr->en[no-headroom], fr->vi[no-headroom], vi->fr[no-headroom]
-collapse-off-sim       reply         75 -> 75      +0  en->en[not-reached], fr->fr[not-reached], vi->vi[not-reached], en->fr[no-headroom], en->vi[no-headroom], fr->en[no-headroom], fr->vi[no-headroom], vi->en[not-reached], vi->fr[no-headroom]
+null-reply             reply         51 -> 51      +0  none
+control-build          build         51 -> 51      +0  none
+global-shuffle         build   not-run[build]       —  no replies bundle under bench/results/0722-redstate/global-s
+global-shuffle-sim     reply          51 -> 0     -51  en->fr[no-headroom], en->vi[no-headroom], fr->en[no-headroom], fr->vi[no-headroom], vi->fr[no-headroom]
+semantic-off           build  not-run[declared]       —  This arm cannot be run as a degradation because it IS the sh
+lexical-off            build  not-run[declared]       —  Blocked on arm B's prerequisite (no vectors exist in the off
+english-embedder       build  not-run[declared]       —  The break is already the shipped default and so is not injec
+index-cap              build         51 -> 14     -37  en->fr[no-headroom], en->vi[no-headroom], fr->en[no-headroom], fr->vi[no-headroom], vi->fr[no-headroom]
+collapse-off           build   not-run[build]       —  no replies bundle under bench/results/0722-redstate/collapse
+collapse-off-sim       reply         51 -> 52      +1  en->en[not-reached], fr->fr[not-reached], vi->vi[not-reached], en->fr[no-headroom], en->vi[no-headroom], fr->en[no-headroom], fr->vi[no-headroom], vi->en[not-reached], vi->fr[no-headroom]
 
 Hits carrying a page, per arm — the positive control for the official score. Where this is 0 the official score cannot distinguish anything, and its zero is the engine's silence, not an arm's failure (ticket 0734):
     null-reply             0/1928
@@ -32,20 +36,20 @@ MUST cells, per arm, per score (n beside every count; a cell under n=5 prints no
 
   null-reply
     official         en->en 0->0/n=56  fr->fr 0->0/n=19  vi->vi 0->0/n=33  en->fr 0->0/n=4  en->vi 0->0/n=8  fr->en 0->0/n=10  fr->vi 0->0/n=7  vi->en 0->0/n=11  vi->fr 0->0/n=2
-    accommodating    en->en 38->38/n=56  fr->fr 10->10/n=19  vi->vi 11->11/n=33  en->fr 0->0/n=4  en->vi 0->0/n=8  fr->en 0->0/n=10  fr->vi 0->0/n=7  vi->en 1->1/n=11  vi->fr 0->0/n=2
+    accommodating    en->en 29->29/n=56  fr->fr 10->10/n=19  vi->vi 5->5/n=33  en->fr 0->0/n=4  en->vi 0->0/n=8  fr->en 0->0/n=10  fr->vi 0->0/n=7  vi->en 1->1/n=11  vi->fr 0->0/n=2
 
   control-build
     official         en->en 0->0/n=56  fr->fr 0->0/n=19  vi->vi 0->0/n=33  en->fr 0->0/n=4  en->vi 0->0/n=8  fr->en 0->0/n=10  fr->vi 0->0/n=7  vi->en 0->0/n=11  vi->fr 0->0/n=2
-    accommodating    en->en 38->38/n=56  fr->fr 10->10/n=19  vi->vi 11->11/n=33  en->fr 0->0/n=4  en->vi 0->0/n=8  fr->en 0->0/n=10  fr->vi 0->0/n=7  vi->en 1->1/n=11  vi->fr 0->0/n=2
+    accommodating    en->en 29->29/n=56  fr->fr 10->10/n=19  vi->vi 5->5/n=33  en->fr 0->0/n=4  en->vi 0->0/n=8  fr->en 0->0/n=10  fr->vi 0->0/n=7  vi->en 1->1/n=11  vi->fr 0->0/n=2
 
   global-shuffle-sim
     official         en->en 0->0/n=56  fr->fr 0->0/n=19  vi->vi 0->0/n=33  en->fr 0->0/n=4  en->vi 0->0/n=8  fr->en 0->0/n=10  fr->vi 0->0/n=7  vi->en 0->0/n=11  vi->fr 0->0/n=2
-    accommodating    en->en 38->0/n=56  fr->fr 10->0/n=19  vi->vi 11->0/n=33  en->fr 0->0/n=4  en->vi 0->0/n=8  fr->en 0->0/n=10  fr->vi 0->0/n=7  vi->en 1->0/n=11  vi->fr 0->0/n=2
+    accommodating    en->en 29->0/n=56  fr->fr 10->0/n=19  vi->vi 5->0/n=33  en->fr 0->0/n=4  en->vi 0->0/n=8  fr->en 0->0/n=10  fr->vi 0->0/n=7  vi->en 1->0/n=11  vi->fr 0->0/n=2
 
   index-cap
     official         en->en 0->0/n=56  fr->fr 0->0/n=19  vi->vi 0->0/n=33  en->fr 0->0/n=4  en->vi 0->0/n=8  fr->en 0->0/n=10  fr->vi 0->0/n=7  vi->en 0->0/n=11  vi->fr 0->0/n=2
-    accommodating    en->en 38->10/n=56  fr->fr 10->0/n=19  vi->vi 11->7/n=33  en->fr 0->0/n=4  en->vi 0->0/n=8  fr->en 0->0/n=10  fr->vi 0->0/n=7  vi->en 1->0/n=11  vi->fr 0->0/n=2
+    accommodating    en->en 29->8/n=56  fr->fr 10->0/n=19  vi->vi 5->3/n=33  en->fr 0->0/n=4  en->vi 0->0/n=8  fr->en 0->0/n=10  fr->vi 0->0/n=7  vi->en 1->0/n=11  vi->fr 0->0/n=2
 
   collapse-off-sim
     official         en->en 0->0/n=56  fr->fr 0->0/n=19  vi->vi 0->0/n=33  en->fr 0->0/n=4  en->vi 0->0/n=8  fr->en 0->0/n=10  fr->vi 0->0/n=7  vi->en 0->0/n=11  vi->fr 0->0/n=2
-    accommodating    en->en 38->38/n=56  fr->fr 10->10/n=19  vi->vi 11->11/n=33  en->fr 0->0/n=4  en->vi 0->0/n=8  fr->en 0->0/n=10  fr->vi 0->0/n=7  vi->en 1->2/n=11  vi->fr 0->0/n=2
+    accommodating    en->en 29->29/n=56  fr->fr 10->10/n=19  vi->vi 5->5/n=33  en->fr 0->0/n=4  en->vi 0->0/n=8  fr->en 0->0/n=10  fr->vi 0->0/n=7  vi->en 1->2/n=11  vi->fr 0->0/n=2
