@@ -1,0 +1,747 @@
+{
+  "ticket": "tickets/0733-set-the-minimum-question-count-per-must.erg",
+  "probe": "bench/bank_cells.py",
+  "bank": {
+    "schema": "menagerie-bank/v3",
+    "questions": 281,
+    "retrieval": 195,
+    "expected_miss": 86,
+    "modes_declared": {
+      "any": 281
+    }
+  },
+  "must_cells": {
+    "en->en": {
+      "bank": 94,
+      "retrieval": 56,
+      "expected_miss": 38,
+      "by_stratum": {
+        "core": {
+          "bank": 79,
+          "retrieval": 53
+        },
+        "reserve": {
+          "bank": 15,
+          "retrieval": 3
+        }
+      },
+      "by_mode": {
+        "any": 94
+      },
+      "by_mode_retrieval": {
+        "any": 56
+      },
+      "by_signal": {
+        "agreement": 14,
+        "exact": 75,
+        "paraphrase": 5
+      },
+      "by_facet": {
+        "core": 87,
+        "deep-body": 7
+      }
+    },
+    "en->fr": {
+      "bank": 4,
+      "retrieval": 4,
+      "expected_miss": 0,
+      "by_stratum": {
+        "core": {
+          "bank": 4,
+          "retrieval": 4
+        },
+        "reserve": {
+          "bank": 0,
+          "retrieval": 0
+        }
+      },
+      "by_mode": {
+        "any": 4
+      },
+      "by_mode_retrieval": {
+        "any": 4
+      },
+      "by_signal": {
+        "exact": 1,
+        "paraphrase": 3
+      },
+      "by_facet": {
+        "core": 4
+      }
+    },
+    "en->vi": {
+      "bank": 10,
+      "retrieval": 8,
+      "expected_miss": 2,
+      "by_stratum": {
+        "core": {
+          "bank": 8,
+          "retrieval": 8
+        },
+        "reserve": {
+          "bank": 2,
+          "retrieval": 0
+        }
+      },
+      "by_mode": {
+        "any": 10
+      },
+      "by_mode_retrieval": {
+        "any": 8
+      },
+      "by_signal": {
+        "agreement": 1,
+        "exact": 1,
+        "paraphrase": 8
+      },
+      "by_facet": {
+        "core": 9,
+        "group": 1
+      }
+    },
+    "fr->en": {
+      "bank": 12,
+      "retrieval": 10,
+      "expected_miss": 2,
+      "by_stratum": {
+        "core": {
+          "bank": 12,
+          "retrieval": 10
+        },
+        "reserve": {
+          "bank": 0,
+          "retrieval": 0
+        }
+      },
+      "by_mode": {
+        "any": 12
+      },
+      "by_mode_retrieval": {
+        "any": 10
+      },
+      "by_signal": {
+        "exact": 1,
+        "paraphrase": 11
+      },
+      "by_facet": {
+        "core": 12
+      }
+    },
+    "fr->fr": {
+      "bank": 32,
+      "retrieval": 19,
+      "expected_miss": 13,
+      "by_stratum": {
+        "core": {
+          "bank": 21,
+          "retrieval": 19
+        },
+        "reserve": {
+          "bank": 11,
+          "retrieval": 0
+        }
+      },
+      "by_mode": {
+        "any": 32
+      },
+      "by_mode_retrieval": {
+        "any": 19
+      },
+      "by_signal": {
+        "agreement": 4,
+        "exact": 25,
+        "paraphrase": 3
+      },
+      "by_facet": {
+        "core": 32
+      }
+    },
+    "fr->vi": {
+      "bank": 7,
+      "retrieval": 7,
+      "expected_miss": 0,
+      "by_stratum": {
+        "core": {
+          "bank": 7,
+          "retrieval": 7
+        },
+        "reserve": {
+          "bank": 0,
+          "retrieval": 0
+        }
+      },
+      "by_mode": {
+        "any": 7
+      },
+      "by_mode_retrieval": {
+        "any": 7
+      },
+      "by_signal": {
+        "exact": 1,
+        "paraphrase": 6
+      },
+      "by_facet": {
+        "core": 6,
+        "group": 1
+      }
+    },
+    "vi->en": {
+      "bank": 13,
+      "retrieval": 11,
+      "expected_miss": 2,
+      "by_stratum": {
+        "core": {
+          "bank": 13,
+          "retrieval": 11
+        },
+        "reserve": {
+          "bank": 0,
+          "retrieval": 0
+        }
+      },
+      "by_mode": {
+        "any": 13
+      },
+      "by_mode_retrieval": {
+        "any": 11
+      },
+      "by_signal": {
+        "paraphrase": 13
+      },
+      "by_facet": {
+        "core": 12,
+        "deep-body": 1
+      }
+    },
+    "vi->fr": {
+      "bank": 2,
+      "retrieval": 2,
+      "expected_miss": 0,
+      "by_stratum": {
+        "core": {
+          "bank": 2,
+          "retrieval": 2
+        },
+        "reserve": {
+          "bank": 0,
+          "retrieval": 0
+        }
+      },
+      "by_mode": {
+        "any": 2
+      },
+      "by_mode_retrieval": {
+        "any": 2
+      },
+      "by_signal": {
+        "exact": 1,
+        "paraphrase": 1
+      },
+      "by_facet": {
+        "core": 2
+      }
+    },
+    "vi->vi": {
+      "bank": 45,
+      "retrieval": 33,
+      "expected_miss": 12,
+      "by_stratum": {
+        "core": {
+          "bank": 29,
+          "retrieval": 29
+        },
+        "reserve": {
+          "bank": 16,
+          "retrieval": 4
+        }
+      },
+      "by_mode": {
+        "any": 45
+      },
+      "by_mode_retrieval": {
+        "any": 33
+      },
+      "by_signal": {
+        "agreement": 4,
+        "exact": 33,
+        "paraphrase": 8
+      },
+      "by_facet": {
+        "core": 42,
+        "group": 3
+      }
+    }
+  },
+  "non_must_cells": {
+    "ar->ar": {
+      "bank": 7,
+      "retrieval": 4,
+      "expected_miss": 3,
+      "by_stratum": {
+        "core": {
+          "bank": 2,
+          "retrieval": 2
+        },
+        "reserve": {
+          "bank": 5,
+          "retrieval": 2
+        }
+      },
+      "by_mode": {
+        "any": 7
+      },
+      "by_mode_retrieval": {
+        "any": 4
+      },
+      "by_signal": {
+        "exact": 7
+      },
+      "by_facet": {
+        "core": 4,
+        "deep-body": 3
+      }
+    },
+    "de->de": {
+      "bank": 8,
+      "retrieval": 4,
+      "expected_miss": 4,
+      "by_stratum": {
+        "core": {
+          "bank": 4,
+          "retrieval": 4
+        },
+        "reserve": {
+          "bank": 4,
+          "retrieval": 0
+        }
+      },
+      "by_mode": {
+        "any": 8
+      },
+      "by_mode_retrieval": {
+        "any": 4
+      },
+      "by_signal": {
+        "exact": 8
+      },
+      "by_facet": {
+        "core": 8
+      }
+    },
+    "en->ar": {
+      "bank": 3,
+      "retrieval": 2,
+      "expected_miss": 1,
+      "by_stratum": {
+        "core": {
+          "bank": 2,
+          "retrieval": 2
+        },
+        "reserve": {
+          "bank": 1,
+          "retrieval": 0
+        }
+      },
+      "by_mode": {
+        "any": 3
+      },
+      "by_mode_retrieval": {
+        "any": 2
+      },
+      "by_signal": {
+        "paraphrase": 3
+      },
+      "by_facet": {
+        "core": 2,
+        "deep-body": 1
+      }
+    },
+    "en->de": {
+      "bank": 1,
+      "retrieval": 1,
+      "expected_miss": 0,
+      "by_stratum": {
+        "core": {
+          "bank": 1,
+          "retrieval": 1
+        },
+        "reserve": {
+          "bank": 0,
+          "retrieval": 0
+        }
+      },
+      "by_mode": {
+        "any": 1
+      },
+      "by_mode_retrieval": {
+        "any": 1
+      },
+      "by_signal": {
+        "paraphrase": 1
+      },
+      "by_facet": {
+        "core": 1
+      }
+    },
+    "en->es": {
+      "bank": 1,
+      "retrieval": 1,
+      "expected_miss": 0,
+      "by_stratum": {
+        "core": {
+          "bank": 1,
+          "retrieval": 1
+        },
+        "reserve": {
+          "bank": 0,
+          "retrieval": 0
+        }
+      },
+      "by_mode": {
+        "any": 1
+      },
+      "by_mode_retrieval": {
+        "any": 1
+      },
+      "by_signal": {
+        "exact": 1
+      },
+      "by_facet": {
+        "core": 1
+      }
+    },
+    "en->hi": {
+      "bank": 3,
+      "retrieval": 2,
+      "expected_miss": 1,
+      "by_stratum": {
+        "core": {
+          "bank": 2,
+          "retrieval": 2
+        },
+        "reserve": {
+          "bank": 1,
+          "retrieval": 0
+        }
+      },
+      "by_mode": {
+        "any": 3
+      },
+      "by_mode_retrieval": {
+        "any": 2
+      },
+      "by_signal": {
+        "paraphrase": 3
+      },
+      "by_facet": {
+        "core": 2,
+        "deep-body": 1
+      }
+    },
+    "en->ru": {
+      "bank": 4,
+      "retrieval": 4,
+      "expected_miss": 0,
+      "by_stratum": {
+        "core": {
+          "bank": 2,
+          "retrieval": 2
+        },
+        "reserve": {
+          "bank": 2,
+          "retrieval": 2
+        }
+      },
+      "by_mode": {
+        "any": 4
+      },
+      "by_mode_retrieval": {
+        "any": 4
+      },
+      "by_signal": {
+        "agreement": 1,
+        "paraphrase": 3
+      },
+      "by_facet": {
+        "core": 4
+      }
+    },
+    "en->zh": {
+      "bank": 2,
+      "retrieval": 2,
+      "expected_miss": 0,
+      "by_stratum": {
+        "core": {
+          "bank": 2,
+          "retrieval": 2
+        },
+        "reserve": {
+          "bank": 0,
+          "retrieval": 0
+        }
+      },
+      "by_mode": {
+        "any": 2
+      },
+      "by_mode_retrieval": {
+        "any": 2
+      },
+      "by_signal": {
+        "paraphrase": 2
+      },
+      "by_facet": {
+        "core": 2
+      }
+    },
+    "es->es": {
+      "bank": 5,
+      "retrieval": 5,
+      "expected_miss": 0,
+      "by_stratum": {
+        "core": {
+          "bank": 5,
+          "retrieval": 5
+        },
+        "reserve": {
+          "bank": 0,
+          "retrieval": 0
+        }
+      },
+      "by_mode": {
+        "any": 5
+      },
+      "by_mode_retrieval": {
+        "any": 5
+      },
+      "by_signal": {
+        "exact": 4,
+        "paraphrase": 1
+      },
+      "by_facet": {
+        "core": 5
+      }
+    },
+    "hi->hi": {
+      "bank": 6,
+      "retrieval": 3,
+      "expected_miss": 3,
+      "by_stratum": {
+        "core": {
+          "bank": 2,
+          "retrieval": 2
+        },
+        "reserve": {
+          "bank": 4,
+          "retrieval": 1
+        }
+      },
+      "by_mode": {
+        "any": 6
+      },
+      "by_mode_retrieval": {
+        "any": 3
+      },
+      "by_signal": {
+        "exact": 6
+      },
+      "by_facet": {
+        "core": 3,
+        "deep-body": 3
+      }
+    },
+    "ru->ru": {
+      "bank": 10,
+      "retrieval": 7,
+      "expected_miss": 3,
+      "by_stratum": {
+        "core": {
+          "bank": 5,
+          "retrieval": 4
+        },
+        "reserve": {
+          "bank": 5,
+          "retrieval": 3
+        }
+      },
+      "by_mode": {
+        "any": 10
+      },
+      "by_mode_retrieval": {
+        "any": 7
+      },
+      "by_signal": {
+        "exact": 9,
+        "paraphrase": 1
+      },
+      "by_facet": {
+        "core": 8,
+        "group": 1,
+        "notes": 1
+      }
+    },
+    "vi->zh": {
+      "bank": 1,
+      "retrieval": 1,
+      "expected_miss": 0,
+      "by_stratum": {
+        "core": {
+          "bank": 1,
+          "retrieval": 1
+        },
+        "reserve": {
+          "bank": 0,
+          "retrieval": 0
+        }
+      },
+      "by_mode": {
+        "any": 1
+      },
+      "by_mode_retrieval": {
+        "any": 1
+      },
+      "by_signal": {
+        "paraphrase": 1
+      },
+      "by_facet": {
+        "core": 1
+      }
+    },
+    "zh->zh": {
+      "bank": 11,
+      "retrieval": 9,
+      "expected_miss": 2,
+      "by_stratum": {
+        "core": {
+          "bank": 7,
+          "retrieval": 7
+        },
+        "reserve": {
+          "bank": 4,
+          "retrieval": 2
+        }
+      },
+      "by_mode": {
+        "any": 11
+      },
+      "by_mode_retrieval": {
+        "any": 9
+      },
+      "by_signal": {
+        "exact": 8,
+        "paraphrase": 3
+      },
+      "by_facet": {
+        "core": 11
+      }
+    }
+  },
+  "totals": {
+    "must_bank": 219,
+    "must_retrieval": 150,
+    "non_must_bank": 62,
+    "non_must_retrieval": 45
+  },
+  "unevenness": {
+    "bank": {
+      "cells": 9,
+      "total": 219,
+      "min": 2,
+      "max": 94,
+      "median": 12,
+      "max_over_min": 47.0,
+      "gini": 0.5520040588533739,
+      "mean_if_flat": 24.333333333333332
+    },
+    "retrieval": {
+      "cells": 9,
+      "total": 150,
+      "min": 2,
+      "max": 56,
+      "median": 10,
+      "max_over_min": 28.0,
+      "gini": 0.4888888888888889,
+      "mean_if_flat": 16.666666666666668
+    }
+  },
+  "cross_check": {
+    "source": "bench/results/golden/report.json",
+    "report_schema": "golden-gate-report/v3",
+    "gate_scored_total": 195,
+    "bank_retrieval_total": 195,
+    "per_must_cell": {
+      "en->en": {
+        "bank_retrieval": 56,
+        "gate_scored": 56,
+        "difference": 0
+      },
+      "en->fr": {
+        "bank_retrieval": 4,
+        "gate_scored": 4,
+        "difference": 0
+      },
+      "en->vi": {
+        "bank_retrieval": 8,
+        "gate_scored": 8,
+        "difference": 0
+      },
+      "fr->en": {
+        "bank_retrieval": 10,
+        "gate_scored": 10,
+        "difference": 0
+      },
+      "fr->fr": {
+        "bank_retrieval": 19,
+        "gate_scored": 19,
+        "difference": 0
+      },
+      "fr->vi": {
+        "bank_retrieval": 7,
+        "gate_scored": 7,
+        "difference": 0
+      },
+      "vi->en": {
+        "bank_retrieval": 11,
+        "gate_scored": 11,
+        "difference": 0
+      },
+      "vi->fr": {
+        "bank_retrieval": 2,
+        "gate_scored": 2,
+        "difference": 0
+      },
+      "vi->vi": {
+        "bank_retrieval": 33,
+        "gate_scored": 33,
+        "difference": 0
+      }
+    },
+    "agrees": true
+  },
+  "floor": {
+    "minimum": 12,
+    "binds": "retrieval count (expected-miss questions excluded)",
+    "cells_evaluated": [
+      "en->en",
+      "fr->fr",
+      "vi->vi"
+    ],
+    "cells_set_aside": [
+      "en->fr",
+      "en->vi",
+      "fr->en",
+      "fr->vi",
+      "vi->en",
+      "vi->fr"
+    ],
+    "evaluated": 3,
+    "set_aside": 6,
+    "shortfall": {
+      "en->fr": 8,
+      "en->vi": 4,
+      "fr->en": 2,
+      "fr->vi": 5,
+      "vi->en": 1,
+      "vi->fr": 10
+    }
+  }
+}
