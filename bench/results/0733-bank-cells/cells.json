@@ -743,5 +743,387 @@
       "vi->en": 1,
       "vi->fr": 10
     }
-  }
+  },
+  "floor_sweep": [
+    {
+      "minimum": 2,
+      "cells_evaluated": 9,
+      "cells_set_aside": 0,
+      "set_aside": [],
+      "questions_to_author": 0
+    },
+    {
+      "minimum": 3,
+      "cells_evaluated": 8,
+      "cells_set_aside": 1,
+      "set_aside": [
+        "vi->fr"
+      ],
+      "questions_to_author": 1
+    },
+    {
+      "minimum": 4,
+      "cells_evaluated": 8,
+      "cells_set_aside": 1,
+      "set_aside": [
+        "vi->fr"
+      ],
+      "questions_to_author": 2
+    },
+    {
+      "minimum": 5,
+      "cells_evaluated": 7,
+      "cells_set_aside": 2,
+      "set_aside": [
+        "en->fr",
+        "vi->fr"
+      ],
+      "questions_to_author": 4
+    },
+    {
+      "minimum": 6,
+      "cells_evaluated": 7,
+      "cells_set_aside": 2,
+      "set_aside": [
+        "en->fr",
+        "vi->fr"
+      ],
+      "questions_to_author": 6
+    },
+    {
+      "minimum": 7,
+      "cells_evaluated": 7,
+      "cells_set_aside": 2,
+      "set_aside": [
+        "en->fr",
+        "vi->fr"
+      ],
+      "questions_to_author": 8
+    },
+    {
+      "minimum": 8,
+      "cells_evaluated": 6,
+      "cells_set_aside": 3,
+      "set_aside": [
+        "en->fr",
+        "fr->vi",
+        "vi->fr"
+      ],
+      "questions_to_author": 11
+    },
+    {
+      "minimum": 9,
+      "cells_evaluated": 5,
+      "cells_set_aside": 4,
+      "set_aside": [
+        "en->fr",
+        "en->vi",
+        "fr->vi",
+        "vi->fr"
+      ],
+      "questions_to_author": 15
+    },
+    {
+      "minimum": 10,
+      "cells_evaluated": 5,
+      "cells_set_aside": 4,
+      "set_aside": [
+        "en->fr",
+        "en->vi",
+        "fr->vi",
+        "vi->fr"
+      ],
+      "questions_to_author": 19
+    },
+    {
+      "minimum": 11,
+      "cells_evaluated": 4,
+      "cells_set_aside": 5,
+      "set_aside": [
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->vi",
+        "vi->fr"
+      ],
+      "questions_to_author": 24
+    },
+    {
+      "minimum": 12,
+      "cells_evaluated": 3,
+      "cells_set_aside": 6,
+      "set_aside": [
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "questions_to_author": 30
+    },
+    {
+      "minimum": 13,
+      "cells_evaluated": 3,
+      "cells_set_aside": 6,
+      "set_aside": [
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "questions_to_author": 36
+    },
+    {
+      "minimum": 14,
+      "cells_evaluated": 3,
+      "cells_set_aside": 6,
+      "set_aside": [
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "questions_to_author": 42
+    },
+    {
+      "minimum": 15,
+      "cells_evaluated": 3,
+      "cells_set_aside": 6,
+      "set_aside": [
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "questions_to_author": 48
+    },
+    {
+      "minimum": 16,
+      "cells_evaluated": 3,
+      "cells_set_aside": 6,
+      "set_aside": [
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "questions_to_author": 54
+    },
+    {
+      "minimum": 17,
+      "cells_evaluated": 3,
+      "cells_set_aside": 6,
+      "set_aside": [
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "questions_to_author": 60
+    },
+    {
+      "minimum": 18,
+      "cells_evaluated": 3,
+      "cells_set_aside": 6,
+      "set_aside": [
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "questions_to_author": 66
+    },
+    {
+      "minimum": 19,
+      "cells_evaluated": 3,
+      "cells_set_aside": 6,
+      "set_aside": [
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "questions_to_author": 72
+    },
+    {
+      "minimum": 20,
+      "cells_evaluated": 2,
+      "cells_set_aside": 7,
+      "set_aside": [
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->fr",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "questions_to_author": 79
+    },
+    {
+      "minimum": 21,
+      "cells_evaluated": 2,
+      "cells_set_aside": 7,
+      "set_aside": [
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->fr",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "questions_to_author": 86
+    },
+    {
+      "minimum": 22,
+      "cells_evaluated": 2,
+      "cells_set_aside": 7,
+      "set_aside": [
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->fr",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "questions_to_author": 93
+    },
+    {
+      "minimum": 23,
+      "cells_evaluated": 2,
+      "cells_set_aside": 7,
+      "set_aside": [
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->fr",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "questions_to_author": 100
+    },
+    {
+      "minimum": 24,
+      "cells_evaluated": 2,
+      "cells_set_aside": 7,
+      "set_aside": [
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->fr",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "questions_to_author": 107
+    },
+    {
+      "minimum": 25,
+      "cells_evaluated": 2,
+      "cells_set_aside": 7,
+      "set_aside": [
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->fr",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "questions_to_author": 114
+    },
+    {
+      "minimum": 26,
+      "cells_evaluated": 2,
+      "cells_set_aside": 7,
+      "set_aside": [
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->fr",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "questions_to_author": 121
+    },
+    {
+      "minimum": 27,
+      "cells_evaluated": 2,
+      "cells_set_aside": 7,
+      "set_aside": [
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->fr",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "questions_to_author": 128
+    },
+    {
+      "minimum": 28,
+      "cells_evaluated": 2,
+      "cells_set_aside": 7,
+      "set_aside": [
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->fr",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "questions_to_author": 135
+    },
+    {
+      "minimum": 29,
+      "cells_evaluated": 2,
+      "cells_set_aside": 7,
+      "set_aside": [
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->fr",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "questions_to_author": 142
+    },
+    {
+      "minimum": 30,
+      "cells_evaluated": 2,
+      "cells_set_aside": 7,
+      "set_aside": [
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->fr",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "questions_to_author": 149
+    }
+  ]
 }

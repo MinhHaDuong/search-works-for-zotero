@@ -27,7 +27,7 @@ A minimum on a retrieval rate binds the retrieval count. The bank count is
 reported beside it because it is what an authoring lane can move.
 
     python3 bench/bank_cells.py
-    python3 bench/bank_cells.py --minimum 12 --output /tmp/cells.json
+    python3 bench/bank_cells.py --minimum 12 --sweep 2 30 --output /tmp/cells.json
 """
 import argparse
 import json
@@ -140,8 +140,29 @@ def evaluate_floor(cells: dict[str, dict[str, Any]], minimum: int) -> dict[str, 
     }
 
 
+def sweep_floors(cells: dict[str, dict[str, Any]], lo: int, hi: int) -> list[dict[str, Any]]:
+    """Every candidate floor in a range, with what it sets aside and what it costs.
+
+    The statistics say which floors are defensible; this says which cells each
+    one gates and how many further retrieval questions closing them takes, so
+    the choice inside a defensible band is made on the shape of this bank
+    rather than on taste.
+    """
+    rows = []
+    for minimum in range(lo, hi + 1):
+        floor = evaluate_floor(cells, minimum)
+        rows.append({
+            "minimum": minimum,
+            "cells_evaluated": floor["evaluated"],
+            "cells_set_aside": floor["set_aside"],
+            "set_aside": floor["cells_set_aside"],
+            "questions_to_author": sum(floor["shortfall"].values()),
+        })
+    return rows
+
+
 def build(records: list[dict[str, Any]], report: dict[str, Any] | None,
-          minimum: int | None) -> dict[str, Any]:
+          minimum: int | None, sweep: tuple[int, int] | None = None) -> dict[str, Any]:
     must = {lane: cell_counts(records, lane) for lane in MUST_CELLS}
     other_lanes = sorted({r["lane"] for r in records} - set(MUST_CELLS))
     other = {lane: cell_counts(records, lane) for lane in other_lanes}
@@ -192,6 +213,8 @@ def build(records: list[dict[str, Any]], report: dict[str, Any] | None,
 
     if minimum is not None:
         artifact["floor"] = evaluate_floor(must, minimum)
+    if sweep is not None:
+        artifact["floor_sweep"] = sweep_floors(must, sweep[0], sweep[1])
     return artifact
 
 
@@ -224,6 +247,9 @@ def main() -> None:
                         help="count the bank alone, with no cross-check")
     parser.add_argument("--minimum", type=int, default=None,
                         help="evaluate a candidate per-cell floor against the distribution")
+    parser.add_argument("--sweep", type=int, nargs=2, metavar=("LO", "HI"), default=None,
+                        help="tabulate every floor in this inclusive range: cells set aside "
+                             "and further retrieval questions needed to close them")
     parser.add_argument("--output", type=Path, default=None,
                         help="write the full artifact as JSON here")
     args = parser.parse_args()
@@ -234,7 +260,8 @@ def main() -> None:
     if not args.no_report and args.report.exists():
         report = json.loads(args.report.read_text())
 
-    artifact = build(records, report, args.minimum)
+    sweep = tuple(args.sweep) if args.sweep else None
+    artifact = build(records, report, args.minimum, sweep)
     logging.info(format_table(artifact))
     if report is not None:
         check = artifact["cross_check"]
@@ -245,6 +272,11 @@ def main() -> None:
         logging.info("floor %d: %d MUST cells evaluated, %d set aside (%s)",
                      floor["minimum"], floor["evaluated"], floor["set_aside"],
                      ", ".join(floor["cells_set_aside"]) or "none")
+    if sweep is not None:
+        logging.info("%4s %6s %6s", "floor", "aside", "cost")
+        for row in artifact["floor_sweep"]:
+            logging.info("%4d %6d %6d", row["minimum"], row["cells_set_aside"],
+                         row["questions_to_author"])
     if args.output is not None:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(artifact, indent=2) + "\n")

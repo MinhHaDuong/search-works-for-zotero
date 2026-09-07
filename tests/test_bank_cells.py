@@ -157,6 +157,30 @@ def test_floor_evaluates_a_cell_exactly_at_the_minimum():
     assert floor["cells_evaluated"] == ["en->en"]
 
 
+def test_sweep_reports_the_cost_of_each_candidate_floor():
+    # Two cells with 1 and 3 questions; a floor of 3 costs 2 questions in one cell.
+    questions = [_question("q-0001", "en->en")] + [
+        _question(f"q-001{i}", "vi->vi") for i in range(3)
+    ]
+    rows = bank_cells.sweep_floors(
+        {lane: bank_cells.cell_counts(questions, lane) for lane in bank_cells.MUST_CELLS},
+        3, 3,
+    )
+    assert rows[0]["minimum"] == 3
+    assert rows[0]["cells_evaluated"] == 1  # vi->vi holds exactly 3
+    # en->en is short by 2; the seven empty MUST cells are short by 3 each.
+    assert rows[0]["questions_to_author"] == 2 + 7 * 3
+
+
+def test_sweep_cost_is_monotone_in_the_floor():
+    # A higher floor can never cost fewer questions; a non-monotone sweep is a bug.
+    records = bank_cells.load_bank(bank_cells.QUESTIONS)
+    cells = {lane: bank_cells.cell_counts(records, lane) for lane in bank_cells.MUST_CELLS}
+    costs = [row["questions_to_author"] for row in bank_cells.sweep_floors(cells, 2, 30)]
+    assert costs == sorted(costs)
+    assert costs[0] >= 0
+
+
 def test_unevenness_is_zero_on_a_flat_matrix_and_rises_with_concentration():
     flat = bank_cells.unevenness([4, 4, 4, 4])
     assert flat["gini"] == pytest.approx(0.0)
