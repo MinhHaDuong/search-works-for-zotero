@@ -34,7 +34,7 @@ let pluginVersion = null;
 //: The version of this file, kept equal to manifest.json's. The add-on manager hands
 //: startup() the version it REGISTERED, which lags a replaced xpi until the profile
 //: re-reads the manifest (padme, 2026-09-06: new code ran under a 0.1.1 label).
-const CODE_VERSION = '0.4.0';
+const CODE_VERSION = '0.5.0';
 
 function reindexMode(complete) {
   return complete ? 'uncapped' : 'stock';
@@ -210,8 +210,9 @@ Import.prototype = {
  * server still held 17 at version 140). Data and, when storage sync is enabled,
  * files, through Zotero's own Sync.Runner; nothing here writes an item.
  *
- *   POST /search-works/fulltext/sync   {"libraryID": 3} or {"groupID": 6659303}, optional "apiKey"
- *     Starts Zotero.Sync.Runner.sync for that library and returns at once.
+ *   POST /search-works/fulltext/sync   {"libraryID": 3, "apiKey": "..."} or {"groupID": 6659303, "apiKey": "..."}
+ *     Starts Zotero.Sync.Runner.sync for that library and returns at once. The key is
+ *     required on every call, whether or not the profile already has sync set up.
  *   GET  /search-works/fulltext/sync
  *     Whether sync is set up and in progress, the last status and error, and per
  *     library: type, group id, version, last sync, unsynced item count.
@@ -262,10 +263,17 @@ Sync.prototype = {
       if (!library) return json(404, { error: 'no such library', libraryID, groupID });
       // The stored key sits behind the OS key store, which a headless client cannot
       // unlock (padme: "User canceled OS unlock entry" with the login keyring locked).
-      // An optional key for this run goes through the runner's own in-memory setter,
-      // is never written anywhere, never echoed, and is cleared when the run ends.
+      // The key for this run goes through the runner's own in-memory setter, is never
+      // written anywhere, never echoed, and is cleared when the run ends.
+      //
+      // The caller supplies it on EVERY call. The earlier guard was `!runner.enabled &&
+      // !apiKey`, so a profile that already had sync set up could push a library to
+      // zotero.org with no caller secret at all: the endpoint listens on the client's
+      // local HTTP port, and reaching that port was the whole authorisation. Requiring
+      // the key unconditionally makes the secret the authorisation, and costs a headless
+      // caller nothing — it already has to pass one (ticket 0722, review round 1).
       const apiKey = typeof data?.apiKey === 'string' && data.apiKey.length > 0 ? data.apiKey : null;
-      if (!runner.enabled && !apiKey) return json(409, { error: 'sync is not set up in this profile (no API key)' });
+      if (!apiKey) return json(401, { error: 'apiKey is required on every sync call' });
       if (runner.syncInProgress) return json(409, { error: 'a sync is already in progress' });
       syncRuns += 1;
       lastSyncError = null;

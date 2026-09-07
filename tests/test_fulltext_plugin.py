@@ -83,9 +83,12 @@ vm.runInContext(fs.readFileSync(bootstrapPath, 'utf8'), context, { filename: 'bo
   const unmatched = await new Import().init({ data: { path: '/tmp/menagerie.xyz' } });
   const Sync = context.Zotero.Server.Endpoints['/search-works/fulltext/sync'];
   const syncBefore = await new Sync().init({ method: 'GET' });
-  const syncStart = await new Sync().init({ method: 'POST', data: { groupID: 6659303 } });
-  const syncNoLibrary = await new Sync().init({ method: 'POST', data: { groupID: 1 } });
-  const syncNoBody = await new Sync().init({ method: 'POST', data: {} });
+  const syncStart = await new Sync().init({ method: 'POST', data: { groupID: 6659303, apiKey: 'sekrit' } });
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  // runner.enabled is still true here: an already-synced profile must be refused too.
+  const syncEnabledNoKey = await new Sync().init({ method: 'POST', data: { groupID: 6659303 } });
+  const syncNoLibrary = await new Sync().init({ method: 'POST', data: { groupID: 1, apiKey: 'sekrit' } });
+  const syncNoBody = await new Sync().init({ method: 'POST', data: { apiKey: 'sekrit' } });
   Zotero.Sync.Runner.enabled = false;
   const syncDisabled = await new Sync().init({ method: 'POST', data: { libraryID: 3 } });
   const syncWithKey = await new Sync().init({ method: 'POST', data: { libraryID: 3, apiKey: 'sekrit' } });
@@ -93,6 +96,7 @@ vm.runInContext(fs.readFileSync(bootstrapPath, 'utf8'), context, { filename: 'bo
   const syncAfterKey = await new Sync().init({ method: 'GET' });
   console.log(JSON.stringify({
     sync: { before: JSON.parse(syncBefore[2]), start: [syncStart[0], JSON.parse(syncStart[2])],
+            enabledNoKey: [syncEnabledNoKey[0], JSON.parse(syncEnabledNoKey[2])],
             noLibrary: syncNoLibrary[0], noBody: syncNoBody[0], disabled: syncDisabled[0], calls: syncCalls,
             withKey: [syncWithKey[0], syncWithKey[2]], afterKey: syncAfterKey[2], keysSet },
     before: JSON.parse(status0[2]), reindex: [reindex[0], JSON.parse(reindex[2])],
@@ -136,7 +140,7 @@ def test_status_reports_version_last_mode_and_live_preferences():
     result = drive({"keys": ["ATTACH01"], "complete": True})
     before, after = result["before"], result["after"]
     assert before["version"] == "9.9.9-test" and before["lastReindexMode"] is None
-    assert before["codeVersion"] == "0.4.0", "the code reports its own version beside the registered one"
+    assert before["codeVersion"] == "0.5.0", "the code reports its own version beside the registered one"
     assert before["prefs"] == {"pdfMaxPages": 100, "textMaxLength": 500000}
     assert after["lastReindexMode"] == "uncapped"
     # The preference moved between the two reads; a cached value would still say 100.
@@ -146,9 +150,9 @@ def test_status_reports_version_last_mode_and_live_preferences():
 
 def test_manifest_version_matches_the_documented_contract():
     manifest = json.loads((PLUGIN / "manifest.json").read_text(encoding="utf-8"))
-    assert manifest["version"] == "0.4.0"
+    assert manifest["version"] == "0.5.0"
     source = (PLUGIN / "bootstrap.js").read_text(encoding="utf-8")
-    assert "const CODE_VERSION = '0.4.0';" in source, "the code version the status reports equals the manifest's"
+    assert "const CODE_VERSION = '0.5.0';" in source, "the code version the status reports equals the manifest's"
     readme = (PLUGIN / "README.md").read_text(encoding="utf-8")
     assert '"complete"' in readme and "lastReindexMode" in readme and "stock" in readme
     source = (PLUGIN / "bootstrap.js").read_text(encoding="utf-8")
@@ -179,18 +183,24 @@ def test_import_targets_the_user_library_links_files_and_reports_what_zotero_mad
 def test_sync_starts_one_library_through_the_runner_and_reports_where_it_stands():
     """Ticket 0721: a headless client never auto-syncs, so the endpoint asks the
     Sync.Runner for one library by group id and reports per-library version and
-    unsynced count; it refuses an unknown library, an empty body, and a profile
-    with no sync set up."""
+    unsynced count; it refuses an unknown library, an empty body, and any call
+    without a caller-supplied API key."""
     out = drive({"keys": ["ATTACH01"]})["sync"]
     assert out["before"]["enabled"] is True and out["before"]["inProgress"] is False
     group = [row for row in out["before"]["libraries"] if row["libraryType"] == "group"][0]
     assert group == {"libraryID": 3, "libraryType": "group", "groupID": 6659303, "name": "Fixture",
                      "libraryVersion": 140, "lastSync": 9, "storageVersion": 0, "unsynced": 232}
-    assert out["start"] == [202, {"started": True, "libraryID": 3, "groupID": 6659303, "apiKeyOverride": False}]
-    assert out["calls"] == [{"background": False, "libraries": [3]}] * 2, "the plain run and the key run both reach the runner"
-    assert out["noLibrary"] == 404 and out["noBody"] == 400 and out["disabled"] == 409
+    assert out["start"] == [202, {"started": True, "libraryID": 3, "groupID": 6659303, "apiKeyOverride": True}]
+    assert out["calls"] == [{"background": False, "libraries": [3]}] * 2, "both key runs reach the runner"
+    assert out["noLibrary"] == 404 and out["noBody"] == 400
+    # Ticket 0722, review round 1: the key is the authorisation, so an already-synced
+    # profile (runner.enabled true) is refused exactly like a profile with no sync set up.
+    # Reaching the client's local HTTP port must not be enough to push a library upstream.
+    assert out["enabledNoKey"] == [401, {"error": "apiKey is required on every sync call"}]
+    assert out["disabled"] == 401
+    assert out["calls"] == [{"background": False, "libraries": [3]}] * 2, "no keyless call reached the runner"
     # A key handed in for one run goes through the runner's in-memory setter, is never
     # echoed, and is cleared once the run ends.
     assert out["withKey"][0] == 202 and "sekrit" not in out["withKey"][1] and "sekrit" not in out["afterKey"]
     assert '"apiKeyOverride":true' in out["withKey"][1] and '"apiKeyOverride":false' in out["afterKey"]
-    assert out["keysSet"] == ["sekrit", None]
+    assert out["keysSet"] == ["sekrit", None, "sekrit", None]
