@@ -154,13 +154,13 @@ def beta_row(quote=BETA_QUOTE):
                            section_heading="Chapter one", page_printed="3")}
 
 
-def question(qid, pinned, *, set_kind="any-of", ql="en", al="en", expected_miss=False, mechanism=None,
+def question(qid, primary, *, set_kind="any-of", ql="en", al="en", expected_miss=False, mechanism=None,
              mode="any", stratum="core", signal="exact", **extra):
     record = {
         "schema": BANK_SCHEMA, "id": qid, "need": "a need", "query": f"query for {qid}",
         "question_language": ql, "answer_language": al, "lane": f"{ql}->{al}", "signal": signal, "mode": mode,
-        "facet": "core", "stratum": stratum, "mechanisms": [], "generator": "need", "set_kind": set_kind,
-        "pinned": pinned, "expected_miss": expected_miss, "expected_miss_mechanism": mechanism,
+        "facet": "core", "stratum": stratum, "mechanism": [], "generator": "need", "set_kind": set_kind,
+        "primary": primary, "expected_miss": expected_miss, "expected_miss_mechanism": mechanism,
         "reachability": None, "provenance": {"author": "test", "date": "2026-09-06", "page_read": True},
     }
     record.update(extra)
@@ -228,15 +228,15 @@ def test_a_v1_bundle_is_refused_by_name():
 @pytest.mark.parametrize(
     "mutate, message",
     [
-        (lambda q: q["pinned"][0]["alternates"][0].pop("quote"), "quote"),
-        (lambda q: q["pinned"][0].update({"extra_field": 1}), "unknown fields"),
-        (lambda q: q["pinned"].append(dict(q["pinned"][0])), "repeats"),
+        (lambda q: q["primary"][0]["alternates"][0].pop("quote"), "quote"),
+        (lambda q: q["primary"][0].update({"extra_field": 1}), "unknown fields"),
+        (lambda q: q["primary"].append(dict(q["primary"][0])), "repeats"),
         (lambda q: q.update({"lane": "fr->en"}), "lane"),
         (lambda q: q.update({"expected_miss": True}), "expected_miss_mechanism"),
-        (lambda q: q.update({"pinned": []}), "empty pinned set"),
+        (lambda q: q.update({"primary": []}), "empty primary set"),
         (lambda q: q.update({"signal": "vibes"}), "signal"),
         (lambda q: q.update({"set_kind": "some-of"}), "set_kind"),
-        (lambda q: q["pinned"][0]["chain"].update({"publisher": "x"}), "chain fields"),
+        (lambda q: q["primary"][0]["chain"].update({"publisher": "x"}), "chain fields"),
         (lambda q: q.update({"schema": "menagerie-bank/v1"}), "schema"),
     ],
 )
@@ -324,7 +324,7 @@ def test_a_printed_page_match_wins_without_evidence_overlap(export, thresholds):
     assert entry["chain"] == {"matched": 5, "of": 6, "fraction": 5 / 6, "missing": ["section_heading"], "mismatched": []}
 
 
-def test_chain_completeness_counts_only_pinned_fields_and_is_not_run_on_a_miss(export, thresholds):
+def test_chain_completeness_counts_only_primary_fields_and_is_not_run_on_a_miss(export, thresholds):
     q = question("q-0001", [alpha_row("Article 2", ALPHA_QUOTE_ART2)])
     hit = result(1, "P1ALPHA1", evidence=ALPHA_QUOTE_ART2, chain_fields={"date": "1999"})
     report = evaluate([q], load_replies(bundle(export, [reply("q-0001", [hit])])), load_export(export), thresholds)
@@ -340,7 +340,7 @@ def test_chain_completeness_counts_only_pinned_fields_and_is_not_run_on_a_miss(e
 # ------------------------------------------------------------------ expected-miss
 
 
-def test_a_no_answer_question_has_an_empty_pinned_set_and_is_reported_apart(export, thresholds):
+def test_a_no_answer_question_has_an_empty_primary_set_and_is_reported_apart(export, thresholds):
     none = question("q-0001", [], expected_miss=True, mechanism="no-answer in the corpus")
     real = question("q-0002", [alpha_row("Article 2", ALPHA_QUOTE_ART2)])
     hit = result(1, "P1ALPHA1", evidence=ALPHA_QUOTE_ART2)
@@ -355,7 +355,7 @@ def test_a_no_answer_question_has_an_empty_pinned_set_and_is_reported_apart(expo
     assert report["readings"]["r34"]["question_count"] == 1
 
 
-def test_an_expected_miss_with_pinned_rows_reports_an_unexpected_hit(export, thresholds):
+def test_an_expected_miss_with_primary_rows_reports_an_unexpected_hit(export, thresholds):
     unreachable = question("q-0001", [alpha_row("Article 2", ALPHA_QUOTE_ART2)], expected_miss=True,
                            mechanism="past the index cap")
     report = evaluate([unreachable], load_replies(bundle(export, [reply("q-0001", [result(1, "P1ALPHA1")])])),
@@ -468,7 +468,7 @@ def test_reachability_is_stamped_then_compared_and_a_missing_quote_is_refused(tm
     assert block["extraction"]["index_fulltext_max_chars"] == CAP
     assert block["extraction"]["recipe_sha256"] == "c" * 64
     assert block["export_sha256"] == export_sha(export)
-    offset = stamped["pinned"][0]["alternates"][0]["char_offset"]
+    offset = stamped["primary"][0]["alternates"][0]["char_offset"]
     assert ALPHA_TEXT[offset:].startswith("The buyer purchases")
     assert validate_bank(bank, load_export(export), stamp=False)["stamped"] == 0
 
@@ -588,6 +588,41 @@ def test_the_json_schema_carries_the_scorers_vocabularies():
     assert tuple(schema["$defs"]["chain"]["properties"]) == CHAIN_FIELDS
     for record in load_bank(COMMITTED_BANK):
         assert set(record) - {"retained_reason"} <= set(properties)
+
+
+def test_the_specification_and_the_schema_name_the_same_record_fields():
+    """SPEC §5.2.10 owns the field names; the schema and the scorer follow them.
+
+    The /gaze round on PR #409 found the two disagreeing by construction: the
+    specification described `primary`, `relations` and a singular `mechanism`
+    that `bank.schema.json` never implemented, while the schema set
+    `additionalProperties: false`, so the missing ones could not even be added.
+    This test is what makes that class of drift loud instead of silent: every
+    field the schema requires must appear in the specification's own table, and
+    the two names the specification owns must be the ones the scorer reads.
+    """
+
+    spec = SPEC.read_text(encoding="utf-8")
+    start = spec.index("**The question record is the gate's input contract.**")
+    end = spec.index("A **lane** is R29's pair", start)
+    table = spec[start:end]
+    schema = json.loads((COMMITTED_BANK / "bank.schema.json").read_text(encoding="utf-8"))
+    for field in schema["required"]:
+        assert f"`{field}`" in table, f"SPEC §5.2.10's record table does not name {field}"
+    assert "`primary`" in table and "`mechanism`" in table
+    # And what the specification calls out as living elsewhere is not a field.
+    assert "relations" not in schema["properties"] and "answers" not in schema["properties"]
+    record = load_bank(COMMITTED_BANK)[0]
+    assert isinstance(record["primary"], list) and isinstance(record["mechanism"], list)
+
+
+def test_a_bank_record_at_the_superseded_v2_schema_is_refused_by_name():
+    record = question("q-0001", [alpha_row("Article 2", ALPHA_QUOTE_ART2)])
+    record["schema"] = "menagerie-bank/v2"
+    record["pinned"] = record.pop("primary")
+    record["mechanisms"] = record.pop("mechanism")
+    with pytest.raises(InputError, match="menagerie-bank/v2 records are no longer read"):
+        validate_question(record)
 
 
 def test_bank_shape_lists_every_vocabulary_value_with_zeros(export):

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0308",
   "need": "Écrit avant d'ouvrir le document : dans la légende de Mỵ Châu, comment la princesse promet-elle à Trọng Thủy de lui laisser une trace pour la retrouver ?",
   "query": "la princesse promet de semer des plumes d'oie sur son chemin pour que son époux la retrouve",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch2",
       "recipe_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch2",

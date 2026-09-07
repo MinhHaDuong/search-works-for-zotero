@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0249",
   "need": "Écrit avant d'ouvrir le document : la déforestation émet, mais les terres émergées restent-elles malgré tout un puits net ? Je cherche une source francophone du corpus qui confirme le chiffre que j'ai en tête — de l'ordre du quart à un tiers des émissions annuelles de CO2 retirées par les puits terrestres.",
   "query": "malgré la déforestation les puits de carbone terrestres retirent environ 29 % des émissions mondiales annuelles de CO2",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "pageless-html"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-climate-change-fr",
       "recipe_id": "wp-climate-change-fr",

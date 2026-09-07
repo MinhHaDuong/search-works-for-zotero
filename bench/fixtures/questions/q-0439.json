@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0439",
   "need": "Hazard row for a declared failure control — visible, not silent, degradation. The 1915 Hindi print is attached twice: once with a text layer, once as the raw image PDF. The image sibling covers the same 265 pages, so a query about any of its pages could plausibly land on it. The export declares this attachment answer_set_participation = 'none', so the correct behaviour is that it never appears in an answer set and the degradation is legible in the counters rather than showing up as a plausible-looking wrong hit.",
   "query": "अर्थशास्त्र १९१५ झालरापाटन मूल स्कैन पृष्ठ छवि",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "failure-control",
     "scan-without-text-layer",
     "visible-not-silent-degradation"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [],
+  "primary": [],
   "expected_miss": true,
   "expected_miss_mechanism": "declared failure control, scan without a text layer: 265 pages of CCITT-compressed bitmaps (libtiff tiff2pdf 2015) with no fonts; pdftotext extracts 265 form feeds and nothing else, so Zotero's PDF worker finds no text and leaves the attachment unindexed (attachment dli-1915-arthashastra-hindi-image-pdf, key HK6MKK56)",
   "reachability": {

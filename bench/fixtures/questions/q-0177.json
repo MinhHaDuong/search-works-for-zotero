@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0177",
   "need": "Written before opening the document: the coal balance table — what domestic coal production does the paper project for Vietnam in 2025, and how much of it goes to power generation?",
   "query": "Table 1 coal supply and demand balance Vietnam 2005 to 2025 domestic production ktons",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-table"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "worldbank-2009-vietnam-energy-mitigation",
       "recipe_id": "worldbank-2009-vietnam-energy-mitigation",

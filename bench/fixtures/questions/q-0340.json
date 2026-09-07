@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0340",
   "need": "Viết trước khi mở tài liệu: định nghĩa 'phát triển bền vững' trong luật Việt Nam có giữ nguyên công thức Brundtland về thế hệ tương lai không, hay đã thêm điều kiện riêng nào?",
   "query": "phát triển bền vững là phát triển đáp ứng nhu cầu của thế hệ hiện tại mà không làm tổn hại đến khả năng đáp ứng nhu cầu của các thế hệ tương lai",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "compound-document-chain"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-law-environment-2005-vi",
       "recipe_id": "vn-law-environment-2005-vi",

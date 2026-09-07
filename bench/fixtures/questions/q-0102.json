@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0102",
   "need": "Written before opening the document: I recall that for Keynes probability is a logical relation between two sets of propositions, the evidence and the conclusion; I want the sentence where he states it.",
   "query": "Keynes: probability is a logical relation between a set of premisses h and a conclusion a, not a property of events",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "keynes-1921-treatise-on-probability",
       "recipe_id": "keynes-1921-treatise-on-probability",

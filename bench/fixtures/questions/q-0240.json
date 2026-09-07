@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0240",
   "need": "Hazard row, the SHOULD-language sibling with a subject trap. The eight Wikipedia articles in this corpus are declared same-subject siblings, and a reader may assume the German one answers what the French and Spanish ones answer. It does not: de.wikipedia splits the topic, and 'Klimawandel' is the article about climate change across Earth's history, while the present anthropogenic warming lives at 'globale Erwärmung'. A German query about the current warming should return this article only as the near-win it is, and the paragraph that says so is the one worth pinning.",
   "query": "Klimawandel Definition weltweit auftretende Veränderung des Klimas Abkühlung oder Erwärmung über unterschiedlich lange Zeiträume",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "should-language-row",
     "same-subject-sibling-mismatch",
     "pageless-html"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-climate-change-de",
       "recipe_id": "wp-climate-change-de",

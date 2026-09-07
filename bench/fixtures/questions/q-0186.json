@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0186",
   "need": "Écrit avant d'ouvrir le document : en 2015, combien de juridictions nationales et infranationales tarifaient le carbone, et quelle part des émissions mondiales cela couvrait-il ?",
   "query": "combien de pays et de régions ont un prix du carbone en 2015 part des émissions mondiales",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-lingual-anchor"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "worldbank-2015-state-trends-carbon-pricing",
       "recipe_id": "worldbank-2015-state-trends-carbon-pricing",

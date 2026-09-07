@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0171",
   "need": "Written before opening the document: does the report credit Đổi Mới with lifting Vietnam from among the world's poorest countries to a development success story?",
   "query": "Doi Moi took Vietnam from one of the poorest countries in the world to a development success story",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "compound-book-section"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wb-2016-vietnam-2035-en-overview",
       "recipe_id": "wb-2016-vietnam-2035-en-overview",

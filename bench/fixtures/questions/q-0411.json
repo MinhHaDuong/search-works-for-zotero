@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0411",
   "need": "Written before opening the document: Karamzin reports a Gothic argument against burning the Greek books found at Athens. What was the argument? The chapter is served as a 1999 mirror encoded in Windows-1251, so the row also proves the legacy Cyrillic charset survived extraction.",
   "query": "Оставьте грекам книги забывали военное искусство готфы Афины",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "legacy-encoding-windows-1251",
     "should-language-russian",
     "html-snapshot-container"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "karamzin-1818-istoriya-gosudarstva-rossiyskogo-t1-gl1",
       "recipe_id": "karamzin-1818-istoriya-gosudarstva-rossiyskogo-t1-gl1",

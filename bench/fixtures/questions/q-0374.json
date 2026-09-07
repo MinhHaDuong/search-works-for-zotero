@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0374",
   "need": "Viết trước khi mở tài liệu: Hiến pháp 1992 định nghĩa Hội đồng nhân dân là gì — cơ quan hành chính hay cơ quan quyền lực Nhà nước ở địa phương — và do ai bầu ra? Chương này nằm trong thư viện nhóm đóng và là chương ngắn nhất của bản Hiến pháp, nên nó cũng thử khả năng tìm thấy một tài liệu nhỏ giữa các tài liệu lớn.",
   "query": "Hội đồng nhân dân là cơ quan quyền lực Nhà nước ở địa phương do nhân dân địa phương bầu ra",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "group",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "group-library-slice",
     "compound-document-chain"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-constitution-1992-vi-chuong-ix",
       "recipe_id": "vn-constitution-1992-vi-chuong-ix",

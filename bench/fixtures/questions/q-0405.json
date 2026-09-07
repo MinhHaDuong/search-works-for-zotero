@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0405",
   "need": "Hazard row: a table in Arabic script. The article carries an economy infobox whose first cells give Laos's currency and fiscal year; a hit must locate the table cells, which the extraction renders as tab-separated runs inside a right-to-left paragraph flow.",
   "query": "اقتصاد لاوس العملة كيب لاو LAK السنة المالية 1 ابريل 30 مارس",
@@ -10,7 +10,7 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "structural-table",
     "structural-marks-x-script",
     "should-language-arabic",
@@ -18,7 +18,7 @@
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-inflation-ar",
       "recipe_id": "wp-inflation-ar",

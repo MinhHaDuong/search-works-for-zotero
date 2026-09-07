@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0125",
   "need": "Written before opening the document: for a briefing I need two numbers together — the national total of U.S. greenhouse gas emissions for 2014 and the share of national emissions that energy-related CO2 alone accounts for. The record carries three files; the two numbers live in two different ones, so both rows have to come back.",
   "query": "total U.S. greenhouse gas emissions 2014 6,870.5 MMT CO2 Eq and the share of national emissions from energy-related CO2",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "multi-attachment-parent"
   ],
   "generator": "need",
   "set_kind": "all-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "epa-2016-ghg-inventory-1990-2014",
       "recipe_id": "epa-2016-ghg-inventory-1990-2014",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0130",
   "need": "Hazard row for the index-cap mechanism on a short article: this 21-page paper extracts to 50 676 characters, so the Conclusions — printed p. 19 of 21 — fall past the 40 000-character index cap while the abstract and the tables do not. The cap bites the end of a paper, which is where its claims are restated.",
   "query": "Ormos conclusions entropy combines the advantages of the CAPM risk parameter and the standard deviation",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "index-cap-crossing"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "ormos-2014-entropy-asset-pricing",
       "recipe_id": "ormos-2014-entropy-asset-pricing",

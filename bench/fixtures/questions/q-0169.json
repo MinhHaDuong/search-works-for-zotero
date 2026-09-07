@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0169",
   "need": "Écrit avant d'ouvrir le document : d'après le rapport, combien de personnes âgées le Vietnam comptera-t-il pour cent actifs vers 2035, contre combien aujourd'hui ?",
   "query": "Vietnam 2035 vieillissement combien de personnes âgées pour cent actifs",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-lingual-anchor",
     "compound-book-section",
     "extraction-cap-crossing"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wb-2016-vietnam-2035-en-overview",
       "recipe_id": "wb-2016-vietnam-2035-en-overview",

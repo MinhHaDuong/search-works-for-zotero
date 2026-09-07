@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0152",
   "need": "Written before opening the document: Smith holds that the division of labour is bounded by the size of the market; I want the sentence, and the tally wants the same sentence checked in both Gutenberg renderings, since it sits right at the 40 000-character index boundary: the HTML extraction reaches it about 300 characters earlier than the EPUB one, so the same two sentences end inside the index cap in one rendering and past it in the other.",
   "query": "the division of labour is limited by the extent of the market",
@@ -10,7 +10,7 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "gutenberg-cap-crossing-pair",
     "extraction-cap-crossing",
     "index_fulltext_max_chars",
@@ -18,7 +18,7 @@
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "smith-1776-wealth-of-nations",
       "recipe_id": "smith-1776-wealth-of-nations",

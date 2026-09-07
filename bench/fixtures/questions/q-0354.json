@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0354",
   "need": "Viết trước khi mở tài liệu: bài tiếng Việt về kinh tế học có gọi ngành này là 'khoa học của sự lựa chọn' không, và nếu có thì lý do đưa ra là gì?",
   "query": "kinh tế học là khoa học của sự lựa chọn vì nguồn lực khan hiếm buộc phải lựa chọn",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-economics-vi",
       "recipe_id": "wp-economics-vi",

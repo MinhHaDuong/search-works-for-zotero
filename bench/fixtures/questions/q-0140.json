@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0140",
   "need": "Hazard row for the structural-table mechanism: the correlation coefficients between temperature and each macroeconomic series are given only in Table 1; the prose reports their sign and significance but never the numbers.",
   "query": "Table 1 correlation results on climate change and macro-economy temperature grain yield ratio grain price CPI real wage",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-table"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "pei-2015-climate-macroeconomic-preindustrial-europe",
       "recipe_id": "pei-2015-climate-macroeconomic-preindustrial-europe",

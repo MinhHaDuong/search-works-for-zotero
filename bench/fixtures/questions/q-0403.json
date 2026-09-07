@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0403",
   "need": "Written before opening the document: which two twentieth-century episodes does an Arabic reference work cite as the standard illustrations of hyperinflation, and in which years?",
   "query": "التضخم المفرط ألمانيا جمهورية فايمار 1923 هنغاريا 1945 انهيار العملة الوطنية",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "should-language-arabic",
     "rtl-script"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-inflation-ar",
       "recipe_id": "wp-inflation-ar",

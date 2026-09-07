@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0301",
   "need": "Written before opening the document: in his preface, why does Trần Trọng Kim say his compatriots know Chinese history better than their own — what did pupils study?",
   "query": "why did Vietnamese pupils learn Chinese history rather than their own country's, in Trần Trọng Kim's preface",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource",
       "recipe_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource",

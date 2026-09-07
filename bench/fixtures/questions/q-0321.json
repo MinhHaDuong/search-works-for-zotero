@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0321",
   "need": "Viết trước khi mở tài liệu: chất lượng OCR của phông Đông Dương đã số hoá ở BnF ra sao — tác giả có nêu con số không?",
   "query": "tỷ lệ OCR của phông Đông Dương số hoá còn rất thấp, chỉ khoảng 70-80%",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "extraction-dropped-en-dash"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "hal-04826774-lich-su-sach-nam-ky",
       "recipe_id": "hal-04826774-lich-su-sach-nam-ky",

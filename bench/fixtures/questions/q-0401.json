@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0401",
   "need": "Written before opening the document: besides carbon dioxide, which farming and waste activities release the second most important heat-trapping gas? The question is asked in English; the answer paragraph is expected to be Arabic and to name none of the English words used in the query.",
   "query": "livestock, paddy fields, landfill sites and coal mines as sources of the second most important heat-trapping gas",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "should-language-arabic",
     "cross-lingual-en-to-ar",
     "rtl-script"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-climate-change-ar",
       "recipe_id": "wp-climate-change-ar",

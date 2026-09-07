@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0363",
   "need": "Hazard: Han script carries no word spaces, so the only spaces in this page are the ones the 1998 hard-wrap put there — and the wrap falls inside a word. The peach-garden oath breaks as 不求同年同月同 / 日生, splitting 同日生 across two lines; whitespace normalisation turns that break into a space that a tokeniser must ignore, exactly where a Latin-script tokeniser would be entitled to trust it.",
   "query": "桃園結義 誓詞 不求同年同月同日生 只愿同年同月同日死",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "han-script-no-word-spaces",
     "hard-wrap-inside-word",
     "legacy-encoding-big5"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "sanguo-yanyi-ch01-chinapage-1999",
       "recipe_id": "sanguo-yanyi-ch01-chinapage-1999",

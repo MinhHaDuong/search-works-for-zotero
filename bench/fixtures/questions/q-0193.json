@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0193",
   "need": "Written before opening the document: the list-of-countries table in the measures section that bins consumer price index levels for 2024 relative to 2010 — its bin labels.",
   "query": "consumer price index by country 2024 relative to 2010 bins 100 to 110 110 to 120 above 1000",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-table"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-inflation-en",
       "recipe_id": "wp-inflation-en",

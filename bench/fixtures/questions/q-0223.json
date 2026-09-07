@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0223",
   "need": "Written before opening the document: reports on the energy transition rarely give a date. I want the sentence in which this one says how long the rebuild of the energy supply will take — the schedule, not the reasons for it.",
   "query": "wann wird der Umbau der Energieversorgung frühestens abgeschlossen sein",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "known-item"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "satw-2011-erneuerbare-energien",
       "recipe_id": "satw-2011-erneuerbare-energien",

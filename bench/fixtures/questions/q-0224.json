@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0224",
   "need": "Hazard row: a pie-chart caption plus the chart's own labels. The caption ('Abb. 1: Endverbrauch der erneuerbaren Energien in der Schweiz im Jahr 2009') is set below the figure, and the slice labels are loose text boxes; the extraction drops them into the running text mid-sentence, splitting the sentence about the 5400 GWh target in two. Note also the mixed decimal convention on one page — a comma in the prose (18,9 Prozent), a point in the chart labels (12.57%).",
   "query": "Abb. 1 Endverbrauch der erneuerbaren Energien in der Schweiz 2009 nicht erneuerbarer Endverbrauch 711 590 TJ Umweltwärme",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-figure-caption",
     "floating-label-interleaving",
     "mixed-decimal-separator"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "satw-2011-erneuerbare-energien",
       "recipe_id": "satw-2011-erneuerbare-energien",

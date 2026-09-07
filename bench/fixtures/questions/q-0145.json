@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0145",
   "need": "Hazard row for the metadata-conflicting duplicate: the 2015 arXiv posting of the Ormos and Zibriczky paper disagrees with the PLOS ONE record on year, on title case and on the spelling of the authors' names, and it is in the library as metadata only. A reader who cites the arXiv posting by its own year gets an item with nothing behind it.",
   "query": "Ormos Mihaly Zibriczky Entropy-Based Financial Asset Pricing arXiv 2015 preprint full text",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "record-only",
     "metadata-conflicting-duplicate",
     "work-identity-relation"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [],
+  "primary": [],
   "expected_miss": true,
   "expected_miss_mechanism": "record-only duplicate: parent item DUTSAU6D has no attachment (record_only true), so the arXiv rendering contributes no fulltext; the declared relation to the PLOS ONE record is 'metadata-conflicting-duplicate', which is not a twin relation, so a hit on the journal PDF does not stand in for it",
   "reachability": {

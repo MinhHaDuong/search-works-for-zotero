@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0410",
   "need": "Written before opening the document: who coined the distinction between price inflation that shows and price inflation held down by controls, and what nationality was he? Asked in English against a Russian article, with no content word shared with the answer sentence.",
   "query": "Danish economist who introduced the pair open versus repressed inflation",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "should-language-russian",
     "cross-lingual-en-to-ru"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-inflation-ru",
       "recipe_id": "wp-inflation-ru",

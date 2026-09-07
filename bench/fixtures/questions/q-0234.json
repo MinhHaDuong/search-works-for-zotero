@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0234",
   "need": "Hazard row: Menger's 1884 pamphlet against Schmoller is a small book — sixty-odd pages of open letters — but its scan extracts to 4 964 162 characters, ten times the 500 000-character extraction ceiling, because the OCR of this facsimile emits enormous quantities of noise. Zotero indexed the first 500 000 and the export records the attachment as indexed-not-served: no fulltext file was written for it at all. A reader asking for the pamphlet's most quoted sentence gets nothing, and the item's record looks perfectly healthy.",
   "query": "Menger Zweiter Brief Doch es gibt Zustände gegenüber welchen zu schweigen Verrath an der eigenen Sache wäre",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "indexed-not-served",
     "char-cap-crossing"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "menger-1884-irrthuemer-des-historismus",
       "recipe_id": "menger-1884-irrthuemer-des-historismus",

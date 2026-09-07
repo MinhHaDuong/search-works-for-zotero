@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0222",
   "need": "Written before opening the document: 'technical potential' is a term of art in energy studies and every study draws its boundary differently. An English-speaking reader wants to know what a Swiss report counted in and what it left out when it sized the country's solar and wind resource. The query is English; the answer paragraph is German.",
   "query": "technical potential of photovoltaics counts only suitable building surfaces wind sites excluded protected areas forest minimum distance to settlements",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-language",
     "term-of-art-boundary"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "satw-2011-erneuerbare-energien",
       "recipe_id": "satw-2011-erneuerbare-energien",

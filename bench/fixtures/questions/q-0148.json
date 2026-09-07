@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0148",
   "need": "Hazard row for a dataset deposit whose every rendering is unindexable: the employment data underlying the Markandya et al. green-jobs paper is deposited as an .xlsx workbook with a .docx companion. Both are declared failure controls, so this record has two attachments and no reachable text between them — the multi-attachment shape does not rescue it.",
   "query": "employment data rest of the world low-carbon technologies European Union green energy economy Markandya",
@@ -10,7 +10,7 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "unindexable-office-format",
     "declared-failure-control",
     "multi-attachment-parent",
@@ -18,7 +18,7 @@
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [],
+  "primary": [],
   "expected_miss": true,
   "expected_miss_mechanism": "every rendering unindexable: attachments QLABMW2R (.xlsx) and PLQE2DJH (.docx) both finish unindexed as declared failure controls with answer_set_participation 'none'; the parent JD2PQ67U therefore carries two attachments and no locatable span",
   "reachability": {

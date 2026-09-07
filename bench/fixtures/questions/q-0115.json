@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0115",
   "need": "Written before opening the document: I have read the claim that Cournot took rising wealth in circulation and improving living conditions to have moved together historically, while refusing to make a theorem of it. Does the page bear that claim out?",
   "query": "Cournot: an improvement in the condition of the people has generally kept pace with an increase in the sum total of wealth in circulation",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "cournot-1897-researches-bacon",
       "recipe_id": "cournot-1897-researches-bacon",

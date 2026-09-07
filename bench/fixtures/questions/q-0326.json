@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0326",
   "need": "Viết trước khi mở tài liệu: Lời nói đầu Hiến pháp 1992 nói gì về công cuộc đổi mới từ năm 1986 và lý do sửa Hiến pháp 1980?",
   "query": "Hiến pháp 1992 lời nói đầu công cuộc đổi mới toàn diện đất nước từ năm 1986 do Đại hội VI đề xướng",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-constitution-1992-vi",
       "recipe_id": "vn-constitution-1992-vi",

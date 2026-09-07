@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0160",
   "need": "Viết trước khi mở tài liệu: theo Quyết định 11/2017, hợp đồng mua bán điện của dự án điện mặt trời có thời hạn tối đa bao nhiêu năm kể từ ngày vận hành thương mại?",
   "query": "Quyết định 11/2017 thời hạn hợp đồng mua bán điện mặt trời 20 năm",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-lingual-anchor"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-decision-11-2017-qdttg-solar-fit-en",
       "recipe_id": "vn-decision-11-2017-qdttg-solar-fit-en",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0443",
   "need": "Hazard row for a declared failure control — visible, not silent, degradation. Việt Nam sử lược quyển I is carried as the Wikimedia Commons DjVu. It is the only DjVu in the corpus, and a query about the Hồng Bàng period would expect this volume. The export declares this attachment answer_set_participation = 'none', so the correct behaviour is that it never appears in an answer set and the degradation is legible in the counters rather than showing up as a plausible-looking wrong hit.",
   "query": "Trần Trọng Kim Việt Nam sử lược quyển I họ Hồng Bàng nhà Thục",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "failure-control",
     "source-format-djvu-container",
     "visible-not-silent-degradation"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [],
+  "primary": [],
   "expected_miss": true,
   "expected_miss_mechanism": "declared failure control, unindexable format: image/vnd.djvu is never eligible for extraction — Zotero's own dispatch (fulltext.js, indexItem) handles application/pdf, application/epub+zip and text/* only, so no fulltextItems row is ever written and /fulltext has no census entry (attachment tran-trong-kim-1920-viet-nam-su-luoc-q1, key G7FL2EI8)",
   "reachability": {

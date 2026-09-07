@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0243",
   "need": "Hazard row: the OCR of printed page 3 breaks down for the top third of the page and emits every letter as its own token — 'i r r é g u l i è r e m e n t , c ' e s t - à - d i r e a u h a s a r d .' The page itself is perfectly legible and the words are all there in order, so nothing about the export's length or state signals damage; but after whitespace normalisation the running text of that block is a sequence of single characters, and no query written in words can match it. Letter-spacing is the failure that looks like success.",
   "query": "Poincaré les vitesses des molécules gazeuses varient irrégulièrement c'est-à-dire au hasard les lois observables seraient beaucoup moins simples",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "ocr-letter-spacing",
     "tokenisation-breakdown"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "poincare-1912-calcul-des-probabilites",
       "recipe_id": "poincare-1912-calcul-des-probabilites",

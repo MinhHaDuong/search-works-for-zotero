@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0248",
   "need": "Écrit avant d'ouvrir le document : une objection courante aux probabilités imprécises est qu'elles ne permettent plus de désigner la meilleure politique. Un auteur du corpus l'admet-il explicitement — que sous information très imprécise le concept d'optimalité tombe et que le résultat reste imprécis ? La réponse est dans l'introduction, paginée en chiffres romains, donc hors de la numérotation arabe du corps.",
   "query": "sous une information très imprécise le concept d'optimalité ne peut plus être utilisé et le résultat reste imprécis",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "front-matter-roman-pagination"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "ha-duong-2005-modeles-de-precaution-hdr",
       "recipe_id": "ha-duong-2005-modeles-de-precaution-hdr",

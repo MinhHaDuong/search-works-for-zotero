@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0108",
   "need": "Hazard row for the structural-table mechanism: the figure asked for exists only inside a printed table, never in running prose, so a reply must have carried the table's cells through extraction.",
   "query": "Hull general statement of the condition of our coal-fields totals 5,419 square miles 83,544 million tons of coal",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-table"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "jevons-1865-coal-question",
       "recipe_id": "jevons-1865-coal-question",

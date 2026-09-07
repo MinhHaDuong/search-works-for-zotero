@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0432",
   "need": "Hazard row for source-format coverage: an authentic plain-text container (the Internet Archive's DjVuTXT of the 1915 Hindi print, 322 059 characters, fully indexed). Zotero indexes text/* from the file but its local API serves /items/<key>/fulltext only for cached MIME types, so the text is in the index and not in the export — indexed-not-served, a degradation invisible from the counters alone.",
   "query": "अर्थशास्त्र परिश्रम सम्पत्तिके उत्पादनमें आवश्यक कारण पाठ फ़ाइल",
@@ -10,7 +10,7 @@
   "mode": "any",
   "facet": "deep-body",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "source-format-plain-text",
     "indexed-not-served",
     "silent-degradation",
@@ -18,7 +18,7 @@
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "dli-1915-arthashastra-hindi",
       "recipe_id": "dli-1915-arthashastra-hindi",

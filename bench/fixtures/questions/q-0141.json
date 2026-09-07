@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0141",
   "need": "Written before opening the document: on what ground does Jevons claim in the Preface that political economy must be a mathematical science?",
   "query": "Jevons: as it deals throughout with quantities it must be a mathematical science in matter if not in language",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "jevons-1871-theory-of-political-economy",
       "recipe_id": "jevons-1871-theory-of-political-economy",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0237",
   "need": "Hazard row, unindexable format — the statistical twin of q-0236. This plate is a graph of the Pas-de-Calais coalfield's output since 1850, so the answer a reader wants is a number read off an axis: tonnage by year. It is a 1630×925 JPEG, unindexed for the same reason as the map, and declared a failure control that never joins an answer set. Numbers drawn rather than typeset are the sharpest case of the class: the document is rich in data and carries no text at all.",
   "query": "production du bassin houiller du Pas-de-Calais depuis 1850 tonnage annuel graphique Vuillemin 1875",
@@ -10,7 +10,7 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "unindexable-format",
     "image-only-attachment",
     "declared-failure-control",
@@ -18,7 +18,7 @@
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [],
+  "primary": [],
   "expected_miss": true,
   "expected_miss_mechanism": "The item's only attachment is a JPEG raster of a printed statistical plate (1630×925 px, 1 024 660 bytes). Zotero's full-text indexer reads PDF, HTML, EPUB and plain text only, so the attachment terminates unindexed with no fulltext, and the export marks it a declared failure control with answer_set_participation = none — it may not be pinned as a row.",
   "reachability": {

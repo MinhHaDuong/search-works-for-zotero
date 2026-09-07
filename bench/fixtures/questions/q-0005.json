@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0005",
   "need": "Written before opening the document: does Decision 11/2017 set a feed-in tariff for wind power?",
   "query": "wind power feed-in tariff Decision 11/2017 Vietnam",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "no-answer"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [],
+  "primary": [],
   "expected_miss": true,
   "expected_miss_mechanism": "no-answer: Decision 11/2017 covers solar power only and no document of the export sets a wind tariff; the empty pinned set is the ruling's no-answer case",
   "reachability": {

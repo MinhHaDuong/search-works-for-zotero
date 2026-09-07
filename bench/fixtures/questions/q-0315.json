@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0315",
   "need": "Written before opening the document: does the trend toward smaller households explain much of the rise in Vietnam's residential electricity demand, or only a small share?",
   "query": "how much of Vietnam's residential power consumption growth is attributable to smaller families",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "hal-04332519-economies-of-scale",
       "recipe_id": "hal-04332519-economies-of-scale",

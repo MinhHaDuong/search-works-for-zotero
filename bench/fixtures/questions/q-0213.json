@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0213",
   "need": "Hazard row: the manual teaches by worked specimen — a two-column table whose left column names the six parts of a journal entry and whose right column shows each part filled in for one sale. The extraction flattens the columns into a single run, so the pairing of label and value survives only as a sequence of numbered fragments. Can such a table row still be retrieved and cited to its printed page?",
   "query": "modèle d'article de journal Avoir Charles Harlan acheté comptant 50 muids de vin de Bourgogne",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-table",
     "column-flattening",
     "long-s-orthography"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "porte-1770-science-des-negocians",
       "recipe_id": "porte-1770-science-des-negocians",

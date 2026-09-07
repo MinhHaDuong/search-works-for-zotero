@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0157",
   "need": "Écrit avant d'ouvrir le document : l'article de la Constitution de 1992 qui fait du Parti communiste la force dirigeante de l'État et de la société.",
   "query": "Constitution du Vietnam 1992 Parti communiste force dirigeante de l'État et de la société",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "compound-statute-article",
     "cross-lingual-anchor"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-constitution-1992-en",
       "recipe_id": "vn-constitution-1992-en",

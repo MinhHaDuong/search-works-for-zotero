@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0373",
   "need": "Viết trước khi mở tài liệu: bộ trưởng ở Việt Nam có bắt buộc phải là đại biểu Quốc hội không? Tôi nhớ là chỉ Thủ tướng mới bắt buộc, còn các thành viên khác thì không, nhưng cần đúng câu chữ của Hiến pháp 1992. Tài liệu nằm trong thư viện nhóm đóng.",
   "query": "thành viên Chính phủ có nhất thiết phải là đại biểu Quốc hội hay không theo Hiến pháp 1992",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "group",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "group-library-slice",
     "compound-document-chain"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-constitution-1992-vi-chuong-viii",
       "recipe_id": "vn-constitution-1992-vi-chuong-viii",

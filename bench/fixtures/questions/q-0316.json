@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0316",
   "need": "Viết trước khi mở tài liệu: tìm bài của Nguyễn Hoài Sơn, Hà Dương Minh và Nguyễn Xuân Thắng về tính kinh tế theo quy mô trong tiêu dùng điện hộ gia đình, đăng ở tạp chí nào, năm nào, trang nào.",
   "query": "Nguyễn Hoài Sơn Hà Dương Minh Nguyễn Xuân Thắng tính kinh tế theo quy mô tiêu dùng điện hộ gia đình Những vấn đề Kinh tế và Chính trị Thế giới 2023",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "hal-04332519-economies-of-scale",
       "recipe_id": "hal-04332519-economies-of-scale",

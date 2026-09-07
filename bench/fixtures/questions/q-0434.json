@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0434",
   "need": "Hazard row for the notes facet and the record-only boundary: Makarov 2013 is carried as a bibliographic record with exactly one child note in Russian and no attachment, because CyberLeninka labels the article CC BY-NC-ND. The note names the topics (cap-and-trade, carbon tax, the post-Kyoto regime) and the pagination 479-496. A reply can only reach it through the note item.",
   "query": "Макаров глобальное изменение климата вызов мировой экономике cap-and-trade углеродный налог Киотский протокол",
@@ -10,7 +10,7 @@
   "mode": "any",
   "facet": "notes",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "record-only-item",
     "note-only-parent",
     "notes-facet",
@@ -18,7 +18,7 @@
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [],
+  "primary": [],
   "expected_miss": true,
   "expected_miss_mechanism": "record-only item: the parent has no attachment at all (record_only = true, attachments = []), so the export's manifest holds no attachment key for it and no row can be pinned; the note text lives in items.json, which the pinned-row model does not address",
   "reachability": {

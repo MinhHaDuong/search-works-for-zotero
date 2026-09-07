@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0428",
   "need": "Hazard row compounding two mechanisms: the chapter arguing that Islam's buildings and crafts are few relative to its power stands on printed page ٢٨٤, pdf page 300 of 528 — past the 100-page extraction cap as well as inside a scan whose text layer is unusable. Asked in English. Read on pdf page 300.",
   "query": "why buildings and crafts were fewer under Islam than under the dynasties that came before it, Kufa built in reed",
@@ -10,7 +10,7 @@
   "mode": "any",
   "facet": "deep-body",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "pdf-page-cap-100",
     "degraded-ocr-text-layer",
     "monster-non-latin-script",
@@ -19,7 +19,7 @@
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "ibn-khaldun-1904-muqaddimah",
       "recipe_id": "ibn-khaldun-1904-muqaddimah",

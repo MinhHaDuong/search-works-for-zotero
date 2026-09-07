@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0104",
   "need": "Written before opening the document: does gathering more data always make a conclusion more likely, or can it lower the likelihood while leaving the conclusion on firmer ground? Keynes had a name for this.",
   "query": "collecting further data can lower a hypothesis's chance while giving it a firmer footing, Keynes",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "index_fulltext_max_chars"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "keynes-1921-treatise-on-probability",
       "recipe_id": "keynes-1921-treatise-on-probability",

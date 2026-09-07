@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0142",
   "need": "Hazard row for the multi-attachment mechanism with a silent extraction failure, and the control arm of q-0141: this record carries three renderings of the same book — a scanned PDF, a plain-text file and an EPUB. The Preface sentence q-0141 reaches in the PDF is the span pinned here in the EPUB. Zotero reports the EPUB as indexed and its extracted content is 27 characters of whitespace, so the same sentence of the same book is reachable in one rendering and absent from another, with nothing in the attachment's state to say so.",
   "query": "Jevons: as it deals throughout with quantities it must be a mathematical science in matter if not in language",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "multi-attachment-parent",
     "silent-empty-extraction"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "jevons-1871-theory-of-political-economy",
       "recipe_id": "jevons-1871-theory-of-political-economy",

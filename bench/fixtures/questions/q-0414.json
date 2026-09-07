@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0414",
   "need": "Written before opening the document: Tolstoy's compilation quotes a figure for the accumulated debt of the European states and says what nearly all of it was borrowed for. What is the figure, and how much of it was contracted in the last hundred years? The source is a 1999 lib.ru mirror in KOI8-R.",
   "query": "Государства Европы накопили долг в 130 миллиардов расходы на войне Молинари",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "legacy-encoding-koi8-r",
     "should-language-russian",
     "extraction-cap-crossing-inside"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "tolstoy-1910-sueverie-gosudarstva",
       "recipe_id": "tolstoy-1910-sueverie-gosudarstva",

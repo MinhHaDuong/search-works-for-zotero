@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0426",
   "need": "Written before opening the document: an Arabic reader wants Ibn Khaldūn's description of the Nile's course through the first climate — where it meets the sea, and which lands (Nubia, Abyssinia) lie along it. Printed page ٤٤ read on the page (pdf page 60).",
   "query": "النيل في وسط الاقليم الاول بلاد النوبة والحبشة أسوان الجنادل",
@@ -10,7 +10,7 @@
   "mode": "any",
   "facet": "deep-body",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "degraded-ocr-text-layer",
     "monster-non-latin-script",
     "rtl-script",
@@ -19,7 +19,7 @@
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "ibn-khaldun-1904-muqaddimah",
       "recipe_id": "ibn-khaldun-1904-muqaddimah",

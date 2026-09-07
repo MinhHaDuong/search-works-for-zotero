@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0220",
   "need": "Hazard row, index cap on a long thesis. This 258-page work extracts to 284 859 characters and the product indexes the first 40 000 — roughly the first eighteen printed pages. Encadré 1.2, the boxed Wall Street Journal translation on American labour-market flexibility, sits at character 47 700 on printed page 20: reachable in the export, invisible to the index, and only two pages past the boundary, which is exactly what makes the cap hard to notice.",
   "query": "Encadré 1.2 cette vertu appelée flexibilité Wall Street Journal Courrier International licenciement",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "index-char-cap-crossing",
     "answer-past-index-cap",
     "structural-boxed-insert"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "ha-duong-1998-irreversibilite-these",
       "recipe_id": "ha-duong-1998-irreversibilite-these",

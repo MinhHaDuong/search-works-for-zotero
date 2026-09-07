@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0214",
   "need": "Written before opening the document: how much structure does an eighteenth-century manual demand of a single line of bookkeeping? I am after the passage that enumerates what every entry must contain — not a discussion of accounts, but the checklist itself.",
   "query": "de combien d'éléments chaque écriture doit-elle se composer selon ce manuel de tenue de comptes",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "indirect-description",
     "long-s-orthography"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "porte-1770-science-des-negocians",
       "recipe_id": "porte-1770-science-des-negocians",

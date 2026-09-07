@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0185",
   "need": "Written before opening the document: the currency conversion annex — what US dollar rate did the report use for the Swiss franc as of 1 August 2015?",
   "query": "Annex I conversion rates Swiss franc CHF US$ equivalent August 1, 2015 Table 3",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-annex",
     "index_fulltext_max_chars"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "worldbank-2015-state-trends-carbon-pricing",
       "recipe_id": "worldbank-2015-state-trends-carbon-pricing",

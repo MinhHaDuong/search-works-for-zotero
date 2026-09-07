@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0372",
   "need": "Written before opening the document: who does the 1992 Vietnamese constitution make head of state, and in what capacity does that office represent the country abroad? The answering paragraph is Vietnamese and sits in the closed group library, so this asks the group slice to answer a cross-lingual query exactly as the personal library would.",
   "query": "who is head of state under the 1992 Vietnamese constitution and represents the country in internal and external affairs",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "group",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "group-library-slice",
     "cross-lingual-anchor",
     "compound-document-chain"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-constitution-1992-vi-chuong-vii",
       "recipe_id": "vn-constitution-1992-vi-chuong-vii",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0003",
   "need": "Written before opening the document: for a project note I need both the tariff Decision 11/2017 set and the window during which the decision applied.",
   "query": "Decision 11/2017 solar tariff 2,086 VND/kWh in effect from 1 June 2017 to 30 June 2019",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "all-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-decision-11-2017-qdttg-solar-fit-en",
       "recipe_id": "vn-decision-11-2017-qdttg-solar-fit-en",

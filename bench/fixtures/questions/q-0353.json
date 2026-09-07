@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0353",
   "need": "Hazard: the Vietnamese climate-change article runs 167 778 characters, of which the body ends at 59 733 and the reference list fills the rest. The section that ties climate to the Sustainable Development Goals begins at character 46 283 — inside the body, outside the 40 000-character cap. So the article is indexed and its policy half is not, which is invisible to any reader who sees the page returned at all.",
   "query": "how does the Vietnamese Wikipedia article link climate change to Sustainable Development Goal 13",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "index_fulltext_max_chars",
     "multibyte-character-offsets"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-climate-change-vi",
       "recipe_id": "wp-climate-change-vi",

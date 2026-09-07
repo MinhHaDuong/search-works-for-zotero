@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0438",
   "need": "Hazard row for a declared failure control — visible, not silent, degradation. The arXiv record carries the paper's TeX source bundle beside the PDF. Someone querying the paper's scaling result could be answered from the source archive if it were extracted. The export declares this attachment answer_set_participation = 'none', so the correct behaviour is that it never appears in an answer set and the degradation is legible in the counters rather than showing up as a plausible-looking wrong hit.",
   "query": "Bettencourt Samaniego Youn professional diversity productivity of cities TeX source archive",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "failure-control",
     "source-format-tgz-container",
     "visible-not-silent-degradation"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [],
+  "primary": [],
   "expected_miss": true,
   "expected_miss_mechanism": "declared failure control, unindexed container: a gzip-compressed tar of TeX source and figures (14 members); the extractor reads PDF, HTML and plain text only, so the attachment finishes with no full text (attachment bettencourt-2012-professional-diversity-cities-source-tgz, key M9RH95GR)",
   "reachability": {

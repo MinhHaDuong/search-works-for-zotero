@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0138",
   "need": "Written before opening the document: what form do the authors say the distribution of professions in a city takes, and what makes it comparable across cities of different sizes? The same work sits in the library twice — this preprint and the 2014 Scientific Reports version of record — so a reply may return either.",
   "query": "distribution of professions in cities universal scale-invariant form common to all cities infinite resolution of taxonomies",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "near-duplicate-publication"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "bettencourt-2012-professional-diversity-cities-arxiv",
       "recipe_id": "bettencourt-2012-professional-diversity-cities-arxiv",

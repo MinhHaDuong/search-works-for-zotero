@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0351",
   "need": "Hazard: the moral the poem closes on — 'chữ tâm kia mới bằng ba chữ tài' — is the single most quoted couplet of Truyện Kiều and it lies at character 108 984 of a 109 258-character page, in the last three hundred characters of the file and 69 000 past the 40 000-character index cap. The cap is counted in characters: this Vietnamese verse averages roughly 1,5 UTF-8 bytes per character, so a byte-counted cap of the same nominal size would stop earlier still, around verse 800 of 3 254.",
   "query": "Thiện căn ở tại lòng ta chữ tâm kia mới bằng ba chữ tài",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "index_fulltext_max_chars",
     "multibyte-character-offsets"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "nguyen-du-truyen-kieu-vi-wikisource",
       "recipe_id": "nguyen-du-truyen-kieu-vi-wikisource",

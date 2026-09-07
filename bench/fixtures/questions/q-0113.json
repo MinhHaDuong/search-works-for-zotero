@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0113",
   "need": "Hazard row stacking three mechanisms: the Cournot-limit result is stated around displayed equations that this 1897 scan's OCR renders as noise, only the prose framing them survives extraction, and the whole of chapter VII sits past the 40 000-character index cap — at character 131 610 of a 136 894-character extraction. Nothing about the paragraph reaches the index.",
   "query": "Cournot n producers in competition equation (3) successively replaced the price diminishes with the number of producers",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-equation",
     "ocr-noise",
     "index-cap-crossing"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "cournot-1897-researches-bacon",
       "recipe_id": "cournot-1897-researches-bacon",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0313",
   "need": "Written before opening the document: do larger Vietnamese households use less electricity per person — is there an economy of scale, and how large per extra member?",
   "query": "economies of scale in electricity use among Vietnamese households: each additional member decreases per capita consumption",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "hal-04332519-economies-of-scale",
       "recipe_id": "hal-04332519-economies-of-scale",

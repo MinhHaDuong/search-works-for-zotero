@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0114",
   "need": "Hazard row for the page-cap mechanism on the English Cournot: chapter XII opens on printed p. 150, pdf page 162 of a 229-page scan, past the 100-page extraction cap.",
   "query": "Cournot chapter XII variations in the social income resulting from the communication of markets",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "page-cap-crossing"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "cournot-1897-researches-bacon",
       "recipe_id": "cournot-1897-researches-bacon",

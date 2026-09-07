@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0182",
   "need": "Written before opening the document: the world map figure of existing, emerging and potential carbon pricing instruments in the executive summary — its caption and legend.",
   "query": "Figure 1 overview of existing, emerging, and potential regional, national, and subnational carbon pricing instruments ETS and tax",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-figure-caption"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "worldbank-2015-state-trends-carbon-pricing",
       "recipe_id": "worldbank-2015-state-trends-carbon-pricing",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0333",
   "need": "Hazard: the query is typed the way a Vietnamese reader types on a keyboard with no diacritics at hand — every tone and vowel mark dropped ('sua doi hien phap hai phan ba tong so dai bieu quoc hoi'). The answer paragraph carries the full diacritics, so a lexical index that does not fold them retrieves nothing at all.",
   "query": "sua doi hien phap phai duoc it nhat hai phan ba tong so dai bieu quoc hoi bieu quyet tan thanh",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "compound-document-chain",
     "vietnamese-diacritic-folding"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-constitution-1992-vi-chuong-xii",
       "recipe_id": "vn-constitution-1992-vi-chuong-xii",

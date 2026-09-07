@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0199",
   "need": "Harness canary: a trivially findable exact string in the lead of the largest plain English article of the export; if this misses, distrust every other row of the run rather than the corpus.",
   "query": "In economics, inflation is an increase in the average price of goods and services in terms of money",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "harness-canary"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-inflation-en",
       "recipe_id": "wp-inflation-en",

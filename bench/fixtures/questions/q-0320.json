@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0320",
   "need": "Written before opening the document: which database platform did the dissertation on printing and publishing in Cochinchina adopt, and why?",
   "query": "why was the Heurist platform chosen as the database for a dissertation on printing and publishing in colonial Cochinchina",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "hal-04826774-lich-su-sach-nam-ky",
       "recipe_id": "hal-04826774-lich-su-sach-nam-ky",

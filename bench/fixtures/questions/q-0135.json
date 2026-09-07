@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0135",
   "need": "Written before opening the document: I want the mechanism itself, stated in the abstract way an economist would recognise it, without naming any region — how can a pre-industrial society raise what it produces and still leave its people at subsistence?",
   "query": "how can a pre-industrial society raise what it produces and still leave ordinary people at bare subsistence",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "korotayev-2015-east-africa-malthusian-trap",
       "recipe_id": "korotayev-2015-east-africa-malthusian-trap",

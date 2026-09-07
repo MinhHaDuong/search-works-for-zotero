@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0345",
   "need": "Viết trước khi mở tài liệu (câu hỏi tiếng Việt, trả lời nằm trong bản tiếng Anh): báo cáo Việt Nam 2035 khuyến nghị sáu chuyển đổi lớn; lời giới thiệu của hai đồng chủ biên liệt kê sáu chuyển đổi ấy theo thứ tự nào?",
   "query": "sáu chuyển đổi quan trọng mà Báo cáo Việt Nam 2035 khuyến nghị, theo lời giới thiệu của Thủ tướng và Chủ tịch Ngân hàng Thế giới",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-lingual-anchor",
     "compound-book-section"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wb-2016-vietnam-2035-en-overview",
       "recipe_id": "wb-2016-vietnam-2035-en-overview",

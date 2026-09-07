@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0332",
   "need": "Viết trước khi mở tài liệu: 'Tiến quân ca' được hát ở mọi lễ chào cờ, nhưng bản thân Hiến pháp có gọi tên bài hát ấy không, hay chỉ nói chung chung về quốc ca?",
   "query": "quốc ca nước Cộng hoà Xã hội Chủ nghĩa Việt Nam là nhạc và lời của bài nào",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "compound-document-chain",
     "cultural-sense"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-constitution-1992-vi-chuong-xi",
       "recipe_id": "vn-constitution-1992-vi-chuong-xi",

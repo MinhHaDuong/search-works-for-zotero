@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0343",
   "need": "Viết trước khi mở tài liệu: báo cáo Việt Nam 2035 đặt mốc năm 2035 vì lý do gì — có phải vì đó là tròn 60 năm ngày thống nhất đất nước — và ba trụ cột của chương trình cải cách là gì?",
   "query": "Việt Nam 2035 tròn 60 năm tái thống nhất đất nước ba trụ cột thịnh vượng kinh tế bền vững môi trường công bằng hòa nhập xã hội trách nhiệm giải trình",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "compound-book-section"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wb-2016-vietnam-2035-vi-overview",
       "recipe_id": "wb-2016-vietnam-2035-vi-overview",

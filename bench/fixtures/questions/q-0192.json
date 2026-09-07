@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0192",
   "need": "Written before opening the document: does the Paris Agreement aim at well below 2 °C with 1.5 °C as an aspirational goal, and did it replace Kyoto? The policy section sits near the end of a 208 000-character article.",
   "query": "the Paris Agreement aims to keep warming well below 2 °C with 1.5 °C aspirational and replaced the Kyoto Protocol",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "index_fulltext_max_chars"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-climate-change-en",
       "recipe_id": "wp-climate-change-en",

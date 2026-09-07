@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0342",
   "need": "Hazard: the multibyte arithmetic of the cap. The 2005 environment law extracts to 152 785 characters, and the index cap is counted in characters, not bytes: Điều 135 sits at character 147 001, so a reader asking when the law took effect gets nothing, while the same question against the shorter 2010 law misses by only 1 951 characters. Vietnamese carries two or three UTF-8 bytes per accented letter, so a byte-counted cap of the same nominal size would truncate this page around character 34 000 instead of 40 000 — a different, and wrong, answer set.",
   "query": "Luật Bảo vệ môi trường 2005 có hiệu lực thi hành từ ngày nào và thay thế luật nào",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "compound-document-chain",
     "index_fulltext_max_chars",
     "multibyte-character-offsets"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-law-environment-2005-vi",
       "recipe_id": "vn-law-environment-2005-vi",

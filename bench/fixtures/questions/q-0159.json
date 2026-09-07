@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0159",
   "need": "Written before opening the document: the Wikisource page carries one footnote; it hangs on the article describing the national emblem, whose inscription is given in Vietnamese. I want the emblem article and its note, both near the end of a 78 000-character page.",
   "query": "national emblem of Vietnam inscription Cộng hòa xã hội chủ nghĩa Việt Nam footnote",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-footnote",
     "index_fulltext_max_chars",
     "compound-statute-article"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-constitution-1992-en",
       "recipe_id": "vn-constitution-1992-en",

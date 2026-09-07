@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0203",
   "need": "Hazard row: the footnote apparatus of a 1838 octavo. The numbered note sits at the foot of the page, in smaller type, and the scan's text layer runs it into the body paragraph above it. Can the note itself — a bare bibliographic pointer to Newton's Principia — be retrieved with its own page?",
   "query": "Cournot note Voyez Newton Principes Livre I définitions préliminaires",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-footnote"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "cournot-1838-recherches",
       "recipe_id": "cournot-1838-recherches-ia",

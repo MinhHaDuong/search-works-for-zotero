@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0126",
   "need": "Written before opening the document: which risk measure do the authors put forward against the CAPM beta, and what do they claim it does better?",
   "query": "entropy explains the equity premium with higher explanatory power than the beta parameter of the capital asset pricing model",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "metadata-conflicting-duplicate"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "ormos-2014-entropy-asset-pricing",
       "recipe_id": "ormos-2014-entropy-asset-pricing",

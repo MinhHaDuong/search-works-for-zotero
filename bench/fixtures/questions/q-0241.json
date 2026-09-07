@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0241",
   "need": "Written before opening the document: an encyclopedia definition of global warming that says over what period the average is taken and where in the atmosphere the temperature is measured — the operational definition, not the causes. The SHOULD-language row for Spanish.",
   "query": "definición de calentamiento global aumento a largo plazo de la temperatura media de la troposfera efecto invernadero",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "should-language-row",
     "pageless-html"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-climate-change-es",
       "recipe_id": "wp-climate-change-es",

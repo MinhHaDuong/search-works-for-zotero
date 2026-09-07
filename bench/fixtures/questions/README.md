@@ -1,4 +1,4 @@
-# The Menagerie question bank — schema `menagerie-bank/v2`
+# The Menagerie question bank — schema `menagerie-bank/v3`
 
 Ticket 0722, implementing the author's rulings of 2026-09-06. One JSON file per
 question, `q-NNNN.json`, in this flat directory; `bank.schema.json` is the same
@@ -16,7 +16,7 @@ its citation chain. The same work returned in another rendering or language in
 place of the answer paragraph is a near-win. Rank and mean reciprocal rank are
 reported per lane and never gated (D11).
 
-The **pinned set** is a set of rows. A row is what a reply can show apart: a
+The **primary set** is a set of rows. A row is what a reply can show apart: a
 work, or a section of a work (R24 collapses declared renderings and
 deduplicates per section). Two answer paragraphs in the same section of the
 same work are one row with two `alternates`; any alternate found is the row
@@ -24,14 +24,14 @@ found. Paragraphs in different sections or works are separate rows, each scored
 on the ladder by its own rank and chain completeness.
 
 `set_kind` says how rows combine. **any-of**: the question scores on its best
-row. **all-of**: the gate keeps R34's absolute reading (every pinned row within
+row. **all-of**: the gate keeps R34's absolute reading (every primary row within
 the first k, or the question fails) and the ladder reads on the weakest row —
 win only if every row wins, near-win if every row is at least a near-win, miss
 if any row is absent. An all-of set is small, a handful, never near k. The
 report carries per-row detail: the fraction of rows found and each row's rank.
 
-A **no-answer question** carries an empty pinned set and `expected_miss: true`.
-It passes when the reply's first k contain no pinned row (there are none) and
+A **no-answer question** carries an empty primary set and `expected_miss: true`.
+It passes when the reply's first k contain no primary row (there are none) and
 is reported apart, never in the ladder. An answer that exists on the page but
 is **unreachable in the export** — the attachment is a failure control, has no
 text layer, or the quote cannot be located in what Zotero extracted — stays in
@@ -42,7 +42,7 @@ refuses an unreachable alternate on any other question.
 
 ```json
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0001",
   "need": "Written before opening the document: ...",
   "query": "feed-in tariff for grid-connected solar power projects in Vietnam 2017",
@@ -53,10 +53,10 @@ refuses an unreachable alternate on any other question.
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-decision-11-2017-qdttg-solar-fit-en",
       "recipe_id": "vn-decision-11-2017-qdttg-solar-fit-en",
@@ -96,10 +96,10 @@ refuses an unreachable alternate on any other question.
 | `mode` | `lexical`, `semantic`, `hybrid`, or `any`; a reply in a mode the question does not allow is refused. |
 | `facet` | `core`, `notes`, `group`, `deep-body` (the export's facets, SPEC §5.2.8). |
 | `stratum` | `core` (the representative sample) or `reserve` (the adversarial one); never pooled unweighted. |
-| `mechanisms` | Names of the mechanisms the question exercises (the coverage ledger's vocabulary, free strings). |
+| `mechanism` | Names of the pathology rows the question consumes (the coverage ledger's vocabulary, free strings); a list, under the singular name SPEC.md §5.2.10 gives it. |
 | `generator` | `need` (from an information need) or `hazard` (from a mechanism or tally sub-case). |
 | `set_kind` | `any-of` or `all-of`. |
-| `pinned` | The rows; empty only on an expected-miss question. |
+| `primary` | The primary answer set: the rows, never more than k of them; empty only on an expected-miss question. |
 | `expected_miss`, `expected_miss_mechanism` | The flag and, when set, the mechanism in words; each requires the other. |
 | `reachability` | **Computed, not authored** — see below. `null` until stamped. |
 | `provenance` | Who pinned it, when (ISO date), and whether the printed page was read (`page_read`). |
@@ -203,18 +203,18 @@ the build, reported, not hidden.
 - **Near-win** if the item is present without that overlap, or only the
   declared other-language / other-rendering twin is present.
 - **Miss** otherwise.
-- **Chain completeness** = the fraction of the pinned chain's non-null fields
+- **Chain completeness** = the fraction of the primary chain's non-null fields
   the reply carries with a matching value (string-normalised; `page_printed`
   exact). A missing row is `not-run` for the chain.
 
-## The report — schema `golden-gate-report/v2`
+## The report — schema `golden-gate-report/v3`
 
 Per question and mode: level, rank, reciprocal rank, chain, rows found, per-row
-detail. Aggregated per lane, format of the pinned attachment (`pdf`, `html`,
+detail. Aggregated per lane, format of the primary attachment (`pdf`, `html`,
 `other`), signal, set_kind, mode and facet, **within each stratum**, with the
 count beside every rate and `not-measured` at zero; a weighted pooled figure is
 printed apart with a macro-average by lane beside it. R34 absolute over the
-pinned rows (present = win or near-win) and the stability reading are the two
+primary rows and the stability reading are the two
 gated readings; the ladder is reported, never gated.
 
 Exit codes of `golden_gate.py score`: 0 pass, 1 fail, 2 input error, 3 not-run

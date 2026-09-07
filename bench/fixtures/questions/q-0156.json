@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0156",
   "need": "Viết trước khi mở tài liệu: Hiến pháp 1992 (bản tiếng Anh) nói Quốc hội là cơ quan gì — cơ quan đại biểu cao nhất của nhân dân và cơ quan quyền lực nhà nước cao nhất?",
   "query": "Hiến pháp 1992 Quốc hội là cơ quan quyền lực nhà nước cao nhất",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "compound-statute-article",
     "cross-lingual-anchor"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-constitution-1992-en",
       "recipe_id": "vn-constitution-1992-en",

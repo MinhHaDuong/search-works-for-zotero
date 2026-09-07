@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0218",
   "need": "Hazard row: a five-column comparison table (Venus, Earth, Mars against surface pressure, principal greenhouse gases, calculated and observed surface temperature) with its caption below it. The extraction flattens the header row and the three data rows into one run of text, so the planet names and the temperatures are adjacent but their column membership is gone. Can the table still be retrieved and cited to its printed page?",
   "query": "Tableau 1.2 ordre de grandeur de l'effet de serre Terre Vénus Mars température de surface calculée et observée",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-table",
     "column-flattening"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "ha-duong-1998-irreversibilite-these",
       "recipe_id": "ha-duong-1998-irreversibilite-these",

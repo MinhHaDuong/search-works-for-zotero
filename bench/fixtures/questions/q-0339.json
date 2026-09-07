@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0339",
   "need": "Hazard: the commencement article of the 2010 energy-efficiency law sits at character 41 951 of a 47 822-character page — just 1 951 characters past the 40 000-character index cap. The date is also printed in the infobox table at the head of the page, inside the cap, so the same fact is reachable and unreachable at once depending on which rendering the reply cites.",
   "query": "Luật Sử dụng năng lượng tiết kiệm và hiệu quả có hiệu lực thi hành từ ngày nào Điều 47",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "compound-document-chain",
     "index_fulltext_max_chars"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-law-energy-efficiency-2010-vi",
       "recipe_id": "vn-law-energy-efficiency-2010-vi",

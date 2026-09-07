@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0167",
   "need": "Viết trước khi mở tài liệu: báo cáo Việt Nam 2035 dựa trên ba trụ cột nào — thịnh vượng đi đôi với bền vững môi trường, công bằng và hòa nhập xã hội, và năng lực cùng trách nhiệm giải trình của nhà nước?",
   "query": "ba trụ cột của báo cáo Việt Nam 2035 thịnh vượng bền vững môi trường công bằng nhà nước trách nhiệm giải trình",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-lingual-anchor",
     "compound-book-section"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wb-2016-vietnam-2035-en-overview",
       "recipe_id": "wb-2016-vietnam-2035-en-overview",

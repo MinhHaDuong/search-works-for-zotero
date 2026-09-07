@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0198",
   "need": "Viết trước khi mở tài liệu: Keynes có cho rằng một mệnh đề tự nó có xác suất cao hay thấp không, hay xác suất luôn tương đối với bằng chứng — ông so sánh với khoảng cách của một địa điểm?",
   "query": "Keynes không mệnh đề nào tự nó là có xác suất, cũng như không nơi nào tự nó là xa",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-lingual-anchor"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "keynes-1921-treatise-on-probability",
       "recipe_id": "keynes-1921-treatise-on-probability",

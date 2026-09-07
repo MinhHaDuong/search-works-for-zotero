@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0430",
   "need": "Hazard row paired with q-0429 in the same EPUB: the waggon-versus-ship arithmetic between London and Edinburgh sits at character 42 553, just past the 40 000-character index cap. Latin script, one byte per character — the control arm against the Cyrillic and Devanagari cap pairs, where byte count and character count diverge.",
   "query": "broad-wheeled waggon two men eight horses six weeks London Edinburgh four ton weight of goods",
@@ -10,7 +10,7 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "extraction-cap-crossing-past",
     "index-fulltext-max-chars-40000",
     "source-format-epub",
@@ -18,7 +18,7 @@
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "smith-1776-wealth-of-nations",
       "recipe_id": "smith-1776-wealth-of-nations",

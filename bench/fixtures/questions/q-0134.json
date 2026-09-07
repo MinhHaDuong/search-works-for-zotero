@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0134",
   "need": "Hazard row combining an appendix with the index cap: Appendix 1 on printed p. 28 is the one place the Tanzanian anomaly is explained, and at character 48 733 of a 52 282-character extraction it sits past the 40 000-character index cap.",
   "query": "Appendix 1 Tanzanian case stagnation of per capita food consumption against GDP per capita growth",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "index-cap-crossing",
     "structural-appendix"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "korotayev-2015-east-africa-malthusian-trap",
       "recipe_id": "korotayev-2015-east-africa-malthusian-trap",

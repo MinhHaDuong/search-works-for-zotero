@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0427",
   "need": "Hazard row: a structural mark — an editorial footnote — in a degraded Arabic scan. The foot of printed page ٤٤ carries note (١) glossing the vocalisation of البجة and the spelling زيلع. A hit would have to locate the footnote apart from the body text above it.",
   "query": "حاشية البجة بضم الباء وفتح الجيم البجاة زالع زيلع",
@@ -10,7 +10,7 @@
   "mode": "any",
   "facet": "deep-body",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "structural-footnote",
     "structural-marks-x-script",
     "degraded-ocr-text-layer",
@@ -18,7 +18,7 @@
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "ibn-khaldun-1904-muqaddimah",
       "recipe_id": "ibn-khaldun-1904-muqaddimah",

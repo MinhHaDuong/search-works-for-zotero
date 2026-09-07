@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0205",
   "need": "Hazard row, index cap: the two best-known passages of the book — the demand law D = F(p) of chapter IV and the mineral-spring monopolist of chapter V — sit at characters 74 590 and 89 552 of the extracted text, well past the 40 000-character index cap. They are in the export and absent from the index, which is exactly the sub-case a reader would never guess from the page.",
   "query": "Cournot source minérale propriétaire prix qui rend p F(p) maximum rente annuelle monopole",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "index-char-cap-crossing",
     "answer-past-index-cap"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "cournot-1838-recherches",
       "recipe_id": "cournot-1838-recherches-ia",

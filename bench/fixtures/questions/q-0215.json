@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0215",
   "need": "Hazard row: this is a 788-page folio and Zotero indexed the first hundred pages, which end at printed page 78. The chapter on charter parties — the contract by which a merchant hires a ship — is at printed page 478, so a maritime-law question against this book cannot be answered from the export at all, however well the query is worded.",
   "query": "charte partie convention passée pardevant notaires pour l'affrètement ou louage d'un vaisseau",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "page-cap-crossing",
     "answer-past-extraction-cap"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "porte-1770-science-des-negocians",
       "recipe_id": "porte-1770-science-des-negocians",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0164",
   "need": "Viết trước khi mở tài liệu: báo cáo Việt Nam 2035 dự báo đến năm 2035 bao nhiêu phần trăm dân số Việt Nam sẽ thuộc tầng lớp trung lưu toàn cầu, so với hiện nay?",
   "query": "Việt Nam 2035 hơn một nửa dân số sẽ gia nhập tầng lớp trung lưu toàn cầu",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "deep-body",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-lingual-anchor",
     "index_fulltext_max_chars"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wb-2016-vietnam-2035-en",
       "recipe_id": "wb-2016-vietnam-2035-en",

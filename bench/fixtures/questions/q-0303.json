@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0303",
   "need": "Viết trước khi mở tài liệu: Trần Trọng Kim có ý kiến gì về việc dùng tên An Nam thay vì Việt Nam để gọi nước nhà?",
   "query": "Trần Trọng Kim cho rằng nên bỏ hai chữ An Nam vì ngụ ý thần phục nước Tàu mà gọi nước là Việt Nam",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-nuoc-viet-nam",
       "recipe_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-nuoc-viet-nam",

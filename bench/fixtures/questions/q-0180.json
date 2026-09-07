@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0180",
   "need": "Viết trước khi mở tài liệu: theo báo cáo nền của Ngân hàng Thế giới năm 2009, tiềm năng kỹ thuật thủy điện của Việt Nam là bao nhiêu tỷ kWh và tương đương công suất bao nhiêu MW?",
   "query": "tiềm năng kỹ thuật thủy điện Việt Nam khoảng 120 tỷ kWh tương đương 30.000 MW",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-lingual-anchor"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "worldbank-2009-vietnam-energy-mitigation",
       "recipe_id": "worldbank-2009-vietnam-energy-mitigation",

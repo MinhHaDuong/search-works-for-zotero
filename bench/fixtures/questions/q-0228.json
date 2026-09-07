@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0228",
   "need": "Written before opening the document: policy debate often forces a choice — help the poor directly, or grow the economy and let them benefit. I want the passage that puts that dilemma as a dilemma, without knowing whether the author frames it as intervention, empowerment or redistribution.",
   "query": "conviene repartir mejor la renta o conviene producir cuanto se pueda frente a la miseria",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "indirect-description"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "macias-2014-crecimiento-desigualdad-pobreza",
       "recipe_id": "macias-2014-crecimiento-desigualdad-pobreza",

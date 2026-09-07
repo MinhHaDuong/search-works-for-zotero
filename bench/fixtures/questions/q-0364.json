@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0364",
   "need": "Hazard: the query is typed in traditional characters (馬牛羊，雞犬豕) because that is how the Three Character Classic is quoted in Taiwan and Hong Kong, while this 1998 chinapage copy is a GB2312 simplified edition (马牛羊，鸡犬豕). Character-for-character the two are different code points, so a lexical index that does not fold simplified against traditional cannot match the best-known list of the six domestic animals to the page that carries it.",
   "query": "三字經 六畜 馬牛羊 雞犬豕 人所飼",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "han-script-no-word-spaces",
     "simplified-traditional-variant",
     "legacy-encoding-gb2312"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "sanzijing-chinapage-1999",
       "recipe_id": "sanzijing-chinapage-1999",

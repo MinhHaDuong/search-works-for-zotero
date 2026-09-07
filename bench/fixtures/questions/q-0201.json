@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0201",
   "need": "Written before opening the document: a reader who knows only Bacon's 1897 English translation, 'Researches into the Mathematical Principles of the Theory of Wealth', wants to see how Cournot himself opened his chapter on absolute and relative value — the complaint that economists have left the definition of value obscure. The query is in English; the answer paragraph is the French original.",
   "query": "Cournot chapter on absolute and relative value: economists have left the definition of value in the dark, and one plain analogy will settle it",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-language",
     "work-identity-translation-pair"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "cournot-1838-recherches",
       "recipe_id": "cournot-1838-recherches-ia",

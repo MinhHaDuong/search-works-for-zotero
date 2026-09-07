@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0166",
   "need": "Written before opening the document: the figure in chapter 2 whose caption says Vietnam has had a quarter-century of fast, stable, and equitable growth, with panels on GDP per capita and volatility.",
   "query": "Figure 2.2 Vietnam has had 25 years of fast, stable, and equitable economic growth GDP per capita level and growth volatility",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "deep-body",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-figure-caption",
     "stock-page-cap"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wb-2016-vietnam-2035-en",
       "recipe_id": "wb-2016-vietnam-2035-en",

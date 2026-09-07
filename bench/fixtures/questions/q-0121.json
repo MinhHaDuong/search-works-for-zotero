@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0121",
   "need": "Écrit avant d'ouvrir le document : quelle fraction du bilan américain de 2014 revient à l'usage de l'énergie, en équivalent dioxyde de carbone ? Question en français, paragraphe de réponse en anglais.",
   "query": "quelle fraction du bilan américain de 2014 revient à l'usage de l'énergie, en équivalent dioxyde de carbone",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-lingual"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "epa-2016-ghg-inventory-1990-2014",
       "recipe_id": "epa-2016-ghg-inventory-1990-2014",

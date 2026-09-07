@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0352",
   "need": "Viết trước khi mở tài liệu: nói 'Bắc Cực nóng lên' thì hệ quả cụ thể nào được kể ra — tầng băng vĩnh cửu, sông băng, hay diện tích băng biển? Bài tiếng Việt liệt kê đủ ba hay chỉ một?",
   "query": "nhiệt độ tăng ở vùng Bắc cực làm tan tầng băng vĩnh cửu sông băng lùi dần giảm diện tích băng phủ bề mặt biển",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-climate-change-vi",
       "recipe_id": "wp-climate-change-vi",

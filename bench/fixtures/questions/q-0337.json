@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0337",
   "need": "Viết trước khi mở tài liệu: khi đi mua tủ lạnh hay điều hoà, người mua muốn biết máy nào tốn ít điện hơn — luật 2010 buộc người bán phải dán cái gì lên sản phẩm, và cái đó phải cho biết những gì?",
   "query": "người mua tủ lạnh làm sao biết máy nào tốn ít điện hơn khi chọn hàng ngoài cửa tiệm",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "compound-document-chain"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-law-energy-efficiency-2010-vi",
       "recipe_id": "vn-law-energy-efficiency-2010-vi",

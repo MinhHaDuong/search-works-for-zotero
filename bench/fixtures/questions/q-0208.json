@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0208",
   "need": "Written before opening the document: before the verse begins, the translator summarises the plot for a French readership. I want his account of how the young scholar first sees the heroine and then rents a house in her neighbourhood to be near her — the prose summary, not the verse.",
   "query": "des Michels introduction Kim Trong loue une maison dans le voisinage pour revoir la jeune fille",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "front-matter-roman-pagination",
     "compound-document-part"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "des-michels-1884-kim-van-kieu-t1",
       "recipe_id": "des-michels-1884-kim-van-kieu-t1",

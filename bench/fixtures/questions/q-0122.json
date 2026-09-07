@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0122",
   "need": "Hazard row for the structural-footnote mechanism: the unit convention the whole chapter rests on is stated only in footnote 1 at the foot of the first page, not in the body.",
   "query": "footnote million metric tons of carbon dioxide equivalent weight each gas by its global warming potential GWP",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-footnote"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "epa-2016-ghg-inventory-1990-2014",
       "recipe_id": "epa-2016-ghg-inventory-1990-2014",

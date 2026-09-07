@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0350",
   "need": "Written before opening the document: in the Tale of Kiều the sisters come upon a neglected grave during the tomb-sweeping festival, and the brother explains whose it is. Who was buried there, and what had her profession been? An English reader has only the description, not the name.",
   "query": "whose neglected grave do the sisters find during the tomb-sweeping festival, and what had she been in life",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cultural-sense",
     "indirect-description"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "nguyen-du-truyen-kieu-vi-wikisource",
       "recipe_id": "nguyen-du-truyen-kieu-vi-wikisource",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0190",
   "need": "Écrit avant d'ouvrir le document : quelle activité humaine depuis la révolution industrielle a fait monter la concentration des gaz à effet de serre — l'extraction et la combustion des combustibles fossiles ?",
   "query": "cause principale de la hausse des gaz à effet de serre depuis la révolution industrielle charbon pétrole gaz",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-lingual-anchor"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-climate-change-en",
       "recipe_id": "wp-climate-change-en",

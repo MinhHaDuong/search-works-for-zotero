@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0210",
   "need": "Hazard row, two mechanisms at once. A Vietnamese reader types verse 620 in modern quốc ngữ — 'Liều đem tấc cỏ, quyết đền ba xuân'. That verse is printed on page 130, which is pdf page 150 of a 316-page scan: past the hundred-page extraction cap, so it never entered the export. Even had it entered, the 1884 transliteration carries no tone marks and the OCR mangles what marks it has, so the modern spelling would not match either.",
   "query": "Liều đem tấc cỏ, quyết đền ba xuân",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "page-cap-crossing",
     "ocr-mangled-diacritics",
     "transliteration-mismatch"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "des-michels-1884-kim-van-kieu-t1",
       "recipe_id": "des-michels-1884-kim-van-kieu-t1",

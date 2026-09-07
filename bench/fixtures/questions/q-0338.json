@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0338",
   "need": "Hazard: the Wikisource legislative page opens with an infobox table whose header row and single data row (Loại / Số / Ngày ban hành / Ngày hiệu lực / …) are tab-separated in the extraction; the answer is a table cell, not a sentence, so the whole row has to survive whitespace normalisation as one span.",
   "query": "Luật 50/2010/QH12 số hiệu ngày ban hành 17/6/2010 ngày hiệu lực 1/1/2011",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "structural-table"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-law-energy-efficiency-2010-vi",
       "recipe_id": "vn-law-energy-efficiency-2010-vi",

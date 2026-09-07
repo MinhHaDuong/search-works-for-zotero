@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0154",
   "need": "Written before opening the document: the invisible-hand sentence — the individual intends only his own gain and is led to promote an end which was no part of his intention. It is in Book IV, deep in a text that crosses Zotero's 500 000-character extraction cap.",
   "query": "led by an invisible hand to promote an end which was no part of his intention",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "gutenberg-cap-crossing-pair",
     "fulltext.textMaxLength"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "smith-1776-wealth-of-nations",
       "recipe_id": "smith-1776-wealth-of-nations",

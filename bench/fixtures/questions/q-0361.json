@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0361",
   "need": "在打開文獻之前寫下：安陽王的神弩，其機括究竟取自何物？傳說只說「神弩」，正史卻給了名字和造弩之人。",
   "query": "安陽王 靈光金爪神弩 金龜脫爪 皐魯造機弩",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "han-script-no-word-spaces"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "dai-viet-su-ky-toan-thu-ngoai-ky-1-zh",
       "recipe_id": "dai-viet-su-ky-toan-thu-ngoai-ky-1-zh",

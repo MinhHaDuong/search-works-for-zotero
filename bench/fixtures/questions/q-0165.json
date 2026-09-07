@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0165",
   "need": "Written before opening the document: the background chapter's table of assumed average annual real GDP growth by region for 2016–35 — what growth does it assume for the United States over the five-year windows?",
   "query": "Table 1.1 average annual growth in real GDP United States 2016-20 2021-25 2026-30 2031-35",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "deep-body",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-table",
     "stock-page-cap"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wb-2016-vietnam-2035-en",
       "recipe_id": "wb-2016-vietnam-2035-en",

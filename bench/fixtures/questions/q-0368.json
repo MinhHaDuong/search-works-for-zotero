@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0368",
   "need": "Hazard: the cap-crossing row in a non-Latin script, where the character-versus-byte arithmetic is at its widest. This article extracts to 121 106 characters, almost every one of them a Han ideograph costing three UTF-8 bytes, so the file is roughly 340 000 bytes. The 40 000-character index cap therefore admits about a third of the characters and about a ninth of what a byte-counted cap of the same nominal size would admit. The free-content attribution in 資料來源, at character 73 716, is on the far side of it — and it is the one statement on the page that a licence audit has to find.",
   "query": "氣候變化 條目 資料來源 自由内容作品 CC BY-SA 3.0 糧農組織 FAO",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "index_fulltext_max_chars",
     "multibyte-character-offsets",
     "han-script-no-word-spaces"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-climate-change-zh",
       "recipe_id": "wp-climate-change-zh",

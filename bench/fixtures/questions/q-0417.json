@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0417",
   "need": "Written before opening the document: a Hindi reader wants the breakdown of greenhouse-gas emissions by gas and source — what share is carbon dioxide from burning wood and coal, what share from deforestation, and what share is methane?",
   "query": "ग्रीन हाउस गैस उत्सर्जन में कॉर्बन डाइऑक्साइड 57% वृक्षों की कटान 17% मीथेन 14%",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "should-language-hindi",
     "devanagari-script"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-climate-change-hi",
       "recipe_id": "wp-climate-change-hi",

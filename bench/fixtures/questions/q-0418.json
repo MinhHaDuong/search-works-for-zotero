@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0418",
   "need": "Written before opening the document: which measurable ratio inside trapped polar ice tells palaeoclimatologists how warm the sea was when the water evaporated? Asked in English against a Hindi article.",
   "query": "ratio of two oxygen isotopes trapped in polar ice as a thermometer for the sea when the water evaporated",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "should-language-hindi",
     "cross-lingual-en-to-hi",
     "devanagari-script"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-climate-change-hi",
       "recipe_id": "wp-climate-change-hi",

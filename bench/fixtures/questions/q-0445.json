@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0445",
   "need": "Hazard row for a declared failure control — visible, not silent, degradation. Vuillemin's 1875 map of the Nord and Pas-de-Calais coal concessions carries its legend as printed text inside the raster; a query naming a concession would expect the map. The export declares this attachment answer_set_participation = 'none', so the correct behaviour is that it never appears in an answer set and the degradation is legible in the counters rather than showing up as a plausible-looking wrong hit.",
   "query": "Vuillemin 1875 carte bassins houillers Nord Pas-de-Calais concessions planche 39",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "failure-control",
     "source-format-raster-image",
     "visible-not-silent-degradation"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [],
+  "primary": [],
   "expected_miss": true,
   "expected_miss_mechanism": "declared failure control, unindexable format: a JPEG raster (1120x1744 px) of a printed map; Zotero's full-text indexer reads PDF, HTML, EPUB and plain text only, so the attachment finishes with no full text (attachment vuillemin-1875-carte-concessions-nord-pas-de-calais-jpg, key ZT9JSK9G)",
   "reachability": {

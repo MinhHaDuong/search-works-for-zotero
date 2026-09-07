@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0211",
   "need": "Written before opening the document: an eighteenth-century French manual for merchants and bookkeepers. I want the place where it says how a ledger account is laid out — which side of the opening carries what the correspondent owes and which side carries what is owed to him.",
   "query": "grand livre comptes formés sur deux pages vis-à-vis l'une de l'autre débit à main gauche crédit à droite",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "known-item",
     "long-s-orthography"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "porte-1770-science-des-negocians",
       "recipe_id": "porte-1770-science-des-negocians",

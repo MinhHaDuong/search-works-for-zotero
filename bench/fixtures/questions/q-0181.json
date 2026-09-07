@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0181",
   "need": "Written before opening the document: does the paper put Vietnam's exploitable wind resource at well under 2 GW while hydropower runs to tens of gigawatts?",
   "query": "Vietnam's exploitable wind resource is under two gigawatts while hydropower reaches tens of gigawatts",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "worldbank-2009-vietnam-energy-mitigation",
       "recipe_id": "worldbank-2009-vietnam-energy-mitigation",

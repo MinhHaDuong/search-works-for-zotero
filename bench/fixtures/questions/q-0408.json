@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0408",
   "need": "Written before opening the document: is there a country whose own average temperature is said to be climbing several times faster than the planetary mean, and by what factor? Asked in English against a Russian article.",
   "query": "country warming two and a half times faster than the global average, Taymyr peninsula heating fastest",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "should-language-russian",
     "cross-lingual-en-to-ru"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-climate-change-ru",
       "recipe_id": "wp-climate-change-ru",

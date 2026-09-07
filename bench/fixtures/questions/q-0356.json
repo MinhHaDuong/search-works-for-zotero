@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0356",
   "need": "Hazard row for the DjVu container: the 1920 first printing of Việt Nam sử lược, quyển I is served by Wikimedia Commons as image/vnd.djvu. Zotero's extraction dispatch (fulltext.js, indexItem) handles application/pdf, application/epub+zip and text/* only, so the attachment finishes unindexed, writes no fulltextItems row, and is a declared failure control whose answer_set_participation is 'none' — no row of this printing may be pinned. The text is nevertheless legible page by page on Commons, and a Wikisource transcription of the same work is indexed, so the reader who asks this question in the bank should be answered by the transcription, never by the DjVu.",
   "query": "Trần Trọng Kim Việt Nam sử lược quyển I bản in 1920 nhà xuất bản Trung Bắc Tân Văn",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "djvu-never-dispatched",
     "declared-failure-control"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [],
+  "primary": [],
   "expected_miss": true,
   "expected_miss_mechanism": "djvu-never-dispatched, declared failure control: attachment G7FL2EI8 (tran-trong-kim-1920-viet-nam-su-luoc-q1) finishes unindexed because image/vnd.djvu is never eligible for extraction, and its answer_set_participation is 'none', so no row of this printing may be pinned at all",
   "reachability": {

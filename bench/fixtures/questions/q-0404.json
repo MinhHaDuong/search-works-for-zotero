@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0404",
   "need": "Written before opening the document: how did Keynes redefine inflation away from the purely monetary nineteenth-century account — what quantity does he say exceeds what? Asked in English against an Arabic encyclopaedia article.",
   "query": "Keynes redefinition of inflation as aggregate demand persistently exceeding real productive capacity",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "should-language-arabic",
     "cross-lingual-en-to-ar",
     "rtl-script"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-inflation-ar",
       "recipe_id": "wp-inflation-ar",

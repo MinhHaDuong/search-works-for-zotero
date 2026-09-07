@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0246",
   "need": "Hazard row, figure caption past the page cap. Chapter VII, 'Probabilité du continu', turns the broken-stick problem into a triangle: the three perpendiculars from an interior point sum to the height, so the point represents a division of the stick, and Fig. 6 on printed page 125 carries the construction. Two caps stand between the reader and it — printed 125 is pdf page 135 of a 352-page scan and only the first hundred pages were extracted, so the caption is not merely unindexed but absent from the export. A figure caption is the shortest text on its page and the first thing lost.",
   "query": "Poincaré Fig. 6 probabilité du continu triangle perpendiculaires abaissées d'un point intérieur somme égale à la hauteur bâton",
@@ -10,14 +10,14 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "page-cap-crossing",
     "structural-figure-caption",
     "answer-past-extraction-cap"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "poincare-1912-calcul-des-probabilites",
       "recipe_id": "poincare-1912-calcul-des-probabilites",

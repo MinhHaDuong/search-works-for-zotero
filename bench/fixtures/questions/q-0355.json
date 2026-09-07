@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0355",
   "need": "Written before opening the document: the Brundtland report of 1987 is usually credited with the phrase 'sustainable development', but the term is older. Which publication used it first, and in what year?",
   "query": "which publication first used the phrase sustainable development, before the Brundtland report",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wp-sustainable-development-vi",
       "recipe_id": "wp-sustainable-development-vi",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0433",
   "need": "Hazard row for source-format coverage: a Wikisource wikitext file served as text/plain — Yan Fu's 1902 translator's preface, where he explains why he coined 計學 rather than accept 經濟 or 理財 for economics. Same indexed-not-served mechanism as q-0432, in Han script and on a markup-bearing source.",
   "query": "嚴復 譯事例言 計學 葉科諾密 經濟 理財",
@@ -10,7 +10,7 @@
   "mode": "any",
   "facet": "core",
   "stratum": "reserve",
-  "mechanisms": [
+  "mechanism": [
     "source-format-plain-text",
     "source-format-wikitext-markup",
     "indexed-not-served",
@@ -18,7 +18,7 @@
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "yan-fu-1902-yuanfu-yishi-liyan",
       "recipe_id": "yan-fu-1902-yuanfu-yishi-liyan",

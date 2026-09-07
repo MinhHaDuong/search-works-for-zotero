@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0116",
   "need": "Written before opening the document: what does the Review conclude about the balance of DOE's own portfolio between transport and stationary energy?",
   "query": "DOE is underinvested in the transportation sector relative to the stationary sector energy efficiency grid and electric power",
@@ -10,10 +10,10 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [],
+  "mechanism": [],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "doe-2011-quadrennial-technology-review",
       "recipe_id": "doe-2011-quadrennial-technology-review",

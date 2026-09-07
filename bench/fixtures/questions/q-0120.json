@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0120",
   "need": "Hazard row for the page-cap mechanism: the report's own conclusions open on printed p. 121, pdf page 135 of a 168-page file, past the 100-page extraction cap — the part of a report a reader most often wants is exactly the part the cap removes.",
   "query": "Quadrennial Technology Review conclusions national energy priorities energy security economic competitiveness environmental impacts",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "page-cap-crossing"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "doe-2011-quadrennial-technology-review",
       "recipe_id": "doe-2011-quadrennial-technology-review",

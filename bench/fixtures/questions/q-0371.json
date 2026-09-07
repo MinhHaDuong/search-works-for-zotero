@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0371",
   "need": "Viết trước khi mở tài liệu: theo Hiến pháp 1992, cơ quan nào là cơ quan duy nhất có quyền lập hiến và lập pháp? Tài liệu nằm trong thư viện nhóm đóng của Zotero chứ không nằm trong thư viện cá nhân, nên câu hỏi này cũng kiểm tra rằng lát cắt thư viện nhóm được tìm thấy như thư viện cá nhân.",
   "query": "Hiến pháp 1992 cơ quan duy nhất có quyền lập hiến và lập pháp",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "group",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "group-library-slice",
     "compound-document-chain"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "vn-constitution-1992-vi-chuong-vi",
       "recipe_id": "vn-constitution-1992-vi-chuong-vi",

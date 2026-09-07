@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0347",
   "need": "Viết trước khi mở tài liệu: hai câu mở đầu Truyện Kiều đặt 'tài' đối với cái gì — 'mệnh' hay 'sắc'? Các bản khắc chép khác nhau, nên cần đọc đúng bản được dẫn.",
   "query": "Trăm năm trong cõi người ta chữ tài chữ mệnh khéo là ghét nhau",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "cross-lingual-anchor"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "nguyen-du-truyen-kieu-vi-wikisource",
       "recipe_id": "nguyen-du-truyen-kieu-vi-wikisource",

@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0175",
   "need": "Written before opening the document: the record is deliberately filed as a journal article though it is a project report with no journal; does the wrong item type hide the document or break its citation chain? I want its rule on whether assessments use real or nominal prices.",
   "query": "assessments performed with real prices and real interest/discount rates not including inflation BIPV Active Interfaces",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "wrong-item-type",
     "item-type-fidelity"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "wittkopf-2016-bipv-methodological-framework",
       "recipe_id": "wittkopf-2016-bipv-methodological-framework",

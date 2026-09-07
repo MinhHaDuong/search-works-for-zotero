@@ -1,17 +1,17 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/MinhHaDuong/search-works-for-zotero/bench/fixtures/questions/bank.schema.json",
-  "title": "Menagerie question bank record (menagerie-bank/v2)",
+  "title": "Menagerie question bank record (menagerie-bank/v3)",
   "description": "One question of the golden gate's bank, ticket 0722. The vocabularies here are the ones bench/golden_gate.py enforces; tests hold the two in step.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schema", "id", "need", "query", "question_language", "answer_language", "lane", "signal", "mode",
-    "facet", "stratum", "mechanisms", "generator", "set_kind", "pinned", "expected_miss",
+    "facet", "stratum", "mechanism", "generator", "set_kind", "primary", "expected_miss",
     "expected_miss_mechanism", "reachability", "provenance"
   ],
   "properties": {
-    "schema": {"const": "menagerie-bank/v2"},
+    "schema": {"const": "menagerie-bank/v3"},
     "id": {"type": "string", "pattern": "^q-[0-9]{4,}$"},
     "need": {"type": "string", "minLength": 1},
     "query": {"type": "string", "minLength": 1},
@@ -22,10 +22,10 @@
     "mode": {"enum": ["lexical", "semantic", "hybrid", "any"]},
     "facet": {"enum": ["core", "notes", "group", "deep-body"]},
     "stratum": {"enum": ["core", "reserve"]},
-    "mechanisms": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "mechanism": {"type": "array", "items": {"type": "string", "minLength": 1}},
     "generator": {"enum": ["need", "hazard"]},
     "set_kind": {"enum": ["any-of", "all-of"]},
-    "pinned": {"type": "array", "items": {"$ref": "#/$defs/row"}},
+    "primary": {"type": "array", "items": {"$ref": "#/$defs/row"}},
     "expected_miss": {"type": "boolean"},
     "expected_miss_mechanism": {"type": ["string", "null"]},
     "reachability": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/reachability"}]},
@@ -45,7 +45,7 @@
     {
       "if": {"properties": {"expected_miss": {"const": true}}},
       "then": {"properties": {"expected_miss_mechanism": {"type": "string", "minLength": 1}}},
-      "else": {"properties": {"expected_miss_mechanism": {"type": "null"}, "pinned": {"minItems": 1}}}
+      "else": {"properties": {"expected_miss_mechanism": {"type": "null"}, "primary": {"minItems": 1}}}
     }
   ],
   "$defs": {

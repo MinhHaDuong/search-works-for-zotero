@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0153",
   "need": "Écrit avant d'ouvrir le document : la phrase où Smith définit le prix réel de toute chose comme la peine et l'embarras qu'il en coûte pour l'acquérir.",
   "query": "Smith le prix réel de toute chose est la peine et l'embarras de l'acquérir",
@@ -10,13 +10,13 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "gutenberg-cap-crossing-pair",
     "index_fulltext_max_chars"
   ],
   "generator": "need",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "smith-1776-wealth-of-nations",
       "recipe_id": "smith-1776-wealth-of-nations",

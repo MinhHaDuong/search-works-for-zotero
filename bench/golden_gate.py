@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
-"""The golden gate at bank schema v2: validate the question bank, score replies, print its shape.
+"""The golden gate at bank schema v3: validate the question bank, score replies, print its shape.
 
 Ticket 0722 implements the rulings of 2026-09-06: an answer is a paragraph in a page in a
 file attached to a Zotero entry; a reply scores win, near-win or miss on the rank at which
 the answer paragraph appears and on the completeness of its citation chain; the same work in
-another rendering or language is a near-win; a no-answer question carries an empty pinned
-set and is expected-miss. The pinned set is a set of rows (a work, or a section of a work);
+another rendering or language is a near-win; a no-answer question carries an empty primary
+set and is expected-miss. The primary set is a set of rows (a work, or a section of a work);
 `set_kind` says whether one row suffices (any-of) or every row is needed (all-of). Rank and
 mean reciprocal rank are reported per lane and never gated (D11).
 
 Three subcommands:
 
-  validate  bank + export: every pinned row names an attachment the export manifest holds,
+  validate  bank + export: every primary row names an attachment the export manifest holds,
             every alternate's quote is located in the export's fulltext, and the result is
             stamped into each question's `reachability` block (--stamp) or compared with it.
   score     bank + replies (schema menagerie-replies/v2; v1 bundles are refused) -> report
-            (schema golden-gate-report/v2): the ladder per lane, stratum, format, signal,
+            (schema golden-gate-report/v3): the ladder per lane, stratum, format, signal,
             set_kind, mode and facet with the count beside every rate and `not-measured` at
-            zero; R34 absolute over the pinned rows; the stability reading against the
+            zero; R34 absolute over the primary rows; the stability reading against the
             previous run with thresholds parsed from SPEC.md §5.2.8.
   shape     the bank's shape: counts by lane, stratum, signal, set_kind, expected-miss, mode,
             facet, format and questions per document, with not-measured at zero.
@@ -46,9 +46,18 @@ FAIL = "fail"
 NOT_RUN = "not-run"
 NOT_MEASURED = "not-measured"
 
-BANK_SCHEMA = "menagerie-bank/v2"
+BANK_SCHEMA = "menagerie-bank/v3"
+#: Bank schemas this file used to read, and what a holder of one has to do. v3 renames two
+#: fields to the names SPEC.md §5.2.10 owns; §5.2.10's lifecycle table calls a change to the
+#: record shape a major version, so the schema string moves with it rather than silently.
+SUPERSEDED_BANK_SCHEMAS = {
+    "menagerie-bank/v2": (
+        "v3 renames `pinned` to `primary` and `mechanisms` to `mechanism`, the specification's "
+        "own names; rename the two keys and set the schema string"
+    ),
+}
 REPLIES_SCHEMA = "menagerie-replies/v2"
-REPORT_SCHEMA = "golden-gate-report/v2"
+REPORT_SCHEMA = "golden-gate-report/v3"
 THRESHOLD_SOURCE = "SPEC.md §5.2.8"
 
 WIN = "win"
@@ -443,6 +452,11 @@ def validate_question(raw: Any, *, expected_id: str | None = None) -> dict[str, 
 
     if not isinstance(raw, dict):
         raise InputError("a question must be a JSON object")
+    if raw.get("schema") in SUPERSEDED_BANK_SCHEMAS:
+        raise InputError(
+            f"{raw.get('schema')} records are no longer read: {SUPERSEDED_BANK_SCHEMAS[raw['schema']]} "
+            f"(the bank is {BANK_SCHEMA})"
+        )
     if raw.get("schema") != BANK_SCHEMA:
         raise InputError(f"question schema must be {BANK_SCHEMA}, got {raw.get('schema')!r}")
     qid = _string(raw.get("id"), "id")
@@ -453,7 +467,7 @@ def validate_question(raw: Any, *, expected_id: str | None = None) -> dict[str, 
     label = f"question {qid}"
     allowed = {
         "schema", "id", "need", "query", "question_language", "answer_language", "lane", "signal",
-        "mode", "facet", "stratum", "mechanisms", "generator", "set_kind", "pinned", "expected_miss",
+        "mode", "facet", "stratum", "mechanism", "generator", "set_kind", "primary", "expected_miss",
         "expected_miss_mechanism", "reachability", "provenance", "retained_reason",
     }
     unknown = sorted(set(raw) - allowed)
@@ -464,16 +478,16 @@ def validate_question(raw: Any, *, expected_id: str | None = None) -> dict[str, 
     lane = _string(raw.get("lane"), f"{label}.lane")
     if lane != lane_of(question_language, answer_language):
         raise InputError(f"{label}.lane must be {lane_of(question_language, answer_language)!r}")
-    mechanisms = raw.get("mechanisms")
+    mechanisms = raw.get("mechanism")
     if not isinstance(mechanisms, list) or any(not isinstance(m, str) or not m for m in mechanisms):
-        raise InputError(f"{label}.mechanisms must be a list of non-empty strings")
-    pinned = raw.get("pinned")
-    if not isinstance(pinned, list):
-        raise InputError(f"{label}.pinned must be a list of rows")
-    rows = [_row(row, f"{label}.pinned[{index}]") for index, row in enumerate(pinned)]
+        raise InputError(f"{label}.mechanism must be a list of non-empty strings")
+    primary = raw.get("primary")
+    if not isinstance(primary, list):
+        raise InputError(f"{label}.primary must be a list of rows")
+    rows = [_row(row, f"{label}.primary[{index}]") for index, row in enumerate(primary)]
     row_ids = [(row["work_id"], row["section"]) for row in rows]
     if len(row_ids) != len(set(row_ids)):
-        raise InputError(f"{label}.pinned repeats a (work, section) row; merge the alternates")
+        raise InputError(f"{label}.primary repeats a (work, section) row; merge the alternates")
     expected_miss = raw.get("expected_miss")
     if not isinstance(expected_miss, bool):
         raise InputError(f"{label}.expected_miss must be a boolean")
@@ -483,7 +497,7 @@ def validate_question(raw: Any, *, expected_id: str | None = None) -> dict[str, 
     if not expected_miss and mechanism:
         raise InputError(f"{label} names an expected_miss_mechanism but is not expected-miss")
     if not rows and not expected_miss:
-        raise InputError(f"{label} has an empty pinned set and must be expected-miss")
+        raise InputError(f"{label} has an empty primary set and must be expected-miss")
     set_kind = _enum(raw.get("set_kind"), f"{label}.set_kind", SET_KINDS)
     reachability = raw.get("reachability")
     if reachability is not None and not isinstance(reachability, dict):
@@ -500,10 +514,10 @@ def validate_question(raw: Any, *, expected_id: str | None = None) -> dict[str, 
         "mode": _enum(raw.get("mode"), f"{label}.mode", MODES),
         "facet": _enum(raw.get("facet"), f"{label}.facet", FACETS),
         "stratum": _enum(raw.get("stratum"), f"{label}.stratum", STRATA),
-        "mechanisms": list(mechanisms),
+        "mechanism": list(mechanisms),
         "generator": _enum(raw.get("generator"), f"{label}.generator", GENERATORS),
         "set_kind": set_kind,
-        "pinned": rows,
+        "primary": rows,
         "expected_miss": expected_miss,
         "expected_miss_mechanism": mechanism,
         "reachability": reachability,
@@ -567,7 +581,7 @@ def compute_reachability(question: dict[str, Any], export: Export) -> dict[str, 
     cap = export.manifest.get("index_fulltext_max_chars")
     rows_out = []
     any_reachable = False
-    for row in question["pinned"]:
+    for row in question["primary"]:
         key = row["attachment_key"]
         manifest_row = export.attachments.get(key)
         if manifest_row is None:
@@ -663,7 +677,7 @@ def validate_bank(bank_dir: Path, export: Export, *, stamp: bool) -> dict[str, A
         raw = _read_json(path, "question")
         if stamp:
             raw["reachability"] = block
-            for row_raw, row_block in zip(raw["pinned"], block["rows"]):
+            for row_raw, row_block in zip(raw["primary"], block["rows"]):
                 for alternate_raw, alternate_block in zip(row_raw["alternates"], row_block["alternates"]):
                     alternate_raw["char_offset"] = alternate_block["char_offset"]
             path.write_text(json.dumps(raw, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -679,7 +693,7 @@ def validate_bank(bank_dir: Path, export: Export, *, stamp: bool) -> dict[str, A
             )
         if _comparable(stored) != _comparable(block):
             raise InputError(f"question {question['id']} reachability stamp is stale; re-run validate --stamp")
-        for row_raw, row_block in zip(raw["pinned"], block["rows"]):
+        for row_raw, row_block in zip(raw["primary"], block["rows"]):
             for alternate_raw, alternate_block in zip(row_raw["alternates"], row_block["alternates"]):
                 if alternate_raw.get("char_offset") != alternate_block["char_offset"]:
                     raise InputError(
@@ -713,9 +727,9 @@ def bank_shape(questions: list[dict[str, Any]], export: Export | None) -> dict[s
     per_document: Counter = Counter()
     mechanisms: Counter = Counter()
     for question in questions:
-        for mechanism in question["mechanisms"]:
+        for mechanism in question["mechanism"]:
             mechanisms[mechanism] += 1
-        for row in question["pinned"]:
+        for row in question["primary"]:
             per_document[row["recipe_id"]] += 1
             if export is not None and row["attachment_key"] in export.attachments:
                 formats[export.format_of(row["attachment_key"])] += 1
@@ -959,14 +973,14 @@ def score_reply(question: dict[str, Any], reply: dict[str, Any], k: int, export:
         "set_kind": question["set_kind"],
         "facet": question["facet"],
         "format": (
-            export.format_of(question["pinned"][0]["attachment_key"]) if question["pinned"] else "none"
+            export.format_of(question["primary"][0]["attachment_key"]) if question["primary"] else "none"
         ),
         "expected_miss": question["expected_miss"],
     }
     if reply["results"] is None:
         return {**base, "state": NOT_RUN, "reason": reply["not_run_reason"]}
     results = reply["results"]
-    rows = [score_row(row, results, k, export) for row in question["pinned"]]
+    rows = [score_row(row, results, k, export) for row in question["primary"]]
     if question["expected_miss"]:
         present = [row for row in rows if row["level"] != MISS]
         return {

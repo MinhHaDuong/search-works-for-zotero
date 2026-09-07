@@ -1,5 +1,5 @@
 {
-  "schema": "menagerie-bank/v2",
+  "schema": "menagerie-bank/v3",
   "id": "q-0178",
   "need": "Written before opening the document: a footnote mentions a 2009 PetroVietnam gas find; which field, and how much gas was it thought to hold?",
   "query": "PetroVietnam discovery Hac Long field April 2009 50 billion cubic meters natural gas",
@@ -10,12 +10,12 @@
   "mode": "any",
   "facet": "core",
   "stratum": "core",
-  "mechanisms": [
+  "mechanism": [
     "structural-footnote"
   ],
   "generator": "hazard",
   "set_kind": "any-of",
-  "pinned": [
+  "primary": [
     {
       "work_id": "worldbank-2009-vietnam-energy-mitigation",
       "recipe_id": "worldbank-2009-vietnam-energy-mitigation",
