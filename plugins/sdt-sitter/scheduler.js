@@ -35,24 +35,21 @@ var createSDTSitter = function (host) {
   const state = { enabled: true, busy: false, phase: 'ready', active: null, progress: null,
     lastProgressAt: null, startedAt: null, completed: 0, failed: 0,
     scanned: 0, total: 0, counts: {}, serviceMS: 0, samples: [], activeInfo: null,
-    fittedSamples: [], pending: [], candidates: 0, error: null, cacheWarning: null };
+    fittedSamples: [], pending: [], candidates: 0, error: null, cacheWarning: null,
+    censusSnapshot: null };
   const failed = new Set();
-  // Derived from the census, never accumulated beside it. `state.counts` is rebuilt
-  // at the head of every sweep, so a counter incremented alongside it drifts by one
-  // sweep's failures every pass and the banner slowly overstates a library that
-  // never changed. Recomputed on every publish, which is every counts mutation.
-  //
-  // And only once the census is whole. A total read from a half-filled `counts`
-  // counts only what has been scanned so far, so an ungated derivation would blank
-  // the banner at the top of every sweep and refill it as the scan ran — the same
-  // silence this ticket removed, arriving every thirty seconds instead of
-  // permanently. Until the scan closes, the last complete census's figure stands;
-  // it is the last thing actually known. This is the predicate `getSDTCoverage`
-  // already publishes as `known`, and the reason the coverage line carries it.
+  // Publish one complete census generation at a time. `state.counts` is rebuilt
+  // from empty on every sweep and remains useful as live diagnostics, but no UI
+  // total may combine that half-filled generation with a total held from the last
+  // one. The copied object is one atomic assignment; after the census closes, each
+  // admission settlement refreshes it so the next sweep holds the latest complete
+  // state rather than the pre-admission census. Ticket 0718.
   const publish = () => {
     if (state.scanned === state.total) {
+      const counts = { ...state.counts };
+      state.censusSnapshot = { counts, total: state.total };
       state.failed = SDT_STATUS_CLASSES.failed
-        .reduce((n, key) => n + (state.counts[key] || 0), 0);
+        .reduce((n, key) => n + (counts[key] || 0), 0);
     }
     if (state.enabled) host.changed(state);
   };

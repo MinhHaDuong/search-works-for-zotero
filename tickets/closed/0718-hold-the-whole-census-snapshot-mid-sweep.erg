@@ -2,10 +2,13 @@
 Title: Hold the whole census snapshot mid-sweep, not just the failure total
 Created: 2026-09-06
 Author: sim
+Closed: Atomic census snapshots keep indexed, failed, queued, and out-of-scope totals reconciled throughout each sweep.
 
 --- log ---
 2026-09-06T15:48Z sim created
 
+2026-09-07T07:49Z codex note Implemented one-generation census snapshots, mid-sweep reconciliation coverage, and scheduler/bootstrap mutation controls; focused suites and full make check pass.
+2026-09-07T07:49Z Codex closed — Atomic census snapshots keep indexed, failed, queued, and out-of-scope totals reconciled throughout each sweep.
 --- body ---
 
 ## Context

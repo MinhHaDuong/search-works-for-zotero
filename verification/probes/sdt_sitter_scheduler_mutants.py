@@ -111,22 +111,16 @@ MUTANTS = [
     # it, so it grew by one sweep's failures every pass over an unchanged library.
     # Paired with the SETUPS["M11"] edit, this is exactly the pre-0699 shape.
     ("M11 the failure total accumulates across sweeps instead of reading this census",
-     "    if (state.scanned === state.total) {\n"
      "      state.failed = SDT_STATUS_CLASSES.failed\n"
-     "        .reduce((n, key) => n + (state.counts[key] || 0), 0);\n"
-     "    }\n",
+     "        .reduce((n, key) => n + (counts[key] || 0), 0);\n",
      ""),
     # The other half of the derivation, and the one only a mid-census observer can
     # see: an ungated recompute reads a `counts` the census has not finished
     # filling, so the banner empties at the top of every sweep and refills as the
     # scan runs. Every assertion taken after `sweep()` resolves is blind to it.
     ("M12 the failure total is recomputed from a half-filled census",
-     "    if (state.scanned === state.total) {\n"
-     "      state.failed = SDT_STATUS_CLASSES.failed\n"
-     "        .reduce((n, key) => n + (state.counts[key] || 0), 0);\n"
-     "    }\n",
-     "    state.failed = SDT_STATUS_CLASSES.failed\n"
-     "      .reduce((n, key) => n + (state.counts[key] || 0), 0);\n"),
+     "    if (state.scanned === state.total) {",
+     "    if (true) {"),
     # Ticket 0704's two shapes, and the pair is the point: the duration is the one
     # number in this loop that regresses to a WRONG value rather than a missing
     # one, so no count moves and no record disappears when either lands.
@@ -147,6 +141,12 @@ MUTANTS = [
      "            const measured = extractingSince === null\n"
      "              ? { sourceBytes: before.sourceBytes, pages: before.pages,\n"
      "                milliseconds: host.now() - state.startedAt }\n"),
+    # Ticket 0718. Holding the failure banner was only one quarter of the repair:
+    # a coverage reader that keeps looking at the half-filled live counts combines
+    # two census generations and flickers on every sweep.
+    ("M15 the complete census snapshot is never retained for the next sweep",
+     "      state.censusSnapshot = { counts, total: state.total };\n",
+     ""),
 ]
 
 
