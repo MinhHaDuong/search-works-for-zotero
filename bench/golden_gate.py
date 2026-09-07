@@ -17,8 +17,14 @@ Three subcommands:
   score     bank + replies (schema menagerie-replies/v2; v1 bundles are refused) -> report
             (schema golden-gate-report/v3): the ladder per lane, stratum, format, signal,
             set_kind, mode and facet with the count beside every rate and `not-measured` at
-            zero; R34 absolute over the primary rows; the stability reading against the
-            previous run with thresholds parsed from SPEC.md §5.2.8.
+            zero; R34 absolute over the primary rows in both readings of the 2026-09-07
+            ruling; the expected-miss questions as a gated negative-control reading; and
+            the stability reading against the previous run, thresholds parsed from
+            SPEC.md §5.2.8.
+
+Three readings gate — R34's OFFICIAL score, stability, and the negative controls. R34's
+ACCOMMODATING score is reported beside the official one and gates nothing; see the block
+comment above `official_page_verdict` for what each reads and why there are two.
   shape     the bank's shape: counts by lane, stratum, signal, set_kind, expected-miss, mode,
             facet, format and questions per document, with not-measured at zero.
 
@@ -36,8 +42,10 @@ import hashlib
 import json
 import re
 import sys
+from bisect import bisect_right
 from collections import Counter, defaultdict
 from dataclasses import dataclass
+from dataclasses import field as dataclass_field
 from pathlib import Path
 from typing import Any
 
@@ -249,6 +257,40 @@ def lane_of(question_language: str, answer_language: str) -> str:
     return f"{question_language}->{answer_language}"
 
 
+#: A printed-page label that names a span rather than a page: an answer paragraph, or a
+#: passage a reply hands back, may straddle a boundary, which is why the ruling of
+#: 2026-09-07 tests intersection and not equality.
+_PAGE_SPAN = re.compile(r"^(\d+)\s*[-–—]\s*(\d+)$")
+#: The most pages one label may name before it is read as a label rather than a span; a
+#: four-digit typo would otherwise expand into a set nothing could be compared against.
+_PAGE_SPAN_MAX = 200
+
+
+def page_set(label: str | None) -> frozenset[str]:
+    """The pages a printed-page label names, as comparable tokens.
+
+    A label names one page (`12`), a span (`12-13`), a list (`12, 14`), or a folio that is
+    not an arabic numeral (`XIV`, `3-1`), which compares case-folded and literally because
+    nothing here knows how to enumerate it. An absent or empty label names no page, and
+    `page_set(None)` is empty rather than universal: a missing page never intersects.
+    """
+
+    if not label or not label.strip():
+        return frozenset()
+    text = label.strip()
+    parts = [part for part in re.split(r"[,;]", text) if part.strip()]
+    if len(parts) > 1:
+        return frozenset().union(*(page_set(part) for part in parts))
+    span = _PAGE_SPAN.match(text)
+    if span:
+        low, high = int(span.group(1)), int(span.group(2))
+        if low <= high <= low + _PAGE_SPAN_MAX:
+            return frozenset(str(page) for page in range(low, high + 1))
+    if re.fullmatch(r"\d+", text):
+        return frozenset({str(int(text))})
+    return frozenset({text.casefold()})
+
+
 # --------------------------------------------------------------------------- the export
 
 
@@ -263,6 +305,11 @@ class Export:
     work_of_item: dict[str, str]
     items_of_work: dict[str, set[str]]
     twin_works: dict[str, set[str]]
+    #: Per attachment, the normalised fulltext with its origin map and the raw offsets of
+    #: the extraction's own form feeds. Built on first use: the accommodating reading
+    #: locates every hit of every reply in it, and re-normalising a 40 000-character
+    #: fulltext per hit would dominate the run.
+    _pages: dict[str, Any] = dataclass_field(default_factory=dict)
 
     def format_of(self, attachment_key: str) -> str:
         item = self.items.get(attachment_key, {})
@@ -297,6 +344,90 @@ class Export:
             "index_fulltext_max_chars": self.manifest.get("index_fulltext_max_chars"),
             "recipe_sha256": self.manifest.get("recipe_sha256"),
         }
+
+    def attachments_of_item(self, item_key: str | None) -> list[str]:
+        """The attachment keys the export binds to one parent item."""
+
+        if item_key is None:
+            return []
+        return [key for key, parent in self.parent_of.items() if parent == item_key]
+
+    def _indexed(self, attachment_key: str) -> dict[str, Any] | None:
+        """The normalised fulltext, its origin map and the raw form-feed offsets, or None.
+
+        None means there is nothing to locate in: the attachment is not in the manifest, or
+        the export holds no fulltext for it (a failure control, an unserved MIME type, a
+        scan with no text layer). That is a different answer from "located nowhere", and
+        the callers keep the two apart in the reason they record.
+        """
+
+        if attachment_key in self._pages:
+            return self._pages[attachment_key]
+        row = self.attachments.get(attachment_key)
+        content = self.fulltext(attachment_key) if row and row.get("terminal_state") == "indexed" else None
+        if content is None:
+            self._pages[attachment_key] = None
+            return None
+        norm, origin = normalise_text(content)
+        built = {
+            "norm": norm,
+            "origin": origin,
+            "breaks": [index for index, char in enumerate(content) if char == "\f"],
+            "indexed_pages": row.get("indexed_pages") if row else None,
+        }
+        self._pages[attachment_key] = built
+        return built
+
+    def locate_span(self, attachment_key: str, text: str | None, *, preferred_offset: int | None = None) -> tuple[int, int] | None:
+        """Raw `[start, end)` of `text` in an attachment's export fulltext, or None.
+
+        Matching is the normalisation `locate_quote` uses, so a span located here is the
+        same span the reachability stamp resolved. A reply's evidence is a display window
+        the system chose and may be elided (`… like this …`); the longest fragment between
+        ellipses is what gets located, since a fragment is contiguous in the source and the
+        whole window is not.
+        """
+
+        indexed = self._indexed(attachment_key)
+        if indexed is None or not text:
+            return None
+        fragment = max((part for part in re.split(r"[…]+|\.\.\.", text)), key=len, default="")
+        needle, _ = normalise_text(fragment)
+        needle = needle.strip()
+        if len(needle) < 3:
+            return None
+        offsets: list[int] = []
+        start = indexed["norm"].find(needle)
+        while start >= 0:
+            offsets.append(start)
+            start = indexed["norm"].find(needle, start + 1)
+        if not offsets:
+            return None
+        chosen = offsets[0]
+        if preferred_offset is not None:
+            for candidate in offsets:
+                if indexed["origin"][candidate] == preferred_offset:
+                    chosen = candidate
+                    break
+        return indexed["origin"][chosen], indexed["origin"][chosen + len(needle) - 1] + 1
+
+    def page_span(self, attachment_key: str, start: int, end: int) -> tuple[int, int] | None:
+        """The pages a raw `[start, end)` span falls on, counted by the extraction's form feeds.
+
+        This is the accommodating reading's coordinate system and nothing else's: it is the
+        page index Zotero's own extraction wrote into the text, not a printed folio. An
+        attachment whose extraction carries no form feed has no page structure to read, and
+        the answer is None — except for the one unambiguous case, an attachment the export
+        records as a single page.
+        """
+
+        indexed = self._indexed(attachment_key)
+        if indexed is None:
+            return None
+        breaks = indexed["breaks"]
+        if not breaks:
+            return (1, 1) if indexed["indexed_pages"] == 1 else None
+        return (1 + bisect_right(breaks, start), 1 + bisect_right(breaks, max(start, end - 1)))
 
     def is_twin(self, item_key: str, work_id: str) -> bool:
         work = self.work_of_item.get(item_key)
@@ -879,14 +1010,14 @@ def evidence_overlap(quote: str, evidence: str | None) -> float:
     return len(words & content_words(evidence)) / len(words)
 
 
-def _page_matches(result_page: str | None, alternate_page: str | None) -> bool:
-    if not result_page or not alternate_page:
-        return False
-    return result_page.strip().casefold() == alternate_page.strip().casefold()
-
-
 def evidence_matches(result: dict[str, Any], row: dict[str, Any]) -> dict[str, Any]:
-    """The win condition: evidence overlaps an alternate's quote, or the printed page matches."""
+    """Whether the returned evidence overlaps an alternate's quote, reported beside the ladder.
+
+    This measures presentation as much as retrieval — the snippet is a display window the
+    system chooses — which is why the ruling of 2026-09-07 refused it as R34's test. It
+    stays as a reported signal and as the ladder's fallback win condition where the system
+    reports no page at all.
+    """
 
     best = 0.0
     for alternate in row["alternates"]:
@@ -894,9 +1025,106 @@ def evidence_matches(result: dict[str, Any], row: dict[str, Any]) -> dict[str, A
         best = max(best, overlap)
         if overlap >= EVIDENCE_OVERLAP_MIN:
             return {"matched": True, "how": "evidence-overlap", "overlap": round(overlap, 3)}
-        if _page_matches(result["page"], alternate["page_printed"]):
-            return {"matched": True, "how": "printed-page", "overlap": round(overlap, 3)}
     return {"matched": False, "how": None, "overlap": round(best, 3)}
+
+
+# ------------------------------------------------- R34: the right work and an intersecting page
+#
+# The ruling of 2026-09-07 (DECISIONS.md): a reply satisfies a question when it returns the
+# work the answer sits in AND a page intersecting the target's page range. Intersection, not
+# equality, because an answer paragraph may straddle a page boundary and so may the passage
+# a reply hands back; a non-empty overlap of the two ranges is the test. Work identity alone
+# is too weak — it certifies a title match as retrieval — and requiring the pinned quote
+# inside the snippet is too strong.
+#
+# Two scores follow, and only one is official.
+#
+#   OFFICIAL       reads the page the system itself reports. A reply carrying no page does
+#                  not satisfy its question, and that is a true statement about the system:
+#                  R24 already obliges a hit to lead to the page it came from.
+#   ACCOMMODATING  derives the page from where the returned evidence falls in the export,
+#                  by the extraction's own form-feed page breaks, so development has a
+#                  signal while the system reports no page. It is reported beside the
+#                  official score, always labelled, and NO GATE READS IT: `evaluate` takes
+#                  its verdict from `readings.r34.official` and from nothing else.
+
+
+def _unsatisfied(reading: str, reason: str) -> dict[str, Any]:
+    return {"satisfied": False, "reading": reading, "how": None, "reason": reason,
+            "reported": [], "target": [], "intersection": []}
+
+
+def official_page_verdict(result: dict[str, Any], row: dict[str, Any]) -> dict[str, Any]:
+    """R34's official reading over one result and one primary row: the page the system reports."""
+
+    reported = page_set(result["page"])
+    target: frozenset[str] = frozenset()
+    for alternate in row["alternates"]:
+        target |= page_set(alternate["page_printed"])
+    if not reported:
+        return _unsatisfied("official", "the reply reports no page") | {"target": sorted(target)}
+    if not target:
+        return _unsatisfied(
+            "official",
+            "the primary answer carries no printed page: a pageless file locates by character, "
+            "and no reply field carries a character locator",
+        ) | {"reported": sorted(reported)}
+    shared = sorted(reported & target)
+    return {
+        "satisfied": bool(shared),
+        "reading": "official",
+        "how": "reported-page-intersects" if shared else None,
+        "reason": None if shared else "the reported page does not intersect the target's page range",
+        "reported": sorted(reported),
+        "target": sorted(target),
+        "intersection": shared,
+    }
+
+
+def accommodating_page_verdict(result: dict[str, Any], row: dict[str, Any], export: Export) -> dict[str, Any]:
+    """R34's accommodating reading: the page derived from where the evidence falls in the export.
+
+    NOT OFFICIAL. Both sides are read in the same coordinate system — the page index the
+    extraction's own form feeds mark in one attachment's fulltext — because a derived index
+    and a printed folio are not comparable quantities.
+    """
+
+    key = row["attachment_key"]
+    if result["attachment_key"] and result["attachment_key"] != key:
+        return _unsatisfied("accommodating", "the reply names another attachment, whose pages are not this row's")
+    evidence_span = export.locate_span(key, result["evidence"])
+    if evidence_span is None:
+        return _unsatisfied(
+            "accommodating", "the returned evidence is not located in this attachment's export fulltext"
+        )
+    reported_span = export.page_span(key, *evidence_span)
+    if reported_span is None:
+        return _unsatisfied(
+            "accommodating", "the extraction wrote no page break for this attachment: no page can be derived"
+        )
+    reported = {str(page) for page in range(reported_span[0], reported_span[1] + 1)}
+    target: set[str] = set()
+    for alternate in row["alternates"]:
+        located = export.locate_span(key, alternate["quote"], preferred_offset=alternate["char_offset"])
+        if located is None:
+            continue
+        span = export.page_span(key, *located)
+        if span is not None:
+            target |= {str(page) for page in range(span[0], span[1] + 1)}
+    if not target:
+        return _unsatisfied(
+            "accommodating", "no alternate of this row is located in the export: nothing to derive a target page from"
+        ) | {"reported": sorted(reported, key=int)}
+    shared = sorted(reported & target, key=int)
+    return {
+        "satisfied": bool(shared),
+        "reading": "accommodating",
+        "how": "derived-page-intersects" if shared else None,
+        "reason": None if shared else "the derived page does not intersect the target's derived page range",
+        "reported": sorted(reported, key=int),
+        "target": sorted(target, key=int),
+        "intersection": shared,
+    }
 
 
 def _chain_field_matches(name: str, pinned: str, carried: str | None) -> bool:
@@ -925,14 +1153,34 @@ def chain_completeness(pinned: dict[str, str | None], carried: dict[str, str | N
     }
 
 
+def _first_verdict(current: dict[str, Any], verdict: dict[str, Any], rank: int) -> dict[str, Any]:
+    """Keep the first result that satisfies a reading; otherwise the first refusal's reason.
+
+    A row's R34 reading is settled by the earliest result that satisfies it, and by the
+    earliest *reason* it did not when none does — so the report says "the reply reports no
+    page" rather than repeating the tenth result's accident.
+    """
+
+    if current["satisfied"]:
+        return current
+    if verdict["satisfied"]:
+        return {**verdict, "rank": rank}
+    if current.get("work_rank") is not None:
+        return current
+    return {**verdict, "rank": None, "work_rank": rank}
+
+
 def score_row(row: dict[str, Any], results: list[dict[str, Any]], k: int, export: Export) -> dict[str, Any]:
-    """One pinned row against one reply's first k results: level, rank, chain completeness."""
+    """One primary row against one reply's first k results: level, rank, R34, chain completeness."""
 
     parent = export.parent_of.get(row["attachment_key"])
     level = MISS
     rank: int | None = None
     establishing: dict[str, Any] | None = None
     how: dict[str, Any] | None = None
+    absent = "no result within k returned the primary row's work"
+    official = _unsatisfied("official", absent)
+    accommodating = _unsatisfied("accommodating", absent)
     for result in results[:k]:
         same_item = result["item_key"] == parent or (
             result["attachment_key"] is not None and result["attachment_key"] == row["attachment_key"]
@@ -941,14 +1189,25 @@ def score_row(row: dict[str, Any], results: list[dict[str, Any]], k: int, export
             result["work_id"] == row["work_id"] or export.is_twin(result["item_key"], row["work_id"])
         )
         if same_item:
+            page = official_page_verdict(result, row)
+            official = _first_verdict(official, page, result["rank"])
+            if not accommodating["satisfied"]:
+                accommodating = _first_verdict(
+                    accommodating, accommodating_page_verdict(result, row, export), result["rank"]
+                )
             match = evidence_matches(result, row)
-            if match["matched"]:
-                level, rank, establishing, how = WIN, result["rank"], result, match
-                break
-            if level == MISS:
-                level, rank, establishing, how = NEAR_WIN, result["rank"], result, {**match, "why": "item-without-evidence"}
-        elif twin and level == MISS:
-            level, rank, establishing, how = NEAR_WIN, result["rank"], result, {"matched": False, "why": "work-twin"}
+            if page["satisfied"]:
+                candidate = (WIN, {"matched": True, "how": "reported-page-intersects", "pages": page})
+            elif match["matched"]:
+                candidate = (WIN, match)
+            else:
+                candidate = (NEAR_WIN, {**match, "why": "work-without-intersecting-page", "pages": page})
+        elif twin:
+            candidate = (NEAR_WIN, {"matched": False, "how": None, "why": "work-twin"})
+        else:
+            continue
+        if LEVEL_ORDER[candidate[0]] > LEVEL_ORDER[level]:
+            level, rank, establishing, how = candidate[0], result["rank"], result, candidate[1]
     return {
         "work_id": row["work_id"],
         "section": row["section"],
@@ -957,8 +1216,36 @@ def score_row(row: dict[str, Any], results: list[dict[str, Any]], k: int, export
         "rank": rank,
         "reciprocal_rank": (1 / rank) if rank else 0.0,
         "evidence": how,
+        "r34": {"official": official, "accommodating": accommodating},
         "chain": chain_completeness(row["chain"], establishing["chain"]) if establishing else NOT_RUN,
     }
+
+
+#: The label the accommodating reading carries wherever it is reported, so a number lifted
+#: out of the artifact cannot arrive somewhere else without it.
+ACCOMMODATING_LABEL = (
+    "NOT OFFICIAL: the page is derived from where the returned evidence falls in the export, "
+    "by the extraction's own form-feed page breaks. No gate reads it, no threshold binds it, "
+    "and no claim about the system rests on it (ruling of 2026-09-07)."
+)
+
+
+def _r34_over_rows(rows: list[dict[str, Any]], set_kind: str) -> dict[str, Any]:
+    """The two R34 readings over a question's primary set: any-of tolerates, all-of does not."""
+
+    out = {}
+    for reading in ("official", "accommodating"):
+        satisfied = sum(row["r34"][reading]["satisfied"] for row in rows)
+        out[reading] = {
+            # An empty primary set is the no-answer question: there is nothing to satisfy,
+            # and `all(∅)` would otherwise read as a pass.
+            "satisfied": bool(rows) and ((satisfied > 0) if set_kind == "any-of" else satisfied == len(rows)),
+            "rows_satisfied": satisfied,
+            "of": len(rows),
+        }
+    out["accommodating"]["official"] = False
+    out["accommodating"]["label"] = ACCOMMODATING_LABEL
+    return out
 
 
 def score_reply(question: dict[str, Any], reply: dict[str, Any], k: int, export: Export) -> dict[str, Any]:
@@ -986,9 +1273,15 @@ def score_reply(question: dict[str, Any], reply: dict[str, Any], k: int, export:
         return {
             **base,
             "state": "expected-miss",
+            # The negative control fires when the answer the export hides came back at all —
+            # the row's work within k. That is deliberately stricter than R34's official
+            # reading and does not wait on the page ruling: a control that could only fire
+            # once the engine reports pages would be a control that never fires (ticket 0722,
+            # review round 1, which found 49 firing controls unable to fail the gate).
             "outcome": PASS if not present else "unexpected-hit",
             "mechanism": question["expected_miss_mechanism"],
             "rows": rows,
+            "r34": _r34_over_rows(rows, question["set_kind"]),
             "top_k_item_keys": [result["item_key"] for result in results[:k]],
         }
     if question["set_kind"] == "any-of":
@@ -1023,7 +1316,7 @@ def score_reply(question: dict[str, Any], reply: dict[str, Any], k: int, export:
         "chain": chain,
         "rows_found": {"count": found, "of": len(rows), "fraction": found / len(rows)},
         "rows": rows,
-        "r34_present": (found > 0) if question["set_kind"] == "any-of" else (found == len(rows)),
+        "r34": _r34_over_rows(rows, question["set_kind"]),
         "top_k_item_keys": [result["item_key"] for result in results[:k]],
     }
 
@@ -1036,7 +1329,8 @@ def _ladder_stats(entries: list[dict[str, Any]]) -> dict[str, Any]:
     nears = sum(e["level"] == NEAR_WIN for e in entries)
     misses = n - wins - nears
     chains = [e["chain"]["fraction"] for e in entries if e["chain"] != NOT_RUN and e["chain"]["fraction"] is not None]
-    r34_pass = sum(e["r34_present"] for e in entries)
+    official = sum(e["r34"]["official"]["satisfied"] for e in entries)
+    accommodating = sum(e["r34"]["accommodating"]["satisfied"] for e in entries)
     return {
         "count": n,
         "win": wins,
@@ -1050,7 +1344,15 @@ def _ladder_stats(entries: list[dict[str, Any]]) -> dict[str, Any]:
             "measured": len(chains),
             "mean": (sum(chains) / len(chains)) if chains else NOT_MEASURED,
         },
-        "r34": {"present": r34_pass, "absent": n - r34_pass},
+        "r34": {
+            "official": {"satisfied": official, "unsatisfied": n - official},
+            "accommodating": {
+                "satisfied": accommodating,
+                "unsatisfied": n - accommodating,
+                "official": False,
+                "label": ACCOMMODATING_LABEL,
+            },
+        },
     }
 
 
@@ -1100,17 +1402,67 @@ def ladder_readings(scored: list[dict[str, Any]], modes_not_run: dict[str, str])
     }
 
 
-def r34_reading(scored: list[dict[str, Any]]) -> dict[str, Any]:
+def _one_r34_reading(scored: list[dict[str, Any]], reading: str) -> dict[str, Any]:
+    """R34 absolute under one of the two readings; `unsatisfied` names the row and its reason."""
+
     if not scored:
         return {"state": NOT_RUN, "reason": "no scored question in this reading"}
-    missing = {
+    unsatisfied = {
         f"{e['id']}/{e['mode']}": [
-            f"{row['work_id']}#{row['section']}" for row in e["rows"] if row["level"] == MISS
+            f"{row['work_id']}#{row['section']}: {row['r34'][reading]['reason']}"
+            for row in e["rows"]
+            if not row["r34"][reading]["satisfied"]
         ]
         for e in scored
-        if not e["r34_present"]
+        if not e["r34"][reading]["satisfied"]
     }
-    return {"state": FAIL if missing else PASS, "question_count": len(scored), "missing": dict(sorted(missing.items()))}
+    return {
+        "state": FAIL if unsatisfied else PASS,
+        "question_count": len(scored),
+        "satisfied": len(scored) - len(unsatisfied),
+        "unsatisfied": dict(sorted(unsatisfied.items())),
+    }
+
+
+def r34_reading(scored: list[dict[str, Any]], replies: dict[str, Any] | None = None) -> dict[str, Any]:
+    """The two scores the ruling of 2026-09-07 forces. Only `official` is gated.
+
+    `evaluate` reads `official["state"]` and nothing else here; `accommodating` carries its
+    own label and the flags that say so, because a number lifted out of this artifact must
+    not be able to travel without them.
+    """
+
+    official = _one_r34_reading(scored, "official")
+    if replies is not None:
+        official["page_reporting"] = _page_reporting(replies)
+    accommodating = _one_r34_reading(scored, "accommodating")
+    accommodating.update({"official": False, "gates": False, "label": ACCOMMODATING_LABEL})
+    return {"official": official, "accommodating": accommodating}
+
+
+def _page_reporting(replies: dict[str, Any]) -> dict[str, Any]:
+    """How many of this run's hits carried a page at all — the official score's whole input.
+
+    Measured rather than assumed, and printed in every report, because the official score
+    reading zero is a true statement about the system only as long as this is why it does
+    (ticket 0734: a hit must name the page it came from).
+    """
+
+    hits = 0
+    with_page = 0
+    for reply in replies["replies"]:
+        for result in reply["results"] or []:
+            hits += 1
+            with_page += bool(page_set(result["page"]))
+    return {
+        "hits": hits,
+        "carrying_a_page": with_page,
+        "note": (
+            "the official score can only be satisfied by a hit that reports a page; where this "
+            "is 0 the official score reads zero everywhere, which is ticket 0734's subject and "
+            "not a scoring artifact"
+        ),
+    }
 
 
 def _jaccard(left: list[str], right: list[str]) -> float:
@@ -1173,6 +1525,38 @@ def stability_reading(
     }
 
 
+def negative_control_reading(expected: list[dict[str, Any]]) -> dict[str, Any]:
+    """The expected-miss questions as a gated reading: a firing control fails the gate.
+
+    An expected-miss question names a mechanism that hides its answer from this export — a
+    cap, a missing text layer, a format outside the extraction dispatch — and passes when
+    the reply's first k hold no primary row. Until ticket 0722's review round these outcomes
+    were computed, reported, and read by nothing: 49 controls fired against the committed
+    run and the gate said nothing, so a bank that measures the build and a bank that would
+    go green against anything produced the same verdict. They are now gated.
+
+    `not-measured` at zero controls, never `pass`: a reading with nothing in it has not
+    looked, and must not be able to say all-clear.
+    """
+
+    if not expected:
+        return {
+            "state": NOT_MEASURED,
+            "count": 0,
+            "reason": "no expected-miss question in this reading: the gate has no negative control",
+        }
+    firing = sorted(f"{e['id']}/{e['mode']}" for e in expected if e["outcome"] == "unexpected-hit")
+    return {
+        "state": FAIL if firing else PASS,
+        "count": len(expected),
+        "passed": len(expected) - len(firing),
+        "unexpected_hits": len(firing),
+        "firing": {
+            key: next(e["mechanism"] for e in expected if f"{e['id']}/{e['mode']}" == key) for key in firing
+        },
+    }
+
+
 def evaluate(
     questions: list[dict[str, Any]], replies: dict[str, Any], export: Export, thresholds: Thresholds
 ) -> dict[str, Any]:
@@ -1201,11 +1585,14 @@ def evaluate(
     scored = [e for e in per_question if e["state"] == "scored"]
     expected = [e for e in per_question if e["state"] == "expected-miss"]
     not_run = [e for e in per_question if e["state"] == NOT_RUN]
-    r34 = r34_reading(scored)
+    r34 = r34_reading(scored, replies)
     stability = stability_reading(replies, scored + expected, thresholds)
-    if r34["state"] == FAIL or stability["state"] == FAIL:
+    controls = negative_control_reading(expected)
+    # Three gated readings, and the accommodating R34 score is not one of them.
+    gated = (r34["official"]["state"], stability["state"], controls["state"])
+    if FAIL in gated:
         state = FAIL
-    elif r34["state"] == NOT_RUN or stability["state"] == NOT_RUN:
+    elif NOT_RUN in gated:
         state = NOT_RUN
     else:
         state = PASS
@@ -1223,7 +1610,7 @@ def evaluate(
         "not_run_count": len(not_run),
         "unanswered_questions": unanswered,
         "modes_not_run": modes_not_run,
-        "readings": {"r34": r34, "stability": stability},
+        "readings": {"r34": r34, "stability": stability, "negative_controls": controls},
         "ladder": ladder_readings(scored, modes_not_run),
         "expected_miss": {
             "count": len(expected),
@@ -1255,7 +1642,8 @@ def _stats_line(name: str, stats: dict[str, Any]) -> str:
     return (
         f"  {name}: n={n} win {_rate(stats['win'], n)} near-win {_rate(stats['near_win'], n)} "
         f"miss {_rate(stats['miss'], n)} mrr {stats['mrr']:.3f} chain {chain_text} "
-        f"r34 present {_rate(stats['r34']['present'], n)}"
+        f"r34 official {_rate(stats['r34']['official']['satisfied'], n)} "
+        f"[accommodating, not official: {_rate(stats['r34']['accommodating']['satisfied'], n)}]"
     )
 
 
@@ -1267,10 +1655,44 @@ def render_report(report: dict[str, Any]) -> str:
     ]
     if report["unanswered_questions"]:
         lines.append(f"questions with no reply: {', '.join(report['unanswered_questions'])}")
-    r34 = report["readings"]["r34"]
-    lines.append(f"R34 absolute: {r34['state']}" + (f" — {r34['reason']}" if r34.get("reason") else ""))
-    for pair, rows in r34.get("missing", {}).items():
-        lines.append(f"  missing {pair}: {', '.join(rows)}")
+    official = report["readings"]["r34"]["official"]
+    accommodating = report["readings"]["r34"]["accommodating"]
+    lines.append(
+        f"R34 absolute (OFFICIAL — the page the system reports): {official['state']}"
+        + (f" — {official['reason']}" if official.get("reason") else "")
+    )
+    pages = official.get("page_reporting")
+    if pages:
+        lines.append(
+            f"  {pages['carrying_a_page']} of {pages['hits']} hit(s) in this run carry a page"
+            + (
+                "; the official score therefore reads zero everywhere, which is a true statement "
+                "about the system (ticket 0734), not a scoring artifact"
+                if not pages["carrying_a_page"]
+                else ""
+            )
+        )
+    for pair, rows in list(official.get("unsatisfied", {}).items())[:20]:
+        lines.append(f"  unsatisfied {pair}: {'; '.join(rows)}")
+    if len(official.get("unsatisfied", {})) > 20:
+        lines.append(f"  … and {len(official['unsatisfied']) - 20} more (the report holds them all)")
+    lines.append(
+        f"R34 absolute (ACCOMMODATING — page derived from the export's form feeds; "
+        f"NOT OFFICIAL, no gate reads it): {accommodating['state']}, "
+        f"{accommodating.get('satisfied', 0)}/{accommodating.get('question_count', 0)} satisfied"
+    )
+    controls = report["readings"]["negative_controls"]
+    lines.append(
+        f"negative controls (expected-miss questions, gated): {controls['state']}"
+        + (f" — {controls['reason']}" if controls.get("reason") else "")
+        + (
+            f" — {controls['unexpected_hits']} of {controls['count']} fired"
+            if controls["state"] != NOT_MEASURED
+            else ""
+        )
+    )
+    for pair, mechanism in list(controls.get("firing", {}).items())[:20]:
+        lines.append(f"  unexpected hit {pair}: {mechanism}")
     stability = report["readings"]["stability"]
     if stability["state"] == NOT_RUN:
         lines.append(f"stability: {NOT_RUN} — {stability['reason']}")

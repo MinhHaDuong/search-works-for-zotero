@@ -1,4 +1,4 @@
-"""The golden gate at bank schema v2 (ticket 0722).
+"""The golden gate at bank schema v3 (ticket 0722).
 
 These tests drive the scorer against a small invented export written to a tmp dir — two
 works, one of them with a declared translation twin — and against the committed export for
@@ -23,6 +23,7 @@ COMMITTED_REPLIES = REPO / "bench" / "results" / "golden" / "replies.json"
 sys.path.insert(0, str(REPO / "bench"))
 
 from golden_gate import (  # noqa: E402
+    ACCOMMODATING_LABEL,
     BANK_SCHEMA,
     CHAIN_FIELDS,
     FACETS,
@@ -47,6 +48,8 @@ from golden_gate import (  # noqa: E402
     load_replies,
     load_thresholds,
     locate_quote,
+    negative_control_reading,
+    page_set,
     render_report,
     validate_bank,
     validate_question,
@@ -102,9 +105,10 @@ def make_export(root: Path) -> Path:
             json.dumps({"content": text, "indexedPages": 1, "totalPages": 1}), encoding="utf-8"
         )
 
-    def row(key, parent_key, recipe, state="indexed", control=None):
+    def row(key, parent_key, recipe, state="indexed", control=None, pages=None):
         out = {"attachment_key": key, "parent_key": parent_key, "recipe_id": recipe, "terminal_state": state,
-               "fulltext_file": f"fulltext/{key}.json" if state == "indexed" else None}
+               "fulltext_file": f"fulltext/{key}.json" if state == "indexed" else None,
+               "indexed_pages": pages}
         if control:
             out["failure_control"] = control
         return out
@@ -118,9 +122,11 @@ def make_export(root: Path) -> Path:
         "index_fulltext_max_chars": CAP,
         "items_file": "items.json",
         "attachments": [
-            row("A1ALPHA1", "P1ALPHA1", "alpha"),
+            # alpha's extraction carries one form feed, so it has two pages: Articles 1 and 2
+            # on page 1, Article 3 on page 2. That is what the accommodating reading counts.
+            row("A1ALPHA1", "P1ALPHA1", "alpha", pages=2),
             row("A2ALPHA2", "P2ALPHA2", "alpha-fr"),
-            row("A3BETA33", "P3BETA33", "beta"),
+            row("A3BETA33", "P3BETA33", "beta", pages=1),
             row("A4CTRL44", "P4CTRL44", "gamma", "unindexed",
                 {"expected_state": "unindexed", "expected_degradation": "no text layer", "answer_set_participation": "none"}),
         ],
@@ -279,14 +285,29 @@ def test_any_of_scores_the_best_row_and_all_of_the_weakest(export, thresholds):
     assert q2["level"] == "near-win" and q2["rank"] == 1
     assert q2["rows_found"] == {"count": 2, "of": 2, "fraction": 1.0}
     assert [row["level"] for row in q2["rows"]] == ["win", "near-win"]
-    assert report["readings"]["r34"]["state"] == PASS
+    # The hit carries no page, so R34's official reading is unsatisfied whatever the ladder
+    # says. The accommodating reading locates the returned evidence in the export and finds
+    # it straddling alpha's one form feed, so it covers pages 1 and 2 and intersects both
+    # rows' derived ranges — which is the ruling's "intersection, not equality" in one case.
+    assert report["readings"]["r34"]["official"]["state"] == FAIL
+    assert report["readings"]["r34"]["accommodating"]["state"] == PASS
+    assert q2["r34"] == {
+        "official": {"satisfied": False, "rows_satisfied": 0, "of": 2},
+        "accommodating": {"satisfied": True, "rows_satisfied": 2, "of": 2,
+                          "official": False, "label": ACCOMMODATING_LABEL},
+    }
+    assert q2["rows"][0]["r34"]["accommodating"]["reported"] == ["1", "2"]
+    assert q2["rows"][0]["r34"]["accommodating"]["target"] == ["1"]
+    assert q2["rows"][1]["r34"]["accommodating"]["target"] == ["2"]
+    assert q2["rows"][0]["r34"]["official"]["reason"] == "the reply reports no page"
 
 
 def test_all_of_misses_and_fails_r34_when_one_row_is_absent(export, thresholds):
-    rows = [alpha_row("Article 2", ALPHA_QUOTE_ART2), beta_row()]
+    rows = [alpha_row("Article 2", ALPHA_QUOTE_ART2, page="1"), beta_row()]
     all_of = question("q-0001", rows, set_kind="all-of")
     any_of = question("q-0002", rows, set_kind="any-of")
-    hit = result(1, "P1ALPHA1", evidence="purchases every kilowatt-hour at 2,086 dong, equivalent to 9.35 cents.")
+    hit = result(1, "P1ALPHA1", page="1",
+                 evidence="purchases every kilowatt-hour at 2,086 dong, equivalent to 9.35 cents.")
     report = evaluate(
         [all_of, any_of], load_replies(bundle(export, [reply("q-0001", [hit]), reply("q-0002", [hit])])),
         load_export(export), thresholds,
@@ -294,34 +315,131 @@ def test_all_of_misses_and_fails_r34_when_one_row_is_absent(export, thresholds):
     assert report["questions"]["q-0001/lexical"]["level"] == "miss"
     assert report["questions"]["q-0001/lexical"]["rows_found"]["count"] == 1
     assert report["questions"]["q-0002/lexical"]["level"] == "win"
-    assert report["readings"]["r34"]["state"] == FAIL
-    assert report["readings"]["r34"]["missing"] == {"q-0001/lexical": ["beta#Chapter one"]}
+    # any-of is satisfied by the alpha row's page; all-of is not, because beta never came back.
+    official = report["readings"]["r34"]["official"]
+    assert official["state"] == FAIL
+    assert list(official["unsatisfied"]) == ["q-0001/lexical"]
+    assert official["unsatisfied"]["q-0001/lexical"] == [
+        "beta#Chapter one: no result within k returned the primary row's work"
+    ]
+    assert report["questions"]["q-0002/lexical"]["r34"]["official"]["satisfied"] is True
     assert report["state"] == FAIL
 
 
-def test_the_translation_twin_is_a_near_win_and_counts_as_present(export, thresholds):
-    q = question("q-0001", [alpha_row("Article 2", ALPHA_QUOTE_ART2)])
+def test_the_translation_twin_is_a_near_win_but_does_not_satisfy_r34(export, thresholds):
+    """The ladder keeps the twin at near-win; the ruled predicate refuses it as an answer.
+
+    Ruling of 2026-09-07: R34 asks for the work the answer sits in. The declared French
+    rendering is a different work, and returning it in place of the target-language document
+    is precisely the miss R29 exists to catch — the twin path used to count as present,
+    which is 0723's departure 1.
+    """
+
+    q = question("q-0001", [alpha_row("Article 2", ALPHA_QUOTE_ART2, page="1")])
     twin_hit = result(2, "P2ALPHA2", evidence="L’acheteur achète chaque kilowattheure", work_id="alpha-fr",
-                      title="Alpha, décision (traduction)")
+                      title="Alpha, décision (traduction)", page="1")
     other = result(1, "P3BETA33", evidence="Wealth is the set of scarce things", work_id="beta")
     report = evaluate([q], load_replies(bundle(export, [reply("q-0001", [other, twin_hit])])),
                       load_export(export), thresholds)
     entry = report["questions"]["q-0001/lexical"]
     assert entry["level"] == "near-win" and entry["rank"] == 2
     assert entry["rows"][0]["evidence"]["why"] == "work-twin"
-    assert report["readings"]["r34"]["state"] == PASS
+    assert entry["r34"]["official"]["satisfied"] is False
+    assert entry["r34"]["accommodating"]["satisfied"] is False
+    assert report["readings"]["r34"]["official"]["state"] == FAIL
 
 
-def test_a_printed_page_match_wins_without_evidence_overlap(export, thresholds):
-    q = question("q-0001", [beta_row()])
-    hit = result(1, "P3BETA33", evidence="nothing overlapping", page="3", work_id="beta",
-                 title="Beta, a treatise", chain_fields={"page_printed": "3", "author": "Author of beta",
-                                                          "identifier": "https://example.org/beta"})
-    report = evaluate([q], load_replies(bundle(export, [reply("q-0001", [hit])])), load_export(export), thresholds)
+def test_a_reported_page_intersecting_the_targets_range_satisfies_r34_and_wins(export, thresholds):
+    """The ruled predicate, both halves: the right work and an intersecting page.
+
+    Intersection and not equality, so a reply reporting the span `2-3` satisfies a target
+    printed on page 3: either side may straddle a boundary.
+    """
+
+    q = question("q-0001", [beta_row()])  # its alternate prints page 3
+    exact = result(1, "P3BETA33", evidence="nothing overlapping", page="3", work_id="beta",
+                   title="Beta, a treatise", chain_fields={"page_printed": "3", "author": "Author of beta",
+                                                           "identifier": "https://example.org/beta"})
+    report = evaluate([q], load_replies(bundle(export, [reply("q-0001", [exact])])), load_export(export), thresholds)
     entry = report["questions"]["q-0001/lexical"]
     assert entry["level"] == "win"
-    assert entry["rows"][0]["evidence"]["how"] == "printed-page"
+    assert entry["rows"][0]["evidence"]["how"] == "reported-page-intersects"
+    assert entry["r34"]["official"] == {"satisfied": True, "rows_satisfied": 1, "of": 1}
     assert entry["chain"] == {"matched": 5, "of": 6, "fraction": 5 / 6, "missing": ["section_heading"], "mismatched": []}
+    assert report["readings"]["r34"]["official"]["state"] == PASS
+
+    straddling = result(1, "P3BETA33", evidence="nothing overlapping", page="2-3", work_id="beta",
+                        title="Beta, a treatise")
+    spanned = evaluate([q], load_replies(bundle(export, [reply("q-0001", [straddling])])),
+                       load_export(export), thresholds)
+    row = spanned["questions"]["q-0001/lexical"]["rows"][0]["r34"]["official"]
+    assert row["satisfied"] is True and row["reported"] == ["2", "3"] and row["intersection"] == ["3"]
+
+    # Discriminating control: the same work at a page that does not intersect is unsatisfied.
+    elsewhere = result(1, "P3BETA33", evidence="nothing overlapping", page="9", work_id="beta")
+    away = evaluate([q], load_replies(bundle(export, [reply("q-0001", [elsewhere])])),
+                    load_export(export), thresholds)
+    entry = away["questions"]["q-0001/lexical"]
+    assert entry["r34"]["official"]["satisfied"] is False
+    assert entry["level"] == "near-win"
+    assert entry["rows"][0]["evidence"]["why"] == "work-without-intersecting-page"
+    assert away["readings"]["r34"]["official"]["state"] == FAIL
+
+
+def test_a_reply_carrying_no_page_does_not_satisfy_its_question(export, thresholds):
+    """The official score's headline consequence, asserted rather than inferred.
+
+    The ruling of 2026-09-07 says so in as many words: where a reply carries no page the
+    question is not satisfied, because R24 already obliges a hit to lead to the page it came
+    from. The committed run's engine returns key, title, snippet and score only, so this is
+    the case every question of it lands in.
+    """
+
+    q = question("q-0001", [beta_row()])
+    hit = result(1, "P3BETA33", evidence=BETA_QUOTE, work_id="beta", title="Beta, a treatise")
+    report = evaluate([q], load_replies(bundle(export, [reply("q-0001", [hit])])), load_export(export), thresholds)
+    entry = report["questions"]["q-0001/lexical"]
+    assert entry["level"] == "win", "the evidence overlapped: the ladder is not the gate"
+    assert entry["r34"]["official"]["satisfied"] is False
+    assert entry["rows"][0]["r34"]["official"]["reason"] == "the reply reports no page"
+    assert report["readings"]["r34"]["official"]["state"] == FAIL
+    assert report["readings"]["r34"]["official"]["page_reporting"]["carrying_a_page"] == 0
+    assert report["readings"]["r34"]["official"]["page_reporting"]["hits"] == 1
+    assert report["state"] == FAIL
+
+
+def test_the_accommodating_score_is_labelled_everywhere_and_gates_nothing(export, thresholds):
+    """It reads the export's own page breaks, it is reported, and no verdict moves with it."""
+
+    q = question("q-0001", [alpha_row("Article 3", ALPHA_QUOTE_ART3)])
+    hit = result(1, "P1ALPHA1", evidence=ALPHA_QUOTE_ART3)
+    report = evaluate([q], load_replies(bundle(export, [reply("q-0001", [hit])])), load_export(export), thresholds)
+    accommodating = report["readings"]["r34"]["accommodating"]
+    assert accommodating["state"] == PASS and accommodating["official"] is False and accommodating["gates"] is False
+    assert "NOT OFFICIAL" in accommodating["label"]
+    row = report["questions"]["q-0001/lexical"]["rows"][0]["r34"]["accommodating"]
+    assert row["satisfied"] is True and row["reported"] == ["2"] and row["target"] == ["2"]
+    # It passes and the gate still fails, on the official reading alone.
+    assert report["readings"]["r34"]["official"]["state"] == FAIL and report["state"] == FAIL
+    text = render_report(report)
+    assert "NOT OFFICIAL, no gate reads it" in text and "accommodating, not official" in text
+
+    # Discriminating control: evidence the export does not hold derives no page at all.
+    absent = result(1, "P1ALPHA1", evidence="a sentence that is nowhere in the export")
+    blind = evaluate([q], load_replies(bundle(export, [reply("q-0001", [absent])])),
+                     load_export(export), thresholds)
+    verdict = blind["questions"]["q-0001/lexical"]["rows"][0]["r34"]["accommodating"]
+    assert verdict["satisfied"] is False
+    assert verdict["reason"] == "the returned evidence is not located in this attachment's export fulltext"
+
+
+def test_a_page_label_names_a_page_a_span_a_list_or_a_folio():
+    assert page_set("12") == {"12"} and page_set(" 12 ") == {"12"}
+    assert page_set("12-13") == {"12", "13"}
+    assert page_set("12, 14") == {"12", "14"}
+    assert page_set("XIV") == {"xiv"} and page_set("3-1") == {"3-1"}, "a descending span is a label, not a range"
+    assert page_set(None) == frozenset() and page_set("") == frozenset() and page_set("  ") == frozenset()
+    assert not (page_set(None) & page_set("12")), "a missing page intersects nothing"
 
 
 def test_chain_completeness_counts_only_primary_fields_and_is_not_run_on_a_miss(export, thresholds):
@@ -352,16 +470,42 @@ def test_a_no_answer_question_has_an_empty_primary_set_and_is_reported_apart(exp
     }
     assert report["scored_count"] == 1
     assert report["ladder"]["by_stratum"]["core"]["all"]["count"] == 1
-    assert report["readings"]["r34"]["question_count"] == 1
+    assert report["readings"]["r34"]["official"]["question_count"] == 1
+    assert report["readings"]["negative_controls"] == {"state": PASS, "count": 1, "passed": 1,
+                                                       "unexpected_hits": 0, "firing": {}}
 
 
-def test_an_expected_miss_with_primary_rows_reports_an_unexpected_hit(export, thresholds):
+def test_a_firing_negative_control_fails_the_gate(export, thresholds):
+    """Ticket 0722, review round 1: 49 controls fired against the committed run and the gate
+    said nothing, because its verdict was computed from R34 and stability only. A bank whose
+    negative controls cannot fail it is indistinguishable from a bank that would go green
+    against anything, so an unexpected hit is now a gated reading of its own."""
+
     unreachable = question("q-0001", [alpha_row("Article 2", ALPHA_QUOTE_ART2)], expected_miss=True,
                            mechanism="past the index cap")
-    report = evaluate([unreachable], load_replies(bundle(export, [reply("q-0001", [result(1, "P1ALPHA1")])])),
-                      load_export(export), thresholds)
-    assert report["expected_miss"]["unexpected_hit"] == 1
-    assert report["state"] == NOT_RUN  # nothing scored, nothing gated: not a pass
+    fired = evaluate([unreachable], load_replies(bundle(export, [reply("q-0001", [result(1, "P1ALPHA1")])])),
+                     load_export(export), thresholds)
+    assert fired["expected_miss"]["unexpected_hit"] == 1
+    controls = fired["readings"]["negative_controls"]
+    assert controls["state"] == FAIL and controls["unexpected_hits"] == 1
+    assert controls["firing"] == {"q-0001/lexical": "past the index cap"}
+    assert fired["state"] == FAIL
+    assert "negative controls (expected-miss questions, gated): fail" in render_report(fired)
+
+    # The control that says the reading can come out the other way: the same question, and a
+    # reply that returns something else, passes and leaves the gate free to say not-run.
+    held = evaluate([unreachable], load_replies(bundle(export, [reply("q-0001", [result(1, "P3BETA33")])])),
+                    load_export(export), thresholds)
+    assert held["readings"]["negative_controls"]["state"] == PASS
+    assert held["state"] == NOT_RUN  # nothing scored: the R34 reading has not run
+
+
+def test_a_reading_with_no_negative_control_prints_not_measured_never_pass():
+    """A check whose all-clear is indistinguishable from "I could not look" is not a check."""
+
+    reading = negative_control_reading([])
+    assert reading["state"] == NOT_MEASURED and reading["count"] == 0
+    assert "no expected-miss question" in reading["reason"]
 
 
 # ------------------------------------------------------------------ counts and not-measured
@@ -408,7 +552,7 @@ def test_modes_the_build_could_not_run_are_not_run_never_a_miss(export, threshol
     assert report["not_run_count"] == 1
     assert report["questions"]["q-0001/semantic"]["state"] == NOT_RUN
     assert report["ladder"]["by_stratum"]["core"]["by_mode"]["semantic"]["reason"] == "no vectors"
-    assert report["readings"]["r34"]["question_count"] == 1
+    assert report["readings"]["r34"]["official"]["question_count"] == 1
     with pytest.raises(InputError, match="scoped to mode"):
         evaluate([question("q-0001", [alpha_row("Article 2", ALPHA_QUOTE_ART2)], mode="lexical")],
                  load_replies(bundle(export, [reply("q-0001", [], mode="hybrid")])), load_export(export), thresholds)
@@ -418,8 +562,8 @@ def test_modes_the_build_could_not_run_are_not_run_never_a_miss(export, threshol
 
 
 def test_stability_reads_the_previous_run_and_is_not_run_without_one(export, thresholds):
-    q = question("q-0001", [alpha_row("Article 2", ALPHA_QUOTE_ART2)])
-    now = [reply("q-0001", [result(1, "P1ALPHA1", evidence=ALPHA_QUOTE_ART2), result(2, "P3BETA33")])]
+    q = question("q-0001", [alpha_row("Article 2", ALPHA_QUOTE_ART2, page="1")])
+    now = [reply("q-0001", [result(1, "P1ALPHA1", evidence=ALPHA_QUOTE_ART2, page="1"), result(2, "P3BETA33")])]
     alone = evaluate([q], load_replies(bundle(export, now)), load_export(export), thresholds)
     assert alone["readings"]["stability"]["state"] == NOT_RUN
     assert alone["state"] == NOT_RUN
@@ -639,7 +783,7 @@ def test_bank_shape_lists_every_vocabulary_value_with_zeros(export):
 
 @pytest.mark.integration
 def test_cli_exit_codes_not_run_pass_fail_and_input_error(tmp_path, export):
-    bank = write_bank(tmp_path, question("q-0001", [alpha_row("Article 2", ALPHA_QUOTE_ART2)]))
+    bank = write_bank(tmp_path, question("q-0001", [alpha_row("Article 2", ALPHA_QUOTE_ART2, page="1")]))
     output = tmp_path / "report.json"
 
     def score(replies_path):
@@ -654,7 +798,7 @@ def test_cli_exit_codes_not_run_pass_fail_and_input_error(tmp_path, export):
     assert json.loads(output.read_text())["state"] == NOT_RUN
     assert "by_stratum: core 1, reserve 0 (not-measured)" in missing.stdout
 
-    good = [reply("q-0001", [result(1, "P1ALPHA1", evidence=ALPHA_QUOTE_ART2)])]
+    good = [reply("q-0001", [result(1, "P1ALPHA1", evidence=ALPHA_QUOTE_ART2, page="1")])]
     replies_path = tmp_path / "replies.json"
     replies_path.write_text(json.dumps(bundle(export, good, previous=good)))
     assert score(replies_path).returncode == 0
@@ -686,12 +830,12 @@ def test_a_previous_run_against_another_export_makes_stability_not_run_not_fail(
     """B.6: a re-pin moves item keys and the passage distribution, so a Jaccard against the
     old run measures the re-pin. The first run on a re-exported fixture read 0.029 and
     failed the gate for that reason alone (2026-09-06); it is not-run with the reason."""
-    q = question("q-0001", [alpha_row("Article 2", ALPHA_QUOTE_ART2)])
-    now = [reply("q-0001", [result(1, "P1ALPHA1", evidence=ALPHA_QUOTE_ART2), result(2, "P3BETA33")])]
+    q = question("q-0001", [alpha_row("Article 2", ALPHA_QUOTE_ART2, page="1")])
+    now = [reply("q-0001", [result(1, "P1ALPHA1", evidence=ALPHA_QUOTE_ART2, page="1"), result(2, "P3BETA33")])]
     payload = bundle(export, now, previous=[reply("q-0001", [result(1, "OLDKEY01")])])
     payload["previous_run"]["run"]["export_sha256"] = "e" * 64
     report = evaluate([q], load_replies(payload), load_export(export), thresholds)
     stability = report["readings"]["stability"]
     assert stability["state"] == NOT_RUN and "re-pin" in stability["reason"]
-    assert report["readings"]["r34"]["state"] == PASS
+    assert report["readings"]["r34"]["official"]["state"] == PASS
     assert report["state"] == NOT_RUN

@@ -107,8 +107,12 @@ def test_the_runner_asks_the_search_tool_in_keyword_mode_at_k_and_writes_v2_repl
 @pytest.mark.integration
 def test_the_runner_embeds_a_previous_run_and_refuses_a_foreign_one(tmp_path):
     export = make_export(tmp_path)
-    bank = write_bank(tmp_path, question("q-0001", [alpha_row("Article 2", ALPHA_QUOTE_ART2)]))
-    hits = {"query for q-0001": [{"itemKey": "P1ALPHA1", "title": "Alpha", "snippet": ALPHA_QUOTE_ART2, "score": 1}]}
+    # The hit carries a page and the row prints one, so R34's official reading can pass and
+    # the gate's verdict here is about stability rather than about the page gap (0734).
+    bank = write_bank(tmp_path, question("q-0001", [alpha_row("Article 2", ALPHA_QUOTE_ART2, page="1")]))
+    hits = {"query for q-0001": [
+        {"itemKey": "P1ALPHA1", "title": "Alpha", "snippet": ALPHA_QUOTE_ART2, "score": 1, "page": "1"}
+    ]}
     done, first, _ = run_runner(tmp_path, export, bank, hits)
     assert done.returncode == 0, done.stderr
     previous = tmp_path / "previous.json"

@@ -188,24 +188,84 @@ top-k item sets per question and mode, thresholds from SPEC §5.2.8). A reply
 whose `results` is `null` is **not-run** for that mode and must say why; it is
 never scored as a miss. `run.reply_shape` records what the tool's hits actually
 carried and where each chain field came from: the chain-completeness ceiling of
-the build, reported, not hidden.
+the build, reported, not hidden — `reply_shape.page_carried` in particular, since
+`results[].page` is the official R34 score's only input.
 
-## Scoring a row
+## Scoring a row on the ladder
 
 - **Present** if any result within k has the row's item (its parent item key,
   or its attachment key when the reply carries one), or — via the export's work
   ids and declared `translation` / `same-work` relations — another rendering of
   the row's work.
-- **Win** if the item is present and the evidence overlaps an alternate's quote
-  (token overlap ≥ 0.5 of the quote's content words — word tokens of three
-  characters or more, case-folded) or the printed page the reply states matches
-  the alternate's `page_printed`.
-- **Near-win** if the item is present without that overlap, or only the
-  declared other-language / other-rendering twin is present.
+- **Win** if the item is present and either the ruled predicate is satisfied
+  (`how: reported-page-intersects`) or the evidence overlaps an alternate's quote
+  (`how: evidence-overlap`; token overlap ≥ 0.5 of the quote's content words —
+  word tokens of three characters or more, case-folded).
+- **Near-win** if the row's own work is present without an intersecting page and
+  without that overlap (`why: work-without-intersecting-page`), or only the
+  declared other-language / other-rendering twin is present (`why: work-twin`).
+  A twin **never** satisfies R34: returning the English rendering in place of the
+  Vietnamese decision is the miss R29 exists to catch.
 - **Miss** otherwise.
 - **Chain completeness** = the fraction of the primary chain's non-null fields
   the reply carries with a matching value (string-normalised; `page_printed`
   exact). A missing row is `not-run` for the chain.
+
+The ladder is reported and never gated (D11); R34 below is the gated reading.
+
+## R34: what "the answer came back" means, and the two scores
+
+The author's ruling of 2026-09-07 (DECISIONS.md; SPEC §5.2.10). A reply
+**satisfies** a question when it returns **the work the answer sits in** and **a
+page intersecting the target's page range**. Intersection, not equality: an
+answer paragraph may straddle a page boundary and so may the passage a reply
+hands back, and a non-empty overlap of the two ranges is the test. Work identity
+alone is too weak — it certifies a title match as retrieval — and requiring the
+pinned quote inside the reply's snippet is too strong, since the snippet is a
+display window the system chooses.
+
+Two scores are tracked, and only one is official.
+
+| | reads | gated |
+|---|---|---|
+| **official** | the page the system itself reports (`results[].page`) against the row's authored `page_printed` labels | **yes** — this is the gate's R34 reading |
+| **accommodating** | a page derived from where the returned evidence falls in the export, counted by the extraction's own form-feed page breaks, on both sides | **no** — reported beside it, always labelled |
+
+**Where a reply carries no page, the question is not satisfied.** That is a true
+statement about the system rather than a scoring artifact: R24 already obliges a
+hit to lead to the page it came from, so a reply without one has not met that
+promise and the score says so. In the committed run **none of the 1 928 hits
+carries a page** — the engine returns key, title, snippet and score only — so the
+official score reads zero everywhere. Ticket 0734 is that requirement gap; the
+report prints the hit-and-page count in every run so the gap stays visible
+instead of being rediscovered.
+
+The accommodating score exists so development has a signal in the meantime. **No
+gate reads it, no threshold binds it, and no claim about the system rests on it.**
+Both sides of its comparison are read in the same coordinate system — the page
+index the extraction's form feeds mark inside one attachment's fulltext — because
+a derived index and a printed folio are not comparable quantities. It is
+unsatisfied, with the reason recorded, when the evidence cannot be located in the
+export, when the attachment's extraction wrote no form feed, or when the reply
+names another attachment of the same work.
+
+A page label names one page (`12`), a span (`12-13`), a list (`12, 14`), or a
+folio that is not an arabic numeral (`XIV`), which compares case-folded and
+literally. An absent label names no page and intersects nothing.
+
+## Negative controls are gated
+
+An expected-miss question is a negative control: it names a mechanism that hides
+its answer from this export and passes when the reply's first k hold no primary
+row. Those outcomes used to be computed, reported, and read by nothing, so 49
+firing controls could not fail the gate. They are gated now, as their own reading
+beside R34 and stability. A reading with no expected-miss question in it prints
+`not-measured`, never `pass`.
+
+The control fires on the primary row's *work* coming back, not on R34's official
+reading — deliberately stricter, and deliberately independent of the page ruling,
+because a control that could only fire once the engine reports pages would be a
+control that never fires.
 
 ## The report — schema `golden-gate-report/v3`
 
@@ -213,9 +273,16 @@ Per question and mode: level, rank, reciprocal rank, chain, rows found, per-row
 detail. Aggregated per lane, format of the primary attachment (`pdf`, `html`,
 `other`), signal, set_kind, mode and facet, **within each stratum**, with the
 count beside every rate and `not-measured` at zero; a weighted pooled figure is
-printed apart with a macro-average by lane beside it. R34 absolute over the
-primary rows and the stability reading are the two
-gated readings; the ladder is reported, never gated.
+printed apart with a macro-average by lane beside it.
+
+`readings` holds three gated readings and one that is not:
+`r34.official` (the ruled predicate on the page the system reports),
+`stability`, and `negative_controls` gate; `r34.accommodating` does not, and
+carries `official: false`, `gates: false` and its label wherever it appears —
+in the reading, in every `ladder` cell, and in each question's own `r34` block.
+`r34.official.page_reporting` says how many of the run's hits carried a page at
+all, which is the official score's whole input. The ladder is reported, never
+gated.
 
 Exit codes of `golden_gate.py score`: 0 pass, 1 fail, 2 input error, 3 not-run
 (no replies file, or a gated reading that could not run — a first run has no
