@@ -1,0 +1,62 @@
+%erg 0.1
+Title: A hit must report the page it came from, so R34's official score can be measured
+Created: 2026-09-07
+Author: claude
+
+--- log ---
+2026-09-07T02:34Z claude created
+
+--- body ---
+## Context
+
+Ruled 2026-09-07 (`DECISIONS.md`): R34 is satisfied when a reply returns the
+right work and a page intersecting the target's page range, and two scores are
+tracked, of which only the one reading the system's own reported page is
+official.
+
+Measured against the golden run's own artifact before the ruling was written:
+of 1 928 hits across 843 replies, **none carries a page**. The reply schema has
+the field. The engine returns item key, title, snippet and score, so nothing
+fills it.
+
+So the official score is zero today, and stays zero until this gap closes. That
+is deliberate — it keeps the gap visible in every run rather than buried in a
+ticket — but the gap itself is not a scoring problem. It is R24 unmet:
+
+> **R24. Locator.** A hit MUST lead to the page it came from, and one entry
+> MUST give one hit.
+
+A hit that hands back a snippet with no page has not led the reader anywhere.
+This ticket is that clause measured, not a new demand.
+
+## What is needed
+
+A retrieval reply must carry, per hit, the page the evidence came from, and say
+what kind of page it is: the printed folio where the extraction knows it, an
+estimate where it is derived, per D10. Where the passage straddles a boundary
+the reply gives the range rather than one number, which is what makes the
+ruled intersection test computable on both sides.
+
+The extraction already knows this. Zotero's own full-text cache marks page
+breaks with a form feed, which is how the accommodating score derives a page
+offline. What is missing is the passage-to-page mapping surviving into the
+index and out through the query path.
+
+## Actions
+
+1. Establish where the page is lost: whether the passage record keeps a page
+   or an offset at all, and if not, at which stage it is dropped.
+2. State what it costs to carry it: the index column, the write path, and
+   whether an existing index can gain it without a rebuild (R23, R3).
+3. Propose the reply-shape change, and the estimate flag D10 requires.
+4. Prepare it as an upstream contribution rather than a fork-local patch: this
+   is a promise the shipped product makes, not an artifact of the bench.
+
+## Exit criteria
+- [ ] where the page is lost between extraction and reply is established from
+      source, not inferred
+- [ ] the cost of carrying it stated, including whether a rebuild is implied
+- [ ] a reply shape proposed that gives a page or a page range per hit, with
+      the estimate flag D10 requires
+- [ ] R34's official score becomes measurable, and its first non-zero reading
+      is recorded
