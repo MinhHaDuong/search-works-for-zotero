@@ -1,0 +1,19 @@
+{
+  "arm": "english-embedder",
+  "kind": "build",
+  "letter": "D",
+  "notes": [],
+  "reason": "The break is already the shipped default and so is not injectable: the run block's embedder_model.build_default reads Xenova/all-MiniLM-L6-v2, parsed out of the build's own source, which is English-only. The configuration that would have to be BUILT to make this comparison is the multilingual one, which needs the same vectors-on run arm B is blocked on. Under the evidence-matched predicate the six cross-lingual MUST cells already hold zero wins, so this arm has zero headroom there whatever is built.",
+  "state": "not-run",
+  "target_lanes": [
+    "en->fr",
+    "en->vi",
+    "fr->en",
+    "fr->vi",
+    "vi->en",
+    "vi->fr"
+  ],
+  "target_mechanisms": [
+    "cross-lingual"
+  ]
+}
