@@ -238,6 +238,14 @@ def test_an_arm_that_cannot_be_armed_is_not_run(tmp_path):
     assert check.result == NOT_RUN
     assert durability.RESTAMP_NEWER in check.detail["why"]
     assert "could not be armed" in check.detail["why"]
+    assert check.detail["baseline_hits"] > 0
+    assert set(check.detail["arms"]) == {
+        durability.RESTAMP_OLDER, durability.RESTAMP_NEWER}
+    measured = check.detail["arms"][durability.RESTAMP_NEWER]
+    assert measured["armed_by"]["index_restored"] is False
+    assert measured["hits_before_restamp"] == 0
+    assert measured["hit_list_reported_before_restamp"] is True
+    assert measured["raised_before_restamp"] is None
 
 
 # --------------------------------------------------------------------------
@@ -309,6 +317,9 @@ def test_a_target_that_reports_no_hits_leaves_the_serving_clause_undecided(tmp_p
     check = durability.check_foreign_stamp_ends_up_serving(_Hitless(tmp_path))
     assert check.result == NOT_RUN
     assert "reporting what it matched" in check.detail["why"]
+    assert check.detail["baseline_hits"] is None
+    assert check.detail["baseline_hit_list_reported"] is False
+    assert check.detail["arms"] == {}
 
 
 def test_an_empty_baseline_leaves_the_serving_clause_undecided(tmp_path):
@@ -320,6 +331,9 @@ def test_an_empty_baseline_leaves_the_serving_clause_undecided(tmp_path):
 
     check = durability.check_foreign_stamp_ends_up_serving(_Empty(tmp_path))
     assert check.result == NOT_RUN
+    assert check.detail["baseline_hits"] == 0
+    assert check.detail["baseline_hit_list_reported"] is True
+    assert check.detail["arms"] == {}
 
 
 def test_the_counter_name_parser_ignores_names_that_are_not_work_counters():

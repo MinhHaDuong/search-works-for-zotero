@@ -18,7 +18,9 @@ Everything here runs offline, starts no process and writes only under tmp_path.
 
 import importlib
 import os
+import sqlite3
 import sys
+from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
@@ -29,6 +31,7 @@ if str(REPO) not in sys.path:
 
 adapter = importlib.import_module("bench.acceptance.adapters.zoteus")
 posture = importlib.import_module("bench.acceptance.posture")
+durability = importlib.import_module("bench.acceptance.durability")
 
 
 def build(tmp_path, **kwargs) -> object:
@@ -153,3 +156,143 @@ def test_running_refuses_before_spawning_when_the_posture_is_unavailable(tmp_pat
         with target.running():
             pytest.fail("the lifecycle yielded despite a refused posture")
     assert target.server is None, "a server was constructed despite the refusal"
+
+
+# --- R23 seed reset and stamp selection (ticket 0623) ----------------------
+
+
+def _index(path: Path, stamp: str, marker: str) -> None:
+    """Write the smallest index shape the adapter's storage probes need."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    con = sqlite3.connect(path)
+    try:
+        con.execute("CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT)")
+        con.executemany(
+            "INSERT INTO meta (key, value) VALUES (?, ?)",
+            ((adapter.STAMP_KEY, stamp), ("marker", marker)),
+        )
+        con.commit()
+    finally:
+        con.close()
+
+
+def _meta(path: Path, key: str) -> str:
+    con = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+    try:
+        return con.execute("SELECT value FROM meta WHERE key=?", (key,)).fetchone()[0]
+    finally:
+        con.close()
+
+
+def _set_meta(path: Path, key: str, value: str) -> None:
+    con = sqlite3.connect(path)
+    try:
+        con.execute("UPDATE meta SET value=? WHERE key=?", (value, key))
+        con.commit()
+    finally:
+        con.close()
+
+
+def test_reset_removes_the_old_sqlite_family_before_copying_the_seed(tmp_path):
+    """A stale WAL must not replay over the seed copied into the old file's path.
+
+    Malformed bytes make the control stricter than checking names after the fact:
+    before the fix, `_stamp()` tries to open the copied database beside this WAL
+    and raises (or reads the wrong generation on SQLite builds that accept it).
+    The reset must remove every file in the destination database's family first,
+    while leaving an unrelated database alone.
+    """
+    seed = tmp_path / "seed" / "search-index.sqlite"
+    _index(seed, "2", "seeded")
+    target = build(tmp_path, seed_index=str(seed))
+    target.data_dir.mkdir(parents=True)
+    destination = target.data_dir / seed.name
+    _index(destination, "2", "stale")
+    for suffix in ("-wal", "-shm", "-journal", ".incompatible-old"):
+        destination.with_name(destination.name + suffix).write_bytes(b"stale sidecar")
+    unrelated = target.data_dir / "other.sqlite"
+    unrelated.write_bytes(b"unrelated")
+
+    event = target._reset_to_seeded_index()
+
+    assert _meta(destination, "marker") == "seeded"
+    assert event["removed_before_copy"] == [
+        "search-index.sqlite",
+        "search-index.sqlite-journal",
+        "search-index.sqlite-shm",
+        "search-index.sqlite-wal",
+        "search-index.sqlite.incompatible-old",
+    ]
+    assert unrelated.read_bytes() == b"unrelated"
+    assert list(target.data_dir.glob(f"{destination.name}*")) == [destination]
+
+
+def test_older_restamp_is_one_rung_below_the_index_this_build_wrote(tmp_path):
+    """R23's ordinary upgrade arm is N-1, not an obsolete fixed stamp."""
+    seed = tmp_path / "seed" / "search-index.sqlite"
+    _index(seed, "2", "seeded")
+    target = build(tmp_path, seed_index=str(seed))
+    target.data_dir.mkdir(parents=True)
+    destination = target.data_dir / seed.name
+    _index(destination, "2", "current")
+
+    event = target._restamp(durability.RESTAMP_OLDER)
+
+    assert event["was"] == "2"
+    assert event["restamped_to"] == "1"
+    assert event["stamp_case"] == "one-rung-older migration candidate"
+    assert _meta(destination, adapter.STAMP_KEY) == "1"
+
+
+def test_r23_decides_when_the_concrete_adapter_reset_has_stale_sidecars(tmp_path):
+    """The repaired adapter arms both R23 directions instead of stopping at not-run.
+
+    Transport is replaced, but storage is not: both resets, both restamps and the
+    stale sidecars are handled by the concrete Zoteus adapter. The synthetic
+    query models the reviewed target's two schema outcomes — N-1 migrates and
+    serves; newer cannot serve — so the expected verdict is FAIL, not a false
+    green. What this test guards is that the harness reaches that verdict after
+    measuring both arms.
+    """
+    seed = tmp_path / "seed" / "search-index.sqlite"
+    _index(seed, "2", "seeded")
+    target = build(tmp_path, seed_index=str(seed))
+    target.data_dir.mkdir(parents=True)
+    target._seed()
+    destination = target.data_dir / seed.name
+    starts = 0
+
+    @contextmanager
+    def running():
+        nonlocal starts
+        starts += 1
+        try:
+            yield
+        finally:
+            # The older arm's post-restamp process has now stopped. These are
+            # the files the old reset left beside the copied seed, causing the
+            # newer arm to observe zero rows instead of its own starting state.
+            if starts == 3:
+                for suffix in ("-wal", "-shm"):
+                    destination.with_name(destination.name + suffix).write_bytes(b"stale")
+
+    def query(_q: str, _mode: str, _limit: int) -> dict:
+        stamp = _meta(destination, adapter.STAMP_KEY)
+        if stamp == "1":
+            _set_meta(destination, adapter.STAMP_KEY, "2")
+            return {"hits": [{"id": "seeded"}]}
+        if stamp == adapter.NEWER_FOREIGN_STAMP:
+            return {"hits": []}
+        return {"hits": [{"id": "seeded"}]}
+
+    target.running = running
+    target.query = query
+
+    check = durability.check_foreign_stamp_ends_up_serving(target)
+
+    assert check.result == "fail", "the newer schema still cannot serve; this is not a green"
+    assert set(check.detail["arms"]) == {
+        durability.RESTAMP_OLDER, durability.RESTAMP_NEWER}
+    assert check.detail["arms"][durability.RESTAMP_OLDER]["serving"] is True
+    assert check.detail["arms"][durability.RESTAMP_NEWER]["hits_before_restamp"] == 1
+    assert check.detail["arms"][durability.RESTAMP_NEWER]["serving"] is False

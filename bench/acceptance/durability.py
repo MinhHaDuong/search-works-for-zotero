@@ -621,9 +621,11 @@ def check_foreign_stamp_ends_up_serving(target: Target) -> Check:
 
     So this asserts the outcome and only the outcome: after the stamp is changed
     and the process restarted, does a query come back with what the index held?
-    Both directions, because an older stamp is what every user holds the day the
-    build's schema version is incremented, and a newer one is what a rollback
-    produces; a forward-only probe misses the common case.
+    Both directions, because a stamp one rung older is what every user holds the
+    day the build's schema version is incremented, and a newer one is what a
+    rollback produces; a forward-only probe misses the common case. Which
+    concrete stamp is one rung older is target knowledge and is recorded by the
+    adapter's perturbation event, never fixed in this layer.
 
     **Each arm is armed, and the harness records the arming rather than assuming
     it.** The two directions are two experiments and both need the same starting
@@ -675,53 +677,81 @@ def check_foreign_stamp_ends_up_serving(target: Target) -> Check:
         return not_offered(cid, req, clause, falsified, target, "query")
 
     q, limit = "a query the harness supplies before and after the stamp changes", 5
+    arms: dict[str, dict] = {}
+
+    def undecided(why: str, *, baseline: list | None,
+                  baseline_raised: str = "") -> Check:
+        """Keep every measurement made before an R23 arm became undecidable."""
+        check = not_run(cid, req, clause, falsified, target, "query", why)
+        check.detail.update({
+            "baseline_hits": None if baseline is None else len(baseline),
+            "baseline_hit_list_reported": baseline is not None,
+            "baseline_raised": baseline_raised or None,
+            "arms": arms,
+        })
+        return check
+
     with target.running():
         _, baseline_hits, baseline_why = _answer_or_why(target, q, limit)
     if baseline_why:
-        return not_run(cid, req, clause, falsified, target, "query",
-                       "the target could not answer before the stamp was touched "
-                       f"({baseline_why}), so there is no baseline to compare against "
-                       "and this clause is not decided")
+        return undecided(
+            "the target could not answer before the stamp was touched "
+            f"({baseline_why}), so there is no baseline to compare against "
+            "and this clause is not decided",
+            baseline=baseline_hits, baseline_raised=baseline_why)
     if baseline_hits is None:
-        return not_run(cid, req, clause, falsified, target, "query",
-                       "this target answers without reporting what it matched, so "
-                       "'ends up serving' has nothing to be read from; the clause is not "
-                       "decided rather than assumed either way")
+        return undecided(
+            "this target answers without reporting what it matched, so "
+            "'ends up serving' has nothing to be read from; the clause is not "
+            "decided rather than assumed either way",
+            baseline=baseline_hits)
     if not baseline_hits:
-        return not_run(cid, req, clause, falsified, target, "query",
-                       "the index served nothing before the stamp was touched, so an "
-                       "empty answer afterwards would prove nothing about migration")
+        return undecided(
+            "the index served nothing before the stamp was touched, so an "
+            "empty answer afterwards would prove nothing about migration",
+            baseline=baseline_hits)
 
-    arms: dict[str, dict] = {}
     for direction in (RESTAMP_OLDER, RESTAMP_NEWER):
         armed, why = perturb(target, RESET_TO_SEEDED_INDEX)
         if why:
-            return not_run(cid, req, clause, falsified, target, "query", why)
+            arms[direction] = {
+                "armed_by": armed,
+                "hits_before_restamp": None,
+                "hit_list_reported_before_restamp": False,
+                "raised_before_restamp": None,
+                "event": None,
+            }
+            return undecided(why, baseline=baseline_hits)
         with target.running():
             _, ready_hits, ready_why = _answer_or_why(target, q, limit)
+        arms[direction] = {
+            "armed_by": armed,
+            "hits_before_restamp": None if ready_hits is None else len(ready_hits),
+            "hit_list_reported_before_restamp": ready_hits is not None,
+            "raised_before_restamp": ready_why or None,
+            "event": None,
+        }
         if not ready_hits:
-            return not_run(
-                cid, req, clause, falsified, target, "query",
+            return undecided(
                 f"the {direction} arm could not be armed: with the index put back to the "
                 "state this clause is about, it served nothing"
                 + (f" ({ready_why})" if ready_why else "")
                 + ". An empty answer after the stamp changed would then be a fact about "
                 "the arm and not about the direction, so this is reported as not decided "
-                "rather than as a red.")
+                "rather than as a red.",
+                baseline=baseline_hits)
         event, why = perturb(target, direction)
+        arms[direction]["event"] = event
         if why:
-            return not_run(cid, req, clause, falsified, target, "query", why)
+            return undecided(why, baseline=baseline_hits)
         before_files = _inventory(target)
         with target.running():
             _, hits, why_not = _answer_or_why(target, q, limit)
-        arms[direction] = {
-            "armed_by": armed,
+        arms[direction].update({
             # The proof that this arm acted on a serving index rather than on
             # whatever the previous arm left. Read it before reading the verdict:
             # a zero here would mean the arm measured nothing, and the check
             # returns not-run before it can reach this dictionary.
-            "hits_before_restamp": len(ready_hits),
-            "event": event,
             # Three distinguishable states, because a red that cannot say which
             # one it saw is a red a reader has to go and reproduce. `hits: 0` is
             # an index serving nothing; `hit_list_reported: false` is a reply that
@@ -734,7 +764,7 @@ def check_foreign_stamp_ends_up_serving(target: Target) -> Check:
             "serving": bool(hits),
             "raised": why_not or None,
             "files_gone": sorted(str(p) for p in before_files - _inventory(target)),
-        }
+        })
 
     serving = all(arm["serving"] for arm in arms.values())
     by_hand = any(arm["files_gone"] for arm in arms.values())
