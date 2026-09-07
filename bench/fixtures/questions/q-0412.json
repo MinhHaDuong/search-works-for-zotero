@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0412",
+  "need": "Written before opening the document: what commodity is said to have first brought the Baltic shore to the notice of Mediterranean traders, and who bought it there?",
+  "query": "кто покупал янтарь на берегах нынешней Пруссии у венедов древние мореходцы",
+  "question_language": "ru",
+  "answer_language": "ru",
+  "lane": "ru->ru",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "legacy-encoding-windows-1251",
+    "should-language-russian"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "karamzin-1818-istoriya-gosudarstva-rossiyskogo-t1-gl1",
+      "recipe_id": "karamzin-1818-istoriya-gosudarstva-rossiyskogo-t1-gl1",
+      "attachment_id": "karamzin-1818-istoriya-t1-gl1-magister-1999-cp1251-html",
+      "attachment_key": "TFNYR22R",
+      "section": "Глава I — венеды, янтарь и берега Балтийские",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 14344,
+          "quote": "Вероятно, что финикияне, смелые мореходцы, которые открыли Европу для образованных народов древности, не имевших о ней сведения, доплывали до самых берегов нынешней Пруссии, богатых янтарем, и там покупали его у Венедов."
+        }
+      ],
+      "chain": {
+        "title": "История государства Российского. Том 1, глава I: О народах, издревле обитавших в России",
+        "author": "Николай Михайлович Карамзин",
+        "date": "1818",
+        "identifier": "https://web.archive.org/web/19991010004134/http://www.magister.msk.ru/library/history/karamzin/kar01_01.htm",
+        "section_heading": "Глава I — венеды, янтарь и берега Балтийские",
+        "page_printed": null,
+        "part_title": "Глава I. О народах, издревле обитавших в России. О славянах вообще",
+        "part_byline": "Николай Михайлович Карамзин"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "TFNYR22R",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 14344,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

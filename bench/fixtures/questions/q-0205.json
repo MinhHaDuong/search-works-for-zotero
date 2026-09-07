@@ -1,0 +1,129 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0205",
+  "need": "Hazard row, index cap: the two best-known passages of the book — the demand law D = F(p) of chapter IV and the mineral-spring monopolist of chapter V — sit at characters 74 590 and 89 552 of the extracted text, well past the 40 000-character index cap. They are in the export and absent from the index, which is exactly the sub-case a reader would never guess from the page.",
+  "query": "Cournot source minérale propriétaire prix qui rend p F(p) maximum rente annuelle monopole",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "index-char-cap-crossing",
+    "answer-past-index-cap"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "cournot-1838-recherches",
+      "recipe_id": "cournot-1838-recherches-ia",
+      "attachment_id": "cournot-1838-recherches-ia-pdf",
+      "attachment_key": "TLZ7JLEX",
+      "section": "Chapitre V. Du monopole",
+      "alternates": [
+        {
+          "page_printed": "61",
+          "char_offset": 89552,
+          "quote": "26. Supposons, pour la commodité du langage, qu'un homme se trouve propriétaire d'une source minérale, à laquelle on vient de reconnaître des propriétés salutaires qu'aucune autre ne possède."
+        },
+        {
+          "page_printed": "61",
+          "char_offset": 90255,
+          "quote": "Le produit sera la rente annuelle du propriétaire de la source, et cette rente ne dépendra que de la nature de la fonction F."
+        }
+      ],
+      "chain": {
+        "title": "Recherches sur les principes mathématiques de la théorie des richesses",
+        "author": "Antoine-Augustin Cournot",
+        "date": "1838",
+        "identifier": "https://archive.org/details/AugustinCournotRecherches",
+        "section_heading": "CHAPITRE V. Du monopole",
+        "page_printed": "61",
+        "part_title": null,
+        "part_byline": null
+      }
+    },
+    {
+      "work_id": "cournot-1838-recherches",
+      "recipe_id": "cournot-1838-recherches-ia",
+      "attachment_id": "cournot-1838-recherches-ia-pdf",
+      "attachment_key": "TLZ7JLEX",
+      "section": "Chapitre IV. De la loi du débit",
+      "alternates": [
+        {
+          "page_printed": "49",
+          "char_offset": 74590,
+          "quote": "21. Admettons donc que le débit ou la demande annuelle D est, pour chaque denrée, une fonction"
+        }
+      ],
+      "chain": {
+        "title": "Recherches sur les principes mathématiques de la théorie des richesses",
+        "author": "Antoine-Augustin Cournot",
+        "date": "1838",
+        "identifier": "https://archive.org/details/AugustinCournotRecherches",
+        "section_heading": "CHAPITRE IV. De la loi du débit",
+        "page_printed": "49",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "Both pinned answers lie past the product's 40 000-character index cap (ZOTEUS_INDEX_FULLTEXT_MAX_CHARS): the Gallica banner and the eleven pages of front matter push chapter IV to character 74 590 and chapter V to character 89 552 of the extracted text, so the spans are in the export but never reach the index.",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "TLZ7JLEX",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 89552,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          },
+          {
+            "reachable": true,
+            "char_offset": 90255,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      },
+      {
+        "attachment_key": "TLZ7JLEX",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 74590,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

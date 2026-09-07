@@ -1,0 +1,117 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0167",
+  "need": "Viết trước khi mở tài liệu: báo cáo Việt Nam 2035 dựa trên ba trụ cột nào — thịnh vượng đi đôi với bền vững môi trường, công bằng và hòa nhập xã hội, và năng lực cùng trách nhiệm giải trình của nhà nước?",
+  "query": "ba trụ cột của báo cáo Việt Nam 2035 thịnh vượng bền vững môi trường công bằng nhà nước trách nhiệm giải trình",
+  "question_language": "vi",
+  "answer_language": "en",
+  "lane": "vi->en",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "cross-lingual-anchor",
+    "compound-book-section"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "wb-2016-vietnam-2035-en-overview",
+      "recipe_id": "wb-2016-vietnam-2035-en-overview",
+      "attachment_id": "wb-2016-vietnam-2035-en-overview-pdf",
+      "attachment_key": "AY8TMFZ6",
+      "section": "Executive Summary",
+      "alternates": [
+        {
+          "page_printed": "xxi",
+          "char_offset": 27664,
+          "quote": "These aspirations and the supporting policy and institutional agenda stand on three pillars: balancing economic prosperity with environmental sustainability, promoting equity"
+        }
+      ],
+      "chain": {
+        "title": "Vietnam 2035: Toward Prosperity, Creativity, Equity, and Democracy — Overview",
+        "author": "World Bank; Ministry of Planning and Investment of Vietnam",
+        "date": "2016",
+        "identifier": "10.1596/978-1-4648-0824-1",
+        "part_title": "Overview",
+        "part_byline": null,
+        "section_heading": "Executive Summary",
+        "page_printed": "xxi"
+      }
+    },
+    {
+      "work_id": "wb-2016-vietnam-2035-en-overview",
+      "recipe_id": "wb-2016-vietnam-2035-en-overview",
+      "attachment_id": "wb-2016-vietnam-2035-en-overview-pdf",
+      "attachment_key": "AY8TMFZ6",
+      "section": "Overview: Introduction",
+      "alternates": [
+        {
+          "page_printed": "2",
+          "char_offset": 51845,
+          "quote": "The country's aspirations and the supporting policy and institutional agenda thus stand on three pillars: balancing economic prosperity with environmental sustainability, promoting equity and social inclusion, and bolstering the state's capacity and accountability."
+        }
+      ],
+      "chain": {
+        "title": "Vietnam 2035: Toward Prosperity, Creativity, Equity, and Democracy — Overview",
+        "author": "World Bank; Ministry of Planning and Investment of Vietnam",
+        "date": "2016",
+        "identifier": "10.1596/978-1-4648-0824-1",
+        "part_title": "Overview",
+        "part_byline": null,
+        "section_heading": "Introduction",
+        "page_printed": "2"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "AY8TMFZ6",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 27664,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      },
+      {
+        "attachment_key": "AY8TMFZ6",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 51845,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": true,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

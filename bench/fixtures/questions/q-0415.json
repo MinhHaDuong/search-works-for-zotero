@@ -1,0 +1,83 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0415",
+  "need": "Hazard row, paired with q-0414 in the same document: Adin Ballou's passage on a congress voting war in the citizen's name lies in the last 1 100 characters of a 42 107-character extraction — past the 40 000-character index cap by a narrow margin, which is exactly the boundary worth testing.",
+  "query": "Конгресс уполномочивает объявить войну мои представители злодеяние от моего имени",
+  "question_language": "ru",
+  "answer_language": "ru",
+  "lane": "ru->ru",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "extraction-cap-crossing-past",
+    "index-fulltext-max-chars-40000",
+    "cyrillic-multibyte-offsets",
+    "legacy-encoding-koi8-r"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "tolstoy-1910-sueverie-gosudarstva",
+      "recipe_id": "tolstoy-1910-sueverie-gosudarstva",
+      "attachment_id": "tolstoy-1910-sueverie-gosudarstva-librue-1999-html",
+      "attachment_key": "6XLZXPPE",
+      "section": "VI. Освобождение от суеверия государства — 10 (Адин Балу)",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 40990,
+          "quote": "Конгресс уполномочивает объявить войну. Мои представители уполномочивают делать это злодеяние от моего имени и по своему произволу."
+        }
+      ],
+      "chain": {
+        "title": "Суеверие государства",
+        "author": "Лев Николаевич Толстой (составитель)",
+        "date": "1910",
+        "identifier": "https://web.archive.org/web/19991128173655/http://lib.ru/LITRA/TOLSTOJ/gosudarstwo.txt",
+        "section_heading": "VI. Освобождение от суеверия государства — 10 (Адин Балу)",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "past the index cap: the span is located in the export's fulltext at character 40 990 of 42 107, beyond ZOTEUS_INDEX_FULLTEXT_MAX_CHARS = 40 000, so it is in the export but not in the index",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "6XLZXPPE",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 40990,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

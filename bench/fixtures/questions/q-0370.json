@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0370",
+  "need": "Écrit avant d'ouvrir le document : avant que le réchauffement ne devienne visible, on a d'abord mesuré l'inverse — moins de lumière solaire au sol pendant trois décennies. Une source francophone du corpus soutient-elle que cette baisse a bien été observée de 1961 à 1990, et qu'on l'attribue aux aérosols de combustion ?",
+  "query": "de 1961 à 1990 la quantité de lumière solaire atteignant la surface de la Terre a diminué, un assombrissement global attribué aux aérosols de combustion",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "agreement",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "pageless-html"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "wp-climate-change-fr",
+      "recipe_id": "wp-climate-change-fr",
+      "attachment_id": "wp-climate-change-fr-html",
+      "attachment_key": "6PG6TSDT",
+      "section": "Aérosols et nuages",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 19211,
+          "quote": "De 1961 à 1990, une réduction progressive de la quantité de lumière solaire atteignant la surface de la Terre a été observée."
+        }
+      ],
+      "chain": {
+        "title": "Changement climatique",
+        "author": "Wikipedia contributors",
+        "date": "2026",
+        "identifier": "https://fr.wikipedia.org/w/index.php?title=Changement_climatique&oldid=239281043",
+        "section_heading": "Aérosols et nuages",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "6PG6TSDT",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 19211,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0723 review round)",
+    "date": "2026-09-07",
+    "page_read": false
+  }
+}

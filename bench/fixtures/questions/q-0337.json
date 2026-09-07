@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0337",
+  "need": "Viết trước khi mở tài liệu: khi đi mua tủ lạnh hay điều hoà, người mua muốn biết máy nào tốn ít điện hơn — luật 2010 buộc người bán phải dán cái gì lên sản phẩm, và cái đó phải cho biết những gì?",
+  "query": "người mua tủ lạnh làm sao biết máy nào tốn ít điện hơn khi chọn hàng ngoài cửa tiệm",
+  "question_language": "vi",
+  "answer_language": "vi",
+  "lane": "vi->vi",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "compound-document-chain"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "vn-law-energy-efficiency-2010-vi",
+      "recipe_id": "vn-law-energy-efficiency-2010-vi",
+      "attachment_id": "vn-law-energy-efficiency-2010-vi-html",
+      "attachment_key": "NIWCRHTC",
+      "section": "Điều 3, khoản 7",
+      "alternates": [
+        {
+          "page_printed": null,
+          "quote": "Nhãn năng lượng là nhãn cung cấp thông tin về loại năng lượng sử dụng, mức tiêu thụ năng lượng, hiệu suất năng lượng và các thông tin khác giúp người tiêu dùng nhận biết và lựa chọn phương tiện, thiết bị tiết kiệm năng lượng.",
+          "char_offset": 2095
+        }
+      ],
+      "chain": {
+        "title": "Luật Sử dụng năng lượng tiết kiệm và hiệu quả (50/2010/QH12)",
+        "author": "Quốc hội Việt Nam",
+        "date": "2010",
+        "identifier": "https://vi.wikisource.org/w/index.php?title=Lu%E1%BA%ADt_S%E1%BB%AD_d%E1%BB%A5ng_n%C4%83ng_l%C6%B0%E1%BB%A3ng_ti%E1%BA%BFt_ki%E1%BB%87m_v%C3%A0_hi%E1%BB%87u_qu%E1%BA%A3_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_2010&oldid=199720",
+        "section_heading": "Chương I:Những quy định chung",
+        "page_printed": null,
+        "part_title": "Điều 3: Giải thích từ ngữ",
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "NIWCRHTC",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 2095,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

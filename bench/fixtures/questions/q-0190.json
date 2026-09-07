@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0190",
+  "need": "Écrit avant d'ouvrir le document : quelle activité humaine depuis la révolution industrielle a fait monter la concentration des gaz à effet de serre — l'extraction et la combustion des combustibles fossiles ?",
+  "query": "cause principale de la hausse des gaz à effet de serre depuis la révolution industrielle charbon pétrole gaz",
+  "question_language": "fr",
+  "answer_language": "en",
+  "lane": "fr->en",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "cross-lingual-anchor"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "wp-climate-change-en",
+      "recipe_id": "wp-climate-change-en",
+      "attachment_id": "wp-climate-change-en-html",
+      "attachment_key": "MJZL5FJX",
+      "section": "Greenhouse gases",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 15251,
+          "quote": "Human activity since the Industrial Revolution, mainly extracting and burning fossil fuels (coal, oil, and natural gas),[110] has increased the amount of greenhouse gases in the atmosphere."
+        }
+      ],
+      "chain": {
+        "title": "Climate change",
+        "author": "Wikipedia contributors",
+        "date": "2026",
+        "identifier": "https://en.wikipedia.org/w/index.php?title=Climate_change&oldid=1372428406",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": "Greenhouse gases"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "MJZL5FJX",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 15251,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": false,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

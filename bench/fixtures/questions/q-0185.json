@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0185",
+  "need": "Written before opening the document: the currency conversion annex — what US dollar rate did the report use for the Swiss franc as of 1 August 2015?",
+  "query": "Annex I conversion rates Swiss franc CHF US$ equivalent August 1, 2015 Table 3",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "structural-annex",
+    "index_fulltext_max_chars"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "worldbank-2015-state-trends-carbon-pricing",
+      "recipe_id": "worldbank-2015-state-trends-carbon-pricing",
+      "attachment_id": "worldbank-2015-state-trends-carbon-pricing-pdf",
+      "attachment_key": "L4DY79FF",
+      "section": "Annex I Conversion rates, Table 3",
+      "alternates": [
+        {
+          "page_printed": "73",
+          "char_offset": 218306,
+          "quote": "Swiss Franc CHF 1.0392 Currency conversion rates as of August 1, 2015 Table 3 Source: International Monetary Fund"
+        }
+      ],
+      "chain": {
+        "title": "State and Trends of Carbon Pricing 2015",
+        "author": "Alexandre Kossoy; Grzegorz Peszko; Klaus Oppermann; Nicolai Prytz; Noémie Klein; Kornelis Blok; Long Lam; Lindee Wong; Bram Borkent",
+        "date": "2015",
+        "identifier": "10.1596/978-1-4648-0725-1",
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": "ANNEX I CONVERSION RATES",
+        "page_printed": "73"
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "index_fulltext_max_chars: Annex I (printed p. 73, character 218 306 of 251 479) lies past the 40 000-character index cap; it is in the export but not in the index",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "L4DY79FF",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 218306,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": true,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

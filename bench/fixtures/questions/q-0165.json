@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0165",
+  "need": "Written before opening the document: the background chapter's table of assumed average annual real GDP growth by region for 2016–35 — what growth does it assume for the United States over the five-year windows?",
+  "query": "Table 1.1 average annual growth in real GDP United States 2016-20 2021-25 2026-30 2031-35",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "deep-body",
+  "stratum": "core",
+  "mechanisms": [
+    "structural-table",
+    "stock-page-cap"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "wb-2016-vietnam-2035-en",
+      "recipe_id": "wb-2016-vietnam-2035-en",
+      "attachment_id": "wb-2016-vietnam-2035-en-pdf",
+      "attachment_key": "TKLXGCGR",
+      "section": "Chapter 1, Table 1.1",
+      "alternates": [
+        {
+          "page_printed": "94",
+          "char_offset": null,
+          "quote": "TABLE 1.1 Average annual growth in real GDP Percent 2016–20 2021–25 2026–30 2031–35 2016–35 United States 2.8 2.5 2.6 2.8 2.7"
+        }
+      ],
+      "chain": {
+        "title": "Vietnam 2035: Toward Prosperity, Creativity, Equity, and Democracy",
+        "author": "World Bank; Ministry of Planning and Investment of Vietnam",
+        "date": "2016",
+        "identifier": "10.1596/978-1-4648-0824-1",
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": "TABLE 1.1 Average annual growth in real GDP",
+        "page_printed": "94"
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "stock-page-cap: Table 1.1 sits on printed p. 94 (pdf page 132) and the stock reindex stopped at 100 of 409 pages; its title alone survives in the list of tables (character 39 830), the table body is in neither export nor index",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": [
+      {
+        "attachment_key": "TKLXGCGR",
+        "alternates": [
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "quote not located in the export fulltext",
+            "within_index_cap": null
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": true,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

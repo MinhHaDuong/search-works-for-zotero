@@ -1,0 +1,94 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0212",
+  "need": "Hazard row: the 1770 type sets the long s, and the scan's OCR reads it as an f throughout — 'eft', 'fur', 'fommes', 'Regiftre', 'Profeffeur'. A reader types modern French. Every content word of the query that carries an s inside it therefore fails to match the page, and only the words with no medial s can carry the retrieval.",
+  "query": "le journal doit être un volume in-folio réglé d'une ligne à la marge et de trois sur le bord pour tirer les sommes",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "long-s-orthography",
+    "ocr-substitution-f-for-long-s",
+    "lexical-false-negative"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "porte-1770-science-des-negocians",
+      "recipe_id": "porte-1770-science-des-negocians",
+      "attachment_id": "porte-1770-science-des-negocians",
+      "attachment_key": "4H5HAURM",
+      "section": "Du journal à parties simples",
+      "alternates": [
+        {
+          "page_printed": "10",
+          "char_offset": 34966,
+          "quote": "CE Livre doit être un volume in-folio , réglé d'une ligne à la marge , & de trois fur le bord pour tirer les fommes de groffeur proportionnée aux affaires que l'on fait."
+        },
+        {
+          "page_printed": "10",
+          "char_offset": 35171,
+          "quote": "La première eft un Journal Entier , qui contient généralement toutes les affaires. La féconde eft un Journal Divisé enplufieurs Parties , qui font :"
+        }
+      ],
+      "chain": {
+        "title": "La Science des négocians et teneurs de livres",
+        "author": "Mathieu de La Porte",
+        "date": "1770",
+        "identifier": "https://archive.org/details/lasciencedesnego00lapo",
+        "section_heading": "DU JOURNAL A PARTIES SIMPLES.",
+        "page_printed": "10",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "4H5HAURM",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 34966,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          },
+          {
+            "reachable": true,
+            "char_offset": 35171,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

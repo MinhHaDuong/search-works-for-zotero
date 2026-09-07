@@ -1,0 +1,93 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0218",
+  "need": "Hazard row: a five-column comparison table (Venus, Earth, Mars against surface pressure, principal greenhouse gases, calculated and observed surface temperature) with its caption below it. The extraction flattens the header row and the three data rows into one run of text, so the planet names and the temperatures are adjacent but their column membership is gone. Can the table still be retrieved and cited to its printed page?",
+  "query": "Tableau 1.2 ordre de grandeur de l'effet de serre Terre Vénus Mars température de surface calculée et observée",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "structural-table",
+    "column-flattening"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "ha-duong-1998-irreversibilite-these",
+      "recipe_id": "ha-duong-1998-irreversibilite-these",
+      "attachment_id": "ha-duong-1998-irreversibilite-these-pdf",
+      "attachment_key": "VKBUWDUD",
+      "section": "Chapitre 1, Tableaux 1.1 et 1.2",
+      "alternates": [
+        {
+          "page_printed": "8",
+          "char_offset": 10840,
+          "quote": "VENUS 90 >90% CO2 -46°C 477°C 523°C TERRE 1 ~0.04% CO2 ~1% H2O -18°C 15°C 33°C MARS 0.007 >80% CO2 -57°C -47°C 10°C Tableau 1.2 : Ordre de grandeur de l'effet de serre: Terre, Vénus, Mars"
+        },
+        {
+          "page_printed": "8",
+          "char_offset": 10453,
+          "quote": "GES CO2 CH4 NO2 niveau avant 1750 280 ppmv 700 ppbv 275 ppbv niveau 1992 359 ppmv 1720 ppbv 310 ppbv Tableau 1.1 : Concentration de trois gaz à effet de serre en 1750 et 1992."
+        }
+      ],
+      "chain": {
+        "title": "Comment tenir compte de l'irréversibilité dans l'évaluation intégrée du changement climatique ?",
+        "author": "Minh Ha-Duong",
+        "date": "1998",
+        "identifier": "https://theses.hal.science/tel-00003505v1",
+        "section_heading": "Chapitre 1. Irréversibilité et évaluation du changement climatique",
+        "page_printed": "8",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "VKBUWDUD",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 10840,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          },
+          {
+            "reachable": true,
+            "char_offset": 10453,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

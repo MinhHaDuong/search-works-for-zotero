@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0171",
+  "need": "Written before opening the document: does the report credit Đổi Mới with lifting Vietnam from among the world's poorest countries to a development success story?",
+  "query": "Doi Moi took Vietnam from one of the poorest countries in the world to a development success story",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "agreement",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "compound-book-section"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "wb-2016-vietnam-2035-en-overview",
+      "recipe_id": "wb-2016-vietnam-2035-en-overview",
+      "attachment_id": "wb-2016-vietnam-2035-en-overview-pdf",
+      "attachment_key": "AY8TMFZ6",
+      "section": "Executive Summary",
+      "alternates": [
+        {
+          "page_printed": "xxi",
+          "char_offset": 26858,
+          "quote": "just short of 30 years from the launch of Đổi Mới, which catapulted the nation from the ranks of the world's poorest to one of its great development success stories"
+        }
+      ],
+      "chain": {
+        "title": "Vietnam 2035: Toward Prosperity, Creativity, Equity, and Democracy — Overview",
+        "author": "World Bank; Ministry of Planning and Investment of Vietnam",
+        "date": "2016",
+        "identifier": "10.1596/978-1-4648-0824-1",
+        "part_title": "Overview",
+        "part_byline": null,
+        "section_heading": "Executive Summary",
+        "page_printed": "xxi"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "AY8TMFZ6",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 26858,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": true,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0210",
+  "need": "Hazard row, two mechanisms at once. A Vietnamese reader types verse 620 in modern quốc ngữ — 'Liều đem tấc cỏ, quyết đền ba xuân'. That verse is printed on page 130, which is pdf page 150 of a 316-page scan: past the hundred-page extraction cap, so it never entered the export. Even had it entered, the 1884 transliteration carries no tone marks and the OCR mangles what marks it has, so the modern spelling would not match either.",
+  "query": "Liều đem tấc cỏ, quyết đền ba xuân",
+  "question_language": "vi",
+  "answer_language": "vi",
+  "lane": "vi->vi",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "page-cap-crossing",
+    "ocr-mangled-diacritics",
+    "transliteration-mismatch"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "des-michels-1884-kim-van-kieu-t1",
+      "recipe_id": "des-michels-1884-kim-van-kieu-t1",
+      "attachment_id": "des-michels-1884-kim-van-kieu-t1-pdf",
+      "attachment_key": "JT7EB2F9",
+      "section": "Texte annamite, vers 617-622",
+      "alternates": [
+        {
+          "page_printed": "130",
+          "char_offset": null,
+          "quote": "«Lieu dem tac cô, quyët don ba xuân!»"
+        }
+      ],
+      "chain": {
+        "title": "Kim Vân Kiều tân truyện — Les poèmes de l'Annam, tome I",
+        "author": "Nguyễn Du; Abel des Michels (ed., transl.)",
+        "date": "1884",
+        "identifier": "https://archive.org/details/kim-van-kieu-tan-truyen-1",
+        "section_heading": "Kl M VÂN KIËU TÂN TKUYÊN.",
+        "page_printed": "130",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "Printed page 130 is pdf page 150 of a 316-page scan; Zotero indexed only the first 100 pages (fulltext.pdfMaxPages = 100), so verse 620 is not in the export's fulltext at all. Compounding it, the 1884 transliteration carries no quốc ngữ tone marks and the OCR corrupts what diacritics the type had, so the modern spelling of the query could not match even inside the cap.",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": [
+      {
+        "attachment_key": "JT7EB2F9",
+        "alternates": [
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "quote not located in the export fulltext",
+            "within_index_cap": null
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

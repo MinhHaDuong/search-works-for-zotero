@@ -63,12 +63,18 @@ def test_rejects_a_short_or_non_string_sha256():
     assert sh.select_hashed([short, numeric]) == []
 
 
-def test_live_recipe_yields_seventeen_hashed_records():
-    """A live-data regression guard: the count this ticket's real run depends on."""
+def test_live_recipe_hashed_subset_is_fully_pinned():
+    """A live-data guard: every record select_hashed keeps has a sha256 on every attachment,
+    and the open records (a stated sha256_reason each) are the only ones left out."""
     recipe = fr.load_recipe(FIXTURES / "recipe.json")
     hashed = sh.select_hashed(recipe)
-    assert len(hashed) == 17
-    assert all(isinstance(doc.get("sha256"), str) for doc in hashed)
+    assert hashed, "the live recipe has pinned records"
+    for doc in hashed:
+        assert all(isinstance(source.get("sha256"), str) for source in doc.get("attachments", [doc]))
+    left_out = [doc for doc in recipe if doc not in hashed]
+    for doc in left_out:
+        assert any(source.get("sha256") is None and source.get("sha256_reason")
+                   for source in doc.get("attachments", [doc])), doc["id"]
 
 
 def test_committed_pinned_recipe_is_exactly_the_hashed_subset():
@@ -79,3 +85,16 @@ def test_committed_pinned_recipe_is_exactly_the_hashed_subset():
     recipe = fr.load_recipe(FIXTURES / "recipe.json")
     expected = json.dumps(sh.select_hashed(recipe), ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     assert (FIXTURES / "recipe-pinned.json").read_text(encoding="utf-8") == expected
+
+
+def test_record_only_parent_is_hashed_vacuously_and_new_fields_pass_through():
+    """Ticket 0721: a record-only parent (14,8 % of the census) has no bytes to pin, so
+    it is kept as-is -- an empty attachment list is hashed vacuously -- and the ruled
+    fields (topic, stratum, notes, citation, language_field) ride along untouched."""
+    record_only = {
+        "id": "record-only", "attachments": [], "record_only": True, "topic": "energy",
+        "stratum": "core", "language_field": "", "citation": {"doi": "10.1000/x"},
+        "notes": [{"id": "record-only-note", "html": "<p>a</p>"}],
+    }
+    partial = {"id": "one-missing", "attachments": [{"id": "b1", "sha256": None}], "topic": "energy"}
+    assert sh.select_hashed([record_only, partial]) == [record_only]

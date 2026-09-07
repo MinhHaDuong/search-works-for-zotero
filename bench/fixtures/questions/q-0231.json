@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0231",
+  "need": "Hazard row: Menger's definition of a good — the four conditions under which a thing becomes a Gut — is on printed page 2 and a German reader would type it almost verbatim. The Google scan of this copy carries a text layer, so nothing about the attachment looks broken; but the layer holds only Google's English usage notice, 2 951 characters of it, and not one word of the book. A text layer is not a transcription.",
+  "query": "Menger Dinge welche die Tauglichkeit haben in Causalzusammenhang mit der Befriedigung menschlicher Bedürfnisse gesetzt zu werden nennen wir Güter",
+  "question_language": "de",
+  "answer_language": "de",
+  "lane": "de->de",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "boilerplate-only-text-layer",
+    "no-usable-ocr"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "menger-1871-grundsaetze",
+      "recipe_id": "menger-1871-grundsaetze",
+      "attachment_id": "menger-1871-grundsaetze-pdf",
+      "attachment_key": "PGQA946C",
+      "section": "Erstes Capitel, §1. Ueber das Wesen der Güter",
+      "alternates": [
+        {
+          "page_printed": "2",
+          "char_offset": null,
+          "quote": "Zusammenhang mit der Befriedigung menschlicher Bedürfnisse gesetzt zu werden, nennen wir Nützlichkeiten, wofern wir diesen Causal-Zusammenhang aber erkennen und es zugleich in unserer Macht haben, die in Rede stehenden Dinge zur Befriedigung unserer Bedürfnisse thatsächlich heranzuziehen, nennen wir sie Güter"
+        }
+      ],
+      "chain": {
+        "title": "Grundsätze der Volkswirthschaftslehre",
+        "author": "Carl Menger",
+        "date": "1871",
+        "identifier": "https://archive.org/details/grundstzedervol01menggoog",
+        "section_heading": "Ueber das Wesen der Güter",
+        "page_printed": "2",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "The only text layer this Google scan carries is the 2 951-character English digitisation notice ('This is a digital copy of a book that was preserved for generations on library shelves…'); the book's own pages were never put through OCR into the PDF, so no German span of the work can be located in the export's fulltext.",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": [
+      {
+        "attachment_key": "PGQA946C",
+        "alternates": [
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "quote not located in the export fulltext",
+            "within_index_cap": null
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

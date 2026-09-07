@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0221",
+  "need": "Written before opening the document: a Swiss engineering academy's report on renewables. What share of Swiss final energy consumption did renewables actually reach, in the most recent year the report has figures for, and how much of the electricity came from hydropower?",
+  "query": "Anteil der erneuerbaren Energien am gesamten Endenergieverbrauch Schweiz 2009 Wasserkraft Stromerzeugung Prozent",
+  "question_language": "de",
+  "answer_language": "de",
+  "lane": "de->de",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "known-item"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "satw-2011-erneuerbare-energien",
+      "recipe_id": "satw-2011-erneuerbare-energien",
+      "attachment_id": "satw-2011-erneuerbare-energien-pdf",
+      "attachment_key": "E466FNQ9",
+      "section": "Ein langer Weg",
+      "alternates": [
+        {
+          "page_printed": "9",
+          "char_offset": 15722,
+          "quote": "In der Schweiz belief sich der Anteil der erneuerbaren Energien am gesamten Endenergieverbrauch im Jahr 2009 auf 18,9 Prozent (s. Abb. 1). Die Wasserkraft er brachte dabei mit 53,3 Prozent der Stromerzeugung den Hauptanteil."
+        }
+      ],
+      "chain": {
+        "title": "Erneuerbare Energien – Herausforderungen auf dem Weg zur Vollversorgung",
+        "author": "Silvia Banfi Frost; Marco Berg; Jean-François Dupont; Matthias Gysler; Eduard Kiener; Jürg Minsch; Alexander Wokaun (Schweizerische Akademie der Technischen Wissenschaften)",
+        "date": "2011",
+        "identifier": "10.5281/zenodo.1160834",
+        "section_heading": "Ein langer Weg",
+        "page_printed": "9",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "E466FNQ9",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 15722,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0198",
+  "need": "Viết trước khi mở tài liệu: Keynes có cho rằng một mệnh đề tự nó có xác suất cao hay thấp không, hay xác suất luôn tương đối với bằng chứng — ông so sánh với khoảng cách của một địa điểm?",
+  "query": "Keynes không mệnh đề nào tự nó là có xác suất, cũng như không nơi nào tự nó là xa",
+  "question_language": "vi",
+  "answer_language": "en",
+  "lane": "vi->en",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "cross-lingual-anchor"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "keynes-1921-treatise-on-probability",
+      "recipe_id": "keynes-1921-treatise-on-probability",
+      "attachment_id": "keynes-1921-treatise-on-probability-pdf",
+      "attachment_key": "AJ7CXVDU",
+      "section": "Part I, Chapter I",
+      "alternates": [
+        {
+          "page_printed": "7",
+          "char_offset": 15446,
+          "quote": "No proposition is in itself either probable or improbable, just as no place can be intrinsically distant"
+        }
+      ],
+      "chain": {
+        "title": "A Treatise on Probability",
+        "author": "John Maynard Keynes",
+        "date": "1921",
+        "identifier": "https://archive.org/details/cu31924014110435",
+        "section_heading": "Chapter I. The Meaning of Probability",
+        "page_printed": "7",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "AJ7CXVDU",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 15446,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": true,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

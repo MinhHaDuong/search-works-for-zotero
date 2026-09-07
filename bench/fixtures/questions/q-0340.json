@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0340",
+  "need": "Viết trước khi mở tài liệu: định nghĩa 'phát triển bền vững' trong luật Việt Nam có giữ nguyên công thức Brundtland về thế hệ tương lai không, hay đã thêm điều kiện riêng nào?",
+  "query": "phát triển bền vững là phát triển đáp ứng nhu cầu của thế hệ hiện tại mà không làm tổn hại đến khả năng đáp ứng nhu cầu của các thế hệ tương lai",
+  "question_language": "vi",
+  "answer_language": "vi",
+  "lane": "vi->vi",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "compound-document-chain"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "vn-law-environment-2005-vi",
+      "recipe_id": "vn-law-environment-2005-vi",
+      "attachment_id": "vn-law-environment-2005-vi-html",
+      "attachment_key": "ENIYH5SY",
+      "section": "Điều 3, khoản 4",
+      "alternates": [
+        {
+          "page_printed": null,
+          "quote": "Phát triển bền vững là phát triển đáp ứng được nhu cầu của thế hệ hiện tại mà không làm tổn hại đến khả năng đáp ứng nhu cầu đó của các thế hệ tương lai trên cơ sở kết hợp chặt chẽ, hài hoà giữa tăng trưởng kinh tế, bảo đảm tiến bộ xã hội và bảo vệ môi trường.",
+          "char_offset": 2115
+        }
+      ],
+      "chain": {
+        "title": "Luật Bảo vệ môi trường (52/2005/QH11)",
+        "author": "Quốc hội Việt Nam",
+        "date": "2005",
+        "identifier": "https://vi.wikisource.org/w/index.php?title=Lu%E1%BA%ADt_B%E1%BA%A3o_v%E1%BB%87_m%C3%B4i_tr%C6%B0%E1%BB%9Dng_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_2005&oldid=112144",
+        "section_heading": "Chương I:Những quy định chung",
+        "page_printed": null,
+        "part_title": "Điều 3: Giải thích từ ngữ",
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "ENIYH5SY",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 2115,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

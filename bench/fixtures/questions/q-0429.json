@@ -1,0 +1,82 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0429",
+  "need": "Hazard row for source-format coverage: an authentic EPUB container, indexed without conversion. Smith's butcher-brewer-baker sentence is the least ambiguous known passage in the book and sits at character 33 851, inside the 40 000-character index cap. An EPUB is pageless, so the answer locates by character offset only.",
+  "query": "not from the benevolence of the butcher the brewer or the baker that we expect our dinner",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "source-format-epub",
+    "extraction-cap-crossing-inside",
+    "pageless-locator"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "smith-1776-wealth-of-nations",
+      "recipe_id": "smith-1776-wealth-of-nations",
+      "attachment_id": "smith-1776-wealth-of-nations-epub",
+      "attachment_key": "EAM35WCU",
+      "section": "Book I, Chapter II — Of the Principle which gives Occasion to the Division of Labour",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 33851,
+          "quote": "It is not from the benevolence of the butcher, the brewer, or the baker that we expect our dinner, but from their regard to their own interest."
+        }
+      ],
+      "chain": {
+        "title": "An Inquiry into the Nature and Causes of the Wealth of Nations",
+        "author": "Adam Smith",
+        "date": "1776",
+        "identifier": "https://www.gutenberg.org/ebooks/3300",
+        "section_heading": "CHAPTER II. OF THE PRINCIPLE WHICH GIVES OCCASION TO THE DIVISION OF LABOUR.",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "EAM35WCU",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 33851,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

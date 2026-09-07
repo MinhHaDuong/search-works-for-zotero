@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0138",
+  "need": "Written before opening the document: what form do the authors say the distribution of professions in a city takes, and what makes it comparable across cities of different sizes? The same work sits in the library twice — this preprint and the 2014 Scientific Reports version of record — so a reply may return either.",
+  "query": "distribution of professions in cities universal scale-invariant form common to all cities infinite resolution of taxonomies",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "near-duplicate-publication"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "bettencourt-2012-professional-diversity-cities-arxiv",
+      "recipe_id": "bettencourt-2012-professional-diversity-cities-arxiv",
+      "attachment_id": "bettencourt-2012-professional-diversity-cities-arxiv-pdf",
+      "attachment_key": "R4W2BMSH",
+      "section": "Abstract",
+      "alternates": [
+        {
+          "page_printed": "1",
+          "char_offset": 1145,
+          "quote": "we address these issues by analyzing the statistics of professions in cities and show how their probability distribution takes a universal scale-invariant form, common to all cities, obtained in the limit of infinite resolution of given taxonomies"
+        }
+      ],
+      "chain": {
+        "title": "Professional diversity and the productivity of cities",
+        "author": "Luís M. A. Bettencourt; Horacio Samaniego; HyeJin Youn",
+        "date": "2012",
+        "identifier": "https://arxiv.org/abs/1210.7335v3",
+        "section_heading": "Abstract",
+        "page_printed": "1",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "R4W2BMSH",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 1145,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

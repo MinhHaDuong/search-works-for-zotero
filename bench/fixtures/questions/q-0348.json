@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0348",
+  "need": "Viết trước khi mở tài liệu (câu hỏi tiếng Việt, đoạn trả lời bằng tiếng Pháp): người dịch Truyện Kiều sang tiếng Pháp cuối thế kỷ XIX đã chuyển hai câu mở đầu — cái đối lập giữa tài và mệnh — thành câu tiếng Pháp như thế nào?",
+  "query": "bản dịch tiếng Pháp cuối thế kỷ XIX chuyển hai câu mở đầu Truyện Kiều về tài và mệnh thành câu gì",
+  "question_language": "vi",
+  "answer_language": "fr",
+  "lane": "vi->fr",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "cross-lingual-anchor",
+    "declared-translation"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "des-michels-1884-kim-van-kieu-t1",
+      "recipe_id": "des-michels-1884-kim-van-kieu-t1",
+      "attachment_id": "des-michels-1884-kim-van-kieu-t1-pdf",
+      "attachment_key": "JT7EB2F9",
+      "section": "Traduction, vers 1–8",
+      "alternates": [
+        {
+          "page_printed": "5",
+          "quote": "De tout temps, parmi les hommes ',\nle talent et la beauté, chose étrange ! furent ennemis.\nJ'ai parcouru dans la vie l'espace d'une génération 2,\net tout ce que j'y ai vu m'a fait souffrir dans mon coeur!",
+          "char_offset": 23192
+        }
+      ],
+      "chain": {
+        "title": "Kim Vân Kiều tân truyện — Les poèmes de l'Annam, tome I",
+        "author": "Nguyễn Du; Abel des Michels (ed., transl.)",
+        "date": "1884",
+        "identifier": "https://archive.org/details/kim-van-kieu-tan-truyen-1",
+        "section_heading": "KIM VAN KIÊU TAN TEUYÊN.",
+        "page_printed": "5",
+        "part_title": "Traduction",
+        "part_byline": "Abel des Michels"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "JT7EB2F9",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 23192,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

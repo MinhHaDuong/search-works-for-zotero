@@ -1,0 +1,82 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0137",
+  "need": "Hazard row for the compound-document mechanism crossed with the index cap: a dictionary entry is the unit a reader cites, and in this volume the entries begin only at character 345 000 of a 577 643-character extraction — the whole A-to-K word list lies past the 40 000-character index cap, behind 74 pdf pages of front matter. The long s of the 1785 printing also turns every 's' into an 'f' in the extraction.",
+  "query": "Johnson dictionary entry To ABANDON to give up refign or quit often followed by the particle to",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "deep-body",
+  "stratum": "reserve",
+  "mechanisms": [
+    "compound-document-entries",
+    "index-cap-crossing",
+    "early-modern-typography"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "johnson-1785-dictionary",
+      "recipe_id": "johnson-1785-dictionary",
+      "attachment_id": "johnson-1785-dictionary",
+      "attachment_key": "EB9TGHWH",
+      "section": "Entry: To ABANDON",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 345790,
+          "quote": "To give up, refign, or quit ; often followed bv the particle to."
+        }
+      ],
+      "chain": {
+        "title": "A Dictionary of the English Language, Vol. 1 (6th ed.)",
+        "author": "Samuel Johnson",
+        "date": "1785",
+        "identifier": "https://archive.org/details/dictionaryofengl01johnuoft",
+        "section_heading": "Entry: To ABANDON",
+        "page_printed": null,
+        "part_title": "To ABANDON (v. a.)",
+        "part_byline": "Samuel Johnson"
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "index-cap crossing on a compound document: the entry is located in the export fulltext at roughly character 346 000, far past the 40 000-character index cap this export was built with, so every headword of the dictionary — the only unit a reader would cite — is in the export and out of the index",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "EB9TGHWH",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 345790,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

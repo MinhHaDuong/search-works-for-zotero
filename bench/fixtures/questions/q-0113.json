@@ -1,0 +1,94 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0113",
+  "need": "Hazard row stacking three mechanisms: the Cournot-limit result is stated around displayed equations that this 1897 scan's OCR renders as noise, only the prose framing them survives extraction, and the whole of chapter VII sits past the 40 000-character index cap — at character 131 610 of a 136 894-character extraction. Nothing about the paragraph reaches the index.",
+  "query": "Cournot n producers in competition equation (3) successively replaced the price diminishes with the number of producers",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "structural-equation",
+    "ocr-noise",
+    "index-cap-crossing"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "cournot-1897-researches-bacon",
+      "recipe_id": "cournot-1897-researches-bacon",
+      "attachment_id": "cournot-1897-researches-bacon-pdf",
+      "attachment_key": "5I938WPW",
+      "section": "Chapter VII. Of the Competition of Producers",
+      "alternates": [
+        {
+          "page_printed": "84",
+          "char_offset": 131610,
+          "quote": "producers in competition, all their conditions being the same, equation (3) would be successively replaced by the following"
+        },
+        {
+          "page_printed": "84",
+          "char_offset": 131774,
+          "quote": "and the value of p which results would diminish indehuitely with the indefinite increase of the number n."
+        }
+      ],
+      "chain": {
+        "title": "Researches into the Mathematical Principles of the Theory of Wealth",
+        "author": "Antoine-Augustin Cournot; translated by Nathaniel T. Bacon; essay and bibliography by Irving Fisher",
+        "date": "1897",
+        "identifier": "https://archive.org/details/bub_gb_AGoGpyJY_SAC",
+        "section_heading": "Chapter VII. Of the Competition of Producers",
+        "page_printed": "84",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "index-cap crossing: both alternates are located in the export fulltext beyond the 40 000-character index cap this export was built with (characters 131 610 and 131 774 of 136 894), so the paragraph is reachable in the export and absent from the index; the displayed equations it frames are additionally OCR noise",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "5I938WPW",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 131610,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          },
+          {
+            "reachable": true,
+            "char_offset": 131774,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}
