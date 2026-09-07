@@ -1,0 +1,1089 @@
+{
+  "arm": "collapse-off-sim",
+  "scores": {
+    "accommodating": {
+      "arm": "collapse-off-sim",
+      "arm_letter": "F",
+      "by_facet": {
+        "core": {
+          "delta": 0,
+          "n": 185,
+          "present_after": 72,
+          "present_before": 72,
+          "rate": "72/185",
+          "went_red": false
+        },
+        "deep-body": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 3,
+          "present_before": 3,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "group": {
+          "delta": 0,
+          "n": 6,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/6",
+          "went_red": false
+        }
+      },
+      "by_lane": {
+        "ar->ar": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 3,
+          "present_before": 3,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "de->de": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 4,
+          "present_before": 4,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->ar": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->de": {
+          "delta": 0,
+          "n": 1,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=1 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->en": {
+          "delta": 0,
+          "n": 56,
+          "present_after": 38,
+          "present_before": 38,
+          "rate": "38/56",
+          "went_red": false
+        },
+        "en->es": {
+          "delta": 0,
+          "n": 1,
+          "present_after": 1,
+          "present_before": 1,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=1 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->fr": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->hi": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->ru": {
+          "delta": -1,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 1,
+          "rate": "not-evaluated",
+          "went_red": true,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->vi": {
+          "delta": 0,
+          "n": 8,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/8",
+          "went_red": false
+        },
+        "en->zh": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "es->es": {
+          "delta": 0,
+          "n": 5,
+          "present_after": 3,
+          "present_before": 3,
+          "rate": "3/5",
+          "went_red": false
+        },
+        "fr->en": {
+          "delta": 0,
+          "n": 10,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/10",
+          "went_red": false
+        },
+        "fr->fr": {
+          "delta": 0,
+          "n": 19,
+          "present_after": 10,
+          "present_before": 10,
+          "rate": "10/19",
+          "went_red": false
+        },
+        "fr->vi": {
+          "delta": 0,
+          "n": 7,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/7",
+          "went_red": false
+        },
+        "hi->hi": {
+          "delta": 0,
+          "n": 3,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=3 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "ru->ru": {
+          "delta": 0,
+          "n": 7,
+          "present_after": 1,
+          "present_before": 1,
+          "rate": "1/7",
+          "went_red": false
+        },
+        "vi->en": {
+          "delta": 1,
+          "n": 11,
+          "present_after": 2,
+          "present_before": 1,
+          "rate": "2/11",
+          "went_red": false
+        },
+        "vi->fr": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "vi->vi": {
+          "delta": 0,
+          "n": 33,
+          "present_after": 11,
+          "present_before": 11,
+          "rate": "11/33",
+          "went_red": false
+        },
+        "vi->zh": {
+          "delta": 0,
+          "n": 1,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=1 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "zh->zh": {
+          "delta": 0,
+          "n": 9,
+          "present_after": 2,
+          "present_before": 2,
+          "rate": "2/9",
+          "went_red": false
+        }
+      },
+      "by_set_kind": {
+        "all-of": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 2,
+          "present_before": 2,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "any-of": {
+          "delta": 0,
+          "n": 191,
+          "present_after": 73,
+          "present_before": 73,
+          "rate": "73/191",
+          "went_red": false
+        }
+      },
+      "by_signal": {
+        "agreement": {
+          "delta": 0,
+          "n": 23,
+          "present_after": 14,
+          "present_before": 14,
+          "rate": "14/23",
+          "went_red": false
+        },
+        "exact": {
+          "delta": 0,
+          "n": 105,
+          "present_after": 54,
+          "present_before": 54,
+          "rate": "54/105",
+          "went_red": false
+        },
+        "paraphrase": {
+          "delta": 0,
+          "n": 67,
+          "present_after": 7,
+          "present_before": 7,
+          "rate": "7/67",
+          "went_red": false
+        }
+      },
+      "by_stratum": {
+        "core": {
+          "delta": 1,
+          "n": 178,
+          "present_after": 66,
+          "present_before": 65,
+          "rate": "66/178",
+          "went_red": false
+        },
+        "reserve": {
+          "delta": -1,
+          "n": 17,
+          "present_after": 9,
+          "present_before": 10,
+          "rate": "9/17",
+          "went_red": true
+        }
+      },
+      "changed": {
+        "q-0167/lexical": {
+          "facet": "core",
+          "from": "absent",
+          "lane": "vi->en",
+          "mechanisms": [
+            "cross-lingual-anchor",
+            "compound-book-section"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "present",
+          "why_after": "satisfied",
+          "why_before": "work-not-returned"
+        },
+        "q-0413/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->ru",
+          "mechanisms": [
+            "should-language-russian",
+            "cross-lingual-en-to-ru",
+            "legacy-encoding-windows-1251"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "reserve",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        }
+      },
+      "control": false,
+      "delta": 0,
+      "expected_miss_flips": {},
+      "expected_miss_note": "expected-miss outcomes are computed and reported and enter no gated reading: golden_gate.evaluate() takes the gate state from R34 and stability alone",
+      "gate_note": "the gate state is golden_gate.py's, which still implements the superseded shipped predicate; the ruled scores above are computed by bench/redstate.py and no gate reads them yet",
+      "gate_state_after": "fail",
+      "gate_state_before": "fail",
+      "hits": 1928,
+      "hits_carrying_a_page": 0,
+      "kind": "reply",
+      "label": "NOT OFFICIAL — the accommodating score; no gate reads it",
+      "mechanisms_fired": {
+        "cross-lingual-en-to-ru": 1,
+        "legacy-encoding-windows-1251": 1,
+        "should-language-russian": 1
+      },
+      "must_cells": {
+        "en->en": {
+          "delta": 0,
+          "n": 56,
+          "present_after": 38,
+          "present_before": 38,
+          "rate": "38/56",
+          "went_red": false
+        },
+        "en->fr": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->vi": {
+          "delta": 0,
+          "n": 8,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/8",
+          "went_red": false
+        },
+        "fr->en": {
+          "delta": 0,
+          "n": 10,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/10",
+          "went_red": false
+        },
+        "fr->fr": {
+          "delta": 0,
+          "n": 19,
+          "present_after": 10,
+          "present_before": 10,
+          "rate": "10/19",
+          "went_red": false
+        },
+        "fr->vi": {
+          "delta": 0,
+          "n": 7,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/7",
+          "went_red": false
+        },
+        "vi->en": {
+          "delta": 1,
+          "n": 11,
+          "present_after": 2,
+          "present_before": 1,
+          "rate": "2/11",
+          "went_red": false
+        },
+        "vi->fr": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "vi->vi": {
+          "delta": 0,
+          "n": 33,
+          "present_after": 11,
+          "present_before": 11,
+          "rate": "11/33",
+          "went_red": false
+        }
+      },
+      "must_cells_that_did_not_go_red": [
+        {
+          "delta": 0,
+          "lane": "en->en",
+          "n": 56,
+          "present_after": 38,
+          "present_before": 38,
+          "rate": "38/56",
+          "reading": "the cell held present questions and the arm, which named it, moved none of them; this is the finding",
+          "reason": "not-reached",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "fr->fr",
+          "n": 19,
+          "present_after": 10,
+          "present_before": 10,
+          "rate": "10/19",
+          "reading": "the cell held present questions and the arm, which named it, moved none of them; this is the finding",
+          "reason": "not-reached",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "vi->vi",
+          "n": 33,
+          "present_after": 11,
+          "present_before": 11,
+          "rate": "11/33",
+          "reading": "the cell held present questions and the arm, which named it, moved none of them; this is the finding",
+          "reason": "not-reached",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "en->fr",
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        {
+          "delta": 0,
+          "lane": "en->vi",
+          "n": 8,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/8",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "fr->en",
+          "n": 10,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/10",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "fr->vi",
+          "n": 7,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/7",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 1,
+          "lane": "vi->en",
+          "n": 11,
+          "present_after": 2,
+          "present_before": 1,
+          "rate": "2/11",
+          "reading": "the cell held present questions and the arm, which named it, moved none of them; this is the finding",
+          "reason": "not-reached",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "vi->fr",
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        }
+      ],
+      "official": false,
+      "official_rows_by_reason": {
+        "no-reported-page": 164,
+        "work-not-returned": 38
+      },
+      "present_after": 75,
+      "present_before": 75,
+      "reference": "committed baseline",
+      "rows_by_intersection_path": {
+        "char": 99,
+        "page": 103
+      },
+      "score": "accommodating",
+      "scored_questions": 195,
+      "superseded_predicates": {
+        "evidence-matched": {
+          "present_after": 41,
+          "present_before": 42
+        },
+        "shipped": {
+          "present_after": 157,
+          "present_before": 161
+        }
+      },
+      "target_lanes": [
+        "en->en",
+        "fr->fr",
+        "vi->vi",
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "target_mechanisms": [
+        "work-identity",
+        "declared-translation",
+        "same-text-different-format",
+        "metadata-conflicting-duplicate",
+        "near-duplicate-publication",
+        "multi-attachment-parent",
+        "compound-document-entries"
+      ],
+      "went_absent": [
+        "q-0413/lexical"
+      ],
+      "went_present": [
+        "q-0167/lexical"
+      ]
+    },
+    "official": {
+      "arm": "collapse-off-sim",
+      "arm_letter": "F",
+      "by_facet": {
+        "core": {
+          "delta": 0,
+          "n": 185,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/185",
+          "went_red": false
+        },
+        "deep-body": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "group": {
+          "delta": 0,
+          "n": 6,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/6",
+          "went_red": false
+        }
+      },
+      "by_lane": {
+        "ar->ar": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "de->de": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->ar": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->de": {
+          "delta": 0,
+          "n": 1,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=1 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->en": {
+          "delta": 0,
+          "n": 56,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/56",
+          "went_red": false
+        },
+        "en->es": {
+          "delta": 0,
+          "n": 1,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=1 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->fr": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->hi": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->ru": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->vi": {
+          "delta": 0,
+          "n": 8,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/8",
+          "went_red": false
+        },
+        "en->zh": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "es->es": {
+          "delta": 0,
+          "n": 5,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/5",
+          "went_red": false
+        },
+        "fr->en": {
+          "delta": 0,
+          "n": 10,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/10",
+          "went_red": false
+        },
+        "fr->fr": {
+          "delta": 0,
+          "n": 19,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/19",
+          "went_red": false
+        },
+        "fr->vi": {
+          "delta": 0,
+          "n": 7,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/7",
+          "went_red": false
+        },
+        "hi->hi": {
+          "delta": 0,
+          "n": 3,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=3 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "ru->ru": {
+          "delta": 0,
+          "n": 7,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/7",
+          "went_red": false
+        },
+        "vi->en": {
+          "delta": 0,
+          "n": 11,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/11",
+          "went_red": false
+        },
+        "vi->fr": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "vi->vi": {
+          "delta": 0,
+          "n": 33,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/33",
+          "went_red": false
+        },
+        "vi->zh": {
+          "delta": 0,
+          "n": 1,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=1 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "zh->zh": {
+          "delta": 0,
+          "n": 9,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/9",
+          "went_red": false
+        }
+      },
+      "by_set_kind": {
+        "all-of": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "any-of": {
+          "delta": 0,
+          "n": 191,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/191",
+          "went_red": false
+        }
+      },
+      "by_signal": {
+        "agreement": {
+          "delta": 0,
+          "n": 23,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/23",
+          "went_red": false
+        },
+        "exact": {
+          "delta": 0,
+          "n": 105,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/105",
+          "went_red": false
+        },
+        "paraphrase": {
+          "delta": 0,
+          "n": 67,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/67",
+          "went_red": false
+        }
+      },
+      "by_stratum": {
+        "core": {
+          "delta": 0,
+          "n": 178,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/178",
+          "went_red": false
+        },
+        "reserve": {
+          "delta": 0,
+          "n": 17,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/17",
+          "went_red": false
+        }
+      },
+      "changed": {},
+      "control": false,
+      "delta": 0,
+      "expected_miss_flips": {},
+      "expected_miss_note": "expected-miss outcomes are computed and reported and enter no gated reading: golden_gate.evaluate() takes the gate state from R34 and stability alone",
+      "gate_note": "the gate state is golden_gate.py's, which still implements the superseded shipped predicate; the ruled scores above are computed by bench/redstate.py and no gate reads them yet",
+      "gate_state_after": "fail",
+      "gate_state_before": "fail",
+      "hits": 1928,
+      "hits_carrying_a_page": 0,
+      "kind": "reply",
+      "label": "OFFICIAL (SPEC §5.2.10, ruled 2026-09-07)",
+      "mechanisms_fired": {},
+      "must_cells": {
+        "en->en": {
+          "delta": 0,
+          "n": 56,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/56",
+          "went_red": false
+        },
+        "en->fr": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->vi": {
+          "delta": 0,
+          "n": 8,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/8",
+          "went_red": false
+        },
+        "fr->en": {
+          "delta": 0,
+          "n": 10,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/10",
+          "went_red": false
+        },
+        "fr->fr": {
+          "delta": 0,
+          "n": 19,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/19",
+          "went_red": false
+        },
+        "fr->vi": {
+          "delta": 0,
+          "n": 7,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/7",
+          "went_red": false
+        },
+        "vi->en": {
+          "delta": 0,
+          "n": 11,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/11",
+          "went_red": false
+        },
+        "vi->fr": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "vi->vi": {
+          "delta": 0,
+          "n": 33,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/33",
+          "went_red": false
+        }
+      },
+      "must_cells_that_did_not_go_red": [
+        {
+          "delta": 0,
+          "lane": "en->en",
+          "n": 56,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/56",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "fr->fr",
+          "n": 19,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/19",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "vi->vi",
+          "n": 33,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/33",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "en->fr",
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        {
+          "delta": 0,
+          "lane": "en->vi",
+          "n": 8,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/8",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "fr->en",
+          "n": 10,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/10",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "fr->vi",
+          "n": 7,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/7",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "vi->en",
+          "n": 11,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/11",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "vi->fr",
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        }
+      ],
+      "official": true,
+      "official_rows_by_reason": {
+        "no-reported-page": 164,
+        "work-not-returned": 38
+      },
+      "present_after": 0,
+      "present_before": 0,
+      "reference": "committed baseline",
+      "rows_by_intersection_path": {
+        "char": 99,
+        "page": 103
+      },
+      "score": "official",
+      "scored_questions": 195,
+      "superseded_predicates": {
+        "evidence-matched": {
+          "present_after": 41,
+          "present_before": 42
+        },
+        "shipped": {
+          "present_after": 157,
+          "present_before": 161
+        }
+      },
+      "target_lanes": [
+        "en->en",
+        "fr->fr",
+        "vi->vi",
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "target_mechanisms": [
+        "work-identity",
+        "declared-translation",
+        "same-text-different-format",
+        "metadata-conflicting-duplicate",
+        "near-duplicate-publication",
+        "multi-attachment-parent",
+        "compound-document-entries"
+      ],
+      "went_absent": [],
+      "went_present": []
+    }
+  }
+}

@@ -1,0 +1,2272 @@
+{
+  "arm": "global-shuffle-sim",
+  "scores": {
+    "accommodating": {
+      "arm": "global-shuffle-sim",
+      "arm_letter": "A",
+      "by_facet": {
+        "core": {
+          "delta": -72,
+          "n": 185,
+          "present_after": 0,
+          "present_before": 72,
+          "rate": "0/185",
+          "went_red": true
+        },
+        "deep-body": {
+          "delta": -3,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 3,
+          "rate": "not-evaluated",
+          "went_red": true,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "group": {
+          "delta": 0,
+          "n": 6,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/6",
+          "went_red": false
+        }
+      },
+      "by_lane": {
+        "ar->ar": {
+          "delta": -3,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 3,
+          "rate": "not-evaluated",
+          "went_red": true,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "de->de": {
+          "delta": -4,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 4,
+          "rate": "not-evaluated",
+          "went_red": true,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->ar": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->de": {
+          "delta": 0,
+          "n": 1,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=1 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->en": {
+          "delta": -38,
+          "n": 56,
+          "present_after": 0,
+          "present_before": 38,
+          "rate": "0/56",
+          "went_red": true
+        },
+        "en->es": {
+          "delta": -1,
+          "n": 1,
+          "present_after": 0,
+          "present_before": 1,
+          "rate": "not-evaluated",
+          "went_red": true,
+          "why_no_rate": "n=1 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->fr": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->hi": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->ru": {
+          "delta": -1,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 1,
+          "rate": "not-evaluated",
+          "went_red": true,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->vi": {
+          "delta": 0,
+          "n": 8,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/8",
+          "went_red": false
+        },
+        "en->zh": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "es->es": {
+          "delta": -3,
+          "n": 5,
+          "present_after": 0,
+          "present_before": 3,
+          "rate": "0/5",
+          "went_red": true
+        },
+        "fr->en": {
+          "delta": 0,
+          "n": 10,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/10",
+          "went_red": false
+        },
+        "fr->fr": {
+          "delta": -10,
+          "n": 19,
+          "present_after": 0,
+          "present_before": 10,
+          "rate": "0/19",
+          "went_red": true
+        },
+        "fr->vi": {
+          "delta": 0,
+          "n": 7,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/7",
+          "went_red": false
+        },
+        "hi->hi": {
+          "delta": 0,
+          "n": 3,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=3 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "ru->ru": {
+          "delta": -1,
+          "n": 7,
+          "present_after": 0,
+          "present_before": 1,
+          "rate": "0/7",
+          "went_red": true
+        },
+        "vi->en": {
+          "delta": -1,
+          "n": 11,
+          "present_after": 0,
+          "present_before": 1,
+          "rate": "0/11",
+          "went_red": true
+        },
+        "vi->fr": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "vi->vi": {
+          "delta": -11,
+          "n": 33,
+          "present_after": 0,
+          "present_before": 11,
+          "rate": "0/33",
+          "went_red": true
+        },
+        "vi->zh": {
+          "delta": 0,
+          "n": 1,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=1 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "zh->zh": {
+          "delta": -2,
+          "n": 9,
+          "present_after": 0,
+          "present_before": 2,
+          "rate": "0/9",
+          "went_red": true
+        }
+      },
+      "by_set_kind": {
+        "all-of": {
+          "delta": -2,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 2,
+          "rate": "not-evaluated",
+          "went_red": true,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "any-of": {
+          "delta": -73,
+          "n": 191,
+          "present_after": 0,
+          "present_before": 73,
+          "rate": "0/191",
+          "went_red": true
+        }
+      },
+      "by_signal": {
+        "agreement": {
+          "delta": -14,
+          "n": 23,
+          "present_after": 0,
+          "present_before": 14,
+          "rate": "0/23",
+          "went_red": true
+        },
+        "exact": {
+          "delta": -54,
+          "n": 105,
+          "present_after": 0,
+          "present_before": 54,
+          "rate": "0/105",
+          "went_red": true
+        },
+        "paraphrase": {
+          "delta": -7,
+          "n": 67,
+          "present_after": 0,
+          "present_before": 7,
+          "rate": "0/67",
+          "went_red": true
+        }
+      },
+      "by_stratum": {
+        "core": {
+          "delta": -65,
+          "n": 178,
+          "present_after": 0,
+          "present_before": 65,
+          "rate": "0/178",
+          "went_red": true
+        },
+        "reserve": {
+          "delta": -10,
+          "n": 17,
+          "present_after": 0,
+          "present_before": 10,
+          "rate": "0/17",
+          "went_red": true
+        }
+      },
+      "changed": {
+        "q-0001/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0003/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [],
+          "set_kind": "all-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0004/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "fr->fr",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0102/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "agreement",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0108/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "structural-table"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0109/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "structural-footnote",
+            "ocr-noise"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0111/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0115/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "agreement",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0116/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0117/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "structural-table",
+            "broken-glyph-mapping"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0122/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "structural-footnote"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0126/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "metadata-conflicting-duplicate"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0128/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "structural-caption"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0133/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "structural-footnote"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0135/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0136/lexical": {
+          "facet": "deep-body",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "compound-document-entries",
+            "early-modern-typography"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "reserve",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0138/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "near-duplicate-publication"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0139/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "structural-caption",
+            "hyphenless-line-break",
+            "near-duplicate-publication"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0140/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "structural-table"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0150/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "gutenberg-cap-crossing-pair",
+            "same-text-different-format",
+            "epub"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0151/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "gutenberg-cap-crossing-pair"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0161/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "agreement",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0162/lexical": {
+          "facet": "deep-body",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0163/lexical": {
+          "facet": "deep-body",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "agreement",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0171/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "compound-book-section"
+          ],
+          "set_kind": "any-of",
+          "signal": "agreement",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0172/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "structural-table",
+            "wrong-item-type"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0176/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "wrong-item-type"
+          ],
+          "set_kind": "any-of",
+          "signal": "agreement",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0177/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "structural-table"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0178/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "structural-footnote"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0180/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "vi->en",
+          "mechanisms": [
+            "cross-lingual-anchor"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0183/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "structural-footnote"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0187/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "agreement",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0193/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "structural-table"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0194/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "structural-figure-caption"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0197/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "agreement",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "located-evidence-outside-target",
+          "why_before": "satisfied"
+        },
+        "q-0199/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "harness-canary"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0203/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "fr->fr",
+          "mechanisms": [
+            "structural-footnote"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0208/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "fr->fr",
+          "mechanisms": [
+            "front-matter-roman-pagination",
+            "compound-document-part"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "located-evidence-outside-target",
+          "why_before": "satisfied"
+        },
+        "q-0209/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "fr->fr",
+          "mechanisms": [
+            "structural-footnote",
+            "interlinear-gloss-apparatus"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0211/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "fr->fr",
+          "mechanisms": [
+            "known-item",
+            "long-s-orthography"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0216/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "fr->fr",
+          "mechanisms": [
+            "known-item"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0218/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "fr->fr",
+          "mechanisms": [
+            "structural-table",
+            "column-flattening"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0221/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "de->de",
+          "mechanisms": [
+            "known-item"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0223/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "de->de",
+          "mechanisms": [
+            "known-item"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0224/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "de->de",
+          "mechanisms": [
+            "structural-figure-caption",
+            "floating-label-interleaving",
+            "mixed-decimal-separator"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0226/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "es->es",
+          "mechanisms": [
+            "term-of-art-ambiguity"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0227/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->es",
+          "mechanisms": [
+            "cross-language"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0229/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "es->es",
+          "mechanisms": [
+            "structural-table",
+            "structural-figure-caption",
+            "column-flattening",
+            "decimal-comma"
+          ],
+          "set_kind": "all-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0230/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "es->es",
+          "mechanisms": [
+            "structural-footnote",
+            "multi-column"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0233/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "boilerplate-only-text-layer",
+            "positive-control"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "reserve",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0240/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "de->de",
+          "mechanisms": [
+            "should-language-row",
+            "same-subject-sibling-mismatch",
+            "pageless-html"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0242/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "fr->fr",
+          "mechanisms": [
+            "known-item"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0247/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "fr->fr",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "agreement",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0248/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "fr->fr",
+          "mechanisms": [
+            "front-matter-roman-pagination"
+          ],
+          "set_kind": "any-of",
+          "signal": "agreement",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0303/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "vi->vi",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "agreement",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0305/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "vi->vi",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0313/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0316/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "vi->vi",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0317/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "agreement",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0318/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "vi->vi",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0321/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "vi->vi",
+          "mechanisms": [
+            "extraction-dropped-en-dash"
+          ],
+          "set_kind": "any-of",
+          "signal": "agreement",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0329/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "vi->vi",
+          "mechanisms": [
+            "compound-document-chain"
+          ],
+          "set_kind": "any-of",
+          "signal": "agreement",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0330/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "vi->vi",
+          "mechanisms": [
+            "compound-document-chain",
+            "section-heading-case-variant"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "reserve",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0338/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "vi->vi",
+          "mechanisms": [
+            "structural-table"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "reserve",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0343/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "vi->vi",
+          "mechanisms": [
+            "compound-book-section"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0344/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "vi->vi",
+          "mechanisms": [
+            "compound-book-section"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0363/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "zh->zh",
+          "mechanisms": [
+            "han-script-no-word-spaces",
+            "hard-wrap-inside-word",
+            "legacy-encoding-big5"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "reserve",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0369/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "vi->vi",
+          "mechanisms": [
+            "lexical-false-positive",
+            "indirect-description"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "reserve",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0400/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "ar->ar",
+          "mechanisms": [
+            "should-language-arabic",
+            "rtl-script"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0402/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "ar->ar",
+          "mechanisms": [
+            "structural-figure-caption",
+            "structural-marks-x-script",
+            "should-language-arabic",
+            "rtl-script"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "reserve",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0405/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "ar->ar",
+          "mechanisms": [
+            "structural-table",
+            "structural-marks-x-script",
+            "should-language-arabic",
+            "rtl-script"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "reserve",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0406/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "ru->ru",
+          "mechanisms": [
+            "should-language-russian",
+            "extraction-cap-crossing-inside",
+            "cyrillic-multibyte-offsets"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0413/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->ru",
+          "mechanisms": [
+            "should-language-russian",
+            "cross-lingual-en-to-ru",
+            "legacy-encoding-windows-1251"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "reserve",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0421/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "zh->zh",
+          "mechanisms": [
+            "should-language-chinese",
+            "han-script"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        },
+        "q-0429/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "mechanisms": [
+            "source-format-epub",
+            "extraction-cap-crossing-inside",
+            "pageless-locator"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "reserve",
+          "to": "absent",
+          "why_after": "work-not-returned",
+          "why_before": "satisfied"
+        }
+      },
+      "control": false,
+      "delta": -75,
+      "expected_miss_flips": {
+        "unexpected-hit->pass": [
+          "q-0104/lexical",
+          "q-0105/lexical",
+          "q-0110/lexical",
+          "q-0113/lexical",
+          "q-0114/lexical",
+          "q-0118/lexical",
+          "q-0120/lexical",
+          "q-0124/lexical",
+          "q-0130/lexical",
+          "q-0134/lexical",
+          "q-0137/lexical",
+          "q-0142/lexical",
+          "q-0154/lexical",
+          "q-0159/lexical",
+          "q-0164/lexical",
+          "q-0166/lexical",
+          "q-0168/lexical",
+          "q-0170/lexical",
+          "q-0179/lexical",
+          "q-0185/lexical",
+          "q-0192/lexical",
+          "q-0204/lexical",
+          "q-0205/lexical",
+          "q-0210/lexical",
+          "q-0215/lexical",
+          "q-0220/lexical",
+          "q-0225/lexical",
+          "q-0232/lexical",
+          "q-0234/lexical",
+          "q-0243/lexical",
+          "q-0245/lexical",
+          "q-0246/lexical",
+          "q-0323/lexical",
+          "q-0336/lexical",
+          "q-0342/lexical",
+          "q-0346/lexical",
+          "q-0368/lexical",
+          "q-0407/lexical",
+          "q-0415/lexical",
+          "q-0424/lexical",
+          "q-0430/lexical",
+          "q-0431/lexical",
+          "q-0432/lexical",
+          "q-0433/lexical",
+          "q-0449/lexical"
+        ]
+      },
+      "expected_miss_note": "expected-miss outcomes are computed and reported and enter no gated reading: golden_gate.evaluate() takes the gate state from R34 and stability alone",
+      "gate_note": "the gate state is golden_gate.py's, which still implements the superseded shipped predicate; the ruled scores above are computed by bench/redstate.py and no gate reads them yet",
+      "gate_state_after": "fail",
+      "gate_state_before": "fail",
+      "hits": 1928,
+      "hits_carrying_a_page": 0,
+      "kind": "reply",
+      "label": "NOT OFFICIAL — the accommodating score; no gate reads it",
+      "mechanisms_fired": {
+        "(none declared)": 20,
+        "boilerplate-only-text-layer": 1,
+        "broken-glyph-mapping": 1,
+        "column-flattening": 2,
+        "compound-book-section": 3,
+        "compound-document-chain": 2,
+        "compound-document-entries": 1,
+        "compound-document-part": 1,
+        "cross-language": 1,
+        "cross-lingual-anchor": 1,
+        "cross-lingual-en-to-ru": 1,
+        "cyrillic-multibyte-offsets": 1,
+        "decimal-comma": 1,
+        "early-modern-typography": 1,
+        "epub": 1,
+        "extraction-cap-crossing-inside": 2,
+        "extraction-dropped-en-dash": 1,
+        "floating-label-interleaving": 1,
+        "front-matter-roman-pagination": 2,
+        "gutenberg-cap-crossing-pair": 2,
+        "han-script": 1,
+        "han-script-no-word-spaces": 1,
+        "hard-wrap-inside-word": 1,
+        "harness-canary": 1,
+        "hyphenless-line-break": 1,
+        "indirect-description": 1,
+        "interlinear-gloss-apparatus": 1,
+        "known-item": 5,
+        "legacy-encoding-big5": 1,
+        "legacy-encoding-windows-1251": 1,
+        "lexical-false-positive": 1,
+        "long-s-orthography": 1,
+        "metadata-conflicting-duplicate": 1,
+        "mixed-decimal-separator": 1,
+        "multi-column": 1,
+        "near-duplicate-publication": 2,
+        "ocr-noise": 1,
+        "pageless-html": 1,
+        "pageless-locator": 1,
+        "positive-control": 1,
+        "rtl-script": 3,
+        "same-subject-sibling-mismatch": 1,
+        "same-text-different-format": 1,
+        "section-heading-case-variant": 1,
+        "should-language-arabic": 3,
+        "should-language-chinese": 1,
+        "should-language-row": 1,
+        "should-language-russian": 2,
+        "source-format-epub": 1,
+        "structural-caption": 2,
+        "structural-figure-caption": 4,
+        "structural-footnote": 8,
+        "structural-marks-x-script": 2,
+        "structural-table": 10,
+        "term-of-art-ambiguity": 1,
+        "wrong-item-type": 2
+      },
+      "must_cells": {
+        "en->en": {
+          "delta": -38,
+          "n": 56,
+          "present_after": 0,
+          "present_before": 38,
+          "rate": "0/56",
+          "went_red": true
+        },
+        "en->fr": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->vi": {
+          "delta": 0,
+          "n": 8,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/8",
+          "went_red": false
+        },
+        "fr->en": {
+          "delta": 0,
+          "n": 10,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/10",
+          "went_red": false
+        },
+        "fr->fr": {
+          "delta": -10,
+          "n": 19,
+          "present_after": 0,
+          "present_before": 10,
+          "rate": "0/19",
+          "went_red": true
+        },
+        "fr->vi": {
+          "delta": 0,
+          "n": 7,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/7",
+          "went_red": false
+        },
+        "vi->en": {
+          "delta": -1,
+          "n": 11,
+          "present_after": 0,
+          "present_before": 1,
+          "rate": "0/11",
+          "went_red": true
+        },
+        "vi->fr": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "vi->vi": {
+          "delta": -11,
+          "n": 33,
+          "present_after": 0,
+          "present_before": 11,
+          "rate": "0/33",
+          "went_red": true
+        }
+      },
+      "must_cells_that_did_not_go_red": [
+        {
+          "delta": 0,
+          "lane": "en->fr",
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        {
+          "delta": 0,
+          "lane": "en->vi",
+          "n": 8,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/8",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "fr->en",
+          "n": 10,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/10",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "fr->vi",
+          "n": 7,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/7",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "vi->fr",
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        }
+      ],
+      "official": false,
+      "official_rows_by_reason": {
+        "no-reported-page": 8,
+        "work-not-returned": 194
+      },
+      "present_after": 0,
+      "present_before": 75,
+      "reference": "committed baseline",
+      "rows_by_intersection_path": {
+        "char": 99,
+        "page": 103
+      },
+      "score": "accommodating",
+      "scored_questions": 195,
+      "superseded_predicates": {
+        "evidence-matched": {
+          "present_after": 0,
+          "present_before": 42
+        },
+        "shipped": {
+          "present_after": 15,
+          "present_before": 161
+        }
+      },
+      "target_lanes": [
+        "en->en",
+        "fr->fr",
+        "vi->vi",
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "target_mechanisms": [
+        "*"
+      ],
+      "went_absent": [
+        "q-0001/lexical",
+        "q-0003/lexical",
+        "q-0004/lexical",
+        "q-0102/lexical",
+        "q-0108/lexical",
+        "q-0109/lexical",
+        "q-0111/lexical",
+        "q-0115/lexical",
+        "q-0116/lexical",
+        "q-0117/lexical",
+        "q-0122/lexical",
+        "q-0126/lexical",
+        "q-0128/lexical",
+        "q-0133/lexical",
+        "q-0135/lexical",
+        "q-0136/lexical",
+        "q-0138/lexical",
+        "q-0139/lexical",
+        "q-0140/lexical",
+        "q-0150/lexical",
+        "q-0151/lexical",
+        "q-0161/lexical",
+        "q-0162/lexical",
+        "q-0163/lexical",
+        "q-0171/lexical",
+        "q-0172/lexical",
+        "q-0176/lexical",
+        "q-0177/lexical",
+        "q-0178/lexical",
+        "q-0180/lexical",
+        "q-0183/lexical",
+        "q-0187/lexical",
+        "q-0193/lexical",
+        "q-0194/lexical",
+        "q-0197/lexical",
+        "q-0199/lexical",
+        "q-0203/lexical",
+        "q-0208/lexical",
+        "q-0209/lexical",
+        "q-0211/lexical",
+        "q-0216/lexical",
+        "q-0218/lexical",
+        "q-0221/lexical",
+        "q-0223/lexical",
+        "q-0224/lexical",
+        "q-0226/lexical",
+        "q-0227/lexical",
+        "q-0229/lexical",
+        "q-0230/lexical",
+        "q-0233/lexical",
+        "q-0240/lexical",
+        "q-0242/lexical",
+        "q-0247/lexical",
+        "q-0248/lexical",
+        "q-0303/lexical",
+        "q-0305/lexical",
+        "q-0313/lexical",
+        "q-0316/lexical",
+        "q-0317/lexical",
+        "q-0318/lexical",
+        "q-0321/lexical",
+        "q-0329/lexical",
+        "q-0330/lexical",
+        "q-0338/lexical",
+        "q-0343/lexical",
+        "q-0344/lexical",
+        "q-0363/lexical",
+        "q-0369/lexical",
+        "q-0400/lexical",
+        "q-0402/lexical",
+        "q-0405/lexical",
+        "q-0406/lexical",
+        "q-0413/lexical",
+        "q-0421/lexical",
+        "q-0429/lexical"
+      ],
+      "went_present": []
+    },
+    "official": {
+      "arm": "global-shuffle-sim",
+      "arm_letter": "A",
+      "by_facet": {
+        "core": {
+          "delta": 0,
+          "n": 185,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/185",
+          "went_red": false
+        },
+        "deep-body": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "group": {
+          "delta": 0,
+          "n": 6,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/6",
+          "went_red": false
+        }
+      },
+      "by_lane": {
+        "ar->ar": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "de->de": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->ar": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->de": {
+          "delta": 0,
+          "n": 1,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=1 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->en": {
+          "delta": 0,
+          "n": 56,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/56",
+          "went_red": false
+        },
+        "en->es": {
+          "delta": 0,
+          "n": 1,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=1 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->fr": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->hi": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->ru": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->vi": {
+          "delta": 0,
+          "n": 8,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/8",
+          "went_red": false
+        },
+        "en->zh": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "es->es": {
+          "delta": 0,
+          "n": 5,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/5",
+          "went_red": false
+        },
+        "fr->en": {
+          "delta": 0,
+          "n": 10,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/10",
+          "went_red": false
+        },
+        "fr->fr": {
+          "delta": 0,
+          "n": 19,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/19",
+          "went_red": false
+        },
+        "fr->vi": {
+          "delta": 0,
+          "n": 7,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/7",
+          "went_red": false
+        },
+        "hi->hi": {
+          "delta": 0,
+          "n": 3,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=3 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "ru->ru": {
+          "delta": 0,
+          "n": 7,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/7",
+          "went_red": false
+        },
+        "vi->en": {
+          "delta": 0,
+          "n": 11,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/11",
+          "went_red": false
+        },
+        "vi->fr": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "vi->vi": {
+          "delta": 0,
+          "n": 33,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/33",
+          "went_red": false
+        },
+        "vi->zh": {
+          "delta": 0,
+          "n": 1,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=1 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "zh->zh": {
+          "delta": 0,
+          "n": 9,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/9",
+          "went_red": false
+        }
+      },
+      "by_set_kind": {
+        "all-of": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "any-of": {
+          "delta": 0,
+          "n": 191,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/191",
+          "went_red": false
+        }
+      },
+      "by_signal": {
+        "agreement": {
+          "delta": 0,
+          "n": 23,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/23",
+          "went_red": false
+        },
+        "exact": {
+          "delta": 0,
+          "n": 105,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/105",
+          "went_red": false
+        },
+        "paraphrase": {
+          "delta": 0,
+          "n": 67,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/67",
+          "went_red": false
+        }
+      },
+      "by_stratum": {
+        "core": {
+          "delta": 0,
+          "n": 178,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/178",
+          "went_red": false
+        },
+        "reserve": {
+          "delta": 0,
+          "n": 17,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/17",
+          "went_red": false
+        }
+      },
+      "changed": {},
+      "control": false,
+      "delta": 0,
+      "expected_miss_flips": {
+        "unexpected-hit->pass": [
+          "q-0104/lexical",
+          "q-0105/lexical",
+          "q-0110/lexical",
+          "q-0113/lexical",
+          "q-0114/lexical",
+          "q-0118/lexical",
+          "q-0120/lexical",
+          "q-0124/lexical",
+          "q-0130/lexical",
+          "q-0134/lexical",
+          "q-0137/lexical",
+          "q-0142/lexical",
+          "q-0154/lexical",
+          "q-0159/lexical",
+          "q-0164/lexical",
+          "q-0166/lexical",
+          "q-0168/lexical",
+          "q-0170/lexical",
+          "q-0179/lexical",
+          "q-0185/lexical",
+          "q-0192/lexical",
+          "q-0204/lexical",
+          "q-0205/lexical",
+          "q-0210/lexical",
+          "q-0215/lexical",
+          "q-0220/lexical",
+          "q-0225/lexical",
+          "q-0232/lexical",
+          "q-0234/lexical",
+          "q-0243/lexical",
+          "q-0245/lexical",
+          "q-0246/lexical",
+          "q-0323/lexical",
+          "q-0336/lexical",
+          "q-0342/lexical",
+          "q-0346/lexical",
+          "q-0368/lexical",
+          "q-0407/lexical",
+          "q-0415/lexical",
+          "q-0424/lexical",
+          "q-0430/lexical",
+          "q-0431/lexical",
+          "q-0432/lexical",
+          "q-0433/lexical",
+          "q-0449/lexical"
+        ]
+      },
+      "expected_miss_note": "expected-miss outcomes are computed and reported and enter no gated reading: golden_gate.evaluate() takes the gate state from R34 and stability alone",
+      "gate_note": "the gate state is golden_gate.py's, which still implements the superseded shipped predicate; the ruled scores above are computed by bench/redstate.py and no gate reads them yet",
+      "gate_state_after": "fail",
+      "gate_state_before": "fail",
+      "hits": 1928,
+      "hits_carrying_a_page": 0,
+      "kind": "reply",
+      "label": "OFFICIAL (SPEC §5.2.10, ruled 2026-09-07)",
+      "mechanisms_fired": {},
+      "must_cells": {
+        "en->en": {
+          "delta": 0,
+          "n": 56,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/56",
+          "went_red": false
+        },
+        "en->fr": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->vi": {
+          "delta": 0,
+          "n": 8,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/8",
+          "went_red": false
+        },
+        "fr->en": {
+          "delta": 0,
+          "n": 10,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/10",
+          "went_red": false
+        },
+        "fr->fr": {
+          "delta": 0,
+          "n": 19,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/19",
+          "went_red": false
+        },
+        "fr->vi": {
+          "delta": 0,
+          "n": 7,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/7",
+          "went_red": false
+        },
+        "vi->en": {
+          "delta": 0,
+          "n": 11,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/11",
+          "went_red": false
+        },
+        "vi->fr": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "vi->vi": {
+          "delta": 0,
+          "n": 33,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/33",
+          "went_red": false
+        }
+      },
+      "must_cells_that_did_not_go_red": [
+        {
+          "delta": 0,
+          "lane": "en->en",
+          "n": 56,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/56",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "fr->fr",
+          "n": 19,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/19",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "vi->vi",
+          "n": 33,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/33",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "en->fr",
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        {
+          "delta": 0,
+          "lane": "en->vi",
+          "n": 8,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/8",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "fr->en",
+          "n": 10,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/10",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "fr->vi",
+          "n": 7,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/7",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "vi->en",
+          "n": 11,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/11",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "vi->fr",
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "reading": "the cell already read zero present at baseline under this score, so no arm can make it redder; this is a property of the score against this build, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        }
+      ],
+      "official": true,
+      "official_rows_by_reason": {
+        "no-reported-page": 8,
+        "work-not-returned": 194
+      },
+      "present_after": 0,
+      "present_before": 0,
+      "reference": "committed baseline",
+      "rows_by_intersection_path": {
+        "char": 99,
+        "page": 103
+      },
+      "score": "official",
+      "scored_questions": 195,
+      "superseded_predicates": {
+        "evidence-matched": {
+          "present_after": 0,
+          "present_before": 42
+        },
+        "shipped": {
+          "present_after": 15,
+          "present_before": 161
+        }
+      },
+      "target_lanes": [
+        "en->en",
+        "fr->fr",
+        "vi->vi",
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "target_mechanisms": [
+        "*"
+      ],
+      "went_absent": [],
+      "went_present": []
+    }
+  }
+}
