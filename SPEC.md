@@ -2972,6 +2972,31 @@ is R24's page clause carried to its end: a locator that hands back the PDF's
 own index where the page prints a different folio has not led the reader to
 the page.
 
+**What "the answer came back" means, and the two scores it forces.** R34's
+reading is the right work *and* the right page: a reply satisfies a question
+when it returns the work the answer sits in and a page intersecting the
+target's page range. Intersection, not equality, because an answer paragraph
+may straddle a page boundary and so may the passage a reply hands back; a
+non-empty overlap of the two ranges is the test. Work identity alone is too
+weak — it certifies a title match as retrieval — and requiring the pinned quote
+inside the reply's snippet is too strong, since the snippet is a display window
+the system chooses and its contents confound retrieval with presentation.
+
+Two scores are therefore tracked, and only one is official. **The official
+score reads the page the system itself reports.** Where a reply carries no
+page, the question is not satisfied, and that is a true statement about the
+system rather than a scoring artifact: R24 already obliges a hit to lead to the
+page it came from, so a reply without one has not met that promise and the
+score must say so. **The accommodating score derives the page** from where the
+returned evidence falls in the export, using the extraction's own page breaks,
+so that development has a signal while the system does not report pages. It is
+reported beside the official score, always labelled, and it is **not
+official**: no gate reads it, no threshold binds it, and no claim about the
+system rests on it. Two scores exist here for the same reason the stability and
+absolute readings of the pinned set both exist — one measures what is promised,
+the other measures progress toward it — and collapsing them would hide exactly
+the gap that matters.
+
 **The `run` block, and a result without one is not-run.** Every result carries
 the recipe hash and the export hash as the fixture version, the extraction
 configuration, §5.2.7's embedder fingerprint, the chunker key, the index schema
