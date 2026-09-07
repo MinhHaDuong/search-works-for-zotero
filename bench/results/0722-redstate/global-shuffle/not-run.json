@@ -1,0 +1,28 @@
+{
+  "arm": "global-shuffle",
+  "blocked_on": "build",
+  "control": false,
+  "kind": "build",
+  "letter": "A",
+  "notes": [
+    "Anything that stays present under a global shuffle is a defect in the bank or in the scorer.",
+    "Under the ruled scores a twin no longer counts as the right work — the gate admits only the row's own parent item or its own attachment — so the raised floor a work-identity match used to give is gone. The ladder still scores a twin near-win, and the ladder is reported beside R34 so the difference between the two questions stays visible."
+  ],
+  "reason": "no replies bundle under bench/results/0722-redstate/global-shuffle to re-score, and this is a build arm: producing one means patching fork/src and rebuilding, which needs a built server at fork/dist/index.js (`make upstream-checkout`, then `npm ci && npm run build` in fork/). No reply-level simulation stands in for it — a simulation is evidence about a stipulated reply distribution, not about a build.",
+  "state": "not-run",
+  "summary": "arm A: the ranker no longer ranks — the fused candidate list is widened to the whole matching set and shuffled on a seed derived from the query",
+  "target_lanes": [
+    "en->en",
+    "fr->fr",
+    "vi->vi",
+    "en->fr",
+    "en->vi",
+    "fr->en",
+    "fr->vi",
+    "vi->en",
+    "vi->fr"
+  ],
+  "target_mechanisms": [
+    "*"
+  ]
+}

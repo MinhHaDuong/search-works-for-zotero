@@ -1,5 +1,14 @@
 # The red-state exercise for the Menagerie question bank — design handoff
 
+> **Superseded in its numbers, kept for its design.** Sections 3 and 4 below compute
+> MUST-cell headroom from two candidate predicates, `shipped` (161/195) and
+> `evidence-matched` (42/195). The author's ruling of 2026-09-07 (SPEC §5.2.10) replaced
+> both, and PR #430 moved the ruled predicate into `bench/golden_gate.py`. Under it the
+> readings are **0/195 official and 51/195 accommodating**. Every headroom figure in this
+> note is therefore stale; the arms, their targets and the reasoning about what makes an arm
+> vacuous are not. **For the numbers as they stand, read
+> `verification/RED-STATE-0722.md`.**
+
 Ticket 0722 item 1 of 0029's closeout order. Written 2026-09-07 by the agent that
 was asked to run the exercise and could not commit, for the successor that will.
 Everything below was read or measured in the checkout; nothing is quoted from
