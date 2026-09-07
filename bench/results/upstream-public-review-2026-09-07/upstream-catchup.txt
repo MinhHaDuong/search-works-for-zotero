@@ -1,0 +1,6 @@
+python3 bench/upstream_catchup.py
+cloning the mirror into upstream.git/ (first run only)…
+reviewed  5a81cee  v1.15.0  (2026-09-07)
+upstream  5a81cee  (untagged)  (main)
+
+QUIET: the reviewed baseline is current. Nothing to catch up on.

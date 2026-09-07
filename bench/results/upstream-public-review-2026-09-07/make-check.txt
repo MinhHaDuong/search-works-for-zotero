@@ -1,0 +1,45 @@
+python3 bench/check_deps.py
+3 gate requirement(s) present, 7 declared, 6 third-party import(s) scanned: the gate can run
+# Ruff's default selection has changed across releases. Spell out the
+# historical default so this gate means the same thing on every machine.
+# verification/probes/ is in scope too: a probe script that produced a
+# committed figure is code we depend on, and moving one out of bench/
+# must not move it out of the lint gate.
+ruff check --select E4,E7,E9,F bench/ tests/ verification/probes/
+All checks passed!
+python3 bench/check_figures.py
+924 pairs checked: 879 anchored (positional), 45 presence-only (maskable), 0 stale
+94 rate figure(s) drawn from an artifact that cannot say it was warm (pre-0260; re-measure warm, then declare the figure "warm")
+python3 bench/check_models.py
+OK: the registry is well formed, and nothing under bench/, plugins/ names a model, a pooling mode, a normalize flag, or an input template
+python3 bench/check_names.py
+591 artifacts scanned, 7 name fields tracked: documents are addressed by key, not named (2 exempted under ['bench/results/golden/'])
+python3 bench/check_progress.py
+PROGRESS: four public deliverables present; 24 requirements remain in SPEC.md, 0 findings
+./tickets/erg check tickets/
+erg: branch t0736-upstream-issues (tickets)
+ERG CHECK: PASS (292 tickets)
+python3 bench/check_ticket_logs.py
+OK: 1663 log entries across 292 tickets, none stamped after the commit that wrote it (12 not yet committed, checked against the clock)
+python3 bench/check_sitter_version.py
+OK: version 0.3.2, checked across 64 revisions of plugins/sdt-sitter, and no earlier revision shipped a different payload under it
+python3 -m pytest tests/ -q
+........................................................................ [  5%]
+........................................................................ [ 11%]
+........................................................................ [ 16%]
+........................................................................ [ 22%]
+........................................................................ [ 27%]
+........................................................................ [ 33%]
+........................................................................ [ 39%]
+........................................................................ [ 44%]
+...............................................s........................ [ 50%]
+........................................................................ [ 55%]
+..........................s............................................. [ 61%]
+........................................................................ [ 66%]
+........................................................................ [ 72%]
+........................................................................ [ 78%]
+..........................ss.ss.ss.ss.ss.ss............................. [ 83%]
+........................................................................ [ 89%]
+........................................................................ [ 94%]
+....................................................................     [100%]
+1278 passed, 14 skipped in 72.57s (0:01:12)

@@ -1,0 +1,2 @@
+Warning: Indexing all PDF objects
+{"host":"linux","target":"linux","arch":"x64","simulated":false,"text":"Hello PDF"}

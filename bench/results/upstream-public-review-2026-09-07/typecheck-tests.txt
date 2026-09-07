@@ -1,0 +1,4 @@
+
+> @oscardvs/zoteus@1.15.0 typecheck:tests
+> tsc -p tsconfig.test.json
+
