@@ -1,0 +1,3220 @@
+{
+  "arm": "index-cap",
+  "predicates": {
+    "evidence-matched": {
+      "arm": "index-cap",
+      "arm_letter": "E",
+      "by_facet": {
+        "core": {
+          "delta": -25,
+          "n": 185,
+          "present_after": 14,
+          "present_before": 39,
+          "rate": "14/185",
+          "went_red": true
+        },
+        "deep-body": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 2,
+          "present_before": 2,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "group": {
+          "delta": 0,
+          "n": 6,
+          "present_after": 1,
+          "present_before": 1,
+          "rate": "1/6",
+          "went_red": false
+        }
+      },
+      "by_lane": {
+        "ar->ar": {
+          "delta": -2,
+          "n": 4,
+          "present_after": 1,
+          "present_before": 3,
+          "rate": "not-evaluated",
+          "went_red": true,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "de->de": {
+          "delta": -2,
+          "n": 4,
+          "present_after": 1,
+          "present_before": 3,
+          "rate": "not-evaluated",
+          "went_red": true,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->ar": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->de": {
+          "delta": 0,
+          "n": 1,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=1 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->en": {
+          "delta": -9,
+          "n": 56,
+          "present_after": 6,
+          "present_before": 15,
+          "rate": "6/56",
+          "went_red": true
+        },
+        "en->es": {
+          "delta": -1,
+          "n": 1,
+          "present_after": 0,
+          "present_before": 1,
+          "rate": "not-evaluated",
+          "went_red": true,
+          "why_no_rate": "n=1 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->fr": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->hi": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->ru": {
+          "delta": -1,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 1,
+          "rate": "not-evaluated",
+          "went_red": true,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->vi": {
+          "delta": 0,
+          "n": 8,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/8",
+          "went_red": false
+        },
+        "en->zh": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "es->es": {
+          "delta": -1,
+          "n": 5,
+          "present_after": 0,
+          "present_before": 1,
+          "rate": "0/5",
+          "went_red": true
+        },
+        "fr->en": {
+          "delta": 0,
+          "n": 10,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/10",
+          "went_red": false
+        },
+        "fr->fr": {
+          "delta": -3,
+          "n": 19,
+          "present_after": 1,
+          "present_before": 4,
+          "rate": "1/19",
+          "went_red": true
+        },
+        "fr->vi": {
+          "delta": 0,
+          "n": 7,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/7",
+          "went_red": false
+        },
+        "hi->hi": {
+          "delta": 0,
+          "n": 3,
+          "present_after": 1,
+          "present_before": 1,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=3 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "ru->ru": {
+          "delta": -1,
+          "n": 7,
+          "present_after": 1,
+          "present_before": 2,
+          "rate": "1/7",
+          "went_red": true
+        },
+        "vi->en": {
+          "delta": 0,
+          "n": 11,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/11",
+          "went_red": false
+        },
+        "vi->fr": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "vi->vi": {
+          "delta": -3,
+          "n": 33,
+          "present_after": 6,
+          "present_before": 9,
+          "rate": "6/33",
+          "went_red": true
+        },
+        "vi->zh": {
+          "delta": 0,
+          "n": 1,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=1 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "zh->zh": {
+          "delta": -2,
+          "n": 9,
+          "present_after": 0,
+          "present_before": 2,
+          "rate": "0/9",
+          "went_red": true
+        }
+      },
+      "by_set_kind": {
+        "all-of": {
+          "delta": 1,
+          "n": 4,
+          "present_after": 1,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "any-of": {
+          "delta": -26,
+          "n": 191,
+          "present_after": 16,
+          "present_before": 42,
+          "rate": "16/191",
+          "went_red": true
+        }
+      },
+      "by_signal": {
+        "agreement": {
+          "delta": -5,
+          "n": 23,
+          "present_after": 2,
+          "present_before": 7,
+          "rate": "2/23",
+          "went_red": true
+        },
+        "exact": {
+          "delta": -16,
+          "n": 105,
+          "present_after": 15,
+          "present_before": 31,
+          "rate": "15/105",
+          "went_red": true
+        },
+        "paraphrase": {
+          "delta": -4,
+          "n": 67,
+          "present_after": 0,
+          "present_before": 4,
+          "rate": "0/67",
+          "went_red": true
+        }
+      },
+      "by_stratum": {
+        "core": {
+          "delta": -20,
+          "n": 178,
+          "present_after": 13,
+          "present_before": 33,
+          "rate": "13/178",
+          "went_red": true
+        },
+        "reserve": {
+          "delta": -5,
+          "n": 17,
+          "present_after": 4,
+          "present_before": 9,
+          "rate": "4/17",
+          "went_red": true
+        }
+      },
+      "changed": {
+        "q-0109/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "level_after": "near-win",
+          "level_before": "win",
+          "mechanisms": [
+            "structural-footnote",
+            "ocr-noise"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0117/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "level_after": "near-win",
+          "level_before": "win",
+          "mechanisms": [
+            "structural-table",
+            "broken-glyph-mapping"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0122/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "level_after": "near-win",
+          "level_before": "win",
+          "mechanisms": [
+            "structural-footnote"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0125/lexical": {
+          "facet": "core",
+          "from": "absent",
+          "lane": "en->en",
+          "level_after": "win",
+          "level_before": "near-win",
+          "mechanisms": [
+            "multi-attachment-parent"
+          ],
+          "set_kind": "all-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "present"
+        },
+        "q-0151/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "gutenberg-cap-crossing-pair"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0182/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "level_after": "near-win",
+          "level_before": "win",
+          "mechanisms": [
+            "structural-figure-caption"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0183/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "structural-footnote"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0187/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "level_after": "near-win",
+          "level_before": "win",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "agreement",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0197/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "level_after": "near-win",
+          "level_before": "win",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "agreement",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0199/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "level_after": "near-win",
+          "level_before": "win",
+          "mechanisms": [
+            "harness-canary"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0203/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "fr->fr",
+          "level_after": "near-win",
+          "level_before": "win",
+          "mechanisms": [
+            "structural-footnote"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0213/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "fr->fr",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "structural-table",
+            "column-flattening",
+            "long-s-orthography"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0216/lexical": {
+          "facet": "core",
+          "from": "absent",
+          "lane": "fr->fr",
+          "level_after": "win",
+          "level_before": "near-win",
+          "mechanisms": [
+            "known-item"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "present"
+        },
+        "q-0218/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "fr->fr",
+          "level_after": "near-win",
+          "level_before": "win",
+          "mechanisms": [
+            "structural-table",
+            "column-flattening"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0223/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "de->de",
+          "level_after": "near-win",
+          "level_before": "win",
+          "mechanisms": [
+            "known-item"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0224/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "de->de",
+          "level_after": "near-win",
+          "level_before": "win",
+          "mechanisms": [
+            "structural-figure-caption",
+            "floating-label-interleaving",
+            "mixed-decimal-separator"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0227/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->es",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "cross-language"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0230/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "es->es",
+          "level_after": "near-win",
+          "level_before": "win",
+          "mechanisms": [
+            "structural-footnote",
+            "multi-column"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0247/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "fr->fr",
+          "level_after": "near-win",
+          "level_before": "win",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "agreement",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0321/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "vi->vi",
+          "level_after": "near-win",
+          "level_before": "win",
+          "mechanisms": [
+            "extraction-dropped-en-dash"
+          ],
+          "set_kind": "any-of",
+          "signal": "agreement",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0329/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "vi->vi",
+          "level_after": "near-win",
+          "level_before": "win",
+          "mechanisms": [
+            "compound-document-chain"
+          ],
+          "set_kind": "any-of",
+          "signal": "agreement",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0363/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "zh->zh",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "han-script-no-word-spaces",
+            "hard-wrap-inside-word",
+            "legacy-encoding-big5"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "reserve",
+          "to": "absent"
+        },
+        "q-0369/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "vi->vi",
+          "level_after": "near-win",
+          "level_before": "win",
+          "mechanisms": [
+            "lexical-false-positive",
+            "indirect-description"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "reserve",
+          "to": "absent"
+        },
+        "q-0400/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "ar->ar",
+          "level_after": "near-win",
+          "level_before": "win",
+          "mechanisms": [
+            "should-language-arabic",
+            "rtl-script"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0405/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "ar->ar",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "structural-table",
+            "structural-marks-x-script",
+            "should-language-arabic",
+            "rtl-script"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "reserve",
+          "to": "absent"
+        },
+        "q-0406/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "ru->ru",
+          "level_after": "near-win",
+          "level_before": "win",
+          "mechanisms": [
+            "should-language-russian",
+            "extraction-cap-crossing-inside",
+            "cyrillic-multibyte-offsets"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0413/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->ru",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "should-language-russian",
+            "cross-lingual-en-to-ru",
+            "legacy-encoding-windows-1251"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "reserve",
+          "to": "absent"
+        },
+        "q-0421/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "zh->zh",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "should-language-chinese",
+            "han-script"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0429/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "source-format-epub",
+            "extraction-cap-crossing-inside",
+            "pageless-locator"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "reserve",
+          "to": "absent"
+        }
+      },
+      "computed_target_questions": {
+        "cap": 2000,
+        "expected_miss": [
+          "q-0101",
+          "q-0104",
+          "q-0113",
+          "q-0124",
+          "q-0130",
+          "q-0134",
+          "q-0137",
+          "q-0153",
+          "q-0159",
+          "q-0164",
+          "q-0168",
+          "q-0179",
+          "q-0184",
+          "q-0185",
+          "q-0192",
+          "q-0196",
+          "q-0205",
+          "q-0220",
+          "q-0225",
+          "q-0245",
+          "q-0336",
+          "q-0339",
+          "q-0342",
+          "q-0346",
+          "q-0351",
+          "q-0353",
+          "q-0368",
+          "q-0407",
+          "q-0415",
+          "q-0424",
+          "q-0430"
+        ],
+        "scored": [
+          "q-0001",
+          "q-0003",
+          "q-0004",
+          "q-0100",
+          "q-0102",
+          "q-0103",
+          "q-0106",
+          "q-0107",
+          "q-0108",
+          "q-0109",
+          "q-0111",
+          "q-0112",
+          "q-0115",
+          "q-0116",
+          "q-0117",
+          "q-0119",
+          "q-0123",
+          "q-0125",
+          "q-0127",
+          "q-0128",
+          "q-0132",
+          "q-0133",
+          "q-0136",
+          "q-0139",
+          "q-0140",
+          "q-0141",
+          "q-0150",
+          "q-0151",
+          "q-0152",
+          "q-0155",
+          "q-0156",
+          "q-0157",
+          "q-0158",
+          "q-0160",
+          "q-0161",
+          "q-0162",
+          "q-0167",
+          "q-0169",
+          "q-0171",
+          "q-0172",
+          "q-0173",
+          "q-0174",
+          "q-0175",
+          "q-0176",
+          "q-0177",
+          "q-0178",
+          "q-0180",
+          "q-0181",
+          "q-0182",
+          "q-0183",
+          "q-0186",
+          "q-0187",
+          "q-0189",
+          "q-0190",
+          "q-0191",
+          "q-0193",
+          "q-0195",
+          "q-0197",
+          "q-0198",
+          "q-0199",
+          "q-0200",
+          "q-0201",
+          "q-0202",
+          "q-0203",
+          "q-0206",
+          "q-0207",
+          "q-0208",
+          "q-0209",
+          "q-0211",
+          "q-0212",
+          "q-0213",
+          "q-0214",
+          "q-0216",
+          "q-0217",
+          "q-0218",
+          "q-0219",
+          "q-0221",
+          "q-0222",
+          "q-0223",
+          "q-0224",
+          "q-0227",
+          "q-0228",
+          "q-0229",
+          "q-0230",
+          "q-0242",
+          "q-0244",
+          "q-0247",
+          "q-0248",
+          "q-0249",
+          "q-0301",
+          "q-0302",
+          "q-0304",
+          "q-0306",
+          "q-0307",
+          "q-0308",
+          "q-0309",
+          "q-0310",
+          "q-0312",
+          "q-0314",
+          "q-0315",
+          "q-0317",
+          "q-0319",
+          "q-0320",
+          "q-0321",
+          "q-0322",
+          "q-0329",
+          "q-0331",
+          "q-0334",
+          "q-0335",
+          "q-0337",
+          "q-0340",
+          "q-0341",
+          "q-0343",
+          "q-0344",
+          "q-0345",
+          "q-0348",
+          "q-0350",
+          "q-0352",
+          "q-0354",
+          "q-0358",
+          "q-0359",
+          "q-0361",
+          "q-0363",
+          "q-0366",
+          "q-0369",
+          "q-0370",
+          "q-0400",
+          "q-0401",
+          "q-0403",
+          "q-0404",
+          "q-0405",
+          "q-0406",
+          "q-0408",
+          "q-0409",
+          "q-0410",
+          "q-0411",
+          "q-0412",
+          "q-0413",
+          "q-0414",
+          "q-0416",
+          "q-0417",
+          "q-0418",
+          "q-0419",
+          "q-0420",
+          "q-0421",
+          "q-0422",
+          "q-0423",
+          "q-0429",
+          "q-0435"
+        ]
+      },
+      "control": false,
+      "delta": -25,
+      "expected_miss_flips": {
+        "pass->unexpected-hit": [
+          "q-0101/lexical",
+          "q-0231/lexical",
+          "q-0235/lexical",
+          "q-0324/lexical"
+        ],
+        "unexpected-hit->pass": [
+          "q-0165/lexical",
+          "q-0220/lexical",
+          "q-0346/lexical",
+          "q-0430/lexical"
+        ]
+      },
+      "expected_miss_note": "expected-miss outcomes are computed and reported and enter no gated reading: golden_gate.evaluate() takes the gate state from R34 and stability alone",
+      "gate_state_after": "fail",
+      "gate_state_before": "fail",
+      "kind": "build",
+      "mechanisms_fired": {
+        "(none declared)": 3,
+        "broken-glyph-mapping": 1,
+        "column-flattening": 2,
+        "compound-document-chain": 1,
+        "cross-language": 1,
+        "cross-lingual-en-to-ru": 1,
+        "cyrillic-multibyte-offsets": 1,
+        "extraction-cap-crossing-inside": 2,
+        "extraction-dropped-en-dash": 1,
+        "floating-label-interleaving": 1,
+        "gutenberg-cap-crossing-pair": 1,
+        "han-script": 1,
+        "han-script-no-word-spaces": 1,
+        "hard-wrap-inside-word": 1,
+        "harness-canary": 1,
+        "indirect-description": 1,
+        "known-item": 1,
+        "legacy-encoding-big5": 1,
+        "legacy-encoding-windows-1251": 1,
+        "lexical-false-positive": 1,
+        "long-s-orthography": 1,
+        "mixed-decimal-separator": 1,
+        "multi-column": 1,
+        "ocr-noise": 1,
+        "pageless-locator": 1,
+        "rtl-script": 2,
+        "should-language-arabic": 2,
+        "should-language-chinese": 1,
+        "should-language-russian": 2,
+        "source-format-epub": 1,
+        "structural-figure-caption": 2,
+        "structural-footnote": 5,
+        "structural-marks-x-script": 1,
+        "structural-table": 4
+      },
+      "must_cells": {
+        "en->en": {
+          "delta": -9,
+          "n": 56,
+          "present_after": 6,
+          "present_before": 15,
+          "rate": "6/56",
+          "went_red": true
+        },
+        "en->fr": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->vi": {
+          "delta": 0,
+          "n": 8,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/8",
+          "went_red": false
+        },
+        "fr->en": {
+          "delta": 0,
+          "n": 10,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/10",
+          "went_red": false
+        },
+        "fr->fr": {
+          "delta": -3,
+          "n": 19,
+          "present_after": 1,
+          "present_before": 4,
+          "rate": "1/19",
+          "went_red": true
+        },
+        "fr->vi": {
+          "delta": 0,
+          "n": 7,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/7",
+          "went_red": false
+        },
+        "vi->en": {
+          "delta": 0,
+          "n": 11,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/11",
+          "went_red": false
+        },
+        "vi->fr": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "vi->vi": {
+          "delta": -3,
+          "n": 33,
+          "present_after": 6,
+          "present_before": 9,
+          "rate": "6/33",
+          "went_red": true
+        }
+      },
+      "must_cells_that_did_not_go_red": [
+        {
+          "delta": 0,
+          "lane": "en->fr",
+          "n": 4,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "reading": "the cell already read zero present at baseline under this predicate, so no arm can make it redder; this is a property of the predicate, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        {
+          "delta": 0,
+          "lane": "en->vi",
+          "n": 8,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/8",
+          "reading": "the cell already read zero present at baseline under this predicate, so no arm can make it redder; this is a property of the predicate, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "fr->en",
+          "n": 10,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/10",
+          "reading": "the cell already read zero present at baseline under this predicate, so no arm can make it redder; this is a property of the predicate, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "fr->vi",
+          "n": 7,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/7",
+          "reading": "the cell already read zero present at baseline under this predicate, so no arm can make it redder; this is a property of the predicate, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "vi->en",
+          "n": 11,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "0/11",
+          "reading": "the cell already read zero present at baseline under this predicate, so no arm can make it redder; this is a property of the predicate, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "vi->fr",
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "reading": "the cell already read zero present at baseline under this predicate, so no arm can make it redder; this is a property of the predicate, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        }
+      ],
+      "predicate": "evidence-matched",
+      "present_after": 17,
+      "present_before": 42,
+      "reference": "control-build",
+      "scored_questions": 195,
+      "target_lanes": [
+        "en->en",
+        "fr->fr",
+        "vi->vi",
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "target_mechanisms": [
+        "index-cap"
+      ],
+      "went_absent": [
+        "q-0109/lexical",
+        "q-0117/lexical",
+        "q-0122/lexical",
+        "q-0151/lexical",
+        "q-0182/lexical",
+        "q-0183/lexical",
+        "q-0187/lexical",
+        "q-0197/lexical",
+        "q-0199/lexical",
+        "q-0203/lexical",
+        "q-0213/lexical",
+        "q-0218/lexical",
+        "q-0223/lexical",
+        "q-0224/lexical",
+        "q-0227/lexical",
+        "q-0230/lexical",
+        "q-0247/lexical",
+        "q-0321/lexical",
+        "q-0329/lexical",
+        "q-0363/lexical",
+        "q-0369/lexical",
+        "q-0400/lexical",
+        "q-0405/lexical",
+        "q-0406/lexical",
+        "q-0413/lexical",
+        "q-0421/lexical",
+        "q-0429/lexical"
+      ],
+      "went_present": [
+        "q-0125/lexical",
+        "q-0216/lexical"
+      ]
+    },
+    "shipped": {
+      "arm": "index-cap",
+      "arm_letter": "E",
+      "by_facet": {
+        "core": {
+          "delta": -12,
+          "n": 185,
+          "present_after": 141,
+          "present_before": 153,
+          "rate": "141/185",
+          "went_red": true
+        },
+        "deep-body": {
+          "delta": -1,
+          "n": 4,
+          "present_after": 3,
+          "present_before": 4,
+          "rate": "not-evaluated",
+          "went_red": true,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "group": {
+          "delta": 0,
+          "n": 6,
+          "present_after": 4,
+          "present_before": 4,
+          "rate": "4/6",
+          "went_red": false
+        }
+      },
+      "by_lane": {
+        "ar->ar": {
+          "delta": -2,
+          "n": 4,
+          "present_after": 2,
+          "present_before": 4,
+          "rate": "not-evaluated",
+          "went_red": true,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "de->de": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 4,
+          "present_before": 4,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->ar": {
+          "delta": 1,
+          "n": 2,
+          "present_after": 1,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->de": {
+          "delta": 0,
+          "n": 1,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=1 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->en": {
+          "delta": -5,
+          "n": 56,
+          "present_after": 51,
+          "present_before": 56,
+          "rate": "51/56",
+          "went_red": true
+        },
+        "en->es": {
+          "delta": -1,
+          "n": 1,
+          "present_after": 0,
+          "present_before": 1,
+          "rate": "not-evaluated",
+          "went_red": true,
+          "why_no_rate": "n=1 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->fr": {
+          "delta": -1,
+          "n": 4,
+          "present_after": 2,
+          "present_before": 3,
+          "rate": "not-evaluated",
+          "went_red": true,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->hi": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->ru": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 1,
+          "present_before": 1,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->vi": {
+          "delta": 0,
+          "n": 8,
+          "present_after": 3,
+          "present_before": 3,
+          "rate": "3/8",
+          "went_red": false
+        },
+        "en->zh": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 1,
+          "present_before": 1,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "es->es": {
+          "delta": 0,
+          "n": 5,
+          "present_after": 5,
+          "present_before": 5,
+          "rate": "5/5",
+          "went_red": false
+        },
+        "fr->en": {
+          "delta": 0,
+          "n": 10,
+          "present_after": 5,
+          "present_before": 5,
+          "rate": "5/10",
+          "went_red": false
+        },
+        "fr->fr": {
+          "delta": -1,
+          "n": 19,
+          "present_after": 18,
+          "present_before": 19,
+          "rate": "18/19",
+          "went_red": true
+        },
+        "fr->vi": {
+          "delta": 0,
+          "n": 7,
+          "present_after": 3,
+          "present_before": 3,
+          "rate": "3/7",
+          "went_red": false
+        },
+        "hi->hi": {
+          "delta": 0,
+          "n": 3,
+          "present_after": 3,
+          "present_before": 3,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=3 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "ru->ru": {
+          "delta": 0,
+          "n": 7,
+          "present_after": 7,
+          "present_before": 7,
+          "rate": "7/7",
+          "went_red": false
+        },
+        "vi->en": {
+          "delta": 0,
+          "n": 11,
+          "present_after": 5,
+          "present_before": 5,
+          "rate": "5/11",
+          "went_red": false
+        },
+        "vi->fr": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 2,
+          "present_before": 2,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "vi->vi": {
+          "delta": -2,
+          "n": 33,
+          "present_after": 31,
+          "present_before": 33,
+          "rate": "31/33",
+          "went_red": true
+        },
+        "vi->zh": {
+          "delta": 0,
+          "n": 1,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=1 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "zh->zh": {
+          "delta": -2,
+          "n": 9,
+          "present_after": 4,
+          "present_before": 6,
+          "rate": "4/9",
+          "went_red": true
+        }
+      },
+      "by_set_kind": {
+        "all-of": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 3,
+          "present_before": 3,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "any-of": {
+          "delta": -13,
+          "n": 191,
+          "present_after": 145,
+          "present_before": 158,
+          "rate": "145/191",
+          "went_red": true
+        }
+      },
+      "by_signal": {
+        "agreement": {
+          "delta": 0,
+          "n": 23,
+          "present_after": 21,
+          "present_before": 21,
+          "rate": "21/23",
+          "went_red": false
+        },
+        "exact": {
+          "delta": -12,
+          "n": 105,
+          "present_after": 92,
+          "present_before": 104,
+          "rate": "92/105",
+          "went_red": true
+        },
+        "paraphrase": {
+          "delta": -1,
+          "n": 67,
+          "present_after": 35,
+          "present_before": 36,
+          "rate": "35/67",
+          "went_red": true
+        }
+      },
+      "by_stratum": {
+        "core": {
+          "delta": -9,
+          "n": 178,
+          "present_after": 137,
+          "present_before": 146,
+          "rate": "137/178",
+          "went_red": true
+        },
+        "reserve": {
+          "delta": -4,
+          "n": 17,
+          "present_after": 11,
+          "present_before": 15,
+          "rate": "11/17",
+          "went_red": true
+        }
+      },
+      "changed": {
+        "q-0151/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "gutenberg-cap-crossing-pair"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0160/lexical": {
+          "facet": "core",
+          "from": "absent",
+          "lane": "vi->en",
+          "level_after": "near-win",
+          "level_before": "miss",
+          "mechanisms": [
+            "cross-lingual-anchor"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "present"
+        },
+        "q-0162/lexical": {
+          "facet": "deep-body",
+          "from": "present",
+          "lane": "en->en",
+          "level_after": "miss",
+          "level_before": "near-win",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0174/lexical": {
+          "facet": "core",
+          "from": "absent",
+          "lane": "fr->en",
+          "level_after": "near-win",
+          "level_before": "miss",
+          "mechanisms": [
+            "wrong-item-type"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "present"
+        },
+        "q-0180/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "vi->en",
+          "level_after": "miss",
+          "level_before": "near-win",
+          "mechanisms": [
+            "cross-lingual-anchor"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0183/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "structural-footnote"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0193/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "level_after": "miss",
+          "level_before": "near-win",
+          "mechanisms": [
+            "structural-table"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0195/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "fr->en",
+          "level_after": "miss",
+          "level_before": "near-win",
+          "mechanisms": [
+            "cross-lingual-anchor"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0213/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "fr->fr",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "structural-table",
+            "column-flattening",
+            "long-s-orthography"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0219/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->fr",
+          "level_after": "miss",
+          "level_before": "near-win",
+          "mechanisms": [
+            "cross-language"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0227/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->es",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "cross-language"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0320/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->vi",
+          "level_after": "miss",
+          "level_before": "near-win",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0335/lexical": {
+          "facet": "core",
+          "from": "absent",
+          "lane": "en->vi",
+          "level_after": "near-win",
+          "level_before": "miss",
+          "mechanisms": [
+            "compound-document-chain"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "present"
+        },
+        "q-0337/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "vi->vi",
+          "level_after": "miss",
+          "level_before": "near-win",
+          "mechanisms": [
+            "compound-document-chain"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0343/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "vi->vi",
+          "level_after": "miss",
+          "level_before": "near-win",
+          "mechanisms": [
+            "compound-book-section"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0363/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "zh->zh",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "han-script-no-word-spaces",
+            "hard-wrap-inside-word",
+            "legacy-encoding-big5"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "reserve",
+          "to": "absent"
+        },
+        "q-0403/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "ar->ar",
+          "level_after": "miss",
+          "level_before": "near-win",
+          "mechanisms": [
+            "should-language-arabic",
+            "rtl-script"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0404/lexical": {
+          "facet": "core",
+          "from": "absent",
+          "lane": "en->ar",
+          "level_after": "near-win",
+          "level_before": "miss",
+          "mechanisms": [
+            "should-language-arabic",
+            "cross-lingual-en-to-ar",
+            "rtl-script"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "present"
+        },
+        "q-0405/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "ar->ar",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "structural-table",
+            "structural-marks-x-script",
+            "should-language-arabic",
+            "rtl-script"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "reserve",
+          "to": "absent"
+        },
+        "q-0410/lexical": {
+          "facet": "core",
+          "from": "absent",
+          "lane": "en->ru",
+          "level_after": "near-win",
+          "level_before": "miss",
+          "mechanisms": [
+            "should-language-russian",
+            "cross-lingual-en-to-ru"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "present"
+        },
+        "q-0413/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->ru",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "should-language-russian",
+            "cross-lingual-en-to-ru",
+            "legacy-encoding-windows-1251"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "reserve",
+          "to": "absent"
+        },
+        "q-0421/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "zh->zh",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "should-language-chinese",
+            "han-script"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0429/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "source-format-epub",
+            "extraction-cap-crossing-inside",
+            "pageless-locator"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "reserve",
+          "to": "absent"
+        }
+      },
+      "computed_target_questions": {
+        "cap": 2000,
+        "expected_miss": [
+          "q-0101",
+          "q-0104",
+          "q-0113",
+          "q-0124",
+          "q-0130",
+          "q-0134",
+          "q-0137",
+          "q-0153",
+          "q-0159",
+          "q-0164",
+          "q-0168",
+          "q-0179",
+          "q-0184",
+          "q-0185",
+          "q-0192",
+          "q-0196",
+          "q-0205",
+          "q-0220",
+          "q-0225",
+          "q-0245",
+          "q-0336",
+          "q-0339",
+          "q-0342",
+          "q-0346",
+          "q-0351",
+          "q-0353",
+          "q-0368",
+          "q-0407",
+          "q-0415",
+          "q-0424",
+          "q-0430"
+        ],
+        "scored": [
+          "q-0001",
+          "q-0003",
+          "q-0004",
+          "q-0100",
+          "q-0102",
+          "q-0103",
+          "q-0106",
+          "q-0107",
+          "q-0108",
+          "q-0109",
+          "q-0111",
+          "q-0112",
+          "q-0115",
+          "q-0116",
+          "q-0117",
+          "q-0119",
+          "q-0123",
+          "q-0125",
+          "q-0127",
+          "q-0128",
+          "q-0132",
+          "q-0133",
+          "q-0136",
+          "q-0139",
+          "q-0140",
+          "q-0141",
+          "q-0150",
+          "q-0151",
+          "q-0152",
+          "q-0155",
+          "q-0156",
+          "q-0157",
+          "q-0158",
+          "q-0160",
+          "q-0161",
+          "q-0162",
+          "q-0167",
+          "q-0169",
+          "q-0171",
+          "q-0172",
+          "q-0173",
+          "q-0174",
+          "q-0175",
+          "q-0176",
+          "q-0177",
+          "q-0178",
+          "q-0180",
+          "q-0181",
+          "q-0182",
+          "q-0183",
+          "q-0186",
+          "q-0187",
+          "q-0189",
+          "q-0190",
+          "q-0191",
+          "q-0193",
+          "q-0195",
+          "q-0197",
+          "q-0198",
+          "q-0199",
+          "q-0200",
+          "q-0201",
+          "q-0202",
+          "q-0203",
+          "q-0206",
+          "q-0207",
+          "q-0208",
+          "q-0209",
+          "q-0211",
+          "q-0212",
+          "q-0213",
+          "q-0214",
+          "q-0216",
+          "q-0217",
+          "q-0218",
+          "q-0219",
+          "q-0221",
+          "q-0222",
+          "q-0223",
+          "q-0224",
+          "q-0227",
+          "q-0228",
+          "q-0229",
+          "q-0230",
+          "q-0242",
+          "q-0244",
+          "q-0247",
+          "q-0248",
+          "q-0249",
+          "q-0301",
+          "q-0302",
+          "q-0304",
+          "q-0306",
+          "q-0307",
+          "q-0308",
+          "q-0309",
+          "q-0310",
+          "q-0312",
+          "q-0314",
+          "q-0315",
+          "q-0317",
+          "q-0319",
+          "q-0320",
+          "q-0321",
+          "q-0322",
+          "q-0329",
+          "q-0331",
+          "q-0334",
+          "q-0335",
+          "q-0337",
+          "q-0340",
+          "q-0341",
+          "q-0343",
+          "q-0344",
+          "q-0345",
+          "q-0348",
+          "q-0350",
+          "q-0352",
+          "q-0354",
+          "q-0358",
+          "q-0359",
+          "q-0361",
+          "q-0363",
+          "q-0366",
+          "q-0369",
+          "q-0370",
+          "q-0400",
+          "q-0401",
+          "q-0403",
+          "q-0404",
+          "q-0405",
+          "q-0406",
+          "q-0408",
+          "q-0409",
+          "q-0410",
+          "q-0411",
+          "q-0412",
+          "q-0413",
+          "q-0414",
+          "q-0416",
+          "q-0417",
+          "q-0418",
+          "q-0419",
+          "q-0420",
+          "q-0421",
+          "q-0422",
+          "q-0423",
+          "q-0429",
+          "q-0435"
+        ]
+      },
+      "control": false,
+      "delta": -13,
+      "expected_miss_flips": {
+        "pass->unexpected-hit": [
+          "q-0101/lexical",
+          "q-0231/lexical",
+          "q-0235/lexical",
+          "q-0324/lexical"
+        ],
+        "unexpected-hit->pass": [
+          "q-0165/lexical",
+          "q-0220/lexical",
+          "q-0346/lexical",
+          "q-0430/lexical"
+        ]
+      },
+      "expected_miss_note": "expected-miss outcomes are computed and reported and enter no gated reading: golden_gate.evaluate() takes the gate state from R34 and stability alone",
+      "gate_state_after": "fail",
+      "gate_state_before": "fail",
+      "kind": "build",
+      "mechanisms_fired": {
+        "(none declared)": 2,
+        "column-flattening": 1,
+        "compound-book-section": 1,
+        "compound-document-chain": 1,
+        "cross-language": 2,
+        "cross-lingual-anchor": 2,
+        "cross-lingual-en-to-ru": 1,
+        "extraction-cap-crossing-inside": 1,
+        "gutenberg-cap-crossing-pair": 1,
+        "han-script": 1,
+        "han-script-no-word-spaces": 1,
+        "hard-wrap-inside-word": 1,
+        "legacy-encoding-big5": 1,
+        "legacy-encoding-windows-1251": 1,
+        "long-s-orthography": 1,
+        "pageless-locator": 1,
+        "rtl-script": 2,
+        "should-language-arabic": 2,
+        "should-language-chinese": 1,
+        "should-language-russian": 1,
+        "source-format-epub": 1,
+        "structural-footnote": 1,
+        "structural-marks-x-script": 1,
+        "structural-table": 3
+      },
+      "must_cells": {
+        "en->en": {
+          "delta": -5,
+          "n": 56,
+          "present_after": 51,
+          "present_before": 56,
+          "rate": "51/56",
+          "went_red": true
+        },
+        "en->fr": {
+          "delta": -1,
+          "n": 4,
+          "present_after": 2,
+          "present_before": 3,
+          "rate": "not-evaluated",
+          "went_red": true,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->vi": {
+          "delta": 0,
+          "n": 8,
+          "present_after": 3,
+          "present_before": 3,
+          "rate": "3/8",
+          "went_red": false
+        },
+        "fr->en": {
+          "delta": 0,
+          "n": 10,
+          "present_after": 5,
+          "present_before": 5,
+          "rate": "5/10",
+          "went_red": false
+        },
+        "fr->fr": {
+          "delta": -1,
+          "n": 19,
+          "present_after": 18,
+          "present_before": 19,
+          "rate": "18/19",
+          "went_red": true
+        },
+        "fr->vi": {
+          "delta": 0,
+          "n": 7,
+          "present_after": 3,
+          "present_before": 3,
+          "rate": "3/7",
+          "went_red": false
+        },
+        "vi->en": {
+          "delta": 0,
+          "n": 11,
+          "present_after": 5,
+          "present_before": 5,
+          "rate": "5/11",
+          "went_red": false
+        },
+        "vi->fr": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 2,
+          "present_before": 2,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "vi->vi": {
+          "delta": -2,
+          "n": 33,
+          "present_after": 31,
+          "present_before": 33,
+          "rate": "31/33",
+          "went_red": true
+        }
+      },
+      "must_cells_that_did_not_go_red": [
+        {
+          "delta": 0,
+          "lane": "en->vi",
+          "n": 8,
+          "present_after": 3,
+          "present_before": 3,
+          "rate": "3/8",
+          "reading": "the cell held present questions and the arm, which named it, moved none of them; this is the finding",
+          "reason": "not-reached",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "fr->en",
+          "n": 10,
+          "present_after": 5,
+          "present_before": 5,
+          "rate": "5/10",
+          "reading": "the cell held present questions and the arm, which named it, moved none of them; this is the finding",
+          "reason": "not-reached",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "fr->vi",
+          "n": 7,
+          "present_after": 3,
+          "present_before": 3,
+          "rate": "3/7",
+          "reading": "the cell held present questions and the arm, which named it, moved none of them; this is the finding",
+          "reason": "not-reached",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "vi->en",
+          "n": 11,
+          "present_after": 5,
+          "present_before": 5,
+          "rate": "5/11",
+          "reading": "the cell held present questions and the arm, which named it, moved none of them; this is the finding",
+          "reason": "not-reached",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "vi->fr",
+          "n": 2,
+          "present_after": 2,
+          "present_before": 2,
+          "rate": "not-evaluated",
+          "reading": "the cell held present questions and the arm, which named it, moved none of them; this is the finding",
+          "reason": "not-reached",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        }
+      ],
+      "predicate": "shipped",
+      "present_after": 148,
+      "present_before": 161,
+      "reference": "control-build",
+      "scored_questions": 195,
+      "target_lanes": [
+        "en->en",
+        "fr->fr",
+        "vi->vi",
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "target_mechanisms": [
+        "index-cap"
+      ],
+      "went_absent": [
+        "q-0151/lexical",
+        "q-0162/lexical",
+        "q-0180/lexical",
+        "q-0183/lexical",
+        "q-0193/lexical",
+        "q-0195/lexical",
+        "q-0213/lexical",
+        "q-0219/lexical",
+        "q-0227/lexical",
+        "q-0320/lexical",
+        "q-0337/lexical",
+        "q-0343/lexical",
+        "q-0363/lexical",
+        "q-0403/lexical",
+        "q-0405/lexical",
+        "q-0413/lexical",
+        "q-0421/lexical",
+        "q-0429/lexical"
+      ],
+      "went_present": [
+        "q-0160/lexical",
+        "q-0174/lexical",
+        "q-0335/lexical",
+        "q-0404/lexical",
+        "q-0410/lexical"
+      ]
+    },
+    "twin-excluded": {
+      "arm": "index-cap",
+      "arm_letter": "E",
+      "by_facet": {
+        "core": {
+          "delta": -12,
+          "n": 185,
+          "present_after": 134,
+          "present_before": 146,
+          "rate": "134/185",
+          "went_red": true
+        },
+        "deep-body": {
+          "delta": -1,
+          "n": 4,
+          "present_after": 3,
+          "present_before": 4,
+          "rate": "not-evaluated",
+          "went_red": true,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "group": {
+          "delta": 0,
+          "n": 6,
+          "present_after": 4,
+          "present_before": 4,
+          "rate": "4/6",
+          "went_red": false
+        }
+      },
+      "by_lane": {
+        "ar->ar": {
+          "delta": -2,
+          "n": 4,
+          "present_after": 2,
+          "present_before": 4,
+          "rate": "not-evaluated",
+          "went_red": true,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "de->de": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 4,
+          "present_before": 4,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->ar": {
+          "delta": 1,
+          "n": 2,
+          "present_after": 1,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->de": {
+          "delta": 0,
+          "n": 1,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=1 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->en": {
+          "delta": -5,
+          "n": 56,
+          "present_after": 51,
+          "present_before": 56,
+          "rate": "51/56",
+          "went_red": true
+        },
+        "en->es": {
+          "delta": -1,
+          "n": 1,
+          "present_after": 0,
+          "present_before": 1,
+          "rate": "not-evaluated",
+          "went_red": true,
+          "why_no_rate": "n=1 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->fr": {
+          "delta": -1,
+          "n": 4,
+          "present_after": 1,
+          "present_before": 2,
+          "rate": "not-evaluated",
+          "went_red": true,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->hi": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->ru": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 1,
+          "present_before": 1,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->vi": {
+          "delta": 0,
+          "n": 8,
+          "present_after": 3,
+          "present_before": 3,
+          "rate": "3/8",
+          "went_red": false
+        },
+        "en->zh": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 1,
+          "present_before": 1,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "es->es": {
+          "delta": 0,
+          "n": 5,
+          "present_after": 5,
+          "present_before": 5,
+          "rate": "5/5",
+          "went_red": false
+        },
+        "fr->en": {
+          "delta": 0,
+          "n": 10,
+          "present_after": 4,
+          "present_before": 4,
+          "rate": "4/10",
+          "went_red": false
+        },
+        "fr->fr": {
+          "delta": -1,
+          "n": 19,
+          "present_after": 18,
+          "present_before": 19,
+          "rate": "18/19",
+          "went_red": true
+        },
+        "fr->vi": {
+          "delta": 0,
+          "n": 7,
+          "present_after": 3,
+          "present_before": 3,
+          "rate": "3/7",
+          "went_red": false
+        },
+        "hi->hi": {
+          "delta": 0,
+          "n": 3,
+          "present_after": 3,
+          "present_before": 3,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=3 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "ru->ru": {
+          "delta": 0,
+          "n": 7,
+          "present_after": 7,
+          "present_before": 7,
+          "rate": "7/7",
+          "went_red": false
+        },
+        "vi->en": {
+          "delta": 0,
+          "n": 11,
+          "present_after": 2,
+          "present_before": 2,
+          "rate": "2/11",
+          "went_red": false
+        },
+        "vi->fr": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "vi->vi": {
+          "delta": -2,
+          "n": 33,
+          "present_after": 31,
+          "present_before": 33,
+          "rate": "31/33",
+          "went_red": true
+        },
+        "vi->zh": {
+          "delta": 0,
+          "n": 1,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=1 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "zh->zh": {
+          "delta": -2,
+          "n": 9,
+          "present_after": 4,
+          "present_before": 6,
+          "rate": "4/9",
+          "went_red": true
+        }
+      },
+      "by_set_kind": {
+        "all-of": {
+          "delta": 0,
+          "n": 4,
+          "present_after": 3,
+          "present_before": 3,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "any-of": {
+          "delta": -13,
+          "n": 191,
+          "present_after": 138,
+          "present_before": 151,
+          "rate": "138/191",
+          "went_red": true
+        }
+      },
+      "by_signal": {
+        "agreement": {
+          "delta": 0,
+          "n": 23,
+          "present_after": 21,
+          "present_before": 21,
+          "rate": "21/23",
+          "went_red": false
+        },
+        "exact": {
+          "delta": -12,
+          "n": 105,
+          "present_after": 91,
+          "present_before": 103,
+          "rate": "91/105",
+          "went_red": true
+        },
+        "paraphrase": {
+          "delta": -1,
+          "n": 67,
+          "present_after": 29,
+          "present_before": 30,
+          "rate": "29/67",
+          "went_red": true
+        }
+      },
+      "by_stratum": {
+        "core": {
+          "delta": -9,
+          "n": 178,
+          "present_after": 130,
+          "present_before": 139,
+          "rate": "130/178",
+          "went_red": true
+        },
+        "reserve": {
+          "delta": -4,
+          "n": 17,
+          "present_after": 11,
+          "present_before": 15,
+          "rate": "11/17",
+          "went_red": true
+        }
+      },
+      "changed": {
+        "q-0151/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "gutenberg-cap-crossing-pair"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0160/lexical": {
+          "facet": "core",
+          "from": "absent",
+          "lane": "vi->en",
+          "level_after": "near-win",
+          "level_before": "miss",
+          "mechanisms": [
+            "cross-lingual-anchor"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "present"
+        },
+        "q-0162/lexical": {
+          "facet": "deep-body",
+          "from": "present",
+          "lane": "en->en",
+          "level_after": "miss",
+          "level_before": "near-win",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0174/lexical": {
+          "facet": "core",
+          "from": "absent",
+          "lane": "fr->en",
+          "level_after": "near-win",
+          "level_before": "miss",
+          "mechanisms": [
+            "wrong-item-type"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "present"
+        },
+        "q-0180/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "vi->en",
+          "level_after": "miss",
+          "level_before": "near-win",
+          "mechanisms": [
+            "cross-lingual-anchor"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0183/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "structural-footnote"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0193/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "level_after": "miss",
+          "level_before": "near-win",
+          "mechanisms": [
+            "structural-table"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0195/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "fr->en",
+          "level_after": "miss",
+          "level_before": "near-win",
+          "mechanisms": [
+            "cross-lingual-anchor"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0213/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "fr->fr",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "structural-table",
+            "column-flattening",
+            "long-s-orthography"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0219/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->fr",
+          "level_after": "miss",
+          "level_before": "near-win",
+          "mechanisms": [
+            "cross-language"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0227/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->es",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "cross-language"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0320/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->vi",
+          "level_after": "miss",
+          "level_before": "near-win",
+          "mechanisms": [],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0335/lexical": {
+          "facet": "core",
+          "from": "absent",
+          "lane": "en->vi",
+          "level_after": "near-win",
+          "level_before": "miss",
+          "mechanisms": [
+            "compound-document-chain"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "present"
+        },
+        "q-0337/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "vi->vi",
+          "level_after": "miss",
+          "level_before": "near-win",
+          "mechanisms": [
+            "compound-document-chain"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0343/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "vi->vi",
+          "level_after": "miss",
+          "level_before": "near-win",
+          "mechanisms": [
+            "compound-book-section"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0363/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "zh->zh",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "han-script-no-word-spaces",
+            "hard-wrap-inside-word",
+            "legacy-encoding-big5"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "reserve",
+          "to": "absent"
+        },
+        "q-0403/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "ar->ar",
+          "level_after": "miss",
+          "level_before": "near-win",
+          "mechanisms": [
+            "should-language-arabic",
+            "rtl-script"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0404/lexical": {
+          "facet": "core",
+          "from": "absent",
+          "lane": "en->ar",
+          "level_after": "near-win",
+          "level_before": "miss",
+          "mechanisms": [
+            "should-language-arabic",
+            "cross-lingual-en-to-ar",
+            "rtl-script"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "present"
+        },
+        "q-0405/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "ar->ar",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "structural-table",
+            "structural-marks-x-script",
+            "should-language-arabic",
+            "rtl-script"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "reserve",
+          "to": "absent"
+        },
+        "q-0410/lexical": {
+          "facet": "core",
+          "from": "absent",
+          "lane": "en->ru",
+          "level_after": "near-win",
+          "level_before": "miss",
+          "mechanisms": [
+            "should-language-russian",
+            "cross-lingual-en-to-ru"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "core",
+          "to": "present"
+        },
+        "q-0413/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->ru",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "should-language-russian",
+            "cross-lingual-en-to-ru",
+            "legacy-encoding-windows-1251"
+          ],
+          "set_kind": "any-of",
+          "signal": "paraphrase",
+          "stratum": "reserve",
+          "to": "absent"
+        },
+        "q-0421/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "zh->zh",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "should-language-chinese",
+            "han-script"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "core",
+          "to": "absent"
+        },
+        "q-0429/lexical": {
+          "facet": "core",
+          "from": "present",
+          "lane": "en->en",
+          "level_after": "miss",
+          "level_before": "win",
+          "mechanisms": [
+            "source-format-epub",
+            "extraction-cap-crossing-inside",
+            "pageless-locator"
+          ],
+          "set_kind": "any-of",
+          "signal": "exact",
+          "stratum": "reserve",
+          "to": "absent"
+        }
+      },
+      "computed_target_questions": {
+        "cap": 2000,
+        "expected_miss": [
+          "q-0101",
+          "q-0104",
+          "q-0113",
+          "q-0124",
+          "q-0130",
+          "q-0134",
+          "q-0137",
+          "q-0153",
+          "q-0159",
+          "q-0164",
+          "q-0168",
+          "q-0179",
+          "q-0184",
+          "q-0185",
+          "q-0192",
+          "q-0196",
+          "q-0205",
+          "q-0220",
+          "q-0225",
+          "q-0245",
+          "q-0336",
+          "q-0339",
+          "q-0342",
+          "q-0346",
+          "q-0351",
+          "q-0353",
+          "q-0368",
+          "q-0407",
+          "q-0415",
+          "q-0424",
+          "q-0430"
+        ],
+        "scored": [
+          "q-0001",
+          "q-0003",
+          "q-0004",
+          "q-0100",
+          "q-0102",
+          "q-0103",
+          "q-0106",
+          "q-0107",
+          "q-0108",
+          "q-0109",
+          "q-0111",
+          "q-0112",
+          "q-0115",
+          "q-0116",
+          "q-0117",
+          "q-0119",
+          "q-0123",
+          "q-0125",
+          "q-0127",
+          "q-0128",
+          "q-0132",
+          "q-0133",
+          "q-0136",
+          "q-0139",
+          "q-0140",
+          "q-0141",
+          "q-0150",
+          "q-0151",
+          "q-0152",
+          "q-0155",
+          "q-0156",
+          "q-0157",
+          "q-0158",
+          "q-0160",
+          "q-0161",
+          "q-0162",
+          "q-0167",
+          "q-0169",
+          "q-0171",
+          "q-0172",
+          "q-0173",
+          "q-0174",
+          "q-0175",
+          "q-0176",
+          "q-0177",
+          "q-0178",
+          "q-0180",
+          "q-0181",
+          "q-0182",
+          "q-0183",
+          "q-0186",
+          "q-0187",
+          "q-0189",
+          "q-0190",
+          "q-0191",
+          "q-0193",
+          "q-0195",
+          "q-0197",
+          "q-0198",
+          "q-0199",
+          "q-0200",
+          "q-0201",
+          "q-0202",
+          "q-0203",
+          "q-0206",
+          "q-0207",
+          "q-0208",
+          "q-0209",
+          "q-0211",
+          "q-0212",
+          "q-0213",
+          "q-0214",
+          "q-0216",
+          "q-0217",
+          "q-0218",
+          "q-0219",
+          "q-0221",
+          "q-0222",
+          "q-0223",
+          "q-0224",
+          "q-0227",
+          "q-0228",
+          "q-0229",
+          "q-0230",
+          "q-0242",
+          "q-0244",
+          "q-0247",
+          "q-0248",
+          "q-0249",
+          "q-0301",
+          "q-0302",
+          "q-0304",
+          "q-0306",
+          "q-0307",
+          "q-0308",
+          "q-0309",
+          "q-0310",
+          "q-0312",
+          "q-0314",
+          "q-0315",
+          "q-0317",
+          "q-0319",
+          "q-0320",
+          "q-0321",
+          "q-0322",
+          "q-0329",
+          "q-0331",
+          "q-0334",
+          "q-0335",
+          "q-0337",
+          "q-0340",
+          "q-0341",
+          "q-0343",
+          "q-0344",
+          "q-0345",
+          "q-0348",
+          "q-0350",
+          "q-0352",
+          "q-0354",
+          "q-0358",
+          "q-0359",
+          "q-0361",
+          "q-0363",
+          "q-0366",
+          "q-0369",
+          "q-0370",
+          "q-0400",
+          "q-0401",
+          "q-0403",
+          "q-0404",
+          "q-0405",
+          "q-0406",
+          "q-0408",
+          "q-0409",
+          "q-0410",
+          "q-0411",
+          "q-0412",
+          "q-0413",
+          "q-0414",
+          "q-0416",
+          "q-0417",
+          "q-0418",
+          "q-0419",
+          "q-0420",
+          "q-0421",
+          "q-0422",
+          "q-0423",
+          "q-0429",
+          "q-0435"
+        ]
+      },
+      "control": false,
+      "delta": -13,
+      "expected_miss_flips": {
+        "pass->unexpected-hit": [
+          "q-0101/lexical",
+          "q-0231/lexical",
+          "q-0235/lexical",
+          "q-0324/lexical"
+        ],
+        "unexpected-hit->pass": [
+          "q-0165/lexical",
+          "q-0220/lexical",
+          "q-0346/lexical",
+          "q-0430/lexical"
+        ]
+      },
+      "expected_miss_note": "expected-miss outcomes are computed and reported and enter no gated reading: golden_gate.evaluate() takes the gate state from R34 and stability alone",
+      "gate_state_after": "fail",
+      "gate_state_before": "fail",
+      "kind": "build",
+      "mechanisms_fired": {
+        "(none declared)": 2,
+        "column-flattening": 1,
+        "compound-book-section": 1,
+        "compound-document-chain": 1,
+        "cross-language": 2,
+        "cross-lingual-anchor": 2,
+        "cross-lingual-en-to-ru": 1,
+        "extraction-cap-crossing-inside": 1,
+        "gutenberg-cap-crossing-pair": 1,
+        "han-script": 1,
+        "han-script-no-word-spaces": 1,
+        "hard-wrap-inside-word": 1,
+        "legacy-encoding-big5": 1,
+        "legacy-encoding-windows-1251": 1,
+        "long-s-orthography": 1,
+        "pageless-locator": 1,
+        "rtl-script": 2,
+        "should-language-arabic": 2,
+        "should-language-chinese": 1,
+        "should-language-russian": 1,
+        "source-format-epub": 1,
+        "structural-footnote": 1,
+        "structural-marks-x-script": 1,
+        "structural-table": 3
+      },
+      "must_cells": {
+        "en->en": {
+          "delta": -5,
+          "n": 56,
+          "present_after": 51,
+          "present_before": 56,
+          "rate": "51/56",
+          "went_red": true
+        },
+        "en->fr": {
+          "delta": -1,
+          "n": 4,
+          "present_after": 1,
+          "present_before": 2,
+          "rate": "not-evaluated",
+          "went_red": true,
+          "why_no_rate": "n=4 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "en->vi": {
+          "delta": 0,
+          "n": 8,
+          "present_after": 3,
+          "present_before": 3,
+          "rate": "3/8",
+          "went_red": false
+        },
+        "fr->en": {
+          "delta": 0,
+          "n": 10,
+          "present_after": 4,
+          "present_before": 4,
+          "rate": "4/10",
+          "went_red": false
+        },
+        "fr->fr": {
+          "delta": -1,
+          "n": 19,
+          "present_after": 18,
+          "present_before": 19,
+          "rate": "18/19",
+          "went_red": true
+        },
+        "fr->vi": {
+          "delta": 0,
+          "n": 7,
+          "present_after": 3,
+          "present_before": 3,
+          "rate": "3/7",
+          "went_red": false
+        },
+        "vi->en": {
+          "delta": 0,
+          "n": 11,
+          "present_after": 2,
+          "present_before": 2,
+          "rate": "2/11",
+          "went_red": false
+        },
+        "vi->fr": {
+          "delta": 0,
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        },
+        "vi->vi": {
+          "delta": -2,
+          "n": 33,
+          "present_after": 31,
+          "present_before": 33,
+          "rate": "31/33",
+          "went_red": true
+        }
+      },
+      "must_cells_that_did_not_go_red": [
+        {
+          "delta": 0,
+          "lane": "en->vi",
+          "n": 8,
+          "present_after": 3,
+          "present_before": 3,
+          "rate": "3/8",
+          "reading": "the cell held present questions and the arm, which named it, moved none of them; this is the finding",
+          "reason": "not-reached",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "fr->en",
+          "n": 10,
+          "present_after": 4,
+          "present_before": 4,
+          "rate": "4/10",
+          "reading": "the cell held present questions and the arm, which named it, moved none of them; this is the finding",
+          "reason": "not-reached",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "fr->vi",
+          "n": 7,
+          "present_after": 3,
+          "present_before": 3,
+          "rate": "3/7",
+          "reading": "the cell held present questions and the arm, which named it, moved none of them; this is the finding",
+          "reason": "not-reached",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "vi->en",
+          "n": 11,
+          "present_after": 2,
+          "present_before": 2,
+          "rate": "2/11",
+          "reading": "the cell held present questions and the arm, which named it, moved none of them; this is the finding",
+          "reason": "not-reached",
+          "went_red": false
+        },
+        {
+          "delta": 0,
+          "lane": "vi->fr",
+          "n": 2,
+          "present_after": 0,
+          "present_before": 0,
+          "rate": "not-evaluated",
+          "reading": "the cell already read zero present at baseline under this predicate, so no arm can make it redder; this is a property of the predicate, not of the arm",
+          "reason": "no-headroom",
+          "went_red": false,
+          "why_no_rate": "n=2 < 5; SPEC §5.2.10 leaves the MUST-cell minima unruled"
+        }
+      ],
+      "predicate": "twin-excluded",
+      "present_after": 141,
+      "present_before": 154,
+      "reference": "control-build",
+      "scored_questions": 195,
+      "target_lanes": [
+        "en->en",
+        "fr->fr",
+        "vi->vi",
+        "en->fr",
+        "en->vi",
+        "fr->en",
+        "fr->vi",
+        "vi->en",
+        "vi->fr"
+      ],
+      "target_mechanisms": [
+        "index-cap"
+      ],
+      "went_absent": [
+        "q-0151/lexical",
+        "q-0162/lexical",
+        "q-0180/lexical",
+        "q-0183/lexical",
+        "q-0193/lexical",
+        "q-0195/lexical",
+        "q-0213/lexical",
+        "q-0219/lexical",
+        "q-0227/lexical",
+        "q-0320/lexical",
+        "q-0337/lexical",
+        "q-0343/lexical",
+        "q-0363/lexical",
+        "q-0403/lexical",
+        "q-0405/lexical",
+        "q-0413/lexical",
+        "q-0421/lexical",
+        "q-0429/lexical"
+      ],
+      "went_present": [
+        "q-0160/lexical",
+        "q-0174/lexical",
+        "q-0335/lexical",
+        "q-0404/lexical",
+        "q-0410/lexical"
+      ]
+    }
+  }
+}
