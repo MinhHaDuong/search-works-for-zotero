@@ -1,0 +1,87 @@
+%erg 0.1
+Title: File six upstream Zoteus issues and relay the responses
+Created: 2026-09-07
+Author: Codex
+
+--- log ---
+2026-09-07T13:17Z Codex created
+
+2026-09-07T13:18Z Codex note Restored the ticket from the author-supplied text; functional revalidation and duplicate checks in progress on upstream/main 5a81cee. No upstream code changes.
+2026-09-07T13:22Z Codex note Maintainer feedback already on https://github.com/oscardvs/zoteus/issues/58#issuecomment-5559939505 explicitly invites a separate issue or PR for local bibliography routing. Smallest plan: route bibliography rendering and item_keys CSL export through the local-capable router; keep the supplied-CSL path intact.
+2026-09-07T13:25Z Codex filed Resolve the configured/explicit library consistently for writes and annotation reads: https://github.com/oscardvs/zoteus/issues/61. Rechecked upstream/main 5a81cee and all issue/PR titles immediately before filing; verified the public issue title, body and author after creation.
+2026-09-07T13:25Z Codex filed MCPB advertises Windows/macOS but its Linux build omits their native PDF dependency: https://github.com/oscardvs/zoteus/issues/62. Rechecked upstream/main 5a81cee and all issue/PR titles immediately before filing; verified the public issue title, body and author after creation.
+2026-09-07T13:25Z Codex filed Transient note/annotation census failure advances the cursor and prevents catch-up on retry: https://github.com/oscardvs/zoteus/issues/63. Rechecked upstream/main 5a81cee and all issue/PR titles immediately before filing; verified the public issue title, body and author after creation.
+2026-09-07T13:25Z Codex filed Route item-key bibliography generation through the local API in key-free mode: https://github.com/oscardvs/zoteus/issues/64. Rechecked upstream/main 5a81cee and all issue/PR titles immediately before filing; verified the public issue title, body and author after creation.
+2026-09-07T13:25Z Codex filed Annotation passages can exhaust the semantic candidate pool before item deduplication: https://github.com/oscardvs/zoteus/issues/65. Rechecked upstream/main 5a81cee and all issue/PR titles immediately before filing; verified the public issue title, body and author after creation.
+2026-09-07T13:25Z Codex filed Enable GitHub private vulnerability reporting: https://github.com/oscardvs/zoteus/issues/66. Rechecked upstream/main 5a81cee and all issue/PR titles immediately before filing; verified the public issue title, body and author after creation.
+2026-09-07T13:26Z Codex note Revalidation evidence: verification/UPSTREAM-PUBLIC-REVIEW-0736.md and its linked executable probes, raw outputs and exact public issue text. All functional findings reproduced at their stated evidence grade; Windows/macOS PDF runtime remains a loader simulation, not a native smoke test.
+2026-09-07T13:27Z Codex note Follow-up poll: issues #61 through #66 are OPEN with no comments; private vulnerability reporting still returns enabled=false. No approval inferred. Filing complete; this ticket remains open for substantive responses and their response/patch plans.
+2026-09-07T13:28Z Codex note The committed reproduction test also passes upstream typecheck:tests. Public-page receipts and exact submitted bodies are under verification/upstream-issues-0736/; SYNC.md points here for follow-through.
+2026-09-07T13:31Z Codex verified make check PASS with local test sockets permitted; targeted upstream defect reproductions and typecheck:tests PASS. Gate output: bench/results/upstream-public-review-2026-09-07/make-check.txt.
+--- body ---
+
+## Context
+
+The 2026-09-07 whole-repository review of `oscardvs/zoteus` found five
+contained, user-visible defects suitable for ordinary public issues. A sixth
+public issue should ask the maintainer to enable GitHub private vulnerability
+reporting. GitHub authentication did not complete in the filing session, so
+the work is retained here instead of being silently lost.
+
+This ticket also owns the follow-through: bring substantive upstream comments,
+reviews, requested changes, merges, and fixes back into this repository's
+record, with the smallest response or patch plan each one requires.
+
+## Public issue queue
+
+1. Resolve the effective library consistently for writes and annotations.
+2. Package the native PDF dependency for every platform advertised by the
+   MCPB, or narrow the advertised platform support to what is verified.
+3. Do not advance the library cursor when incremental own-words/note catch-up
+   fails.
+4. Support bibliography generation from a key-free local Zotero library.
+5. Keep note passages from crowding distinct items out of semantic-search
+   results.
+6. Enable GitHub private vulnerability reporting. This issue is deliberately
+   neutral and contains no vulnerability details.
+
+## Filing rules
+
+- Re-check each public finding against live upstream `main` immediately before
+  filing; do not file work already fixed or duplicated by an existing issue.
+- One coherent defect per issue. Include a minimal reproduction, expected and
+  actual behaviour, the smallest plausible fix shape, and acceptance criteria.
+- Keep internal governance and all security-sensitive evidence out of public
+  issue text.
+- Ask only for the confidential reporting channel in issue 6. If it becomes
+  available, use it for security-sensitive reports rather than a public issue.
+- Record every filed URL and every substantive response in this ticket with
+  `erg log`; do not infer approval from silence.
+
+## Exit criteria
+
+- [x] The five functional findings are revalidated against current upstream.
+- [x] Existing upstream issues are checked for duplicates.
+- [x] Five public functional issues are filed, or this ticket logs why a
+      finding was deliberately not filed.
+- [x] The neutral private-vulnerability-reporting request is filed without
+      security details.
+- [x] Each filed issue URL is recorded here.
+- [ ] Substantive maintainer feedback is relayed here with the smallest
+      appropriate response or patch plan.
+
+## References
+
+- `GOVERNANCE.md`, especially the disclosure rule and courtesy-filing norm.
+- `SYNC.md` for live upstream state and the reviewed baseline.
+- GitHub documentation: `https://docs.github.com/code-security/security-advisories/working-with-repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository`.
+
+## Evidence and handoff
+
+- `verification/UPSTREAM-PUBLIC-REVIEW-0736.md` records revalidation,
+  duplicate review, probe commands, limitations and the raw-evidence paths.
+- `verification/upstream-issues-0736/` holds the exact filed public bodies
+  and verified creation receipts.
+- Filing is complete. Follow-through stays open: read the filed pages and
+  associated fixes, record substantive responses with `erg log`, and name the
+  smallest response or patch plan. No background monitoring is configured.

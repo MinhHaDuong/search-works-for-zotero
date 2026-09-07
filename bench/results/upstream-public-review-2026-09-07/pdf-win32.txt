@@ -1,0 +1,5 @@
+Warning: Cannot load "@napi-rs/canvas" package: "Error: Cannot find native binding. npm has a bug related to optional dependencies (https://github.com/npm/cli/issues/4828). Please try `npm i` again after removing both package-lock.json and node_modules directory.".
+Warning: Cannot polyfill `DOMMatrix`, rendering may be broken.
+Warning: Cannot polyfill `ImageData`, rendering may be broken.
+Warning: Cannot polyfill `Path2D`, rendering may be broken.
+{"host":"linux","target":"win32","arch":"x64","simulated":true,"error":"ReferenceError: DOMMatrix is not defined"}

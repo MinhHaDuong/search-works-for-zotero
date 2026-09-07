@@ -1,0 +1,14 @@
+{
+  "release": "v1.15.0",
+  "url": "https://github.com/oscardvs/zoteus/releases/download/v1.15.0/zoteus.mcpb",
+  "sha256": "c53a0dc4161b9b5a3e9b9bbed470346a950d10f1f07d3cd1f2ddb80078aa6f14",
+  "platforms": [
+    "darwin",
+    "win32",
+    "linux"
+  ],
+  "native_canvas_packages": [
+    "canvas-linux-x64-gnu",
+    "canvas-linux-x64-musl"
+  ]
+}

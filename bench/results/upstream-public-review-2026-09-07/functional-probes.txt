@@ -1,0 +1,14 @@
+
+> @oscardvs/zoteus@1.15.0 test
+> vitest run tests/features/public-findings.test.ts --maxWorkers=1 --minWorkers=1
+
+
+ RUN  v2.1.9 /tmp/zoteus-t0736
+
+ ✓ tests/features/public-findings.test.ts (8 tests) 214ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  15:27:53
+   Duration  1.61s (transform 726ms, setup 0ms, collect 977ms, tests 214ms, environment 1ms, prepare 145ms)
+

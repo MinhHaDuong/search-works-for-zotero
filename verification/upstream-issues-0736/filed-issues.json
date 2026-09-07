@@ -1,0 +1,62 @@
+[
+  {
+    "slug": "library-routing",
+    "number": 61,
+    "url": "https://github.com/oscardvs/zoteus/issues/61",
+    "title": "Resolve the configured/explicit library consistently for writes and annotation reads",
+    "state": "OPEN",
+    "createdAt": "2026-09-07T13:25:32Z",
+    "verified_head": "5a81cee88be6d979e9ca1e99e897b6b6df25beef",
+    "comments": []
+  },
+  {
+    "slug": "pdf-bundle",
+    "number": 62,
+    "url": "https://github.com/oscardvs/zoteus/issues/62",
+    "title": "MCPB advertises Windows/macOS but its Linux build omits their native PDF dependency",
+    "state": "OPEN",
+    "createdAt": "2026-09-07T13:25:35Z",
+    "verified_head": "5a81cee88be6d979e9ca1e99e897b6b6df25beef",
+    "comments": []
+  },
+  {
+    "slug": "note-cursor",
+    "number": 63,
+    "url": "https://github.com/oscardvs/zoteus/issues/63",
+    "title": "Transient note/annotation census failure advances the cursor and prevents catch-up on retry",
+    "state": "OPEN",
+    "createdAt": "2026-09-07T13:25:38Z",
+    "verified_head": "5a81cee88be6d979e9ca1e99e897b6b6df25beef",
+    "comments": []
+  },
+  {
+    "slug": "local-bibliography",
+    "number": 64,
+    "url": "https://github.com/oscardvs/zoteus/issues/64",
+    "title": "Route item-key bibliography generation through the local API in key-free mode",
+    "state": "OPEN",
+    "createdAt": "2026-09-07T13:25:41Z",
+    "verified_head": "5a81cee88be6d979e9ca1e99e897b6b6df25beef",
+    "comments": []
+  },
+  {
+    "slug": "distinct-results",
+    "number": 65,
+    "url": "https://github.com/oscardvs/zoteus/issues/65",
+    "title": "Annotation passages can exhaust the semantic candidate pool before item deduplication",
+    "state": "OPEN",
+    "createdAt": "2026-09-07T13:25:44Z",
+    "verified_head": "5a81cee88be6d979e9ca1e99e897b6b6df25beef",
+    "comments": []
+  },
+  {
+    "slug": "private-reporting",
+    "number": 66,
+    "url": "https://github.com/oscardvs/zoteus/issues/66",
+    "title": "Enable GitHub private vulnerability reporting",
+    "state": "OPEN",
+    "createdAt": "2026-09-07T13:25:47Z",
+    "verified_head": "5a81cee88be6d979e9ca1e99e897b6b6df25beef",
+    "comments": []
+  }
+]
