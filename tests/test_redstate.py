@@ -5,14 +5,16 @@ That failure mode reproduces one level up: a differ that reports "nothing went r
 is itself broken is indistinguishable from a bank that cannot fail. So every test here is a
 control rather than a coverage tick:
 
-  * the predicates are pinned to two numbers measured on the committed report (161/195 and
-    42/195). Without them, "no cell went red" and "my predicate code is wrong" print the same;
+  * the two ruled scores of 2026-09-07 are pinned to numbers measured on the committed
+    golden run. Without them, "no cell went red" and "my score code is wrong" print the same;
+  * the official score reads zero everywhere, and a *positive control* injects a synthetic
+    reply carrying a page inside the target's range and asserts the score counts it — a zero
+    with no positive control is not a finding, it is a probe that may not be looking;
   * the identity transform's delta must be empty, which is the differ's negative control;
-  * each real transform must be non-identity, which is the *positive* control — a transform
-    that changes nothing is precisely the vacuity the ticket exists to catch.
+  * each real transform must be non-identity, which is the positive control for the arms —
+    a transform that changes nothing is precisely the vacuity this ticket exists to catch.
 
-Fast tier: no build, no node, no network. The two that read the committed report parse a
-712 KB JSON once and are shared through a module-scoped fixture.
+Fast tier: no build, no node, no network.
 """
 
 from __future__ import annotations
@@ -30,21 +32,27 @@ sys.path.insert(0, str(REPO / "bench"))
 import redstate  # noqa: E402
 from golden_gate import InputError, load_replies  # noqa: E402
 
+BANK = REPO / "bench" / "fixtures" / "questions"
+EXPORT = REPO / "bench" / "fixtures" / "export"
 BASELINE_REPORT = REPO / "bench" / "results" / "golden" / "report.json"
 BASELINE_REPLIES = REPO / "bench" / "results" / "golden" / "replies.json"
-EXPORT = REPO / "bench" / "fixtures" / "export"
 
-#: Measured on the committed report of build b0e0bc8 over export 579ab8dd…2296ccc. These are
-#: the predicate code's positive control: a change to either is a change to what "present"
-#: means, which is the author's open ruling on PR #409 and never a silent edit here.
-SHIPPED_PRESENT = 161
-EVIDENCE_MATCHED_PRESENT = 42
+#: Measured on the committed golden run (build b0e0bc8, export 579ab8dd…2296ccc), which is
+#: also what the ruling of 2026-09-07 was measured against before it was written into SPEC.
+HITS = 1928
+HITS_CARRYING_A_PAGE = 0
 SCORED = 195
+OFFICIAL_PRESENT = 0
+ACCOMMODATING_PRESENT = 75
+
+#: The two predicates the ruling superseded, kept so the reading can say what moved.
+SUPERSEDED_SHIPPED = 161
+SUPERSEDED_EVIDENCE_MATCHED = 42
 
 
 @pytest.fixture(scope="module")
-def report() -> dict:
-    return json.loads(BASELINE_REPORT.read_text(encoding="utf-8"))
+def bank() -> dict:
+    return {question["id"]: question for question in redstate.load_bank(BANK)}
 
 
 @pytest.fixture(scope="module")
@@ -55,6 +63,16 @@ def export():
 @pytest.fixture(scope="module")
 def baseline_bundle() -> dict:
     return json.loads(BASELINE_REPLIES.read_text(encoding="utf-8"))
+
+
+@pytest.fixture(scope="module")
+def report() -> dict:
+    return json.loads(BASELINE_REPORT.read_text(encoding="utf-8"))
+
+
+@pytest.fixture(scope="module")
+def ruled(baseline_bundle, bank, export) -> dict:
+    return redstate.score_bundle_ruled(baseline_bundle, bank, export, 10)
 
 
 # --------------------------------------------------------------------------- the arms
@@ -90,7 +108,7 @@ def test_arm_names_are_unique_and_kinds_are_known():
 
 
 def test_build_patches_still_match_the_fork_source():
-    """A patch that no longer matches would make an arm silently a no-op rebuild.
+    """A patch that no longer matches would make an arm a silent no-op rebuild.
 
     Skipped rather than failed where fork/ is absent: it is git-ignored and cloned on demand,
     so its absence is a missing prerequisite, not a defect in this repo.
@@ -106,106 +124,250 @@ def test_build_patches_still_match_the_fork_source():
             )
 
 
-# --------------------------------------------------------------------------- the predicates
+# --------------------------------------------------------------------------- the ruled scores
 
 
-def test_shipped_predicate_reproduces_the_committed_reading(report):
-    scored = redstate.scored_entries(report)
-    assert len(scored) == SCORED
-    assert len(redstate.present_set(report, "shipped")) == SHIPPED_PRESENT
+def test_no_hit_in_the_golden_run_carries_a_page(ruled):
+    """The measurement the ruling rests on, held as a fixture rather than quoted.
 
-
-def test_evidence_matched_predicate_reproduces_the_committed_reading(report):
-    assert len(redstate.present_set(report, "evidence-matched")) == EVIDENCE_MATCHED_PRESENT
-
-
-def test_the_two_predicates_disagree_structurally(report):
-    """They are not two readings of one number: one is a strict subset of the other."""
-
-    shipped = redstate.present_set(report, "shipped")
-    matched = redstate.present_set(report, "evidence-matched")
-    assert matched < shipped
-    assert len(shipped - matched) == SHIPPED_PRESENT - EVIDENCE_MATCHED_PRESENT
-
-
-def test_twin_excluded_sits_between_the_two(report):
-    shipped = redstate.present_set(report, "shipped")
-    matched = redstate.present_set(report, "evidence-matched")
-    twinless = redstate.present_set(report, "twin-excluded")
-    assert matched <= twinless <= shipped
-    assert twinless < shipped, "no question rides the work-twin path — the third reading would be vacuous"
-
-
-def test_cross_lingual_must_cells_have_no_evidence_matched_headroom(report):
-    """The measurement that shapes the whole reading, held as a fixture.
-
-    Under the evidence-matched predicate all six cross-lingual MUST cells already read zero
-    present at baseline, so no arm can make them redder. If this ever fails, the reading's
-    central claim has moved and the artifact must be rewritten, not patched.
+    R34 as ruled needs the page the system reports. The schema has the field; the engine
+    returns key, title, snippet and score. Ticket 0734 is the requirement gap.
     """
 
-    scored = redstate.scored_entries(report)
-    matched = redstate.present_set(report, "evidence-matched")
+    assert ruled["hits"] == HITS
+    assert ruled["hits_carrying_a_page"] == HITS_CARRYING_A_PAGE
+
+
+def test_the_official_score_is_zero_and_says_why(ruled):
+    assert ruled["scored_questions"] == SCORED
+    assert ruled["official_present"] == OFFICIAL_PRESENT
+    reasons = ruled["official_rows_by_reason"]
+    assert reasons.get("no-reported-page"), "the official zero must be attributed to the missing page"
+    assert "reported-page-outside-target" not in reasons, (
+        "a row refused for a page outside the target would mean some page WAS reported"
+    )
+
+
+def test_the_official_score_counts_a_reply_that_does_carry_the_page(bank, export, baseline_bundle):
+    """The positive control. A zero whose probe cannot see anything is not a finding.
+
+    One reply is rewritten to carry the right work and a page inside the target's derived
+    range. If the official score still reads zero, the score is broken rather than the
+    system, and every other assertion here would be worthless.
+    """
+
+    scorer = redstate.RuledScore(export, bank, 10)
+    doctored = copy.deepcopy(baseline_bundle)
+    planted = 0
+    for reply in doctored["replies"]:
+        question = bank.get(reply["id"])
+        if not question or reply.get("results") is None or question["expected_miss"] or not question["pinned"]:
+            continue
+        row = question["pinned"][0]
+        target = scorer.target_ranges(row, question)
+        if not target["derived"]:
+            continue
+        parent = export.parent_of.get(row["attachment_key"])
+        low = target["derived"][0][0]
+        reply["results"] = [{
+            "rank": 1, "item_key": parent, "attachment_key": row["attachment_key"],
+            "work_id": row["work_id"], "evidence": None, "page": str(low),
+            "chain": {}, "score": 1.0,
+        }]
+        planted += 1
+        if planted >= 3:
+            break
+
+    assert planted == 3, "the control could not be planted; the fixture has moved"
+    after = redstate.score_bundle_ruled(doctored, bank, export, 10)
+    assert after["hits_carrying_a_page"] == planted
+    assert after["official_present"] == planted, (
+        "the official score did not count a reply that carries the right work and an "
+        "intersecting page — the score is broken, not the system"
+    )
+
+
+def test_the_official_score_refuses_a_page_outside_the_target(bank, export, baseline_bundle):
+    """The discriminating half of the control above: it must be able to come out the other way."""
+
+    scorer = redstate.RuledScore(export, bank, 10)
+    doctored = copy.deepcopy(baseline_bundle)
+    planted = 0
+    for reply in doctored["replies"]:
+        question = bank.get(reply["id"])
+        if not question or reply.get("results") is None or question["expected_miss"] or not question["pinned"]:
+            continue
+        row = question["pinned"][0]
+        target = scorer.target_ranges(row, question)
+        if not target["derived"]:
+            continue
+        reply["results"] = [{
+            "rank": 1, "item_key": export.parent_of.get(row["attachment_key"]),
+            "attachment_key": row["attachment_key"], "work_id": row["work_id"], "evidence": None,
+            "page": str(target["derived"][0][1] + 500), "chain": {}, "score": 1.0,
+        }]
+        planted += 1
+        if planted >= 3:
+            break
+    after = redstate.score_bundle_ruled(doctored, bank, export, 10)
+    assert after["hits_carrying_a_page"] == planted
+    assert after["official_present"] == 0
+
+
+def test_the_accommodating_score_reproduces_the_committed_reading(ruled):
+    assert ruled["accommodating_present"] == ACCOMMODATING_PRESENT
+
+
+def test_the_accommodating_score_uses_both_intersection_paths(ruled):
+    """Pages where the export has them, character spans where §5.2.10 says it must.
+
+    Both paths must actually carry rows, or the reading would be quoting a mechanism that
+    never fires.
+    """
+
+    paths = ruled["rows_by_intersection_path"]
+    assert paths.get("page"), "no row went through the page-intersection path"
+    assert paths.get("char"), "no row went through the character-span path"
+
+
+def test_the_cross_lingual_must_cells_have_almost_no_headroom_under_either_score(ruled):
+    """The measurement that shapes the whole reading, recomputed under the ruling.
+
+    The predecessor's table was computed under the superseded evidence-matched predicate.
+    Under the ruled scores the picture is the same in kind and worse in degree: the official
+    score floors every cell at zero, and the accommodating score leaves five of the six
+    cross-lingual MUST cells at zero with vi->en holding one question.
+    """
+
+    present = redstate.present_set(ruled, redstate.ACCOMMODATING)
+    counts = {}
     for lane in redstate.MUST_LANES_CROSSLINGUAL:
-        keys = {key for key, entry in scored.items() if entry["lane"] == lane}
+        keys = {key for key, entry in ruled["questions"].items() if entry["lane"] == lane}
         assert keys, f"{lane} holds no scored question"
-        assert not (keys & matched), f"{lane} has evidence-matched headroom; the reading assumed none"
+        counts[lane] = len(keys & present)
+    assert sum(counts.values()) == 1, f"cross-lingual accommodating headroom moved: {counts}"
+    assert counts["vi->en"] == 1
+    assert not redstate.present_set(ruled, redstate.OFFICIAL)
+
+
+def test_the_superseded_predicates_are_still_readable_for_the_record(report):
+    """Reported so the artifact can say what the ruling moved; never gated on."""
+
+    assert len(redstate.superseded_present_set(report, "shipped")) == SUPERSEDED_SHIPPED
+    assert len(redstate.superseded_present_set(report, "evidence-matched")) == SUPERSEDED_EVIDENCE_MATCHED
+
+
+def test_a_translation_twin_is_not_the_right_work(bank, export):
+    """SPEC §5.2.10 asserts the other-language rendering distinct; R34's reading follows it.
+
+    The superseded shipped predicate let the twin path count as present. The ruled scores
+    must not, or a cross-lingual question would pass on exactly the miss R29 exists to catch.
+    """
+
+    scorer = redstate.RuledScore(export, bank, 10)
+    twinned = [(work, twins) for work, twins in export.twin_works.items() if twins]
+    assert twinned, "the export declares no twin works; this control cannot fire"
+    work, twins = twinned[0]
+    other = sorted(twins)[0]
+    twin_items = sorted(export.items_of_work.get(other, set()))
+    assert twin_items, "the twin work holds no item"
+    attachment = next(key for key, parent in export.parent_of.items()
+                      if export.work_of_item.get(parent) == work)
+    row = {"attachment_key": attachment, "work_id": work}
+    assert not scorer.right_work(
+        {"item_key": twin_items[0], "attachment_key": None}, row
+    ), "a twin item counted as the right work"
+    assert scorer.right_work(
+        {"item_key": export.parent_of[attachment], "attachment_key": None}, row
+    ), "the answer's own item did not count as the right work"
+
+
+def test_page_ranges_intersect_rather_than_match():
+    """Intersection, not equality — the ruling's own words, and the reason for them."""
+
+    assert redstate._ranges_intersect((3, 4), (4, 5))
+    assert redstate._ranges_intersect((3, 3), (3, 3))
+    assert not redstate._ranges_intersect((3, 4), (5, 6))
+    assert not redstate._ranges_intersect(None, (5, 6))
+
+
+def test_a_page_index_reads_the_extractions_own_breaks(export):
+    """Form feeds are the page structure; an attachment without them has none."""
+
+    pages = redstate.PageIndex(export)
+    with_pages = [key for key in sorted(export.attachments) if pages.has_pages(key)]
+    without = [key for key in sorted(export.attachments) if not pages.has_pages(key)]
+    assert with_pages and without, "the export must exercise both branches or the split is untested"
+    key = with_pages[0]
+    breaks = pages.breaks(key)
+    assert pages.page_of(key, 0) == 1
+    assert pages.page_of(key, breaks[0] + 1) == 2
+    assert pages.page_of(key, breaks[-1] + 1) == len(breaks) + 1
 
 
 # --------------------------------------------------------------------------- the differ
 
 
-def test_the_differ_reports_nothing_on_a_report_against_itself(report):
+def test_the_differ_reports_nothing_on_a_run_against_itself(ruled, report):
     """The negative control: a differ that cannot say 'nothing changed' cannot say anything."""
 
     arm = redstate.ARMS_BY_NAME["null-reply"]
     for predicate in redstate.PREDICATES:
-        document = redstate.compute_delta(arm, predicate, report, report, {})
+        document = redstate.compute_delta(arm, predicate, ruled, ruled, report, report, {})
         assert document["changed"] == {}
         assert document["delta"] == 0
         assert document["mechanisms_fired"] == {}
         assert document["expected_miss_flips"] == {}
 
 
-def test_the_differ_names_a_cell_that_stayed_green_and_says_why(report):
+def test_the_differ_names_a_cell_that_stayed_green_and_says_why(ruled, report):
     """The positive control for `must_cells_that_did_not_go_red`, on a hand-built pair.
 
     One en->en question is flipped from present to absent; every other MUST cell is
     untouched, so the differ must report the untouched ones and must distinguish a cell with
-    no headroom from one the arm simply did not reach.
+    no headroom from one the arm simply did not reach. Those are different findings and the
+    artifact must not fold them together.
     """
 
     arm = redstate.ARMS_BY_NAME["global-shuffle-sim"]
-    after = copy.deepcopy(report)
-    scored = redstate.scored_entries(after)
-    victim = next(key for key, entry in scored.items() if entry["lane"] == "en->en" and entry["r34_present"])
-    after["questions"][victim]["r34_present"] = False
+    after = copy.deepcopy(ruled)
+    victim = next(
+        key for key, entry in after["questions"].items()
+        if entry["lane"] == "en->en" and entry[redstate.ACCOMMODATING]
+    )
+    after["questions"][victim][redstate.ACCOMMODATING] = False
     for row in after["questions"][victim]["rows"]:
-        row["level"] = "miss"
-        row["evidence"] = None
+        row["accommodating"] = {"satisfied": False, "path": "page", "why": "planted"}
 
-    document = redstate.compute_delta(arm, "shipped", report, after, {})
+    document = redstate.compute_delta(arm, redstate.ACCOMMODATING, ruled, after, report, report, {})
     assert document["changed"][victim]["to"] == "absent"
     assert document["must_cells"]["en->en"]["went_red"] is True
     stayed = {cell["lane"]: cell["reason"] for cell in document["must_cells_that_did_not_go_red"]}
     assert "en->en" not in stayed
     assert stayed, "every other MUST cell was untouched and none was reported"
     assert set(stayed.values()) <= {"not-reached", "no-headroom", "no-question"}
-
-    matched = redstate.compute_delta(arm, "evidence-matched", report, after, {})
-    crosslingual = {cell["lane"]: cell["reason"] for cell in matched["must_cells_that_did_not_go_red"]}
-    for lane in redstate.MUST_LANES_CROSSLINGUAL:
-        assert crosslingual[lane] == "no-headroom", (
-            f"{lane} must be reported as already at the floor under the evidence-matched predicate, "
+    for lane in ("en->fr", "en->vi", "fr->en", "fr->vi", "vi->fr"):
+        assert stayed[lane] == "no-headroom", (
+            f"{lane} reads zero present at baseline and must be reported as already at the floor, "
             "not as an arm that failed to reach it"
         )
+    assert stayed["fr->fr"] == "not-reached"
 
 
-def test_thin_cells_print_a_count_and_no_rate(report):
+def test_the_differ_labels_the_accommodating_score_as_not_official(ruled, report):
+    arm = redstate.ARMS_BY_NAME["global-shuffle-sim"]
+    official = redstate.compute_delta(arm, redstate.OFFICIAL, ruled, ruled, report, report, {})
+    accommodating = redstate.compute_delta(arm, redstate.ACCOMMODATING, ruled, ruled, report, report, {})
+    assert official["official"] is True
+    assert accommodating["official"] is False
+    assert "NOT OFFICIAL" in accommodating["label"]
+
+
+def test_thin_cells_print_a_count_and_no_rate(ruled, report):
     """SPEC §5.2.10 leaves the MUST-cell minima unruled; a rate on n=2 would invent one."""
 
     arm = redstate.ARMS_BY_NAME["global-shuffle-sim"]
-    document = redstate.compute_delta(arm, "shipped", report, report, {})
+    document = redstate.compute_delta(arm, redstate.ACCOMMODATING, ruled, ruled, report, report, {})
     thin = document["must_cells"]["vi->fr"]
     assert thin["n"] < redstate.THIN_CELL
     assert thin["rate"] == "not-evaluated"
@@ -265,8 +427,8 @@ def test_identity_transform_really_is_the_identity(export, baseline_bundle):
 def test_global_shuffle_draws_from_the_whole_export_not_the_top_k(export, baseline_bundle):
     """A permutation *within* the top k is invisible to the gate and would be a vacuous arm.
 
-    `score_row` takes presence from set membership over `results[:k]`; rank feeds only the
-    never-gated MRR. So the arm has to change the *set*, and this asserts it does.
+    Presence is set membership over `results[:k]`; rank feeds only the never-gated MRR. So the
+    arm has to change the *set*, and this asserts it does.
     """
 
     out = redstate.transform_global_shuffle(baseline_bundle, export, 0)
@@ -306,7 +468,7 @@ def test_a_malformed_transform_output_is_refused_by_the_scorer(export):
 # --------------------------------------------------------------------------- arm E's target
 
 
-def test_cap_crossing_target_is_computed_from_the_bank_and_is_mostly_expected_miss():
+def test_cap_crossing_target_is_computed_from_the_bank_and_is_mostly_expected_miss(bank):
     """Arm E's declared target moves the wrong way, and the harness must say so in data.
 
     The ticket declares 'the cap-crossing questions'. Most of them are expected-miss, whose
@@ -314,7 +476,6 @@ def test_cap_crossing_target_is_computed_from_the_bank_and_is_mostly_expected_mi
     honest target is the scored subset, and this holds the harness to computing it.
     """
 
-    bank = {q["id"]: q for q in redstate.load_bank(REPO / "bench" / "fixtures" / "questions")}
     at_40k = redstate.cap_crossing_questions(bank, 40000)
     assert len(at_40k["expected_miss"]) > len(at_40k["scored"]), (
         "the cap-naming population is expected to be dominated by expected-miss questions"
@@ -325,8 +486,7 @@ def test_cap_crossing_target_is_computed_from_the_bank_and_is_mostly_expected_mi
     )
 
 
-def test_cap_crossing_target_is_monotone_in_the_cap():
-    bank = {q["id"]: q for q in redstate.load_bank(REPO / "bench" / "fixtures" / "questions")}
+def test_cap_crossing_target_is_monotone_in_the_cap(bank):
     wide = set(redstate.cap_crossing_questions(bank, 40000)["scored"])
     narrow = set(redstate.cap_crossing_questions(bank, 2000)["scored"])
     assert wide <= narrow

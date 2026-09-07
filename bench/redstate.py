@@ -21,14 +21,26 @@ Two kinds of arm, labelled and never conflated:
 Both write a real `menagerie-replies/v2` bundle carrying an `arm` block in `run`, so no
 artifact can be mistaken for a measurement of an unbroken build.
 
-Three predicates, because what "present" means for R34 is the author's open ruling on
-PR #409 and this harness must not preempt it:
+Two scores, because the author ruled on 2026-09-07 (SPEC §5.2.10, DECISIONS.md) what "the
+answer came back" means: the right work AND a page intersecting the target's page range,
+intersection rather than equality since either side may straddle a boundary.
 
-  shipped           `level != miss` — win, or `item-without-evidence`, or `work-twin`
-  evidence-matched  `level == win` — the pinned quote overlapped, or the printed page matched
-  twin-excluded     shipped minus the `work-twin` path (reported, not one of the two)
+  official       reads the page the system itself reports. Of 1 928 hits across the golden
+                 run's 843 replies, NONE carries a page — the schema has the field and the
+                 engine never fills it — so this score is zero everywhere and every arm
+                 leaves it there. That is a true statement about a system R24 already
+                 obliges to lead the reader to a page, not an arm's failure, and it is
+                 ticket 0734's subject.
+  accommodating  derives the page from where the returned evidence falls in the export,
+                 using the extraction's own page breaks. NOT OFFICIAL: no gate reads it, no
+                 threshold binds it, and it is labelled as such wherever it appears. It is
+                 where this exercise's red-state finding lives, because it is the only one
+                 of the two with any headroom to consume.
 
-All three are pure functions of the emitted report. The scorer is never patched.
+Both are computed here from the replies bundle and the export. `golden_gate.py` still
+implements the predicate the ruling superseded and is not patched by this harness; the two
+superseded readings are reported beside the ruled ones so the artifact can say which numbers
+the ruling moved.
 
 Subcommands: `list`, `run`, `read`.
 """
@@ -36,6 +48,7 @@ Subcommands: `list`, `run`, `read`.
 from __future__ import annotations
 
 import argparse
+import bisect
 import copy
 import dataclasses
 import gzip
@@ -44,15 +57,16 @@ import json
 import logging
 import os
 import random
+import re
 import subprocess
 import sys
 from dataclasses import dataclass
+from collections import Counter
 from pathlib import Path
 from typing import Any, Callable
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from golden_gate import (  # noqa: E402
-    MISS,
     REPLIES_SCHEMA,
     CHAIN_FIELDS,
     Export,
@@ -62,6 +76,7 @@ from golden_gate import (  # noqa: E402
     load_export,
     load_replies,
     load_thresholds,
+    normalise_text,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(message)s", stream=sys.stderr)
@@ -87,41 +102,350 @@ MUST_LANES = MUST_LANES_MONOLINGUAL + MUST_LANES_CROSSLINGUAL
 #: not-evaluated clause, whose minimum is unruled; the count is printed either way).
 THIN_CELL = 5
 
-PREDICATES = ("shipped", "evidence-matched", "twin-excluded")
-EVIDENCE_HOWS = frozenset({"evidence-overlap", "printed-page"})
+#: The two scores of the ruling of 2026-09-07 (SPEC §5.2.10, "What 'the answer came back'
+#: means, and the two scores it forces"). R34 is satisfied by the right work AND a page
+#: intersecting the target's page range — intersection, not equality, because either side may
+#: straddle a boundary. Only the first is official; the second is always labelled as not
+#: official, and no gate reads it.
+OFFICIAL = "official"
+ACCOMMODATING = "accommodating"
+PREDICATES = (OFFICIAL, ACCOMMODATING)
+
+#: The two predicates the review gate escalated on and the author's ruling superseded. Kept
+#: as names so the reading can say which numbers the ruling moved, never as a score this
+#: harness gates or recommends on.
+SUPERSEDED_PREDICATES = ("shipped", "evidence-matched")
+
+#: The extraction's own page break. Zotero's text layer separates pages with a form feed; an
+#: attachment whose content carries none has no page structure in the export, which §5.2.10
+#: already anticipates ("a file that has no pages … locates by character number instead").
+PAGE_BREAK = "\f"
+
+#: How far a snippet is trimmed back before locating it is given up on. A reply's evidence is
+#: a display window: it begins and ends mid-word and is elided with "…", so an exact find of
+#: the whole string fails on text that is genuinely there.
+_LOCATE_PREFIXES = (None, 120, 60, 30)
 
 
-# --------------------------------------------------------------------------- predicates
+# --------------------------------------------------------------------------- the ruled scores
 
 
-def _row_present(row: dict[str, Any], predicate: str) -> bool:
-    """Is one scored pinned row 'present' under this predicate?"""
+def _strip_window(text: str) -> str:
+    """A snippet's own elision marks, removed. Display furniture, not text."""
 
-    evidence = row.get("evidence") or {}
-    if predicate == "evidence-matched":
-        return evidence.get("how") in EVIDENCE_HOWS
-    if row["level"] == MISS:
-        return False
-    if predicate == "twin-excluded":
-        return evidence.get("why") != "work-twin"
-    return True
+    return text.strip().strip("…").strip(". ").strip()
 
 
-def question_present(entry: dict[str, Any], predicate: str) -> bool:
-    """R34's reading of one scored question under a predicate.
+def _locate_span(needle: str, norm: str, origin: list[int]) -> tuple[int, int] | None:
+    """Raw (start, end) of `needle` in the raw text behind (`norm`, `origin`), or None.
 
-    The shipped predicate is read off the report's own `r34_present` rather than recomputed,
-    so a disagreement between this harness and the scorer would show up as a test failure
-    rather than as a silently different headline number.
+    Progressive trimming, because the caller's needle is usually a display window rather than
+    a quotation: a failed exact find is not evidence that the passage is absent.
     """
 
-    if entry.get("state") != "scored":
-        raise ValueError(f"{entry.get('id')} is {entry.get('state')}, not scored")
-    if predicate == "shipped":
-        return bool(entry["r34_present"])
-    rows = entry["rows"]
-    found = [_row_present(row, predicate) for row in rows]
-    return any(found) if entry["set_kind"] == "any-of" else all(found)
+    if not needle:
+        return None
+    for width in _LOCATE_PREFIXES:
+        probe = needle if width is None else needle[:width]
+        if len(probe) < 12:
+            continue
+        at = norm.find(probe)
+        if at < 0:
+            continue
+        return origin[at], origin[min(at + len(probe), len(origin)) - 1]
+    return None
+
+
+def _ranges_intersect(left: tuple[int, int] | None, right: tuple[int, int] | None) -> bool:
+    """Non-empty overlap. The ruling's test, and the reason it is not equality."""
+
+    if left is None or right is None:
+        return False
+    return max(left[0], right[0]) <= min(left[1], right[1])
+
+
+def _parse_page(value: Any) -> tuple[int, int] | None:
+    """A page as reported or printed, read as a range. Roman folios are not read."""
+
+    if value is None:
+        return None
+    numbers = [int(found) for found in re.findall(r"\d+", str(value))]
+    if not numbers:
+        return None
+    return (min(numbers), max(numbers))
+
+
+class PageIndex:
+    """The export read as page breaks and normalised text, cached per attachment.
+
+    Both live here because they share one expensive object — the normalised copy of a
+    fulltext with its origin map. Normalising a 500 kB document per hit would be the entire
+    runtime of the accommodating score; there are 92 fulltext attachments against 1 928 hits,
+    so each is normalised once.
+    """
+
+    def __init__(self, export: Export):
+        self.export = export
+        self._norm: dict[str, tuple[str, list[int]] | None] = {}
+        self._breaks: dict[str, list[int] | None] = {}
+        self.attachments_of: dict[str, list[str]] = {}
+        for attachment_key, parent in export.parent_of.items():
+            self.attachments_of.setdefault(parent, []).append(attachment_key)
+        for keys in self.attachments_of.values():
+            keys.sort()
+
+    def _content(self, attachment_key: str) -> str | None:
+        if attachment_key not in self.export.attachments:
+            return None
+        try:
+            return self.export.fulltext(attachment_key)
+        except InputError:
+            return None
+
+    def normalised(self, attachment_key: str) -> tuple[str, list[int]] | None:
+        if attachment_key not in self._norm:
+            content = self._content(attachment_key)
+            self._norm[attachment_key] = None if content is None else normalise_text(content)
+        return self._norm[attachment_key]
+
+    def breaks(self, attachment_key: str) -> list[int] | None:
+        """Raw offsets of the page breaks, or None when the export carries no page structure."""
+
+        if attachment_key not in self._breaks:
+            content = self._content(attachment_key)
+            found = None if content is None else [i for i, ch in enumerate(content) if ch == PAGE_BREAK]
+            self._breaks[attachment_key] = found or None
+        return self._breaks[attachment_key]
+
+    def has_pages(self, attachment_key: str) -> bool:
+        return self.breaks(attachment_key) is not None
+
+    def page_of(self, attachment_key: str, offset: int) -> int | None:
+        found = self.breaks(attachment_key)
+        if found is None:
+            return None
+        return bisect.bisect_right(found, offset) + 1
+
+    def page_range(self, attachment_key: str, span: tuple[int, int] | None) -> tuple[int, int] | None:
+        if span is None:
+            return None
+        low, high = self.page_of(attachment_key, span[0]), self.page_of(attachment_key, span[1])
+        if low is None or high is None:
+            return None
+        return (min(low, high), max(low, high))
+
+    def locate(self, attachment_key: str, needle: str) -> tuple[int, int] | None:
+        pair = self.normalised(attachment_key)
+        if pair is None:
+            return None
+        norm_needle, _ = normalise_text(needle)
+        return _locate_span(_strip_window(norm_needle), pair[0], pair[1])
+
+
+class RuledScore:
+    """R34 as ruled on 2026-09-07: the right work, and an intersecting page.
+
+    Neither score is read off `golden_gate.py`, which still implements the predicate the
+    ruling superseded, so both are computed here from the replies bundle and the export. The
+    scorer stays untouched — updating it is ticket 0722's own business and not this
+    exercise's — and the ruling is applied somewhere it can be reviewed against its text.
+    """
+
+    def __init__(self, export: Export, bank: dict[str, dict[str, Any]], k: int):
+        self.export = export
+        self.bank = bank
+        self.k = k
+        self.pages = PageIndex(export)
+
+    # -- the work half -------------------------------------------------------
+
+    def right_work(self, result: dict[str, Any], row: dict[str, Any]) -> bool:
+        """"The work the answer sits in", in the export's own item vocabulary.
+
+        A translation twin is NOT the right work: §5.2.10 asserts the other-language
+        rendering distinct, and returning it in place of the answer paragraph is precisely
+        the miss R29 exists to catch. The ladder still scores it near-win; R34's reading is a
+        different question and the ruling did not merge them.
+        """
+
+        parent = self.export.parent_of.get(row["attachment_key"])
+        if result["item_key"] == parent:
+            return True
+        if result.get("attachment_key") and result["attachment_key"] == row["attachment_key"]:
+            return True
+        return self.export.work_of_item.get(result["item_key"]) == row["work_id"]
+
+    # -- the page half -------------------------------------------------------
+
+    def target_ranges(self, row: dict[str, Any], question: dict[str, Any]) -> dict[str, Any]:
+        """The target's page range, both as the bank printed it and as the export locates it."""
+
+        key = row["attachment_key"]
+        stamped = {
+            (stamp_row.get("attachment_key"), index): alternate
+            for stamp_row in (question.get("reachability") or {}).get("rows", [])
+            for index, alternate in enumerate(stamp_row.get("alternates", []))
+        }
+        printed: list[tuple[int, int]] = []
+        derived: list[tuple[int, int]] = []
+        spans: list[tuple[int, int]] = []
+        for index, alternate in enumerate(row["alternates"]):
+            folio = _parse_page(alternate.get("page_printed"))
+            if folio:
+                printed.append(folio)
+            span = None
+            offset = (stamped.get((key, index)) or {}).get("char_offset")
+            if isinstance(offset, int):
+                norm_quote, _ = normalise_text(alternate["quote"])
+                span = (offset, offset + max(len(norm_quote) - 1, 0))
+            if span is None:
+                span = self.pages.locate(key, alternate["quote"])
+            if span is None:
+                continue
+            spans.append(span)
+            page_range = self.pages.page_range(key, span)
+            if page_range:
+                derived.append(page_range)
+        return {
+            "attachment_key": key,
+            "has_page_structure": self.pages.has_pages(key),
+            "printed": printed,
+            "derived": derived,
+            "char_spans": spans,
+        }
+
+    def row_official(
+        self, row: dict[str, Any], results: list[dict[str, Any]], target: dict[str, Any]
+    ) -> dict[str, Any]:
+        """The official reading of one pinned row: the page the system itself reports.
+
+        Where a reply carries no page the question is not satisfied, and the ruling says why
+        that is a true statement about the system rather than a scoring artifact: R24 already
+        obliges a hit to lead to the page it came from.
+        """
+
+        wanted = target["printed"] or target["derived"]
+        work_hits = [result for result in results[: self.k] if self.right_work(result, row)]
+        for result in work_hits:
+            reported = _parse_page(result.get("page"))
+            if reported is not None and any(_ranges_intersect(reported, candidate) for candidate in wanted):
+                return {"satisfied": True, "rank": result["rank"], "page": result.get("page"),
+                        "why": "reported-page-intersects"}
+        if not work_hits:
+            why = "work-not-returned"
+        elif not any(_parse_page(result.get("page")) for result in work_hits):
+            why = "no-reported-page"
+        else:
+            why = "reported-page-outside-target"
+        return {"satisfied": False, "why": why}
+
+    def row_accommodating(
+        self, row: dict[str, Any], results: list[dict[str, Any]], target: dict[str, Any]
+    ) -> dict[str, Any]:
+        """The accommodating reading: the page derived from where the evidence falls.
+
+        NOT OFFICIAL. It exists so development has a signal while the engine reports no page;
+        it is labelled wherever it appears and no gate reads it.
+
+        Where the export carries no page structure for the attachment — an HTML or plain-text
+        file — §5.2.10 already says the answer locates by character number instead, so the
+        intersection is taken over character spans. That substitution is this harness's
+        reading of the clause, not a ruling, and it is counted apart in
+        `rows_by_intersection_path` so a reviewer can see how much rides on it.
+        """
+
+        key = target["attachment_key"]
+        path = "page" if target["has_page_structure"] else "char"
+        work_hits = [result for result in results[: self.k] if self.right_work(result, row)]
+        located = 0
+        for result in work_hits:
+            span = self.pages.locate(key, result.get("evidence") or "")
+            if span is None:
+                continue
+            located += 1
+            if path == "page":
+                if any(_ranges_intersect(self.pages.page_range(key, span), c) for c in target["derived"]):
+                    return {"satisfied": True, "rank": result["rank"], "path": path,
+                            "why": "derived-page-intersects"}
+            elif any(_ranges_intersect(span, c) for c in target["char_spans"]):
+                return {"satisfied": True, "rank": result["rank"], "path": path,
+                        "why": "char-span-intersects"}
+        if not work_hits:
+            why = "work-not-returned"
+        elif not located:
+            why = "no-evidence-located-in-the-export"
+        else:
+            why = "located-evidence-outside-target"
+        return {"satisfied": False, "path": path, "why": why}
+
+    # -- the question --------------------------------------------------------
+
+    def score_question(self, question: dict[str, Any], reply: dict[str, Any]) -> dict[str, Any]:
+        results = reply.get("results") or []
+        rows = []
+        for row in question["pinned"]:
+            target = self.target_ranges(row, question)
+            rows.append({
+                "attachment_key": row["attachment_key"],
+                "work_id": row["work_id"],
+                "has_page_structure": target["has_page_structure"],
+                "official": self.row_official(row, results, target),
+                "accommodating": self.row_accommodating(row, results, target),
+            })
+        combine = any if question["set_kind"] == "any-of" else all
+        return {
+            "lane": question["lane"],
+            "stratum": question["stratum"],
+            "signal": question["signal"],
+            "set_kind": question["set_kind"],
+            "facet": question["facet"],
+            "rows": rows,
+            OFFICIAL: bool(rows) and combine(row["official"]["satisfied"] for row in rows),
+            ACCOMMODATING: bool(rows) and combine(row["accommodating"]["satisfied"] for row in rows),
+        }
+
+
+def score_bundle_ruled(
+    bundle: dict[str, Any], bank: dict[str, dict[str, Any]], export: Export, k: int
+) -> dict[str, Any]:
+    """Both ruled scores over one replies bundle, with the diagnostics the reading needs.
+
+    `hits_carrying_a_page` is the positive control for the official score. Without it, "the
+    official score is zero" and "my page comparison is broken" are the same output.
+    """
+
+    scorer = RuledScore(export, bank, k)
+    per_question: dict[str, dict[str, Any]] = {}
+    hits = 0
+    hits_with_page = 0
+    for reply in bundle["replies"]:
+        question = bank.get(reply["id"])
+        if question is None or reply.get("results") is None:
+            continue
+        for result in reply["results"]:
+            hits += 1
+            if _parse_page(result.get("page")) is not None:
+                hits_with_page += 1
+        if question["expected_miss"] or not question["pinned"]:
+            continue
+        per_question[f"{reply['id']}/{reply['mode']}"] = scorer.score_question(question, reply)
+    paths = Counter(
+        row["accommodating"].get("path") for entry in per_question.values() for row in entry["rows"]
+    )
+    why_official = Counter(
+        row["official"].get("why") for entry in per_question.values() for row in entry["rows"]
+    )
+    return {
+        "ruling": "SPEC §5.2.10, ruled 2026-09-07: the right work and an intersecting page",
+        "questions": per_question,
+        "hits": hits,
+        "hits_carrying_a_page": hits_with_page,
+        "official_present": sum(1 for entry in per_question.values() if entry[OFFICIAL]),
+        "accommodating_present": sum(1 for entry in per_question.values() if entry[ACCOMMODATING]),
+        "scored_questions": len(per_question),
+        "rows_by_intersection_path": dict(sorted(paths.items(), key=lambda kv: str(kv[0]))),
+        "official_rows_by_reason": dict(sorted(why_official.items(), key=lambda kv: str(kv[0]))),
+    }
 
 
 def scored_entries(report: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -132,8 +456,30 @@ def expected_miss_entries(report: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return {key: entry for key, entry in report["questions"].items() if entry["state"] == "expected-miss"}
 
 
-def present_set(report: dict[str, Any], predicate: str) -> set[str]:
-    return {key for key, entry in scored_entries(report).items() if question_present(entry, predicate)}
+def superseded_present_set(report: dict[str, Any], predicate: str) -> set[str]:
+    """The two predicates the ruling superseded, for the reading's before-and-after only.
+
+    Reported so the artifact can say which numbers the ruling moved. Never a score this
+    harness gates, ranks or recommends on.
+    """
+
+    out = set()
+    for key, entry in scored_entries(report).items():
+        if predicate == "shipped":
+            present = bool(entry["r34_present"])
+        else:
+            hows = [
+                (row.get("evidence") or {}).get("how") in {"evidence-overlap", "printed-page"}
+                for row in entry["rows"]
+            ]
+            present = any(hows) if entry["set_kind"] == "any-of" else all(hows)
+        if present:
+            out.add(key)
+    return out
+
+
+def present_set(ruled: dict[str, Any], predicate: str) -> set[str]:
+    return {key for key, entry in ruled["questions"].items() if entry[predicate]}
 
 
 # --------------------------------------------------------------------------- the arms
@@ -237,8 +583,9 @@ ARMS: tuple[Arm, ...] = (
         ),
         notes=(
             "Anything that stays present under a global shuffle is a defect in the bank or in the scorer.",
-            "The work-twin path has a raised floor here: a shuffled ranker that returns any rendering of "
-            "the work still scores near-win.",
+            "Under the ruled scores a twin no longer counts as the right work, so the raised floor the "
+            "superseded shipped predicate gave the work-twin path is gone; the superseded readings are "
+            "still reported beside the ruled ones so the difference is visible.",
         ),
     ),
     Arm(
@@ -299,8 +646,9 @@ ARMS: tuple[Arm, ...] = (
             "embedder_model.build_default reads Xenova/all-MiniLM-L6-v2, parsed out of the build's own source, "
             "which is English-only. The configuration that would have to be BUILT to make this comparison is "
             "the multilingual one, which needs the same vectors-on run arm B is blocked on. Under the "
-            "evidence-matched predicate the six cross-lingual MUST cells already hold zero wins, so this arm "
-            "has zero headroom there whatever is built."
+            "official score of the 2026-09-07 ruling the six cross-lingual MUST cells read zero present "
+            "whatever is built, because no hit carries a page at all, so this arm has no headroom there "
+            "either until ticket 0734 lands."
         ),
     ),
     Arm(
@@ -463,7 +811,7 @@ class _Corpus:
 
 
 def transform_identity(bundle: dict[str, Any], export: Export, seed: int) -> dict[str, Any]:
-    """The control: change nothing. Its delta must be empty under every predicate."""
+    """The control: change nothing. Its delta must be empty under both ruled scores."""
 
     return copy.deepcopy(bundle)
 
@@ -579,26 +927,37 @@ def _mechanisms(question: dict[str, Any] | None) -> list[str]:
     return list(question.get("mechanisms") or [])
 
 
+def _why(entry: dict[str, Any], predicate: str) -> str:
+    """Why a question is where it is, from its first unsatisfied row — or 'satisfied'."""
+
+    for row in entry["rows"]:
+        if not row[predicate]["satisfied"]:
+            return str(row[predicate].get("why"))
+    return "satisfied"
+
+
 def compute_delta(
     arm: Arm,
     predicate: str,
-    baseline: dict[str, Any],
-    after: dict[str, Any],
+    before_ruled: dict[str, Any],
+    after_ruled: dict[str, Any],
+    before_report: dict[str, Any],
+    after_report: dict[str, Any],
     bank: dict[str, dict[str, Any]],
     extra: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """One arm, one predicate: what changed, and which declared cell did not."""
+    """One arm, one ruled score: what changed, and which declared cell did not go red."""
 
-    before_entries = scored_entries(baseline)
-    after_entries = scored_entries(after)
+    before_entries = before_ruled["questions"]
+    after_entries = after_ruled["questions"]
     shared = sorted(set(before_entries) & set(after_entries))
     if set(before_entries) != set(after_entries):
         log.warning(
             "arm %s: baseline scores %d questions, arm scores %d; differencing the %d in common",
             arm.name, len(before_entries), len(after_entries), len(shared),
         )
-    before = {key for key in shared if question_present(before_entries[key], predicate)}
-    now = {key for key in shared if question_present(after_entries[key], predicate)}
+    before = {key for key in shared if before_entries[key][predicate]}
+    now = {key for key in shared if after_entries[key][predicate]}
 
     changed: dict[str, Any] = {}
     for key in shared:
@@ -606,7 +965,6 @@ def compute_delta(
         if was == is_:
             continue
         entry = after_entries[key]
-        question = bank.get(entry["id"])
         changed[key] = {
             "from": "present" if was else "absent",
             "to": "present" if is_ else "absent",
@@ -615,9 +973,9 @@ def compute_delta(
             "signal": entry["signal"],
             "set_kind": entry["set_kind"],
             "facet": entry["facet"],
-            "level_before": before_entries[key]["level"],
-            "level_after": entry["level"],
-            "mechanisms": _mechanisms(question),
+            "why_before": _why(before_entries[key], predicate),
+            "why_after": _why(entry, predicate),
+            "mechanisms": _mechanisms(bank.get(key.split("/")[0])),
         }
 
     fired: dict[str, int] = {}
@@ -627,25 +985,25 @@ def compute_delta(
         for mechanism in record["mechanisms"] or ["(none declared)"]:
             fired[mechanism] = fired.get(mechanism, 0) + 1
 
-    by_lane = {name: _cell(before, now, keys) for name, keys in _group(after_entries, "lane").items()}
-    must_cells = {}
-    for lane in MUST_LANES:
-        keys = _group(after_entries, "lane").get(lane, [])
-        must_cells[lane] = _cell(before, now, keys)
+    by_lane_keys = _group(after_entries, "lane")
+    must_cells = {lane: _cell(before, now, by_lane_keys.get(lane, [])) for lane in MUST_LANES}
 
     did_not_go_red: list[dict[str, Any]] = []
     for lane in arm.target_lanes:
         cell = must_cells.get(lane)
         if cell is None or cell["n"] == 0:
-            did_not_go_red.append({"lane": lane, "n": 0, "reason": "no-question", "reading": "the cell holds no scored question in this bank"})
+            did_not_go_red.append({
+                "lane": lane, "n": 0, "reason": "no-question",
+                "reading": "the cell holds no scored question in this bank",
+            })
             continue
         if cell["went_red"]:
             continue
         if cell["present_before"] == 0:
             did_not_go_red.append({
                 "lane": lane, **cell, "reason": "no-headroom",
-                "reading": "the cell already read zero present at baseline under this predicate, so no arm can "
-                           "make it redder; this is a property of the predicate, not of the arm",
+                "reading": "the cell already read zero present at baseline under this score, so no arm can make "
+                           "it redder; this is a property of the score against this build, not of the arm",
             })
         else:
             did_not_go_red.append({
@@ -654,21 +1012,23 @@ def compute_delta(
                            "this is the finding",
             })
 
-    em_before = expected_miss_entries(baseline)
-    em_after = expected_miss_entries(after)
-    flips: dict[str, list[str]] = {"pass->unexpected-hit": [], "unexpected-hit->pass": []}
+    em_before = expected_miss_entries(before_report)
+    em_after = expected_miss_entries(after_report)
+    flips: dict[str, list[str]] = {}
     for key in sorted(set(em_before) & set(em_after)):
         was, is_ = em_before[key]["outcome"], em_after[key]["outcome"]
-        if was == is_:
-            continue
-        flips.setdefault(f"{was}->{is_}", []).append(key)
+        if was != is_:
+            flips.setdefault(f"{was}->{is_}", []).append(key)
 
     document = {
         "arm": arm.name,
         "arm_letter": arm.letter,
         "kind": arm.kind,
         "control": arm.control,
-        "predicate": predicate,
+        "score": predicate,
+        "official": predicate == OFFICIAL,
+        "label": ("OFFICIAL (SPEC §5.2.10, ruled 2026-09-07)" if predicate == OFFICIAL
+                  else "NOT OFFICIAL — the accommodating score; no gate reads it"),
         "scored_questions": len(shared),
         "present_before": len(before),
         "present_after": len(now),
@@ -676,7 +1036,7 @@ def compute_delta(
         "went_absent": sorted(before - now),
         "went_present": sorted(now - before),
         "changed": dict(sorted(changed.items())),
-        "by_lane": by_lane,
+        "by_lane": {name: _cell(before, now, keys) for name, keys in by_lane_keys.items()},
         "by_stratum": {name: _cell(before, now, keys) for name, keys in _group(after_entries, "stratum").items()},
         "by_signal": {name: _cell(before, now, keys) for name, keys in _group(after_entries, "signal").items()},
         "by_set_kind": {name: _cell(before, now, keys) for name, keys in _group(after_entries, "set_kind").items()},
@@ -686,11 +1046,24 @@ def compute_delta(
         "target_lanes": list(arm.target_lanes),
         "target_mechanisms": list(arm.target_mechanisms),
         "must_cells_that_did_not_go_red": did_not_go_red,
+        "hits_carrying_a_page": after_ruled["hits_carrying_a_page"],
+        "hits": after_ruled["hits"],
+        "rows_by_intersection_path": after_ruled["rows_by_intersection_path"],
+        "official_rows_by_reason": after_ruled["official_rows_by_reason"],
         "expected_miss_flips": {name: keys for name, keys in sorted(flips.items()) if keys},
         "expected_miss_note": "expected-miss outcomes are computed and reported and enter no gated reading: "
                               "golden_gate.evaluate() takes the gate state from R34 and stability alone",
-        "gate_state_before": baseline["state"],
-        "gate_state_after": after["state"],
+        "superseded_predicates": {
+            name: {
+                "present_before": len(superseded_present_set(before_report, name)),
+                "present_after": len(superseded_present_set(after_report, name)),
+            }
+            for name in SUPERSEDED_PREDICATES
+        },
+        "gate_state_before": before_report["state"],
+        "gate_state_after": after_report["state"],
+        "gate_note": "the gate state is golden_gate.py's, which still implements the superseded shipped "
+                     "predicate; the ruled scores above are computed by bench/redstate.py and no gate reads them yet",
     }
     if extra:
         document.update(extra)
@@ -745,9 +1118,13 @@ def _write_json(document: Any, path: Path, *, compress: bool = False) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     text = json.dumps(document, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     if compress:
+        # mtime=0 so a re-derivation that changes nothing produces byte-identical output.
+        # Otherwise every `run --rescore` shows the whole results tree as modified and the
+        # diff stops telling anyone which artifact actually moved.
         target = _gz(path)
-        with gzip.open(target, "wt", encoding="utf-8", compresslevel=9) as handle:
-            handle.write(text)
+        with open(target, "wb") as raw:
+            with gzip.GzipFile(fileobj=raw, mode="wb", compresslevel=9, mtime=0) as handle:
+                handle.write(text.encode("utf-8"))
         return target
     path.write_text(text, encoding="utf-8")
     return path
@@ -893,8 +1270,16 @@ def cmd_run(args: argparse.Namespace) -> int:
     bank = {question["id"]: question for question in questions}
     baseline_bundle = _read_json(args.baseline)
     baseline_report = score_bundle(baseline_bundle, questions, export, thresholds)
+    baseline_ruled = score_bundle_ruled(baseline_bundle, bank, export, thresholds.k)
     args.out.mkdir(parents=True, exist_ok=True)
     _write_json(baseline_report, args.out / "baseline-report.json", compress=True)
+    _write_json(baseline_ruled, args.out / "baseline-ruled.json", compress=True)
+    log.info(
+        "baseline: %d hits, %d carrying a page; official %d/%d, accommodating %d/%d",
+        baseline_ruled["hits"], baseline_ruled["hits_carrying_a_page"],
+        baseline_ruled["official_present"], baseline_ruled["scored_questions"],
+        baseline_ruled["accommodating_present"], baseline_ruled["scored_questions"],
+    )
 
     for name in names:
         arm = ARMS_BY_NAME[name]
@@ -909,7 +1294,16 @@ def cmd_run(args: argparse.Namespace) -> int:
             )
             log.info("arm %s: not-run — %s", arm.name, (arm.not_run_reason or "")[:90])
             continue
-        if arm.kind == "reply":
+        if args.rescore:
+            # Re-derive the scores and the delta from an arm's already-committed replies
+            # bundle, without re-running it. Used when the *reading* changes — as the ruling
+            # of 2026-09-07 changed it — rather than the arm. A pure function of the artifact:
+            # it can neither rebuild nor conceal a rebuild, since the run block is untouched.
+            if not _gz(out_dir / "replies.json").exists():
+                log.warning("arm %s: --rescore with no committed replies bundle — skipped", arm.name)
+                continue
+            bundle = _read_json(out_dir / "replies.json")
+        elif arm.kind == "reply":
             bundle = run_reply_arm(arm, baseline_bundle, export, args.seed)
         else:
             if not args.server.is_file():
@@ -924,29 +1318,35 @@ def cmd_run(args: argparse.Namespace) -> int:
             bundle = run_build_arm(arm, args.server, args.data_root, out_dir, args.seed,
                                    args.bank, args.export, args.recipe)
         report = score_bundle(bundle, questions, export, thresholds)
+        ruled = score_bundle_ruled(bundle, bank, export, thresholds.k)
         _write_json(bundle, out_dir / "replies.json", compress=True)
         _write_json(report, out_dir / "report.json", compress=True)
+        _write_json(ruled, out_dir / "ruled.json", compress=True)
         (out_dir / "replies.json").unlink(missing_ok=True)
 
         # A build arm is differenced against the build control when one has been run, because
         # the committed baseline came from a checkout this harness does not pin.
-        control_report_path = args.out / "control-build" / "report.json"
-        reference, reference_name = baseline_report, "committed baseline"
-        if arm.kind == "build" and not arm.control and _gz(control_report_path).exists():
-            reference, reference_name = _read_json(control_report_path), "control-build"
+        control_dir = args.out / "control-build"
+        reference_report, reference_ruled, reference_name = baseline_report, baseline_ruled, "committed baseline"
+        if arm.kind == "build" and not arm.control and _gz(control_dir / "report.json").exists():
+            reference_report = _read_json(control_dir / "report.json")
+            reference_ruled = _read_json(control_dir / "ruled.json")
+            reference_name = "control-build"
 
         extra: dict[str, Any] = {"reference": reference_name}
         if arm.name == "index-cap":
             extra["computed_target_questions"] = cap_crossing_questions(bank, 2000)
         deltas = {
-            predicate: compute_delta(arm, predicate, reference, report, bank, extra)
+            predicate: compute_delta(
+                arm, predicate, reference_ruled, ruled, reference_report, report, bank, extra
+            )
             for predicate in PREDICATES
         }
-        _write_json({"arm": arm.name, "predicates": deltas}, out_dir / "delta.json")
+        _write_json({"arm": arm.name, "scores": deltas}, out_dir / "delta.json")
         for predicate in PREDICATES:
             document = deltas[predicate]
             log.info(
-                "arm %-20s %-16s present %d -> %d (%+d); MUST cells not red: %s",
+                "arm %-20s %-14s present %d -> %d (%+d); MUST cells not red: %s",
                 arm.name, predicate, document["present_before"], document["present_after"],
                 document["delta"],
                 ", ".join(f"{c['lane']}({c['reason']})" for c in document["must_cells_that_did_not_go_red"]) or "none",
@@ -960,7 +1360,7 @@ def _matrix(out: Path) -> dict[str, Any]:
         delta_path = out / arm.name / "delta.json"
         not_run_path = out / arm.name / "not-run.json"
         if delta_path.exists():
-            rows[arm.name] = _read_json(delta_path)["predicates"]
+            rows[arm.name] = _read_json(delta_path)["scores"]
         elif not_run_path.exists():
             rows[arm.name] = {"state": "not-run", "reason": _read_json(not_run_path).get("reason")}
     return rows
@@ -972,7 +1372,9 @@ def cmd_read(args: argparse.Namespace) -> int:
         print(f"redstate: nothing under {args.out}", file=sys.stderr)
         return 3
     for predicate in PREDICATES:
-        print(f"\n=== predicate: {predicate} ===")
+        label = ("OFFICIAL — SPEC §5.2.10, ruled 2026-09-07" if predicate == OFFICIAL
+                 else "NOT OFFICIAL — no gate reads this score")
+        print(f"\n=== score: {predicate} ({label}) ===")
         print(f"{'arm':22s} {'kind':6s} {'present':>15s} {'delta':>7s}  MUST cells that did not go red")
         for name, row in rows.items():
             arm = ARMS_BY_NAME[name]
@@ -983,7 +1385,15 @@ def cmd_read(args: argparse.Namespace) -> int:
             present = f"{document['present_before']} -> {document['present_after']}"
             cells = ", ".join(f"{c['lane']}[{c['reason']}]" for c in document["must_cells_that_did_not_go_red"])
             print(f"{name:22s} {arm.kind:6s} {present:>15s} {document['delta']:>+7d}  {cells or 'none'}")
-    print("\nMUST cells, per arm, per predicate (n beside every count; a cell under "
+    pages = {name: row[OFFICIAL]["hits_carrying_a_page"] for name, row in rows.items() if "state" not in row}
+    if pages:
+        print("\nHits carrying a page, per arm — the positive control for the official score. "
+              "Where this is 0 the official score cannot distinguish anything, and its zero is the "
+              "engine's silence, not an arm's failure (ticket 0734):")
+        for name, count in pages.items():
+            total = rows[name][OFFICIAL]["hits"]
+            print(f"    {name:22s} {count}/{total}")
+    print("\nMUST cells, per arm, per score (n beside every count; a cell under "
           f"n={THIN_CELL} prints not-evaluated per SPEC §5.2.10):")
     for name, row in rows.items():
         if "state" in row:
@@ -1021,6 +1431,9 @@ def main(argv: list[str] | None = None) -> int:
                      help="parent of each build arm's fresh index directory")
     run.add_argument("--spec", type=Path, default=REPO / "SPEC.md")
     run.add_argument("--seed", type=int, default=0)
+    run.add_argument("--rescore", action="store_true",
+                     help="re-derive scores and deltas from each arm's committed replies bundle "
+                          "instead of running the arm; for when the reading changes, not the arm")
     run.set_defaults(func=cmd_run)
 
     read = subparsers.add_parser("read", help="the cross-arm matrix")
