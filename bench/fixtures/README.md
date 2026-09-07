@@ -425,6 +425,38 @@ only for an unserved content type with the reindex's own `indexed`
 observation; the same 404 on a PDF is vanished text and stays refused. The
 replay lists it in the census and answers 404 on its route, as Zotero does.
 
+### The passage-length distribution, pinned beside the export
+
+`passage-lengths.json` (schema `menagerie-passage-lengths/v1`, written by
+`bench/passage_lengths.py`) is what makes a reading of R32 over this corpus
+mean anything. R32 is a rate — 150 ms per passage as the MUST, 75 ms as the
+SHOULD — and SPEC.md §5.2.9 says why the distribution has to travel with the
+fixture: *a rate measured on one passage-length distribution does not transfer
+to another.* Without it the same milliseconds divide differently whenever the
+corpus changes, and a corpus edit is indistinguishable from a regression.
+
+A **passage** here is the `ChunkRecord` the shipped build embeds — the unit
+`zotero_index status` counts as `passages`, and the unit R32's rate is divided
+by. Two populations: one metadata chunk per top-level item over `itemText`
+(512 characters, 64 of overlap) and body chunks per ITEM over its census
+attachments concatenated under one per-item character cap (1 200 characters,
+150 of overlap). Characters, not tokens: the shipped chunker cuts on
+characters, and SPEC.md §5.2.2's ratified *token* geometry belongs to seg/1,
+which is not built. Token lengths are absent rather than estimated; the
+experiment that would produce them is `bench/passage_census.mjs` over
+`export/fulltext/`.
+
+The artifact carries the export's `sha256` — the digest
+`golden_gate.load_export` computes and the gate reports as `export_sha256` —
+its `recipe_sha256` and the population it counted, so
+`python3 bench/passage_lengths.py --check` refuses a distribution read against
+a moved export; `tests/test_passage_lengths.py` runs that check on the
+committed pair in the fast tier, and exercises it red on a doctored one. The
+same test holds the counted population against the four counters a built
+`fork/` reported over this export (`bench/results/golden/report.json`), so the
+Python model of two TypeScript files is evidence rather than a guess.
+Re-run the script and commit its output whenever the export is re-exported.
+
 ## The question bank and the golden gate
 
 `questions/` is the fourth layer, the Menagerie question bank (schema

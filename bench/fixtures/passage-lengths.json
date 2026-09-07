@@ -1,0 +1,2559 @@
+{
+  "schema": "menagerie-passage-lengths/v1",
+  "ticket": "tickets/0029-the-golden-fixture-corpus-and-a-zotero-f.erg",
+  "probe": "bench/passage_lengths.py",
+  "requirement": "R32 (SPEC.md): the buildtime bound is a rate per passage; SPEC.md §5.2.9 requires the fixture's passage-length distribution to be pinned with the corpus, because a rate measured on one distribution does not transfer to another",
+  "export": {
+    "root": "bench/fixtures/export",
+    "sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1",
+    "library_version": 484,
+    "schema_version": 2,
+    "attachment_count": 114,
+    "parent_item_count": 103,
+    "index_fulltext_max_chars": 40000,
+    "reindex_mode": "stock",
+    "caps": {
+      "fulltext.pdfMaxPages": 100,
+      "fulltext.textMaxLength": 500000
+    }
+  },
+  "geometry": {
+    "unit": "the ChunkRecord the shipped build embeds; `passages` in zotero_index status",
+    "cut_on": "characters of the whitespace-collapsed text",
+    "metadata": {
+      "size": 512,
+      "overlap": 64,
+      "per": "top-level item, over itemText"
+    },
+    "fulltext": {
+      "size": 1200,
+      "overlap": 150,
+      "per": "top-level item, over its census attachments concatenated under one per-item character cap"
+    },
+    "source": [
+      "fork/src/features/search/chunker.ts",
+      "fork/src/features/search/index-manager.ts",
+      "fork/src/features/search/fulltext-source.ts"
+    ],
+    "not_this": "SPEC.md §5.2.2's ratified TOKEN geometry (budget min(500, modelMax) − specials − prefix, 120 minimum, 48 overlap), implemented in bench/geometry.py and counted by bench/passage_census.py. That is seg/1's geometry and seg/1 is not built; the two populations differ and this artifact measures the one a reading of R32 divides by today",
+    "astral_characters": 0,
+    "astral_note": "JavaScript indexes in UTF-16 code units, Python in code points; at zero astral characters the two are the same index",
+    "metadata_size_binds": false,
+    "metadata_size_note": "no item's own text reaches the 512-character metadata chunk size (the longest is 313), so every record is one passage and this corpus does not exercise that size. A change to it would not move any number here; a change to the body size or overlap would"
+  },
+  "population": {
+    "passages": 2379,
+    "by_source": {
+      "fulltext": 2276,
+      "metadata": 103
+    },
+    "items_with_metadata": 103,
+    "items_with_fulltext": 89
+  },
+  "distribution": {
+    "all": {
+      "chars": {
+        "count": 2379,
+        "total": 2686054,
+        "min": 63,
+        "max": 1200,
+        "mean": 1129.0685161832703,
+        "stdev": 240.76558904015351,
+        "p05": 278,
+        "p25": 1194,
+        "p50": 1197,
+        "p75": 1199,
+        "p90": 1200,
+        "p95": 1200,
+        "p99": 1200
+      },
+      "bytes": {
+        "count": 2379,
+        "total": 3317533,
+        "min": 69,
+        "max": 3579,
+        "mean": 1394.5073560319463,
+        "stdev": 551.8734086667628,
+        "p05": 316,
+        "p25": 1199,
+        "p50": 1226,
+        "p75": 1586,
+        "p90": 2160,
+        "p95": 2270,
+        "p99": 3190
+      },
+      "words": {
+        "count": 2379,
+        "total": 452168,
+        "min": 2,
+        "max": 599,
+        "mean": 190.06641445985707,
+        "stdev": 77.60704821703679,
+        "p05": 23,
+        "p25": 171,
+        "p50": 192,
+        "p75": 221,
+        "p90": 263,
+        "p95": 270,
+        "p99": 439
+      },
+      "bytes_per_char": 1.2350954225045363,
+      "histogram_chars": {
+        "0-99": 31,
+        "100-199": 67,
+        "200-399": 29,
+        "400-599": 10,
+        "600-799": 21,
+        "800-999": 18,
+        "1000-1149": 62,
+        "1150-1199": 1843,
+        "1200+": 298
+      }
+    },
+    "metadata": {
+      "chars": {
+        "count": 103,
+        "total": 14979,
+        "min": 63,
+        "max": 313,
+        "mean": 145.4271844660194,
+        "stdev": 61.82980114433894,
+        "p05": 72,
+        "p25": 88,
+        "p50": 140,
+        "p75": 187,
+        "p90": 226,
+        "p95": 274,
+        "p99": 304
+      },
+      "bytes": {
+        "count": 103,
+        "total": 16241,
+        "min": 69,
+        "max": 370,
+        "mean": 157.67961165048544,
+        "stdev": 68.0472727733303,
+        "p05": 78,
+        "p25": 94,
+        "p50": 151,
+        "p75": 192,
+        "p90": 264,
+        "p95": 289,
+        "p99": 316
+      },
+      "words": {
+        "count": 103,
+        "total": 1525,
+        "min": 5,
+        "max": 38,
+        "mean": 14.805825242718447,
+        "stdev": 9.017844502130513,
+        "p05": 5,
+        "p25": 6,
+        "p50": 14,
+        "p75": 20,
+        "p90": 29,
+        "p95": 32,
+        "p99": 38
+      },
+      "bytes_per_char": 1.0842512851325188,
+      "histogram_chars": {
+        "0-99": 31,
+        "100-199": 55,
+        "200-399": 17,
+        "400-599": 0,
+        "600-799": 0,
+        "800-999": 0,
+        "1000-1149": 0,
+        "1150-1199": 0,
+        "1200+": 0
+      }
+    },
+    "fulltext": {
+      "chars": {
+        "count": 2276,
+        "total": 2671075,
+        "min": 157,
+        "max": 1200,
+        "mean": 1173.5830404217927,
+        "stdev": 121.03937199017173,
+        "p05": 1124,
+        "p25": 1194,
+        "p50": 1197,
+        "p75": 1199,
+        "p90": 1200,
+        "p95": 1200,
+        "p99": 1200
+      },
+      "bytes": {
+        "count": 2276,
+        "total": 3301292,
+        "min": 158,
+        "max": 3579,
+        "mean": 1450.4797891036908,
+        "stdev": 495.7585532180796,
+        "p05": 1192,
+        "p25": 1200,
+        "p50": 1229,
+        "p75": 1591,
+        "p90": 2166,
+        "p95": 2374,
+        "p99": 3192
+      },
+      "words": {
+        "count": 2276,
+        "total": 450643,
+        "min": 2,
+        "max": 599,
+        "mean": 197.99780316344464,
+        "stdev": 69.56126943975518,
+        "p05": 51,
+        "p25": 175,
+        "p50": 194,
+        "p75": 224,
+        "p90": 264,
+        "p95": 272,
+        "p99": 446
+      },
+      "bytes_per_char": 1.2359413344814354,
+      "histogram_chars": {
+        "0-99": 0,
+        "100-199": 12,
+        "200-399": 12,
+        "400-599": 10,
+        "600-799": 21,
+        "800-999": 18,
+        "1000-1149": 62,
+        "1150-1199": 1843,
+        "1200+": 298
+      }
+    }
+  },
+  "by_language": {
+    "(metadata)": {
+      "passages": 103,
+      "chars": {
+        "count": 103,
+        "total": 14979,
+        "min": 63,
+        "max": 313,
+        "mean": 145.4271844660194,
+        "stdev": 61.82980114433894,
+        "p05": 72,
+        "p25": 88,
+        "p50": 140,
+        "p75": 187,
+        "p90": 226,
+        "p95": 274,
+        "p99": 304
+      },
+      "bytes": {
+        "count": 103,
+        "total": 16241,
+        "min": 69,
+        "max": 370,
+        "mean": 157.67961165048544,
+        "stdev": 68.0472727733303,
+        "p05": 78,
+        "p25": 94,
+        "p50": 151,
+        "p75": 192,
+        "p90": 264,
+        "p95": 289,
+        "p99": 316
+      },
+      "words": {
+        "count": 103,
+        "total": 1525,
+        "min": 5,
+        "max": 38,
+        "mean": 14.805825242718447,
+        "stdev": 9.017844502130513,
+        "p05": 5,
+        "p25": 6,
+        "p50": 14,
+        "p75": 20,
+        "p90": 29,
+        "p95": 32,
+        "p99": 38
+      },
+      "bytes_per_char": 1.0842512851325188,
+      "histogram_chars": {
+        "0-99": 31,
+        "100-199": 55,
+        "200-399": 17,
+        "400-599": 0,
+        "600-799": 0,
+        "800-999": 0,
+        "1000-1149": 0,
+        "1150-1199": 0,
+        "1200+": 0
+      }
+    },
+    "ar": {
+      "passages": 85,
+      "chars": {
+        "count": 85,
+        "total": 100816,
+        "min": 799,
+        "max": 1200,
+        "mean": 1186.070588235294,
+        "stdev": 55.53203383639861,
+        "p05": 1173,
+        "p25": 1194,
+        "p50": 1197,
+        "p75": 1199,
+        "p90": 1200,
+        "p95": 1200,
+        "p99": 1200
+      },
+      "bytes": {
+        "count": 85,
+        "total": 169892,
+        "min": 1396,
+        "max": 2298,
+        "mean": 1998.729411764706,
+        "stdev": 204.45320984836857,
+        "p05": 1574,
+        "p25": 1886,
+        "p50": 2011,
+        "p75": 2174,
+        "p90": 2192,
+        "p95": 2239,
+        "p99": 2248
+      },
+      "words": {
+        "count": 85,
+        "total": 24158,
+        "min": 99,
+        "max": 592,
+        "mean": 284.21176470588233,
+        "stdev": 148.98156965506107,
+        "p05": 107,
+        "p25": 173,
+        "p50": 203,
+        "p75": 405,
+        "p90": 528,
+        "p95": 549,
+        "p99": 589
+      },
+      "bytes_per_char": 1.6851690207903507,
+      "histogram_chars": {
+        "0-99": 0,
+        "100-199": 0,
+        "200-399": 0,
+        "400-599": 0,
+        "600-799": 1,
+        "800-999": 1,
+        "1000-1149": 2,
+        "1150-1199": 68,
+        "1200+": 13
+      }
+    },
+    "de": {
+      "passages": 81,
+      "chars": {
+        "count": 81,
+        "total": 94511,
+        "min": 170,
+        "max": 1200,
+        "mean": 1166.8024691358025,
+        "stdev": 159.50977521445228,
+        "p05": 1185,
+        "p25": 1193,
+        "p50": 1197,
+        "p75": 1199,
+        "p90": 1200,
+        "p95": 1200,
+        "p99": 1200
+      },
+      "bytes": {
+        "count": 81,
+        "total": 96209,
+        "min": 175,
+        "max": 1281,
+        "mean": 1187.7654320987654,
+        "stdev": 163.02823141149196,
+        "p05": 1199,
+        "p25": 1211,
+        "p50": 1214,
+        "p75": 1221,
+        "p90": 1228,
+        "p95": 1235,
+        "p99": 1268
+      },
+      "words": {
+        "count": 81,
+        "total": 12302,
+        "min": 24,
+        "max": 202,
+        "mean": 151.87654320987653,
+        "stdev": 23.343586485926078,
+        "p05": 137,
+        "p25": 147,
+        "p50": 154,
+        "p75": 159,
+        "p90": 168,
+        "p95": 172,
+        "p99": 201
+      },
+      "bytes_per_char": 1.0179661626688956,
+      "histogram_chars": {
+        "0-99": 0,
+        "100-199": 1,
+        "200-399": 1,
+        "400-599": 0,
+        "600-799": 0,
+        "800-999": 1,
+        "1000-1149": 0,
+        "1150-1199": 69,
+        "1200+": 9
+      }
+    },
+    "en": {
+      "passages": 801,
+      "chars": {
+        "count": 801,
+        "total": 947279,
+        "min": 157,
+        "max": 1200,
+        "mean": 1182.6204744069912,
+        "stdev": 106.79525620008178,
+        "p05": 1188,
+        "p25": 1195,
+        "p50": 1197,
+        "p75": 1199,
+        "p90": 1200,
+        "p95": 1200,
+        "p99": 1200
+      },
+      "bytes": {
+        "count": 801,
+        "total": 951921,
+        "min": 158,
+        "max": 1359,
+        "mean": 1188.4157303370787,
+        "stdev": 107.7209401697663,
+        "p05": 1190,
+        "p25": 1197,
+        "p50": 1199,
+        "p75": 1203,
+        "p90": 1209,
+        "p95": 1218,
+        "p99": 1265
+      },
+      "words": {
+        "count": 801,
+        "total": 155851,
+        "min": 21,
+        "max": 471,
+        "mean": 194.57053682896378,
+        "stdev": 49.71045080953145,
+        "p05": 157,
+        "p25": 180,
+        "p50": 190,
+        "p75": 205,
+        "p90": 217,
+        "p95": 265,
+        "p99": 384
+      },
+      "bytes_per_char": 1.0049003514276154,
+      "histogram_chars": {
+        "0-99": 0,
+        "100-199": 7,
+        "200-399": 1,
+        "400-599": 1,
+        "600-799": 2,
+        "800-999": 2,
+        "1000-1149": 10,
+        "1150-1199": 666,
+        "1200+": 112
+      }
+    },
+    "es": {
+      "passages": 157,
+      "chars": {
+        "count": 157,
+        "total": 182734,
+        "min": 191,
+        "max": 1200,
+        "mean": 1163.9108280254777,
+        "stdev": 151.92079631864573,
+        "p05": 1108,
+        "p25": 1191,
+        "p50": 1196,
+        "p75": 1199,
+        "p90": 1199,
+        "p95": 1200,
+        "p99": 1200
+      },
+      "bytes": {
+        "count": 157,
+        "total": 185987,
+        "min": 200,
+        "max": 1257,
+        "mean": 1184.6305732484077,
+        "stdev": 155.43873746107514,
+        "p05": 1117,
+        "p25": 1208,
+        "p50": 1217,
+        "p75": 1223,
+        "p90": 1228,
+        "p95": 1231,
+        "p99": 1240
+      },
+      "words": {
+        "count": 157,
+        "total": 24676,
+        "min": 21,
+        "max": 211,
+        "mean": 157.171974522293,
+        "stdev": 54.84630271567053,
+        "p05": 39,
+        "p25": 167,
+        "p50": 183,
+        "p75": 188,
+        "p90": 192,
+        "p95": 196,
+        "p99": 202
+      },
+      "bytes_per_char": 1.017801832171353,
+      "histogram_chars": {
+        "0-99": 0,
+        "100-199": 1,
+        "200-399": 3,
+        "400-599": 0,
+        "600-799": 0,
+        "800-999": 0,
+        "1000-1149": 12,
+        "1150-1199": 125,
+        "1200+": 16
+      }
+    },
+    "fr": {
+      "passages": 346,
+      "chars": {
+        "count": 346,
+        "total": 409699,
+        "min": 157,
+        "max": 1200,
+        "mean": 1184.1011560693642,
+        "stdev": 108.78102121555114,
+        "p05": 1189,
+        "p25": 1194,
+        "p50": 1197,
+        "p75": 1199,
+        "p90": 1200,
+        "p95": 1200,
+        "p99": 1200
+      },
+      "bytes": {
+        "count": 346,
+        "total": 426028,
+        "min": 160,
+        "max": 1316,
+        "mean": 1231.2947976878613,
+        "stdev": 114.90558993022665,
+        "p05": 1215,
+        "p25": 1228,
+        "p50": 1238,
+        "p75": 1256,
+        "p90": 1275,
+        "p95": 1281,
+        "p99": 1302
+      },
+      "words": {
+        "count": 346,
+        "total": 70938,
+        "min": 23,
+        "max": 542,
+        "mean": 205.02312138728323,
+        "stdev": 44.43114485393672,
+        "p05": 170,
+        "p25": 186,
+        "p50": 200,
+        "p75": 214,
+        "p90": 233,
+        "p95": 247,
+        "p99": 392
+      },
+      "bytes_per_char": 1.0398560894705626,
+      "histogram_chars": {
+        "0-99": 0,
+        "100-199": 3,
+        "200-399": 1,
+        "400-599": 0,
+        "600-799": 0,
+        "800-999": 0,
+        "1000-1149": 1,
+        "1150-1199": 300,
+        "1200+": 41
+      }
+    },
+    "hi": {
+      "passages": 62,
+      "chars": {
+        "count": 62,
+        "total": 73552,
+        "min": 872,
+        "max": 1200,
+        "mean": 1186.3225806451612,
+        "stdev": 54.26957033465451,
+        "p05": 1174,
+        "p25": 1196,
+        "p50": 1197,
+        "p75": 1198,
+        "p90": 1199,
+        "p95": 1200,
+        "p99": 1200
+      },
+      "bytes": {
+        "count": 62,
+        "total": 182139,
+        "min": 940,
+        "max": 3161,
+        "mean": 2937.7258064516127,
+        "stdev": 460.24492670732775,
+        "p05": 1487,
+        "p25": 3019,
+        "p50": 3098,
+        "p75": 3122,
+        "p90": 3140,
+        "p95": 3149,
+        "p99": 3155
+      },
+      "words": {
+        "count": 62,
+        "total": 13687,
+        "min": 133,
+        "max": 599,
+        "mean": 220.75806451612902,
+        "stdev": 68.38922889250884,
+        "p05": 164,
+        "p25": 199,
+        "p50": 216,
+        "p75": 223,
+        "p90": 233,
+        "p95": 243,
+        "p99": 536
+      },
+      "bytes_per_char": 2.4763296715249075,
+      "histogram_chars": {
+        "0-99": 0,
+        "100-199": 0,
+        "200-399": 0,
+        "400-599": 0,
+        "600-799": 0,
+        "800-999": 2,
+        "1000-1149": 0,
+        "1150-1199": 55,
+        "1200+": 5
+      }
+    },
+    "ru": {
+      "passages": 137,
+      "chars": {
+        "count": 137,
+        "total": 161593,
+        "min": 209,
+        "max": 1200,
+        "mean": 1179.5109489051094,
+        "stdev": 106.02032010082813,
+        "p05": 1189,
+        "p25": 1194,
+        "p50": 1197,
+        "p75": 1199,
+        "p90": 1200,
+        "p95": 1200,
+        "p99": 1200
+      },
+      "bytes": {
+        "count": 137,
+        "total": 292150,
+        "min": 375,
+        "max": 2270,
+        "mean": 2132.4817518248174,
+        "stdev": 197.6797196598941,
+        "p05": 2010,
+        "p25": 2152,
+        "p50": 2170,
+        "p75": 2185,
+        "p90": 2198,
+        "p95": 2209,
+        "p99": 2269
+      },
+      "words": {
+        "count": 137,
+        "total": 22442,
+        "min": 32,
+        "max": 208,
+        "mean": 163.8102189781022,
+        "stdev": 23.26475133536944,
+        "p05": 138,
+        "p25": 153,
+        "p50": 164,
+        "p75": 177,
+        "p90": 190,
+        "p95": 196,
+        "p99": 199
+      },
+      "bytes_per_char": 1.8079372250035584,
+      "histogram_chars": {
+        "0-99": 0,
+        "100-199": 0,
+        "200-399": 1,
+        "400-599": 1,
+        "600-799": 1,
+        "800-999": 1,
+        "1000-1149": 0,
+        "1150-1199": 114,
+        "1200+": 19
+      }
+    },
+    "vi": {
+      "passages": 524,
+      "chars": {
+        "count": 524,
+        "total": 610586,
+        "min": 235,
+        "max": 1200,
+        "mean": 1165.2404580152672,
+        "stdev": 131.29994289553358,
+        "p05": 937,
+        "p25": 1196,
+        "p50": 1198,
+        "p75": 1199,
+        "p90": 1200,
+        "p95": 1200,
+        "p99": 1200
+      },
+      "bytes": {
+        "count": 524,
+        "total": 775222,
+        "min": 293,
+        "max": 1687,
+        "mean": 1479.4312977099237,
+        "stdev": 214.94533534922846,
+        "p05": 1151,
+        "p25": 1328,
+        "p50": 1583,
+        "p75": 1613,
+        "p90": 1632,
+        "p95": 1639,
+        "p99": 1665
+      },
+      "words": {
+        "count": 524,
+        "total": 122567,
+        "min": 35,
+        "max": 387,
+        "mean": 233.90648854961833,
+        "stdev": 53.077510978183426,
+        "p05": 101,
+        "p25": 228,
+        "p50": 256,
+        "p75": 264,
+        "p90": 269,
+        "p95": 270,
+        "p99": 279
+      },
+      "bytes_per_char": 1.269636054544323,
+      "histogram_chars": {
+        "0-99": 0,
+        "100-199": 0,
+        "200-399": 5,
+        "400-599": 5,
+        "600-799": 10,
+        "800-999": 7,
+        "1000-1149": 19,
+        "1150-1199": 397,
+        "1200+": 81
+      }
+    },
+    "zh": {
+      "passages": 83,
+      "chars": {
+        "count": 83,
+        "total": 90305,
+        "min": 503,
+        "max": 1200,
+        "mean": 1088.012048192771,
+        "stdev": 177.5849699202836,
+        "p05": 642,
+        "p25": 1079,
+        "p50": 1172,
+        "p75": 1195,
+        "p90": 1198,
+        "p95": 1199,
+        "p99": 1200
+      },
+      "bytes": {
+        "count": 83,
+        "total": 221744,
+        "min": 506,
+        "max": 3579,
+        "mean": 2671.614457831325,
+        "stdev": 809.5314698977592,
+        "p05": 1277,
+        "p25": 2206,
+        "p50": 3020,
+        "p75": 3279,
+        "p90": 3479,
+        "p95": 3509,
+        "p99": 3569
+      },
+      "words": {
+        "count": 83,
+        "total": 4022,
+        "min": 2,
+        "max": 186,
+        "mean": 48.45783132530121,
+        "stdev": 59.21236056339606,
+        "p05": 2,
+        "p25": 10,
+        "p50": 27,
+        "p75": 38,
+        "p90": 171,
+        "p95": 177,
+        "p99": 184
+      },
+      "bytes_per_char": 2.4555008028348375,
+      "histogram_chars": {
+        "0-99": 0,
+        "100-199": 0,
+        "200-399": 0,
+        "400-599": 3,
+        "600-799": 7,
+        "800-999": 4,
+        "1000-1149": 18,
+        "1150-1199": 49,
+        "1200+": 2
+      }
+    }
+  },
+  "by_format": {
+    "(metadata)": {
+      "passages": 103,
+      "chars": {
+        "count": 103,
+        "total": 14979,
+        "min": 63,
+        "max": 313,
+        "mean": 145.4271844660194,
+        "stdev": 61.82980114433894,
+        "p05": 72,
+        "p25": 88,
+        "p50": 140,
+        "p75": 187,
+        "p90": 226,
+        "p95": 274,
+        "p99": 304
+      },
+      "bytes": {
+        "count": 103,
+        "total": 16241,
+        "min": 69,
+        "max": 370,
+        "mean": 157.67961165048544,
+        "stdev": 68.0472727733303,
+        "p05": 78,
+        "p25": 94,
+        "p50": 151,
+        "p75": 192,
+        "p90": 264,
+        "p95": 289,
+        "p99": 316
+      },
+      "words": {
+        "count": 103,
+        "total": 1525,
+        "min": 5,
+        "max": 38,
+        "mean": 14.805825242718447,
+        "stdev": 9.017844502130513,
+        "p05": 5,
+        "p25": 6,
+        "p50": 14,
+        "p75": 20,
+        "p90": 29,
+        "p95": 32,
+        "p99": 38
+      },
+      "bytes_per_char": 1.0842512851325188,
+      "histogram_chars": {
+        "0-99": 31,
+        "100-199": 55,
+        "200-399": 17,
+        "400-599": 0,
+        "600-799": 0,
+        "800-999": 0,
+        "1000-1149": 0,
+        "1150-1199": 0,
+        "1200+": 0
+      }
+    },
+    "html": {
+      "passages": 925,
+      "chars": {
+        "count": 925,
+        "total": 1077271,
+        "min": 158,
+        "max": 1200,
+        "mean": 1164.6172972972972,
+        "stdev": 132.6911493137689,
+        "p05": 927,
+        "p25": 1195,
+        "p50": 1197,
+        "p75": 1199,
+        "p90": 1200,
+        "p95": 1200,
+        "p99": 1200
+      },
+      "bytes": {
+        "count": 925,
+        "total": 1564847,
+        "min": 158,
+        "max": 3579,
+        "mean": 1691.7264864864865,
+        "stdev": 575.7109802304673,
+        "p05": 1194,
+        "p25": 1222,
+        "p50": 1598,
+        "p75": 2140,
+        "p90": 2217,
+        "p95": 3083,
+        "p99": 3456
+      },
+      "words": {
+        "count": 925,
+        "total": 178354,
+        "min": 2,
+        "max": 284,
+        "mean": 192.81513513513514,
+        "stdev": 67.31723515791526,
+        "p05": 28,
+        "p25": 164,
+        "p50": 191,
+        "p75": 257,
+        "p90": 266,
+        "p95": 269,
+        "p99": 274
+      },
+      "bytes_per_char": 1.4526029197852723,
+      "histogram_chars": {
+        "0-99": 0,
+        "100-199": 2,
+        "200-399": 6,
+        "400-599": 9,
+        "600-799": 19,
+        "800-999": 15,
+        "1000-1149": 22,
+        "1150-1199": 733,
+        "1200+": 119
+      }
+    },
+    "pdf": {
+      "passages": 1351,
+      "chars": {
+        "count": 1351,
+        "total": 1593804,
+        "min": 157,
+        "max": 1200,
+        "mean": 1179.721687638786,
+        "stdev": 111.9536469407097,
+        "p05": 1160,
+        "p25": 1194,
+        "p50": 1197,
+        "p75": 1199,
+        "p90": 1200,
+        "p95": 1200,
+        "p99": 1200
+      },
+      "bytes": {
+        "count": 1351,
+        "total": 1736445,
+        "min": 159,
+        "max": 3161,
+        "mean": 1285.3034789045153,
+        "stdev": 346.3972569752924,
+        "p05": 1190,
+        "p25": 1199,
+        "p50": 1212,
+        "p75": 1245,
+        "p90": 1318,
+        "p95": 1802,
+        "p99": 3110
+      },
+      "words": {
+        "count": 1351,
+        "total": 272289,
+        "min": 21,
+        "max": 599,
+        "mean": 201.5462620281273,
+        "stdev": 70.83850577048577,
+        "p05": 83,
+        "p25": 180,
+        "p50": 195,
+        "p75": 212,
+        "p90": 248,
+        "p95": 337,
+        "p99": 494
+      },
+      "bytes_per_char": 1.0894972029183012,
+      "histogram_chars": {
+        "0-99": 0,
+        "100-199": 10,
+        "200-399": 6,
+        "400-599": 1,
+        "600-799": 2,
+        "800-999": 3,
+        "1000-1149": 40,
+        "1150-1199": 1110,
+        "1200+": 179
+      }
+    }
+  },
+  "tails": {
+    "shortest_chars": [
+      {
+        "id": "IUTSQI2Q#0",
+        "source": "metadata",
+        "chars": 63,
+        "bytes": 69,
+        "words": 5,
+        "item_key": "IUTSQI2Q",
+        "attachments": []
+      },
+      {
+        "id": "BGM6XA2N#0",
+        "source": "metadata",
+        "chars": 66,
+        "bytes": 72,
+        "words": 5,
+        "item_key": "BGM6XA2N",
+        "attachments": []
+      },
+      {
+        "id": "JVAG4QBG#0",
+        "source": "metadata",
+        "chars": 66,
+        "bytes": 72,
+        "words": 5,
+        "item_key": "JVAG4QBG",
+        "attachments": []
+      },
+      {
+        "id": "44KHNR7L#0",
+        "source": "metadata",
+        "chars": 72,
+        "bytes": 80,
+        "words": 5,
+        "item_key": "44KHNR7L",
+        "attachments": []
+      },
+      {
+        "id": "4HGW537Q#0",
+        "source": "metadata",
+        "chars": 72,
+        "bytes": 78,
+        "words": 5,
+        "item_key": "4HGW537Q",
+        "attachments": []
+      },
+      {
+        "id": "88PA89A2#0",
+        "source": "metadata",
+        "chars": 72,
+        "bytes": 78,
+        "words": 5,
+        "item_key": "88PA89A2",
+        "attachments": []
+      },
+      {
+        "id": "NWVA2RU9#0",
+        "source": "metadata",
+        "chars": 72,
+        "bytes": 78,
+        "words": 5,
+        "item_key": "NWVA2RU9",
+        "attachments": []
+      },
+      {
+        "id": "UTKNFDL5#0",
+        "source": "metadata",
+        "chars": 72,
+        "bytes": 78,
+        "words": 5,
+        "item_key": "UTKNFDL5",
+        "attachments": []
+      },
+      {
+        "id": "4LJTF9JH#0",
+        "source": "metadata",
+        "chars": 73,
+        "bytes": 79,
+        "words": 5,
+        "item_key": "4LJTF9JH",
+        "attachments": []
+      },
+      {
+        "id": "6HHKNLYD#0",
+        "source": "metadata",
+        "chars": 73,
+        "bytes": 79,
+        "words": 5,
+        "item_key": "6HHKNLYD",
+        "attachments": []
+      }
+    ],
+    "longest_chars": [
+      {
+        "id": "YRAUIIKD#f30",
+        "source": "fulltext",
+        "chars": 1200,
+        "bytes": 1244,
+        "words": 175,
+        "item_key": "YRAUIIKD",
+        "attachments": [
+          {
+            "attachment_key": "6PG6TSDT",
+            "attachment_id": "wp-climate-change-fr-html"
+          }
+        ]
+      },
+      {
+        "id": "YRAUIIKD#f26",
+        "source": "fulltext",
+        "chars": 1200,
+        "bytes": 1236,
+        "words": 182,
+        "item_key": "YRAUIIKD",
+        "attachments": [
+          {
+            "attachment_key": "6PG6TSDT",
+            "attachment_id": "wp-climate-change-fr-html"
+          }
+        ]
+      },
+      {
+        "id": "YRAUIIKD#f2",
+        "source": "fulltext",
+        "chars": 1200,
+        "bytes": 1240,
+        "words": 176,
+        "item_key": "YRAUIIKD",
+        "attachments": [
+          {
+            "attachment_key": "6PG6TSDT",
+            "attachment_id": "wp-climate-change-fr-html"
+          }
+        ]
+      },
+      {
+        "id": "YRAUIIKD#f10",
+        "source": "fulltext",
+        "chars": 1200,
+        "bytes": 1245,
+        "words": 196,
+        "item_key": "YRAUIIKD",
+        "attachments": [
+          {
+            "attachment_key": "6PG6TSDT",
+            "attachment_id": "wp-climate-change-fr-html"
+          }
+        ]
+      },
+      {
+        "id": "YRAUIIKD#f1",
+        "source": "fulltext",
+        "chars": 1200,
+        "bytes": 1244,
+        "words": 188,
+        "item_key": "YRAUIIKD",
+        "attachments": [
+          {
+            "attachment_key": "6PG6TSDT",
+            "attachment_id": "wp-climate-change-fr-html"
+          }
+        ]
+      },
+      {
+        "id": "XMP2QFDN#f33",
+        "source": "fulltext",
+        "chars": 1200,
+        "bytes": 1258,
+        "words": 194,
+        "item_key": "XMP2QFDN",
+        "attachments": [
+          {
+            "attachment_key": "VKBUWDUD",
+            "attachment_id": "ha-duong-1998-irreversibilite-these-pdf"
+          }
+        ]
+      },
+      {
+        "id": "XMP2QFDN#f32",
+        "source": "fulltext",
+        "chars": 1200,
+        "bytes": 1267,
+        "words": 173,
+        "item_key": "XMP2QFDN",
+        "attachments": [
+          {
+            "attachment_key": "VKBUWDUD",
+            "attachment_id": "ha-duong-1998-irreversibilite-these-pdf"
+          }
+        ]
+      },
+      {
+        "id": "XMP2QFDN#f26",
+        "source": "fulltext",
+        "chars": 1200,
+        "bytes": 1263,
+        "words": 199,
+        "item_key": "XMP2QFDN",
+        "attachments": [
+          {
+            "attachment_key": "VKBUWDUD",
+            "attachment_id": "ha-duong-1998-irreversibilite-these-pdf"
+          }
+        ]
+      },
+      {
+        "id": "XMP2QFDN#f22",
+        "source": "fulltext",
+        "chars": 1200,
+        "bytes": 1281,
+        "words": 202,
+        "item_key": "XMP2QFDN",
+        "attachments": [
+          {
+            "attachment_key": "VKBUWDUD",
+            "attachment_id": "ha-duong-1998-irreversibilite-these-pdf"
+          }
+        ]
+      },
+      {
+        "id": "X7XR8TVW#f0",
+        "source": "fulltext",
+        "chars": 1200,
+        "bytes": 1627,
+        "words": 273,
+        "item_key": "X7XR8TVW",
+        "attachments": [
+          {
+            "attachment_key": "B6R4NE24",
+            "attachment_id": "vn-constitution-1992-vi-chuong-iv-html"
+          }
+        ]
+      }
+    ],
+    "lightest_bytes": [
+      {
+        "id": "IUTSQI2Q#0",
+        "source": "metadata",
+        "chars": 63,
+        "bytes": 69,
+        "words": 5,
+        "item_key": "IUTSQI2Q",
+        "attachments": []
+      },
+      {
+        "id": "BGM6XA2N#0",
+        "source": "metadata",
+        "chars": 66,
+        "bytes": 72,
+        "words": 5,
+        "item_key": "BGM6XA2N",
+        "attachments": []
+      },
+      {
+        "id": "JVAG4QBG#0",
+        "source": "metadata",
+        "chars": 66,
+        "bytes": 72,
+        "words": 5,
+        "item_key": "JVAG4QBG",
+        "attachments": []
+      },
+      {
+        "id": "5K9LFBY5#0",
+        "source": "metadata",
+        "chars": 77,
+        "bytes": 77,
+        "words": 5,
+        "item_key": "5K9LFBY5",
+        "attachments": []
+      },
+      {
+        "id": "4HGW537Q#0",
+        "source": "metadata",
+        "chars": 72,
+        "bytes": 78,
+        "words": 5,
+        "item_key": "4HGW537Q",
+        "attachments": []
+      },
+      {
+        "id": "88PA89A2#0",
+        "source": "metadata",
+        "chars": 72,
+        "bytes": 78,
+        "words": 5,
+        "item_key": "88PA89A2",
+        "attachments": []
+      },
+      {
+        "id": "NWVA2RU9#0",
+        "source": "metadata",
+        "chars": 72,
+        "bytes": 78,
+        "words": 5,
+        "item_key": "NWVA2RU9",
+        "attachments": []
+      },
+      {
+        "id": "UTKNFDL5#0",
+        "source": "metadata",
+        "chars": 72,
+        "bytes": 78,
+        "words": 5,
+        "item_key": "UTKNFDL5",
+        "attachments": []
+      },
+      {
+        "id": "4LJTF9JH#0",
+        "source": "metadata",
+        "chars": 73,
+        "bytes": 79,
+        "words": 5,
+        "item_key": "4LJTF9JH",
+        "attachments": []
+      },
+      {
+        "id": "6HHKNLYD#0",
+        "source": "metadata",
+        "chars": 73,
+        "bytes": 79,
+        "words": 5,
+        "item_key": "6HHKNLYD",
+        "attachments": []
+      }
+    ],
+    "heaviest_bytes": [
+      {
+        "id": "9X639J5G#f1",
+        "source": "fulltext",
+        "chars": 1197,
+        "bytes": 3579,
+        "words": 7,
+        "item_key": "9X639J5G",
+        "attachments": [
+          {
+            "attachment_key": "IVH9KQRD",
+            "attachment_id": "yan-fu-1902-yuanfu-yishi-liyan-html"
+          }
+        ]
+      },
+      {
+        "id": "VUSTI7FZ#f16",
+        "source": "fulltext",
+        "chars": 1197,
+        "bytes": 3569,
+        "words": 12,
+        "item_key": "VUSTI7FZ",
+        "attachments": [
+          {
+            "attachment_key": "EHT9EUU2",
+            "attachment_id": "dai-viet-su-ky-toan-thu-quyen-thu-zh-html"
+          }
+        ]
+      },
+      {
+        "id": "VUSTI7FZ#f4",
+        "source": "fulltext",
+        "chars": 1191,
+        "bytes": 3555,
+        "words": 10,
+        "item_key": "VUSTI7FZ",
+        "attachments": [
+          {
+            "attachment_key": "EHT9EUU2",
+            "attachment_id": "dai-viet-su-ky-toan-thu-quyen-thu-zh-html"
+          }
+        ]
+      },
+      {
+        "id": "URQ2HCLJ#f0",
+        "source": "fulltext",
+        "chars": 1195,
+        "bytes": 3547,
+        "words": 20,
+        "item_key": "URQ2HCLJ",
+        "attachments": [
+          {
+            "attachment_key": "BWKXR57L",
+            "attachment_id": "dai-viet-su-ky-toan-thu-ngoai-ky-1-zh-html"
+          }
+        ]
+      },
+      {
+        "id": "YC4EAVQN#f0",
+        "source": "fulltext",
+        "chars": 1195,
+        "bytes": 3509,
+        "words": 39,
+        "item_key": "YC4EAVQN",
+        "attachments": [
+          {
+            "attachment_key": "MNZNGCY6",
+            "attachment_id": "sanzijing-chinapage-1999-gb2312-html"
+          }
+        ]
+      },
+      {
+        "id": "S59SVXCY#f2",
+        "source": "fulltext",
+        "chars": 1192,
+        "bytes": 3508,
+        "words": 35,
+        "item_key": "S59SVXCY",
+        "attachments": [
+          {
+            "attachment_key": "B6RRD8Q4",
+            "attachment_id": "sanguo-yanyi-ch01-chinapage-1999-big5-html"
+          }
+        ]
+      },
+      {
+        "id": "S59SVXCY#f3",
+        "source": "fulltext",
+        "chars": 1189,
+        "bytes": 3499,
+        "words": 35,
+        "item_key": "S59SVXCY",
+        "attachments": [
+          {
+            "attachment_key": "B6RRD8Q4",
+            "attachment_id": "sanguo-yanyi-ch01-chinapage-1999-big5-html"
+          }
+        ]
+      },
+      {
+        "id": "44KHNR7L#f4",
+        "source": "fulltext",
+        "chars": 1197,
+        "bytes": 3482,
+        "words": 19,
+        "item_key": "44KHNR7L",
+        "attachments": [
+          {
+            "attachment_key": "U8WE6E53",
+            "attachment_id": "wp-inflation-zh-html"
+          }
+        ]
+      },
+      {
+        "id": "S59SVXCY#f1",
+        "source": "fulltext",
+        "chars": 1181,
+        "bytes": 3479,
+        "words": 33,
+        "item_key": "S59SVXCY",
+        "attachments": [
+          {
+            "attachment_key": "B6RRD8Q4",
+            "attachment_id": "sanguo-yanyi-ch01-chinapage-1999-big5-html"
+          }
+        ]
+      },
+      {
+        "id": "44KHNR7L#f3",
+        "source": "fulltext",
+        "chars": 1177,
+        "bytes": 3456,
+        "words": 20,
+        "item_key": "44KHNR7L",
+        "attachments": [
+          {
+            "attachment_key": "U8WE6E53",
+            "attachment_id": "wp-inflation-zh-html"
+          }
+        ]
+      }
+    ]
+  },
+  "per_item": {
+    "items": 103,
+    "all": {
+      "count": 103,
+      "total": 2379,
+      "min": 1,
+      "max": 41,
+      "mean": 23.097087378640776,
+      "stdev": 16.63982505690501,
+      "p05": 1,
+      "p25": 6,
+      "p50": 31,
+      "p75": 39,
+      "p90": 40,
+      "p95": 40,
+      "p99": 41
+    },
+    "metadata": {
+      "count": 103,
+      "total": 103,
+      "min": 1,
+      "max": 1,
+      "mean": 1.0,
+      "stdev": 0.0,
+      "p05": 1,
+      "p25": 1,
+      "p50": 1,
+      "p75": 1,
+      "p90": 1,
+      "p95": 1,
+      "p99": 1
+    },
+    "fulltext": {
+      "count": 89,
+      "total": 2276,
+      "min": 1,
+      "max": 40,
+      "mean": 25.573033707865168,
+      "stdev": 15.216702562120096,
+      "p05": 2,
+      "p25": 9,
+      "p50": 38,
+      "p75": 38,
+      "p90": 39,
+      "p95": 39,
+      "p99": 40
+    },
+    "most_passages": [
+      {
+        "item_key": "SEU4AJNZ",
+        "recipe_id": "gutierrez-2014-diagnostico-ambiental-trevelez",
+        "passages": 41,
+        "fulltext": 40
+      },
+      {
+        "item_key": "C4LGUQ6N",
+        "recipe_id": "wb-2016-vietnam-2035-vi",
+        "passages": 41,
+        "fulltext": 40
+      },
+      {
+        "item_key": "R7Z3HR4C",
+        "recipe_id": "des-michels-1885-kim-van-kieu-t2",
+        "passages": 40,
+        "fulltext": 39
+      },
+      {
+        "item_key": "UKNYN2I6",
+        "recipe_id": "doe-2011-quadrennial-technology-review",
+        "passages": 40,
+        "fulltext": 39
+      },
+      {
+        "item_key": "EZRNSMR8",
+        "recipe_id": "epa-2016-ghg-inventory-1990-2014",
+        "passages": 40,
+        "fulltext": 39
+      },
+      {
+        "item_key": "XMP2QFDN",
+        "recipe_id": "ha-duong-1998-irreversibilite-these",
+        "passages": 40,
+        "fulltext": 39
+      },
+      {
+        "item_key": "LBW7QYN2",
+        "recipe_id": "ha-duong-2005-modeles-de-precaution-hdr",
+        "passages": 40,
+        "fulltext": 39
+      },
+      {
+        "item_key": "H6G6SRM7",
+        "recipe_id": "ibanez-2015-desarrollo-humano-sustentable",
+        "passages": 40,
+        "fulltext": 39
+      },
+      {
+        "item_key": "JYWTAQKJ",
+        "recipe_id": "macias-2014-crecimiento-desigualdad-pobreza",
+        "passages": 40,
+        "fulltext": 39
+      },
+      {
+        "item_key": "27AU52Z8",
+        "recipe_id": "ormos-2014-entropy-asset-pricing",
+        "passages": 40,
+        "fulltext": 39
+      }
+    ],
+    "items_with_no_body_text": [
+      {
+        "item_key": "LTBW97KE",
+        "recipe_id": "bastiat-1862-oeuvres-completes-t1"
+      },
+      {
+        "item_key": "9XH5U5SM",
+        "recipe_id": "bettencourt-2014-professional-diversity-cities-scirep"
+      },
+      {
+        "item_key": "BX8KC9XP",
+        "recipe_id": "keynes-1921-application-of-probability-to-conduct"
+      },
+      {
+        "item_key": "FWGMEZZY",
+        "recipe_id": "makarov-2013-climate-change-challenge-world-economy"
+      },
+      {
+        "item_key": "LFL3A88E",
+        "recipe_id": "menger-1884-irrthuemer-des-historismus"
+      },
+      {
+        "item_key": "DUTSAU6D",
+        "recipe_id": "ormos-2015-entropy-asset-pricing-arxiv"
+      },
+      {
+        "item_key": "TX53MLN2",
+        "recipe_id": "ramsey-1931-foundations-of-mathematics"
+      },
+      {
+        "item_key": "43KSACFX",
+        "recipe_id": "schindler-2015-alien-species-health-dataset"
+      },
+      {
+        "item_key": "WB2US5SC",
+        "recipe_id": "tran-trong-kim-1920-viet-nam-su-luoc-q1"
+      },
+      {
+        "item_key": "EYJCJMSI",
+        "recipe_id": "tran-trong-kim-1928-viet-nam-su-luoc-q2"
+      },
+      {
+        "item_key": "CHL5Q8XY",
+        "recipe_id": "vuillemin-1875-carte-concessions-nord-pas-de-calais"
+      },
+      {
+        "item_key": "LENIPZLN",
+        "recipe_id": "vuillemin-1875-production-pas-de-calais"
+      },
+      {
+        "item_key": "PEVFVZG6",
+        "recipe_id": "zenodo-11353-open-data-energy-india"
+      },
+      {
+        "item_key": "JD2PQ67U",
+        "recipe_id": "zenodo-1246601-green-economy-employment"
+      }
+    ]
+  },
+  "per_attachment": {
+    "attachments": 114,
+    "contributing": 89,
+    "passages_per_attachment": {
+      "count": 89,
+      "total": 2276,
+      "min": 1,
+      "max": 40,
+      "mean": 25.573033707865168,
+      "stdev": 15.216702562120096,
+      "p05": 2,
+      "p25": 9,
+      "p50": 38,
+      "p75": 38,
+      "p90": 39,
+      "p95": 39,
+      "p99": 40
+    },
+    "most_passages": [
+      {
+        "attachment_id": "gutierrez-2014-diagnostico-ambiental-trevelez-pdf",
+        "attachment_key": "HT47IY43",
+        "language": "es",
+        "format": "pdf",
+        "passages": 40
+      },
+      {
+        "attachment_id": "wb-2016-vietnam-2035-vi-pdf",
+        "attachment_key": "VA62AWYN",
+        "language": "vi",
+        "format": "pdf",
+        "passages": 40
+      },
+      {
+        "attachment_id": "des-michels-1885-kim-van-kieu-t2-pdf",
+        "attachment_key": "PQZI5J8B",
+        "language": "fr",
+        "format": "pdf",
+        "passages": 39
+      },
+      {
+        "attachment_id": "doe-2011-quadrennial-technology-review-pdf",
+        "attachment_key": "CHSB3HZ9",
+        "language": "en",
+        "format": "pdf",
+        "passages": 39
+      },
+      {
+        "attachment_id": "epa-2016-ghg-inventory-chapter-3-energy-pdf",
+        "attachment_key": "TNFGB8UX",
+        "language": "en",
+        "format": "pdf",
+        "passages": 39
+      },
+      {
+        "attachment_id": "ha-duong-1998-irreversibilite-these-pdf",
+        "attachment_key": "VKBUWDUD",
+        "language": "fr",
+        "format": "pdf",
+        "passages": 39
+      },
+      {
+        "attachment_id": "ha-duong-2005-modeles-de-precaution-hdr-pdf",
+        "attachment_key": "WASTUP32",
+        "language": "fr",
+        "format": "pdf",
+        "passages": 39
+      },
+      {
+        "attachment_id": "ibanez-2015-desarrollo-humano-sustentable-pdf",
+        "attachment_key": "QCS355JY",
+        "language": "es",
+        "format": "pdf",
+        "passages": 39
+      },
+      {
+        "attachment_id": "macias-2014-crecimiento-desigualdad-pobreza-pdf",
+        "attachment_key": "KSQTEU7K",
+        "language": "es",
+        "format": "pdf",
+        "passages": 39
+      },
+      {
+        "attachment_id": "ormos-2014-entropy-asset-pricing-plos-pdf",
+        "attachment_key": "6NZDWHVP",
+        "language": "en",
+        "format": "pdf",
+        "passages": 39
+      }
+    ],
+    "fewest_passages": [
+      {
+        "attachment_id": "vn-constitution-1992-vi-chuong-xi-html",
+        "attachment_key": "H2DMJBLB",
+        "language": "vi",
+        "format": "html",
+        "passages": 1,
+        "chars_indexed": 772
+      },
+      {
+        "attachment_id": "vn-constitution-1992-vi-chuong-xii-html",
+        "attachment_key": "LBV8JIBS",
+        "language": "vi",
+        "format": "html",
+        "passages": 1,
+        "chars_indexed": 489
+      },
+      {
+        "attachment_id": "sanzijing-chinapage-1999-gb2312-html",
+        "attachment_key": "MNZNGCY6",
+        "language": "zh",
+        "format": "html",
+        "passages": 2,
+        "chars_indexed": 1657
+      },
+      {
+        "attachment_id": "vn-constitution-1992-vi-chuong-iv-html",
+        "attachment_key": "B6R4NE24",
+        "language": "vi",
+        "format": "html",
+        "passages": 2,
+        "chars_indexed": 2230
+      },
+      {
+        "attachment_id": "vnembassy-usa-1999-tinh-hinh-lao-dong-html",
+        "attachment_key": "NCMPSZMP",
+        "language": "vi",
+        "format": "html",
+        "passages": 2,
+        "chars_indexed": 1283
+      },
+      {
+        "attachment_id": "menger-1871-grundsaetze-pdf",
+        "attachment_key": "PGQA946C",
+        "language": "de",
+        "format": "pdf",
+        "passages": 3,
+        "chars_indexed": 2951
+      },
+      {
+        "attachment_id": "nhandan-1998-06-21-tin-kinh-te-html",
+        "attachment_key": "VDBX25V8",
+        "language": "vi",
+        "format": "html",
+        "passages": 3,
+        "chars_indexed": 2919
+      },
+      {
+        "attachment_id": "vn-constitution-1992-vi-html",
+        "attachment_key": "V22YASPQ",
+        "language": "vi",
+        "format": "html",
+        "passages": 3,
+        "chars_indexed": 2674
+      },
+      {
+        "attachment_id": "hal-04826774-lich-su-sach-nam-ky-pdf",
+        "attachment_key": "RLFNAG8E",
+        "language": "vi",
+        "format": "pdf",
+        "passages": 4,
+        "chars_indexed": 4332
+      },
+      {
+        "attachment_id": "vn-constitution-1992-vi-chuong-ix-html",
+        "attachment_key": "82VNHS6P",
+        "language": "vi",
+        "format": "html",
+        "passages": 4,
+        "chars_indexed": 3953
+      }
+    ],
+    "chars_indexed": {
+      "count": 89,
+      "total": 2353188,
+      "min": 489,
+      "max": 40000,
+      "mean": 26440.314606741573,
+      "stdev": 15995.167259326536,
+      "p05": 2230,
+      "p25": 8688,
+      "p50": 40000,
+      "p75": 40000,
+      "p90": 40000,
+      "p95": 40000,
+      "p99": 40000
+    },
+    "truncated_by_the_item_cap": [
+      {
+        "attachment_id": "johnson-1785-dictionary",
+        "attachment_key": "EB9TGHWH",
+        "language": "en",
+        "format": "pdf",
+        "chars_available": 577643,
+        "chars_offered": 577643,
+        "chars_indexed": 40000,
+        "dropped": 537643
+      },
+      {
+        "attachment_id": "smith-1776-wealth-of-nations-html",
+        "attachment_key": "9DLZSRCN",
+        "language": "en",
+        "format": "html",
+        "chars_available": 500000,
+        "chars_offered": 500000,
+        "chars_indexed": 40000,
+        "dropped": 460000
+      },
+      {
+        "attachment_id": "epa-2016-ghg-inventory-chapter-3-energy-pdf",
+        "attachment_key": "TNFGB8UX",
+        "language": "en",
+        "format": "pdf",
+        "chars_available": 351563,
+        "chars_offered": 351563,
+        "chars_indexed": 40000,
+        "dropped": 311563
+      },
+      {
+        "attachment_id": "walras-1900-elements",
+        "attachment_key": "3A2CSURL",
+        "language": "fr",
+        "format": "pdf",
+        "chars_available": 330049,
+        "chars_offered": 330049,
+        "chars_indexed": 40000,
+        "dropped": 290049
+      },
+      {
+        "attachment_id": "wb-2016-vietnam-2035-en-pdf",
+        "attachment_key": "TKLXGCGR",
+        "language": "en",
+        "format": "pdf",
+        "chars_available": 302947,
+        "chars_offered": 302947,
+        "chars_indexed": 40000,
+        "dropped": 262947
+      },
+      {
+        "attachment_id": "ha-duong-1998-irreversibilite-these-pdf",
+        "attachment_key": "VKBUWDUD",
+        "language": "fr",
+        "format": "pdf",
+        "chars_available": 284859,
+        "chars_offered": 284859,
+        "chars_indexed": 40000,
+        "dropped": 244859
+      },
+      {
+        "attachment_id": "wb-2016-vietnam-2035-en-overview-pdf",
+        "attachment_key": "AY8TMFZ6",
+        "language": "en",
+        "format": "pdf",
+        "chars_available": 262289,
+        "chars_offered": 262289,
+        "chars_indexed": 40000,
+        "dropped": 222289
+      },
+      {
+        "attachment_id": "ha-duong-2005-modeles-de-precaution-hdr-pdf",
+        "attachment_key": "WASTUP32",
+        "language": "fr",
+        "format": "pdf",
+        "chars_available": 251765,
+        "chars_offered": 251765,
+        "chars_indexed": 40000,
+        "dropped": 211765
+      },
+      {
+        "attachment_id": "worldbank-2015-state-trends-carbon-pricing-pdf",
+        "attachment_key": "L4DY79FF",
+        "language": "en",
+        "format": "pdf",
+        "chars_available": 251479,
+        "chars_offered": 251479,
+        "chars_indexed": 40000,
+        "dropped": 211479
+      },
+      {
+        "attachment_id": "wb-2016-vietnam-2035-vi-pdf",
+        "attachment_key": "VA62AWYN",
+        "language": "vi",
+        "format": "pdf",
+        "chars_available": 224451,
+        "chars_offered": 224451,
+        "chars_indexed": 40000,
+        "dropped": 184451
+      },
+      {
+        "attachment_id": "gutierrez-2014-diagnostico-ambiental-trevelez-pdf",
+        "attachment_key": "HT47IY43",
+        "language": "es",
+        "format": "pdf",
+        "chars_available": 210577,
+        "chars_offered": 210577,
+        "chars_indexed": 40000,
+        "dropped": 170577
+      },
+      {
+        "attachment_id": "wp-climate-change-en-html",
+        "attachment_key": "MJZL5FJX",
+        "language": "en",
+        "format": "html",
+        "chars_available": 208654,
+        "chars_offered": 208654,
+        "chars_indexed": 40000,
+        "dropped": 168654
+      },
+      {
+        "attachment_id": "bonet-1899-dictionnaire-annamite-francais-t2-pdf",
+        "attachment_key": "YZBWCKZ9",
+        "language": "vi",
+        "format": "pdf",
+        "chars_available": 208090,
+        "chars_offered": 208090,
+        "chars_indexed": 40000,
+        "dropped": 168090
+      },
+      {
+        "attachment_id": "wp-climate-change-fr-html",
+        "attachment_key": "6PG6TSDT",
+        "language": "fr",
+        "format": "html",
+        "chars_available": 203602,
+        "chars_offered": 203602,
+        "chars_indexed": 40000,
+        "dropped": 163602
+      },
+      {
+        "attachment_id": "doe-2011-quadrennial-technology-review-pdf",
+        "attachment_key": "CHSB3HZ9",
+        "language": "en",
+        "format": "pdf",
+        "chars_available": 195814,
+        "chars_offered": 195814,
+        "chars_indexed": 40000,
+        "dropped": 155814
+      },
+      {
+        "attachment_id": "wb-2016-vietnam-2035-vi-overview-pdf",
+        "attachment_key": "WEBKA55Y",
+        "language": "vi",
+        "format": "pdf",
+        "chars_available": 192455,
+        "chars_offered": 192455,
+        "chars_indexed": 40000,
+        "dropped": 152455
+      },
+      {
+        "attachment_id": "keynes-1921-treatise-on-probability-pdf",
+        "attachment_key": "AJ7CXVDU",
+        "language": "en",
+        "format": "pdf",
+        "chars_available": 190708,
+        "chars_offered": 190708,
+        "chars_indexed": 40000,
+        "dropped": 150708
+      },
+      {
+        "attachment_id": "bonet-1899-dictionnaire-annamite-francais-t1-pdf",
+        "attachment_key": "QF55DVWX",
+        "language": "vi",
+        "format": "pdf",
+        "chars_available": 185104,
+        "chars_offered": 185104,
+        "chars_indexed": 40000,
+        "dropped": 145104
+      },
+      {
+        "attachment_id": "wp-climate-change-vi-html",
+        "attachment_key": "LKTQGVLI",
+        "language": "vi",
+        "format": "html",
+        "chars_available": 167778,
+        "chars_offered": 167778,
+        "chars_indexed": 40000,
+        "dropped": 127778
+      },
+      {
+        "attachment_id": "des-michels-1884-kim-van-kieu-t1-pdf",
+        "attachment_key": "JT7EB2F9",
+        "language": "fr",
+        "format": "pdf",
+        "chars_available": 165246,
+        "chars_offered": 165246,
+        "chars_indexed": 40000,
+        "dropped": 125246
+      },
+      {
+        "attachment_id": "wp-climate-change-es-html",
+        "attachment_key": "SBTRE38S",
+        "language": "es",
+        "format": "html",
+        "chars_available": 158970,
+        "chars_offered": 158970,
+        "chars_indexed": 40000,
+        "dropped": 118970
+      },
+      {
+        "attachment_id": "vn-law-environment-2005-vi-html",
+        "attachment_key": "ENIYH5SY",
+        "language": "vi",
+        "format": "html",
+        "chars_available": 152785,
+        "chars_offered": 152785,
+        "chars_indexed": 40000,
+        "dropped": 112785
+      },
+      {
+        "attachment_id": "des-michels-1885-kim-van-kieu-t2-pdf",
+        "attachment_key": "PQZI5J8B",
+        "language": "fr",
+        "format": "pdf",
+        "chars_available": 150221,
+        "chars_offered": 150221,
+        "chars_indexed": 40000,
+        "dropped": 110221
+      },
+      {
+        "attachment_id": "cournot-1897-researches-bacon-pdf",
+        "attachment_key": "5I938WPW",
+        "language": "en",
+        "format": "pdf",
+        "chars_available": 136894,
+        "chars_offered": 136894,
+        "chars_indexed": 40000,
+        "dropped": 96894
+      },
+      {
+        "attachment_id": "ibn-khaldun-1904-muqaddimah-pdf",
+        "attachment_key": "ALU3335W",
+        "language": "ar",
+        "format": "pdf",
+        "chars_available": 126636,
+        "chars_offered": 126636,
+        "chars_indexed": 40000,
+        "dropped": 86636
+      },
+      {
+        "attachment_id": "wp-climate-change-ru-html",
+        "attachment_key": "HVSJUFSL",
+        "language": "ru",
+        "format": "html",
+        "chars_available": 122907,
+        "chars_offered": 122907,
+        "chars_indexed": 40000,
+        "dropped": 82907
+      },
+      {
+        "attachment_id": "wp-climate-change-zh-html",
+        "attachment_key": "G46GUZDU",
+        "language": "zh",
+        "format": "html",
+        "chars_available": 121106,
+        "chars_offered": 121106,
+        "chars_indexed": 40000,
+        "dropped": 81106
+      },
+      {
+        "attachment_id": "dli-1915-arthashastra-hindi-text-pdf",
+        "attachment_key": "JYJ6DZQ4",
+        "language": "hi",
+        "format": "pdf",
+        "chars_available": 120210,
+        "chars_offered": 120210,
+        "chars_indexed": 40000,
+        "dropped": 80210
+      },
+      {
+        "attachment_id": "jevons-1865-coal-question-pdf",
+        "attachment_key": "YFEVR9T3",
+        "language": "en",
+        "format": "pdf",
+        "chars_available": 119325,
+        "chars_offered": 119325,
+        "chars_indexed": 40000,
+        "dropped": 79325
+      },
+      {
+        "attachment_id": "wp-climate-change-de-html",
+        "attachment_key": "BHQDF69E",
+        "language": "de",
+        "format": "html",
+        "chars_available": 118962,
+        "chars_offered": 118962,
+        "chars_indexed": 40000,
+        "dropped": 78962
+      },
+      {
+        "attachment_id": "wp-inflation-en-html",
+        "attachment_key": "KEJRSL3L",
+        "language": "en",
+        "format": "html",
+        "chars_available": 114538,
+        "chars_offered": 114538,
+        "chars_indexed": 40000,
+        "dropped": 74538
+      },
+      {
+        "attachment_id": "poincare-1912-calcul-des-probabilites-pdf",
+        "attachment_key": "26JJF8L4",
+        "language": "fr",
+        "format": "pdf",
+        "chars_available": 112979,
+        "chars_offered": 112979,
+        "chars_indexed": 40000,
+        "dropped": 72979
+      },
+      {
+        "attachment_id": "cournot-1838-recherches-ia-pdf",
+        "attachment_key": "TLZ7JLEX",
+        "language": "fr",
+        "format": "pdf",
+        "chars_available": 112228,
+        "chars_offered": 112228,
+        "chars_indexed": 40000,
+        "dropped": 72228
+      },
+      {
+        "attachment_id": "nguyen-du-truyen-kieu-vi-wikisource-html",
+        "attachment_key": "8ZXPNMC6",
+        "language": "vi",
+        "format": "html",
+        "chars_available": 109258,
+        "chars_offered": 109258,
+        "chars_indexed": 40000,
+        "dropped": 69258
+      },
+      {
+        "attachment_id": "jevons-1871-theory-of-political-economy-pdf",
+        "attachment_key": "HPVAULXQ",
+        "language": "en",
+        "format": "pdf",
+        "chars_available": 101175,
+        "chars_offered": 101175,
+        "chars_indexed": 40000,
+        "dropped": 61175
+      },
+      {
+        "attachment_id": "porte-1770-science-des-negocians",
+        "attachment_key": "4H5HAURM",
+        "language": "fr",
+        "format": "pdf",
+        "chars_available": 86633,
+        "chars_offered": 86633,
+        "chars_indexed": 40000,
+        "dropped": 46633
+      },
+      {
+        "attachment_id": "ibanez-2015-desarrollo-humano-sustentable-pdf",
+        "attachment_key": "QCS355JY",
+        "language": "es",
+        "format": "pdf",
+        "chars_available": 86339,
+        "chars_offered": 86339,
+        "chars_indexed": 40000,
+        "dropped": 46339
+      },
+      {
+        "attachment_id": "satw-2011-erneuerbare-energien-pdf",
+        "attachment_key": "E466FNQ9",
+        "language": "de",
+        "format": "pdf",
+        "chars_available": 83187,
+        "chars_offered": 83187,
+        "chars_indexed": 40000,
+        "dropped": 43187
+      },
+      {
+        "attachment_id": "vn-law-electricity-2004-vi-html",
+        "attachment_key": "I3LAA8TA",
+        "language": "vi",
+        "format": "html",
+        "chars_available": 79632,
+        "chars_offered": 79632,
+        "chars_indexed": 40000,
+        "dropped": 39632
+      },
+      {
+        "attachment_id": "vn-constitution-1992-en-html",
+        "attachment_key": "R43PLWP2",
+        "language": "en",
+        "format": "html",
+        "chars_available": 78146,
+        "chars_offered": 78146,
+        "chars_indexed": 40000,
+        "dropped": 38146
+      },
+      {
+        "attachment_id": "macias-2014-crecimiento-desigualdad-pobreza-pdf",
+        "attachment_key": "KSQTEU7K",
+        "language": "es",
+        "format": "pdf",
+        "chars_available": 70335,
+        "chars_offered": 70335,
+        "chars_indexed": 40000,
+        "dropped": 30335
+      },
+      {
+        "attachment_id": "worldbank-2009-vietnam-energy-mitigation-pdf",
+        "attachment_key": "2ZWGCBBM",
+        "language": "en",
+        "format": "pdf",
+        "chars_available": 61844,
+        "chars_offered": 61844,
+        "chars_indexed": 40000,
+        "dropped": 21844
+      },
+      {
+        "attachment_id": "korotayev-2015-east-africa-malthusian-trap-pdf",
+        "attachment_key": "2QCUPHJP",
+        "language": "en",
+        "format": "pdf",
+        "chars_available": 52282,
+        "chars_offered": 52282,
+        "chars_indexed": 40000,
+        "dropped": 12282
+      },
+      {
+        "attachment_id": "ormos-2014-entropy-asset-pricing-plos-pdf",
+        "attachment_key": "6NZDWHVP",
+        "language": "en",
+        "format": "pdf",
+        "chars_available": 50676,
+        "chars_offered": 50676,
+        "chars_indexed": 40000,
+        "dropped": 10676
+      },
+      {
+        "attachment_id": "pei-2015-climate-macroeconomic-preindustrial-europe-pdf",
+        "attachment_key": "3EI4PY6L",
+        "language": "en",
+        "format": "pdf",
+        "chars_available": 50275,
+        "chars_offered": 50275,
+        "chars_indexed": 40000,
+        "dropped": 10275
+      },
+      {
+        "attachment_id": "vn-law-energy-efficiency-2010-vi-html",
+        "attachment_key": "NIWCRHTC",
+        "language": "vi",
+        "format": "html",
+        "chars_available": 47822,
+        "chars_offered": 47822,
+        "chars_indexed": 40000,
+        "dropped": 7822
+      },
+      {
+        "attachment_id": "wittkopf-2016-bipv-methodological-framework-pdf",
+        "attachment_key": "LRIU5TC8",
+        "language": "en",
+        "format": "pdf",
+        "chars_available": 46217,
+        "chars_offered": 46217,
+        "chars_indexed": 40000,
+        "dropped": 6217
+      },
+      {
+        "attachment_id": "tolstoy-1910-sueverie-gosudarstva-librue-1999-html",
+        "attachment_key": "6XLZXPPE",
+        "language": "ru",
+        "format": "html",
+        "chars_available": 42107,
+        "chars_offered": 42107,
+        "chars_indexed": 40000,
+        "dropped": 2107
+      }
+    ],
+    "no_passage": [
+      {
+        "attachment_id": "bastiat-1862-oeuvres-completes-t1-zip",
+        "attachment_key": "E5TSEXCY",
+        "terminal_state": "unindexed",
+        "content_type": "application/zip",
+        "chars_available": null,
+        "reason": "absent from Zotero's fulltext census: unindexed (application/zip)"
+      },
+      {
+        "attachment_id": "bastiat-oeuvres-completes-t1-latin1-txt",
+        "attachment_key": "BZ6AAKBX",
+        "terminal_state": "indexed-not-served",
+        "content_type": "text/plain",
+        "chars_available": null,
+        "reason": "listed by the census, 404 on its fulltext route: indexed-not-served"
+      },
+      {
+        "attachment_id": "bettencourt-2012-professional-diversity-cities-source-tgz",
+        "attachment_key": "M9RH95GR",
+        "terminal_state": "unindexed",
+        "content_type": "application/gzip",
+        "chars_available": null,
+        "reason": "absent from Zotero's fulltext census: unindexed (application/gzip)"
+      },
+      {
+        "attachment_id": "dli-1915-arthashastra-hindi-image-pdf",
+        "attachment_key": "HK6MKK56",
+        "terminal_state": "unindexed",
+        "content_type": "application/pdf",
+        "chars_available": null,
+        "reason": "absent from Zotero's fulltext census: unindexed (application/pdf)"
+      },
+      {
+        "attachment_id": "dli-1915-arthashastra-hindi-txt",
+        "attachment_key": "SGVKLECW",
+        "terminal_state": "indexed-not-served",
+        "content_type": "text/plain",
+        "chars_available": null,
+        "reason": "the item's character cap was already spent"
+      },
+      {
+        "attachment_id": "epa-2016-ghg-inventory-chapter-tables-zip",
+        "attachment_key": "SKP8SYZ8",
+        "terminal_state": "unindexed",
+        "content_type": "application/zip",
+        "chars_available": null,
+        "reason": "absent from Zotero's fulltext census: unindexed (application/zip)"
+      },
+      {
+        "attachment_id": "epa-2016-ghg-inventory-executive-summary-pdf",
+        "attachment_key": "KPLGZ2VL",
+        "terminal_state": "indexed",
+        "content_type": "application/pdf",
+        "chars_available": 77804,
+        "reason": "the item's character cap was already spent"
+      },
+      {
+        "attachment_id": "ibn-khaldun-1904-muqaddimah-txt",
+        "attachment_key": "ELM8ZHEW",
+        "terminal_state": "indexed-not-served",
+        "content_type": "text/plain",
+        "chars_available": null,
+        "reason": "the item's character cap was already spent"
+      },
+      {
+        "attachment_id": "jevons-1871-theory-of-political-economy-epub",
+        "attachment_key": "8ZYYSCZ8",
+        "terminal_state": "indexed",
+        "content_type": "application/epub+zip",
+        "chars_available": 27,
+        "reason": "the item's character cap was already spent"
+      },
+      {
+        "attachment_id": "jevons-1871-theory-of-political-economy-txt",
+        "attachment_key": "82FJKD7V",
+        "terminal_state": "indexed-not-served",
+        "content_type": "text/plain",
+        "chars_available": null,
+        "reason": "the item's character cap was already spent"
+      },
+      {
+        "attachment_id": "menger-1871-grundsaetze-txt",
+        "attachment_key": "2F99P8BW",
+        "terminal_state": "indexed-not-served",
+        "content_type": "text/plain",
+        "chars_available": null,
+        "reason": "listed by the census, 404 on its fulltext route: indexed-not-served"
+      },
+      {
+        "attachment_id": "menger-1884-irrthuemer-des-historismus-pdf",
+        "attachment_key": "U6S29R6N",
+        "terminal_state": "indexed-not-served",
+        "content_type": "text/plain",
+        "chars_available": null,
+        "reason": "listed by the census, 404 on its fulltext route: indexed-not-served"
+      },
+      {
+        "attachment_id": "ramsey-1931-foundations-of-mathematics",
+        "attachment_key": "K6VK5Y68",
+        "terminal_state": "unindexed",
+        "content_type": "application/pdf",
+        "chars_available": null,
+        "reason": "listed by the census, 404 on its fulltext route: unindexed"
+      },
+      {
+        "attachment_id": "schindler-2015-alien-species-health-xlsx",
+        "attachment_key": "PPE7BXDQ",
+        "terminal_state": "unindexed",
+        "content_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "chars_available": null,
+        "reason": "absent from Zotero's fulltext census: unindexed (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)"
+      },
+      {
+        "attachment_id": "smith-1776-wealth-of-nations-epub",
+        "attachment_key": "EAM35WCU",
+        "terminal_state": "indexed",
+        "content_type": "application/epub+zip",
+        "chars_available": 500000,
+        "reason": "the item's character cap was already spent"
+      },
+      {
+        "attachment_id": "smith-1776-wealth-of-nations-txt",
+        "attachment_key": "3Y5ZFCYF",
+        "terminal_state": "indexed-not-served",
+        "content_type": "text/plain",
+        "chars_available": null,
+        "reason": "listed by the census, 404 on its fulltext route: indexed-not-served"
+      },
+      {
+        "attachment_id": "tran-trong-kim-1920-viet-nam-su-luoc-q1",
+        "attachment_key": "G7FL2EI8",
+        "terminal_state": "unindexed",
+        "content_type": "image/vnd.djvu",
+        "chars_available": null,
+        "reason": "absent from Zotero's fulltext census: unindexed (image/vnd.djvu)"
+      },
+      {
+        "attachment_id": "tran-trong-kim-1928-viet-nam-su-luoc-q2",
+        "attachment_key": "5MZPTISM",
+        "terminal_state": "unindexed",
+        "content_type": "application/pdf",
+        "chars_available": null,
+        "reason": "listed by the census, 404 on its fulltext route: unindexed"
+      },
+      {
+        "attachment_id": "vuillemin-1875-carte-concessions-nord-pas-de-calais-jpg",
+        "attachment_key": "ZT9JSK9G",
+        "terminal_state": "unindexed",
+        "content_type": "image/jpeg",
+        "chars_available": null,
+        "reason": "absent from Zotero's fulltext census: unindexed (image/jpeg)"
+      },
+      {
+        "attachment_id": "vuillemin-1875-production-pas-de-calais-jpg",
+        "attachment_key": "CWZ44G2H",
+        "terminal_state": "unindexed",
+        "content_type": "image/jpeg",
+        "chars_available": null,
+        "reason": "absent from Zotero's fulltext census: unindexed (image/jpeg)"
+      },
+      {
+        "attachment_id": "worldbank-2009-vietnam-energy-mitigation-txt",
+        "attachment_key": "2Y3THXDP",
+        "terminal_state": "indexed-not-served",
+        "content_type": "text/plain",
+        "chars_available": null,
+        "reason": "the item's character cap was already spent"
+      },
+      {
+        "attachment_id": "yan-fu-1902-yuanfu-yishi-liyan-wikitext",
+        "attachment_key": "W5XJJGT7",
+        "terminal_state": "indexed-not-served",
+        "content_type": "text/plain",
+        "chars_available": null,
+        "reason": "listed by the census, 404 on its fulltext route: indexed-not-served"
+      },
+      {
+        "attachment_id": "zenodo-11353-open-data-energy-india-xlsx",
+        "attachment_key": "7CC4SGM5",
+        "terminal_state": "unindexed",
+        "content_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "chars_available": null,
+        "reason": "absent from Zotero's fulltext census: unindexed (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)"
+      },
+      {
+        "attachment_id": "zenodo-1246601-green-economy-employment-docx",
+        "attachment_key": "PLQE2DJH",
+        "terminal_state": "unindexed",
+        "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "chars_available": null,
+        "reason": "absent from Zotero's fulltext census: unindexed (application/vnd.openxmlformats-officedocument.wordprocessingml.document)"
+      },
+      {
+        "attachment_id": "zenodo-1246601-green-economy-employment-xlsx",
+        "attachment_key": "QLABMW2R",
+        "terminal_state": "unindexed",
+        "content_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "chars_available": null,
+        "reason": "absent from Zotero's fulltext census: unindexed (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)"
+      }
+    ]
+  },
+  "cross_check": {
+    "counted": {
+      "passages": 2379,
+      "metadata_passages": 103,
+      "fulltext_passages": 2276,
+      "items": 103,
+      "fulltext_items": 89
+    },
+    "compared": {
+      "passages": 2379,
+      "metadata_passages": 103,
+      "fulltext_passages": 2276,
+      "items": 103,
+      "fulltext_items": 89
+    },
+    "own_words_passages_reported": 0,
+    "differences": {},
+    "agrees": true
+  },
+  "r32_arithmetic": {
+    "passages": 2379,
+    "must_ms_per_passage": 150,
+    "should_ms_per_passage": 75,
+    "must_seconds": 356.85,
+    "should_seconds": 178.425,
+    "note": "arithmetic on the pinned count, not a measured build. It says what a full build over THIS export has to come in under for the rate to hold, and it is void the moment the count above moves — which is the whole reason the count is pinned to an export sha",
+    "machine": "R32's reference machine is SPEC.md §5.2.9's, not this one; no build was timed here"
+  },
+  "not_measured": {
+    "tokens": "no tokenizer is installed on this machine (no `tokenizers`, no `transformers`, no model cache), so token lengths are absent rather than estimated. The experiment: bench/passage_census.mjs over export/fulltext/ with the incumbent embedder's own tokenizer",
+    "own_words": "the replayed export produces no note or annotation passages; the cross-check reads that from the build's own ownWordsPassages rather than assuming it"
+  }
+}
