@@ -31,6 +31,7 @@ writer and endpoint, modes and their evidence, extraction configuration.
 """
 
 import argparse
+import hashlib
 import json
 import logging
 import os
@@ -48,9 +49,35 @@ from bench.generator import questions as Q
 from bench.generator import sample as S
 from bench.generator import score as SC
 from bench.generator.scope import Scope, ScopeProxy
+from bench.registry import load_registry
 
 PRIMARY_MODE = "combined"
 MODES = ("combined", "exact", "meaning")
+
+#: The two values the target's `embedderIdentity()` leaves OUT of the string it
+#: stamps on an index's vectors, so that adding a suffix does not declare every
+#: index ever built stale (`embeddings.ts`, DEFAULT_LOCAL_DTYPE and
+#: DEFAULT_POOLING). They are the semantic content of that elision: a stamp with
+#: no `@` means fp32, one with no `#` means mean. Reproducing them here is not a
+#: copy of the target's model tables — it is the inverse of its elision rule,
+#: which is what lets this run write the two values out explicitly in exactly
+#: the arm where the stamp is silent about them.
+STAMP_ELIDED_DTYPE = "fp32"
+STAMP_ELIDED_POOLING = "mean"
+
+#: The settings that decide which vectors a local build produces. Read from the
+#: operator environment because the adapter merges its own dict OVER `os.environ`
+#: and sets none of these four (it sets `ZOTEUS_EMBEDDINGS` only), so what the
+#: shell exported is what the target saw.
+EMBEDDER_SETTINGS = ("ZOTEUS_EMBEDDINGS", "ZOTEUS_EMBEDDING_MODEL", "ZOTEUS_EMBEDDING_DTYPE",
+                     "ZOTEUS_EMBEDDING_POOLING", "ZOTEUS_EMBEDDING_PREFIXES")
+
+#: The registry id whose record carries the E5 template, for the one setting
+#: that forces those markers regardless of the model
+#: (`ZOTEUS_EMBEDDING_PREFIXES=e5`). A registry id, never a repository and never
+#: the prefix strings: one model name, one place, and both the template and the
+#: repositories it maps to belong to `bench/models.json`.
+E5_TEMPLATE_ID = "multilingual-e5-small"
 
 
 def index_item_keys(data_dir: Path) -> tuple[Path | None, list[str]]:
@@ -69,6 +96,204 @@ def index_item_keys(data_dir: Path) -> tuple[Path | None, list[str]]:
         except sqlite3.Error:
             continue
     return None, []
+
+
+def index_embedder_stamp(index_file: Path | None) -> str | None:
+    """The embedder identity the index stamped on its own vectors, read from the
+    index file (read-only, `meta.embedderId`).
+
+    This is the load-bearing witness, not the configuration: it is written when
+    the vectors are written, so it names what actually produced them even if the
+    environment has moved since. An index with no vectors stores the empty
+    string, which is absence and is returned as such."""
+    if index_file is None or not index_file.is_file():
+        return None
+    try:
+        con = sqlite3.connect(f"file:{index_file}?mode=ro", uri=True)
+    except sqlite3.Error:
+        return None
+    try:
+        row = con.execute("SELECT value FROM meta WHERE key = 'embedderId'").fetchone()
+    except sqlite3.Error:
+        return None
+    finally:
+        con.close()
+    return (row[0] or None) if row else None
+
+
+def expand_embedder_stamp(stamp: str | None) -> dict | None:
+    """`provider[:model][@dtype][#pooling]` with its elisions written out.
+
+    The target omits the default dtype and the default pooling from the string
+    on purpose, so a default run's stamp is `local:<model>` and says nothing
+    about either. Read literally, a run identity built on it would be silent
+    about precision and pooling in exactly the arm that needs them named. The
+    elision is total ordering, not information loss — absent means default — so
+    this expands it, and reports which parts were implicit so a reader can tell
+    a value that was in the string from one this function supplied."""
+    if not stamp:
+        return None
+    rest, sep, pooling = stamp.rpartition("#")
+    if not sep:
+        rest, pooling = stamp, None
+    head, sep, dtype = rest.rpartition("@")
+    if sep:
+        rest = head
+    else:
+        dtype = None
+    provider, sep, model = rest.partition(":")
+    return {"stamp": stamp, "provider": provider or None, "model": model if sep and model else None,
+            "dtype": dtype or STAMP_ELIDED_DTYPE, "pooling": pooling or STAMP_ELIDED_POOLING,
+            "elided": [k for k, v in (("dtype", dtype), ("pooling", pooling)) if not v]}
+
+
+def weights_digest(models_dir: Path, model: str | None) -> dict:
+    """The weight files the target actually loaded, by content.
+
+    `bench/models.json` declares a revision per repository, but the target
+    passes none to the pipeline: transformers.js fetches whatever the hub serves
+    today and caches it under `<dataDir>/models`, so a run that copied the
+    registry's revision into its identity would be recording a declaration as if
+    it were a fact about the weights it held. What can be measured is the bytes:
+    every file in the model's cache directory, with its size and SHA-256. Two
+    runs held the same weights when these agree, which is the question the
+    revision was being asked."""
+    if not model:
+        return {"present": False, "reason": "no model resolved, so no weights directory to look in"}
+    root = models_dir / model
+    if not root.is_dir():
+        return {"present": False, "dir": str(root),
+                "reason": "no cache directory for this model under the arena; the weights were served from "
+                          "elsewhere or the provider is not the on-device one"}
+    files = []
+    for path in sorted(p for p in root.rglob("*") if p.is_file()):
+        digest = hashlib.sha256()
+        with path.open("rb") as fh:
+            for chunk in iter(lambda: fh.read(1 << 20), b""):
+                digest.update(chunk)
+        files.append({"path": str(path.relative_to(root)), "bytes": path.stat().st_size,
+                      "sha256": digest.hexdigest()})
+    return {"present": True, "dir": str(root), "files": files,
+            "bytes": sum(f["bytes"] for f in files)}
+
+
+def registry_record(model: str | None, registry: dict | None = None) -> dict | None:
+    """The `bench/models.json` record for a repository id, or None.
+
+    Matched on the registry id first, then on the repository the runtime loads,
+    then on the upstream one: a mirror and its source name the same weights and
+    either may reach here, and a registry id never contains a slash, so the two
+    namespaces cannot collide. An undeclared repository returns None and is reported as undeclared:
+    the registry is the one place a model's template, pooling and revision are
+    written down, and a model missing from it is one this run cannot speak for
+    rather than one with nothing to say."""
+    if not model:
+        return None
+    reg = registry if registry is not None else load_registry()
+    for key in ("id", "hf_repo", "upstream_repo"):
+        for record in reg["models"]:
+            if record.get(key) == model:
+                return record
+    return None
+
+
+def declared_template(record: dict | None) -> dict | None:
+    """The input template a record declares, or None when it declares none.
+
+    An all-empty template is the registry's way of saying this model wants no
+    markers, which is a declaration; it comes back as None here so a reader is
+    not handed two empty strings to interpret."""
+    template = (record or {}).get("input_template") or {}
+    return dict(template) if any(template.values()) else None
+
+
+def embedder_identity(status: dict, stamp: str | None, evidence: dict,
+                      env: dict[str, str], models_dir: Path) -> dict:
+    """Which embedder produced this run's vectors, resolved and written out.
+
+    Exists because `embedder: "local"` — all the run identity carried before —
+    is a PROVIDER, and the question a cross-lingual reading turns on is the
+    MODEL: an English-centric default and a multilingual substitute are both
+    "local" and give opposite meanings to the same near-zero. So the model, its
+    precision and its pooling are recorded explicitly, never by omission, and
+    each is attributed to where it was read from."""
+    expanded = expand_embedder_stamp(stamp)
+    status_model = status.get("embedderModel")
+    stamp_model = (expanded or {}).get("model")
+    model = stamp_model or status_model
+    record = registry_record(model)
+    prefix_mode = env.get("ZOTEUS_EMBEDDING_PREFIXES") or "auto"
+    if prefix_mode == "off":
+        prefixes, prefix_note = None, "the setting turns the markers off for every model"
+    elif prefix_mode == "e5":
+        prefixes = declared_template(registry_record(E5_TEMPLATE_ID))
+        prefix_note = f"the setting forces the E5 template, read from the registry record {E5_TEMPLATE_ID}"
+    elif record is None:
+        prefixes = None
+        prefix_note = ("the registry declares no record for this repository, so the template it wants could "
+                       "not be resolved: this is unresolved, not `no markers`")
+    else:
+        prefixes = declared_template(record)
+        prefix_note = f"the template `bench/models.json` declares for {record['id']}"
+    identity: dict = {
+        "provider": status.get("embedder"),
+        "configured": status.get("embedderConfigured"),
+        "active": status.get("embedderActive"),
+        "model": model,
+        "model_source": "index stamp" if stamp_model else ("index status" if status_model else None),
+        "index_stamp": stamp,
+        "status_model": status_model,
+        "settings": {k: env.get(k) for k in EMBEDDER_SETTINGS},
+        "registry": ({"id": record["id"], "status": record["status"], "upstream_repo": record["upstream_repo"],
+                      "pooling": record.get("pooling"), "languages": record.get("languages")}
+                     if record else None),
+        "prefixes": {
+            "setting": prefix_mode,
+            "expected": prefixes,
+            "expected_from": prefix_note,
+            "observed": None,
+            "observability": "the target reports no prefix evidence in its status or its replies, so "
+                             "`expected` is what the registry declares this model wants and not a "
+                             "read-back of what the pipeline was handed",
+        },
+        "revision": {
+            "declared": (record or {}).get("hf_revision"),
+            "pinned_at_load": False,
+            "note": "the target passes no revision to the pipeline: it loads whatever the hub serves and "
+                    "caches it, so `declared` is the registry's record of the repository and the weights "
+                    "below are what this run actually held",
+            "weights": weights_digest(models_dir, model),
+        },
+        "query_reply_names_model": any("embedderModel" in e for e in evidence.values()),
+    }
+    if expanded:
+        identity["dtype"] = expanded["dtype"]
+        identity["pooling"] = expanded["pooling"]
+        identity["resolved_from_stamp_elision"] = expanded["elided"]
+    else:
+        #: No stamp means no vectors were written, so there is nothing that
+        #: witnessed the build. The settings still say what was asked for; the
+        #: pooling of an `auto` setting is decided by a table inside the target
+        #: and cannot be recovered from outside, and is reported as unmeasured
+        #: rather than filled in with the default it may not have.
+        identity["dtype"] = env.get("ZOTEUS_EMBEDDING_DTYPE") or STAMP_ELIDED_DTYPE
+        setting = env.get("ZOTEUS_EMBEDDING_POOLING") or "auto"
+        identity["pooling"] = None if setting == "auto" else setting
+        identity["unmeasured"] = ("no index stamp: the index wrote no vectors, so what produced them cannot be "
+                                  "read back; `pooling` under an `auto` setting comes from a table inside the "
+                                  "target and is not recoverable from outside")
+    declared_pooling = (record or {}).get("pooling")
+    if record and identity["pooling"] and declared_pooling and identity["pooling"] != declared_pooling:
+        #: The stamp is what the vectors were built with; the registry is what
+        #: the model was trained for. A disagreement is a silent retrieval loss,
+        #: so it is stated rather than left for a reader to notice.
+        identity["pooling_disagrees_with_registry"] = (
+            f"the vectors were pooled {identity['pooling']} but bench/models.json declares "
+            f"{declared_pooling} for {record['id']}")
+    if stamp_model and status_model and stamp_model != status_model:
+        identity["disagreement"] = (f"the index was built by {stamp_model} but the target now reports "
+                                    f"{status_model}: the vectors are the stamp's, not the status's")
+    return identity
 
 
 def index_status(target) -> dict:
@@ -96,8 +321,11 @@ def build_index(target, limit: int, timeout_s: float, poll_s: float = 15.0) -> d
         if state in ("done", "error", "idle"):
             break
     elapsed = time.monotonic() - t0
+    # `embedder` is a provider label ("local"); `embedderModel` is the model, and
+    # without it a build record cannot say which vector space it produced.
     keep = ("state", "phase", "items", "itemsTotal", "itemsAvailable", "passages", "vectors",
-            "fulltextItems", "fulltextPassages", "ownWordsPassages", "embedder", "embedderActive",
+            "fulltextItems", "fulltextPassages", "ownWordsPassages", "embedder", "embedderModel",
+            "embedderConfigured", "embedderActive", "embedderReason",
             "libraryVersion", "libraryBackend", "fulltextVersion", "builtFromVersion", "error",
             "passagesWithoutVectors", "localApiDegradedAt")
     return {"limit": limit, "elapsed_s": round(elapsed, 1), "timed_out": elapsed >= timeout_s,
@@ -106,8 +334,13 @@ def build_index(target, limit: int, timeout_s: float, poll_s: float = 15.0) -> d
 
 def mode_evidence(reply: dict) -> dict:
     """What the target's reply says about the path it ran, read off the reply."""
-    return {k: reply.get(k) for k in ("embedder", "embedderConfigured", "embedderActive", "embedderReason",
-                                       "vectors", "passagesWithoutVectors", "fulltextEnabled", "isError")
+    # `embedderModel` is asked for and, on the reviewed build, never answered: the
+    # query reply names the provider only. Kept so a target that grows the field
+    # is recorded by it, and `embedder_identity` states in the artifact whether
+    # any reply carried it, so its absence reads as absence rather than as silence.
+    return {k: reply.get(k) for k in ("embedder", "embedderModel", "embedderConfigured", "embedderActive",
+                                       "embedderReason", "vectors", "passagesWithoutVectors",
+                                       "fulltextEnabled", "isError")
             if k in reply}
 
 
@@ -136,7 +369,8 @@ def ask(target, rows: list[dict], top_k: int, modes: tuple[str, ...] = MODES) ->
 
 
 def identity(args, headers: dict, target, build: dict | None, index_file: Path | None,
-             n_scope: int, writer, scope: Scope | None, proxy_port: int | None, evidence: dict) -> dict:
+             n_scope: int, writer, scope: Scope | None, proxy_port: int | None, evidence: dict,
+             embedder: dict) -> dict:
     return {
         "ticket": "0719",
         "date": datetime.now(UTC).isoformat(timespec="seconds"),
@@ -150,6 +384,9 @@ def identity(args, headers: dict, target, build: dict | None, index_file: Path |
             "last_modified_version": headers.get("last-modified-version"),
         },
         "target": target.declaration.as_json(),
+        # Which model produced the vectors, at which precision and pooling. A run
+        # read without this can be reported two opposite ways (ticket 0732).
+        "embedder": embedder,
         "posture": "none: the process runs unwrapped under the operator, since the run's "
                    "subject is the operator's own library",
         "scope": {
@@ -309,11 +546,18 @@ def main() -> int:
             status_after = index_status(target)
     finally:
         proxy.stop()
+    # Read after the target is down: the stamp is a file, and the status is the
+    # last one the running target gave. `models` is where the target caches the
+    # weights it loaded (`modelCacheDir` = <dataDir>/models).
+    embedder = embedder_identity(status_after, index_embedder_stamp(index_file), evidence,
+                                 dict(os.environ), target.data_dir / "models")
+    logging.info("embedder: %s", json.dumps({k: embedder[k] for k in ("model", "dtype", "pooling", "model_source")}))
     with (args.work_dir / "readings.jsonl").open("w", encoding="utf-8") as f:
         for r in readings:
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
     doc = {
-        "identity": identity(args, headers, target, build, index_file, len(keys), writer, scope, proxy.port, evidence),
+        "identity": identity(args, headers, target, build, index_file, len(keys), writer, scope, proxy.port,
+                             evidence, embedder),
         "index_after_run": {k: status_after.get(k) for k in ("passages", "vectors", "items", "embedder", "state")},
         "proxy": {"requests": len(proxy.requests), "refused_non_get": proxy.refused},
         **report(readings, sample_summary, questions_summary),
