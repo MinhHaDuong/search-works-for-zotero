@@ -2,10 +2,13 @@
 Title: fix-tests: sqlite3 CLI missing breaks test_summarize_0120.py
 Created: 2026-09-04
 Author: MinhHaDuong
+Closed: Python stdlib sqlite3 now drives the real FTS5 fixtures and dbstat decomposition; no sqlite3 CLI is required.
 
 --- log ---
 2026-09-04T08:59Z MinhHaDuong created
 
+2026-09-07T07:40Z codex note reproduced both failures without sqlite3 CLI; replaced CLI calls in production and fixtures with Python stdlib sqlite3 while retaining real FTS5 and dbstat queries; focused file 11 passed, 1 skipped
+2026-09-07T07:41Z Codex closed — Python stdlib sqlite3 now drives the real FTS5 fixtures and dbstat decomposition; no sqlite3 CLI is required.
 --- body ---
 
 ## Context
