@@ -2,11 +2,11 @@
 Title: Make the R23 acceptance test use authentic cross-version indexes and prove continuity
 Created: 2026-09-04
 Author: codex
-Blocked-by: 0623
 
 --- log ---
 2026-09-04T10:05Z codex created
 
+2026-09-07T07:49Z Codex note blocker 0623 closed — Blocked-by removed.
 --- body ---
 
 ## Context
