@@ -1,0 +1,51 @@
+%erg 0.1
+Title: Re-baseline upstream to v1.15.0 and rerun only affected pause and uninstall checks
+Created: 2026-09-07
+Author: Codex
+Closed: v1.15.0 baseline, affected-row reread and bounded verification complete; no live acceptance verdict manufactured
+
+--- log ---
+2026-09-07T06:35Z Codex created
+
+2026-09-07T06:48Z Codex note reviewed the full 34d6c26..037bba8 range: 24 commits, 45 files, schema 2 unchanged; release-note omissions #58 and #59 are accounted for without widening the acceptance scope
+2026-09-07T06:52Z Codex verified upstream build and 47 focused tests, then local baseline/schema gates, 1270 repository tests with 19 declared skips, ticket corpus and diff hygiene
+2026-09-07T06:52Z Codex closed — v1.15.0 baseline, affected-row reread and bounded verification complete; no live acceptance verdict manufactured
+--- body ---
+
+## Context
+
+Upstream published v1.15.0 at `037bba8` on 2026-09-07. The release notes
+name PR #55 (uninstall documentation) and PR #57 (durable pause), but the
+actual range from the reviewed v1.14.0-era tip `34d6c26` also contains PR #58
+(citation style/locale forwarding) and PR #59 (local embedding worker and
+optional file logging). A release-note-only update would therefore leave the
+review baseline false.
+
+## Work
+
+- pin `UPSTREAM` to the release commit and keep schema generation 2;
+- read every changed watched source file, but reconsider only requirement rows whose
+  mechanisms changed;
+- move stale source citations in `SPEC.md`;
+- record the release in `SYNC.md`, `STATE.md`, the deliverables page and a new
+  evidence report;
+- run the focused upstream tests for pause, worker embedding, logging and the
+  adjacent citation change, plus this repository's baseline/schema gates;
+- do not carry v1.14 measurements through a changed executable path and do not
+  manufacture a live acceptance result where the current adapter is unfaithful.
+
+## Exit criteria
+
+- [x] `UPSTREAM` names `037bba8`, v1.15.0, 2026-09-07 and schema 2
+- [x] `verification/UPSTREAM-1.15.0-REREAD.md` accounts for the full delta and
+      each affected requirement row
+- [x] stale source citations are corrected
+- [x] focused upstream tests and local baseline/schema gates pass
+- [x] relevant trackers record the changed premise
+- [x] `make check` and `./tickets/erg check tickets/` pass
+
+## Boundaries
+
+No live-library mutation, no upstream post, and no claim that the incomplete
+R22/R15 acceptance adapters have measured v1.15.0. This ticket moves the
+reviewed source baseline; it does not close trackers 0613, 0648 or 0665.

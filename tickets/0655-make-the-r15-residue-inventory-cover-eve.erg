@@ -6,6 +6,7 @@ Author: codex
 --- log ---
 2026-09-04T10:00Z codex created
 
+2026-09-07T06:48Z Codex note v1.15.0 documents ZOTEUS_LOG_FILE as a derived-state path that may sit outside dataDir, a concrete filesystem escape this inventory must exercise
 --- body ---
 
 ## Context

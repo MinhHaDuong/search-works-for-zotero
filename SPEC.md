@@ -1022,7 +1022,7 @@ superseded.
 Seven facts about upstream shaped the design below. They were read at v1.7.0
 (`c5d25aa`), where all seven were exact; five have since been repaired, four
 of those by the maintainer acting on this repository's own filings. They are
-therefore stated against the reviewed baseline `34d6c26` (v1.14.0), because a
+therefore stated against the reviewed baseline `037bba8` (v1.15.0), because a
 reader takes a premise as current unless told otherwise. Every line number
 below was re-read there rather than carried: successive diffs moved most of
 them, which is the reason a
@@ -1032,8 +1032,8 @@ Still true there. `DEFAULT_FULLTEXT_MAX_CHARS = 40_000`
 (`fulltext-source.ts:11`) truncates the 44,9 MB living example roughly
 1 100-fold — the one citation the bump left where it was, in the one file the
 release did not touch. Changing embedder drops every vector at open
-(`dropStaleVectors` → `clearVectors()`, `index-manager.ts:638`).
-`clearStore()` sits in the build path (`index-manager.ts:800`).
+(`dropStaleVectors` → `clearVectors()`, `index-manager.ts:641`).
+`clearStore()` sits in the build path (`index-manager.ts:850`).
 
 Repaired since. The query tokenizer folds Unicode — `normalizeForSearch` then
 `/[\p{L}\p{N}]+/gu` (`tokenize.ts:221`, `4f61b2a`, v1.7.2). `busy_timeout` is
@@ -1049,6 +1049,12 @@ derived from the library it is searching. v1.14.0 also corrects the selectable
 local-model seam: known model ids carry curated pooling, an explicit override
 is available, and pooling enters the embedder identity. What the design owes
 each repaired premise is unchanged; none may be cited as a live defect.
+v1.15.0 adds a persisted pause flag that gates build, refresh, update and
+semantic auto-build while leaving the committed index searchable; `resume`
+only clears that hold. Local embedding inference also moves to a worker thread,
+with a warned in-thread fallback when a worker cannot start. Those mechanisms
+improve the current target but do not satisfy this design's full R22 or R32
+contract without the acceptance work named by ticket 0665.
 
 ---
 

@@ -301,6 +301,6 @@ def test_citations_in_reads_the_real_spec_md():
     function cannot parse is one `citation_drift` silently never checks."""
     spec = (REPO / "SPEC.md").read_text(encoding="utf-8")
     found = uc.citations_in(spec)
-    assert ("index-manager.ts", 638, 638) in found
+    assert ("index-manager.ts", 641, 641) in found
     assert ("build.ts", 617, 620) in found
     assert len(found) >= 15

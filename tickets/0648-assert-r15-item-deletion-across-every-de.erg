@@ -13,6 +13,7 @@ Blocked-by: 0659
 2026-09-04T09:50Z codex created
 
 2026-09-04T10:01Z codex note converted to orchestration tracker; children 0654-0659 own item deletion, residue reach, uninstall proof, model-download proof, fail-control enforcement, and the final public coverage correction
+2026-09-07T06:48Z Codex note v1.15.0 expands the uninstall declaration to local API keys, usage.sqlite, oauth-store.json, Zotero authorization, legacy model cache and an optional log outside dataDir; children 0655 and 0656 must grade that expanded inventory
 --- body ---
 
 ## Context

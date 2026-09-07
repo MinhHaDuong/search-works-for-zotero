@@ -6969,3 +6969,19 @@ starts at zero and stays there until the engine reports a page, which makes the
 gap visible in every run instead of once in a ticket. And the requirement gap
 this exposes is filed as its own ticket: a hit must name the page it came from,
 which is R24's existing clause measured rather than a new demand.
+
+**2026-09-07 — v1.15.0 is re-baselined by changed mechanism, not by release-note
+headline.** The release notes name PR #55's uninstall procedure and PR #57's
+durable pause. The actual `34d6c26..037bba8` range also contains PR #58's
+citation forwarding and PR #59's worker-thread local inference and file log.
+The baseline therefore records the whole range, while remeasurement remains
+bounded to requirements whose executing mechanisms changed.
+
+No v1.14 result is relabelled as v1.15 evidence. In particular, local query
+embedding now crosses a worker boundary, the uninstall inventory now includes
+an optional log outside the data directory, and the current acceptance adapter
+still invokes `stop` rather than the new durable `pause`. R6 and R10 lose any
+current measurement claim on that path; R15 and R22 improve in source but stay
+owned by their existing fidelity trackers. Index schema generation remains 2.
+This is a baseline ruling, not permission to broaden the feature freeze or to
+post upstream.

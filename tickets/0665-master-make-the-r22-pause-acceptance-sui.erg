@@ -7,6 +7,7 @@ Author: codex
 2026-09-04T10:02Z codex created
 
 2026-09-04T10:03Z codex note Filed as the R22 acceptance master: preserves the existing defensive controls, delegates bounded repair families on demand, and blocks 0613 until active-work stopping, startup persistence, all work classes, resume, exclusions and explicit-verb consent are faithfully tested.
+2026-09-07T06:48Z Codex note v1.15.0 adds real pause and resume actions with a persisted hold; the current adapter still maps pause to stop and declares resume absent, so no v1.15 R22 acceptance verdict is admissible until this master repairs that surface
 --- body ---
 ## Context
 
