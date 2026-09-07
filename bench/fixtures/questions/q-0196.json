@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0196",
+  "need": "Viết trước khi mở tài liệu: lạm phát do cầu kéo được gây ra bởi điều gì — tổng cầu tăng vì chi tiêu tư nhân và chính phủ tăng?",
+  "query": "lạm phát do cầu kéo tổng cầu tăng chi tiêu tư nhân và chính phủ",
+  "question_language": "vi",
+  "answer_language": "en",
+  "lane": "vi->en",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "cross-lingual-anchor",
+    "index_fulltext_max_chars"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "wp-inflation-en",
+      "recipe_id": "wp-inflation-en",
+      "attachment_id": "wp-inflation-en-html",
+      "attachment_key": "KEJRSL3L",
+      "section": "Causes",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 42170,
+          "quote": "So-called demand-pull inflation may be caused by increases in aggregate demand due to increased private and government spending,[88][89] etc."
+        }
+      ],
+      "chain": {
+        "title": "Inflation",
+        "author": "Wikipedia contributors",
+        "date": "2026",
+        "identifier": "https://en.wikipedia.org/w/index.php?title=Inflation&oldid=1371115051",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": "Causes"
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "index_fulltext_max_chars: the answer paragraph (section 'Causes', character 42 170 of 114 538) lies just past the 40 000-character index cap; it is in the export but not in the index",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "KEJRSL3L",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 42170,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": false,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0375",
+  "need": "Écrit avant d'ouvrir le document : la constitution vietnamienne de 1992 énonce-t-elle l'indépendance du juge, et dans quels termes ? Le paragraphe de réponse est en vietnamien et se trouve dans la bibliothèque de groupe fermée : la question demande donc au lot « groupe » de répondre à une requête française comme le ferait la bibliothèque personnelle.",
+  "query": "indépendance des juges et des assesseurs populaires dans la constitution vietnamienne de 1992 : ils n'obéissent qu'à la loi",
+  "question_language": "fr",
+  "answer_language": "vi",
+  "lane": "fr->vi",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "group",
+  "stratum": "core",
+  "mechanisms": [
+    "group-library-slice",
+    "cross-lingual-anchor",
+    "compound-document-chain"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "vn-constitution-1992-vi-chuong-x",
+      "recipe_id": "vn-constitution-1992-vi-chuong-x",
+      "attachment_id": "vn-constitution-1992-vi-chuong-x-html",
+      "attachment_key": "I8AZ4DZC",
+      "section": "Điều 130",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 1387,
+          "quote": "Khi xét xử, Thẩm phán và Hội thẩm độc lập và chỉ tuân theo pháp luật."
+        }
+      ],
+      "chain": {
+        "title": "Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992, Chương X: Tòa án nhân dân và Viện kiểm sát nhân dân",
+        "author": "Quốc hội Việt Nam",
+        "date": "1992",
+        "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_X&oldid=104788",
+        "section_heading": "Chương X: Tòa án nhân dân và Viện kiểm sát nhân dân",
+        "page_printed": null,
+        "part_title": "Điều 130",
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "I8AZ4DZC",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 1387,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0723 review round)",
+    "date": "2026-09-07",
+    "page_read": false
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0147",
+  "need": "Hazard row for an unindexable office format carrying the whole payload: the Schindler et al. supplementary material is the literature table of 77 articles behind an alien-species health review, and it exists only as an .xlsx workbook. The dataset record's substance is entirely inside a container Zotero's extractor does not open.",
+  "query": "Schindler alien species public health impacts Europe literature table 77 articles supplementary material",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "unindexable-office-format",
+    "declared-failure-control",
+    "dataset-deposit"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [],
+  "expected_miss": true,
+  "expected_miss_mechanism": "unindexable format, declared failure control: attachment PPE7BXDQ is an Office Open XML spreadsheet; Zotero's extractor reads PDF, HTML, EPUB and plain text only, so the attachment finishes unindexed with answer_set_participation 'none' and the deposit's 77-row table can never be reached",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": []
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

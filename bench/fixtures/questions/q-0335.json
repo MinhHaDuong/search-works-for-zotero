@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0335",
+  "need": "Written before opening the document: does Vietnam's 2004 Electricity Law already carry a statutory commitment to renewables in its development-policy article, thirteen years before the 2017 solar feed-in tariff, or did the policy start only with the later decisions?",
+  "query": "does the 2004 Vietnamese Electricity Law commit the state to developing new and renewable sources for power generation",
+  "question_language": "en",
+  "answer_language": "vi",
+  "lane": "en->vi",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "compound-document-chain"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "vn-law-electricity-2004-vi",
+      "recipe_id": "vn-law-electricity-2004-vi",
+      "attachment_id": "vn-law-electricity-2004-vi-html",
+      "attachment_key": "I3LAA8TA",
+      "section": "Điều 4, khoản 4",
+      "alternates": [
+        {
+          "page_printed": null,
+          "quote": "Đẩy mạnh việc khai thác và sử dụng các nguồn năng lượng mới, năng lượng tái tạo để phát điện.",
+          "char_offset": 5548
+        }
+      ],
+      "chain": {
+        "title": "Luật Điện lực (28/2004/QH11)",
+        "author": "Quốc hội Việt Nam",
+        "date": "2004",
+        "identifier": "https://vi.wikisource.org/w/index.php?title=Lu%E1%BA%ADt_%C4%90i%E1%BB%87n_l%E1%BB%B1c_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_2004&oldid=188787",
+        "section_heading": "Chương I:Những quy định chung",
+        "page_printed": null,
+        "part_title": "Điều 4: Chính sách phát triển điện lực",
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "I3LAA8TA",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 5548,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

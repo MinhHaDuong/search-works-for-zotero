@@ -1,0 +1,78 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0162",
+  "need": "Written before opening the document: the report opens on an epigraph from the 2013 Constitution about a prosperous people and a strong, democratic, equitable, and civilized country; I want that page.",
+  "query": "epigraph Article 3 of the 2013 Constitution prosperous people and a strong, democratic, equitable, and civilized country",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "deep-body",
+  "stratum": "core",
+  "mechanisms": [],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "wb-2016-vietnam-2035-en",
+      "recipe_id": "wb-2016-vietnam-2035-en",
+      "attachment_id": "wb-2016-vietnam-2035-en-pdf",
+      "attachment_key": "TKLXGCGR",
+      "section": "Epigraph",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 4624,
+          "quote": "to pursue the goal of a prosperous people and a strong, democratic, equitable, and civilized country, in which all people enjoy an abundant, free, and happy life and are given conditions for their comprehensive development. —Article 3 of the 2013 Constitution of the Socialist Republic of Vietnam"
+        }
+      ],
+      "chain": {
+        "title": "Vietnam 2035: Toward Prosperity, Creativity, Equity, and Democracy",
+        "author": "World Bank; Ministry of Planning and Investment of Vietnam",
+        "date": "2016",
+        "identifier": "10.1596/978-1-4648-0824-1",
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": null,
+        "page_printed": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "TKLXGCGR",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 4624,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": true,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

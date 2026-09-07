@@ -287,7 +287,7 @@ def test_the_data_exemption_does_not_extend_to_siblings_by_prefix():
     beside the script (2026-09-02). A third hole arriving here should fail this
     test until someone writes down why.
     """
-    assert cm.SKIPPED == ("bench/results/",)
+    assert cm.SKIPPED == ("bench/results/", "bench/fixtures/export/fulltext/")  # the export's extracted text: data, ticket 0721
     assert cm.GENERATED_DIR == "__pycache__"
 
 

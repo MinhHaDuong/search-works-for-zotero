@@ -1,0 +1,82 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0364",
+  "need": "Hazard: the query is typed in traditional characters (馬牛羊，雞犬豕) because that is how the Three Character Classic is quoted in Taiwan and Hong Kong, while this 1998 chinapage copy is a GB2312 simplified edition (马牛羊，鸡犬豕). Character-for-character the two are different code points, so a lexical index that does not fold simplified against traditional cannot match the best-known list of the six domestic animals to the page that carries it.",
+  "query": "三字經 六畜 馬牛羊 雞犬豕 人所飼",
+  "question_language": "zh",
+  "answer_language": "zh",
+  "lane": "zh->zh",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "han-script-no-word-spaces",
+    "simplified-traditional-variant",
+    "legacy-encoding-gb2312"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "sanzijing-chinapage-1999",
+      "recipe_id": "sanzijing-chinapage-1999",
+      "attachment_id": "sanzijing-chinapage-1999-gb2312-html",
+      "attachment_key": "MNZNGCY6",
+      "section": "三才五行六谷六畜",
+      "alternates": [
+        {
+          "page_printed": null,
+          "quote": "马牛羊，鸡犬豕。此六畜，人所饲。",
+          "char_offset": 320
+        }
+      ],
+      "chain": {
+        "title": "《三字经》 (San Zi Jing, the Three Character Classic) — chinapage.com, GB2312 edition",
+        "author": "王應麟 (attributed to Wang Yinglin, 1223-1296); web page by Ming L. Pei (chinapage.com)",
+        "date": "1998",
+        "identifier": "https://web.archive.org/web/19990210113910/http://chinapage.com/3words-gb.html",
+        "section_heading": "《三字经》",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "MNZNGCY6",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 320,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

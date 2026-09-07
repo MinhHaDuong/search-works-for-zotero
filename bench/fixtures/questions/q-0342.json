@@ -1,0 +1,82 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0342",
+  "need": "Hazard: the multibyte arithmetic of the cap. The 2005 environment law extracts to 152 785 characters, and the index cap is counted in characters, not bytes: Điều 135 sits at character 147 001, so a reader asking when the law took effect gets nothing, while the same question against the shorter 2010 law misses by only 1 951 characters. Vietnamese carries two or three UTF-8 bytes per accented letter, so a byte-counted cap of the same nominal size would truncate this page around character 34 000 instead of 40 000 — a different, and wrong, answer set.",
+  "query": "Luật Bảo vệ môi trường 2005 có hiệu lực thi hành từ ngày nào và thay thế luật nào",
+  "question_language": "vi",
+  "answer_language": "vi",
+  "lane": "vi->vi",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "compound-document-chain",
+    "index_fulltext_max_chars",
+    "multibyte-character-offsets"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "vn-law-environment-2005-vi",
+      "recipe_id": "vn-law-environment-2005-vi",
+      "attachment_id": "vn-law-environment-2005-vi-html",
+      "attachment_key": "ENIYH5SY",
+      "section": "Điều 135",
+      "alternates": [
+        {
+          "page_printed": null,
+          "quote": "Luật này có hiệu lực thi hành từ ngày 01 tháng 7 năm 2006.\n\nLuật này thay thế Luật bảo vệ môi trường năm 1993.",
+          "char_offset": 147001
+        }
+      ],
+      "chain": {
+        "title": "Luật Bảo vệ môi trường (52/2005/QH11)",
+        "author": "Quốc hội Việt Nam",
+        "date": "2005",
+        "identifier": "https://vi.wikisource.org/w/index.php?title=Lu%E1%BA%ADt_B%E1%BA%A3o_v%E1%BB%87_m%C3%B4i_tr%C6%B0%E1%BB%9Dng_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_2005&oldid=112144",
+        "section_heading": "Chương XV:Điều khoản thi hành",
+        "page_printed": null,
+        "part_title": "Điều 135: Hiệu lực thi hành",
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "index_fulltext_max_chars: Điều 135 lies at character 147 001 of the 152 785-character extraction, far past the 40 000-character cap; the cap is counted in characters, so the indexed prefix of this diacritic-heavy Vietnamese page is 40 000 characters and roughly 47 000 UTF-8 bytes, and neither reaches the commencement article",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "ENIYH5SY",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 147001,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

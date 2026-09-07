@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0362",
+  "need": "在打開文獻之前寫下：《三國演義》開卷那句關於天下分合的論斷，原文究竟怎麼說？是先「分久必合」還是先「合久必分」？記憶裡兩種次序都有人引。",
+  "query": "《三國演義》開卷論天下離合的那一句，原文是先說合還是先說分",
+  "question_language": "zh",
+  "answer_language": "zh",
+  "lane": "zh->zh",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "han-script-no-word-spaces",
+    "legacy-encoding-big5"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "sanguo-yanyi-ch01-chinapage-1999",
+      "recipe_id": "sanguo-yanyi-ch01-chinapage-1999",
+      "attachment_id": "sanguo-yanyi-ch01-chinapage-1999-big5-html",
+      "attachment_key": "B6RRD8Q4",
+      "section": "第一回 開篇",
+      "alternates": [
+        {
+          "page_printed": null,
+          "quote": "話說天下大勢，分久必合，合久必分：周末七國分爭，并入于秦",
+          "char_offset": 180
+        }
+      ],
+      "chain": {
+        "title": "三國演義 第一回 宴桃園豪杰三結義 斬黃巾英雄首立功 (Romance of the Three Kingdoms, chapter 1) — chinapage.com, Big5 edition",
+        "author": "羅貫中 (Luo Guanzhong, 14th century); web page by Ming L. Pei (chinapage.com)",
+        "date": "1998",
+        "identifier": "https://web.archive.org/web/19990422164439/http://chinapage.com/sanguo/001_b5.html",
+        "section_heading": "第一回",
+        "page_printed": null,
+        "part_title": "宴桃園豪杰三結義　　　斬黃巾英雄首立功",
+        "part_byline": "〔明〕羅貫中"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "B6RRD8Q4",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 180,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0234",
+  "need": "Hazard row: Menger's 1884 pamphlet against Schmoller is a small book — sixty-odd pages of open letters — but its scan extracts to 4 964 162 characters, ten times the 500 000-character extraction ceiling, because the OCR of this facsimile emits enormous quantities of noise. Zotero indexed the first 500 000 and the export records the attachment as indexed-not-served: no fulltext file was written for it at all. A reader asking for the pamphlet's most quoted sentence gets nothing, and the item's record looks perfectly healthy.",
+  "query": "Menger Zweiter Brief Doch es gibt Zustände gegenüber welchen zu schweigen Verrath an der eigenen Sache wäre",
+  "question_language": "de",
+  "answer_language": "de",
+  "lane": "de->de",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "indexed-not-served",
+    "char-cap-crossing"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "menger-1884-irrthuemer-des-historismus",
+      "recipe_id": "menger-1884-irrthuemer-des-historismus",
+      "attachment_id": "menger-1884-irrthuemer-des-historismus-pdf",
+      "attachment_key": "U6S29R6N",
+      "section": "Zweiter Brief",
+      "alternates": [
+        {
+          "page_printed": "8",
+          "char_offset": null,
+          "quote": "Doch es gibt Zustände, gegenüber welchen zu schweigen Verrath an der eigenen Sache wäre."
+        }
+      ],
+      "chain": {
+        "title": "Die Irrthümer des Historismus in der deutschen Nationalökonomie",
+        "author": "Carl Menger",
+        "date": "1884",
+        "identifier": "https://archive.org/details/dieirrthmerdes00meng",
+        "section_heading": "Zweiter Brief",
+        "page_printed": "8",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "The export records this attachment as indexed-not-served with no fulltext file: 500 000 of its 4 964 162 extracted characters were indexed from the file, but the local API's /items/<key>/fulltext route did not serve them, so nothing of the pamphlet reached the export and no span can be located.",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": [
+      {
+        "attachment_key": "U6S29R6N",
+        "alternates": [
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "attachment U6S29R6N is indexed-not-served in the export: no fulltext to locate in",
+            "within_index_cap": null
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

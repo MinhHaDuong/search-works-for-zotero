@@ -1,0 +1,94 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0213",
+  "need": "Hazard row: the manual teaches by worked specimen — a two-column table whose left column names the six parts of a journal entry and whose right column shows each part filled in for one sale. The extraction flattens the columns into a single run, so the pairing of label and value survives only as a sequence of numbered fragments. Can such a table row still be retrieved and cited to its printed page?",
+  "query": "modèle d'article de journal Avoir Charles Harlan acheté comptant 50 muids de vin de Bourgogne",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "structural-table",
+    "column-flattening",
+    "long-s-orthography"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "porte-1770-science-des-negocians",
+      "recipe_id": "porte-1770-science-des-negocians",
+      "attachment_id": "porte-1770-science-des-negocians",
+      "attachment_key": "4H5HAURM",
+      "section": "Application des principes à l'article d'un achat",
+      "alternates": [
+        {
+          "page_printed": "12",
+          "char_offset": 37370,
+          "quote": "a. Le mot Avoir , 6- enfuite le nom Avoir Charles Harlan."
+        },
+        {
+          "page_printed": "12",
+          "char_offset": 37605,
+          "quote": "A voir Charles Harlan c£ . 4800. acheté comptant moitié avec Cadeau."
+        }
+      ],
+      "chain": {
+        "title": "La Science des négocians et teneurs de livres",
+        "author": "Mathieu de La Porte",
+        "date": "1770",
+        "identifier": "https://archive.org/details/lasciencedesnego00lapo",
+        "section_heading": "Application des mêmes principes à l'Article d'un Achat",
+        "page_printed": "12",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "4H5HAURM",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 37370,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          },
+          {
+            "reachable": true,
+            "char_offset": 37605,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

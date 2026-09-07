@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0174",
+  "need": "Écrit avant d'ouvrir le document : le cadre d'évaluation du photovoltaïque intégré au bâti compte-t-il l'énergie grise (l'énergie incorporée dans les composants) dans les émissions de gaz à effet de serre ?",
+  "query": "cadre BIPV les émissions liées à l'énergie grise sont-elles comptées",
+  "question_language": "fr",
+  "answer_language": "en",
+  "lane": "fr->en",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "wrong-item-type"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "wittkopf-2016-bipv-methodological-framework",
+      "recipe_id": "wittkopf-2016-bipv-methodological-framework",
+      "attachment_id": "wittkopf-2016-bipv-methodological-framework-pdf",
+      "attachment_key": "LRIU5TC8",
+      "section": "2 Scope of the assessments of BIPV and system boundaries",
+      "alternates": [
+        {
+          "page_printed": "2",
+          "char_offset": 5293,
+          "quote": "Greenhouse gas (GHG) emissions related to operational energy consumption and to embodied energy use during the assessment period."
+        }
+      ],
+      "chain": {
+        "title": "Common methodological framework to assess energy, climate and economic impacts of BIPV",
+        "author": "Walter Ott; Meta Lehmann; Stephen Wittkopf (ed.)",
+        "date": "2016",
+        "identifier": "10.5281/zenodo.1405881",
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": "2 Scope of the assessments of BIPV and system boundaries",
+        "page_printed": "2"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "LRIU5TC8",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 5293,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": true,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

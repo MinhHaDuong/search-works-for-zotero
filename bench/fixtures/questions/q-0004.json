@@ -1,0 +1,78 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0004",
+  "need": "Écrit avant d'ouvrir le document : comment Walras définit-il la richesse sociale dans la préface de la quatrième édition des Éléments ?",
+  "query": "Walras richesse sociale définition choses rares utiles et limitées en quantité",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "walras-1900-elements",
+      "recipe_id": "walras-1900-elements",
+      "attachment_id": null,
+      "attachment_key": "3A2CSURL",
+      "section": "Préface de la quatrième édition",
+      "alternates": [
+        {
+          "page_printed": "XI",
+          "char_offset": 16168,
+          "quote": "L'ensemble de toutes les choses, matérielles ou immatérielles, qui sont susceptibles d'avoir un prix parce qu'elles sont rares, c'est-à-dire à la fois utiles et limitées en quantité, forme la richesse sociale."
+        }
+      ],
+      "chain": {
+        "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale (4e éd.)",
+        "author": "Léon Walras",
+        "date": "1900",
+        "identifier": "https://archive.org/download/elementsdeconomi00walr/elementsdeconomi00walr.pdf",
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": "Préface de la quatrième édition",
+        "page_printed": "XI"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "3A2CSURL",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 16168,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (ticket 0722 demonstrator)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

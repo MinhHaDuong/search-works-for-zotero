@@ -1,0 +1,78 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0247",
+  "need": "Écrit avant d'ouvrir le document : on répète que le protocole de Montréal est le succès exemplaire de la politique d'environnement global. Reste que la consommation mondiale de substances appauvrissant la couche d'ozone n'a pas plafonné à la signature du traité mais un an après. Une source française du corpus confirme-t-elle que la consommation est repartie à la hausse en 1982, faute de réglementation internationale, jusqu'à un maximum vers 1988 ?",
+  "query": "faute de réglementation internationale la consommation de substances appauvrissant la couche d'ozone est repartie à la hausse en 1982 et n'a culminé qu'en 1988, un an après la signature du protocole de Montréal",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "agreement",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "ha-duong-2005-modeles-de-precaution-hdr",
+      "recipe_id": "ha-duong-2005-modeles-de-precaution-hdr",
+      "attachment_id": "ha-duong-2005-modeles-de-precaution-hdr-pdf",
+      "attachment_key": "WASTUP32",
+      "section": "1.1 La protection de la couche d'ozone : précaution ?",
+      "alternates": [
+        {
+          "page_printed": "2",
+          "char_offset": 26247,
+          "quote": "Mais en l’absence de règlementation internationale, la consommation recommence à augmenter en 1982 jusqu’à un maximum vers 1988, un an après la signature du traité de Montréal."
+        }
+      ],
+      "chain": {
+        "title": "Modèles de précaution en économie : introduction aux probabilités imprécises",
+        "author": "Minh Ha-Duong",
+        "date": "2005",
+        "identifier": "https://theses.hal.science/halshs-00007520v1",
+        "section_heading": "1.1 La protection de la couche d'ozone : précaution ?",
+        "page_printed": "2",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "WASTUP32",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 26247,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0723 review round)",
+    "date": "2026-09-07",
+    "page_read": true
+  }
+}

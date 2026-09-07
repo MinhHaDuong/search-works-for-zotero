@@ -1,0 +1,78 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0312",
+  "need": "Viết trước khi mở tài liệu: Lữ Gia đã làm gì khi Cù thị và Ai Vương định đem nước Nam Việt dâng nhà Hán?",
+  "query": "tể tướng Nam Việt chống việc dâng nước cho phương Bắc, ra tay hạ sát thái hậu và vị vua trẻ",
+  "question_language": "vi",
+  "answer_language": "vi",
+  "lane": "vi->vi",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch4",
+      "recipe_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch4",
+      "attachment_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch4-html",
+      "attachment_key": "H4KV57EI",
+      "section": "7. Triệu Ai-vương",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 7946,
+          "quote": "Lữ Gia cùng với mấy người đại-thần đem quân cấm-binh vào giết sứ nhà Hán, Cù-thị và Ai-Vương"
+        }
+      ],
+      "chain": {
+        "title": "Việt Nam sử lược, Quyển I, Phần I, Chương IV: Nhà Triệu",
+        "author": "Trần Trọng Kim",
+        "date": "1920",
+        "identifier": "https://vi.wikisource.org/w/index.php?title=Vi%E1%BB%87t_Nam_s%E1%BB%AD_l%C6%B0%E1%BB%A3c%2FQuy%E1%BB%83n_I%2FPh%E1%BA%A7n_I%2FCh%C6%B0%C6%A1ng_IV&oldid=94309",
+        "section_heading": "7. TRIỆU AI-VƯƠNG",
+        "page_printed": null,
+        "part_title": "Chương IV: Nhà Triệu",
+        "part_byline": "Trần Trọng Kim"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "H4KV57EI",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 7946,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

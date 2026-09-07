@@ -1,0 +1,118 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0150",
+  "need": "Written before opening the document: Smith's pin-factory example — into how many distinct operations does he say pin-making is divided? The library holds the Gutenberg text in more than one file format; either rendering answers.",
+  "query": "Adam Smith pin making divided into about eighteen distinct operations",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [
+    "gutenberg-cap-crossing-pair",
+    "same-text-different-format",
+    "epub"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "smith-1776-wealth-of-nations",
+      "recipe_id": "smith-1776-wealth-of-nations",
+      "attachment_id": "smith-1776-wealth-of-nations-html",
+      "attachment_key": "9DLZSRCN",
+      "section": "Book I, Chapter I (HTML rendering)",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 12823,
+          "quote": "the important business of making a pin is, in this manner, divided into about eighteen distinct operations, which, in some manufactories, are all performed by distinct hands"
+        }
+      ],
+      "chain": {
+        "title": "An Inquiry into the Nature and Causes of the Wealth of Nations",
+        "author": "Adam Smith",
+        "date": "1776",
+        "identifier": "https://www.gutenberg.org/ebooks/3300",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": "CHAPTER I. OF THE DIVISION OF LABOUR."
+      }
+    },
+    {
+      "work_id": "smith-1776-wealth-of-nations",
+      "recipe_id": "smith-1776-wealth-of-nations",
+      "attachment_id": "smith-1776-wealth-of-nations-epub",
+      "attachment_key": "EAM35WCU",
+      "section": "Book I, Chapter I (EPUB rendering)",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 13081,
+          "quote": "the important business of making a pin is, in this manner, divided into about eighteen distinct operations, which, in some manufactories, are all performed by distinct hands"
+        }
+      ],
+      "chain": {
+        "title": "An Inquiry into the Nature and Causes of the Wealth of Nations",
+        "author": "Adam Smith",
+        "date": "1776",
+        "identifier": "https://www.gutenberg.org/ebooks/3300",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": "CHAPTER I. OF THE DIVISION OF LABOUR."
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "9DLZSRCN",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 12823,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      },
+      {
+        "attachment_key": "EAM35WCU",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 13081,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": false,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

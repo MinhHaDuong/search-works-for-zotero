@@ -1,0 +1,93 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0245",
+  "need": "Hazard row, the cap by a hair. Poincaré's twenty-three-page introduction fills the index budget: chapter I, 'Définition des probabilités', begins at character 40 481 of the extraction — 481 characters past the 40 000-character index cap. The book's central definition, the ratio of favourable to possible cases, and the two-urn puzzle that follows it on page 25 are both in the export and neither is in the index. Nothing about a boundary that falls four hundred characters into a chapter is visible to a reader.",
+  "query": "Poincaré définition la probabilité d'un événement est le rapport du nombre des cas favorables au nombre total des cas possibles deux urnes boules blanches et noires",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanisms": [
+    "index-char-cap-crossing",
+    "answer-past-index-cap"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "poincare-1912-calcul-des-probabilites",
+      "recipe_id": "poincare-1912-calcul-des-probabilites",
+      "attachment_id": "poincare-1912-calcul-des-probabilites-pdf",
+      "attachment_key": "26JJF8L4",
+      "section": "Chapitre I. Définition des probabilités",
+      "alternates": [
+        {
+          "page_printed": "25",
+          "char_offset": 41579,
+          "quote": "On fait tirer une boule à une personne, et on demande quelle est la probabilité pour amener blanche."
+        },
+        {
+          "page_printed": "24",
+          "char_offset": 40596,
+          "quote": "On dit ordinairement : la probabilité d'un événement est le rapport du nombre des cas favorables à cet événement au nombre total des cas possibles."
+        }
+      ],
+      "chain": {
+        "title": "Calcul des probabilités",
+        "author": "Henri Poincaré; rédaction de A. Quiquet",
+        "date": "1912",
+        "identifier": "https://archive.org/details/calculdesprobab00poinuoft",
+        "section_heading": "CHAPITRE I. DÉFINITION DES PROBABILITÉS",
+        "page_printed": "25",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "Chapter I begins at character 40 481 of the extracted text, 481 characters past the product's 40 000-character index cap (ZOTEUS_INDEX_FULLTEXT_MAX_CHARS): both pinned spans are present in the export's fulltext and neither reaches the index. Only the twenty-three-page introduction is searchable.",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "26JJF8L4",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 41579,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          },
+          {
+            "reachable": true,
+            "char_offset": 40596,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}
