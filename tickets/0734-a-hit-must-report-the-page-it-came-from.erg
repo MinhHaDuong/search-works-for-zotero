@@ -5,6 +5,7 @@ Author: claude
 
 --- log ---
 2026-09-07T02:34Z claude created
+2026-09-07T03:20Z claude note PARKED work-in-progress by coordinator ruling (sequential lanes, PR #409 first). The source trace answering exit criterion 1 is complete and recorded in the body under "Where the page is lost". Nothing implemented in fork/, no build run, no Zotero instance touched.
 
 --- body ---
 ## Context
@@ -52,8 +53,89 @@ index and out through the query path.
 4. Prepare it as an upstream contribution rather than a fork-local patch: this
    is a promise the shipped product makes, not an artifact of the bench.
 
+## Where the page is lost (established from source, 2026-09-07)
+
+Read in the `fork/` checkout at the repo root, at the reviewed baseline named
+by `SYNC.md` (the upstream v1.14.0 line). Every line cited below was read, not
+inferred.
+
+**Two passage paths exist in the upstream tree, and only one carries pages.**
+
+*The full-text passage path — already correct, and not the one the bench
+queries.* `fork/src/features/search/chunker.ts:41` `chunkWithOffsets()` chunks
+the RAW text and returns `{index, text, start, end}` char offsets.
+`fork/src/features/fulltext/passages.ts:5-15` defines `Passage` with
+`charStart`, `charEnd`, `section`, `pageApprox` (its own comment: "proportional
+page estimate") and `page` ("exact page from PDF re-extraction").
+`passages.ts:18-22` `approxPage()` derives the estimate;
+`fork/src/features/fulltext/pdf-pages.ts:127` `locatePage()` derives the exact
+page from a re-extraction. This is the `get_fulltext` / W1 `precise_pages`
+path.
+
+*The search-index path — where the page is lost.* Three distinct losses, in
+order along the path:
+
+1. **`fork/src/features/search/chunker.ts:8`** — `chunkText()` opens with
+   `text.replace(/\s+/g, ' ')`. The form feed that Zotero's full-text cache
+   uses to mark a page break is whitespace, so every page boundary is destroyed
+   in the first statement of the function, before any chunk exists. `Chunk`
+   (`chunker.ts:1-4`) is `{index, text}` — no offset either, so the page cannot
+   be recovered downstream by arithmetic. This is the earliest point at which
+   the information is already gone.
+2. **`fork/src/features/search/backend.ts:61-68`** — `ChunkRecord` is
+   `{id, itemKey, title, text, source?}`. No page, and no offset field that
+   could hold one. It is written at
+   `fork/src/features/search/index-manager.ts:2086-2098` (`addFulltext`, the
+   attachment-body path a full-text hit comes from) and again at `2111`
+   (`addOwnWords`).
+3. **`fork/src/features/search/sqlite-index.ts:930-937`** — the `passages`
+   table DDL is `(pid, id, item_key, title, text, source, vector)`. **No page
+   column, no offset column.** So even a fixed chunker has nowhere to persist
+   one in an existing index.
+
+**The reply shape, and why the harness sees no page.**
+`fork/src/features/search/backend.ts:51-58` — `SearchHit` is
+`{itemKey, title, snippet, score, source?}`. Those are exactly the four fields
+`DECISIONS.md` records the golden run as receiving. The reply schema's page
+field is never populated because the type the engine returns has no page member
+to populate it from. On the scoring side, `bench/generator/score.py` reads a
+hit's page under `CHAIN_FIELDS["page_label"] = ("pageLabel", "page_label",
+"page", "printedPage")` — none of which `SearchHit` can ever carry.
+
+Corroborated by the committed golden artifact
+`bench/results/0719-generator/run.json`, whose `chain_in_reply.carried` reads
+`entry_title: 26` against `answer_rows_found: 26`, and `page_label: 0`,
+`section: 0`, `identifier: 0`, `date: 0`, `entry_creators: 0`.
+
+**Ruled out.** The loss is not in the extraction — the same `run.json` records
+`identity.extraction.text_source` as "Zotero's own extraction, over the local
+API's /fulltext", which is the export that carries the form feeds. It is not in
+the query or fusion path, and not in the tool layer: it is upstream of all
+three, in the chunker's first statement and in a schema with nowhere to put a
+page.
+
+## What remains (for the successor)
+
+- **Exit criterion 2 (cost) — not written.** The shape of the answer is already
+  visible from the three losses above: carrying a page needs (a) an offset or
+  page on `Chunk` / `ChunkRecord`, (b) a new column on `passages`, and (c) a new
+  member on `SearchHit`. (b) is a schema change, so the open question is whether
+  upstream's migration ladder — moved for the first time since v1.7.0 by this
+  fork's own PR #46, per `SYNC.md` — can add a nullable column and backfill, or
+  whether a rebuild is implied. That is what bears on R23 and R3 and is the
+  expensive answer. **Not established. Do not assert it without reading
+  `sqlite-index.ts`'s migration code.**
+- **Exit criterion 3 (reply shape) — outline only.** A page or a page range per
+  hit plus the D10 estimate flag; the range rather than a number wherever a
+  passage straddles a boundary, which is what makes the ruled intersection test
+  computable on both sides.
+- **Exit criterion 4 — nothing measured.** No build was run this session.
+- **Nothing was implemented in `fork/`.** Note for whoever does: a
+  worktree-isolated agent cannot run version-control commands inside `fork/`,
+  because the isolation guard refuses any redirect into the shared checkout.
+
 ## Exit criteria
-- [ ] where the page is lost between extraction and reply is established from
+- [x] where the page is lost between extraction and reply is established from
       source, not inferred
 - [ ] the cost of carrying it stated, including whether a rebuild is implied
 - [ ] a reply shape proposed that gives a page or a page range per hit, with
