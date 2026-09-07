@@ -868,6 +868,45 @@ await test('the failure banner holds the last complete census while the next one
   assert.deepEqual(midCensus, [1, 1, 1]);
   assert.equal(f.api.state.failed, 1);
 });
+/* Ticket 0718. Holding `failed` alone is not enough: `getSDTCoverage()` used to
+   keep reading the live `counts` object after the scheduler reset it, so its
+   current and out-of-scope tallies fell to zero and its denominator changed while
+   the failure banner still named the preceding generation. Sample from inside
+   inspect(), before each attachment joins the new generation, because every
+   assertion after sweep() resolves is blind to that recurring window. */
+await test('the whole coverage snapshot holds one generation throughout the next census', async () => {
+  const statuses = new Map([[1, 'current'], [3, 'missing-pack'],
+    [4, 'excluded'], [5, 'unsupported']]);
+  let clock = 0;
+  const host = {
+    list: async () => [1, 2, 3, 4, 5],
+    inspect: async id => {
+      if (id === 2) throw new Error('attachment unreadable');
+      return { status: statuses.get(id), identity: String(id) };
+    },
+    blocked: async () => 'low-disk', yield: async () => {}, now: () => ++clock,
+    changed: () => {}, ensure: async () => { throw new Error('blocked work was admitted'); },
+  };
+  const api = context.createSDTSitter(host);
+  await api.sweep();
+  const expected = { known: true, current: 1, failed: 1, queued: 1,
+    outOfScope: 2, total: 3, stateFailed: 1, identityHolds: true,
+    populationHolds: true };
+  assert.deepEqual({ ...ui.getSDTCoverage(api.state) },
+    { known: true, current: 1, failed: 1, queued: 1, outOfScope: 2, total: 3 });
+
+  const samples = [], settled = host.inspect;
+  host.inspect = async id => {
+    const coverage = ui.getSDTCoverage(api.state);
+    samples.push({ ...coverage, stateFailed: api.state.failed,
+      identityHolds: coverage.current + api.state.failed + coverage.queued === coverage.total,
+      populationHolds: coverage.total + coverage.outOfScope === 5 });
+    return settled(id);
+  };
+  await api.sweep();
+  assert.equal(samples.length, 5);
+  for (const sample of samples) assert.deepEqual(sample, expected);
+});
 /* A pack `inspect()` has just verified as current IS indexed. What follows is
    disposable cache bookkeeping — a duration written into a store SPEC.md calls
    derived — and letting it throw into the per-candidate catch turned a verified
@@ -1105,8 +1144,9 @@ const withLibraries = getAll => {
 const named = (...names) => withLibraries(() => names.map(name => ({ name })));
 // scanned === total, and of the 10 attachments 2 are excluded and 1 unsupported,
 // leaving 7 in the denominator, so the composer has a real percentage: 4 of 7.
+const tooltipCounts = { current: 4, excluded: 2, unsupported: 1 };
 const tooltip = state => ui.describeSDTTooltip({ total: 10, scanned: 10,
-  counts: { current: 4, excluded: 2, unsupported: 1 }, ...state });
+  counts: tooltipCounts, censusSnapshot: { counts: tooltipCounts, total: 10 }, ...state });
 
 named('Ma bibliothèque');
 const scope = 'Library: Ma bibliothèque — Index 57 % — ';
@@ -1217,6 +1257,7 @@ let coverage = ui.getSDTCoverage({ total: 10, scanned: 10, phase: 'waiting',
 assert.equal(coverage.current, 4); assert.equal(coverage.total, 7); assert.equal(coverage.known, true);
 coverage = ui.getSDTCoverage({ total: 10, scanned: 4, phase: 'census', counts: { current: 4 } });
 assert.equal(coverage.known, false);
+assert.equal(coverage.current, 0); assert.equal(coverage.total, 0);
 
 const cache = context.createSDTCache(null, 'v');
 cache.remember('1/a', 'source-v', 'pack-stamp', { sourceBytes: 100, pages: 2 });

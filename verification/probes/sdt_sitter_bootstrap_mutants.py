@@ -55,7 +55,7 @@ MUTANTS = [
     # ---- the real blocked(), which no test reached before ticket 0695 --------
     ("M1 an unreadable /proc escapes blocked() instead of refusing admission",
      "    } catch (error) {\n"
-     "      if (alive && sitter) sitter.state.error = `Lecture des ressources : ${error}`;\n"
+     "      if (alive && sitter) sitter.state.error = sdtText('resources-read', { error: String(error) });\n"
      "      return 'resources-unavailable';\n"
      "    }\n",
      "    } catch (error) { throw error; }\n"),
@@ -110,8 +110,8 @@ MUTANTS = [
     # single `token !== generation` guard: there are five of them along
     # initialize(), so removing one only moves the stand-down to the next.
     ("M10 startup() does not supersede the initialize() already in flight",
-     "function startup({ rootURI }) {\n  const token = ++generation;",
-     "function startup({ rootURI }) {\n  const token = generation;"),
+     "function startup({ rootURI, version }) {\n  const token = ++generation;",
+     "function startup({ rootURI, version }) {\n  const token = generation;"),
     ("M11 shutdown leaves the sweep, pulse and heartbeat timers armed",
      "    if (timers) { timers.clearTimeout(timer); timers.clearInterval(pulse); timers.clearInterval(heartbeat); }\n",
      ""),
@@ -147,8 +147,8 @@ MUTANTS = [
      "    const hash = await sourceHashes.hash(cacheKey, sourcePath, source, monotonic(),",
      "    const hash = await sourceHashes.hash(cacheKey, sourcePath, source, Date.now(),"),
     ("M19 the admission panel ages its reading on the wall clock again",
-     "    `Dernière mesure il y a ${formatSDTAge(monotonic() - admission.at)}",
-     "    `Dernière mesure il y a ${formatSDTAge(Date.now() - admission.at)}"),
+     "    sdtText('admission-age', { age: formatSDTAge(monotonic() - admission.at) }),",
+     "    sdtText('admission-age', { age: formatSDTAge(Date.now() - admission.at) }),"),
     # The three tiers of the clock, and the guards that decide which one answers.
     # Each of these changes the clock the whole sitter runs on and moves nothing
     # else, which is what makes them the hardest edits in this file to notice.
@@ -215,6 +215,11 @@ MUTANTS = [
      "    return false;\n"
      "  }\n",
      "  } catch (error) { throw error; }\n"),
+    # Ticket 0718. The scheduler can retain a complete generation and the UI can
+    # still defeat it by reading the live counts being rebuilt underneath it.
+    ("M28 coverage reads the half-filled live census instead of the held generation",
+     "  const counts = duringCensus ? (held?.counts || {}) : (state.counts || {});",
+     "  const counts = state.counts || {};"),
 ]
 
 

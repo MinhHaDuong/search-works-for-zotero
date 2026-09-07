@@ -436,7 +436,9 @@ function noteDialogClose(dialog) {
 
 /* The denominator reads the same classification the scheduler admits from, so a
    status added to one class cannot leave the coverage line counting it under
-   another (ticket 0699).
+   another (ticket 0699). During a census it reads the last complete snapshot,
+   never the live `counts` being rebuilt from empty; current, failed, queued and
+   out-of-scope therefore all name one generation (ticket 0718).
 
    `counts` is defaulted rather than dereferenced: the scheduler always
    initialises it, but before the scope prefix landed the tooltip never read
@@ -450,12 +452,20 @@ function noteDialogClose(dialog) {
    composes to nothing. Rendering "0 %" there would be a wrong claim where the
    caller wants no claim. */
 function getSDTCoverage(state) {
-  const counts = state.counts || {};
+  const duringCensus = state.phase === 'census';
+  const held = duringCensus ? state.censusSnapshot : null;
+  const counts = duringCensus ? (held?.counts || {}) : (state.counts || {});
+  const censusTotal = duringCensus ? (held?.total ?? 0) : state.total;
   const classes = SDT_STATUS_CLASSES;
   const tally = keys => keys.reduce((n, key) => n + (counts[key] || 0), 0);
-  return { known: !!classes && state.scanned === state.total && state.phase !== 'ready',
-    current: classes ? tally(classes.indexed) : 0,
-    total: classes ? Math.max(0, state.total - tally(classes.outOfScope)) : 0 };
+  const current = classes ? tally(classes.indexed) : 0;
+  const failed = classes ? tally(classes.failed) : 0;
+  const queued = classes ? tally(classes.queued) : 0;
+  const outOfScope = classes ? tally(classes.outOfScope) : 0;
+  return { known: !!classes && (duringCensus ? !!held
+      : state.scanned === state.total && state.phase !== 'ready'),
+    current, failed, queued, outOfScope,
+    total: classes ? Math.max(0, censusTotal - outOfScope) : 0 };
 }
 
 /* Every phase a reader can meet on hover, in the user's vocabulary. A blocked or
