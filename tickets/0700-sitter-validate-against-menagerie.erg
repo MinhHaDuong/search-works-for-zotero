@@ -2,10 +2,12 @@
 Title: Validate the sitter's census and extraction against the real Menagerie
 Created: 2026-09-06
 Author: claude
+Blocked-by: 0732
 
 --- log ---
 2026-09-06T00:00Z claude created
 2026-09-07T08:20Z claude note UNBLOCKED: the premise of the Blocked-by is satisfied. The Menagerie is a live, injectable fixture library -- group 6659303 on zotero.org at library version 592, 103 documents in collection 3AY48MA5, 114 top-level items, 125 imported-file attachments with their bytes on the server (authenticated /file returns 302; the anonymous 404 is Zotero's normal group-file behaviour, confirmed against group 305258 as a control). Its text attachments carry real charsets, the deliberate legacy ones included: utf-8, windows-1252, windows-1251, koi8-r, gbk, big5. Ticket 0632's exit criteria are all ticked on main; it remains open only until PR #409 lands the re-injection and stock-limit re-export that clear its two recorded defects. None of that gates this ticket, whose work is running the sitter's census and extraction against the corpus
+2026-09-07T09:42Z Minh Ha-Duong ruled the order and widened the work: run this after 0732 names the embedder, waiting first for the sitter run already in flight to finish, and then analyse the logs and the filesystem beside the sitter's own counters rather than trusting the counters alone
 
 --- body ---
 ## Context
@@ -20,25 +22,42 @@ membership. Mock tests prove the scheduler's control flow; they cannot prove
 the census/extraction pipeline survives what the corpus was specifically
 built to contain.
 
-Ticket 0029 is the tracker for that corpus; its child 0632 ("the harness
-triplet") is what actually produces a live, injectable fixture library, and
-is itself currently blocked on a real question (a dedicated public Zotero
-group with linked-file attachments -- the only group this host belongs to is
-a live 13,560-item research library, not a fixture target, and Zotero has no
-group-creation API). This ticket cannot start before 0632 unblocks; it exists
-now so the sitter's validation isn't forgotten once it does.
+Ticket 0029 is the tracker for that corpus. The library exists now: group
+6659303 on zotero.org holds 103 documents in collection 3AY48MA5, 114
+top-level items and 125 attachments with their bytes on the server, in the
+nine languages of R7 and with the deliberate legacy encodings among them
+(windows-1252, windows-1251, koi8-r, gbk, big5). The earlier blocker on
+child 0632, which stood for the absence of any injectable fixture library,
+is gone; this ticket's work can start.
+
+Two things about the corpus that bear on this validation. Its documents were
+chosen to be hard: multi-hundred-page scans, an un-OCR'd volume, a DjVu the
+extractor never reads, attachments in formats Zotero never extracts, and
+deliberately mis-declared metadata. And the group is PublicClosed, so file
+bytes need a member's key, which the census path must handle rather than
+read as an absent file.
 
 ## Work
 
-- Once 0632 delivers an injectable fixture library, run the sitter's full
-  census -> candidate -> extraction -> accounting pipeline against it in a
-  real (or realistic-scale) Zotero profile.
+- Run the sitter's full census -> candidate -> extraction -> accounting
+  pipeline against the live fixture, in a real (or realistic-scale) Zotero
+  profile that has joined group 6659303.
 - Specifically watch for: a census that never terminates or takes
   disproportionately long on the corpus's largest documents; extraction
   hangs or crashes on any SHOULD-tier script; the 0699 accounting fix
   (every non-indexed document lands in exactly one bucket) actually holding
   on documents that fail for real reasons, not synthetic ones; group-library
   attachments handled correctly by the admission/inspection logic.
+- Wait for the sitter run already in flight to complete before starting;
+  do not interrupt it, and record what it was doing, so its own pass is
+  evidence rather than a disturbance.
+- After the census+extraction pass, analyse what it left behind rather than
+  only what it reported: the debug journal and Zotero's own log for the
+  transitions the sitter recorded, and the filesystem for the state it
+  created (storage directories touched, caches written, any residue outside
+  the declared locations, per R15's inventory clause). Reconcile the three
+  accounts -- the sitter's counters, the log, and the filesystem -- and name
+  every disagreement.
 - This is an integration/acceptance validation, not a unit-test replacement
   -- it does not retire or duplicate 0690/0695's mock-based tests.
 

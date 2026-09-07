@@ -2,9 +2,11 @@
 Title: Name the embedder behind the cross-lingual near-zero, then re-read R29's verdict
 Created: 2026-09-07
 Author: claude
+Blocked-by: 0029
 
 --- log ---
 2026-09-07T09:10Z claude created
+2026-09-07T09:40Z Minh Ha-Duong ruled the order: run this after the question bank merges. The precise dependency is child 0722, which exists only on branch t0029-menagerie-build and lands with PR #409, so the Blocked-by names the tracker 0029 until then -- erg check refuses a blocker it cannot resolve. Reason for the order: the bank's own cross-lingual lanes are the second measurement this ticket's verdict needs, beside the library-level bench's. FINDING already in hand, read from source 2026-09-07: the reviewed build's on-device default is Xenova/all-MiniLM-L6-v2, described in its own comment as English-centric (fork/src/features/search/embeddings.ts, DEFAULT_LOCAL_MODEL). So the near-zero is a monolingual default behaving as designed, not a broken multilingual model, and what remains is to record the model in the run identity and to re-run the lanes against a multilingual model -- the source itself names Xenova/multilingual-e5-small -- to separate 'this default cannot' from 'no local model can'
 
 --- body ---
 ## Context
