@@ -1,0 +1,78 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0303",
+  "need": "Viết trước khi mở tài liệu: Trần Trọng Kim có ý kiến gì về việc dùng tên An Nam thay vì Việt Nam để gọi nước nhà?",
+  "query": "Trần Trọng Kim cho rằng nên bỏ hai chữ An Nam vì ngụ ý thần phục nước Tàu mà gọi nước là Việt Nam",
+  "question_language": "vi",
+  "answer_language": "vi",
+  "lane": "vi->vi",
+  "signal": "agreement",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [],
+  "generator": "need",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-nuoc-viet-nam",
+      "recipe_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-nuoc-viet-nam",
+      "attachment_id": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-nuoc-viet-nam-html",
+      "attachment_key": "S3CL2IR3",
+      "section": "1. Quốc-hiệu",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 1209,
+          "quote": "tuy rằng ngày nay ta vẫn theo thói quen dùng hai chữ An-nam 安 南, nhưng vì hai chữ ấy có ngụ ý phải thần-phục nước Tàu, vậy thì ta nên nhất định lấy tên Việt-nam 越 南 mà gọi nước nhà."
+        }
+      ],
+      "chain": {
+        "title": "Việt Nam sử lược, Quyển I — Nước Việt Nam",
+        "author": "Trần Trọng Kim",
+        "date": "1920",
+        "identifier": "https://vi.wikisource.org/w/index.php?title=Vi%E1%BB%87t_Nam_s%E1%BB%AD_l%C6%B0%E1%BB%A3c%2FQuy%E1%BB%83n_I%2FN%C6%B0%E1%BB%9Bc_Vi%E1%BB%87t_Nam&oldid=100833",
+        "section_heading": "1. QUỐC-HIỆU",
+        "page_printed": null,
+        "part_title": "Nước Việt Nam",
+        "part_byline": "Trần Trọng Kim"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "S3CL2IR3",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 1209,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0434",
+  "need": "Hazard row for the notes facet and the record-only boundary: Makarov 2013 is carried as a bibliographic record with exactly one child note in Russian and no attachment, because CyberLeninka labels the article CC BY-NC-ND. The note names the topics (cap-and-trade, carbon tax, the post-Kyoto regime) and the pagination 479-496. A reply can only reach it through the note item.",
+  "query": "Макаров глобальное изменение климата вызов мировой экономике cap-and-trade углеродный налог Киотский протокол",
+  "question_language": "ru",
+  "answer_language": "ru",
+  "lane": "ru->ru",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "notes",
+  "stratum": "core",
+  "mechanism": [
+    "record-only-item",
+    "note-only-parent",
+    "notes-facet",
+    "should-language-russian"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [],
+  "expected_miss": true,
+  "expected_miss_mechanism": "record-only item: the parent has no attachment at all (record_only = true, attachments = []), so the export's manifest holds no attachment key for it and no row can be pinned; the note text lives in items.json, which the pinned-row model does not address",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": []
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  },
+  "retained_reason": "Kept although unpinnable: it is the corpus's only note-only parent and the only test that the notes facet is reachable at all; dropping it would leave the facet unexercised."
+}

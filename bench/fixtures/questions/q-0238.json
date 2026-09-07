@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0238",
+  "need": "Written before opening the document: which two gases account for the bulk of human greenhouse-gas emissions, and what share do they make between them? I want the encyclopedia's own sentence, in French, not a figure I have to derive.",
+  "query": "dioxyde de carbone et méthane représentent 90 % des émissions de gaz à effet de serre dues aux activités humaines",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "should-language-row",
+    "pageless-html"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "wp-climate-change-fr",
+      "recipe_id": "wp-climate-change-fr",
+      "attachment_id": "wp-climate-change-fr-html",
+      "attachment_key": "6PG6TSDT",
+      "section": "Section de tête",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 1450,
+          "quote": "Le dioxyde de carbone (CO2) et le méthane (CH4) représentent 90 % des émissions de gaz à effet de serre dues aux activités humaines."
+        }
+      ],
+      "chain": {
+        "title": "Changement climatique",
+        "author": "Wikipedia contributors",
+        "date": "2026",
+        "identifier": "https://fr.wikipedia.org/w/index.php?title=Changement_climatique&oldid=239281043",
+        "section_heading": null,
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "6PG6TSDT",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 1450,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0240",
+  "need": "Hazard row, the SHOULD-language sibling with a subject trap. The eight Wikipedia articles in this corpus are declared same-subject siblings, and a reader may assume the German one answers what the French and Spanish ones answer. It does not: de.wikipedia splits the topic, and 'Klimawandel' is the article about climate change across Earth's history, while the present anthropogenic warming lives at 'globale Erwärmung'. A German query about the current warming should return this article only as the near-win it is, and the paragraph that says so is the one worth pinning.",
+  "query": "Klimawandel Definition weltweit auftretende Veränderung des Klimas Abkühlung oder Erwärmung über unterschiedlich lange Zeiträume",
+  "question_language": "de",
+  "answer_language": "de",
+  "lane": "de->de",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "should-language-row",
+    "same-subject-sibling-mismatch",
+    "pageless-html"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "wp-climate-change-de",
+      "recipe_id": "wp-climate-change-de",
+      "attachment_id": "wp-climate-change-de-html",
+      "attachment_key": "BHQDF69E",
+      "section": "Einleitung",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 492,
+          "quote": "Klimawandel, auch Klimaveränderung, Klimaänderung oder Klimawechsel, ist eine weltweit auftretende Veränderung des Klimas auf der Erde oder erdähnlichen Planeten oder Monden, die eine Atmosphäre besitzen."
+        },
+        {
+          "page_printed": null,
+          "char_offset": 2,
+          "quote": "Dieser Artikel befasst sich überwiegend mit natürlichen Klimafaktoren der Erdgeschichte. Zur aktuellen menschengemachten Klimaveränderung siehe globale Erwärmung."
+        }
+      ],
+      "chain": {
+        "title": "Klimawandel",
+        "author": "Wikipedia contributors",
+        "date": "2026",
+        "identifier": "https://de.wikipedia.org/w/index.php?title=Klimawandel&oldid=269977423",
+        "section_heading": null,
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "BHQDF69E",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 492,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          },
+          {
+            "reachable": true,
+            "char_offset": 2,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

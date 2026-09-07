@@ -1,0 +1,83 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0433",
+  "need": "Hazard row for source-format coverage: a Wikisource wikitext file served as text/plain — Yan Fu's 1902 translator's preface, where he explains why he coined 計學 rather than accept 經濟 or 理財 for economics. Same indexed-not-served mechanism as q-0432, in Han script and on a markup-bearing source.",
+  "query": "嚴復 譯事例言 計學 葉科諾密 經濟 理財",
+  "question_language": "zh",
+  "answer_language": "zh",
+  "lane": "zh->zh",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanism": [
+    "source-format-plain-text",
+    "source-format-wikitext-markup",
+    "indexed-not-served",
+    "han-script"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "yan-fu-1902-yuanfu-yishi-liyan",
+      "recipe_id": "yan-fu-1902-yuanfu-yishi-liyan",
+      "attachment_id": "yan-fu-1902-yuanfu-yishi-liyan-wikitext",
+      "attachment_key": "W5XJJGT7",
+      "section": "譯事例言",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": null,
+          "quote": "計學，西名「葉科諾密」，本希臘語。"
+        }
+      ],
+      "chain": {
+        "title": "原富 · 譯事例言 (Translator's preface to Yuan Fu, Yan Fu's rendering of The Wealth of Nations)",
+        "author": "嚴復 (Yan Fu)",
+        "date": "1902",
+        "identifier": "https://zh.wikisource.org/w/index.php?title=%E5%8E%9F%E5%AF%8C/%E8%AD%AF%E4%BA%8B%E4%BE%8B%E8%A8%80&oldid=2268899",
+        "section_heading": "譯事例言",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "indexed-not-served: the wikitext attachment is stored as text/plain, indexed from the file (4 121 characters) but excluded from the local API's cached MIME types, so the export carries no fulltext file and no span is locatable",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": [
+      {
+        "attachment_key": "W5XJJGT7",
+        "alternates": [
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "attachment W5XJJGT7 is indexed-not-served in the export: no fulltext to locate in",
+            "within_index_cap": null
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

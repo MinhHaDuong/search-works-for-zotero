@@ -1,0 +1,78 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0319",
+  "need": "Écrit avant d'ouvrir le document : combien de titres de périodiques et de livres en vietnamien la BnF conserve-t-elle grâce au dépôt légal de l'Indochine ?",
+  "query": "combien de titres vietnamiens la Bibliothèque nationale de France conserve-t-elle grâce au dépôt légal de l'Indochine",
+  "question_language": "fr",
+  "answer_language": "vi",
+  "lane": "fr->vi",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [],
+  "generator": "need",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "hal-04826774-lich-su-sach-nam-ky",
+      "recipe_id": "hal-04826774-lich-su-sach-nam-ky",
+      "attachment_id": "hal-04826774-lich-su-sach-nam-ky-pdf",
+      "attachment_key": "RLFNAG8E",
+      "section": "Tóm tắt",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 2145,
+          "quote": "Đến ngày hôm nay thì thư viện quốc gia Pháp có hơn 1,000 đầu báo và 12,000 đầu sách tiếng Việt."
+        }
+      ],
+      "chain": {
+        "title": "Lịch sử sách, in ấn và xuất bản ở Nam Kỳ. Dùng Heurist để hệ thống hoá và phân tích dữ liệu của kho lưu chiểu Đông Dương",
+        "author": "Cao Vy",
+        "date": "2024",
+        "identifier": "https://hal.science/hal-04826774v1",
+        "section_heading": null,
+        "page_printed": null,
+        "part_title": "Lịch sử sách, in ấn và xuất bản ở Nam Kỳ. Dùng Heurist để hệ thống hoá và phân tích dữ liệu của kho lưu chiểu Đông Dương",
+        "part_byline": "Vy Cao"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "RLFNAG8E",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 2145,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

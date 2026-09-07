@@ -1,0 +1,143 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0229",
+  "need": "Hazard row, all-of: the inverted-U claim is carried by two structures on facing pages and neither is prose. Gráfica 1 on page 106 is a chart whose caption and axis labels ('Curva de Kuznets', 'Inequidad', 'Ingreso per cápita') are separate text boxes, and Cuadro 1 on page 107 is the Paukert table of Gini coefficients by income band, whose columns the extraction flattens into one run and whose figures use the Spanish decimal comma. An answer that shows the claim needs both; either alone leaves the reader without the evidence.",
+  "query": "Gráfica 1 curva de Kuznets y Cuadro 1 clasificación de países por rangos de ingreso y coeficiente de Gini fuente Paukert 1973",
+  "question_language": "es",
+  "answer_language": "es",
+  "lane": "es->es",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "structural-table",
+    "structural-figure-caption",
+    "column-flattening",
+    "decimal-comma"
+  ],
+  "generator": "hazard",
+  "set_kind": "all-of",
+  "primary": [
+    {
+      "work_id": "macias-2014-crecimiento-desigualdad-pobreza",
+      "recipe_id": "macias-2014-crecimiento-desigualdad-pobreza",
+      "attachment_id": "macias-2014-crecimiento-desigualdad-pobreza-pdf",
+      "attachment_key": "KSQTEU7K",
+      "section": "Gráfica 1 (El impacto del crecimiento sobre la desigualdad)",
+      "alternates": [
+        {
+          "page_printed": "106",
+          "char_offset": 14565,
+          "quote": "Gráfica 1 Curva de Kuznets"
+        },
+        {
+          "page_printed": "106",
+          "char_offset": 14960,
+          "quote": "Curva de Kuznets Inequidad Ingreso per cápita"
+        }
+      ],
+      "chain": {
+        "title": "Crecimiento, desigualdad y pobreza: estado de la cuestión",
+        "author": "Alfredo Macías Vázquez",
+        "date": "2014",
+        "identifier": "http://www.scielo.org.co/scielo.php?script=sci_arttext&pid=S0124-59962014000200006",
+        "section_heading": "El impacto del crecimiento sobre la desigualdad",
+        "page_printed": "106",
+        "part_title": null,
+        "part_byline": null
+      }
+    },
+    {
+      "work_id": "macias-2014-crecimiento-desigualdad-pobreza",
+      "recipe_id": "macias-2014-crecimiento-desigualdad-pobreza",
+      "attachment_id": "macias-2014-crecimiento-desigualdad-pobreza-pdf",
+      "attachment_key": "KSQTEU7K",
+      "section": "Cuadro 1",
+      "alternates": [
+        {
+          "page_printed": "107",
+          "char_offset": 17326,
+          "quote": "Cuadro 1 Clasificación de países por rangos de ingreso y coeficiente de Gini"
+        },
+        {
+          "page_printed": "107",
+          "char_offset": 17484,
+          "quote": "Menos de 100 0,419 0,33-0,51 101-200 0,468 0,26-0,50 201-300 0,499 0,36-0,62 301-500 0,494 0,30-0,64 501-1000 0,438 0,38-0,58 1001-2000 0,401 0,30-0,50 2001 o más 0,365 0,34-0,39 Fuente: Paukert (1973), citado en Ray (2002, 194)."
+        }
+      ],
+      "chain": {
+        "title": "Crecimiento, desigualdad y pobreza: estado de la cuestión",
+        "author": "Alfredo Macías Vázquez",
+        "date": "2014",
+        "identifier": "http://www.scielo.org.co/scielo.php?script=sci_arttext&pid=S0124-59962014000200006",
+        "section_heading": "El impacto del crecimiento sobre la desigualdad",
+        "page_printed": "107",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "KSQTEU7K",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 14565,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          },
+          {
+            "reachable": true,
+            "char_offset": 14960,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      },
+      {
+        "attachment_key": "KSQTEU7K",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 17326,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          },
+          {
+            "reachable": true,
+            "char_offset": 17484,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

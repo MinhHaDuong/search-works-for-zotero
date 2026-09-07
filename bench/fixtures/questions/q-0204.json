@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0204",
+  "need": "Hazard row: the extraction stops at the hundredth page of the scan, which is printed page 79. Chapter XI, 'Du revenu social', begins at printed page 146 and is therefore in the book but not in the export. A reader asking for Cournot's account of social revenue must come away empty-handed.",
+  "query": "Cournot chapitre Du revenu social répartition du fonds de consommation perturbation d'un élément du système",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanism": [
+    "page-cap-crossing",
+    "answer-past-extraction-cap"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "cournot-1838-recherches",
+      "recipe_id": "cournot-1838-recherches-ia",
+      "attachment_id": "cournot-1838-recherches-ia-pdf",
+      "attachment_key": "TLZ7JLEX",
+      "section": "Chapitre XI. Du revenu social",
+      "alternates": [
+        {
+          "page_printed": "150",
+          "char_offset": null,
+          "quote": "76. A la vérité, celle exacte répartition n'est pas naturellement admissible, et il doit arriver au contraire, en général, qu'une perturbation éprouvée par un élément du système se fasse ressentir de proche en proche"
+        }
+      ],
+      "chain": {
+        "title": "Recherches sur les principes mathématiques de la théorie des richesses",
+        "author": "Antoine-Augustin Cournot",
+        "date": "1838",
+        "identifier": "https://archive.org/details/AugustinCournotRecherches",
+        "section_heading": "CHAPITRE XI. Du revenu social",
+        "page_printed": "150",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "Zotero indexed only the first 100 pages of this 230-page scan (fulltext.pdfMaxPages = 100); printed page 150 is pdf page 171 and no part of chapter XI reached the export's fulltext, so no span of it can be located.",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": [
+      {
+        "attachment_key": "TLZ7JLEX",
+        "alternates": [
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "quote not located in the export fulltext",
+            "within_index_cap": null
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0323",
+  "need": "Viết trước khi mở tài liệu: bản tin Nhân Dân 21-6-1998 — Vinacafe cho biết 5 tháng đầu năm xuất khẩu bao nhiêu tấn cà-phê, thu bao nhiêu USD?",
+  "query": "Vinacafe xuất khẩu cà phê 5 tháng đầu năm 1998 đạt 270 triệu USD",
+  "question_language": "vi",
+  "answer_language": "vi",
+  "lane": "vi->vi",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanism": [
+    "undecodable-legacy-charset"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "nhandan-1998-06-21-tin-kinh-te",
+      "recipe_id": "nhandan-1998-06-21-tin-kinh-te",
+      "attachment_id": "nhandan-1998-06-21-tin-kinh-te-html",
+      "attachment_key": "VDBX25V8",
+      "section": "5 tháng, xuất khẩu cà-phê đạt 270 triệu USD",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 117,
+          "quote": "Tæng C«ng ty cµ-phª ViÖt Nam (Vinacafe) cho biÕt, trong 5 th¸ng ®Çu n¨m"
+        }
+      ],
+      "chain": {
+        "title": "Tin kinh tế, Nhân Dân điện tử, 21-6-1998 (cà-phê, gạo, ADB…)",
+        "author": "Báo Nhân Dân",
+        "date": "1998",
+        "identifier": "https://web.archive.org/web/19990202210244/http://www.nhandan.org.vn:80/19980621/bai-kt1.html",
+        "section_heading": "5 tháng, xuất khẩu cà-phê đạt 270 triệu USD",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "undecodable-legacy-charset: the page's bytes are TCVN3 (ABC) 8-bit Vietnamese served without a matching charset; Zotero's extraction stored them as Windows-1252 glyphs (e.g. 'ViÖt Nam' for 'Việt Nam'), so no Unicode Vietnamese query can match the text; the pinned quote is the mojibake as the export holds it",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "VDBX25V8",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 117,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

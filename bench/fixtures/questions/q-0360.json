@@ -1,0 +1,82 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0360",
+  "need": "Viết trước khi mở tài liệu (câu hỏi tiếng Việt, đoạn trả lời bằng chữ Hán): truyền thuyết Lạc Long Quân lấy Âu Cơ sinh trăm trứng được chính sử chép ra sao — bản chữ Hán có ghi cái 'trăm trứng' như lời tục truyền, hay chỉ chép trăm người con?",
+  "query": "chính sử chữ Hán chép Lạc Long Quân lấy Âu Cơ sinh một trăm người con, tục truyền là trăm trứng, tổ của Bách Việt",
+  "question_language": "vi",
+  "answer_language": "zh",
+  "lane": "vi->zh",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "cross-lingual-anchor",
+    "han-script-no-word-spaces",
+    "cultural-sense"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "dai-viet-su-ky-toan-thu-ngoai-ky-1-zh",
+      "recipe_id": "dai-viet-su-ky-toan-thu-ngoai-ky-1-zh",
+      "attachment_id": "dai-viet-su-ky-toan-thu-ngoai-ky-1-zh-html",
+      "attachment_key": "BWKXR57L",
+      "section": "貉龍君",
+      "alternates": [
+        {
+          "page_printed": null,
+          "quote": "君娶帝來女，曰嫗姬。生百男（俗傳生百卵），是為百粤之祖。",
+          "char_offset": 310
+        }
+      ],
+      "chain": {
+        "title": "大越史記全書 外紀卷之一 鴻厖氏紀 (Đại Việt sử ký toàn thư, ngoại kỷ quyển 1)",
+        "author": "吳士連 Ngô Sĩ Liên et al.",
+        "date": "1697",
+        "identifier": "https://zh.wikisource.org/w/index.php?title=%E5%A4%A7%E8%B6%8A%E5%8F%B2%E8%A8%98%E5%85%A8%E6%9B%B8%2F%E5%A4%96%E7%B4%80%E5%8D%B7%E4%B9%8B%E4%B8%80&oldid=2770143",
+        "section_heading": "外紀卷之一",
+        "page_printed": null,
+        "part_title": "貉龍君",
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "BWKXR57L",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 310,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

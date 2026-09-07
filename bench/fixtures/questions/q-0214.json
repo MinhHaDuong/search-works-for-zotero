@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0214",
+  "need": "Written before opening the document: how much structure does an eighteenth-century manual demand of a single line of bookkeeping? I am after the passage that enumerates what every entry must contain — not a discussion of accounts, but the checklist itself.",
+  "query": "de combien d'éléments chaque écriture doit-elle se composer selon ce manuel de tenue de comptes",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "indirect-description",
+    "long-s-orthography"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "porte-1770-science-des-negocians",
+      "recipe_id": "porte-1770-science-des-negocians",
+      "attachment_id": "porte-1770-science-des-negocians",
+      "attachment_key": "4H5HAURM",
+      "section": "Principes à observer pour écrire les articles dans le journal à parties simples",
+      "alternates": [
+        {
+          "page_printed": "11",
+          "char_offset": 36127,
+          "quote": "Es Articles que l'on écrit dans le Journal , doivent être compofés de îîx Parties"
+        }
+      ],
+      "chain": {
+        "title": "La Science des négocians et teneurs de livres",
+        "author": "Mathieu de La Porte",
+        "date": "1770",
+        "identifier": "https://archive.org/details/lasciencedesnego00lapo",
+        "section_heading": "PRINCIPES A OBSERVER POUR ECRIRE LES ARTICLES dans le Journal à Parties Simples.",
+        "page_printed": "11",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "4H5HAURM",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 36127,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

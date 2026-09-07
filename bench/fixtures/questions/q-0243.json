@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0243",
+  "need": "Hazard row: the OCR of printed page 3 breaks down for the top third of the page and emits every letter as its own token — 'i r r é g u l i è r e m e n t , c ' e s t - à - d i r e a u h a s a r d .' The page itself is perfectly legible and the words are all there in order, so nothing about the export's length or state signals damage; but after whitespace normalisation the running text of that block is a sequence of single characters, and no query written in words can match it. Letter-spacing is the failure that looks like success.",
+  "query": "Poincaré les vitesses des molécules gazeuses varient irrégulièrement c'est-à-dire au hasard les lois observables seraient beaucoup moins simples",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanism": [
+    "ocr-letter-spacing",
+    "tokenisation-breakdown"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "poincare-1912-calcul-des-probabilites",
+      "recipe_id": "poincare-1912-calcul-des-probabilites",
+      "attachment_id": "poincare-1912-calcul-des-probabilites-pdf",
+      "attachment_key": "26JJF8L4",
+      "section": "Introduction, I. — Le hasard (haut de la page 3)",
+      "alternates": [
+        {
+          "page_printed": "3",
+          "char_offset": null,
+          "quote": "irrégulièrement, c'est-à-dire au hasard. Les lois observables seraient beaucoup moins simples, diront tous les physiciens, si les vitesses étaient réglées par quelque loi élémentaire simple"
+        }
+      ],
+      "chain": {
+        "title": "Calcul des probabilités",
+        "author": "Henri Poincaré; rédaction de A. Quiquet",
+        "date": "1912",
+        "identifier": "https://archive.org/details/calculdesprobab00poinuoft",
+        "section_heading": "INTRODUCTION.",
+        "page_printed": "3",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "The export's extraction of the top of printed page 3 is letter-spaced — each character of the block is separated by whitespace, so after normalisation the text reads 'i r r é g u l i è r e m e n t , c ' e s t - à - d i r e …'. The words are present as characters and absent as words: the span as printed cannot be located, and no word-level query can reach that block.",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": [
+      {
+        "attachment_key": "26JJF8L4",
+        "alternates": [
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "quote not located in the export fulltext",
+            "within_index_cap": null
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

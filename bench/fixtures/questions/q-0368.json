@@ -1,0 +1,82 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0368",
+  "need": "Hazard: the cap-crossing row in a non-Latin script, where the character-versus-byte arithmetic is at its widest. This article extracts to 121 106 characters, almost every one of them a Han ideograph costing three UTF-8 bytes, so the file is roughly 340 000 bytes. The 40 000-character index cap therefore admits about a third of the characters and about a ninth of what a byte-counted cap of the same nominal size would admit. The free-content attribution in 資料來源, at character 73 716, is on the far side of it — and it is the one statement on the page that a licence audit has to find.",
+  "query": "氣候變化 條目 資料來源 自由内容作品 CC BY-SA 3.0 糧農組織 FAO",
+  "question_language": "zh",
+  "answer_language": "zh",
+  "lane": "zh->zh",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanism": [
+    "index_fulltext_max_chars",
+    "multibyte-character-offsets",
+    "han-script-no-word-spaces"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "wp-climate-change-zh",
+      "recipe_id": "wp-climate-change-zh",
+      "attachment_id": "wp-climate-change-zh-html",
+      "attachment_key": "G46GUZDU",
+      "section": "資料來源",
+      "alternates": [
+        {
+          "page_printed": null,
+          "quote": "本条目包含了自由内容作品内的文本，许可协议为CC BY-SA 3.0：《The status of women in agrifood systems – Overview》， FAO，FAO。",
+          "char_offset": 73716
+        }
+      ],
+      "chain": {
+        "title": "氣候變化",
+        "author": "Wikipedia contributors",
+        "date": "2026",
+        "identifier": "https://zh.wikipedia.org/w/index.php?title=氣候變化&oldid=93590833",
+        "section_heading": "資料來源",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "index_fulltext_max_chars: the 資料來源 free-content attribution lies at character 73 716 of a 121 106-character extraction, past the 40 000-character cap; the cap counts characters, and this page's Han ideographs are three UTF-8 bytes each, so the indexed prefix is about a third of the characters and about 120 000 of some 340 000 bytes",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "G46GUZDU",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 73716,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0239",
+  "need": "Hazard row: a figure caption in a pageless HTML document, carrying a number written in the French convention (0,9 W/m2 with a comma decimal and a non-breaking space before the unit). An English-speaking reader looking for Earth's present radiative imbalance would type the point form. The caption is loose text under an image, so it is not a paragraph of the article and there is no printed page to cite — only a character offset.",
+  "query": "current greenhouse gas levels cause a radiative imbalance of about 0.9 W/m2 as energy moves between space, the atmosphere and the ground",
+  "question_language": "en",
+  "answer_language": "fr",
+  "lane": "en->fr",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "cross-language",
+    "structural-figure-caption",
+    "pageless-html",
+    "decimal-comma"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "wp-climate-change-fr",
+      "recipe_id": "wp-climate-change-fr",
+      "attachment_id": "wp-climate-change-fr-html",
+      "attachment_key": "6PG6TSDT",
+      "section": "Section de tête — légendes des illustrations",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 601,
+          "quote": "L'énergie circule entre l'espace, l'atmosphère et la surface de la Terre. Les niveaux actuels de gaz à effet de serre provoquent un déséquilibre radiatif d'environ 0,9 W/m2"
+        },
+        {
+          "page_printed": null,
+          "char_offset": 244,
+          "quote": "Températures moyennes de l'air en surface de 2011 à 2020 par rapport à une moyenne de référence de 1951 à 1980."
+        }
+      ],
+      "chain": {
+        "title": "Changement climatique",
+        "author": "Wikipedia contributors",
+        "date": "2026",
+        "identifier": "https://fr.wikipedia.org/w/index.php?title=Changement_climatique&oldid=239281043",
+        "section_heading": null,
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "6PG6TSDT",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 601,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          },
+          {
+            "reachable": true,
+            "char_offset": 244,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

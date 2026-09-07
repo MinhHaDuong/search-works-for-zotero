@@ -1,0 +1,83 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0425",
+  "need": "Hazard row on the other cap axis of the same document: Cairnes on the Australian and Californian gold discoveries is printed on page १०७, pdf page 120 of 265. Zotero's stock fulltext.pdfMaxPages is 100, so the export indexed the first 100 pdf pages only and this answer is absent from the export altogether — the page cap, not the character cap. Read on pdf page 120.",
+  "query": "Cairnes on what Australia and California gained by giving their gold for other countries' goods",
+  "question_language": "en",
+  "answer_language": "hi",
+  "lane": "en->hi",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "deep-body",
+  "stratum": "reserve",
+  "mechanism": [
+    "extraction-cap-crossing-past",
+    "pdf-page-cap-100",
+    "monster-non-latin-script",
+    "cross-lingual-en-to-hi"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "dli-1915-arthashastra-hindi",
+      "recipe_id": "dli-1915-arthashastra-hindi",
+      "attachment_id": "dli-1915-arthashastra-hindi-text-pdf",
+      "attachment_key": "JYJ6DZQ4",
+      "section": "सोनेकी खानें और सिक्केका मोल — printed page १०७",
+      "alternates": [
+        {
+          "page_printed": "१०७",
+          "char_offset": null,
+          "quote": "प्रोफेसर केयनेसका हना है कि आस्ट्रेलिया और केलीफ़ोनियाने अपना सोना देकर दूसरे देशोंसे जितनी ओर-ओर चीज़ें ही हैं उतनाही उन्हें लाभ हुआ है।"
+        }
+      ],
+      "chain": {
+        "title": "अर्थशास्त्र (Arthashastra: a Hindi political economy after Mrs Fawcett)",
+        "author": "Millicent Garrett Fawcett (श्रीमती एम. जी. फ़ॉसेट); Hindi adaptation edited at Navaratna Sarasvati Bhavan, Jhalrapatan",
+        "date": "1915",
+        "identifier": "https://archive.org/details/in.ernet.dli.2015.404610",
+        "section_heading": "प्रोफेसर केयनेसका कहना है",
+        "page_printed": "१०७",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "past the page cap: fulltext.pdfMaxPages = 100 stopped the extraction at pdf page 100 of 265, so the answer on pdf page 120 (printed page १०७) is in the bytes but not in the export's fulltext",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": [
+      {
+        "attachment_key": "JYJ6DZQ4",
+        "alternates": [
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "quote not located in the export fulltext",
+            "within_index_cap": null
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

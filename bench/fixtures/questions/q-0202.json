@@ -1,0 +1,93 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0202",
+  "need": "Written before opening the document: did the founder of mathematical economics expect his equations to yield figures? I want the place where he answers the objection that symbols are useless because the subject admits no numerical determination — and says what algebra is for instead.",
+  "query": "à quoi bon les signes mathématiques si la théorie ne permet aucun chiffrage numérique",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "indirect-description",
+    "front-matter-roman-pagination"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "cournot-1838-recherches",
+      "recipe_id": "cournot-1838-recherches-ia",
+      "attachment_id": "cournot-1838-recherches-ia-pdf",
+      "attachment_key": "TLZ7JLEX",
+      "section": "Préface",
+      "alternates": [
+        {
+          "page_printed": "VIII",
+          "char_offset": 6510,
+          "quote": "qu'elle n'a pas seulement pour objet de calculer des nombres"
+        },
+        {
+          "page_printed": "VIII",
+          "char_offset": 7115,
+          "quote": "C'est ainsi encore,que la mécanique rationnelle fournit à la mécanique pratique des théorèmes généraux d'une application très utile"
+        }
+      ],
+      "chain": {
+        "title": "Recherches sur les principes mathématiques de la théorie des richesses",
+        "author": "Antoine-Augustin Cournot",
+        "date": "1838",
+        "identifier": "https://archive.org/details/AugustinCournotRecherches",
+        "section_heading": "PREFACE.",
+        "page_printed": "VIII",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "TLZ7JLEX",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 6510,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          },
+          {
+            "reachable": true,
+            "char_offset": 7115,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

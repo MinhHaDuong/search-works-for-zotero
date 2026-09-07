@@ -1,0 +1,78 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0187",
+  "need": "Written before opening the document: is the 2015 value of the world's carbon pricing instruments just under US$50 billion, with ETSs about 70 percent of it?",
+  "query": "carbon pricing instruments worth just under US$50 billion in 2015, about 70 percent from emissions trading systems",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "agreement",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [],
+  "generator": "need",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "worldbank-2015-state-trends-carbon-pricing",
+      "recipe_id": "worldbank-2015-state-trends-carbon-pricing",
+      "attachment_id": "worldbank-2015-state-trends-carbon-pricing-pdf",
+      "attachment_key": "L4DY79FF",
+      "section": "Executive summary (Figure 3 page)",
+      "alternates": [
+        {
+          "page_printed": "13",
+          "char_offset": 19917,
+          "quote": "The combined value of the regional, national, and subnational carbon pricing instruments in 2015 is estimated at just under US$50 billion globally, of which almost 70 percent (about US$34 billion) is attributed to ETSs and the remainder (about 30 percent) to carbon taxes."
+        }
+      ],
+      "chain": {
+        "title": "State and Trends of Carbon Pricing 2015",
+        "author": "Alexandre Kossoy; Grzegorz Peszko; Klaus Oppermann; Nicolai Prytz; Noémie Klein; Kornelis Blok; Long Lam; Lindee Wong; Bram Borkent",
+        "date": "2015",
+        "identifier": "10.1596/978-1-4648-0725-1",
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": "Executive summary",
+        "page_printed": "13"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "L4DY79FF",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 19917,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": true,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

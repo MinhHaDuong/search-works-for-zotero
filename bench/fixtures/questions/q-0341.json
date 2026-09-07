@@ -1,0 +1,92 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0341",
+  "need": "Écrit avant d'ouvrir le document : le Viêt-nam a-t-il inscrit dans sa loi l'interdiction d'importer des déchets — y compris en simple transit — ou seulement un régime d'autorisation ? Et le même article couvre-t-il l'entrée d'animaux et de plantes non contrôlés sanitairement ?",
+  "query": "le Viêt-nam interdit-il l'importation et le transit de déchets sur son territoire, et sous quelles conditions les animaux et végétaux peuvent-ils entrer",
+  "question_language": "fr",
+  "answer_language": "vi",
+  "lane": "fr->vi",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "compound-document-chain"
+  ],
+  "generator": "need",
+  "set_kind": "all-of",
+  "primary": [
+    {
+      "work_id": "vn-law-environment-2005-vi",
+      "recipe_id": "vn-law-environment-2005-vi",
+      "attachment_id": "vn-law-environment-2005-vi-html",
+      "attachment_key": "ENIYH5SY",
+      "section": "Điều 7, khoản 9 và khoản 10",
+      "alternates": [
+        {
+          "page_printed": null,
+          "quote": "Nhập khẩu, quá cảnh chất thải dưới mọi hình thức.",
+          "char_offset": 10333
+        },
+        {
+          "page_printed": null,
+          "quote": "Nhập khẩu, quá cảnh động vật, thực vật chưa qua kiểm dịch; vi sinh vật ngoài danh mục cho phép.",
+          "char_offset": 10388
+        }
+      ],
+      "chain": {
+        "title": "Luật Bảo vệ môi trường (52/2005/QH11)",
+        "author": "Quốc hội Việt Nam",
+        "date": "2005",
+        "identifier": "https://vi.wikisource.org/w/index.php?title=Lu%E1%BA%ADt_B%E1%BA%A3o_v%E1%BB%87_m%C3%B4i_tr%C6%B0%E1%BB%9Dng_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_2005&oldid=112144",
+        "section_heading": "Chương I:Những quy định chung",
+        "page_printed": null,
+        "part_title": "Điều 7: Những hành vi bị nghiêm cấm",
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "ENIYH5SY",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 10333,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          },
+          {
+            "reachable": true,
+            "char_offset": 10388,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

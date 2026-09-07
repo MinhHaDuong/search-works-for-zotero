@@ -1,0 +1,78 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0161",
+  "need": "Written before opening the document: does Decision 11/2017 settle rooftop solar through net metering, with surplus generation carried forward between billing cycles?",
+  "query": "rooftop solar in Vietnam is settled by net metering with two-way meters and surplus carried to the next cycle",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "agreement",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [],
+  "generator": "need",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "vn-decision-11-2017-qdttg-solar-fit-en",
+      "recipe_id": "vn-decision-11-2017-qdttg-solar-fit-en",
+      "attachment_id": "vn-decision-11-2017-qdttg-solar-fit-en-pdf",
+      "attachment_key": "R74WLCBB",
+      "section": "Article 12",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 10931,
+          "quote": "Rooftop projects shall be implemented in net-metering with two-way electricity meters. In a trading cycle, if the amount of electricity generated from rooftop projects is greater than the consumed amount, the surplus will be carry forward to the next trading cycle."
+        }
+      ],
+      "chain": {
+        "title": "Decision No. 11/2017/QĐ-TTg on the mechanism for encouragement of development of solar power projects in Vietnam (official English translation)",
+        "author": "Thủ tướng Chính phủ (Prime Minister of Vietnam)",
+        "date": "2017",
+        "identifier": "https://www.fao.org/faolex/results/details/en/c/LEX-FAOC179224/",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": "Article 12. Feed in Tariff"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "R74WLCBB",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 10931,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": true,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

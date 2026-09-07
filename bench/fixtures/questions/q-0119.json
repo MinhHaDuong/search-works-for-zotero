@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0119",
+  "need": "Viết trước khi mở tài liệu: vì sao Bộ Năng lượng Hoa Kỳ phải chọn lọc giữa nhiều hướng công nghệ đều khả thi về mặt kỹ thuật? Câu hỏi bằng tiếng Việt, đoạn trả lời bằng tiếng Anh.",
+  "query": "vì sao Bộ Năng lượng Hoa Kỳ phải chọn lọc giữa nhiều hướng công nghệ đều khả thi về mặt kỹ thuật",
+  "question_language": "vi",
+  "answer_language": "en",
+  "lane": "vi->en",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "cross-lingual"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "doe-2011-quadrennial-technology-review",
+      "recipe_id": "doe-2011-quadrennial-technology-review",
+      "attachment_id": "doe-2011-quadrennial-technology-review-pdf",
+      "attachment_key": "CHSB3HZ9",
+      "section": "Executive Summary",
+      "alternates": [
+        {
+          "page_printed": "VIII",
+          "char_offset": 18440,
+          "quote": "because we have limited resources and urgent problems to solve, how do we choose which subset of these many approaches to pursue?"
+        }
+      ],
+      "chain": {
+        "title": "Report on the First Quadrennial Technology Review",
+        "author": "U.S. Department of Energy",
+        "date": "2011",
+        "identifier": "10.2172/1186659",
+        "section_heading": "Executive Summary",
+        "page_printed": "VIII",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "CHSB3HZ9",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 18440,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

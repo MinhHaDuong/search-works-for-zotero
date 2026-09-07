@@ -1,0 +1,84 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0428",
+  "need": "Hazard row compounding two mechanisms: the chapter arguing that Islam's buildings and crafts are few relative to its power stands on printed page ٢٨٤, pdf page 300 of 528 — past the 100-page extraction cap as well as inside a scan whose text layer is unusable. Asked in English. Read on pdf page 300.",
+  "query": "why buildings and crafts were fewer under Islam than under the dynasties that came before it, Kufa built in reed",
+  "question_language": "en",
+  "answer_language": "ar",
+  "lane": "en->ar",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "deep-body",
+  "stratum": "reserve",
+  "mechanism": [
+    "pdf-page-cap-100",
+    "degraded-ocr-text-layer",
+    "monster-non-latin-script",
+    "monster-x-script",
+    "cross-lingual-en-to-ar"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "ibn-khaldun-1904-muqaddimah",
+      "recipe_id": "ibn-khaldun-1904-muqaddimah",
+      "attachment_id": "ibn-khaldun-1904-muqaddimah-pdf",
+      "attachment_key": "ALU3335W",
+      "section": "فصل في أن المباني والمصانع في الملة الاسلامية قليلة بالنسبة الى قدرتها",
+      "alternates": [
+        {
+          "page_printed": "٢٨٤",
+          "char_offset": null,
+          "quote": "فصل في أن المباني والمصانع في الملة الاسلامية قليلة بالنسبة الى قدرتها والى من كان قبلها من الدول"
+        }
+      ],
+      "chain": {
+        "title": "مقدمة ابن خلدون (Al-Muqaddimah)",
+        "author": "عبد الرحمن بن خلدون (Ibn Khaldūn, 1332-1406)",
+        "date": "1904",
+        "identifier": "https://archive.org/details/almuqaddimah00ibnk",
+        "section_heading": "فصل في أن المباني والمصانع في الملة الاسلامية قليلة بالنسبة الى قدرتها والى من كان قبلها من الدول",
+        "page_printed": "٢٨٤",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "two mechanisms at once: fulltext.pdfMaxPages = 100 stopped the extraction at pdf page 100 of 528, so pdf page 300 is not in the export at all; and the scan's text layer is de-joined OCR, so the span would not be locatable even inside the cap",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": [
+      {
+        "attachment_key": "ALU3335W",
+        "alternates": [
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "quote not located in the export fulltext",
+            "within_index_cap": null
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

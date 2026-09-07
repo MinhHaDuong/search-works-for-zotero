@@ -1,0 +1,92 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0127",
+  "need": "Hazard row for the structural-table mechanism: the per-sample R-squared figures asked for exist only as cells of Table 1, which the typesetter placed at the top of a page with no prose around it.",
+  "query": "Table 1 efficiency of explaining and predicting risk premium Shannon entropy 12.98% standard deviation 7.83%",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "structural-table"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "ormos-2014-entropy-asset-pricing",
+      "recipe_id": "ormos-2014-entropy-asset-pricing",
+      "attachment_id": "ormos-2014-entropy-asset-pricing-plos-pdf",
+      "attachment_key": "6NZDWHVP",
+      "section": "Results, Table 1",
+      "alternates": [
+        {
+          "page_printed": "17 / 21",
+          "char_offset": 36353,
+          "quote": "Table 1. Efficiency of explaining and predicting risk premium in different samples."
+        },
+        {
+          "page_printed": "17 / 21",
+          "char_offset": 36608,
+          "quote": "Shannon entropy 12.98% 43.5% 39.6% 13.38% 10.15% 0.69 0.64"
+        }
+      ],
+      "chain": {
+        "title": "Entropy-based financial asset pricing",
+        "author": "Mihály Ormos; Dávid Zibriczky",
+        "date": "2014",
+        "identifier": "10.1371/journal.pone.0115742",
+        "section_heading": "Results",
+        "page_printed": "17 / 21",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "6NZDWHVP",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 36353,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          },
+          {
+            "reachable": true,
+            "char_offset": 36608,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

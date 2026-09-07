@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0225",
+  "need": "Hazard row: this report is only 32 pages and every page was extracted, so the page cap never bites — but its two-column body runs to 83 187 characters, and the 40 000-character index cap falls in the middle of page 17. The RWI figure on the subsidy per German photovoltaic job, printed on page 18, is therefore in the export and out of the index. A short document is not automatically a fully indexed one.",
+  "query": "RWI 2008 jeder deutsche Arbeitsplatz in der Photovoltaik-Branche mit 175 000 Euro unterstützt",
+  "question_language": "de",
+  "answer_language": "de",
+  "lane": "de->de",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanism": [
+    "index-char-cap-crossing",
+    "answer-past-index-cap"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "satw-2011-erneuerbare-energien",
+      "recipe_id": "satw-2011-erneuerbare-energien",
+      "attachment_id": "satw-2011-erneuerbare-energien-pdf",
+      "attachment_key": "E466FNQ9",
+      "section": "Fehlentwicklungen vermeiden",
+      "alternates": [
+        {
+          "page_printed": "18",
+          "char_offset": 44888,
+          "quote": "Beispielsweise er mittelte das RWI, dass 2008 jeder deutsche Arbeits platz in der Photovoltaik-Branche mit 175 000 Euro unterstützt wurde."
+        }
+      ],
+      "chain": {
+        "title": "Erneuerbare Energien – Herausforderungen auf dem Weg zur Vollversorgung",
+        "author": "Silvia Banfi Frost; Marco Berg; Jean-François Dupont; Matthias Gysler; Eduard Kiener; Jürg Minsch; Alexander Wokaun (Schweizerische Akademie der Technischen Wissenschaften)",
+        "date": "2011",
+        "identifier": "10.5281/zenodo.1160834",
+        "section_heading": "Fehlentwicklungen vermeiden",
+        "page_printed": "18",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "The span sits at character 44 970 of an 83 187-character extraction, past the product's 40 000-character index cap (ZOTEUS_INDEX_FULLTEXT_MAX_CHARS). Every page of this 32-page report was extracted — the page cap is not the mechanism here — but the second half of the report never reaches the index.",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "E466FNQ9",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 44888,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0248",
+  "need": "Écrit avant d'ouvrir le document : une objection courante aux probabilités imprécises est qu'elles ne permettent plus de désigner la meilleure politique. Un auteur du corpus l'admet-il explicitement — que sous information très imprécise le concept d'optimalité tombe et que le résultat reste imprécis ? La réponse est dans l'introduction, paginée en chiffres romains, donc hors de la numérotation arabe du corps.",
+  "query": "sous une information très imprécise le concept d'optimalité ne peut plus être utilisé et le résultat reste imprécis",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "agreement",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "front-matter-roman-pagination"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "ha-duong-2005-modeles-de-precaution-hdr",
+      "recipe_id": "ha-duong-2005-modeles-de-precaution-hdr",
+      "attachment_id": "ha-duong-2005-modeles-de-precaution-hdr-pdf",
+      "attachment_key": "WASTUP32",
+      "section": "Introduction",
+      "alternates": [
+        {
+          "page_printed": "xii",
+          "char_offset": 15488,
+          "quote": "Il convient de souligner immédiatement que dans ces conditions, le concept d’optimalité ne peut plus être utilisé. Si l’information disponible est très imprécise, alors le résultat sera aussi très imprécis."
+        }
+      ],
+      "chain": {
+        "title": "Modèles de précaution en économie : introduction aux probabilités imprécises",
+        "author": "Minh Ha-Duong",
+        "date": "2005",
+        "identifier": "https://theses.hal.science/halshs-00007520v1",
+        "section_heading": "Introduction",
+        "page_printed": "xii",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "WASTUP32",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 15488,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0723 review round)",
+    "date": "2026-09-07",
+    "page_read": true
+  }
+}

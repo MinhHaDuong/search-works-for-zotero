@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0153",
+  "need": "Écrit avant d'ouvrir le document : la phrase où Smith définit le prix réel de toute chose comme la peine et l'embarras qu'il en coûte pour l'acquérir.",
+  "query": "Smith le prix réel de toute chose est la peine et l'embarras de l'acquérir",
+  "question_language": "fr",
+  "answer_language": "en",
+  "lane": "fr->en",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "gutenberg-cap-crossing-pair",
+    "index_fulltext_max_chars"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "smith-1776-wealth-of-nations",
+      "recipe_id": "smith-1776-wealth-of-nations",
+      "attachment_id": "smith-1776-wealth-of-nations-html",
+      "attachment_key": "9DLZSRCN",
+      "section": "Book I, Chapter V (HTML rendering)",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 66139,
+          "quote": "The real price of every thing, what every thing really costs to the man who wants to acquire it, is the toil and trouble of acquiring it."
+        }
+      ],
+      "chain": {
+        "title": "An Inquiry into the Nature and Causes of the Wealth of Nations",
+        "author": "Adam Smith",
+        "date": "1776",
+        "identifier": "https://www.gutenberg.org/ebooks/3300",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": "CHAPTER V. OF THE REAL AND NOMINAL PRICE OF COMMODITIES, OR OF THEIR PRICE IN LABOUR, AND THEIR PRICE IN MONEY."
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "index_fulltext_max_chars: the answer paragraph (Book I, chapter V, character 66 143 of the HTML extraction) lies past the 40 000-character index cap; it is in the export but not in the index",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "9DLZSRCN",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 66139,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": false,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

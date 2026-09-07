@@ -1,0 +1,82 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0232",
+  "need": "Hazard row, same work, other rendering: the same Zotero item also holds the Internet Archive's plain-text OCR of this book, 693 823 characters of it, and Zotero did index the first 500 000. The body really is in the index. But the local API serves /items/<key>/fulltext only for cached MIME types — PDF, HTML, EPUB — so text/plain answers 404 and the export carries no fulltext file for it. Indexed and unreadable are not the same failure, and this item shows both at once: the served rendering has no book text, the rendering with the book text is not served.",
+  "query": "Menger Grundsätze erstes Capitel Ueber das Wesen der Güter Nützlichkeiten Causalzusammenhang Bedürfnisse",
+  "question_language": "de",
+  "answer_language": "de",
+  "lane": "de->de",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanism": [
+    "indexed-not-served",
+    "same-text-different-format",
+    "char-cap-crossing"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "menger-1871-grundsaetze",
+      "recipe_id": "menger-1871-grundsaetze",
+      "attachment_id": "menger-1871-grundsaetze-txt",
+      "attachment_key": "2F99P8BW",
+      "section": "Erstes Capitel, §1. Ueber das Wesen der Güter (rendition: Internet Archive OCR text)",
+      "alternates": [
+        {
+          "page_printed": "2",
+          "char_offset": null,
+          "quote": "Diejenigen Dinge, welche die Tauglichkeit haben, in Causal- Zusammenhang mit der Befriedigung menschlicher Bedihrfaisse gesetzt zu werden, nennen wir Nützlichkeiten"
+        }
+      ],
+      "chain": {
+        "title": "Grundsätze der Volkswirthschaftslehre",
+        "author": "Carl Menger",
+        "date": "1871",
+        "identifier": "https://archive.org/details/grundstzedervol01menggoog",
+        "section_heading": "Ueber das Wesen der Güter",
+        "page_printed": "2",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "The attachment is indexed-not-served: Zotero indexed 500 000 of its 693 823 characters from the file, but the local API's /items/<key>/fulltext route answers 404 for text/plain (Zotero.Fulltext.isCachedMIMEType covers PDF, HTML and EPUB only), so the export carries no fulltext for this key and no span of it can be located.",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": [
+      {
+        "attachment_key": "2F99P8BW",
+        "alternates": [
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "attachment 2F99P8BW is indexed-not-served in the export: no fulltext to locate in",
+            "within_index_cap": null
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

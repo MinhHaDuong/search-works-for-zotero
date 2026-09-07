@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0209",
+  "need": "Hazard row: this edition carries two structural layers under the translation — numbered 'Litt. :' notes giving the word-for-word rendering, and longer philological notes with Chinese characters. Both sit in smaller type at the foot of the page and the extraction runs them straight into the verse above. Can a 'Litt. :' gloss be retrieved as itself, on its own printed page?",
+  "query": "Litt. Sa fortune en la comparant tout aussi bien était ordinaire et de degré moyen",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "structural-footnote",
+    "interlinear-gloss-apparatus"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "des-michels-1884-kim-van-kieu-t1",
+      "recipe_id": "des-michels-1884-kim-van-kieu-t1",
+      "attachment_id": "des-michels-1884-kim-van-kieu-t1-pdf",
+      "attachment_key": "JT7EB2F9",
+      "section": "Traduction, notes de la page 7",
+      "alternates": [
+        {
+          "page_printed": "7",
+          "char_offset": 26573,
+          "quote": "4. Litt. : « Sa fortune, — en la comparant, — tout aussi bien — (était) ordinaire — et de degré — moyen. »"
+        }
+      ],
+      "chain": {
+        "title": "Kim Vân Kiều tân truyện — Les poèmes de l'Annam, tome I",
+        "author": "Nguyễn Du; Abel des Michels (ed., transl.)",
+        "date": "1884",
+        "identifier": "https://archive.org/details/kim-van-kieu-tan-truyen-1",
+        "section_heading": "KIM VAN KIÊU TAN TEUYÊN.",
+        "page_printed": "7",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "JT7EB2F9",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 26573,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

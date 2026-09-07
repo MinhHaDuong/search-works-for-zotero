@@ -1,0 +1,92 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0140",
+  "need": "Hazard row for the structural-table mechanism: the correlation coefficients between temperature and each macroeconomic series are given only in Table 1; the prose reports their sign and significance but never the numbers.",
+  "query": "Table 1 correlation results on climate change and macro-economy temperature grain yield ratio grain price CPI real wage",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "structural-table"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "pei-2015-climate-macroeconomic-preindustrial-europe",
+      "recipe_id": "pei-2015-climate-macroeconomic-preindustrial-europe",
+      "attachment_id": "pei-2015-climate-macroeconomic-preindustrial-europe-pdf",
+      "attachment_key": "3EI4PY6L",
+      "section": "Results, Table 1",
+      "alternates": [
+        {
+          "page_printed": "6 / 17",
+          "char_offset": 19262,
+          "quote": "Table 1. Correlation results on climate change and macro-economy."
+        },
+        {
+          "page_printed": "6 / 17",
+          "char_offset": 19402,
+          "quote": "Temperature 0.356** -0.169** -0.197** 0.265** 0.261** 0.045"
+        }
+      ],
+      "chain": {
+        "title": "Climate change and the macroeconomic structure in pre-industrial Europe: new evidence from wavelet analysis",
+        "author": "Qing Pei; David D. Zhang; Guodong Li; Harry F. Lee",
+        "date": "2015",
+        "identifier": "10.1371/journal.pone.0126480",
+        "section_heading": "Results",
+        "page_printed": "6 / 17",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "3EI4PY6L",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 19262,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          },
+          {
+            "reachable": true,
+            "char_offset": 19402,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

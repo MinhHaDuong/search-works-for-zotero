@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0164",
+  "need": "Viết trước khi mở tài liệu: báo cáo Việt Nam 2035 dự báo đến năm 2035 bao nhiêu phần trăm dân số Việt Nam sẽ thuộc tầng lớp trung lưu toàn cầu, so với hiện nay?",
+  "query": "Việt Nam 2035 hơn một nửa dân số sẽ gia nhập tầng lớp trung lưu toàn cầu",
+  "question_language": "vi",
+  "answer_language": "en",
+  "lane": "vi->en",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "deep-body",
+  "stratum": "core",
+  "mechanism": [
+    "cross-lingual-anchor",
+    "index_fulltext_max_chars"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "wb-2016-vietnam-2035-en",
+      "recipe_id": "wb-2016-vietnam-2035-en",
+      "attachment_id": "wb-2016-vietnam-2035-en-pdf",
+      "attachment_key": "TKLXGCGR",
+      "section": "Executive Summary",
+      "alternates": [
+        {
+          "page_printed": "xxviii",
+          "char_offset": 77508,
+          "quote": "By 2035 more than half of the Vietnamese people will be part of the global middle class (up from just over 10 percent today)"
+        }
+      ],
+      "chain": {
+        "title": "Vietnam 2035: Toward Prosperity, Creativity, Equity, and Democracy",
+        "author": "World Bank; Ministry of Planning and Investment of Vietnam",
+        "date": "2016",
+        "identifier": "10.1596/978-1-4648-0824-1",
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": "Executive Summary",
+        "page_printed": "xxviii"
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "index_fulltext_max_chars: the answer paragraph (Executive Summary, printed p. xxviii, character 77 426) lies past the 40 000-character index cap, which in this 409-page report falls inside the list of tables; only the front matter is indexed",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "TKLXGCGR",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 77508,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": true,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

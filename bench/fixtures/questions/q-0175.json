@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0175",
+  "need": "Written before opening the document: the record is deliberately filed as a journal article though it is a project report with no journal; does the wrong item type hide the document or break its citation chain? I want its rule on whether assessments use real or nominal prices.",
+  "query": "assessments performed with real prices and real interest/discount rates not including inflation BIPV Active Interfaces",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "wrong-item-type",
+    "item-type-fidelity"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "wittkopf-2016-bipv-methodological-framework",
+      "recipe_id": "wittkopf-2016-bipv-methodological-framework",
+      "attachment_id": "wittkopf-2016-bipv-methodological-framework-pdf",
+      "attachment_key": "LRIU5TC8",
+      "section": "3.1 Future energy prices and interest/discount rates",
+      "alternates": [
+        {
+          "page_printed": "7",
+          "char_offset": 13438,
+          "quote": "It is proposed to perform the assessments with real prices and real interest/discount rates, not including inflation."
+        }
+      ],
+      "chain": {
+        "title": "Common methodological framework to assess energy, climate and economic impacts of BIPV",
+        "author": "Walter Ott; Meta Lehmann; Stephen Wittkopf (ed.)",
+        "date": "2016",
+        "identifier": "10.5281/zenodo.1405881",
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": "3.1 Future energy prices and interest/discount rates",
+        "page_printed": "7"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "LRIU5TC8",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 13438,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": true,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

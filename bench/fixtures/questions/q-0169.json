@@ -1,0 +1,82 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0169",
+  "need": "Écrit avant d'ouvrir le document : d'après le rapport, combien de personnes âgées le Vietnam comptera-t-il pour cent actifs vers 2035, contre combien aujourd'hui ?",
+  "query": "Vietnam 2035 vieillissement combien de personnes âgées pour cent actifs",
+  "question_language": "fr",
+  "answer_language": "en",
+  "lane": "fr->en",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "cross-lingual-anchor",
+    "compound-book-section",
+    "extraction-cap-crossing"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "wb-2016-vietnam-2035-en-overview",
+      "recipe_id": "wb-2016-vietnam-2035-en-overview",
+      "attachment_id": "wb-2016-vietnam-2035-en-overview-pdf",
+      "attachment_key": "AY8TMFZ6",
+      "section": "Executive Summary",
+      "alternates": [
+        {
+          "page_printed": "xxv",
+          "char_offset": 39819,
+          "quote": "the old-age dependency ratio—the number of people 65 years of age or older for every 100 people aged 15–64—will have risen to almost 22 (from under 10 today)"
+        }
+      ],
+      "chain": {
+        "title": "Vietnam 2035: Toward Prosperity, Creativity, Equity, and Democracy — Overview",
+        "author": "World Bank; Ministry of Planning and Investment of Vietnam",
+        "date": "2016",
+        "identifier": "10.1596/978-1-4648-0824-1",
+        "part_title": "Overview",
+        "part_byline": null,
+        "section_heading": "Executive Summary",
+        "page_printed": "xxv"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "AY8TMFZ6",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 39819,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": true,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

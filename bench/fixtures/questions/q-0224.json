@@ -1,0 +1,94 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0224",
+  "need": "Hazard row: a pie-chart caption plus the chart's own labels. The caption ('Abb. 1: Endverbrauch der erneuerbaren Energien in der Schweiz im Jahr 2009') is set below the figure, and the slice labels are loose text boxes; the extraction drops them into the running text mid-sentence, splitting the sentence about the 5400 GWh target in two. Note also the mixed decimal convention on one page — a comma in the prose (18,9 Prozent), a point in the chart labels (12.57%).",
+  "query": "Abb. 1 Endverbrauch der erneuerbaren Energien in der Schweiz 2009 nicht erneuerbarer Endverbrauch 711 590 TJ Umweltwärme",
+  "question_language": "de",
+  "answer_language": "de",
+  "lane": "de->de",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "structural-figure-caption",
+    "floating-label-interleaving",
+    "mixed-decimal-separator"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "satw-2011-erneuerbare-energien",
+      "recipe_id": "satw-2011-erneuerbare-energien",
+      "attachment_id": "satw-2011-erneuerbare-energien-pdf",
+      "attachment_key": "E466FNQ9",
+      "section": "Abbildung 1 (Ein langer Weg)",
+      "alternates": [
+        {
+          "page_printed": "9",
+          "char_offset": 16190,
+          "quote": "Abb. 1: Endverbrauch der erneuerbaren Energien in der Schweiz im Jahr 2009 (BFE: Schweizerische Statistik der erneuerbaren Energien, Ausgabe 2009)"
+        },
+        {
+          "page_printed": "9",
+          "char_offset": 16337,
+          "quote": "Nicht erneuerbarer Endverbrauch 81.1% 711 590 TJ Erneuerbarer Endverbrauch 18.9% 165 970 TJ Total 877 560 TJ"
+        }
+      ],
+      "chain": {
+        "title": "Erneuerbare Energien – Herausforderungen auf dem Weg zur Vollversorgung",
+        "author": "Silvia Banfi Frost; Marco Berg; Jean-François Dupont; Matthias Gysler; Eduard Kiener; Jürg Minsch; Alexander Wokaun (Schweizerische Akademie der Technischen Wissenschaften)",
+        "date": "2011",
+        "identifier": "10.5281/zenodo.1160834",
+        "section_heading": "Ein langer Weg",
+        "page_printed": "9",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "E466FNQ9",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 16190,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          },
+          {
+            "reachable": true,
+            "char_offset": 16337,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

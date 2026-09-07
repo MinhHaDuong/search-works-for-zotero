@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0350",
+  "need": "Written before opening the document: in the Tale of Kiều the sisters come upon a neglected grave during the tomb-sweeping festival, and the brother explains whose it is. Who was buried there, and what had her profession been? An English reader has only the description, not the name.",
+  "query": "whose neglected grave do the sisters find during the tomb-sweeping festival, and what had she been in life",
+  "question_language": "en",
+  "answer_language": "vi",
+  "lane": "en->vi",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "cultural-sense",
+    "indirect-description"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "nguyen-du-truyen-kieu-vi-wikisource",
+      "recipe_id": "nguyen-du-truyen-kieu-vi-wikisource",
+      "attachment_id": "nguyen-du-truyen-kieu-vi-wikisource-html",
+      "attachment_key": "8ZXPNMC6",
+      "section": "Câu 61–66",
+      "alternates": [
+        {
+          "page_printed": null,
+          "quote": "Vương Quan mới dẫn gần xa:\nĐạm Tiên nàng ấy xưa là ca nhi.\nNổi danh tài sắc một thì,\nXôn xao ngoài cửa hiếm gì yến anh.",
+          "char_offset": 2574
+        }
+      ],
+      "chain": {
+        "title": "Truyện Kiều (Đoạn trường tân thanh)",
+        "author": "Nguyễn Du",
+        "date": "1820",
+        "identifier": "https://vi.wikisource.org/w/index.php?title=Truy%E1%BB%87n_Ki%E1%BB%81u&oldid=205132",
+        "section_heading": null,
+        "page_printed": null,
+        "part_title": "Câu 61–66",
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "8ZXPNMC6",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 2574,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

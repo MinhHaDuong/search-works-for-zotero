@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0330",
+  "need": "Hazard: the chapter heading of Chương IV is transcribed on Wikisource in all lower case ('Bảo vệ tổ quốc việt nam xã hội chủ nghĩa') where every sibling chapter heading is title-cased, so a chain check that compares the section heading case-sensitively against the recipe's own section field fails on this chapter alone.",
+  "query": "Hiến pháp 1992 Chương IV Bảo vệ Tổ quốc Việt Nam xã hội chủ nghĩa giữ vững an ninh quốc gia là sự nghiệp của toàn dân",
+  "question_language": "vi",
+  "answer_language": "vi",
+  "lane": "vi->vi",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanism": [
+    "compound-document-chain",
+    "section-heading-case-variant"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "vn-constitution-1992-vi-chuong-iv",
+      "recipe_id": "vn-constitution-1992-vi-chuong-iv",
+      "attachment_id": "vn-constitution-1992-vi-chuong-iv-html",
+      "attachment_key": "B6R4NE24",
+      "section": "Điều 44",
+      "alternates": [
+        {
+          "page_printed": null,
+          "quote": "Bảo vệ Tổ quốc Việt Nam xã hội chủ nghĩa, giữ vững an ninh quốc gia là sự nghiệp của toàn dân.",
+          "char_offset": 162
+        }
+      ],
+      "chain": {
+        "title": "Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992, Chương IV: Bảo vệ Tổ quốc Việt Nam xã hội chủ nghĩa",
+        "author": "Quốc hội Việt Nam",
+        "date": "1992",
+        "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_IV&oldid=104782",
+        "section_heading": "Chương IV: Bảo vệ tổ quốc việt nam xã hội chủ nghĩa",
+        "page_printed": null,
+        "part_title": "Điều 44",
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "B6R4NE24",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 162,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

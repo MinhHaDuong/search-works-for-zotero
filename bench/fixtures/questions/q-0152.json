@@ -1,0 +1,119 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0152",
+  "need": "Written before opening the document: Smith holds that the division of labour is bounded by the size of the market; I want the sentence, and the tally wants the same sentence checked in both Gutenberg renderings, since it sits right at the 40 000-character index boundary: the HTML extraction reaches it about 300 characters earlier than the EPUB one, so the same two sentences end inside the index cap in one rendering and past it in the other.",
+  "query": "the division of labour is limited by the extent of the market",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "agreement",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "gutenberg-cap-crossing-pair",
+    "extraction-cap-crossing",
+    "index_fulltext_max_chars",
+    "same-text-different-format"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "smith-1776-wealth-of-nations",
+      "recipe_id": "smith-1776-wealth-of-nations",
+      "attachment_id": "smith-1776-wealth-of-nations-html",
+      "attachment_key": "9DLZSRCN",
+      "section": "Book I, Chapter III (HTML rendering)",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 39525,
+          "quote": "so the extent of this division must always be limited by the extent of that power, or, in other words, by the extent of the market. When the market is very small, no person can have any encouragement to dedicate himself entirely to one employment"
+        }
+      ],
+      "chain": {
+        "title": "An Inquiry into the Nature and Causes of the Wealth of Nations",
+        "author": "Adam Smith",
+        "date": "1776",
+        "identifier": "https://www.gutenberg.org/ebooks/3300",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": "CHAPTER III. THAT THE DIVISION OF LABOUR IS LIMITED BY THE EXTENT OF THE MARKET."
+      }
+    },
+    {
+      "work_id": "smith-1776-wealth-of-nations",
+      "recipe_id": "smith-1776-wealth-of-nations",
+      "attachment_id": "smith-1776-wealth-of-nations-epub",
+      "attachment_key": "EAM35WCU",
+      "section": "Book I, Chapter III (EPUB rendering)",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 39815,
+          "quote": "so the extent of this division must always be limited by the extent of that power, or, in other words, by the extent of the market. When the market is very small, no person can have any encouragement to dedicate himself entirely to one employment"
+        }
+      ],
+      "chain": {
+        "title": "An Inquiry into the Nature and Causes of the Wealth of Nations",
+        "author": "Adam Smith",
+        "date": "1776",
+        "identifier": "https://www.gutenberg.org/ebooks/3300",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": "CHAPTER III. THAT THE DIVISION OF LABOUR IS LIMITED BY THE EXTENT OF THE MARKET."
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "9DLZSRCN",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 39525,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      },
+      {
+        "attachment_key": "EAM35WCU",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 39815,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": false,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

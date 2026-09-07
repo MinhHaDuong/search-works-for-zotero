@@ -1,0 +1,116 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0125",
+  "need": "Written before opening the document: for a briefing I need two numbers together — the national total of U.S. greenhouse gas emissions for 2014 and the share of national emissions that energy-related CO2 alone accounts for. The record carries three files; the two numbers live in two different ones, so both rows have to come back.",
+  "query": "total U.S. greenhouse gas emissions 2014 6,870.5 MMT CO2 Eq and the share of national emissions from energy-related CO2",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "multi-attachment-parent"
+  ],
+  "generator": "need",
+  "set_kind": "all-of",
+  "primary": [
+    {
+      "work_id": "epa-2016-ghg-inventory-1990-2014",
+      "recipe_id": "epa-2016-ghg-inventory-1990-2014",
+      "attachment_id": "epa-2016-ghg-inventory-executive-summary-pdf",
+      "attachment_key": "KPLGZ2VL",
+      "section": "ES.2. Recent Trends in U.S. Greenhouse Gas Emissions and Sinks",
+      "alternates": [
+        {
+          "page_printed": "ES-4",
+          "char_offset": 9536,
+          "quote": "In 2014, total U.S. greenhouse gas emissions were 6,870.5 MMT or million metric tons CO2 Eq."
+        }
+      ],
+      "chain": {
+        "title": "Inventory of U.S. Greenhouse Gas Emissions and Sinks: 1990-2014",
+        "author": "U.S. Environmental Protection Agency",
+        "date": "2016",
+        "identifier": "10.5281/zenodo.259515",
+        "section_heading": "ES.2. Recent Trends in U.S. Greenhouse Gas Emissions and Sinks",
+        "page_printed": "ES-4",
+        "part_title": null,
+        "part_byline": null
+      }
+    },
+    {
+      "work_id": "epa-2016-ghg-inventory-1990-2014",
+      "recipe_id": "epa-2016-ghg-inventory-1990-2014",
+      "attachment_id": "epa-2016-ghg-inventory-chapter-3-energy-pdf",
+      "attachment_key": "TNFGB8UX",
+      "section": "3. Energy",
+      "alternates": [
+        {
+          "page_printed": "3-1",
+          "char_offset": 357,
+          "quote": "Energy-related CO2 emissions alone constituted 78.3 percent of national emissions from all sources on a CO2 equivalent basis"
+        }
+      ],
+      "chain": {
+        "title": "Inventory of U.S. Greenhouse Gas Emissions and Sinks: 1990-2014",
+        "author": "U.S. Environmental Protection Agency",
+        "date": "2016",
+        "identifier": "10.5281/zenodo.259515",
+        "section_heading": "3. Energy",
+        "page_printed": "3-1",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "KPLGZ2VL",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 9536,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      },
+      {
+        "attachment_key": "TNFGB8UX",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 357,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

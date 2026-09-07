@@ -1,0 +1,78 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0316",
+  "need": "Viết trước khi mở tài liệu: tìm bài của Nguyễn Hoài Sơn, Hà Dương Minh và Nguyễn Xuân Thắng về tính kinh tế theo quy mô trong tiêu dùng điện hộ gia đình, đăng ở tạp chí nào, năm nào, trang nào.",
+  "query": "Nguyễn Hoài Sơn Hà Dương Minh Nguyễn Xuân Thắng tính kinh tế theo quy mô tiêu dùng điện hộ gia đình Những vấn đề Kinh tế và Chính trị Thế giới 2023",
+  "question_language": "vi",
+  "answer_language": "vi",
+  "lane": "vi->vi",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [],
+  "generator": "need",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "hal-04332519-economies-of-scale",
+      "recipe_id": "hal-04332519-economies-of-scale",
+      "attachment_id": "hal-04332519-economies-of-scale-pdf",
+      "attachment_key": "XH9X4IAN",
+      "section": "HAL cover page (To cite this version)",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 863,
+          "quote": "Hoai Son Nguyen, Minh Ha-Duong, Xuân Tháng Nguyen. Tính kinh tế theo quy mô trong tiêu dùng điện của các hộ gia đình tại Việt Nam. Những vấn đề Kinh tế và Chính trị Thế giới, 2023, 11 (331), pp.63-73."
+        }
+      ],
+      "chain": {
+        "title": "Tính kinh tế theo quy mô trong tiêu dùng điện của các hộ gia đình tại Việt Nam (Economy of Scale in Electricity Consumption of Households in Vietnam)",
+        "author": "Nguyễn Hoài Sơn; Minh Ha-Duong; Nguyễn Xuân Thắng",
+        "date": "2023",
+        "identifier": "https://enpc.hal.science/hal-04332519v1",
+        "section_heading": "To cite this version:",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "XH9X4IAN",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 863,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

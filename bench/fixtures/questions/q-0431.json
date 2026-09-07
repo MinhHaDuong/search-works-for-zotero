@@ -1,0 +1,82 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0431",
+  "need": "Hazard row for source-format coverage: the second EPUB in the corpus is indexed but its extracted body is blank — 27 characters, all whitespace, against a full book of text. The failure is silent: the attachment reports terminal state 'indexed' and a fulltext route that answers, so nothing in the counters says the text is missing. This row makes that visible.",
+  "query": "Jevons value depends entirely upon utility theory of political economy",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanism": [
+    "source-format-epub",
+    "blank-body-extraction",
+    "silent-degradation"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "jevons-1871-theory-of-political-economy",
+      "recipe_id": "jevons-1871-theory-of-political-economy",
+      "attachment_id": "jevons-1871-theory-of-political-economy-epub",
+      "attachment_key": "8ZYYSCZ8",
+      "section": "Chapter I — Introduction",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": null,
+          "quote": "Repeated reflection and inquiry have led me to the somewhat novel opinion, that value depends entirely upon utility."
+        }
+      ],
+      "chain": {
+        "title": "The Theory of Political Economy",
+        "author": "William Stanley Jevons",
+        "date": "1871",
+        "identifier": "https://archive.org/details/theoryofpolitica00jevouoft",
+        "section_heading": "CHAPTER I. INTRODUCTION.",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "blank-body EPUB: the attachment is indexed and served, but the extraction carries 27 characters of whitespace and no body text (manifest body_blank = true, indexed_chars = total_chars = 27), so no span of the book is locatable",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": [
+      {
+        "attachment_key": "8ZYYSCZ8",
+        "alternates": [
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "quote not located in the export fulltext",
+            "within_index_cap": null
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0242",
+  "need": "Written before opening the document: the standard dismissal of probability is that chance is only a name for our ignorance. Poincaré answers it with an example from insurance — the actuary who does not know when anyone will die and still pays a dividend. I want that passage.",
+  "query": "Poincaré directeur d'une compagnie d'assurances sur la vie ignore quand mourra chacun de ses assurés loi des grands nombres dividendes",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "known-item"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "poincare-1912-calcul-des-probabilites",
+      "recipe_id": "poincare-1912-calcul-des-probabilites",
+      "attachment_id": "poincare-1912-calcul-des-probabilites-pdf",
+      "attachment_key": "26JJF8L4",
+      "section": "Introduction, I. — Le hasard",
+      "alternates": [
+        {
+          "page_printed": "3",
+          "char_offset": 4904,
+          "quote": "Il faut donc bien que le hasard soit autre chose que le nom que nous donnons à notre ignorance"
+        },
+        {
+          "page_printed": "3",
+          "char_offset": 5618,
+          "quote": "mais II compte sur le calcul des probabilités et sur la loi des grands nom bres etil ne se trompe pas, puisqu'il distribue des dividendes à ses actionnaires."
+        }
+      ],
+      "chain": {
+        "title": "Calcul des probabilités",
+        "author": "Henri Poincaré; rédaction de A. Quiquet",
+        "date": "1912",
+        "identifier": "https://archive.org/details/calculdesprobab00poinuoft",
+        "section_heading": "INTRODUCTION.",
+        "page_printed": "3",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "26JJF8L4",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 4904,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          },
+          {
+            "reachable": true,
+            "char_offset": 5618,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

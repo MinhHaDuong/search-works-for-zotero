@@ -1,0 +1,82 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0118",
+  "need": "Hazard row for the figure-caption mechanism, isolated from the caps: the caption of Figure ES-1 sits on printed page IX, well inside both the page cap and the 40 000-character index cap, and it is still unreachable. Rendered at 110 dpi the page reads 'Figure ES-1. The QTR has framed six strategies to address national energy challenges.'; the extraction writes 'Figure ES1. 4HE 142 HAS FRAMED SIX STRATEGIES TO ADDRESS NATIONAL ENERGY CHALLENGES'. The only defect here is the glyph map.",
+  "query": "Figure ES-1 the QTR has framed six strategies to address national energy challenges",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "structural-caption",
+    "broken-glyph-mapping",
+    "extraction-mangled-span"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "doe-2011-quadrennial-technology-review",
+      "recipe_id": "doe-2011-quadrennial-technology-review",
+      "attachment_id": "doe-2011-quadrennial-technology-review-pdf",
+      "attachment_key": "CHSB3HZ9",
+      "section": "Executive Summary, Figure ES-1 caption",
+      "alternates": [
+        {
+          "page_printed": "IX",
+          "char_offset": null,
+          "quote": "Figure ES-1. The QTR has framed six strategies to address national energy challenges."
+        }
+      ],
+      "chain": {
+        "title": "Report on the First Quadrennial Technology Review",
+        "author": "U.S. Department of Energy",
+        "date": "2011",
+        "identifier": "10.2172/1186659",
+        "section_heading": "Executive Summary",
+        "page_printed": "IX",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "extraction-mangled span: the caption's small-caps display font carries no usable ToUnicode map, so Zotero and pdftotext alike render it as a letter-shifted mojibake ('4HE 142' for 'The QTR'); the span as printed on the page cannot be located in the export fulltext, and no lexical query on the caption's own words can reach it. The span is well within both the page cap and the index cap, so the glyph map is the whole cause",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": [
+      {
+        "attachment_key": "CHSB3HZ9",
+        "alternates": [
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "quote not located in the export fulltext",
+            "within_index_cap": null
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

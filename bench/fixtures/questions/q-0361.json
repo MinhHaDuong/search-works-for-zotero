@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0361",
+  "need": "在打開文獻之前寫下：安陽王的神弩，其機括究竟取自何物？傳說只說「神弩」，正史卻給了名字和造弩之人。",
+  "query": "安陽王 靈光金爪神弩 金龜脫爪 皐魯造機弩",
+  "question_language": "zh",
+  "answer_language": "zh",
+  "lane": "zh->zh",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "han-script-no-word-spaces"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "dai-viet-su-ky-toan-thu-ngoai-ky-1-zh",
+      "recipe_id": "dai-viet-su-ky-toan-thu-ngoai-ky-1-zh",
+      "attachment_id": "dai-viet-su-ky-toan-thu-ngoai-ky-1-zh-html",
+      "attachment_key": "BWKXR57L",
+      "section": "蜀紀 · 安陽王",
+      "alternates": [
+        {
+          "page_printed": null,
+          "quote": "王命臣皐魯（一云皐通），造機弩，以爪為機，名曰靈光金爪神弩。",
+          "char_offset": 2612
+        }
+      ],
+      "chain": {
+        "title": "大越史記全書 外紀卷之一 鴻厖氏紀 (Đại Việt sử ký toàn thư, ngoại kỷ quyển 1)",
+        "author": "吳士連 Ngô Sĩ Liên et al.",
+        "date": "1697",
+        "identifier": "https://zh.wikisource.org/w/index.php?title=%E5%A4%A7%E8%B6%8A%E5%8F%B2%E8%A8%98%E5%85%A8%E6%9B%B8%2F%E5%A4%96%E7%B4%80%E5%8D%B7%E4%B9%8B%E4%B8%80&oldid=2770143",
+        "section_heading": "外紀卷之一",
+        "page_printed": null,
+        "part_title": "安陽王",
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "BWKXR57L",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 2612,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

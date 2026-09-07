@@ -1,0 +1,43 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0146",
+  "need": "Hazard row for the no-text-layer scan: Ramsey's Foundations of Mathematics is a 340-page scan with no OCR and no embedded fonts. pdftotext extracts 340 bytes over 340 pages, Zotero's indexPDF writes no fulltextItems row, and the attachment is a declared failure control that never joins an answer set — so the answer is legible to a human eye on the page and invisible to every retrieval path.",
+  "query": "Ramsey truth and probability degrees of belief foundations of mathematics 1931",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanism": [
+    "no-text-layer-scan",
+    "declared-failure-control"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [],
+  "expected_miss": true,
+  "expected_miss_mechanism": "no-text-layer scan, declared failure control: attachment K6VK5Y68 finishes unindexed with expected_degradation 'no full text: an un-OCR'd scan with no text layer and zero embedded fonts', and its answer_set_participation is 'none', so no row of this work may be pinned at all",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": []
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0120",
+  "need": "Hazard row for the page-cap mechanism: the report's own conclusions open on printed p. 121, pdf page 135 of a 168-page file, past the 100-page extraction cap — the part of a report a reader most often wants is exactly the part the cap removes.",
+  "query": "Quadrennial Technology Review conclusions national energy priorities energy security economic competitiveness environmental impacts",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "page-cap-crossing"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "doe-2011-quadrennial-technology-review",
+      "recipe_id": "doe-2011-quadrennial-technology-review",
+      "attachment_id": "doe-2011-quadrennial-technology-review-pdf",
+      "attachment_key": "CHSB3HZ9",
+      "section": "Conclusions and Next Steps",
+      "alternates": [
+        {
+          "page_printed": "121",
+          "char_offset": null,
+          "quote": "The national energy priorities underpinning this Report are energy security, U.S. economic competitiveness, and reducing the environmental impacts of energy."
+        }
+      ],
+      "chain": {
+        "title": "Report on the First Quadrennial Technology Review",
+        "author": "U.S. Department of Energy",
+        "date": "2011",
+        "identifier": "10.2172/1186659",
+        "section_heading": "Conclusions and Next Steps",
+        "page_printed": "121",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "page-cap crossing: 100 of 168 pdf pages were indexed (fulltext.pdfMaxPages = 100), so the Conclusions chapter (printed p. 121, pdf page 135) is absent from the export's fulltext",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": [
+      {
+        "attachment_key": "CHSB3HZ9",
+        "alternates": [
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "quote not located in the export fulltext",
+            "within_index_cap": null
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

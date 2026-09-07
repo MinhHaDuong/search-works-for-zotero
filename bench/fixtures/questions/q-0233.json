@@ -1,0 +1,93 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0233",
+  "need": "Hazard row and positive control for the two preceding questions. q-0231 and q-0232 both expect a miss, and a probe whose only outcome is nothing proves nothing: it cannot tell 'the text layer holds no book' from 'the retrieval is broken'. This question asks for the one thing the Menger 1871 attachment really does carry — Google's English digitisation notice — and expects it found. If this misses too, the fault is not the scan.",
+  "query": "This is a digital copy of a book that was preserved for generations on library shelves before it was carefully scanned by Google",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanism": [
+    "boilerplate-only-text-layer",
+    "positive-control"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "menger-1871-grundsaetze",
+      "recipe_id": "menger-1871-grundsaetze",
+      "attachment_id": "menger-1871-grundsaetze-pdf",
+      "attachment_key": "PGQA946C",
+      "section": "Google digitisation notice (front matter of the scan)",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 197,
+          "quote": "It has survived long enough for the copyright to expire and the book to enter the public domain. A public domain book is one that was never subject to copyright or whose legal copyright term has expired."
+        },
+        {
+          "page_printed": null,
+          "char_offset": 815,
+          "quote": "Google is proud to partner with libraries to digitize public domain materials and make them widely accessible."
+        }
+      ],
+      "chain": {
+        "title": "Grundsätze der Volkswirthschaftslehre",
+        "author": "Carl Menger",
+        "date": "1871",
+        "identifier": "https://archive.org/details/grundstzedervol01menggoog",
+        "section_heading": "Usage guidelines",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "PGQA946C",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 197,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          },
+          {
+            "reachable": true,
+            "char_offset": 815,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

@@ -2889,19 +2889,38 @@ and a record missing a field is refused at load rather than scored:
 
 | field | what it holds |
 |---|---|
+| `schema` | the record shape this question is written in, so a reader refuses a superseded one by name rather than by a missing key |
 | `id` | stable identifier, unique in the bank |
 | `need` | the information need in prose, written before any document was opened |
 | `query` | the query text as a user would type it |
+| `question_language`, `answer_language` | the two halves of the lane, each validated against the language set |
 | `lane` | the pair (question language, answer-paragraph language) |
+| `signal` | whether the query's own words are on the page (`exact`), only its meaning is (`paraphrase`), or the page agrees with its claim (`agreement`) |
 | `facet` | which corpus the answer needs: `core`, `notes`, `group` or `deep-body` |
 | `set_kind` | `any-of` when one member of the primary set answers the need, `all-of` when the reply must return every member |
-| `primary` | the primary answer set, never larger than k |
-| `relations` | one directional assertion per related record |
-| `answers` | one locator per primary member |
+| `primary` | the primary answer set, never larger than k; each member carries its own locators (`answers`, below) and the citation chain a complete reply would show |
 | `mode` | the retrieval mode the question expects to be answered in, per R33 |
 | `mechanism` | the pathology rows this question consumes, where it consumes any |
+| `generator` | whether the question came from an information need or from a mechanism the ledger names |
 | `stratum` | core or reserve |
+| `expected_miss`, `expected_miss_mechanism` | the flag that says the answer is not reachable in this export and the mechanism that hides it; each requires the other |
+| `reachability` | computed, never authored: the block the validator stamps against one export |
 | `provenance` | who wrote it, on what date, from which page, and whether it was written after the tuning it judges |
+
+Two of those names are the specification's and the bank migrated onto them
+(`menagerie-bank/v3`, 2026-09-07): what the bank called `pinned` is `primary`,
+and what it called `mechanisms` is `mechanism`, a list under a singular name
+because the field holds the pathology *rows* the question consumes.
+
+Two of the table's earlier names named things the bank carries elsewhere rather
+than per question, and are not repeated as fields. **`answers`** — one locator
+per primary member — sits inside each primary row as its `alternates`, because
+two answer paragraphs in one section of one work are one row with two locators
+and a parallel list would have to re-establish that pairing. **`relations`** —
+the directional assertions of the paragraph below — is declared once per record
+pair, on the export's own items (`ticket-0029 work relations` in `extra`), not
+once per question that happens to touch the pair: the assertion is a property of
+the corpus, so a question added later inherits it and cannot contradict it.
 
 A **lane** is R29's pair, and which pairs bind is R7's and R29's, never
 restated here. A **facet** says which corpus an answer needs, and §5.2.8's rung

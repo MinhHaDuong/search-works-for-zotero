@@ -1,0 +1,44 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0145",
+  "need": "Hazard row for the metadata-conflicting duplicate: the 2015 arXiv posting of the Ormos and Zibriczky paper disagrees with the PLOS ONE record on year, on title case and on the spelling of the authors' names, and it is in the library as metadata only. A reader who cites the arXiv posting by its own year gets an item with nothing behind it.",
+  "query": "Ormos Mihaly Zibriczky Entropy-Based Financial Asset Pricing arXiv 2015 preprint full text",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanism": [
+    "record-only",
+    "metadata-conflicting-duplicate",
+    "work-identity-relation"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [],
+  "expected_miss": true,
+  "expected_miss_mechanism": "record-only duplicate: parent item DUTSAU6D has no attachment (record_only true), so the arXiv rendering contributes no fulltext; the declared relation to the PLOS ONE record is 'metadata-conflicting-duplicate', which is not a twin relation, so a hit on the journal PDF does not stand in for it",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": []
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0177",
+  "need": "Written before opening the document: the coal balance table — what domestic coal production does the paper project for Vietnam in 2025, and how much of it goes to power generation?",
+  "query": "Table 1 coal supply and demand balance Vietnam 2005 to 2025 domestic production ktons",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "structural-table"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "worldbank-2009-vietnam-energy-mitigation",
+      "recipe_id": "worldbank-2009-vietnam-energy-mitigation",
+      "attachment_id": "worldbank-2009-vietnam-energy-mitigation-pdf",
+      "attachment_key": "2ZWGCBBM",
+      "section": "2.1.1 Coal, Table 1",
+      "alternates": [
+        {
+          "page_printed": "8",
+          "char_offset": 13342,
+          "quote": "Table 1. Coal Supply and Demand Balance in the Period 2005 to 2025 (ktons) 2005 2010 2015 2020 2025 Domestic production 29,200 32,906 41,425 60,246 64,545"
+        }
+      ],
+      "chain": {
+        "title": "Potential Climate Change Mitigation Opportunities in the Energy Sector in Vietnam: Background Paper",
+        "author": "RCEE Energy and Environment JSC; Full Advantage Co., Ltd. (for the World Bank Carbon Finance Assist Program)",
+        "date": "2009",
+        "identifier": "10.1596/28215",
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": "2.1.1 Coal",
+        "page_printed": "8"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "2ZWGCBBM",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 13342,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": true,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

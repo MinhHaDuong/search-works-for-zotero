@@ -1,0 +1,84 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0423",
+  "need": "Written before opening the document: this 1915 Hindi political economy opens its second chapter on labour with a one-line thesis about labour's place among the causes of wealth. What is that thesis? Printed page ५ (pdf page 23) read on the page.",
+  "query": "परिश्रम सम्पत्तिके उत्पादनमें एक आवश्यक कारण दूसरा प्रकरण",
+  "question_language": "hi",
+  "answer_language": "hi",
+  "lane": "hi->hi",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "deep-body",
+  "stratum": "reserve",
+  "mechanism": [
+    "should-language-hindi",
+    "devanagari-script",
+    "monster-non-latin-script",
+    "extraction-cap-crossing-inside",
+    "scanned-print-ocr"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "dli-1915-arthashastra-hindi",
+      "recipe_id": "dli-1915-arthashastra-hindi",
+      "attachment_id": "dli-1915-arthashastra-hindi-text-pdf",
+      "attachment_key": "JYJ6DZQ4",
+      "section": "दूसरा प्रकरण — परिश्रम",
+      "alternates": [
+        {
+          "page_printed": "५",
+          "char_offset": 26246,
+          "quote": "परिश्रम सम्पत्तिके उत्पादनमें एक आवश्यक कारण है।"
+        }
+      ],
+      "chain": {
+        "title": "अर्थशास्त्र (Arthashastra: a Hindi political economy after Mrs Fawcett)",
+        "author": "Millicent Garrett Fawcett (श्रीमती एम. जी. फ़ॉसेट); Hindi adaptation edited at Navaratna Sarasvati Bhavan, Jhalrapatan",
+        "date": "1915",
+        "identifier": "https://archive.org/details/in.ernet.dli.2015.404610",
+        "section_heading": "दूसरा प्रकरण । परिश्रम ।",
+        "page_printed": "५",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "JYJ6DZQ4",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 26246,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0345",
+  "need": "Viết trước khi mở tài liệu (câu hỏi tiếng Việt, trả lời nằm trong bản tiếng Anh): báo cáo Việt Nam 2035 khuyến nghị sáu chuyển đổi lớn; lời giới thiệu của hai đồng chủ biên liệt kê sáu chuyển đổi ấy theo thứ tự nào?",
+  "query": "sáu chuyển đổi quan trọng mà Báo cáo Việt Nam 2035 khuyến nghị, theo lời giới thiệu của Thủ tướng và Chủ tịch Ngân hàng Thế giới",
+  "question_language": "vi",
+  "answer_language": "en",
+  "lane": "vi->en",
+  "signal": "paraphrase",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "cross-lingual-anchor",
+    "compound-book-section"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "wb-2016-vietnam-2035-en-overview",
+      "recipe_id": "wb-2016-vietnam-2035-en-overview",
+      "attachment_id": "wb-2016-vietnam-2035-en-overview-pdf",
+      "attachment_key": "AY8TMFZ6",
+      "section": "Foreword",
+      "alternates": [
+        {
+          "page_printed": "xi",
+          "quote": "The report recognizes six key transformations that will help Vietnam achieve its goals for 2035: (1) to enable economic modernization with a competitive private sector firmly in the lead; (2) to improve the country’s technological and innovative capacity;",
+          "char_offset": 5651
+        }
+      ],
+      "chain": {
+        "title": "Vietnam 2035: Toward Prosperity, Creativity, Equity, and Democracy — Overview",
+        "author": "World Bank; Ministry of Planning and Investment of Vietnam",
+        "date": "2016",
+        "identifier": "10.1596/978-1-4648-0824-1",
+        "section_heading": "Foreword",
+        "page_printed": "xi",
+        "part_title": "Overview",
+        "part_byline": "Nguyễn Tấn Dũng; Jim Yong Kim"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "AY8TMFZ6",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 5651,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

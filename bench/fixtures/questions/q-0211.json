@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0211",
+  "need": "Written before opening the document: an eighteenth-century French manual for merchants and bookkeepers. I want the place where it says how a ledger account is laid out — which side of the opening carries what the correspondent owes and which side carries what is owed to him.",
+  "query": "grand livre comptes formés sur deux pages vis-à-vis l'une de l'autre débit à main gauche crédit à droite",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "known-item",
+    "long-s-orthography"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "porte-1770-science-des-negocians",
+      "recipe_id": "porte-1770-science-des-negocians",
+      "attachment_id": "porte-1770-science-des-negocians",
+      "attachment_key": "4H5HAURM",
+      "section": "Premier traité — De la méthode de tenir les livres à parties simples",
+      "alternates": [
+        {
+          "page_printed": "7",
+          "char_offset": 31849,
+          "quote": "Ces Comptes fe forment dans un Regiftre , intitulé le Grand Livre , fur deux pages vis-à-vis l'une de l'autre , dont celle à main gauche eft nommée le Débit , & celle à droite le Crédit."
+        }
+      ],
+      "chain": {
+        "title": "La Science des négocians et teneurs de livres",
+        "author": "Mathieu de La Porte",
+        "date": "1770",
+        "identifier": "https://archive.org/details/lasciencedesnego00lapo",
+        "section_heading": "DE LA MÉTHODE DE TENIR LES LIVRES A PARTIES SIMPLES.",
+        "page_printed": "7",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "4H5HAURM",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 31849,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

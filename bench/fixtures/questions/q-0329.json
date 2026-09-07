@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0329",
+  "need": "Viết trước khi mở tài liệu: người ta hay nói giáo dục là 'quốc sách hàng đầu' của Việt Nam — Hiến pháp 1992 có thật sự dùng đúng công thức ấy, hay đó chỉ là khẩu hiệu của ngành giáo dục?",
+  "query": "Hiến pháp 1992 khẳng định giáo dục và đào tạo là quốc sách hàng đầu",
+  "question_language": "vi",
+  "answer_language": "vi",
+  "lane": "vi->vi",
+  "signal": "agreement",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "compound-document-chain"
+  ],
+  "generator": "need",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "vn-constitution-1992-vi-chuong-iii",
+      "recipe_id": "vn-constitution-1992-vi-chuong-iii",
+      "attachment_id": "vn-constitution-1992-vi-chuong-iii-html",
+      "attachment_key": "Y99T36J6",
+      "section": "Điều 35",
+      "alternates": [
+        {
+          "page_printed": null,
+          "quote": "Giáo dục và đào tạo là quốc sách hàng đầu.",
+          "char_offset": 2095
+        }
+      ],
+      "chain": {
+        "title": "Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992, Chương III: Văn hóa, giáo dục, khoa học, công nghệ",
+        "author": "Quốc hội Việt Nam",
+        "date": "1992",
+        "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_III&oldid=104781",
+        "section_heading": "Chương III: Văn hóa, giáo dục, khoa học, công nghệ",
+        "page_printed": null,
+        "part_title": "Điều 35",
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "Y99T36J6",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 2095,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q3b)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

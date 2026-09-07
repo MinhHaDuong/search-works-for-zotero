@@ -1,0 +1,82 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0235",
+  "need": "Hazard row: the first volume of Bastiat's collected works is staged as Project Gutenberg's ISO-8859-1 plain text — 1 085 504 bytes, the only distribution Gutenberg serves for this ebook. Zotero indexed the first 500 000 characters of it from the file, so the item is genuinely searchable inside the client; but text/plain is not a cached MIME type and the local API's fulltext route answers 404, so the export holds no text for it. The 1830 election address to the voters of the Landes is at character 488 310 — inside even the 500 000-character extraction ceiling — and still unreachable.",
+  "query": "Bastiat aux électeurs du département des Landes un peuple n'est pas libre par cela seul qu'il possède des institutions libérales",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanism": [
+    "indexed-not-served",
+    "legacy-charset-iso-8859-1",
+    "char-cap-crossing"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "bastiat-1862-oeuvres-completes-t1",
+      "recipe_id": "bastiat-1862-oeuvres-completes-t1",
+      "attachment_id": "bastiat-oeuvres-completes-t1-latin1-txt",
+      "attachment_key": "BZ6AAKBX",
+      "section": "Premiers écrits — Aux électeurs du département des Landes (novembre 1830)",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": null,
+          "quote": "Un peuple n'est pas libre par cela seul qu'il possède des institutions libérales; il faut encore qu'il sache les mettre en oeuvre"
+        }
+      ],
+      "chain": {
+        "title": "Œuvres complètes de Frédéric Bastiat, tome 1 : Correspondance, mélanges",
+        "author": "Frédéric Bastiat; mises en ordre, revues et annotées par Prosper Paillottet",
+        "date": "1862",
+        "identifier": "https://www.gutenberg.org/ebooks/35390",
+        "section_heading": "AUX ÉLECTEURS DU DÉPARTEMENT DES LANDES. (Novembre 1830.)",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "The attachment is indexed-not-served: Zotero indexed 500 000 of its 1 085 504 characters from the ISO-8859-1 file, but text/plain is not a cached MIME type (Zotero.Fulltext.isCachedMIMEType covers PDF, HTML and EPUB), so /items/<key>/fulltext answers 404 and the export carries no fulltext file for this key.",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": false,
+    "rows": [
+      {
+        "attachment_key": "BZ6AAKBX",
+        "alternates": [
+          {
+            "reachable": false,
+            "char_offset": null,
+            "occurrences": 0,
+            "reason": "attachment BZ6AAKBX is indexed-not-served in the export: no fulltext to locate in",
+            "within_index_cap": null
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

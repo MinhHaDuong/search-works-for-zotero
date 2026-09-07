@@ -1,0 +1,92 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0108",
+  "need": "Hazard row for the structural-table mechanism: the figure asked for exists only inside a printed table, never in running prose, so a reply must have carried the table's cells through extraction.",
+  "query": "Hull general statement of the condition of our coal-fields totals 5,419 square miles 83,544 million tons of coal",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "structural-table"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "jevons-1865-coal-question",
+      "recipe_id": "jevons-1865-coal-question",
+      "attachment_id": "jevons-1865-coal-question-pdf",
+      "attachment_key": "YFEVR9T3",
+      "section": "Chapter I. Opinions of Previous Writers, Hull's summary tables",
+      "alternates": [
+        {
+          "page_printed": "10",
+          "char_offset": 28630,
+          "quote": "General Statement of the Condition of our Coal-Fields."
+        },
+        {
+          "page_printed": "10",
+          "char_offset": 29028,
+          "quote": "Totals . . . 5,419 83,544 85,817,324 2,974"
+        }
+      ],
+      "chain": {
+        "title": "The Coal Question; an enquiry concerning the progress of the Nation, and the probable exhaustion of our coal-mines",
+        "author": "William Stanley Jevons",
+        "date": "1865",
+        "identifier": "https://archive.org/details/bub_gb_gAAKAAAAIAAJ",
+        "section_heading": "Chapter I. Opinions of Previous Writers",
+        "page_printed": "10",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "YFEVR9T3",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 28630,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          },
+          {
+            "reachable": true,
+            "char_offset": 29028,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

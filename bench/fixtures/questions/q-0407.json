@@ -1,0 +1,83 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0407",
+  "need": "Hazard row, paired with q-0406 in the same document: the same article's answer to 'what does a ten-year delay in mitigation cost in required annual emission-reduction rates?' sits past character 40 000 of the extracted text. In a Cyrillic document every character is two UTF-8 bytes, so this row exercises the cap arithmetic on the character axis rather than the byte axis.",
+  "query": "задержка на 10 лет темпы снижения эмиссии СО2 с 5,5 % до 9 % в год Raupach",
+  "question_language": "ru",
+  "answer_language": "ru",
+  "lane": "ru->ru",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanism": [
+    "extraction-cap-crossing-past",
+    "index-fulltext-max-chars-40000",
+    "cyrillic-multibyte-offsets",
+    "should-language-russian"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "wp-climate-change-ru",
+      "recipe_id": "wp-climate-change-ru",
+      "attachment_id": "wp-climate-change-ru-html",
+      "attachment_key": "HVSJUFSL",
+      "section": "Научные данные",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 46814,
+          "quote": "Задержка с началом практических действий по смягчению изменений климата на 10 лет будет означать увеличение необходимых глобальных темпов снижения эмиссии СО2 с 5,5 % до 9 % в год."
+        }
+      ],
+      "chain": {
+        "title": "Глобальное потепление",
+        "author": "Wikipedia contributors",
+        "date": "2026",
+        "identifier": "https://ru.wikipedia.org/w/index.php?title=Глобальное_потепление&oldid=154801640",
+        "section_heading": "Научные данные",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "past the index cap: the span is located in the export's fulltext at character 46 814, beyond ZOTEUS_INDEX_FULLTEXT_MAX_CHARS = 40 000, so it is in the export but not in the index",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "HVSJUFSL",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 46814,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q4)",
+    "date": "2026-09-06",
+    "page_read": false
+  }
+}

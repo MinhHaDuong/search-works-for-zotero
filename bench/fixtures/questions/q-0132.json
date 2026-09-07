@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0132",
+  "need": "Hazard row for the figure-caption mechanism: the food-consumption series, its unit and its date range are stated only in the caption of Fig. 1, not in the surrounding prose.",
+  "query": "Fig 1 average per capita food consumption dynamics kcal per capita per day North and East Africa 1961-2009",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "structural-caption"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "korotayev-2015-east-africa-malthusian-trap",
+      "recipe_id": "korotayev-2015-east-africa-malthusian-trap",
+      "attachment_id": "korotayev-2015-east-africa-malthusian-trap-pdf",
+      "attachment_key": "2QCUPHJP",
+      "section": "Fig. 1 caption",
+      "alternates": [
+        {
+          "page_printed": "3",
+          "char_offset": 4146,
+          "quote": "Fig. 1. Average per capita food consumption dynamics (kcal per capita per day) in North and East Africa, 1961-2009"
+        }
+      ],
+      "chain": {
+        "title": "East Africa in the Malthusian trap? A statistical analysis of financial, economic, and demographic indicators",
+        "author": "Andrey Korotayev; Julia Zinkina",
+        "date": "2015",
+        "identifier": "https://arxiv.org/abs/1503.08441v1",
+        "section_heading": "Fig. 1 caption",
+        "page_printed": "3",
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "2QCUPHJP",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 4146,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q1c)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

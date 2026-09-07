@@ -54,53 +54,123 @@ import { SCHEMA_VERSION } from '../index_schema.mjs';
 export const GENERATIONS = ['current', 'prerename'];
 const SOURCE_TAG_PREFIX = 'zoteus-golden-source:';
 const ATTACHMENT_TAG_PREFIX = 'zoteus-golden-attachment:';
+const NOTE_TAG_PREFIX = 'zoteus-golden-note:';
+const MANAGED_TAG_PREFIXES = [SOURCE_TAG_PREFIX, ATTACHMENT_TAG_PREFIX, NOTE_TAG_PREFIX];
 const EXPORT_SENTINEL = '.zoteus-golden-export.json';
 const EXPORT_SENTINEL_SCHEMA = 'zoteus-golden-export/v1';
+const EXPORT_SCHEMA_VERSION = 2;
 // Zotero.Fulltext.isCachedMIMEType, the only types the local API serves on /items/<key>/fulltext.
 const SERVED_CONTENT_TYPES = new Set(['application/pdf', 'text/html', 'application/epub+zip']);
+// Mirrors golden_fixture.py CONTENT_TYPES: bare MIME types, the charset a separate item field.
 const CONTENT_TYPES = {
   pdf: 'application/pdf', djvu: 'image/vnd.djvu', html: 'text/html', wikitext: 'text/plain',
-  txt: 'text/plain; charset=utf-8', epub: 'application/epub+zip',
+  txt: 'text/plain', md: 'text/markdown', epub: 'application/epub+zip',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  odt: 'application/vnd.oasis.opendocument.text', rtf: 'application/rtf',
+  jpg: 'image/jpeg', png: 'image/png', zip: 'application/zip', tgz: 'application/gzip',
 };
+const TEXT_FORMATS = new Set(['html', 'wikitext', 'txt', 'md']);
+const REINDEX_MODES = new Set(['stock', 'uncapped']);
+// Mirrors golden_fixture.py CHARSET_LABELS (the Encoding Standard labels Zotero canonicalises).
+const CHARSET_LABELS = new Map([
+  ...['utf8', 'utf-8', 'unicode-1-1-utf-8'].map((label) => [label, 'utf-8']),
+  ...['ascii', 'us-ascii', 'iso-8859-1', 'iso8859-1', 'iso_8859-1', 'latin1', 'l1', 'cp1252', 'x-cp1252',
+    'windows-1252', 'ansi_x3.4-1968', 'cp819', 'ibm819', 'iso-ir-100', 'csisolatin1'].map((label) => [label, 'windows-1252']),
+  ...['gb2312', 'gbk', 'gb_2312', 'gb_2312-80', 'chinese', 'csgb2312', 'x-gbk', 'iso-ir-58'].map((label) => [label, 'gbk']),
+  ...['big5', 'big5-hkscs', 'cn-big5', 'csbig5', 'x-x-big5'].map((label) => [label, 'big5']),
+  ...['koi8-r', 'koi', 'koi8', 'koi8_r', 'cskoi8r'].map((label) => [label, 'koi8-r']),
+  ...['windows-1251', 'cp1251', 'x-cp1251'].map((label) => [label, 'windows-1251']),
+  ...['windows-1256', 'cp1256', 'x-cp1256'].map((label) => [label, 'windows-1256']),
+  ...['windows-1258', 'cp1258', 'x-cp1258'].map((label) => [label, 'windows-1258']),
+  ...['shift_jis', 'shift-jis', 'sjis', 'x-sjis', 'ms_kanji', 'csshiftjis'].map((label) => [label, 'shift_jis']),
+  ...['euc-kr', 'cseuckr', 'korean', 'ks_c_5601-1987', 'windows-949'].map((label) => [label, 'euc-kr']),
+  ...['iso-8859-2', 'latin2', 'l2', 'iso8859-2', 'csisolatin2'].map((label) => [label, 'iso-8859-2']),
+  ...['iso-8859-15', 'latin9', 'l9', 'iso8859-15'].map((label) => [label, 'iso-8859-15']),
+]);
+// Zotero's item types and their fields, reduced from the public schema (golden_fixture.py item-fields).
+const ITEM_FIELDS_FILE = resolve(import.meta.dirname, 'zotero-item-fields.json');
+const CITATION_TARGETS = { doi: ['DOI', 'DOI'], isbn: ['ISBN', 'ISBN'], url: ['url', 'URL'] };
+let itemFieldsCache = null;
+
+function itemSchema() {
+  if (!itemFieldsCache) itemFieldsCache = JSON.parse(readFileSync(ITEM_FIELDS_FILE, 'utf8'));
+  return itemFieldsCache;
+}
+function itemFields() { return itemSchema().item_types; }
+// Zotero stores a plain author under the item type's primary creator type (presenter on
+// a presentation, cartographer on a map), so that is what the export carries.
+function primaryCreatorType(itemType) { return (itemSchema().primary_creators ?? {})[itemType] ?? 'author'; }
+// A base field lives under the item type's own name (a statute's title is nameOfAct).
+function typeField(itemType, baseField) { return ((itemSchema().base_fields ?? {})[itemType] ?? {})[baseField] ?? baseField; }
+
+function canonicalCharset(label) {
+  const key = String(label).trim().toLowerCase();
+  return CHARSET_LABELS.get(key) ?? key;
+}
+
+function contentTypeOf(source) {
+  if (typeof source.content_type_declared === 'string' && source.content_type_declared) return source.content_type_declared;
+  return CONTENT_TYPES[source.bytes_format ?? 'pdf'] ?? 'application/octet-stream';
+}
 
 function tagValues(data) {
   return (data.tags ?? []).filter((tag) => tag && typeof tag.tag === 'string').map((tag) => tag.tag);
 }
 
 function requireOnlyManagedMarker(data, expected, label) {
-  const managed = tagValues(data).filter((tag) =>
-    tag.startsWith(SOURCE_TAG_PREFIX) || tag.startsWith(ATTACHMENT_TAG_PREFIX));
+  const managed = tagValues(data).filter((tag) => MANAGED_TAG_PREFIXES.some((prefix) => tag.startsWith(prefix)));
   if (managed.length !== 1 || managed[0] !== expected) {
     throw new Error(`${label}: expected only managed marker ${expected}`);
   }
 }
 
-function expectedParent(doc, collectionKey) {
+/** Mirrors golden_fixture.py _desired_parent, field for field. */
+export function expectedParent(doc, collectionKey) {
+  const itemType = doc.item_type ?? 'document';
+  const extraLines = [
+    `ticket-0029 recipe id: ${doc.id}`,
+    `ticket-0029 work id: ${doc.work_id ?? doc.id}`,
+    `ticket-0029 type fidelity: ${doc.type_fidelity ?? 'unreviewed'}`,
+    `ticket-0029 work relations: ${JSON.stringify(canonicalJson(doc.work_relations ?? []))}`,
+  ];
+  if (Object.hasOwn(doc, 'topic')) extraLines.push(`ticket-0029 topic: ${doc.topic}`);
+  if (Object.hasOwn(doc, 'stratum')) extraLines.push(`ticket-0029 stratum: ${doc.stratum}`);
+  if (Object.hasOwn(doc, 'mechanisms')) extraLines.push(`ticket-0029 mechanisms: ${JSON.stringify(canonicalJson(doc.mechanisms))}`);
+  if (Object.hasOwn(doc, 'retained_reason')) extraLines.push(`ticket-0029 retained reason: ${doc.retained_reason}`);
+  const fields = itemFields();
+  if (!Object.hasOwn(fields, itemType)) throw new Error(`${doc.id}: item type ${itemType} is not in Zotero's schema`);
+  const placed = {};
+  for (const [key, value] of Object.entries(doc.citation ?? {})) {
+    const target = CITATION_TARGETS[key];
+    if (!target) throw new Error(`${doc.id}: citation key ${key} is not one of doi, isbn, url`);
+    if (fields[itemType].includes(target[0])) placed[target[0]] = value;
+    else extraLines.push(`${target[1]}: ${value}`);
+  }
   const expected = {
-    itemType: doc.item_type ?? 'document',
-    title: doc.title,
-    creators: [{ creatorType: 'author', name: doc.author }],
-    date: String(doc.year),
-    language: doc.language,
-    extra: [
-      `ticket-0029 recipe id: ${doc.id}`,
-      `ticket-0029 work id: ${doc.work_id ?? doc.id}`,
-      `ticket-0029 type fidelity: ${doc.type_fidelity ?? 'unreviewed'}`,
-      `ticket-0029 work relations: ${JSON.stringify(canonicalJson(doc.work_relations ?? []))}`,
-    ].join('\n'),
+    itemType,
+    [typeField(doc.item_type ?? 'document', 'title')]: doc.title,
+    creators: [{ creatorType: primaryCreatorType(doc.item_type ?? 'document'), name: doc.author }],
+    [typeField(doc.item_type ?? 'document', 'date')]: String(doc.year),
+    language: Object.hasOwn(doc, 'language_field') ? doc.language_field : doc.language,
+    extra: extraLines.join('\n'),
     collections: [collectionKey],
   };
   if (!doc.attachments) Object.assign(expected, {
     url: doc.bytes_url, archive: doc.archive, archiveLocation: doc.identifier,
   });
-  return expected;
+  return Object.assign(expected, placed);
 }
 
 function sources(doc) { return doc.attachments ?? [doc]; }
+function notesOf(doc) { return Array.isArray(doc.notes) ? doc.notes : []; }
 
 function requireFields(data, expected, label) {
   for (const [field, value] of Object.entries(expected)) {
-    if (JSON.stringify(canonicalJson(data[field])) !== JSON.stringify(canonicalJson(value))) {
+    // Zotero's API omits a field written as the empty string (a deliberately empty
+    // language field comes back absent), so an absent field equals an expected ''.
+    const actual = value === '' && !Object.hasOwn(data, field) ? '' : data[field];
+    if (JSON.stringify(canonicalJson(actual)) !== JSON.stringify(canonicalJson(value))) {
       throw new Error(`${label}: ${field} does not match the source recipe`);
     }
   }
@@ -144,17 +214,37 @@ export function loadGoldenExport(directory, options = {}) {
     throw new Error('golden export has an invalid ownership marker');
   }
   const manifest = readJson('manifest.json', 'manifest');
-  if (manifest.schema_version !== 1) throw new Error(`unsupported golden export schema ${manifest.schema_version}`);
+  if (manifest.schema_version !== EXPORT_SCHEMA_VERSION) {
+    throw new Error(`unsupported golden export schema ${manifest.schema_version}: this loader reads schema `
+      + `${EXPORT_SCHEMA_VERSION} (ticket 0721: explicit charsets, the reindex mode as observed, parent and note `
+      + 'bindings); re-export with golden_fixture.py export');
+  }
   if (!/^[0-9a-f]{64}$/.test(manifest.recipe_sha256 ?? '')) throw new Error('manifest has no recipe sha256');
   if (!['user', 'group'].includes(manifest.library?.type) ||
       !Number.isInteger(manifest.library?.id) || manifest.library.id <= 0) {
     throw new Error('manifest must identify the public Zotero library');
   }
   if (!manifest.library.collection_key) throw new Error('manifest has no collection key');
-  if (!manifest.zotero?.client_version ||
+  if (!manifest.zotero?.client_version || typeof manifest.zotero?.plugin_version !== 'string' ||
       !Number.isInteger(manifest.zotero?.['fulltext.pdfMaxPages']) ||
       !Number.isInteger(manifest.zotero?.['fulltext.textMaxLength'])) {
-    throw new Error('manifest lacks the Zotero version or extraction preferences');
+    throw new Error('manifest lacks the Zotero version, the plugin version or the extraction preferences');
+  }
+  const reindexMode = manifest.reindex?.mode ?? null;
+  if (reindexMode !== null && !REINDEX_MODES.has(reindexMode)) {
+    throw new Error(`manifest reindex mode ${reindexMode} is not stock, uncapped or null`);
+  }
+  if ((reindexMode === 'stock' && manifest.reindex.limits !== 'applied') ||
+      (reindexMode === 'uncapped' && manifest.reindex.limits !== 'ignored')) {
+    throw new Error('manifest reindex limits do not agree with its mode');
+  }
+  for (const field of ['strata', 'topic_counts', 'format_counts', 'language_counts']) {
+    if (!manifest[field] || typeof manifest[field] !== 'object' || Array.isArray(manifest[field])) {
+      throw new Error(`manifest lacks the ${field} table`);
+    }
+  }
+  if (!Number.isInteger(manifest.note_count) || !Number.isInteger(manifest.record_only_count)) {
+    throw new Error('manifest lacks note_count or record_only_count');
   }
   if (!Number.isInteger(manifest.index_fulltext_max_chars) || manifest.index_fulltext_max_chars <= 0) {
     throw new Error('manifest lacks a positive index_fulltext_max_chars');
@@ -176,9 +266,8 @@ export function loadGoldenExport(directory, options = {}) {
     if (itemByKey.has(key)) throw new Error(`items export contains duplicate key ${key}`);
     itemByKey.set(key, item);
   }
-  if (!Array.isArray(manifest.attachments) || manifest.attachments.length === 0) {
-    throw new Error('manifest has no attachment exports');
-  }
+  if (!Array.isArray(manifest.attachments)) throw new Error('manifest has no attachment exports');
+  if (!Array.isArray(manifest.parents) || manifest.parents.length === 0) throw new Error('manifest has no parent bindings');
   let recipe;
   try {
     const recipePath = resolve(options.recipePath);
@@ -193,6 +282,7 @@ export function loadGoldenExport(directory, options = {}) {
   if (!Array.isArray(recipe) || recipe.length === 0) throw new Error('source recipe must be a non-empty array');
   const recipeById = new Map();
   const sourceById = new Map();
+  const noteById = new Map();
   for (const doc of recipe) {
     if (!doc || typeof doc.id !== 'string' || !/^[a-z0-9][a-z0-9-]*$/.test(doc.id) || recipeById.has(doc.id)) {
       throw new Error(`source recipe has duplicate or empty id ${doc?.id ?? ''}`);
@@ -208,6 +298,19 @@ export function loadGoldenExport(directory, options = {}) {
         !Array.isArray(doc.structural_features))) {
       throw new Error(`${doc.id}: source recipe lacks parent identity/type metadata`);
     }
+    if (doc.attachments && doc.attachments.length === 0 && doc.record_only !== true) {
+      throw new Error(`${doc.id}: source recipe has no attachment and is not record_only`);
+    }
+    if (doc.record_only === true && sources(doc).length !== 0) {
+      throw new Error(`${doc.id}: a record_only record carries no attachment`);
+    }
+    for (const note of notesOf(doc)) {
+      if (!note || typeof note.id !== 'string' || !/^[a-z0-9][a-z0-9-]*$/.test(note.id) || noteById.has(note.id) ||
+          typeof note.html !== 'string' || !note.html.trim()) {
+        throw new Error(`${doc.id}: source recipe has an invalid or duplicate note ${note?.id ?? ''}`);
+      }
+      noteById.set(note.id, { parent: doc, note });
+    }
     for (const source of sources(doc)) {
       if (!source || typeof source.id !== 'string' || sourceById.has(source.id)) {
         throw new Error(`${doc.id}: duplicate or empty attachment id ${source?.id ?? ''}`);
@@ -217,6 +320,9 @@ export function loadGoldenExport(directory, options = {}) {
           !/^[0-9a-f]{64}$/.test(source.sha256 ?? '') ||
           !Object.hasOwn(CONTENT_TYPES, source.bytes_format ?? 'pdf')) {
         throw new Error(`${source.id}: source recipe has invalid provenance, sha256, or bytes_format`);
+      }
+      if (TEXT_FORMATS.has(source.bytes_format ?? 'pdf') && (typeof source.charset !== 'string' || !source.charset.trim())) {
+        throw new Error(`${source.id}: a ${source.bytes_format} attachment declares its charset`);
       }
       if (doc.attachments && (typeof source.language !== 'string' || !source.language ||
           typeof source.role !== 'string' || !source.role ||
@@ -253,32 +359,75 @@ export function loadGoldenExport(directory, options = {}) {
   const attachmentKeys = new Set();
   const attachmentIds = new Set();
   const consumedItemKeys = new Set();
+  const noteKeys = new Set();
   const fulltext = new Map();
   const censusOnly = new Map();
+  // Unserved rows the product never asks for: a same-language sibling D6 skips.
+  const skippedUnserved = new Set();
   const expectedAttachmentOrder = recipe.flatMap((doc) => sources(doc).map((source) => source.id));
   const observedAttachmentOrder = [];
-  for (const row of manifest.attachments) {
-    const { recipe_id: recipeId, parent_key: parent, attachment_key: key } = row;
-    if (!recipeId) throw new Error('empty recipe id');
-    if (!recipeById.has(recipeId)) throw new Error(`${recipeId}: attachment is not present in the source recipe`);
-    if (!parent || attachmentKeys.has(parent) ||
-        (parentKeyOwners.has(parent) && parentKeyOwners.get(parent) !== recipeId) ||
-        (parentByRecipe.has(recipeId) && parentByRecipe.get(recipeId) !== parent)) {
+  // Parents first: the binding recipe id -> parent key lives in manifest.parents so a
+  // record-only parent (no attachment row) and its child notes are still checked.
+  const boundParents = new Map();
+  const attachmentRowsPerParent = new Map();
+  let noteCount = 0;
+  let recordOnlyCount = 0;
+  for (const row of manifest.parents) {
+    const { recipe_id: recipeId, parent_key: parent } = row;
+    if (!recipeId || !recipeById.has(recipeId)) throw new Error(`${recipeId ?? ''}: parent binding is not present in the source recipe`);
+    if (!parent || boundParents.has(recipeId) || parentKeyOwners.has(parent)) {
       throw new Error(`${recipeId}: duplicate or empty parent key ${parent ?? ''}`);
     }
-    if (!key || attachmentKeys.has(key) || parentKeyOwners.has(key)) {
-      throw new Error(`${recipeId}: duplicate or empty attachment key ${key ?? ''}`);
+    const doc = recipeById.get(recipeId);
+    const expectedRecordOnly = doc.record_only === true || sources(doc).length === 0;
+    if (typeof row.record_only !== 'boolean' || row.record_only !== expectedRecordOnly ||
+        !Array.isArray(row.note_keys) || row.attachment_count !== sources(doc).length) {
+      throw new Error(`${recipeId}: parent binding does not match the source recipe`);
     }
-    recipeIds.add(recipeId);
-    parentByRecipe.set(recipeId, parent);
-    parentKeyOwners.set(parent, recipeId);
-    attachmentKeys.add(key);
     const parentItem = itemByKey.get(parent);
     if (!parentItem) throw new Error(`${recipeId}: missing parent item ${parent}`);
     const parentData = itemData(parentItem);
     if (parentData.parentItem) throw new Error(`${recipeId}: declared parent ${parent} is itself a child`);
     requireOnlyManagedMarker(parentData, `${SOURCE_TAG_PREFIX}${recipeId}`, recipeId);
-    requireFields(parentData, expectedParent(recipeById.get(recipeId), manifest.library.collection_key), recipeId);
+    requireFields(parentData, expectedParent(doc, manifest.library.collection_key), recipeId);
+    boundParents.set(recipeId, parent);
+    parentKeyOwners.set(parent, recipeId);
+    parentByRecipe.set(recipeId, parent);
+    recipeIds.add(recipeId);
+    consumedItemKeys.add(parent);
+    attachmentRowsPerParent.set(recipeId, 0);
+    if (row.record_only) recordOnlyCount += 1;
+    const notes = notesOf(doc);
+    if (row.note_keys.length !== notes.length) throw new Error(`${recipeId}: note keys do not match the recipe's notes`);
+    notes.forEach((note, index) => {
+      const key = row.note_keys[index];
+      if (!key || noteKeys.has(key) || parentKeyOwners.has(key)) throw new Error(`${recipeId}: duplicate or empty note key ${key ?? ''}`);
+      const item = itemByKey.get(key);
+      if (!item) throw new Error(`${recipeId}: missing note item ${key}`);
+      const data = itemData(item);
+      requireOnlyManagedMarker(data, `${NOTE_TAG_PREFIX}${note.id}`, note.id);
+      requireFields(data, { itemType: 'note', parentItem: parent, note: note.html }, note.id);
+      noteKeys.add(key);
+      consumedItemKeys.add(key);
+      noteCount += 1;
+    });
+  }
+  if (boundParents.size !== recipeById.size) throw new Error(`manifest parents are not an exact bijection with the ${recipeById.size}-record recipe`);
+  if (manifest.note_count !== noteCount || manifest.record_only_count !== recordOnlyCount) {
+    throw new Error('manifest note_count or record_only_count does not match its parent bindings');
+  }
+  for (const row of manifest.attachments) {
+    const { recipe_id: recipeId, parent_key: parent, attachment_key: key } = row;
+    if (!recipeId) throw new Error('empty recipe id');
+    if (!recipeById.has(recipeId)) throw new Error(`${recipeId}: attachment is not present in the source recipe`);
+    if (!parent || attachmentKeys.has(parent) || boundParents.get(recipeId) !== parent) {
+      throw new Error(`${recipeId}: duplicate or empty parent key ${parent ?? ''}`);
+    }
+    if (!key || attachmentKeys.has(key) || parentKeyOwners.has(key) || noteKeys.has(key)) {
+      throw new Error(`${recipeId}: duplicate or empty attachment key ${key ?? ''}`);
+    }
+    attachmentKeys.add(key);
+    attachmentRowsPerParent.set(recipeId, attachmentRowsPerParent.get(recipeId) + 1);
     const attachment = itemByKey.get(key);
     if (!attachment) throw new Error(`${recipeId}: missing attachment item ${key}`);
     const data = attachment.data ?? attachment;
@@ -325,10 +474,13 @@ export function loadGoldenExport(directory, options = {}) {
     // provenance this used to carry (source sha256, role, relation, language,
     // selection, skip reason) is not load-bearing here: every field below this row
     // reads it from the recipe (`source`), never from the live Zotero item.
-    requireFields(data, {
-      itemType: 'attachment', title: source.title ?? doc.title,
-      contentType: CONTENT_TYPES[source.bytes_format ?? 'pdf'] ?? 'application/octet-stream',
-    }, source.id);
+    const expectedAttachment = {
+      itemType: 'attachment', title: source.title ?? doc.title, contentType: contentTypeOf(source),
+    };
+    // A text attachment carries the recipe's charset, canonicalised as Zotero stores it:
+    // the injection wrote it, so Zotero never guessed (ticket 0632's mojibake defect).
+    if (TEXT_FORMATS.has(source.bytes_format ?? 'pdf')) expectedAttachment.charset = canonicalCharset(source.charset);
+    requireFields(data, expectedAttachment, source.id);
     if (String(attachment.links?.enclosure?.href ?? '').startsWith('file:')) {
       throw new Error(`${recipeId}: linked-file enclosure discloses a machine path`);
     }
@@ -361,7 +513,7 @@ export function loadGoldenExport(directory, options = {}) {
     if (source.failure_control) {
       throw new Error(`${attachmentId}: declared failure control was exported as ${row.terminal_state}; the declaration is stale`);
     }
-    const contentType = CONTENT_TYPES[source.bytes_format ?? 'pdf'] ?? 'application/octet-stream';
+    const contentType = contentTypeOf(source);
     // Zotero's local API serves /items/<key>/fulltext only for its cached MIME types
     // (Zotero.Fulltext.isCachedMIMEType: PDF, HTML, EPUB). An attachment of any other
     // type is indexed from the file, listed by the census, and answers 404 on the route
@@ -372,7 +524,7 @@ export function loadGoldenExport(directory, options = {}) {
         throw new Error(`${attachmentId}: ${contentType} is served by the local API; an unserved export row is vanished text`);
       }
       if (row.fulltext_file !== null || !Number.isInteger(row.fulltext_version) || row.fulltext_version < 0 ||
-          row.observed_state !== 'indexed' || typeof row.not_served_reason !== 'string' || !row.not_served_reason ||
+          !['indexed', 'partial'].includes(row.observed_state) || typeof row.not_served_reason !== 'string' || !row.not_served_reason ||
           row.indexed_pages !== null || row.total_pages !== null ||
           ![null, 'number'].includes(row.indexed_chars === null ? null : typeof row.indexed_chars) ||
           ![null, 'number'].includes(row.total_chars === null ? null : typeof row.total_chars)) {
@@ -382,6 +534,7 @@ export function loadGoldenExport(directory, options = {}) {
         throw new Error(`${attachmentId}: an unserved attachment must not carry a fulltext file`);
       }
       censusOnly.set(key, row.fulltext_version);
+      if (row.selection_expectation === 'skipped-first-with-text') skippedUnserved.add(key);
       consumedItemKeys.add(parent);
       consumedItemKeys.add(key);
       continue;
@@ -396,45 +549,75 @@ export function loadGoldenExport(directory, options = {}) {
       throw new Error(`${recipeId}: invalid fulltext version`);
     }
     const body = readJson(row.fulltext_file, `fulltext for ${key}`);
-    if (typeof body?.content !== 'string' || !body.content.trim() || !Number.isInteger(body.indexedPages) ||
-        !Number.isInteger(body.totalPages)) {
+    // A PDF answers with page counters, a served text format (HTML, EPUB) with character
+    // counters and no pages; either pair is the binding record, its relation checked.
+    const hasPages = Number.isInteger(body?.indexedPages) && Number.isInteger(body?.totalPages);
+    const hasChars = Number.isInteger(body?.indexedChars) && Number.isInteger(body?.totalChars);
+    // A blank body is Zotero's own answer for a file whose extraction found no text; the
+    // manifest says so (body_blank) and the counters must agree with the blank.
+    const blank = typeof body?.content === 'string' && !body.content.trim();
+    if (typeof body?.content !== 'string' || (!hasPages && !hasChars) ||
+        (blank && (row.body_blank !== true || body.indexedChars !== body.content.length)) ||
+        (!blank && row.body_blank === true)) {
       throw new Error(`${recipeId}: malformed fulltext for ${key}`);
     }
-    if (body.indexedPages < 0 || body.totalPages < 0 || body.indexedPages > body.totalPages) {
+    if (hasPages && (body.indexedPages < 0 || body.totalPages < 0 || body.indexedPages > body.totalPages)) {
       throw new Error(`${recipeId}: invalid indexedPages/totalPages relation`);
     }
-    for (const [field, bodyField] of [['indexed_pages', 'indexedPages'], ['total_pages', 'totalPages']]) {
-      if (row[field] !== body[bodyField]) throw new Error(`${source.id}: manifest ${field} does not match fulltext`);
+    if (hasChars && (body.indexedChars < 0 || body.totalChars < 0 || body.indexedChars > body.totalChars)) {
+      throw new Error(`${recipeId}: invalid indexedChars/totalChars relation`);
     }
-    for (const [field, bodyField] of [['indexed_chars', 'indexedChars'], ['total_chars', 'totalChars']]) {
+    for (const [field, bodyField] of [['indexed_pages', 'indexedPages'], ['total_pages', 'totalPages'],
+                                      ['indexed_chars', 'indexedChars'], ['total_chars', 'totalChars']]) {
       if (row[field] !== (body[bodyField] ?? null)) throw new Error(`${source.id}: manifest ${field} does not match fulltext`);
     }
     fulltext.set(key, { body, version: row.fulltext_version });
     consumedItemKeys.add(parent);
     consumedItemKeys.add(key);
   }
-  if (recipeIds.size !== recipeById.size || [...recipeById.keys()].some((id) => !recipeIds.has(id)) ||
-      attachmentIds.size !== sourceById.size || [...sourceById.keys()].some((id) => !attachmentIds.has(id))) {
+  if (attachmentIds.size !== sourceById.size || [...sourceById.keys()].some((id) => !attachmentIds.has(id))) {
     throw new Error(`manifest attachments are not an exact bijection with the ${sourceById.size}-attachment recipe`);
+  }
+  for (const [recipeId, count] of attachmentRowsPerParent) {
+    if (count !== sources(recipeById.get(recipeId)).length) throw new Error(`${recipeId}: attachment rows do not match its binding`);
+  }
+  // In stock mode the recorded preferences bound the extraction; a counter past a cap,
+  // or over the cap and not cut exactly at it, contradicts the record (C.7).
+  if (reindexMode === 'stock') {
+    for (const row of manifest.attachments) {
+      const label = row.attachment_id ?? row.recipe_id;
+      for (const [indexedName, totalName, cap, setting] of [
+        ['indexed_pages', 'total_pages', manifest.zotero['fulltext.pdfMaxPages'], 'fulltext.pdfMaxPages'],
+        ['indexed_chars', 'total_chars', manifest.zotero['fulltext.textMaxLength'], 'fulltext.textMaxLength'],
+      ]) {
+        const indexed = row[indexedName];
+        const total = row[totalName];
+        if (!Number.isInteger(indexed) || !Number.isInteger(total)) continue;
+        if (indexed > cap || (total > cap && indexed !== cap)) {
+          throw new Error(`${label}: ${indexedName} ${indexed} of ${total} contradicts the recorded ${setting} ${cap} under a stock reindex`);
+        }
+      }
+    }
   }
   if (JSON.stringify(observedAttachmentOrder) !== JSON.stringify(expectedAttachmentOrder)) {
     throw new Error('manifest attachment order does not match the recipe');
   }
   const declaredControls = [...sourceById.values()].filter(({ source }) => source.failure_control).length;
   const unserved = [...sourceById.values()].filter(({ source }) => !source.failure_control &&
-    !SERVED_CONTENT_TYPES.has(CONTENT_TYPES[source.bytes_format ?? 'pdf'] ?? 'application/octet-stream')).length;
+    !SERVED_CONTENT_TYPES.has(contentTypeOf(source))).length;
   if (manifest.parent_item_count !== recipe.length ||
       manifest.attachment_count !== sourceById.size ||
       manifest.failure_control_count !== declaredControls ||
       manifest.indexed_not_served_count !== unserved ||
       manifest.indexed_attachment_count !== sourceById.size - declaredControls - unserved ||
-      !Number.isInteger(manifest.source_byte_count) || manifest.source_byte_count <= 0) {
+      !Number.isInteger(manifest.source_byte_count) || manifest.source_byte_count < 0 ||
+      (manifest.source_byte_count === 0 && sourceById.size > 0)) {
     throw new Error('manifest parent, attachment, failure-control, unserved, or source-byte count does not match the recipe');
   }
   if (consumedItemKeys.size !== itemByKey.size || [...itemByKey.keys()].some((key) => !consumedItemKeys.has(key))) {
     throw new Error('items export contains a row not consumed by the recipe attachment mapping');
   }
-  return { root, manifest, items, itemByKey, fulltext, censusOnly };
+  return { root, manifest, items, itemByKey, fulltext, censusOnly, skippedUnserved };
 }
 
 /** Sort object keys recursively to match `golden_fixture.py`'s canonical recipe hash. */
@@ -665,7 +848,13 @@ export function validateGoldenBuildResult(fixture, result, requests, dataDirecto
   const failed = requests.find((request) => request.status !== 200 &&
     !(request.status === 404 && request.method === 'GET' && unservedRoutes.has(new URL(request.url, 'http://replay').pathname)));
   if (failed) throw new Error(`golden replay received ${failed.status} for ${failed.method} ${failed.url}`);
+  // The product asks for the attachment D6 selects per language; a skipped same-language
+  // sibling is never requested, so only the selected unserved rows must have been asked.
+  const skippedRoutes = new Set(
+    [...(fixture.skippedUnserved ?? new Set())].map((key) => `${prefix}/items/${encodeURIComponent(key)}/fulltext`),
+  );
   for (const route of unservedRoutes) {
+    if (skippedRoutes.has(route)) continue;
     const asked = requests.some((request) => request.method === 'GET' && request.status === 404 &&
       new URL(request.url, 'http://replay').pathname === route);
     if (!asked) throw new Error(`golden replay did not exercise the unserved fulltext route ${route}`);
@@ -680,6 +869,9 @@ export function validateGoldenBuildResult(fixture, result, requests, dataDirecto
   }
   for (const row of fixture.manifest.attachments) {
     if (row.terminal_state !== 'indexed') continue;
+    // The product fetches the attachment D6 selects per language; a same-language sibling
+    // it skips (a second rendering) is never requested, and that silence is the behaviour.
+    if (row.selection_expectation === 'skipped-first-with-text') continue;
     required.push([
       `fulltext body ${row.attachment_key}`,
       (url) => url.pathname === `${prefix}/items/${encodeURIComponent(row.attachment_key)}/fulltext`,

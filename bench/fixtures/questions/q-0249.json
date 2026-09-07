@@ -1,0 +1,80 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0249",
+  "need": "Écrit avant d'ouvrir le document : la déforestation émet, mais les terres émergées restent-elles malgré tout un puits net ? Je cherche une source francophone du corpus qui confirme le chiffre que j'ai en tête — de l'ordre du quart à un tiers des émissions annuelles de CO2 retirées par les puits terrestres.",
+  "query": "malgré la déforestation les puits de carbone terrestres retirent environ 29 % des émissions mondiales annuelles de CO2",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "agreement",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "pageless-html"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "wp-climate-change-fr",
+      "recipe_id": "wp-climate-change-fr",
+      "attachment_id": "wp-climate-change-fr-html",
+      "attachment_key": "6PG6TSDT",
+      "section": "Gaz à effet de serre",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 18506,
+          "quote": "Il est estimé que les puits de carbone à la surface terrestre éliminent environ 29 % des émissions mondiales annuelles de CO2"
+        }
+      ],
+      "chain": {
+        "title": "Changement climatique",
+        "author": "Wikipedia contributors",
+        "date": "2026",
+        "identifier": "https://fr.wikipedia.org/w/index.php?title=Changement_climatique&oldid=239281043",
+        "section_heading": "Gaz à effet de serre",
+        "page_printed": null,
+        "part_title": null,
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "6PG6TSDT",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 18506,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0723 review round)",
+    "date": "2026-09-07",
+    "page_read": false
+  }
+}

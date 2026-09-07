@@ -1,0 +1,118 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0159",
+  "need": "Written before opening the document: the Wikisource page carries one footnote; it hangs on the article describing the national emblem, whose inscription is given in Vietnamese. I want the emblem article and its note, both near the end of a 78 000-character page.",
+  "query": "national emblem of Vietnam inscription Cộng hòa xã hội chủ nghĩa Việt Nam footnote",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanism": [
+    "structural-footnote",
+    "index_fulltext_max_chars",
+    "compound-statute-article"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "vn-constitution-1992-en",
+      "recipe_id": "vn-constitution-1992-en",
+      "attachment_id": "vn-constitution-1992-en-html",
+      "attachment_key": "R43PLWP2",
+      "section": "Article 142",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 76175,
+          "quote": "half a cog wheel and the inscription: \"Cộng hòa xã hội chủ nghĩa Việt Nam\".[1]"
+        }
+      ],
+      "chain": {
+        "title": "Constitution of the Socialist Republic of Vietnam (1992), English text",
+        "author": "Quốc hội Việt Nam (official translation)",
+        "date": "1992",
+        "identifier": "https://en.wikisource.org/w/index.php?title=Constitution_of_Vietnam_%281992%29&oldid=16201311",
+        "page_printed": null,
+        "part_byline": null,
+        "section_heading": "CHAPTER XI NATIONAL FLAG, ANTHEM, CAPITAL, AND NATIONAL DAY",
+        "part_title": "Article 142"
+      }
+    },
+    {
+      "work_id": "vn-constitution-1992-en",
+      "recipe_id": "vn-constitution-1992-en",
+      "attachment_id": "vn-constitution-1992-en-html",
+      "attachment_key": "R43PLWP2",
+      "section": "Footnotes",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 78111,
+          "quote": "↑ The Socialist Republic of Vietnam"
+        }
+      ],
+      "chain": {
+        "title": "Constitution of the Socialist Republic of Vietnam (1992), English text",
+        "author": "Quốc hội Việt Nam (official translation)",
+        "date": "1992",
+        "identifier": "https://en.wikisource.org/w/index.php?title=Constitution_of_Vietnam_%281992%29&oldid=16201311",
+        "page_printed": null,
+        "part_byline": null,
+        "section_heading": null,
+        "part_title": "Footnote 1"
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "index_fulltext_max_chars: Article 142 (character 76 250) and the footnote it calls (character 78 111, the last line of the page) both lie past the 40 000-character index cap of a 78 146-character page; the footnote is rendered by the extraction but not indexed",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "R43PLWP2",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 76175,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      },
+      {
+        "attachment_key": "R43PLWP2",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 78111,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": false,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}

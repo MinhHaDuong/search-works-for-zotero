@@ -1,0 +1,94 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0220",
+  "need": "Hazard row, index cap on a long thesis. This 258-page work extracts to 284 859 characters and the product indexes the first 40 000 — roughly the first eighteen printed pages. Encadré 1.2, the boxed Wall Street Journal translation on American labour-market flexibility, sits at character 47 700 on printed page 20: reachable in the export, invisible to the index, and only two pages past the boundary, which is exactly what makes the cap hard to notice.",
+  "query": "Encadré 1.2 cette vertu appelée flexibilité Wall Street Journal Courrier International licenciement",
+  "question_language": "fr",
+  "answer_language": "fr",
+  "lane": "fr->fr",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "reserve",
+  "mechanism": [
+    "index-char-cap-crossing",
+    "answer-past-index-cap",
+    "structural-boxed-insert"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "ha-duong-1998-irreversibilite-these",
+      "recipe_id": "ha-duong-1998-irreversibilite-these",
+      "attachment_id": "ha-duong-1998-irreversibilite-these-pdf",
+      "attachment_key": "VKBUWDUD",
+      "section": "Chapitre 1, Encadré 1.2",
+      "alternates": [
+        {
+          "page_printed": "20",
+          "char_offset": 47588,
+          "quote": "Encadré 1.2 : Cette vertu appelée flexibilité. Jacob M. Schlesinger - The Wall Street Journal (extraits) - New York. Traduction Le Courrier International (n° 350, du 17 au 23 Juillet 1997)"
+        },
+        {
+          "page_printed": "20",
+          "char_offset": 46567,
+          "quote": "Storage Technology, un fabriquant d'unités de disques installé à Denver, enregistre des bénéfices records en partie parce qu'il s'est séparé de 1 700 salariés - soit 15 % de ses effectifs - en moins de deux ans"
+        }
+      ],
+      "chain": {
+        "title": "Comment tenir compte de l'irréversibilité dans l'évaluation intégrée du changement climatique ?",
+        "author": "Minh Ha-Duong",
+        "date": "1998",
+        "identifier": "https://theses.hal.science/tel-00003505v1",
+        "section_heading": "Encadré 1.2 : Cette vertu appelée flexibilité",
+        "page_printed": "20",
+        "part_title": "Cette vertu appelée flexibilité",
+        "part_byline": "Jacob M. Schlesinger, The Wall Street Journal, trad. Courrier International n° 350"
+      }
+    }
+  ],
+  "expected_miss": true,
+  "expected_miss_mechanism": "The pinned span sits at character 47 700 of the extracted text, past the product's 40 000-character index cap (ZOTEUS_INDEX_FULLTEXT_MAX_CHARS): it is present in the export's fulltext but never entered the index, so no query can reach it.",
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "VKBUWDUD",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 47588,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          },
+          {
+            "reachable": true,
+            "char_offset": 46567,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": false
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0722 authoring lane Q2)",
+    "date": "2026-09-06",
+    "page_read": true
+  }
+}

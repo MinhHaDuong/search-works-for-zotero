@@ -1,0 +1,81 @@
+{
+  "schema": "menagerie-bank/v3",
+  "id": "q-0374",
+  "need": "Viết trước khi mở tài liệu: Hiến pháp 1992 định nghĩa Hội đồng nhân dân là gì — cơ quan hành chính hay cơ quan quyền lực Nhà nước ở địa phương — và do ai bầu ra? Chương này nằm trong thư viện nhóm đóng và là chương ngắn nhất của bản Hiến pháp, nên nó cũng thử khả năng tìm thấy một tài liệu nhỏ giữa các tài liệu lớn.",
+  "query": "Hội đồng nhân dân là cơ quan quyền lực Nhà nước ở địa phương do nhân dân địa phương bầu ra",
+  "question_language": "vi",
+  "answer_language": "vi",
+  "lane": "vi->vi",
+  "signal": "exact",
+  "mode": "any",
+  "facet": "group",
+  "stratum": "core",
+  "mechanism": [
+    "group-library-slice",
+    "compound-document-chain"
+  ],
+  "generator": "hazard",
+  "set_kind": "any-of",
+  "primary": [
+    {
+      "work_id": "vn-constitution-1992-vi-chuong-ix",
+      "recipe_id": "vn-constitution-1992-vi-chuong-ix",
+      "attachment_id": "vn-constitution-1992-vi-chuong-ix-html",
+      "attachment_key": "82VNHS6P",
+      "section": "Điều 119",
+      "alternates": [
+        {
+          "page_printed": null,
+          "char_offset": 640,
+          "quote": "Hội đồng nhân dân là cơ quan quyền lực Nhà nước ở địa phương, đại diện cho ý chí, nguyện vọng và quyền làm chủ của nhân dân, do nhân dân địa phương bầu ra"
+        }
+      ],
+      "chain": {
+        "title": "Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam năm 1992, Chương IX: Hội đồng nhân dân và Ủy ban nhân dân",
+        "author": "Quốc hội Việt Nam",
+        "date": "1992",
+        "identifier": "https://vi.wikisource.org/w/index.php?title=Hi%E1%BA%BFn_ph%C3%A1p_n%C6%B0%E1%BB%9Bc_C%E1%BB%99ng_h%C3%B2a_x%C3%A3_h%E1%BB%99i_ch%E1%BB%A7_ngh%C4%A9a_Vi%E1%BB%87t_Nam_1992%2FCh%C6%B0%C6%A1ng_IX&oldid=104787",
+        "section_heading": "Chương IX: Hội đồng nhân dân và Ủy ban nhân dân",
+        "page_printed": null,
+        "part_title": "Điều 119",
+        "part_byline": null
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "82VNHS6P",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 640,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "author": "claude (0723 review round)",
+    "date": "2026-09-07",
+    "page_read": false
+  }
+}
