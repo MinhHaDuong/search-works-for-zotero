@@ -417,13 +417,18 @@ EXCUSED: dict[str, Excuse] = {
         "probe never touches one"
     ),
     "bench/generator/run.py": Excuse(
-        frozenset({"items"}),
-        "the library-level bench's runner (ticket 0719). Its one read of the index is "
+        frozenset({"items", "meta"}),
+        "the library-level bench's runner (ticket 0719). Two reads, both read-only. "
         "`index_item_keys`: find the file whose `sqlite_master` lists a `meta` table, the "
         "way the zoteus adapter does, and list `items.item_key`, so the sampler is restricted to the item "
-        "keys the index actually holds and the artifact records how many. It reads no "
-        "passage, no vector and no schema stamp, and nothing it reads becomes a figure: the "
-        "key list is the run's scope, checked against the target's own status counters. "
+        "keys the index actually holds and the artifact records how many. `index_embedder_stamp` "
+        "(ticket 0732): read the single row `meta.embedderId`, the identity the build stamped on "
+        "its own vectors, so the run identity names the MODEL that produced them and not only the "
+        "provider label `local` — the reading of a cross-lingual near-zero turns on that name. It "
+        "reads no passage and no vector, and neither read becomes a figure: the "
+        "key list is the run's scope, checked against the target's own status counters, and the "
+        "stamp is provenance the artifact reproduces verbatim beside the live status's own "
+        "account of the same fact. "
         "Rostering it would drive a scope reader against the fixture generations for a "
         "table whose name is itself the generation discriminator (`meta` against "
         "`index_meta`), which is the same substrate reason that excuses the adapter above"
