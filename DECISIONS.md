@@ -6930,3 +6930,42 @@ from the adapter and the target's replies rather than from documentation, and
 the same questions run in all three modes where the harness allows, the ladder
 per mode beside the per-lane table, so a lane's near-zero can be read as a mode
 effect or a model effect rather than guessed.
+
+**2026-09-07 — RULED: R34 is satisfied by the right work and an intersecting
+page, and two scores are tracked of which the accommodating one is not
+official.** The review gate escalated PR #409 on a question the scorer had
+answered by implementation rather than by ruling: whether "the answer came
+back" means the work was retrieved or the passage was. The shipped predicate
+read 161 questions present against 34 absent; an evidence-matched predicate
+read 42 against 153, and under it all six cross-lingual MUST cells sat at zero
+with no headroom for any red-state arm to consume.
+
+The author ruled a middle term: the reply must return the right work **and**
+the right page, and where either the target answer or the returned passage
+straddles a page boundary, a non-empty intersection of the two page ranges
+counts. Work identity alone certifies a title match as retrieval; requiring the
+pinned quote inside the snippet measures a display window the system chooses,
+which confounds retrieval with presentation.
+
+Measured before the ruling was written into SPEC.md, against the golden run's
+own artifact: of 1 928 hits across 843 replies, **none carries a page**. The
+schema has the field; the engine returns key, title, snippet and score, so
+nothing fills it. The ruled predicate is therefore correct and, against this
+target today, unsatisfiable.
+
+Hence the two scores. The **official** score reads the page the system reports,
+so a reply without one does not satisfy its question — a true statement about a
+system that R24 already obliges to lead the reader to a page. The
+**accommodating** score derives the page from where the returned evidence falls
+in the export, using the extraction's page breaks, and exists so development has
+a signal in the meantime. It is reported beside the official score, always
+labelled, and it is not official: no gate reads it, no threshold binds it, no
+claim about the system rests on it. The pairing follows the precedent of the
+stability and absolute readings of the same pinned set — one measures the
+promise, the other measures progress toward it.
+
+Two consequences recorded rather than left to be discovered. The official score
+starts at zero and stays there until the engine reports a page, which makes the
+gap visible in every run instead of once in a ticket. And the requirement gap
+this exposes is filed as its own ticket: a hit must name the page it came from,
+which is R24's existing clause measured rather than a new demand.
