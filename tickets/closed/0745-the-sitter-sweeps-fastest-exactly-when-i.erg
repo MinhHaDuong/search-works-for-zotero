@@ -1,0 +1,80 @@
+%erg 0.1
+Title: The sitter sweeps fastest exactly when it decided the machine is too busy
+Created: 2026-09-08
+Author: claude
+Closed: session-scoped throttle fix, red-first, landed in the same pass
+
+--- log ---
+2026-09-08T17:04Z claude created — found by a Fable-model release-readiness review reading `bench/results/sdt-sitter-2026-09-08/README.md`'s own live evidence (two full 16 706-attachment censuses, eight minutes apart, both correctly refused `cpu-busy`, neither one backed off). Never ticketed by any prior review round because it's an emergent property across two sweeps, not a defect visible in any single one. Fixed and closed in the same pass — the fix is small and the defect blocks the release-readiness verdict (HOLD, reason 3 of 3).
+2026-09-08T17:04Z claude note fix: `nextSweepDelayMS` (bootstrap.js) only checked `phase === 'waiting' && candidates === 0` for the idle cadence. Any of the five phases `host.blocked()` returns (`cpu-busy`, `low-memory`, `low-disk`, `storage-unavailable`, `resources-unavailable`) fell through to the 30 s active cadence instead, since none of them is `'waiting'`. Added `SDT_BLOCKED_PHASES` and an `.includes()` check alongside the existing condition. Red-first: reverting the fix reproduces `30000 !== 600000` in the new test. Also corrected a comment on the pre-existing "recovers on the next sweep" test that had asserted the old (buggy) 30 s reschedule as intentional.
+
+2026-09-08T17:04Z MinhHaDuong closed — session-scoped throttle fix, red-first, landed in the same pass
+--- body ---
+## Context
+
+SPEC.md's sitter design paragraph states the admission guards exist so the
+plugin behaves as "a quiet supervisor with a minimal footprint" — see ticket
+0701, which measured the cost of a full-library MD5 read every 30 seconds and
+is the reason `nextSweepDelayMS` backs off to a 10-minute idle cadence once
+the library is caught up.
+
+That backoff only checked one condition: `phase === 'waiting' && candidates
+=== 0`. It never considered the resource-admission gate's own five refusal
+phases (`cpu-busy`, `low-memory`, `low-disk`, `storage-unavailable`,
+`resources-unavailable`, all set by `scheduler.js:123` from `host.blocked()`'s
+return value). A refused sweep leaves `phase` at one of those five strings,
+none of which is `'waiting'`, so the reschedule fell through to the 30-second
+active cadence — the same cadence used while the sitter is genuinely working
+through a backlog.
+
+Net effect: the sitter re-polled the resource gate (a `/proc/meminfo` read, a
+`/proc/loadavg` read, a disk-space check) twenty times in a ten-minute window
+where the machine stayed busy, instead of once. This is the opposite of the
+"quiet overnight" property SPEC.md states, and it is directly contrary to
+ticket 0701's own point.
+
+## Relevant files
+
+- `plugins/sdt-sitter/bootstrap.js` — `nextSweepDelayMS` (~line 391), the fix site
+- `plugins/sdt-sitter/scheduler.js:123` — where `state.phase` is set to the
+  refusal reason
+- `tests/sdt_sitter_bootstrap.mjs` — the existing resource-refusal tests and
+  the new one this ticket adds
+
+## Actions
+
+1. `nextSweepDelayMS` treats any of the five `host.blocked()` refusal phases
+   the same as `'waiting' && candidates === 0` for cadence purposes: back off
+   to `IDLE_SWEEP_INTERVAL_MS`, not `SWEEP_INTERVAL_MS`.
+2. Correct the stale comment on "the sitter recovers on the next sweep once
+   the readings come back" (`tests/sdt_sitter_bootstrap.mjs`), which had
+   asserted the old 30 s reschedule as the intended behavior.
+
+## Test
+
+Red-first: `a resource refusal backs off to the idle cadence, not the active
+one` arms a permanent `cpu-busy` refusal (`loadavg` pinned above any plausible
+CPU count) and asserts the one armed `setTimeout`'s delay is
+`IDLE_SWEEP_INTERVAL_MS`. Verified failing (`30000 !== 600000`) against the
+unfixed function before applying the fix, and passing after.
+
+## Verification
+
+- [x] `nextSweepDelayMS` backs off to the idle cadence on all five refusal phases
+- [x] The new test reddened against the unfixed function before the fix
+- [x] The existing "recovers once readings come back" test still passes
+      unmodified in its assertions (only its comment was corrected)
+- [x] `make check` passes
+
+## Invariants
+
+- The active 30 s cadence is unchanged for genuine in-progress work
+  (`'extracting'`, `'census'`, or `'waiting'` with candidates pending).
+- No change to what `host.blocked()` itself measures or how often it's called
+  within one sweep — only how long the scheduler waits before trying the next
+  one after a refusal.
+
+## Exit criteria
+
+A refused sweep reschedules on the idle cadence, proven by a red-first test;
+the existing resource-refusal test suite is unaffected; `make check` passes.
