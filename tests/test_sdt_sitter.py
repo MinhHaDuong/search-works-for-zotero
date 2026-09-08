@@ -154,27 +154,27 @@ UI_SITES = (
 # from the other side.
 BANNED_IN_UI = ('document', 'élément', 'pièce jointe', 'item', 'pack')
 
-#: A quoted census status, in either quote style, over the whole JavaScript
-#: identifier character set. Both halves are load-bearing, and the first draft of
-#: the reading-order guard had neither.
+#: A quoted census status, in every quote style JavaScript has, over the whole
+#: identifier character set. Every part is load-bearing, and the first draft of
+#: the reading-order guard had none of them.
 #:
-#: The narrow `'([a-z-]+)'` it used extracts from BOTH sides of that comparison,
-#: so a status it could not match dropped out of both and the equality agreed
-#: about a set it had never seen. A red team reproduced two false greens on the
-#: branch: a double-quoted duplicate (`"current", 'current'`), and a duplicate
-#: renamed consistently to `unsupported2` on both sides. It also produced a false
-#: RED in the other direction, since a legitimate rename into either character
-#: class would vanish from one list only.
+#: The narrow `'([a-z-]+)'` it used extracts from BOTH sides of the comparison it
+#: feeds, so a status it could not match dropped out of both and the equality
+#: agreed about a set it had never seen. A set equality is not a guard when one
+#: regex decides what either set contains. Three false greens were reproduced in
+#: two review rounds: a double-quoted duplicate (`"current", 'current'`), a
+#: duplicate renamed to `unsupported2` on both sides, and -- against the second
+#: draft, which had fixed the first two -- a coordinated rewrite to a backtick
+#: template literal. The last is not exotic: `bootstrap.js` writes
+#: `` `status-${status}` `` three lines from the order array.
 #:
 #: The backreference is what refuses `'current"`, which is not a string literal
-#: at all; a bare `['\"]` on each end would match it and quietly widen the guard
-#: to source that does not parse.
-QUOTED_STATUS = re.compile(r"""(['"])([A-Za-z0-9_-]+)\1""")
-
-
-def _statuses(source: str) -> list[str]:
-    """The quoted statuses of one table, in source order."""
-    return [status for _quote, status in QUOTED_STATUS.findall(source)]
+#: at all; a bare character class on each end would match it and quietly widen
+#: the guard to source that does not parse. And the widened identifier class buys
+#: a false RED that the narrow one did not: an ordinary quoted word in a comment
+#: inside the scoped region reads as a phantom status, which is why every caller
+#: strips comments first.
+QUOTED_STATUS = re.compile(r"""(['"`])([A-Za-z0-9_-]+)\1""")
 
 
 def _site(start: str, end: str, path: Path | None = None) -> str:
@@ -254,6 +254,17 @@ def visible(pattern: str | list[str]) -> str:
 #: reports it as prose in the source. Prose it is — in a comment, where it
 #: belongs.
 COMMENT = re.compile(r'/\*.*?\*/|//[^\n]*', re.DOTALL)
+
+
+def _statuses(source: str) -> list[str]:
+    """The quoted census statuses of one table, in source order.
+
+    Comments go first. Both status tables are heavily annotated, and with the
+    identifier class widened to what JavaScript actually allows, an ordinary
+    quoted word in that prose extracts as a phantom status -- a false RED the
+    narrow `[a-z-]` pattern was accidentally immune to and paid for elsewhere.
+    """
+    return [status for _quote, status in QUOTED_STATUS.findall(COMMENT.sub(' ', source))]
 
 
 def _ui_strings(site: str) -> list[str]:
@@ -1090,10 +1101,21 @@ def test_the_census_classification_has_exactly_one_owner():
     # the census -- a status the census emits and no class claims is invisible in
     # both user-facing totals, which is the defect this ticket is about.
     classes = _site('var SDT_STATUS_CLASSES = {', '\n};', SCHEDULER)
-    classified = set(re.findall(r"'([a-z-]+)'", classes))
-    emitted = set(re.findall(r"status: '([a-z-]+)'", scheduler + bootstrap))
-    emitted |= set(re.findall(r"result\.status = '([a-z-]+)'", bootstrap))
-    emitted |= set(re.findall(r"status = '([a-z-]+)'", scheduler))
+    # One extractor for both sides, and it is the strict one: this comparison has
+    # the same false-green shape the reading-order guard shipped with -- a status
+    # neither pattern can match drops out of `emitted` and `classified` at once,
+    # and `<=` holds over a set nobody saw. `emitted` keeps its own patterns
+    # because it reads assignment sites rather than a table, but they now share
+    # the character class, so a status renamed outside `[a-z-]` reddens here
+    # instead of vanishing quietly.
+    classified = set(_statuses(classes))
+    status_value = r"""(['"`])([A-Za-z0-9_-]+)\1"""
+    emitted = {status for _quote, status
+               in re.findall(r'status: ' + status_value, scheduler + bootstrap)}
+    emitted |= {status for _quote, status
+                in re.findall(r'result\.status = ' + status_value, bootstrap)}
+    emitted |= {status for _quote, status
+                in re.findall(r'status = ' + status_value, scheduler)}
     assert emitted, 'the census-status extraction matched nothing'
     assert emitted <= classified, f'unclassified census statuses: {sorted(emitted - classified)}'
 
