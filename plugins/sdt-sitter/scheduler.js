@@ -59,7 +59,14 @@ var createSDTSitter = function (host) {
       state.failed = SDT_STATUS_CLASSES.failed
         .reduce((n, key) => n + (counts[key] || 0), 0);
     }
-    if (state.enabled) host.changed(state);
+    // Not gated on `enabled`: an in-flight job left to finish gracefully after
+    // the switch is thrown must still be seen finishing, progress tick and
+    // completion both -- a window that stops repainting is not what "the file
+    // under way finishes" promises (found live, testing v0.3.17). Whether
+    // anything actually redraws from this is the host's call: bootstrap.js's
+    // own `render()` is gated on `alive`, which is what stays correct across a
+    // real shutdown, where nothing should update because the window is gone.
+    host.changed(state);
   };
   return {
     state,
@@ -153,17 +160,25 @@ var createSDTSitter = function (host) {
           // estimate, and the cache keeps it until a processor version bump.
           let extractingSince = null;
           try {
+            // No `enabled` checks from here to this document's own settlement:
+            // once handed to the native worker, this ONE item's outcome always
+            // reaches the census, success or failure, whatever the switch does
+            // while it runs. The worker cannot be told to stop, and the ruling
+            // this graceful stop implements is that it "may finish and persist
+            // its native pack" — a persisted pack the census never learns about
+            // is a completion invisible until some later sweep stumbles on it,
+            // which is not what that promise says (found live, testing
+            // v0.3.17: the bar froze mid-job and never reached 100%). The
+            // OUTER loops above and below this one still gate on `enabled`, so
+            // no further document is ever admitted while off.
             const ok = await host.ensure(id, progress => {
-              if (!state.enabled) return;
               const at = host.now();
               extractingSince ??= at;
               state.progress = progress; state.lastProgressAt = at;
               if (host.emit) host.emit('progress', { id, progress }, 'trace');
               publish();
             });
-            if (!state.enabled) break;
             const after = await host.inspect(id);
-            if (!state.enabled) break;
             // Thrown, and nothing else: the catch below adds the identity to the
             // session's `failed` set, which is the whole of the suppression
             // ticket 0740 asks for. Native returning without a pack and native
@@ -211,7 +226,6 @@ var createSDTSitter = function (host) {
             if (measured && state.samples.length % 3 === 0) state.fittedSamples = state.samples.slice();
             state.counts[status]--; state.counts.current = (state.counts.current || 0) + 1;
           } catch (error) {
-            if (!state.enabled) break;
             failed.add(before.identity);
             state.error = host.describeError ? host.describeError(before, error) : String(error);
             if (host.reportError) await host.reportError(before, error);
