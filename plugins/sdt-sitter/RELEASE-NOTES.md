@@ -19,6 +19,24 @@ build a search index or isolate a stuck native worker. Coverage describes the
 last observed state; preparation depends on local files, available resources
 and successful native extraction.
 
+## Zotero's automatic indexing and the removed controls
+
+Dan Stillman's ["Rework the Index Statistics preferences pane" commit](https://github.com/zotero/zotero/commit/02fb0e92ed029d95240cf95bce7e407800466534)
+explains why Zotero removed Rebuild Index and Clear Index. Rebuilding marked
+full-text content unsynced, causing uploads, server reindexing and downloads on
+other devices. Automatic indexing and targeted reindexing were intended to
+cover the useful cases, including re-extracting affected items after a length
+limit increases. Clearing deleted both the local index and extracted-text
+caches. The replacement displays progress and actively processes pending
+indexing work while the statistics pane is open.
+
+That pane's "up to date" describes its pending queues: partially indexed items
+can already count as indexed, and unavailable files remain separately reported.
+It therefore does not establish complete extraction of every document. The
+sitter's contribution is independently preparing native structured-text packs
+and making their coverage understandable. The missing bulk button alone is
+not evidence that Zotero lacks automatic full-text indexing.
+
 ## Why preparation ahead of demand matters
 
 Time until useful attachment-content results matters alongside query latency.
