@@ -1,0 +1,77 @@
+%erg 0.1
+Title: sitter dialog fifth live round: coverage no longer freezes on a mid-rebuild walk
+Created: 2026-09-08
+Author: MinhHaDuong
+
+--- log ---
+2026-09-08T21:06Z MinhHaDuong created
+
+--- body ---
+## Context
+
+Fifth round of live findings, testing v0.3.20. Two more genuine
+correctness bugs in `getSDTCoverage()`, both found by the author watching
+real numbers on a real, actively-syncing 16 606-attachment library.
+
+## Findings and fixes
+
+1. **"0 attachments in the library" on boot is false.** `state.total`
+   starts at its initial 0 before `host.list()` has ever resolved — not a
+   measurement of an empty library, the absence of one. The diagnostics
+   line now stays hidden until a real total is established
+   (`state.total > 0 || state.censusSnapshot !== null`), matching the
+   discipline `describeSDTCensusAccount` already applies to its own rows.
+
+2. **Switching off showed a different, plausible-looking wrong number
+   every time.** Root cause: `getSDTCoverage()` decided whether to trust
+   the live counts by checking `state.phase === 'census'` — but
+   `disarmSDTSitter()` overwrites `phase` to `'switched-off'` the instant
+   the switch is thrown, whatever the sitter's own periodic re-census
+   (every ~30 s, from empty, independent of the switch) was doing
+   underneath. Freezing on the live counts unconditionally (ticket 0747)
+   was right if that walk had finished, wrong if the click landed
+   mid-rebuild: the reader froze on a half-reclassified count, different
+   and "in the high range" depending on exactly how far the interrupted
+   walk had got.
+
+   Fixed by replacing the phase check with the actual signal that
+   matters: `state.scanned === state.total` — true only when the walk
+   that most recently touched `state.counts` genuinely finished, whatever
+   phase claims to be current. Falls back to the last known-complete
+   snapshot (`state.censusSnapshot`, from ticket 0751) whenever the live
+   counts are mid-rebuild, regardless of phase.
+
+Not fixed this round, and reported to the author rather than guessed at:
+the denominator (library size minus out-of-scope items) can still bounce
+between *completed* censuses if per-item classification itself changes —
+traced to a "sniff vs. declared format" check that can behave
+differently while the library's own sync is still settling metadata, but
+not conclusively isolated. Author's own call: hold for further
+investigation rather than paper over it with a display-level debounce.
+
+## Test
+
+- `tests/sdt_sitter_scheduler.mjs`: a new integration test drives a real
+  completed sweep, then a second sweep interrupted mid-rebuild, throws
+  the switch (reproducing `disarmSDTSitter()`'s phase overwrite by hand,
+  since this test drives the scheduler directly), and asserts coverage
+  reads the last complete count, not the interrupted rebuild — verified
+  red against the old `phase === 'census'` check.
+- `tests/sdt_sitter_dialog.mjs`, `tests/sdt_sitter_bootstrap.mjs`: full
+  suites re-run unmodified and pass, confirming the rewrite is
+  behaviorally compatible with every previously-verified scenario.
+
+## Verification
+
+- [x] All four `.mjs` suites pass
+- [x] `tests/test_sdt_sitter.py`, `tests/test_sitter_host_apis.py` pass
+- [x] `make check-fast` — 1313 passed, 15 skipped, no failures
+- [x] Manifest/update.json bumped 0.3.20 -> 0.3.21, version guard clean
+- [x] The mid-rebuild fix verified with a positive control (red against
+      the old `phase === 'census'` check)
+
+## Exit criteria
+
+The diagnostics line never states a total before one is known. Coverage
+never freezes on a walk that was still rebuilding when interrupted,
+regardless of what phase the interruption leaves behind.

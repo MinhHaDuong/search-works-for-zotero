@@ -1326,6 +1326,53 @@ await test('a census interrupted before its first completion still shows the pre
   await running2;
 });
 
+// Found live, testing v0.3.20: after a real completed census, switching off
+// showed a DIFFERENT, plausible-looking wrong number every time -- because
+// the sitter re-censuses from empty on its own ~30 s cadence regardless of
+// the switch, and `state.phase` becomes 'switched-off' the instant the click
+// lands whatever that background walk was doing. Freezing on the live counts
+// unconditionally (ticket 0747) froze a half-rebuilt classification whenever
+// the click happened to land mid-walk, not the last complete one. This is
+// that exact case: a full census already completed once, a SECOND one is
+// under way when the switch is thrown.
+await test('switching off during a periodic re-census shows the last complete count, not the interrupted rebuild', async () => {
+  const f = fixture();
+  f.cached.add(1);
+  const running1 = f.api.sweep();
+  await running1;
+  assert.equal(f.api.state.completed, 1, 'the first sweep did not finish extracting id 2');
+  const complete = ui.getSDTCoverage(f.api.state);
+  assert.equal(complete.current, 2, 'both attachments should read current after the first sweep completes');
+
+  const entered = deferred(), release = deferred();
+  let hit = 0;
+  f.host.inspect = async id => {
+    if (id === 2 && hit++ === 0) { entered.resolve(); await release.promise; }
+    return { status: f.cached.has(id) ? 'current' : 'missing-pack', identity: String(id) };
+  };
+  const running2 = f.api.sweep();
+  await entered.promise;
+  // Mid-rebuild: id 1 reclassified in this walk, id 2 paused before its own,
+  // so the live counts hold only what THIS walk has seen so far -- not what
+  // the library actually contains.
+  assert.equal(f.api.state.scanned, 1);
+  assert.notEqual(f.api.state.scanned, f.api.state.total, 'the fixture completed instead of pausing mid-walk');
+
+  f.api.stop(); // the switch, thrown mid-rebuild
+  // bootstrap.js's disarmSDTSitter() also overwrites phase, unconditionally,
+  // to 'switched-off' -- the exact move that makes `state.phase === 'census'`
+  // useless as a signal here, since it is gone the instant the switch fires
+  // regardless of what the walk under it was doing. Reproduced by hand since
+  // this test drives the scheduler directly.
+  f.api.state.phase = 'switched-off';
+  const duringOff = ui.getSDTCoverage(f.api.state);
+  assert.equal(duringOff.current, 2,
+    `switching off mid-rebuild showed ${duringOff.current}, the interrupted walk's own partial count, not the last complete one`);
+
+  release.resolve();
+  await running2;
+});
+
 const cache = context.createSDTCache(null, 'v');
 cache.remember('1/a', 'source-v', 'pack-stamp', { sourceBytes: 100, pages: 2 });
 cache.observe('1/a', 'source-v', { sourceBytes: 100, pages: 2, milliseconds: 500 });
