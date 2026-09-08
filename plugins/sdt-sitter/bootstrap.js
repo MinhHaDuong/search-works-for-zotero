@@ -933,6 +933,34 @@ function buildSDTDiagnostics(doc, element) {
   return group;
 }
 
+/* Whether the reader has asked the platform for less motion (ticket 0686).
+
+   Three things move in the toolbar strip — the spinner, the census pulse and
+   the completion blink — and none of them carries information the label and the
+   tooltip do not already state in words. `prefers-reduced-motion` is a system
+   preference rather than a taste, and on the platforms that expose it, it is
+   set by people for whom the animation is a symptom, not a nuisance. So all
+   three stop together: suppressing one and leaving the others would honour the
+   preference on paper and not on screen.
+
+   Read per node, because a media query is answered by the window and the
+   plugin puts a button in every main window; read through `ownerDocument`,
+   because inside the render loop that node is the only handle on its window
+   there is. Guarded and defaulting to motion, because this runs ten times a
+   second: a window whose docshell is going away throws from `matchMedia`, and
+   an unguarded throw here would take out the render loop rather than one
+   frame of an animation — the class the render() wrapper below records. The
+   guard is silent, deliberately: it fires during teardown, on every button, at
+   10 Hz, and journalling it would evict the ring the wrapper's own record
+   lives in. A scenario in tests/sdt_sitter_bootstrap.mjs makes matchMedia
+   throw, so this catch has been seen to hold rather than assumed to. */
+function prefersSDTReducedMotion(node) {
+  try {
+    return node?.ownerDocument?.defaultView
+      ?.matchMedia('(prefers-reduced-motion: reduce)')?.matches === true;
+  } catch (_error) { return false; }
+}
+
 /* Ticket 0702. renderState() runs unguarded DOM work over `dialogs`, and it is
    reached from publish(), which the scheduler calls from inside its own finally.
    A throw there — a dead XUL dialog after its window closed, getElementById
@@ -975,13 +1003,26 @@ function renderState() {
       lastCompleted = s.completed;
       completionBlinkUntil = now + 1400;
     }
-    const spinning = s.active !== null;
-    const blinking = !working && now < completionBlinkUntil;
+    const still = prefersSDTReducedMotion(button);
+    const spinning = s.active !== null && !still;
+    const blinking = !working && !still && now < completionBlinkUntil;
     button.setAttribute('label', spinning
       ? `${['◐', '◓', '◑', '◒'][Math.floor(now / 140) % 4]} ${coverageLabel}` : coverageLabel);
-    const opacity = s.phase === 'census'
-      ? 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(now / 450))
-      : blinking ? ((Math.floor(now / 180) % 2) ? 0.2 : 1) : 1;
+    // The name a screen reader speaks, pinned to the figure alone. In XUL the
+    // `label` IS the accessible name, and the frame advances every 140 ms — so
+    // the spinner rewrites that name a little over seven times a second, and a
+    // reader following the button learns nothing from any of them. Whether
+    // `aria-label` in fact wins the accname computation on a XUL toolbarbutton,
+    // and whether Gecko re-announces on an identical-value write at 10 Hz, are
+    // readings for the Accessibility Inspector in a live window; neither is
+    // established here. `aria-label` overrides that name, and
+    // it changes only when the coverage does, which is the one thing here
+    // worth announcing (ticket 0686).
+    button.setAttribute('aria-label', coverageLabel);
+    const opacity = still ? 1
+      : s.phase === 'census'
+        ? 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(now / 450))
+        : blinking ? ((Math.floor(now / 180) % 2) ? 0.2 : 1) : 1;
     button.style.setProperty('opacity', String(opacity), 'important');
     button.setAttribute('tooltiptext', describeSDTTooltip(s));
   }

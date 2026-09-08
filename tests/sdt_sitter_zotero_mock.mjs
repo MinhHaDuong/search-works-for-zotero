@@ -303,9 +303,18 @@ export function createHarness(options = {}) {
     toolbar.id = 'zotero-items-toolbar';
     document.body.append(toolbar);
     const dialogs = [];
-    return {
+    const window = {
       document, toolbar, dialogs,
       navigator: { hardwareConcurrency: 8 },
+      /* A chrome window answers media queries, and ticket 0686's reduced-motion
+         item is a reading taken from one. Only the query the plugin asks is
+         answered; anything else comes back `false` rather than silently
+         matching, so a mistyped query in the plugin fails the test instead of
+         reading as the default. */
+      matchMedia(query) {
+        return { media: query,
+          matches: query === '(prefers-reduced-motion: reduce)' && !!options.reducedMotion };
+      },
       require: spec => (spec === 'pako' ? { inflateRaw: bytes => bytes } : sdt),
       openDialog() {
         const doc = new StubDocument();
@@ -323,6 +332,10 @@ export function createHarness(options = {}) {
         return dialog;
       },
     };
+    // The plugin reaches the window from a node it owns, which is the only
+    // route it has inside the render loop.
+    document.defaultView = window;
+    return window;
   };
   const windows = Array.from({ length: options.windows ?? 1 }, makeWindow);
 
