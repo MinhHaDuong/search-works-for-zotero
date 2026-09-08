@@ -74,6 +74,20 @@ PLUGINS = ROOT / "plugins"
 #: silently. `test_no_plugin_file_type_escapes_the_scan` guards the other axis.
 SOURCE_SUFFIXES = (".js", ".mjs", ".json")
 
+#: Formats that cannot carry a readable `resource://` literal, exempted by name
+#: rather than by silence. The scan cannot tell an icon from an `.xhtml` dialog,
+#: so a file type arriving under `plugins/` has to be classified by a person;
+#: this list is where that decision is recorded.
+ASSET_SUFFIXES = (".png", ".jpg", ".jpeg", ".gif", ".ico", ".woff", ".woff2")
+
+#: Whole-line comments, stripped before the scan. The quote anchor below rules
+#: out unquoted prose; this rules out the quoted kind, which `bootstrap.js`
+#: writes when it names the historical spec inside its own narration. A URL
+#: quoted in a comment *trailing* a line of code still reads as a call site —
+#: the residue is a false red, never a false green, and no call site here has
+#: ever written one.
+LINE_COMMENT = re.compile(r"^\s*(//|\*|/\*)")
+
 #: Anchored on the opening quote, so the match is a string literal rather than
 #: prose: `bootstrap.js` still discusses the Fluent episode in several comments,
 #: and a scan that read those would report a path no code ever asks for. The
@@ -199,6 +213,14 @@ def resource_roots(install: Path) -> dict[str, tuple[str, str]]:
     single pass would resolve or drop such a line depending on where it happens
     to sit relative to the alias it names. Nothing shipped today needs more than
     one round, which is exactly why the ordering dependency would go unnoticed.
+
+    One limit, recorded rather than engineered around: a host declared twice
+    with different targets resolves last-wins, silently. Zotero 10.0.1 declares
+    none twice, and the two hosts the sitter actually uses are each declared
+    once, so reporting the ambiguity would add engine for a case no install
+    presents. A URL that resolved through the losing declaration would fail as
+    "absent from the archive", which points at the right file and the wrong
+    reason.
     """
     roots: dict[str, tuple[str, str]] = {GRE_HOST: ("gre", "")}
     aliases: dict[str, str] = {}
@@ -251,7 +273,10 @@ def named_resource_urls(tree: Path) -> dict[str, list[str]]:
     for path in sorted(tree.rglob("*")):
         if not path.is_file() or path.suffix not in SOURCE_SUFFIXES:
             continue
-        for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for number, line in enumerate(text.splitlines(), 1):
+            if LINE_COMMENT.match(line):
+                continue
             for match in RESOURCE_URL.finditer(line):
                 site = f"{path.relative_to(tree).as_posix()}:{number}"
                 sites.setdefault(match.group(1), []).append(site)
@@ -303,22 +328,26 @@ def test_the_plugin_tree_names_resource_urls():
 def test_prose_about_an_absent_module_is_not_read_as_a_call_site(tmp_path):
     """A URL discussed in a comment is not a URL the plugin asks for.
 
-    `bootstrap.js` still narrates the Fluent episode. The extraction is anchored
-    on an opening quote so those sentences stay out of the checked set — asserted
-    here against a fixture that writes the historical string both ways, rather
-    than against today's comment wording, which would make the test pass by
-    accident of how the narration happens to be phrased.
+    `bootstrap.js` still narrates the Fluent episode. Two filters keep that
+    narration out of the checked set, and the fixture writes it four ways to
+    exercise both: the quote anchor drops unquoted prose, and the whole-line
+    comment filter drops the quoted kind, in `//` and block-comment form alike.
+    Asserting against a fixture rather than against today's comment wording is
+    the point — the wording will change, and a test that passed by accident of
+    it would go on passing after the property was gone.
     """
     source = tmp_path / "bootstrap.js"
     source.write_text(
         f"// The import of {HISTORICAL_ABSENT} threw on every startup.\n"
+        f"// It was written '{HISTORICAL_ABSENT}', quoted, right here.\n"
+        f" * and again as '{HISTORICAL_ABSENT}' inside a block comment.\n"
         f"ChromeUtils.importESModule('{HISTORICAL_ABSENT}');\n",
         encoding="utf-8",
     )
 
     sites = named_resource_urls(tmp_path)
 
-    assert sites == {HISTORICAL_ABSENT: ["bootstrap.js:2"]}, sites
+    assert sites == {HISTORICAL_ABSENT: ["bootstrap.js:4"]}, sites
     assert HISTORICAL_ABSENT not in named_resource_urls(PLUGINS), (
         "the historical defect is back in the plugin source"
     )
@@ -330,13 +359,20 @@ def test_no_plugin_file_type_escapes_the_scan():
     The same hand-listed-scope shape as the directory comment above, one axis
     over: an `.xhtml` dialog or a `.ftl` bundle arriving under `plugins/` would
     carry `resource://` literals that this suite never reads, and nothing would
-    say so. Adding a suffix here is cheap; noticing its absence later is not.
+    say so.
+
+    It fires on an icon as readily as on a new source format, and that is the
+    design rather than a rough edge: no rule distinguishes them, so the
+    classification is a person's to make once, recorded in `ASSET_SUFFIXES`.
+    Adding a suffix to one list or the other is a line; noticing an unscanned
+    format later is not.
     """
     shipped = {path.suffix for path in PLUGINS.rglob("*") if path.is_file()}
-    unscanned = shipped - set(SOURCE_SUFFIXES)
+    unscanned = shipped - set(SOURCE_SUFFIXES) - set(ASSET_SUFFIXES)
     assert not unscanned, (
         f"file types under {PLUGINS} that the resource:// scan never reads: "
-        f"{sorted(unscanned)} — extend SOURCE_SUFFIXES or say why they are exempt"
+        f"{sorted(unscanned)} — add each to SOURCE_SUFFIXES, or to ASSET_SUFFIXES "
+        f"if it cannot carry a readable resource:// literal"
     )
 
 
