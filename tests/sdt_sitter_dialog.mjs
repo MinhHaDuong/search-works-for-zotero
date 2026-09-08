@@ -240,7 +240,7 @@ test('layer 1 still carries progress, and layer 2 still carries the counts', () 
   assert(doc.getElementById('sdt-status').textContent.startsWith('Files indexed'));
   assert.equal(doc.getElementById('sdt-global-progress').parentNode.id, 'sdt-global-section');
   assert.equal(doc.getElementById('sdt-progress').parentNode.id, 'sdt-document-section');
-  assert(doc.getElementById('sdt-diagnostics').textContent.includes('Scanned 3 attachments out of 3.'));
+  assert(doc.getElementById('sdt-diagnostics').textContent.includes('3 attachments in the library.'));
   // A real `<table>` now, not a JSON dump and not padded text (found live,
   // testing v0.3.15, then v0.3.17 once the padding turned out not to align in
   // the dialog's own proportional font): a row named after the field, its
@@ -335,6 +335,15 @@ test('the launch disclosures are readable in their own About disclosure', () => 
   assert.equal(doc.getElementById('sdt-environment').parentNode.id, about.id,
     'the version/compatibility lines did not move into About with the disclosures');
   assert.notEqual(about.id, layer3.id, 'About and the debug/log disclosure are the same element');
+  // Found live, testing v0.3.19: a reader opening "About" reasonably expects
+  // to be told what the plugin does before being told what it cannot do.
+  const intro = doc.getElementById('sdt-about-intro');
+  assert(intro, 'About opens straight into limitations, with no intro at all');
+  assert.equal(intro.parentNode.id, about.id, 'the intro is not inside About');
+  assert(about.childNodes.indexOf(intro) < about.childNodes.indexOf(disclosures),
+    'the intro does not lead the disclosures it introduces');
+  assert(intro.textContent.includes('.zotero-sdt-cache'),
+    'the intro does not say where the pack it builds is stored');
   // Rewritten in plain language after the author read the jargon version live
   // ("shared worker", "native work", "thresholds") and could not follow it
   // (found live, testing v0.3.15) — the assertion is on the plain-language
@@ -445,7 +454,7 @@ test('the census reads as an account: words, then a total at the bottom', () => 
   for (const key of Object.keys(counts)) delete counts[key];
   ui.render();
   assert.equal(body.childNodes.length, 0, 'an empty census still prints an account');
-  assert(doc.getElementById('sdt-diagnostics').textContent.includes('Scanned '),
+  assert(doc.getElementById('sdt-diagnostics').textContent.includes('attachments in the library.'),
     'the scan line went with it');
 
   Object.assign(counts, saved);
