@@ -1,0 +1,162 @@
+{
+  "observed_at": "2026-09-08T09:25:40.595456+00:00",
+  "zotero_version": null,
+  "transport": "loopback HTTP; no cloud key",
+  "rows": [
+    {
+      "case": "format_bibtex",
+      "status": 200,
+      "nonempty": true
+    },
+    {
+      "case": "format_biblatex",
+      "status": 200,
+      "nonempty": true
+    },
+    {
+      "case": "format_ris",
+      "status": 200,
+      "nonempty": true
+    },
+    {
+      "case": "format_csljson",
+      "status": 200,
+      "nonempty": true
+    },
+    {
+      "case": "format_csv",
+      "status": 200,
+      "nonempty": true
+    },
+    {
+      "case": "format_mods",
+      "status": 200,
+      "nonempty": true
+    },
+    {
+      "case": "format_tei",
+      "status": 200,
+      "nonempty": true
+    },
+    {
+      "case": "format_coins",
+      "status": 200,
+      "nonempty": true
+    },
+    {
+      "case": "format_rdf_bibliontology",
+      "status": 200,
+      "nonempty": true
+    },
+    {
+      "case": "format_rdf_dc",
+      "status": 200,
+      "nonempty": true
+    },
+    {
+      "case": "format_rdf_zotero",
+      "status": 200,
+      "nonempty": true
+    },
+    {
+      "case": "format_refer",
+      "status": 200,
+      "nonempty": true
+    },
+    {
+      "case": "format_wikipedia",
+      "status": 200,
+      "nonempty": true
+    },
+    {
+      "case": "format_bookmarks",
+      "status": 200,
+      "nonempty": true
+    },
+    {
+      "case": "keyed_parent",
+      "status": 200,
+      "json_count": 1,
+      "export_count": 1,
+      "titles_match_json": true,
+      "bare_array": true
+    },
+    {
+      "case": "limit",
+      "status": 200,
+      "json_count": 1,
+      "export_count": 1,
+      "titles_match_json": true,
+      "bare_array": true
+    },
+    {
+      "case": "item_type",
+      "status": 200,
+      "json_count": 3,
+      "export_count": 3,
+      "titles_match_json": true,
+      "bare_array": true
+    },
+    {
+      "case": "query",
+      "status": 200,
+      "json_count": 1,
+      "export_count": 1,
+      "titles_match_json": true,
+      "bare_array": true
+    },
+    {
+      "case": "query_no_match",
+      "status": 200,
+      "json_count": 0,
+      "export_count": 0,
+      "titles_match_json": true,
+      "bare_array": true
+    },
+    {
+      "case": "collection",
+      "status": 200,
+      "json_count": 3,
+      "export_count": 3,
+      "titles_match_json": true,
+      "bare_array": true
+    },
+    {
+      "case": "collection_keyed",
+      "status": 200,
+      "json_count": 1,
+      "export_count": 1,
+      "titles_match_json": true,
+      "bare_array": true
+    },
+    {
+      "case": "collection_query_type",
+      "status": 200,
+      "json_count": 1,
+      "export_count": 1,
+      "titles_match_json": true,
+      "bare_array": true
+    },
+    {
+      "case": "parent_with_attachment",
+      "status": 200,
+      "json_count": 1,
+      "export_count": 1,
+      "titles_match_json": true,
+      "bare_array": true
+    },
+    {
+      "case": "child_key_only",
+      "status": 200,
+      "json_count": 0,
+      "export_count": 0,
+      "titles_match_json": true,
+      "bare_array": true
+    },
+    {
+      "case": "unsupported_format",
+      "status": 400,
+      "mentions_invalid_format": true
+    }
+  ]
+}

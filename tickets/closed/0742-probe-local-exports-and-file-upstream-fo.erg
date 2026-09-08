@@ -1,0 +1,30 @@
+%erg 0.1
+Title: Probe local exports and file upstream follow-up
+Created: 2026-09-08
+Author: Codex
+Closed: Local exploration recorded; upstream issue 75 filed and publicly verified; repository gate passed.
+
+--- log ---
+2026-09-08T09:24Z Codex created
+
+2026-09-08T09:28Z Codex note Probed local exports at current upstream 4467663; filed https://github.com/oscardvs/zoteus/issues/75 and verified its public body matches verification/local-export-0742/issue.md. Evidence: bench/results/local-export-0742/probe.json; probe: verification/local-export-0742/probe.py.
+2026-09-08T09:28Z Codex note Initial make check reached tests but loopback fixtures were denied by the sandbox; rerunning with loopback permission.
+2026-09-08T09:30Z Codex note make check passed with loopback permission; standalone probe lint and git diff --check passed.
+2026-09-08T09:30Z sim closed — Local exploration recorded; upstream issue 75 filed and publicly verified; repository gate passed.
+--- body ---
+## Context
+Author authorized a separate upstream export-routing issue following #64,
+with local exploration to facilitate pickup.
+
+## Artifacts
+- Probe: verification/local-export-0742/probe.py
+- Sanitized evidence: bench/results/local-export-0742/probe.json
+- Report and upstream body: verification/local-export-0742/issue.md
+
+## Exit criteria
+- [x] Read-only desktop export exploration recorded without library content
+- [x] Focused issue filed and its public body verified
+- [x] make check passes
+
+Public filing: https://github.com/oscardvs/zoteus/issues/75
+Verification receipt: verification/local-export-0742/filed.json

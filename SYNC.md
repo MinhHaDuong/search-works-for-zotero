@@ -4,6 +4,11 @@ Updated 2026-09-07 — upstream issues #61–#66 filed after revalidation on
 `5a81cee`. Ticket [0736](tickets/0736-file-six-upstream-zoteus-issues-and-rela.erg)
 owns the verified URLs, public evidence and substantive-response follow-through.
 
+Updated 2026-09-08 — export follow-up [#75](https://github.com/oscardvs/zoteus/issues/75)
+filed at the author's request after read-only local exploration, following the
+maintainer's invitation on #64. Ticket 0742 owns the probe, sanitized evidence,
+filed body and verified public URL. Open at filing; no PR submitted.
+
 *Written 2026-08-26 against upstream `edf2748` (v1.7.0); updated 2026-08-27
 against `309204b` (v1.8.0); updated 2026-08-28 against `bb414df`
 (v1.9.0); updated 2026-08-29 against `b132f2d` (`oscardvs/zoteus`,

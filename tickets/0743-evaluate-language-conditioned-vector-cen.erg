@@ -1,0 +1,37 @@
+%erg 0.1
+Title: Evaluate language-conditioned vector centering
+Created: 2026-09-08
+Author: Codex
+Label: deferred
+
+--- log ---
+2026-09-08T09:25Z Codex created
+
+2026-09-08T09:28Z Codex note Author proposed language-specific component subtraction; recorded as a deferred empirical comparison distinct from ticket 0031 global calibration.
+--- body ---
+## Context
+The author proposed subtracting the language-specific component when centering
+vectors for multilingual semantic retrieval. Track this as an empirical
+hypothesis, not an adopted requirement or an established improvement.
+Ticket 0031 covers library-wide calibration; this question concerns the geometry
+of cross-language retrieval and is independent of its fraction-RRF trigger.
+
+## Exploration
+Compare unchanged embeddings, global mean centering, and a language-conditioned
+correction. Specify whether the correction subtracts the full language centroid
+or only its offset from the global centroid; apply the chosen transform to both
+queries and documents and document normalization order. Estimate corrections
+using training data only, with topic-matched or parallel-language controls to
+separate language effects from differences in subject matter. Include mixed and
+unknown language inputs and sparse-language estimates.
+
+Use the Multilingual Menagerie and the cross-lingual probe (closed ticket 0266)
+as starting points. Evaluate cross-language retrieval, same-language retrieval,
+hubness, and per-language regressions on held-out material. Any adoption rule or
+new design threshold needs the normal DECISIONS.md ruling and SPEC.md ownership.
+No runtime implementation or upstream filing is authorized by this research note.
+
+## Exit criteria
+- [ ] Reproducible comparison with disjoint estimation and evaluation material
+- [ ] Report benefits, regressions, and topic/language confounding
+- [ ] Recommend adopt, reject, or further measurement with evidence
