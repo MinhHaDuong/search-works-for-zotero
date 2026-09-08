@@ -15,6 +15,8 @@ Author: sim
 
 2026-09-08T11:46Z claude note Round 3 self-gate. /verify-adherence PASS on the rebased tip. Two round-2 non-blockers fixed here rather than deferred, both being one line: SDT_MAGIC_BYTES is now derived from the table's longest prefix instead of a hardcoded 8 -- a longer signature added later would have skipped its own entry silently, since `prefix.length <= head.length` just goes false and the label stands -- and the sniff's cost comment no longer claims "once each", which was false for exactly the 39 documents the check exists for: only `current` reaches cache.remember(), so a ruled-out document has no record and is re-read every sweep. Left as it stands, with the reasoning: eight bytes per sweep against a native attempt of 50-90 ms is not worth a second store to keep consistent. Every other round-2 finding is closed by the redesign itself (the two refused() logic gaps, the hydration exclusivity gap, the `refuse` event-kind collision, the uncovered host.refuse call site) or was already fixed in round 1 (the SPEC.md antecedent, the SPEC.md date). Version 0.3.8 -> 0.3.9 for this payload change; the sitter-version gate caught that 0.3.8 had already been pushed.
 
+2026-09-08T13:02Z claude note Round 3 verdict: approve, no blockers, 1279 passed with the one environmental failure and mutants 30/30 and 16/16 reproduced independently by the reviewer rather than read off the PR. One finding taken here, on the wording rather than the code: the earlier log entries say the "could not be indexed" figure must not shrink, and action 1 makes it shrink by eleven on purpose. Both are true of different mechanisms and the clause needed splitting, which the Invariants section now does -- suppression must not shrink the figure, reclassification must, because `unsupported` sits in `outOfScope` and is therefore out of the coverage denominator as well: coverage rises on the live library and that is the correct reading, since a photograph was never a document a text extractor could index. Left as reported, not fixed: the no-persistence assertion greps for the literal string `refused`, so a future field under another name would slip past it. Below the severity floor -- the assertion is the second of two on the same property, and the first is behavioural.
+
 --- body ---
 ## Context
 
@@ -175,6 +177,16 @@ recount that reaches the same place from the other direction.
 - A document is never permanently written off. Nothing about a failure outlives
   the activation that saw it, so no restart inherits a verdict and no state on
   disk can survive the thing it describes.
+- The two halves of this ticket move the author's "could not be indexed" figure
+  in opposite directions, and both are intended. **Suppression must not shrink
+  it**: a document held out of the queue for the session stays in the failure
+  class, or the figure would fall because the sitter stopped asking.
+  **Reclassification must shrink it**: the eleven page scans become
+  `unsupported`, which sits in `outOfScope` and is therefore out of the coverage
+  denominator too, so the count falls by eleven and coverage rises. That is the
+  correct reading and not a loss of signal — a photograph was never a document a
+  text extractor could index, and counting it as one is what made the 406 figure
+  misleading in the first place.
 - Native SDT is not second-guessed. This ticket stops us handing it work it
   cannot do; it does not add extraction of our own.
 
