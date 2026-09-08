@@ -5,6 +5,7 @@ Author: sim
 
 --- log ---
 2026-09-08T11:10Z sim created
+2026-09-08T15:38Z sim note Fixed at both pre-extraction call sites (bench/sdt_sitter_install.py, bench/acceptance/adapters/beaver.py) rather than in the shared bench/host_addon_record.py the body names: that module exists only on PR #465's branch, which is blocked on this defect, so the fix has to be on main for #465's port to carry it. Probe moved inside the existing try; ENOENT wording unchanged; the optional ELOOP cosmetic of action 4 fixed in the same pass via is_symlink(). Both arms proven red against the unfixed bodies before the fix.
 
 --- body ---
 
