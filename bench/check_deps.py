@@ -101,12 +101,19 @@ def local_modules(repo: Path) -> set[str]:
 
     Several suites put `bench/` or `verification/probes/` on `sys.path` and
     import a driver by module name; those are ours, not dependencies.
+
+    The scanned directory's own name counts too. `bench/` has no `__init__.py`,
+    so it is a namespace package from the repo root, and `import bench.x` is
+    exactly as first-party as the `import x` a bench-on-sys.path caller writes
+    for the same file — the spelling differs, the tree does not (ticket 0713).
     """
     modules: set[str] = set()
     for directory in ("bench", "tests", "verification/probes"):
         root = repo / directory
         if not root.is_dir():
             continue
+        if root.parent == repo:
+            modules.add(root.name)
         for path in root.iterdir():
             if path.suffix == ".py":
                 modules.add(path.stem)
