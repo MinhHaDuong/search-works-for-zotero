@@ -233,6 +233,30 @@ test('the switch turns indexing off and on again, persisting each answer', () =>
   assert.equal(armed.intervals - before, 2, 'turning indexing on armed no loop');
 });
 
+/* Found live, after PR #481 shipped: turning indexing off mid-census left the
+   overall-progress bar animating forever. The 100 ms render loop is cleared by
+   the switch, but a native `<progress>` with no `value` attribute is
+   indeterminate and animates by itself, on the platform's own clock, with no
+   further redraw needed — so the loop being stopped proves nothing here. The
+   scanned/total split below is the reproduction: a census that has not
+   finished when the switch is thrown, which is the ordinary case, since a
+   user reaches for the switch precisely while indexing is under way. */
+test('switching off mid-census freezes the progress bar instead of leaving it animating', () => {
+  sitter.state.scanned = 1;
+  sitter.state.total = 3;
+  const control = doc.getElementById('sdt-switch');
+  control.fire('click');
+  assert.equal(sitter.state.phase, 'switched-off');
+  const globalProgress = doc.getElementById('sdt-global-progress');
+  assert.notEqual(globalProgress.value, undefined,
+    'the overall-progress bar has no value attribute after switching off mid-census — ' +
+    'indeterminate, so the platform animates it forever with the sitter off');
+  control.fire('click');
+  assert.equal(sitter.state.phase, 'ready');
+  sitter.state.scanned = 3;
+  sitter.state.total = 3;
+});
+
 /* Ticket 0742's other half. The worker limitation and the disable semantics were
    the third and fourth paragraphs of a modal shown once per session and gone the
    moment it was dismissed. The assertion is on WHERE they hang, which is the

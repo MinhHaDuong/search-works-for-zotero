@@ -610,8 +610,15 @@ function getSDTCoverage(state) {
   const failed = classes ? tally(classes.failed) : 0;
   const queued = classes ? tally(classes.queued) : 0;
   const outOfScope = classes ? tally(classes.outOfScope) : 0;
+  // Off freezes the count instead of leaving it unsayable: nothing will move
+  // it further, so "known" here means settled, not merely completed. Without
+  // this arm, switching off mid-census left `<progress>` without a `value`
+  // attribute forever — the platform's own indeterminate rendering, which
+  // animates natively and keeps animating with the sitter off and the 100 ms
+  // render loop itself long since cleared (found live, ticket 0742 follow-up).
   return { known: !!classes && (duringCensus ? !!held
-      : state.scanned === state.total && state.phase !== 'ready'),
+      : state.phase === 'switched-off'
+        || (state.scanned === state.total && state.phase !== 'ready')),
     current, failed, queued, outOfScope,
     total: classes ? Math.max(0, censusTotal - outOfScope) : 0 };
 }
