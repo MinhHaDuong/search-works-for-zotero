@@ -12,6 +12,7 @@ Author: sim
 2026-09-06T22:34Z claude note So the candidate to test is process state, not the update manifest: a Zotero session that has already had this add-on installed and removed under it appears unable to keep it. That is a sharper claim than the one this ticket opened with, it explains the author's original report (the add-on disappearing "on its own" during long sessions), and it is falsifiable — install into a fresh process and leave it, then install into a session that has already removed it once, and compare. Neither arm was run deliberately tonight; both happened by accident, which is why this is a candidate and not a finding.
 2026-09-06T22:34Z claude note Also settled tonight, with a control, and independent of all the above: update_url is REQUIRED. A build identical but for its removal (0.2.14) is refused at install with "peut-etre incompatible avec cette version de Zotero", which corrects ticket 0688's docs-based reading that only applications.zotero must be present. The update.json entry added on this ticket stays for that reason, and the guard keeping it in step with manifest.json stays with it.
 2026-09-06T22:53Z claude note REFINED, and this is the sharpest evidence the ticket has. 0.3.1 was installed at 00:50:48 into pid 1057602 -- the same process that had held 0.3.0 active for forty minutes -- and was gone, record and file, at 00:51:08. Twenty seconds, in the process the previous note called a survivor. So "a fresh process survives" is wrong as stated. What fits every cycle recorded tonight is narrower: the FIRST install into a Zotero process survives, and a REPLACEMENT into the same process does not. pid 635164 took six installs and lost all six, every one of them a second-or-later install in that process; pid 1057602 kept its first (0.3.0, forty minutes and counting when it was replaced) and lost its second (0.3.1, twenty seconds). It also explains the author's original report without needing update_url at all: he updates builds inside a long-running Zotero, which is exactly the replacement case. The prediction is falsifiable and cheap -- quit Zotero, start it, install as the FIRST install, and it should stick; then install anything over it in the same session and it should die. Neither arm has been run deliberately yet.
+2026-09-08T04:50Z claude note Attempted the deliberate test the previous note called for, with the author's permission to use his live running Zotero on doudou. It did not run: bench/sdt_sitter_install.py's persistent-install method -- copy a bare XPI to <profile>/extensions/<id>.xpi -- did NOT register in extensions.json, not even after quitting Zotero and relaunching it fresh (pid 3389020), polled every 10s for 260s with zero transitions. This is a THIRD, previously unrecorded failure mode, and it is upstream of everything else this ticket has measured: every prior data point in this log (0.2.13 through 0.3.1, all of it) was a REPLACEMENT of an add-on ID Zotero had already learned via the GUI's "Install Add-on From File" flow (that is how fulltext-control@search-works-for-zotero.invalid -- the one other add-on in this profile -- got its entry: installTelemetryInfo.method is literally "install-from-file"). Nobody has, on this host, gotten the FIRST-ever registration of this add-on's id to happen via a bare-file drop; ticket 0688's own bench script docstring claims it "survives a restart," and that claim was never re-verified against this Zotero build (10.0.1_20260824184709) and does not hold today. Cause not established -- candidates include a signing/scope restriction Zotero enforces on file-scope installs that GUI install-from-file does not hit, or simply a required rescan trigger neither restart nor 260s of wall time provides. GUI automation to work around it (xdotool) is not viable in this session: xdotool sees no Zotero window at all (only GNOME Shell/mutter chrome), consistent with Zotero running as a native Wayland client this X11 tool cannot enumerate. Cleaned up: removed the dropped XPI, profile now back to its pre-experiment state (only fulltext-control installed). This blocks Action 1 exactly as it now stands (need a way to get a build installed at all before disable/enable or first/replacement can be tested) and is the reason ticket 0730's Action 1 also stayed unanswered today.
 --- body ---
 ## Context
 
@@ -92,6 +93,22 @@ against Zotero's own fork."
    narrowed it by one: record that, and do not close the ticket with a guess.
    The next candidate to examine is the `.invalid` id under a host that may
    validate ids it never dereferences.
+4. NEW, blocking 1-3 as filed: get a build installed at all, without GUI
+   automation (2026-09-08's log entry -- xdotool cannot see this host's Zotero
+   window, and a bare `extensions/<id>.xpi` drop does not register even after a
+   full restart). Two candidates, neither tried yet:
+   a. `--start-debugger-server` (listed in `zotero -h`) opens a devtools server
+      that speaks Firefox's Remote Debugging Protocol, which -- unlike
+      `--remote-debugging-port`'s CDP, which only reaches web content -- can
+      attach to the chrome/browser process and eval privileged JS, including
+      `AddonManager.installTemporaryAddon()` or a scripted disable/enable. No
+      client for this protocol exists in this repository; building one is real
+      work, not a one-line probe.
+   b. Ask the author to do one GUI install via Tools -> Add-ons -> Install
+      Add-on From File (the path that worked for fulltext-control), then drive
+      only the disable/enable/replace steps by hand at his direction while this
+      session watches `sitter-watch.log`. Cheaper, but needs him at the
+      keyboard for each cycle rather than an unattended run.
 
 ## Test
 
