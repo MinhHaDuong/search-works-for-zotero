@@ -753,8 +753,15 @@ await test('a disable, a re-enable, and the suspended sweep announces nothing', 
  * Dot-directories are skipped as a class, which is what keeps the walk out of
  * `.git` and out of `.claude/worktrees/`, where every parallel session's copy of
  * this same tree lives. Everything else IS walked, so a plugin added under a
- * directory nobody has thought of yet is still covered. */
+ * directory nobody has thought of yet is still covered.
+ *
+ * Two shapes, because .gitignore has two. `UNSHIPPED` is matched on the
+ * directory's own name and covers the ignores that sit at the repository root;
+ * `UNSHIPPED_PATHS` is matched on the path relative to the walk root, and is
+ * what reaches a nested ignore like `bench/data/`, whose bare name is far too
+ * common to refuse everywhere. */
 const UNSHIPPED = new Set(['node_modules', 'fork', 'upstream.git', 'corpus-cache', '__pycache__']);
+const UNSHIPPED_PATHS = new Set(['bench/data']);
 
 function discoverBootstraps(root) {
   const found = [];
@@ -762,7 +769,9 @@ function discoverBootstraps(root) {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
       const full = path.join(dir, entry.name);
       if (entry.isDirectory()) {
-        if (entry.name.startsWith('.') || entry.name.startsWith('fork-') || UNSHIPPED.has(entry.name)) continue;
+        if (entry.name.startsWith('.') || entry.name.startsWith('fork-')
+          || UNSHIPPED.has(entry.name)
+          || UNSHIPPED_PATHS.has(path.relative(root, full).split(path.sep).join('/'))) continue;
         walk(full);
       } else if (entry.isFile() && entry.name === 'bootstrap.js') {
         found.push(full);
@@ -824,6 +833,18 @@ await test('an empty discovery set reports NOT-RUN, and a planted file proves th
       'a planted double-load failure was not seen -- the walk or the assertion is blind');
     assert.equal(planted.files.length, 1);
     assert(planted.failures[0].includes('planted'), planted.failures[0]);
+
+    // And the refusals refuse. Both shapes are exercised, since a name match and
+    // a path match are different code: `node_modules` by name, `bench/data` by
+    // its position under the root. Without this the skip list is a branch no run
+    // ever takes, and a typo in either would read as green forever.
+    for (const ignored of ['node_modules', path.join('bench', 'data')]) {
+      fs.mkdirSync(path.join(root, ignored), { recursive: true });
+      fs.writeFileSync(path.join(root, ignored, 'bootstrap.js'), 'const ignored = 1;\n');
+    }
+    const withIgnored = doubleLoadReport(root);
+    assert.deepEqual(withIgnored.files, planted.files,
+      'the walk entered a directory this repository does not ship');
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
