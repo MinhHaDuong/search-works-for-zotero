@@ -63,12 +63,23 @@ await test('unresolved native promise and concurrent sweeps do not multiply admi
   await f.api.sweep(); assert.deepEqual(f.calls, [1]);
   f.api.stop(); finish.resolve(); await running; assert.deepEqual(f.calls, [1]);
 });
-await test('disable during ensure leaves completion but no UI callbacks or next admission', async () => {
+// Found live, testing v0.3.17: the disclosure promises "one already being
+// processed still finishes", and a reader watching the window saw the
+// opposite -- the bar froze mid-job and never reached completion, because
+// `publish()` used to gate `host.changed` on `enabled` and the periodic
+// redraw is what the switch already tears down. The job DID finish (this
+// test's own name was accurate about that half); nothing said so on screen.
+// So a UI callback during the graceful drain is now the correct behaviour,
+// not the leak this test used to guard against -- gating what actually
+// happens on screen is bootstrap.js's `render()`/`alive`, not this flag.
+await test('disable during ensure still notifies on the finishing job, but admits no more', async () => {
   const f = fixture(), entered = deferred(), finish = deferred(); let callback;
   f.host.ensure = async (id, progress) => { f.calls.push(id); callback = progress; entered.resolve(); await finish.promise; f.cached.add(id); return true; };
   const running = f.api.sweep(); await entered.promise;
   f.api.stop(); const count = f.updates.length; callback(100); finish.resolve(); await running;
-  assert.equal(f.updates.length, count); assert.deepEqual(f.calls, [1]); assert(f.cached.has(1));
+  assert(f.updates.length > count, 'the finishing job left no trace of its own completion');
+  assert.deepEqual(f.calls, [1], 'a disabled sitter admitted a second document');
+  assert(f.cached.has(1));
 });
 await test('disable during census or admission resource await prevents submission', async () => {
   for (const name of ['inspect', 'blocked']) {
@@ -707,7 +718,12 @@ await test('shutdown is the last record even with a submission still in flight',
   // The seal keeps records off the far side of shutdown, so it would also hide a
   // shutdown that never removed the callbacks. These read the sitter, not the ring.
   assert.equal(f.api.state.enabled, false);
-  assert.equal(f.updates.length, updates);
+  // `publish()` no longer gates this on `enabled` (found live, testing
+  // v0.3.17): the finishing job's own completion must reach `host.changed`
+  // so a window watching it sees the promised finish. What actually protects
+  // the torn-down window from repainting is `render()`'s own `alive` check in
+  // bootstrap.js, which this fixture's bare recorder does not model.
+  assert(f.updates.length > updates, 'the finishing job left no trace of its own completion');
   assert.deepEqual(f.calls, [1]);
   const tail = Array.from(ring.tail(50));
   assert.equal(tail.length, closed);

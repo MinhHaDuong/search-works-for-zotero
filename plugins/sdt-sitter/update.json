@@ -4,7 +4,7 @@
     "sdt-pack-sitter@search-works-for-zotero.invalid": {
       "updates": [
         {
-          "version": "0.3.17",
+          "version": "0.3.18",
           "applications": {
             "zotero": {
               "strict_min_version": "10.0.1",

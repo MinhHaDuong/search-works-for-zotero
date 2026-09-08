@@ -249,7 +249,7 @@ var SDT_TEXT = {
     "basis-bytes": "per byte",
     "diagnostics-phase": "State: {phase}",
     "diagnostics-census": "Census: {scanned} / {total}",
-    "diagnostics-completed": "Created this session: {count}",
+    "diagnostics-completed": "Attachments indexed this session: {count}",
     "census-total-label": "Attachments counted in all",
     "status-current": "Indexed and up to date",
     "status-missing-pack": "Waiting to be indexed",
@@ -262,7 +262,7 @@ var SDT_TEXT = {
     "status-missing-source": "File missing from this disk",
     "status-excluded": "Trashed, or not an attachment",
     "status-unsupported": "No extractor for this format",
-    "diagnostics-error": "Error: {error}",
+    "diagnostics-error": "Last extraction problem: {error}",
     "cache-not-saved": "Cache not saved: {error}",
     "debug-label": "Log every step to Zotero’s debug output",
     "journal-copy": "Copy the log",
@@ -892,16 +892,25 @@ function describeSDTStatusLabel(status) {
    being rebuilt from empty while `total` still holds the last generation's.
    Zero rows are dropped — an account lists what is there — so the sum is over
    what a reader can actually add up. */
-/* A plain two-column table: label, then its number flush against the right
-   edge of the widest number, with no punctuation between them. One column
-   width for the whole table, the total's longer label included, so every
-   number lines up under every other — "the numbers in the accounting should
-   be right aligned in their column" (found live, testing v0.3.15). */
-function formatSDTColumns(entries) {
-  const labelWidth = Math.max(0, ...entries.map(([label]) => label.length));
-  const valueWidth = Math.max(0, ...entries.map(([, value]) => value.length));
-  return entries.map(([label, value]) =>
-    `${label.padEnd(labelWidth)}  ${value.padStart(valueWidth)}`);
+/* A real `<table>`, not padded text: a `<pre>` reflows to the dialog's own UI
+   font (`font: inherit`, proportional), where no two space-padded columns of
+   digits line up under each other — a right-aligned cell does, in any font
+   (found live, testing v0.3.17, after the padded-text version had already
+   shipped and still didn't align). Rebuilt whole on every call rather than
+   diffed; the row count changes across a census and this runs far below
+   10 Hz. */
+function fillSDTTable(doc, tbody, entries) {
+  const XHTML = 'http://www.w3.org/1999/xhtml';
+  tbody.replaceChildren(...entries.map(([label, value]) => {
+    const row = doc.createElementNS(XHTML, 'tr');
+    const labelCell = doc.createElementNS(XHTML, 'td');
+    labelCell.textContent = label;
+    const valueCell = doc.createElementNS(XHTML, 'td');
+    valueCell.textContent = value;
+    valueCell.style.cssText = 'text-align: right; padding-left: 1em; white-space: nowrap;';
+    row.append(labelCell, valueCell);
+    return row;
+  }));
 }
 
 /* A key from Zotero's own statistics object, read as a label rather than a
@@ -934,7 +943,7 @@ function describeSDTCensusAccount(counts) {
   // scan line above already says 0 / 0.
   if (!entries.length) return [];
   entries.push([sdtText('census-total-label'), sdtNumber(total)]);
-  return formatSDTColumns(entries);
+  return entries;
 }
 
 /* Four segments joined by one em dash.
@@ -1164,7 +1173,7 @@ function buildSDTDiagnostics(doc, element) {
   // it is the one line that explains a number shown above — the estimate rests on
   // this count and this covariate — where everything below is about the add-on
   // rather than about the library.
-  group.append(summary, element('pre', 'sdt-observations'), row,
+  group.append(summary, element('pre', 'sdt-observations'), element('pre', 'sdt-error'), row,
     element('pre', 'sdt-admission'),
     copy, element('pre', 'sdt-journal-copy-status'), element('pre', 'sdt-journal'));
   return group;
@@ -1362,30 +1371,27 @@ function renderState() {
     // one number two ways, and its plural comes from the locale.
     doc.getElementById('sdt-failures').textContent = describeSDTFailures(s.failed);
     // Order matters, and it is the ruling's: the state of the machine, then the
-    // scan's own progress, then the session counter — and only then the account,
-    // so its total is the last thing on the block and nothing is printed under
-    // the bottom line that a reader could mistake for another row. The error and
-    // the cache warning are exceptions rather than rows, and they appear only
-    // when there is one, which is why they may sit below without reading as a
-    // continuation of the column.
-    const diagnosticsHead = [
+    // scan's own progress, then the session counter — and only then the account
+    // (its own table, below this text). The cache warning is an exception
+    // rather than a row, and appears only when there is one. The error moved
+    // to Technical diagnostics (found live, testing v0.3.17): a single
+    // extraction failure is routine and already carries its own row in the
+    // account below, and reading it as "Error:" at the top of the window this
+    // add-on's own README shows a reader with no prior warning overclaimed
+    // what one failed attachment among many means.
+    doc.getElementById('sdt-diagnostics').textContent = [
       sdtText('diagnostics-phase', { phase: s.phase }),
       sdtText('diagnostics-census', { scanned: s.scanned, total: s.total }),
       // `completed` accumulates over the whole session and says so; it is not a
       // census class and does not belong among the rows the census total sums.
       sdtText('diagnostics-completed', { count: s.completed }),
-      s.error ? sdtText('diagnostics-error', { error: s.error }) : '',
       // The cache is derived and disposable, so a failed write changes nothing
       // about what is indexed and belongs in the disclosure rather than beside
       // the totals — but it was set and read nowhere at all, which made an
       // unwritable data directory a silence instead of a line.
       s.cacheWarning || '',
     ].filter(Boolean).join('\n');
-    const accountRows = describeSDTCensusAccount(s.counts);
-    // A blank line, not `.filter(Boolean)`, marks the table as a table and not
-    // one more reading in the column above it (found live, testing v0.3.15).
-    doc.getElementById('sdt-diagnostics').textContent = accountRows.length
-      ? `${diagnosticsHead}\n\n${accountRows.join('\n')}` : diagnosticsHead;
+    fillSDTTable(doc, doc.getElementById('sdt-census-body'), describeSDTCensusAccount(s.counts));
     const progress = doc.getElementById('sdt-progress');
     progress.hidden = s.active === null;
     if (s.active !== null && Number.isFinite(s.progress)) progress.value = s.progress;
@@ -1418,6 +1424,8 @@ function renderState() {
     // closed independently of the debug/log one beside it.
     if (about.open) doc.getElementById('sdt-environment').textContent = describeSDTEnvironment();
     if (technical.open) {
+      doc.getElementById('sdt-error').textContent =
+        s.error ? sdtText('diagnostics-error', { error: s.error }) : '';
       doc.getElementById('sdt-admission').textContent = describeSDTAdmission();
       doc.getElementById('sdt-journal').textContent = describeSDTJournalTail(50);
     }
@@ -1456,6 +1464,8 @@ function openDialog(window) {
       const node = doc.createElementNS('http://www.w3.org/1999/xhtml', tag);
       node.id = id;
       if (tag === 'progress') { node.max = 100; node.style.width = '100%'; }
+      else if (tag === 'table') node.style.cssText = 'border-collapse: collapse; margin-top: 8px;';
+      else if (tag === 'tbody') { /* rows carry their own cell styling */ }
       else node.style.cssText = 'white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; line-height: 1.5;';
       return node;
     };
@@ -1488,8 +1498,17 @@ function openDialog(window) {
     control.style.cssText = 'display: flex; gap: 12px; align-items: center; ' +
       'justify-content: space-between; margin: 0 0 16px;';
     const state = element('span', 'sdt-switch-state');
+    // The state text is prose and may wrap; `min-width: 0` is what lets a flex
+    // child actually shrink to make room instead of forcing the row wider.
+    state.style.cssText += 'flex: 1 1 auto; min-width: 0;';
     const toggle = element('button', 'sdt-switch');
     toggle.setAttribute('type', 'button');
+    // `element()`'s default styling is written for the prose blocks and
+    // carries `white-space: pre-wrap`, which let the button's own two words
+    // wrap onto two lines and turn it into a square at some widths, a
+    // rectangle at others (found live, testing v0.3.17). A button is not
+    // prose; it keeps its native single-line sizing.
+    toggle.style.cssText = 'white-space: nowrap; flex-shrink: 0;';
     toggle.addEventListener('click', () => toggleSDTSwitch());
     control.append(state, toggle);
     body.append(control);
@@ -1516,11 +1535,15 @@ function openDialog(window) {
     const details = element('details', 'sdt-details');
     const summary = element('summary', 'sdt-details-title');
     summary.textContent = sdtText('details-title');
-    details.append(summary, element('pre', 'sdt-diagnostics'));
+    const censusTable = element('table', 'sdt-census-table');
+    censusTable.append(element('tbody', 'sdt-census-body'));
+    details.append(summary, element('pre', 'sdt-diagnostics'), censusTable);
     const indexDetails = element('details', 'sdt-index-details');
     const indexSummary = element('summary', 'sdt-index-title');
     indexSummary.textContent = sdtText('fulltext-title');
-    indexDetails.append(indexSummary, element('pre', 'sdt-fulltext'));
+    const fulltextTable = element('table', 'sdt-fulltext-table');
+    fulltextTable.append(element('tbody', 'sdt-fulltext-body'));
+    indexDetails.append(indexSummary, element('pre', 'sdt-fulltext'), fulltextTable);
     details.append(indexDetails);
     // Layer 3, nested inside layer 2 and closed in its turn, each discoverable
     // without being in the way. About (the two consent-box disclosures ticket
@@ -1536,13 +1559,14 @@ function openDialog(window) {
     try {
       const stats = await Zotero.Fulltext.getIndexStats();
       // A raw JSON dump reads as a debug printout, not as an account (found
-      // live, testing v0.3.15) — the same two-column table the census uses,
-      // over whatever fields this Zotero build's own statistics carry.
+      // live, testing v0.3.15) — the same real table the census uses, over
+      // whatever fields this Zotero build's own statistics carry.
       const rows = Object.entries(stats || {}).map(([key, value]) =>
         [humanizeSDTKey(key), typeof value === 'number' ? sdtNumber(value) : String(value)]);
-      if (alive && !dialog.closed) doc.getElementById('sdt-fulltext').textContent = rows.length
-        ? `${sdtText('fulltext-body')}\n\n${formatSDTColumns(rows).join('\n')}`
-        : sdtText('fulltext-body');
+      if (alive && !dialog.closed) {
+        doc.getElementById('sdt-fulltext').textContent = sdtText('fulltext-body');
+        fillSDTTable(doc, doc.getElementById('sdt-fulltext-body'), rows);
+      }
     } catch (error) {
       if (alive && !dialog.closed) doc.getElementById('sdt-fulltext').textContent =
         sdtText('fulltext-unavailable', { error: String(error) });

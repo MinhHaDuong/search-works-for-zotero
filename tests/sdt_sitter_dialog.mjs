@@ -197,6 +197,15 @@ test('the three layers exist, in order, with diagnostics nested inside details',
   // testing v0.3.15).
   assert(doc.getElementById('sdt-switch-row').style.cssText.includes('justify-content: space-between'),
     'the switch button is not pinned to a fixed edge of its row');
+  // `element()`'s default styling carries `white-space: pre-wrap`, meant for
+  // the prose blocks; on the button it let "Turn indexing on"/"off" wrap to a
+  // second line at some widths, turning it into a square (found live, testing
+  // v0.3.17). The button overrides it to a single line; the state text is
+  // free to wrap in its place.
+  assert(doc.getElementById('sdt-switch').style.cssText.includes('white-space: nowrap'),
+    'the switch button can still wrap onto a second line');
+  assert(doc.getElementById('sdt-switch-state').style.cssText.includes('min-width: 0'),
+    'the state text cannot shrink to make room for the button');
   // Same caveat: this only proves the reservation exists, not that the box
   // stops visibly collapsing between files — the defect this line guards
   // against (found live, testing v0.3.15).
@@ -209,12 +218,16 @@ test('layer 1 still carries progress, and layer 2 still carries the counts', () 
   assert.equal(doc.getElementById('sdt-global-progress').parentNode.id, 'sdt-global-section');
   assert.equal(doc.getElementById('sdt-progress').parentNode.id, 'sdt-document-section');
   assert(doc.getElementById('sdt-diagnostics').textContent.includes('Census: 3 / 3'));
-  // A table now, not a JSON dump (found live, testing v0.3.15): a row named
-  // after the field, not the field's own printed representation.
-  const indexedRow = doc.getElementById('sdt-fulltext').textContent.split('\n')
-    .find(line => line.startsWith('Indexed'));
+  // A real `<table>` now, not a JSON dump and not padded text (found live,
+  // testing v0.3.15, then v0.3.17 once the padding turned out not to align in
+  // the dialog's own proportional font): a row named after the field, its
+  // count in a cell of its own.
+  const indexedRow = doc.getElementById('sdt-fulltext-body').childNodes
+    .find(row => row.childNodes[0].textContent === 'Indexed');
   assert(indexedRow, 'the native index statistics did not land');
-  assert.equal(Number(indexedRow.replace(/[^0-9]/g, '')), 3);
+  assert.equal(Number(indexedRow.childNodes[1].textContent), 3);
+  assert(indexedRow.childNodes[1].style.cssText.includes('text-align: right'),
+    'the count cell is not right-aligned');
 });
 
 /* Ticket 0742. The switch is layer 1's first control, and "off" is a state the
@@ -341,34 +354,28 @@ test('the census reads as an account: words, then a total at the bottom', () => 
   Object.assign(counts, { current: 13699, unsupported: 2600, 'missing-source': 367,
     'failed-session': 39, 'missing-pack': 1 });
   ui.render();
-  const lines = doc.getElementById('sdt-diagnostics').textContent.split('\n');
+  const body = doc.getElementById('sdt-census-body');
+  const rowLabel = row => row.childNodes[0].textContent;
+  const rowValue = row => Number(row.childNodes[1].textContent.replace(/[^0-9]/g, ''));
 
-  // No internal key survives as a label, exactly (a column of padding follows
-  // every label, so this checks the label ends where the raw key does, not
-  // merely that a line starts with it — "unsupported" must not pass for
-  // "unsupported-pack" or vice versa). `failed-session` is the exact string
-  // the author read on screen and objected to. The table has no colon since
-  // the author read one live and asked for a plain column instead.
+  // No internal key survives as a label, exactly (a raw key found here is the
+  // exact defect: `failed-session` is the string the author read on screen
+  // and objected to). The account is a `<table>` now, so no colon and no
+  // hand-aligned column exists to check for — the cell IS the column (found
+  // live, testing v0.3.15, then v0.3.17 for the alignment itself).
   for (const key of ['unsupported', 'missing-source', 'failed-session', 'missing-pack']) {
-    assert(!lines.some(line => line.split(/ {2,}/)[0] === key),
+    assert(!body.childNodes.some(row => rowLabel(row) === key),
       `the raw status key ${key} is still the label a reader is shown`);
   }
   // The conflating aggregate is gone: every one of its constituents is now on a
   // row of its own, so nothing is lost and nothing is summed that should not be.
-  assert(!lines.some(line => line.includes('Could not be indexed (last census)')),
+  assert(!body.childNodes.some(row => rowLabel(row).includes('Could not be indexed (last census)')),
     'the line that added files-not-on-this-disk to real failures is still there');
-  // A blank line marks the table as a table, distinct from the readings above
-  // it (found live, testing v0.3.15).
-  const blankAt = lines.indexOf('');
-  assert.notEqual(blankAt, -1, 'no blank line separates the account from the readings above it');
-  const accountLines = lines.slice(blankAt + 1);
-  assert(!accountLines.some(line => line.includes(':')),
-    'a colon survives in the account table');
 
   const row = label => {
-    const found = lines.find(line => line.startsWith(label));
-    assert(found, `no row named ${label}: ${lines.join(' | ')}`);
-    return Number(found.replace(/[^0-9]/g, ''));
+    const found = body.childNodes.find(candidate => rowLabel(candidate) === label);
+    assert(found, `no row named ${label}: ${body.childNodes.map(rowLabel).join(' | ')}`);
+    return rowValue(found);
   };
   assert.equal(row('Indexed and up to date'), 13699);
   assert.equal(row('No extractor for this format'), 2600);
@@ -377,39 +384,34 @@ test('the census reads as an account: words, then a total at the bottom', () => 
   assert.equal(row('Waiting to be indexed'), 1);
 
   // The total is last, and it is the sum of the rows above it — 13 699 + 2 600 +
-  // 367 + 39 + 1 = 16 706, the author's own arithmetic. Right-aligned against
-  // every other row's number, in the same column (found live, testing
-  // v0.3.15) — the widest label's row is the one that touches the column.
-  const last = lines[lines.length - 1];
-  assert(last.startsWith('Attachments counted in all'), `the total is not at the bottom: ${last}`);
-  assert.equal(Number(last.replace(/[^0-9]/g, '')), 16706);
-  // Same line length for every row is exactly "flush against one right edge":
-  // both padEnd(labelWidth) and padStart(valueWidth) are constant across rows,
-  // so their sum only holds if every number ends at the same column.
-  const rows = lines.slice(blankAt + 1).filter(Boolean);
-  assert.equal(new Set(rows.map(line => line.length)).size, 1,
-    `rows do not share one column width: ${rows.join(' | ')}`);
+  // 367 + 39 + 1 = 16 706, the author's own arithmetic.
+  const last = body.childNodes[body.childNodes.length - 1];
+  assert.equal(rowLabel(last), 'Attachments counted in all',
+    `the total is not at the bottom: ${rowLabel(last)}`);
+  assert.equal(rowValue(last), 16706);
+  // Every value cell right-aligned, in any font — the point of a real
+  // `<table>` over the padded text it replaced (found live, testing v0.3.17).
+  assert(body.childNodes.every(candidate =>
+    candidate.childNodes[1].style.cssText.includes('text-align: right')),
+    'a value cell is not right-aligned');
 
   // A status nobody named must be visible, not silently dropped from an account
   // that still claims to add up.
   Object.assign(counts, { 'a-status-nobody-named': 7 });
   ui.render();
-  const withUnknown = doc.getElementById('sdt-diagnostics').textContent.split('\n');
-  assert(withUnknown.some(line => line.split(/ {2,}/)[0] === 'a-status-nobody-named'
-    && Number(line.replace(/[^0-9]/g, '')) === 7),
+  assert(body.childNodes.some(candidate => rowLabel(candidate) === 'a-status-nobody-named'
+    && rowValue(candidate) === 7),
     'an unnamed status vanished from the account');
-  assert.equal(Number(withUnknown[withUnknown.length - 1].replace(/[^0-9]/g, '')), 16713);
+  const withUnknownTotal = body.childNodes[body.childNodes.length - 1];
+  assert.equal(rowValue(withUnknownTotal), 16713);
 
   // Before the first census there are no rows, and a lone total of zero would be
   // a measurement where there is none. The scan line above already says 0 / 0.
   for (const key of Object.keys(counts)) delete counts[key];
   ui.render();
-  const empty = doc.getElementById('sdt-diagnostics').textContent;
-  assert(!empty.includes('Attachments counted in all'),
-    `an empty census still prints a total: ${empty}`);
-  assert(empty.includes('Census: '), 'the scan line went with it');
-  assert(!empty.endsWith('\n\n') && !empty.includes('\n\n\n'),
-    'an empty census leaves a dangling blank line where the table would start');
+  assert.equal(body.childNodes.length, 0, 'an empty census still prints an account');
+  assert(doc.getElementById('sdt-diagnostics').textContent.includes('Census: '),
+    'the scan line went with it');
 
   Object.assign(counts, saved);
   ui.render();
@@ -441,6 +443,31 @@ test('opening diagnostics shows the ring tail with debug logging off', () => {
   // the switch is thrown, which is the acceptance criterion.
   assert(tail.includes('progress'), 'trace records are gated behind the pref');
   assert(!tail.includes('Secret'), 'the ring tail leaked a title into the window');
+});
+
+/* Found live, testing v0.3.17: a routine single-attachment extraction failure
+   — already carried, correctly, as its own row in the census account —
+   ALSO surfaced as a top-of-window "Error:" banner in the main Details layer,
+   reading as a live alarm for something the account already shows as
+   expected and handled. Moved to Technical diagnostics, where a reader opens
+   specifically to see raw detail, and reworded so it no longer overclaims
+   "Error" for a single failed attachment among possibly thousands. */
+test('a single extraction failure reads as a technical detail, not a top-level alarm', () => {
+  assert(!doc.getElementById('sdt-diagnostics').textContent.includes('Error'),
+    'the error still surfaces in the primary Details layer');
+  const before = doc.getElementById('sdt-error').textContent;
+  assert.equal(before, '', 'a closed disclosure is being redrawn ten times a second');
+  sitter.state.error = 'Native SDT did not persist a current pack';
+  layer3.open = true;
+  ui.render();
+  const error = doc.getElementById('sdt-error').textContent;
+  assert.equal(doc.getElementById('sdt-error').parentNode.id, layer3.id,
+    'the error line is not inside Technical diagnostics');
+  assert(error.includes('Native SDT did not persist a current pack'), error);
+  assert(!error.startsWith('Error:'), 'still reads as an unqualified alarm rather than a detail');
+  sitter.state.error = null;
+  layer3.open = false;
+  ui.render();
 });
 
 test('the ring tail is not redrawn while the disclosure is closed', () => {

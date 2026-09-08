@@ -1229,6 +1229,43 @@ await test('turning indexing off mid-extraction leaves no zombie sweep, and re-e
     'two independent sweep loops are running after an off/on cycle during an extraction');
 });
 
+// Found live, testing v0.3.17: the author watched the bar freeze mid-job
+// after switching off and never reach completion, contradicting the window's
+// own disclosure ("one already under way still finishes"). The periodic
+// redraw the switch tears down was the only thing repainting the dialog, so
+// a job that kept running in the background never got to show it. Fixed by
+// having the scheduler's own progress/completion notice reach `render()`
+// directly, unconditional on `enabled` -- this test opens the real dialog and
+// watches it happen, which the scheduler-level unit test above cannot.
+await test('an open dialog shows a switched-off job reach completion, not just its own state', async () => {
+  const entered = deferred(), finish = deferred();
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+    ensure: async (id, onProgress) => {
+      onProgress(10);
+      entered.resolve();
+      await finish.promise;
+      harness.persistPack(id);
+      onProgress(100);
+      return true;
+    } });
+  harness.context.startup({ rootURI: ROOT_URI });
+  await admitted(harness, entered, 'the completion-visibility fixture');
+
+  const window = harness.windows[0];
+  harness.context.openDialog(window);
+  await harness.turn();
+  const doc = window.dialogs[0].document;
+  assert(doc.getElementById('sdt-document-status').textContent.includes('10 %'),
+    'the dialog never showed the progress it was opened to watch');
+
+  harness.context.toggleSDTSwitch();
+  finish.resolve();
+  await harness.quiet();
+  assert.equal(harness.context.sitter.state.completed, 1, 'the job never actually finished');
+  assert.equal(doc.getElementById('sdt-document-status').textContent, 'No indexing under way',
+    'the dialog is still showing a stale 10 % after the job it belonged to finished');
+});
+
 /* PASS / FAIL / NOT-RUN, rather than a boolean. A guard that greens because it
  * found nothing to check is the failure this repository keeps meeting, so the
  * empty set gets a verdict of its own and the caller has to say what it does
