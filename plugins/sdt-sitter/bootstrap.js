@@ -45,6 +45,13 @@ var timer, pulse, heartbeat, timers;
 // `var` unconditionally so the question never matters again.
 var closeJournalled = new WeakSet();
 var BUTTON = 'sdt-pack-sitter-button';
+// The overall-progress section, named once. `section()` builds its legend as
+// `${id}-title`, and `renderState` recomposes that legend on every tick to carry
+// the library scope (ticket 0717): two literals a rename could separate, where a
+// missed one leaves `getElementById` returning null forever and the scope
+// silently absent from a window that still renders. One binding, so the rename
+// cannot be half-done.
+var GLOBAL_SECTION = 'sdt-global-section';
 var SWEEP_INTERVAL_MS = 30000;
 var IDLE_SWEEP_INTERVAL_MS = 10 * 60 * 1000;
 // How long the end-of-sweep toast stays up. Presentation, like the 1400 ms
@@ -173,7 +180,7 @@ var SDT_TEXT = {
     "phase-resources-unavailable": "Paused: system resources unreadable",
     "phase-launch-declined": "Not started: turn the add-on off, then on again",
     "dialog-title": "Indexing assistant",
-    "section-global": "Overall progress — library",
+    "section-global": "Overall progress",
     "section-active": "Indexing under way",
     "details-title": "Details",
     "fulltext-title": "Full-text search index",
@@ -241,7 +248,7 @@ var SDT_TEXT = {
     "settle-failed": "“{file}” failed: {error}",
     "resources-read": "Reading resources: {error}",
     "launch-title": "Indexing assistant — experimental",
-    "launch-question": "Index the whole library tonight?",
+    "launch-question": "Index every library tonight?",
     "launch-conditions": "One file at a time, with at least 4 GiB of memory available and 8 GiB of free disk. PDFs and the full-text search index settings are left untouched.",
     "launch-worker": "The shared worker cannot be interrupted, nor given a system priority of its own. A large file can delay native work that arrived after it. The thresholds do not cap what it consumes.",
     "launch-disable": "Turning the add-on off stops new admissions; the file under way finishes. Errors stay confined to the session. A disposable local cache keeps the freshness checks and the durations; it holds no text and no running job."
@@ -1074,6 +1081,16 @@ function renderState() {
       total.median += unknown * quantile(0.5);
       total.high += unknown * quantile(0.95);
     }
+    // The heading of the section carries the scope of the figures under it
+    // (ticket 0717): the progress bar and the file count below are the whole
+    // census, and "Overall progress" alone invites the reader of a dialog opened
+    // from one collection's toolbar to read them as that collection's. Composed
+    // here rather than at populate time, and through the same composer the
+    // tooltip uses, because a group library loads lazily — a heading frozen when
+    // the dialog opened would name a set the census no longer covers.
+    const globalLegend = doc.getElementById(`${GLOBAL_SECTION}-title`);
+    if (globalLegend) globalLegend.textContent =
+      [sdtText('section-global'), describeSDTScope()].filter(Boolean).join(' — ');
     const globalProgress = doc.getElementById('sdt-global-progress');
     globalProgress.max = Math.max(1, coverage.total);
     if (coverage.known) globalProgress.value = coverage.current;
@@ -1202,7 +1219,7 @@ function openDialog(window) {
     // Layer 1, always visible and always first: progress, what is being worked
     // on, how long it has taken and when it should end. Nothing below is needed
     // to read any of it.
-    section('sdt-global-section', sdtText('section-global'), [
+    section(GLOBAL_SECTION, sdtText('section-global'), [
       ['pre', 'sdt-status'], ['progress', 'sdt-global-progress'], ['pre', 'sdt-global-estimate'],
       ['pre', 'sdt-failures']]);
     section('sdt-document-section', sdtText('section-active'), [
@@ -1600,9 +1617,17 @@ async function initialize(rootURI, token) {
   for (const window of Zotero.getMainWindows()) onMainWindowLoad({ window });
   // Four paragraphs, one message each: a translator gets sentences to work on
   // rather than one wall of text whose internal `\n\n` he has to preserve.
+  //
+  // The question asks about every library because that is what the census reads,
+  // and the set itself follows it as its own paragraph (ticket 0717) — the same
+  // composer the tooltip and the dialog heading use, so a reader cannot be given
+  // three different answers to what "everything" covers. It is dropped when
+  // nothing can be read, exactly as it is on the other two surfaces: a prompt
+  // that named no scope is degraded, one that named a wrong one is worse.
   const launch = Services.prompt.confirm(win, sdtText('launch-title'),
-    ['launch-question', 'launch-conditions', 'launch-worker', 'launch-disable']
-      .map(id => sdtText(id)).join('\n\n'));
+    [sdtText('launch-question'), describeSDTScope(),
+      ...['launch-conditions', 'launch-worker', 'launch-disable'].map(id => sdtText(id))]
+      .filter(Boolean).join('\n\n'));
   if (token !== generation) return;
   if (!launch) { sitter.state.phase = 'launch-declined; disable/re-enable to launch'; render(); return; }
   pulse = timers.setInterval(render, 100);

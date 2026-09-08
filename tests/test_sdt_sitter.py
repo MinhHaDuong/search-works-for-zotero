@@ -112,10 +112,11 @@ UI_SITES = (
     ('const quietMessage = ', ';'),
     ("getElementById('sdt-failures').textContent", ';'),
     ('doc.title = ', ';'),
-    ("section('sdt-global-section'", ']);'),
+    ('section(GLOBAL_SECTION', ']);'),
     ("section('sdt-document-section'", ']);'),
     ('indexSummary.textContent = ', ';'),
     ("getElementById('sdt-fulltext').textContent", ';'),
+    ('const globalLegend = ', 'const globalProgress'),
     ('Services.prompt.confirm(', 'if (token !== generation) return;'),
     ('describeError: (info, error) =>', 'reportError:'),
     # The disclosure layers of ticket 0693. A site added to the dialog and not
@@ -730,6 +731,54 @@ def test_toolbar_tooltip_scopes_the_coverage_to_the_libraries_it_covers():
         'the tooltip carries no coverage figure for the scope to qualify'
 
 
+def test_dialog_heading_scopes_the_progress_to_the_libraries_it_covers():
+    """Ticket 0717, the follow-up 0710 named. The dialog's overall-progress
+    section holds the same unscoped census the toolbar tooltip does, and its
+    heading read "Overall progress — library": one library, where the figure
+    below it counts every attachment in the database. The heading is where the
+    scope belongs, because the coverage figure it heads is measured over exactly
+    that set — so the heading is recomposed on render through the same composer
+    the tooltip uses, rather than frozen at populate time when a group library
+    may not have loaded yet."""
+    assert 'library' not in messages()['section-global'].lower(), \
+        'the section heading still names one library for an unscoped census'
+    site = _site('const globalLegend = ', 'const globalProgress')
+    assert 'describeSDTScope(' in site, 'the dialog heading states no library scope'
+    assert "sdtText('section-global'" in site, 'the heading holds no message id'
+
+
+def test_the_scoped_heading_and_its_coverage_figure_cannot_be_separated():
+    """Ticket 0717's first exit criterion covers the heading *and* the coverage
+    figure under it, and the heading is what scopes the figure — so the two have
+    to be built as one section, and the legend the scope is written into has to
+    be the legend that section builds. Both were literals, one in `renderState`
+    and one in `populate`, with nothing tying them: a rename of the section (0693
+    reorganizes exactly this dialog) would leave `getElementById` returning null
+    forever, the scope silently gone from a window that still renders and a suite
+    that still passes. One binding names the section, both sites read it."""
+    source = BOOTSTRAP.read_text(encoding='utf-8')
+    assert "var GLOBAL_SECTION = 'sdt-global-section';" in source, \
+        'the overall-progress section is not named once'
+    assert source.count("'sdt-global-section'") == 1, \
+        'the section id is written at a call site rather than read from the binding'
+    assert '${GLOBAL_SECTION}-title' in _site('const globalLegend = ', 'const globalProgress'), \
+        'the heading is looked up by a literal the section could be renamed out from under'
+    built = _site('section(GLOBAL_SECTION', ']);')
+    for child in ('sdt-status', 'sdt-global-progress'):
+        assert child in built, f'{child} is no longer under the scoped heading'
+
+
+def test_launch_prompt_states_the_library_scope():
+    """Ticket 0717. The prompt asked to index "the whole library" — the singular
+    the census never measured. The question names the plural, and the set itself
+    reaches the reader through describeSDTScope(), so the prompt, the tooltip and
+    the dialog heading cannot name three different scopes."""
+    assert 'whole library' not in messages()['launch-question'], \
+        'the launch prompt still asks about one library'
+    site = _site('Services.prompt.confirm(', 'if (token !== generation) return;')
+    assert 'describeSDTScope(' in site, 'the launch prompt states no library scope'
+
+
 def test_the_library_scope_is_read_from_zoteros_own_records():
     """A prefix that hardcoded "Ma bibliothèque" would pass any wording grep and
     still lie to every reader of a group library, so the assertion is on the
@@ -771,7 +820,9 @@ def test_launch_prompt_title_is_the_index_assistant():
 
 def test_launch_prompt_body_speaks_of_indexing_not_packs():
     english = messages()
-    assert 'Index the whole library' in english['launch-question']
+    # Reworded by ticket 0717: the plural is what the census measures, and the
+    # scope itself is appended at the call site by describeSDTScope().
+    assert 'Index every library' in english['launch-question']
     assert 'full-text search index' in english['launch-conditions'], \
         "Zotero's own index must be named apart from the sitter's"
     assert 'packs SDT' not in ' '.join(visible(v) for v in english.values())
