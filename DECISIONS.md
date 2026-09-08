@@ -7064,3 +7064,28 @@ about. What changes is only the span.
 Ticket 0740's other half is unaffected and was never persisted: refusing a
 document whose leading bytes contradict its declared type is recomputed from the
 file on every census and written nowhere.
+
+**2026-09-08 — RATIFIED: the sitter's own persisted switch becomes R22's "one
+obvious way", replacing add-on disable.** Ticket 0742 filed a Fable-model UX
+consult recommending that the launch prompt and the plugin's own pause be
+collapsed into one persisted on/off switch inside the dialog, superseding the
+2026-09-05 ruling that named add-on disable as R22's control. Put to the
+author as a named choice — adopt the persisted-switch design, keep add-on
+disable as the sole control, or leave the ticket parked — he chose to adopt
+it.
+
+Add-on disable keeps its graceful-stop semantics as a host-level control, but
+is no longer the R22 control: a user who wants the sitter off should not need
+four clicks into Tools -> Add-ons, and R22's own text requires "one obvious
+way... and it MUST hold across restarts", which disable-plus-launch-prompt
+never satisfied together (disable loses the UI that would show it stopped;
+the launch prompt's decline was never persisted). The new switch is: off, no
+census, no admissions, in-flight `ensure()` work finishes; on, current
+behaviour. This is not a new persisted-failure ledger — it is a user
+preference, not a job or failure record, and the 2026-09-08 session-scoped
+ruling above about failure suppression is untouched by it.
+
+This also settles the launch prompt's own defects, which shared one root
+cause with the missing switch: asking every session with no persisted answer.
+Ticket 0742 carries the full design and the remaining implementation
+actions.
