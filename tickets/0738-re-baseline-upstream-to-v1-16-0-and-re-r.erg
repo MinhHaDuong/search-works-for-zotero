@@ -5,6 +5,11 @@ Author: sim
 
 --- log ---
 2026-09-08T06:19Z sim created
+2026-09-08T06:46Z sim note baseline pinned at `4467663` and schema generation confirmed rather than assumed: `make schema-gate` passes its strict leg, which compares this repository's declaration against upstream's own constant at the new SHA, and the re-read read `const SCHEMA_VERSION = 2;` out of both trees with `git show` plus a line-by-line `createSchema` comparison. `make upstream-status` reports the pin current with `main`
+2026-09-08T06:46Z sim note five of eleven `SPEC.md` anchors were stale and are re-pointed; the positive control is that the same method returned six unmoved with their current text quoted. Each of the five was re-verified against the source by hand before the edit. One is worse than drift: `build.ts:617-620` pointed at the embed-batch dials rather than at the concurrency rule even at `5a81cee`, so the v1.15.0 report's "re-read and remains the correct anchor" was wrong on content. SPEC now records that instead of quietly correcting it
+2026-09-08T06:46Z sim note CORRECTION TO THIS TICKET'S OWN CONTEXT TABLE: the largest thread in the delta is not ours. Three of the fourteen commits and most of `index-manager.ts`'s +338/-55 answer issue #59, opened by Michael-Logies on 2026-09-06 — a plain `INSERT` aborting a whole build with `UNIQUE constraint failed: passages.id` on a mid-crawl library edit, losing a complete 97 000-passage index. The table above lists only the seven items that came from here, which is exactly how the miss happens: an issue list filtered to our own filings cannot show the release's biggest change. Recorded in `SYNC.md` too
+2026-09-08T06:46Z sim note two findings the re-read raises that this ticket does not own. The #65 pool loop re-runs both rankers per doubling — bounded at `index-manager.ts:2403`, up to fifteen extra rounds against §5.2.9's measured 567 829 passages at `limit:10` — and the worst case falls on exactly the concentrated ranking the fix is for; left as an open question with the experiment named, deliberately not multiplied out of our own scan figure, which measures a different thing. And R17 gains a gap while closing one: `duplicatePassages`/`duplicateItems` reach the logger and never `buildStatus()`, five occurrences against the neighbouring `ownWordsReason` at `:868` as the grep's positive control
+2026-09-08T06:51Z sim note the SPEC re-pointing broke `tests/test_upstream_catchup.py::test_citations_in_reads_the_real_spec_md`, which pins two real SPEC citations as a no-mock smoke check that the parser reads the committed file — and both samples it pinned were among the five anchors this ticket moved. Fixture updated to the corrected anchors, with a comment saying it is expected to move at a baseline bump and why the two samples are a single line and a range. The failure is the fixture doing its job, not collateral: it fired the moment the file it reads changed. `make check` 1285 passed, 15 skipped
 
 --- body ---
 
@@ -58,15 +63,15 @@ fix had not landed upstream — is now stale in the archive.
 
 ## Exit criteria
 
-- [ ] `UPSTREAM` names `main` at `4467663`, v1.16.0, dated 2026-09-08, with the
+- [x] `UPSTREAM` names `main` at `4467663`, v1.16.0, dated 2026-09-08, with the
       schema generation confirmed against upstream's own constant
-- [ ] `verification/UPSTREAM-1.16.0-REREAD.md` accounts for the full 14-commit
+- [x] `verification/UPSTREAM-1.16.0-REREAD.md` accounts for the full 14-commit
       delta and every affected requirement row, and names what it could not check
-- [ ] stale `SPEC.md` source citations are re-pointed, with a positive control
+- [x] stale `SPEC.md` source citations are re-pointed, with a positive control
       recorded for the search that found them
-- [ ] `SYNC.md` and `STATE.md` record the release, the six closes and PR #60
-- [ ] closed ticket 0714 carries the landing of PR #60 in its log
-- [ ] `make check` and `./tickets/erg check tickets/` pass
+- [x] `SYNC.md` and `STATE.md` record the release, the six closes and PR #60
+- [x] closed ticket 0714 carries the landing of PR #60 in its log
+- [x] `make check` and `./tickets/erg check tickets/` pass
 
 ## Boundaries
 

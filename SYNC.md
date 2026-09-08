@@ -154,6 +154,15 @@ the v1.16.0 tag; the delta from `5a81cee` is 14 commits and 54 files, reaching
 stamp when an update cannot catch up notes and annotations. Ticket 0738 owns
 the bump and `verification/UPSTREAM-1.16.0-REREAD.md` the evidence.
 
+**The largest thread in the range is not ours, and the issue list hides that.**
+Three of the fourteen commits and most of `index-manager.ts`'s churn answer
+**#59, opened by Michael-Logies on 2026-09-06**: a plain `INSERT` aborted a
+whole build with `UNIQUE constraint failed: passages.id` when the library was
+edited mid-crawl, destroying a complete 97 000-passage index about 1 300 items
+into a 10 500-item library. Per-item SQLite savepoints and `INSERT OR IGNORE`
+are the fix, and it lands on R1 and R13. Reading this release as ours would
+have missed the one change with the largest blast radius in it.
+
 ## What happened upstream
 
 The maintainer answered on 2026-08-25 — not in the thread, in the tree. He merged

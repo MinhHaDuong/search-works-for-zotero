@@ -301,6 +301,10 @@ def test_citations_in_reads_the_real_spec_md():
     function cannot parse is one `citation_drift` silently never checks."""
     spec = (REPO / "SPEC.md").read_text(encoding="utf-8")
     found = uc.citations_in(spec)
-    assert ("index-manager.ts", 641, 641) in found
-    assert ("build.ts", 617, 620) in found
+    # Both samples are re-pointed whenever a baseline bump moves the anchor they
+    # name: ticket 0738 moved them from `index-manager.ts:641` and
+    # `build.ts:617-620`, which is the churn this fixture is meant to survive.
+    # A single line and a range, because the parser handles the two differently.
+    assert ("index-manager.ts", 672, 672) in found
+    assert ("build.ts", 631, 633) in found
     assert len(found) >= 15
