@@ -1,0 +1,68 @@
+%erg 0.1
+Title: Test search readiness and independent SDT preparation
+Created: 2026-09-08
+Author: Codex
+
+--- log ---
+2026-09-08T21:29Z Codex created
+
+2026-09-08T21:30Z Codex note Filed readiness and independent-preparation comparison; implementation redesign remains outside this measurement ticket.
+2026-09-08T21:32Z Codex note Existing conductor and embedding work owns missing integration; readiness probes must reuse it and do not authorize a second sitter implementation.
+--- body ---
+## Context
+
+Child of 0754. The author identified a long initial extraction backlog as a
+barrier to useful semantic results. The comparison and pinned implementation
+links are in plugins/sdt-sitter/RELEASE-NOTES.md. #6012 searches available
+embeddings or uses hybrid lexical fallback while indexing; its attachment
+embedding pass follows extraction of the queued attachments. No measured
+whole-library duration is asserted.
+
+Read before filing: fork/src/features/search/build.ts and embeddings.ts,
+the sitter scheduler and native handoff, and SYNC.md. Upstream catch-up at
+357ad1f found new fulltext retry and semantic-mode refusal tests: inspect those
+before writing an overlapping probe. Existing target adapters are under
+bench/acceptance/; 0754 owns cross-target applicability.
+
+## Work and exit criteria
+
+- [ ] Build a bounded synthetic fixture with distinct metadata-only and
+      attachment-content queries, ready packs and a deliberately delayed
+      extraction. Observe replies before, during and after indexing.
+- [ ] Separate query response latency, time to first useful attachment-content
+      semantic result, per-stage coverage over time and eventual completion.
+      A metadata or lexical hit must not count as semantic body readiness.
+- [ ] Exercise pinned #6012 and the current runnable consumer via existing
+      adapters where possible. Record explicit skips when a target cannot
+      run; a source reading is not an end-to-end measurement.
+- [ ] Compare cold preparation with sitter-prepared current native packs on
+      equivalent fresh index states. Verify preparation causes no embedding
+      calls and the consumer reuses compatible packs; do not assume its
+      installed version has a pack-reading route. Missing integration is a
+      named gap, not a simulated passing warm arm.
+- [ ] Add controls that hold extraction unresolved and withhold a required
+      embedding. Detect search accidentally awaiting the entire build, falsely
+      complete coverage and metadata/lexical fallback mislabeled semantic.
+      Apply each target's declared behavior and SPEC contract; report a
+      difference before prescribing a new fallback policy.
+- [ ] Verify that changing chunking/model configuration does not require
+      re-extracting compatible current packs where the consumer supports that
+      handoff, and that source/processor changes cannot serve falsely current
+      downstream content or locations.
+- [ ] Commit raw traces with target heads, host, fixtures and phase clocks under
+      bench/results/ and a verification/ report cited here; declare quoted
+      measurements in bench/check_figures.py.
+- [ ] Route demonstrated defects to their current implementation owner.
+      Incremental pack consumption, a new scheduler or a new chunk/embedding
+      service are design choices, not authorized implementations in this
+      measurement ticket. No new latency threshold is invented here.
+- [ ] Update 0754's matrix and make check passes.
+
+Use disposable job state under the existing arena lifecycle. Do not launch a
+whole-library campaign merely to establish the ordering or readiness behavior.
+
+Reuse the existing conductor-integration and t0028-seg1 fork work, as mapped
+in 0754. The runnable assembly and embedding boundary already have owners
+(0566, 0554, 0575, with 0565 for segmentation wiring). A missing runnable arm
+belongs to those tickets, not a newly invented chunk/embedding sitter.
+The indexer/worker rewrite is held per STATE.md; this probe does not lift it.
