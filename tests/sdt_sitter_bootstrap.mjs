@@ -1072,6 +1072,145 @@ function discoverBootstraps(root) {
   return found.sort();
 }
 
+/* --------------------------------------------------------------------------
+   Ticket 0742: the launch answer is a persisted switch, not a startup ritual.
+
+   The three arms below are the ticket's own red fixtures, and each one was red
+   against the code this ticket replaced: the prompt fired at every Zotero
+   start, at every disable/re-enable (ticket 0727 arm 4 measured that live), and
+   declining left a sitter with a dead toolbar button whose only recovery was
+   four clicks into Tools -> Add-ons.
+
+   `calls.prompt` is the load-bearing counter. The prompt is synchronous and its
+   only trace is that number, so a test that asserted on the sitter's behaviour
+   alone would pass against a plugin that asked the question every single time
+   and then ignored the answer.
+   -------------------------------------------------------------------------- */
+await test('the launch question is asked once and never again, and the answer persists', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  await harness.start();
+  assert.equal(harness.calls.prompt, 1, 'a fresh profile was not asked');
+  assert.equal(harness.Zotero.Prefs.get('extensions.sdt-pack-sitter.enabled'), true,
+    'the answer reached no pref, so nothing could hold across a restart');
+  // The buttons are labelled to the question. OK/Cancel do not answer "Index
+  // attachments in the background, from now on?", which is defect 4 of the
+  // ticket's list; a `confirm` reverted here would not reach this assertion at
+  // all, since the mock no longer serves one.
+  assert.deepEqual(harness.calls.prompts[0].buttons, ['Start indexing', 'Not now']);
+  assert(!harness.calls.prompts[0].text.includes('tonight'),
+    'the prompt still says "tonight" for a loop that runs for as long as Zotero is open');
+
+  // The disable/re-enable of ticket 0727 arm 4, which re-asked every time.
+  harness.context.shutdown(null, 4);
+  harness.context.startup({ rootURI: ROOT_URI });
+  await harness.quiet();
+  assert.equal(harness.calls.prompt, 1, 'the re-enable asked the question again');
+  assert.equal(harness.context.alive, true, 'the re-enable left the plugin down');
+});
+
+await test('a profile that answered no runs switched off: no census, and a way back', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')], launch: false });
+  await harness.start();
+  const s = harness.context.sitter.state;
+  assert.equal(s.phase, 'switched-off');
+  // The census hashes files, so R22's "all background work" covers it. Nothing
+  // ran: no attachment was inspected, none was submitted.
+  assert.equal(s.total, 0, 'the census walked the library with indexing off');
+  assert.deepEqual(harness.calls.ensure, [], 'a file was submitted with indexing off');
+  assert.equal(harness.timers.ids('timeout').length, 0, 'a sweep is armed with indexing off');
+
+  // Off is DISCOVERABLE, which is the half declining never had: the button is
+  // installed and says so, rather than reading "Index" over a sitter that will
+  // never index anything.
+  const button = harness.windows[0].document.getElementById('sdt-pack-sitter-button');
+  assert(button, 'no toolbar button, so "off" is reachable only from the Add-ons manager');
+  assert.equal(button.getAttribute('label'), 'Indexing off');
+
+  // And it holds. A second session does not ask again and does not start.
+  harness.context.shutdown(null, 4);
+  harness.context.startup({ rootURI: ROOT_URI });
+  await harness.quiet();
+  assert.equal(harness.calls.prompt, 1, 'a declined launch was asked again next session');
+  assert.equal(harness.context.sitter.state.phase, 'switched-off');
+  assert.deepEqual(harness.calls.ensure, []);
+});
+
+await test('an answered profile is never asked, and the toolbar is installed after the question', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+    prefs: { 'extensions.sdt-pack-sitter.enabled': true } });
+  await harness.start();
+  assert.equal(harness.calls.prompt, 0, 'a profile that already answered was asked again');
+  assert.deepEqual(harness.calls.ensure, [1], 'the persisted yes did not start the sitter');
+
+  /* The ordering race, defect 6. `alive = true` and the toolbar button used to
+     be installed BEFORE the confirm, so the button appeared in the window under
+     a modal still asking whether the sitter should run — a promise made to the
+     user before he had answered, and the same class of defect ticket 0696 had
+     to guard against. Observed the only way it can be: a hook that reads the
+     window while the modal is up.
+
+     Both halves are asserted. `underTheModal` proves the hook actually ran —
+     without it a plugin that never asked at all would leave `seen` at its
+     initial value and this arm would pass by never looking. */
+  let seen = null;
+  const staged = createHarness({ attachments: [pdf(2, 'BBBB2222')],
+    onPrompt: windows => {
+      seen = windows.map(window => !!window.document.getElementById('sdt-pack-sitter-button'));
+    } });
+  await staged.start();
+  assert.deepEqual(seen, [false],
+    'the toolbar button was installed under the modal that was still asking');
+  assert.equal(staged.calls.prompt, 1, 'the ordering hook never ran; nothing was observed');
+  // And it arrives once the answer is in.
+  assert(staged.windows[0].document.getElementById('sdt-pack-sitter-button'),
+    'the button never arrived after the question was answered');
+});
+
+/* The half of the switch the three arms above could not see, found by review
+   rather than by them and worth recording as such: each of those drives the
+   switch from a RESTING sitter, and the defect only exists while a sweep is
+   suspended inside `ensure()`.
+
+   `disarmSDTSitter` clears the three timer handles, but the suspended sweep
+   closure holds none of them — it reschedules from its own `finally`, gated on
+   `alive` and `generation`, and the user's switch moves neither. So the zombie
+   rearmed itself, and the next arm added a second loop beside it: two sweeps per
+   interval for the rest of the session, which is precisely what the `pulse`
+   guard exists to prevent and precisely the path that guard cannot see.
+
+   Both assertions are load-bearing and neither implies the other. The first is
+   about the off state honouring what SPEC.md's R22 paragraph claims for it; the
+   second is about the count after a round trip, which a fix that merely stopped
+   the zombie announcing would leave broken. */
+await test('turning indexing off mid-extraction leaves no zombie sweep, and re-enabling arms one', async () => {
+  const entered = deferred(), finish = deferred();
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')],
+    ensure: async (id, onProgress) => {
+      onProgress(10);
+      entered.resolve();
+      await finish.promise;
+      onProgress(100);
+      return true;
+    } });
+  harness.context.startup({ rootURI: ROOT_URI });
+  await admitted(harness, entered, 'the switch fixture');
+
+  harness.context.toggleSDTSwitch();
+  assert.equal(harness.context.sitter.state.phase, 'switched-off');
+  // The file in flight is not cancelled — the graceful semantics the 2026-09-05
+  // ruling gave disable, and unchanged by this switch. It settles, and its
+  // settlement is what carries the suspended closure into its `finally`.
+  finish.resolve();
+  await harness.quiet();
+  assert.equal(harness.timers.ids('timeout').length, 0,
+    'a sweep is still scheduled after indexing was turned off mid-extraction');
+
+  harness.context.toggleSDTSwitch();
+  await harness.quiet();
+  assert.equal(harness.timers.ids('timeout').length, 1,
+    'two independent sweep loops are running after an off/on cycle during an extraction');
+});
+
 /* PASS / FAIL / NOT-RUN, rather than a boolean. A guard that greens because it
  * found nothing to check is the failure this repository keeps meeting, so the
  * empty set gets a verdict of its own and the caller has to say what it does

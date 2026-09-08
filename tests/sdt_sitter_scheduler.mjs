@@ -1077,7 +1077,7 @@ await test('a sweep loop left over from a previous generation announces nothing'
   const entered = deferred(), finish = deferred();
   suspendMidExtraction(stale, entered, finish);
   ui.generation = 7; ui.alive = true; ui.sitter = stale.api;
-  const running = ui.createSDTSweepLoop(7)();
+  const running = ui.createSDTSweepLoop(7, ui.sweepGeneration)();
   await entered.promise;
   // Disable, then re-enable. initialize() installs the new sitter and restores
   // `alive` before its modal confirm, so this needs no click to happen.
@@ -1096,7 +1096,7 @@ await test('a sweep loop left over from a previous generation announces nothing'
   const enteredAgain = deferred(), finishAgain = deferred();
   suspendMidExtraction(live, enteredAgain, finishAgain);
   ui.generation = 9; ui.alive = true; ui.sitter = live.api;
-  const alive = ui.createSDTSweepLoop(9)();
+  const alive = ui.createSDTSweepLoop(9, ui.sweepGeneration)();
   await enteredAgain.promise;
   finishAgain.resolve();
   await alive;

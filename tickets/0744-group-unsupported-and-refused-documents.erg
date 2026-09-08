@@ -1,0 +1,134 @@
+%erg 0.1
+Title: Group unsupported and refused documents by problem class in the sitter dialog
+Created: 2026-09-08
+Author: MinhHaDuong
+
+--- log ---
+2026-09-08T17:04Z MinhHaDuong created
+2026-09-08T17:06Z claude note split out of ticket 0742, whose implementation closed the Details-layer work this builds on. The guidance in the body is the author's own, quoted from 0742's log at 11:24Z and 11:28Z; nothing here is reinterpreted. Filed separately rather than folded in because it is a feature of its own — a problem-class mapping the census does not compute today, a per-class remedy text under a tone constraint the author owns, and a Zotero collection-creation offer, which is a library write this plugin has never made — not an extension of the layer work 0742 was doing, and 0742's exit criteria are met without it.
+
+--- body ---
+## Context
+
+The sitter's census classifies every attachment, and the Details layer now
+prints that classification as an account: one row per status, in words, with
+the total under the rows that make it up (ticket 0693, second pass). Several of
+those rows are populated by documents the sitter will never index — 2 600
+`unsupported`, 367 `missing-source`, 39 `failed-session` on the author's own
+library — and the account says how many there are and nothing about what, if
+anything, the user could do about them.
+
+The author's guidance, in session on 2026-09-08 while ticket 0742's dialog work
+was being scoped, is that the window should be helpful about that. It is
+recorded verbatim in 0742's log; the two entries are:
+
+> for a document the sitter classifies as unsupported or refused, the
+> dialog/details layer should be helpful about what the user could do to make it
+> indexable if they want to — e.g. what changes would let a mismatched-type or
+> unextractable document succeed — but this must stay informational, never
+> directive. No nagging, no "fix this" framing, no implied obligation; the user
+> is told what is possible, not what to do.
+
+> group the affected documents by problem class (a class being a shared reason
+> and a shared fix — e.g. "scanned image, no text layer" versus "snapshot failed
+> extraction"), state per class what would resolve it, and list the affected
+> items by title under that class. Then offer, not impose: ask whether the user
+> would like a Zotero collection created from that class's items, so they have
+> something concrete to act on later if they choose to — never automatic, never
+> a nag to act now.
+
+## What a problem class is, and why it is not a status
+
+`SDT_STATUS_CLASSES` partitions by what a status means for coverage arithmetic.
+A problem class partitions by shared REASON and shared FIX, and the two do not
+line up. `unsupported` alone covers at least three: an attachment format no
+extractor handles at all (a `.docx`, nothing to be done inside Zotero); a file
+whose declared type is contradicted by its own leading bytes, which since ticket
+0740 the sniffer catches — on the author's library eleven page scans stored as
+`text/html` over JPEG bytes, where the fix is re-saving the attachment with its
+true type or running OCR; and a scanned PDF with no text layer, where the fix is
+OCR and nothing else. One status, three remedies. Conversely `missing-source`
+and one flavour of `invalid-pack` may share the same remedy.
+
+So the class is a new mapping, and where it is computed matters: the sniffer's
+verdict (`SDT_SOURCE_MAGIC`, `sniffSDTSource`) already distinguishes the second
+case from the first and is discarded — the call site collapses a mismatch to
+`unsupported` and keeps nothing. That verdict is the cheapest available input
+and is the natural place to start.
+
+## The tone constraint is the hard part
+
+"Informational, never directive" is not a wording pass to be applied at the end;
+it decides the shape. A per-class line that reads as a task list is wrong even
+if every sentence is factually correct. Two rules that follow from the author's
+words: no imperative mood in the remedy text, and no count presented as a
+backlog. The collection offer is a control the user may operate, never a
+prompt that appears because the sitter thinks he should.
+
+## Relevant files
+
+- `plugins/sdt-sitter/bootstrap.js` — `describeSDTCensusAccount` (the account
+  this extends), `SDT_TEXT`, the Details layer built in `openDialog`'s
+  `populate`, `sniffSDTSource` and `SDT_SOURCE_MAGIC` (the discarded verdict)
+- `plugins/sdt-sitter/scheduler.js` — `SDT_STATUS_CLASSES`, and `inspect`'s
+  result shape in bootstrap.js, which is where a class would have to be carried
+- `tests/sdt_sitter_dialog.mjs` — drives the account against a real sweep
+- `tests/test_sdt_sitter.py` — `UI_SITES` and the vocabulary ban; a new dialog
+  site must be added there or it stops being covered
+- Ticket 0740 — the label-contradiction population, and why it is `unsupported`
+- Ticket 0742 — the Details layer this hangs in, and the author's guidance in
+  its log
+
+## Actions
+
+1. Decide the class list with the author. It is a vocabulary he reads, so it is
+   his call, not the implementer's — propose one drawn from what the census can
+   actually distinguish today, and say for each class what the sitter knows and
+   what it is guessing.
+2. Carry the class out of `inspect()` beside the status, keeping the sniffer's
+   verdict instead of collapsing it.
+3. Render, per class, in the Details layer: the remedy in the indicative, and
+   the affected titles under it. Bounded — a class holding 2 600 titles is a
+   wall, not a list; agree a cap and how the remainder is stated.
+4. Offer a Zotero collection built from one class's items, as a control the user
+   operates. Never automatic. `Zotero.Collections` is the API; the plugin has
+   never written to the library, so this is a new capability and needs its own
+   look at what it may and may not touch.
+
+## Test
+
+- Red first: a fixture library holding one document of each class renders one
+  group per class, each naming its remedy and listing its titles.
+- Red first: a document whose bytes contradict its declared type is grouped
+  apart from one whose format has no extractor at all — same status today,
+  different class, and a test that only exercises one of them cannot see the
+  collapse come back.
+- Red first: the collection is created only when the control is operated, and
+  the library is untouched until then.
+- Tone is not testable by assertion. It is a review item, and the author is the
+  reviewer.
+
+## Verification
+
+- [ ] The class list is the author's, recorded before the rendering is built
+- [ ] Each group states a remedy without an imperative and without a backlog
+      framing
+- [ ] The collection offer is inert until operated, and creates nothing else
+- [ ] `make check` passes
+
+## Invariants
+
+- The plugin still never writes to `storage/`, never changes extraction
+  settings, never replaces a source attachment. Creating a collection on the
+  user's own instruction is the one new write and is scoped to that.
+- The census account's total still equals the rows above it: grouping is a
+  second reading of the same classification, never a second arithmetic.
+- No nagging surface. Nothing here may appear unasked outside the Details layer.
+
+## Exit criteria
+
+The Details layer groups the documents the sitter will not index by problem
+class, states per class what would resolve it in the indicative, lists the
+affected titles under a bounded cap, and offers — inert until operated — a
+Zotero collection built from a class's items. The author has ruled on the class
+list and has read the rendered tone.

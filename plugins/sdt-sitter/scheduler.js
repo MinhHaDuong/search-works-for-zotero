@@ -64,6 +64,20 @@ var createSDTSitter = function (host) {
   return {
     state,
     stop() { state.enabled = false; },
+    /* stop()'s twin, for the user's own switch (ticket 0742). Before it, the
+       only way back from a stopped sitter was a fresh createSDTSitter() — which
+       throws away the census, the counters and the fitted samples, so turning
+       indexing off and on again would have re-walked the whole library and lost
+       every duration observed in the session.
+
+       The phase is reset only from 'switched-off', the state this switch itself
+       sets. A sitter stopped mid-extraction leaves `phase` stale at
+       'extracting' (see `busy` above), and overwriting that here would erase
+       the one trace of how it stopped; the next sweep sets the phase anyway. */
+    start() {
+      state.enabled = true;
+      if (state.phase === 'switched-off') state.phase = 'ready';
+    },
     async sweep() {
       if (!state.enabled || state.busy) return;
       state.busy = true;

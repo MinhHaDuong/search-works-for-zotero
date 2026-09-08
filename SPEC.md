@@ -2238,11 +2238,32 @@ paused asks). It survives restart by construction, and survives *sideline*
 by being carried into the fresh file. R1-versus-R22 resolves in the user's
 favor, disclosed: "paused since <date>".
 
-For a native SDT pack sitter, Zotero's plugin disable control stops further
-admissions and removes the sitter's UI and callbacks. The attachment already
-handed to Zotero may finish and persist its native pack; disabling does not
-cancel that work or authorize a queued library-wide drain. This graceful stop
-does not relax the separate obligation to avoid interfering with native work.
+For a native SDT pack sitter, R22's one obvious way is the sitter's own
+persisted on/off switch, carried in its window above every reading. A
+preference records the user's answer; the question is asked once per profile,
+on the first activation that finds it unanswered, and never again, so the
+answer holds across a restart and across a disable and re-enable. Off schedules
+no sweep and runs no census, and admits nothing; on is the sitter's ordinary
+behaviour. The switch is a user preference, not an active-job or failure
+ledger. Its "off" is a state the sitter runs in, with its toolbar entry and its
+window still present and saying so, rather than the silence a removed UI
+leaves. The phases the sitter gates itself on are worded as waiting, never as
+pausing, so on and off name only the user's own switch.
+
+Zotero's plugin disable control keeps its graceful host-level semantics and is
+no longer R22's control for the sitter. Disabling stops further admissions and
+removes the sitter's UI and callbacks. Turning the switch off stops further
+admissions and keeps them. Under either, the attachment already handed to
+Zotero may finish and persist its native pack; neither cancels that work or
+authorizes a queued library-wide drain. This graceful stop does not relax the
+separate obligation to avoid interfering with native work.
+
+The first-run question states what it asks and no more. It carries labelled
+buttons naming the two answers, promises no end time the loop does not have,
+claims no scope the census does not cover, and is asked before the sitter is
+armed and before its toolbar entry is installed. What the sitter does not
+control, and what turning it off does and does not do, are readable in the
+window's disclosure layer at any time rather than only in that dialog.
 
 For experimental overnight operation without competing native work, admission
 requires at least 4 GiB available RAM and 8 GiB free on the native pack's

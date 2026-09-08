@@ -210,6 +210,8 @@ function attachment(row) {
  * @param options.attachments  rows for the mock library (see `attachment`)
  * @param options.cache        initial contents of the sitter's cache file, or null
  * @param options.launch       the answer to the launch prompt (default: yes)
+ * @param options.prefs        prefs already set in the profile, `{ name: value }`
+ * @param options.onPrompt     `windows => void`, run while the launch modal is up
  * @param options.windows      how many main windows exist (default: 1)
  * @param options.meminfo      `() => string` for /proc/meminfo, or a thrower
  * @param options.loadavg      `() => string` for /proc/loadavg
@@ -227,7 +229,8 @@ export function createHarness(options = {}) {
   // Counted rather than merely observed: several scenarios turn on HOW MANY
   // times a reading was taken, which is the difference between one check per
   // admission and a poll, and between a cache hit and a native re-inspection.
-  const calls = { meminfo: 0, loadavg: 0, openPack: [], ensure: [], prompt: 0, writes: [], hash: [] };
+  const calls = { meminfo: 0, loadavg: 0, openPack: [], ensure: [], prompt: 0,
+    prompts: [], writes: [], hash: [] };
 
   // Two clocks, moving independently. `mono` is what ChromeUtils.now() answers
   // and every span in bootstrap.js is measured on; `wall` is the calendar.
@@ -339,7 +342,12 @@ export function createHarness(options = {}) {
   };
   const windows = Array.from({ length: options.windows ?? 1 }, makeWindow);
 
-  const prefs = new Map();
+  /* Seeded, so a profile that has already answered the launch question can be
+     staged (ticket 0742). A `Map` and not an object: `Zotero.Prefs.get` of an
+     unset pref must answer `undefined`, which is the tri-state's "never
+     answered" — an object with inherited keys would answer something else for
+     names like `constructor`. */
+  const prefs = new Map(Object.entries(options.prefs || {}));
   const clipboard = { text: null };
   /* Ticket 0696's end-of-sweep toast. It belongs in the mock rather than in the
      one scenario that asserts on it, because announceSDTSweep is guarded: a
@@ -492,7 +500,29 @@ export function createHarness(options = {}) {
   const context = vm.createContext({
     Zotero, IOUtils, PathUtils, TextEncoder, Cc: {}, Ci: {},
     Services: {
-      prompt: { confirm: () => { calls.prompt++; return options.launch !== false; } },
+      /* `confirmEx`, and deliberately NOT `confirm` beside it (ticket 0742).
+         The launch question now carries labelled buttons, and a mock that still
+         answered the old two-button call would let a bootstrap.js reverted to
+         OK/Cancel stay green. The button titles are captured so a test can
+         assert the question is not asked over generic buttons.
+
+         `BUTTON_POS_*` and `BUTTON_TITLE_IS_STRING` are nsIPromptService's own
+         values, not invented ones: a flag word computed from different numbers
+         would be a mock inventing the platform, which is the failure the
+         `importESModule` assertion below records. */
+      prompt: {
+        BUTTON_POS_0: 1, BUTTON_POS_1: 256, BUTTON_TITLE_IS_STRING: 127,
+        confirmEx: (_parent, title, text, flags, button0, button1) => {
+          calls.prompt++;
+          calls.prompts.push({ title, text, flags, buttons: [button0, button1] });
+          // The one moment the modal is up. A real `confirmEx` blocks here, so
+          // this hook is the only place a test can read the window as the user
+          // sees it while the question is being asked — which is the whole of
+          // ticket 0742's ordering race.
+          if (options.onPrompt) options.onPrompt(windows);
+          return options.launch === false ? 1 : 0;
+        },
+      },
       scriptloader: {
         loadSubScript: url => {
           assert.equal(url, `${ROOT_URI}scheduler.js`, 'the scheduler is not loaded from rootURI');
