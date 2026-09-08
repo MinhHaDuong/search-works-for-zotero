@@ -592,20 +592,43 @@ def test_a_regex_literal_does_not_swallow_the_call_site_beside_it(tmp_path):
     Reading comments costs a false red. Misreading *code* costs a false green,
     and a regular expression is where that happens: `/['"]/` carries both quote
     characters, so a scanner that does not know regex syntax opens a string on
-    the apostrophe and every literal after it disappears into it. `scheduler.js`
-    already splits on `/[\\\\/]/`, so this is the live shape, not an invented one.
+    the apostrophe. `scheduler.js` already splits on `/[\\\\/]/`, so the shape is
+    live rather than invented.
+
+    The regex and the call have to share a LINE for this to discriminate, and
+    that is the whole reason line 1 is written the way it is. With regex
+    literals unhandled, the apostrophe opens a literal that closes on the call
+    site's own opening quote, leaving `resource://` in code — where its `//`
+    reads as a comment and blanks the rest of the line. Measured with the
+    handling deleted: line 1 strips to ``win.require('resource:`` and spaces,
+    and the URL is gone.
+
+    The first draft of this test put them on separate lines. It passed with
+    regex handling deleted, because `end_of_quoted` stops at the newline and the
+    damage never reached the call. Recorded because the passing version looked
+    like a control and was not one.
+
+    That newline bound is the second half of the defence and this test does not
+    cover it: with regex handling present, nothing here opens a stray literal
+    for it to close. It backstops constructs the scanner misparses, which cannot
+    be enumerated — so it is reasoning, not a measurement, and the shipped-tree
+    comparison below is what actually watches for the damage it prevents.
     """
     source = tmp_path / "scheduler.js"
     source.write_text(
+        "if (/['\"]/.test(path)) win.require('resource://zotero/document-worker/sdt.js');\n"
         "const parts = String(path).split(/[\\\\/]/);\n"
         "const quoted = /['\"]/.test(path);\n"
-        "const SDT = win.require('resource://zotero/document-worker/sdt.js');\n",
+        "const meta = win.require('resource://zotero/document-worker/metadata.json');\n",
         encoding="utf-8",
     )
 
     sites = named_resource_urls(tmp_path)
 
-    assert sites == {"resource://zotero/document-worker/sdt.js": ["scheduler.js:3"]}, sites
+    assert sites == {
+        "resource://zotero/document-worker/sdt.js": ["scheduler.js:1"],
+        "resource://zotero/document-worker/metadata.json": ["scheduler.js:4"],
+    }, sites
 
 
 def test_no_url_the_live_tree_writes_in_code_is_lost_to_comment_stripping():
