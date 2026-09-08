@@ -74,6 +74,11 @@ var ENABLED_PREF = 'extensions.sdt-pack-sitter.enabled';
 // sweep long after initialize() returned, and a sweep armed against a stale
 // token is the cross-generation defect ticket 0696 shipped.
 var activeToken = 0;
+/* The sweep loop's own generation, burned every time the switch goes off. It is
+   NOT `generation`: that one is the plugin's activation, and burning it here
+   would stand down the cache writer and every other closure that reads it, for
+   a switch flip that tears nothing down. See createSDTSweepLoop. */
+var sweepGeneration = 0;
 // SPEC.md owns these two numbers; this file needs them to compare against, and
 // the diagnostics layer needs to print them. One statement each, so a threshold
 // moved in the gate cannot leave a stale figure on screen beside the reading.
@@ -521,6 +526,18 @@ function announceSDTSweep(before) {
    resumed closure would then diff one sitter's snapshot against another's
    counters and toast whatever the subtraction happened to say.
 
+   TWO tokens, not one, and the second is ticket 0742's (found by review, not by
+   the tests written for it). `generation` changes only when the plugin is torn
+   down and stood back up; the user's own switch changes neither it nor `alive`,
+   so a sweep suspended inside `ensure()` when the switch went off would run this
+   `finally` with both checks satisfied and reschedule itself. Turning the switch
+   back on then armed a SECOND loop beside the zombie, and the session ran two
+   sweeps per interval for the rest of its life — the exact defect the comment on
+   `armSDTSitter`'s `pulse` guard names, reached by a path that guard cannot see.
+   `sweepGeneration` is burned by `disarmSDTSitter()` for the same reason
+   `generation` is burned by `shutdown()`, and both are read here through
+   `current()` so the announcement and the reschedule cannot drift apart.
+
    The reschedule below already carried the same check, for the neighbouring
    reason: a stale loop that rescheduled would run two sweeps per interval. It is
    in a `finally` because it is the single point whose loss stops the sitter for
@@ -533,16 +550,17 @@ function announceSDTSweep(before) {
    which is a gate that never opens — the mutation above. Outside the try because
    there is nothing to catch: this reads two integers off a live binding, and if
    that binding is gone the loop has no sweep to run either. */
-function createSDTSweepLoop(token) {
+function createSDTSweepLoop(token, sweepToken) {
+  const current = () => alive && token === generation && sweepToken === sweepGeneration;
   const sweep = async () => {
     const before = { completed: sitter.state.completed, failed: sitter.state.failed };
     try {
       await sitter.sweep();
-      if (token === generation) announceSDTSweep(before);
+      if (current()) announceSDTSweep(before);
     } catch (error) {
       emit('sweep-error', { error: classifyError(error) }, 'error');
     } finally {
-      if (alive && token === generation) {
+      if (current()) {
         timer = timers.setTimeout(sweep, nextSweepDelayMS(sitter.state));
       }
     }
@@ -699,7 +717,7 @@ function armSDTSitter() {
   sitter.start();
   pulse = timers.setInterval(render, 100);
   heartbeat = timers.setInterval(heartbeatTick, 60000);
-  timer = timers.setTimeout(createSDTSweepLoop(activeToken), 0);
+  timer = timers.setTimeout(createSDTSweepLoop(activeToken, sweepGeneration), 0);
   render();
 }
 
@@ -712,6 +730,10 @@ function armSDTSitter() {
    button and the window remain, so "off" is a state the user can see and
    leave, not the silence a removed UI leaves behind. */
 function disarmSDTSitter() {
+  // Burned FIRST, before anything can await: a sweep suspended inside `ensure()`
+  // resumes into its `finally` with this already moved, so it declines to
+  // reschedule instead of leaving a zombie chain the next arm would double.
+  ++sweepGeneration;
   if (timers) { timers.clearTimeout(timer); timers.clearInterval(pulse); timers.clearInterval(heartbeat); }
   timer = pulse = heartbeat = undefined;
   sitter?.stop();

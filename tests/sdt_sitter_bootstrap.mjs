@@ -1166,6 +1166,51 @@ await test('an answered profile is never asked, and the toolbar is installed aft
     'the button never arrived after the question was answered');
 });
 
+/* The half of the switch the three arms above could not see, found by review
+   rather than by them and worth recording as such: each of those drives the
+   switch from a RESTING sitter, and the defect only exists while a sweep is
+   suspended inside `ensure()`.
+
+   `disarmSDTSitter` clears the three timer handles, but the suspended sweep
+   closure holds none of them — it reschedules from its own `finally`, gated on
+   `alive` and `generation`, and the user's switch moves neither. So the zombie
+   rearmed itself, and the next arm added a second loop beside it: two sweeps per
+   interval for the rest of the session, which is precisely what the `pulse`
+   guard exists to prevent and precisely the path that guard cannot see.
+
+   Both assertions are load-bearing and neither implies the other. The first is
+   about the off state honouring what SPEC.md's R22 paragraph claims for it; the
+   second is about the count after a round trip, which a fix that merely stopped
+   the zombie announcing would leave broken. */
+await test('turning indexing off mid-extraction leaves no zombie sweep, and re-enabling arms one', async () => {
+  const entered = deferred(), finish = deferred();
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')],
+    ensure: async (id, onProgress) => {
+      onProgress(10);
+      entered.resolve();
+      await finish.promise;
+      onProgress(100);
+      return true;
+    } });
+  harness.context.startup({ rootURI: ROOT_URI });
+  await admitted(harness, entered, 'the switch fixture');
+
+  harness.context.toggleSDTSwitch();
+  assert.equal(harness.context.sitter.state.phase, 'switched-off');
+  // The file in flight is not cancelled — the graceful semantics the 2026-09-05
+  // ruling gave disable, and unchanged by this switch. It settles, and its
+  // settlement is what carries the suspended closure into its `finally`.
+  finish.resolve();
+  await harness.quiet();
+  assert.equal(harness.timers.ids('timeout').length, 0,
+    'a sweep is still scheduled after indexing was turned off mid-extraction');
+
+  harness.context.toggleSDTSwitch();
+  await harness.quiet();
+  assert.equal(harness.timers.ids('timeout').length, 1,
+    'two independent sweep loops are running after an off/on cycle during an extraction');
+});
+
 /* PASS / FAIL / NOT-RUN, rather than a boolean. A guard that greens because it
  * found nothing to check is the failure this repository keeps meeting, so the
  * empty set gets a verdict of its own and the caller has to say what it does

@@ -675,10 +675,15 @@ def test_no_user_facing_string_says_document():
 
 
 def phase_names() -> set[str]:
-    """The internal phase names, which are keys of `SDT_PHASE_LABELS` and one of
-    which reads like a sentence: `'launch-declined; disable/re-enable to
-    launch'`. Read from the source rather than listed, so a phase renamed in
-    `bootstrap.js` does not leave an exemption behind that covers nothing."""
+    """The internal phase names, which are the keys of `SDT_PHASE_LABELS`.
+
+    Read from the source rather than listed, so a phase renamed in `bootstrap.js`
+    does not leave an exemption behind that covers nothing — and this is not a
+    hypothetical: the key that motivated the exemption, `'launch-declined;
+    disable/re-enable to launch'`, was retired by ticket 0742 and replaced by
+    `'switched-off'`, which reads as an identifier and needs no exemption at all.
+    A listed set would still be carrying the dead one.
+    """
     table = _site('var SDT_PHASE_LABELS = {', '};')
     return {match for match in re.findall(r"^\s*'([^']+)':", table, re.MULTILINE)}
 
@@ -1031,7 +1036,7 @@ def test_the_sweep_toast_is_gated_on_work_the_sweep_actually_did():
     initialize() for that reason and is driven whole, against real sweeps and a
     real generation change, in tests/sdt_sitter_scheduler.mjs.
     """
-    site = _site('function createSDTSweepLoop(token) {', '\n}')
+    site = _site('function createSDTSweepLoop(token, sweepToken) {', '\n}')
     snapshot = site.index('sitter.state.completed')
     swept = site.index('await sitter.sweep()')
     announced = site.index('announceSDTSweep(before)')
@@ -1056,11 +1061,21 @@ def test_every_deferred_callback_checks_the_generation_it_was_armed_in():
     the gate alone in tests/sdt_sitter_scheduler.mjs; what is asserted here is
     the file-wide convention it broke, since a second deferred callback added
     without the check would reintroduce the same class in a new place."""
-    loop = _site('function createSDTSweepLoop(token) {', '\n}')
-    assert 'if (token === generation) announceSDTSweep(before)' in loop, \
+    loop = _site('function createSDTSweepLoop(token, sweepToken) {', '\n}')
+    # Both reads go through one predicate since ticket 0742, so the announcement
+    # and the reschedule cannot come to disagree about which loop is current.
+    assert 'if (current()) announceSDTSweep(before)' in loop, \
         'the announcement is spent against whatever generation happens to be current'
-    assert 'if (alive && token === generation)' in loop, \
+    assert 'if (current()) {' in loop, \
         'a stale loop reschedules itself, running two sweeps per interval'
+    assert 'alive && token === generation' in loop, \
+        'the loop no longer checks the activation it was armed in'
+    # And the second dimension, which the plugin generation cannot cover: the
+    # user's own switch tears nothing down, so a sweep suspended inside ensure()
+    # when it went off resumed into this finally with `alive` and `generation`
+    # both unchanged, rescheduled, and was doubled by the next arm.
+    assert 'sweepToken === sweepGeneration' in loop, \
+        'a sweep suspended across a switch-off reschedules itself'
     # The bindings the race walks through must reach a sandbox load, or the
     # regression test cannot stage it and this convention goes back to being
     # asserted by reading. `let` at script top level does not.
