@@ -1,0 +1,96 @@
+%erg 0.1
+Title: Release-readiness review of upstream v1.16.0 — triage and staged filings
+Created: 2026-09-08
+Author: sim
+Closed: five issues, two PRs and a six-finding private report filed upstream; #67-#73, GHSA-wm62-f2g5-j33x
+
+--- log ---
+2026-09-08T07:04Z sim created
+2026-09-08T07:04Z sim note ID allocated by hand at 0739 rather than by `erg new`, which would have said 0738: that ID is taken by this session's own baseline branch, already pushed as PR #450 and therefore invisible to a scan of the local checkout. 0736 is likewise taken, by the unmerged `t0736-upstream-issues` branch. Both are the optimistic-allocation trap in its ordinary form
+2026-09-08T07:04Z sim note five seats read `910310b` in parallel on Fable 5.1, decorrelated from the Opus session that briefed and triaged them: security, data safety, correctness, dependencies, red team. Ten findings carried, no release-blocker. NO SEAT EXECUTED ANYTHING — the clone carries no `node_modules` and none was installed — so no finding rests on a test result, and one seat's "sibling test is red today" is a prediction from reading, corrected here rather than relayed
+2026-09-08T07:04Z sim note three findings re-verified against the source by hand before any of this was written: the `clearFulltext`/`clearOwnWords` code asymmetry, the `cimd.ts` IPv4-mapped guard, and `downloadAttachment`'s absent guard call. The other seven are the seats' own readings, cited and marked as such in the triage
+2026-09-08T07:04Z sim note PR1 and PR2 prepared against `4467663` by two agents, each red-then-green on a committed unfixed tree, patches verified by `git am` onto a fresh checkout. The PR1 agent went looking for a sharper hazard, found its test passed unfixed, and dropped it rather than ship a vacuous case; the PR2 agent measured a seven-state matrix by running the handler rather than reading the source, and found a second state the report had not named. Both baselines agree independently at 1250 passed on `4467663`
+2026-09-08T07:04Z sim note NOTHING SENT. No PR opened upstream, no issue filed, no security advisory submitted. The send decision is the author's
+
+2026-09-08T07:34Z sim note PR1 REVISED AFTER AN ADVERSARIAL REVIEW THAT OVERTURNED ITS AUTHOR. The `invalidateCodes()` half the author had recorded as untestable prevents a query CRASH, not a recall drift: on the unfixed tree, a warm resident cache plus a catch-up on the item holding the max rowid plus a query racing the embedder await throws `TypeError: Cannot read properties of null (reading 'byteOffset')` — the row is re-inserted at the reused rowid with `vector = NULL`, the stale cache still lists it, and `rescoreStatement` (`sqlite-index.ts:1656`) has no `vector IS NOT NULL` filter. The reviewer's discriminating control, re-run by the author in its own tree: keep the source-scoped deletes, remove only the two `invalidateCodes()` lines, and the TypeError returns — so both halves are independently load-bearing, measured rather than argued. Third test added, three reds on the unfixed tree, 1253 passed on the fixed
+2026-09-08T07:34Z sim note A CLAIM I RELAYED WITHOUT CHECKING WAS FALSE, and it nearly cost a correct commit. The PR1 reviewer reported that no commit merged upstream from this fork carries `Co-Authored-By` or `Claude-Session` trailers, and I passed that on as an instruction to strip them. Measured directly: ten upstream commits carry `Claude-Session`, six ours and FOUR THE MAINTAINER'S OWN (`b132f2d`, `481dbde`, `06f252c`, `ad7c434`). Instruction withdrawn, trailers kept. What survives is the authorship half, and it is real: across all 331 commits in upstream history not one is authored by a non-human identity, and PR1's was `Claude <noreply@anthropic.com>` — re-authored. The two reviewers contradicted each other on this, and one command settled it; neither seat's word was evidence
+2026-09-08T07:34Z sim note PR2 SENT BACK WITH A BLOCKING REGRESSION its own author could not have seen from the states it measured. The new gate keys on `hasEmbedder` = `Boolean(embedder) && !embedderError` (`index-manager.ts:576-578`), and `embedderError` is sticky — cleared only by `build`, `buildIncremental` and `updateIncremental`, never by a later success — while `query()` keys on the provider object (`:2378`) and therefore retries. Measured on both trees with a flaky embedder: base recovers with 2 hits and one embed call, patched returns an error with zero embed calls and stays dead until an index job runs. None of upstream's 1253 tests pins that path, which is why the patched suite was green with the regression in it
+2026-09-08T07:34Z sim note FIVE ISSUE DRAFTS WRITTEN AND RE-VERIFIED, none retracted. Eleven line references corrected against the seat reports, all cosmetic. One finding got materially stronger under checking: for the full-text catch-up, `crawlOptions` ALREADY supplies `fulltextFailures` from `opened.readFailures()` (`build.ts:566`) and spreads it into `updateIncremental` (`:524`) — the update lane simply never reads it, while `buildIncremental` does at `:1412-1413`. That turns "add a signal" into "consult the signal you already pass". One factual claim was withdrawn: the dependencies seat said a grep for `citationstyles.org` returns nothing; it does not, `README.md:49` and `:115` both link it, so the citeproc draft was narrowed to what is genuinely absent
+2026-09-08T07:34Z sim note THE SAME DEFECT APPEARED IN A THIRD SEAT, which makes it the pattern of this round rather than an accident: the safety seat's test sketches carried `FAILS today` annotations, and no test ran in that session — the same shape as the correctness seat's "sibling test is red today". Both were caught before filing and both are carried as acceptance criteria to be written, never as results. A seat that cannot execute must not write in the past tense, and the cheap guard is to ask of every past-tense claim which command produced it
+2026-09-08T07:39Z sim note PR2 REVISED, AND IT REFUSED BOTH ROUTES I OFFERED, on measurement rather than taste. I relayed the reviewer's two options — gate on `embedderConfigured === 'off'`, or move the check after `query()` — and the author took neither. Both key on embedder HEALTH; it gated on `embedderId` (`backend.ts:604`, undefined exactly when no provider exists), which is the same thing `query()` tests at `:2375`, so it means "no query can ever be embedded here" rather than "the provider failed once and the flag is stuck". It then constructed the state that condemns the post-query route: `VectorStore.search` filters `score > 0`, so a query that embeds successfully and honestly matches nothing is reachable, and after a blip that query returns `embedCalls=1, hits=0, embedderActive=false` — the post-query gate would refuse a query it had just embedded. That also removed the need for the `hits.length === 0` proxy I had asked it to comment as a stand-in. The regression was worse than the review found: after the refusal fired, `auto` on the same index still embedded and returned hits, so the patched tool was refusing a mode using an embedder it was simultaneously using elsewhere
+2026-09-08T07:39Z sim note THE RECOVERY TEST IS GREEN ON BASE AND SAYS SO. It is a guard, not a red step, and its positive control is the REJECTED revision `04350e2`, where it fails on the spurious `isError`. Without that control it would be exactly the vacuous kind this project keeps catching — green everywhere, proving nothing. Recorded because it is the first time in this round a seat supplied its own control for a test that could not have a red step
+2026-09-08T07:39Z sim note ALL FILED, on the author's instruction, and read back from the forge rather than trusted from the create calls. Public issues oscardvs/zoteus#67 (full-text catch-up, #63's sibling), #68 (two-process stamp), #69 (pdfjs Node floor), #70 (citeproc attribution), #71 (untrusted library content). Pull requests #72 (vector codes) and #73 (semantic refusal), both from branches on `MinhHaDuong/zoteus`. Private report GHSA-wm62-f2g5-j33x, state `triage`, carrying six findings — the three held since 2026-09-07 plus the SSRF pair and the `fly.toml` metrics exposure. The author overrode my proposed pacing (file 1 and 2, space the rest) and my suggestion to consider routing #71 privately; both were proposals, and the instruction was to file everything
+2026-09-08T07:39Z sim closed — five issues, two PRs and a six-finding private report filed upstream; #67-#73, GHSA-wm62-f2g5-j33x
+--- body ---
+
+## Context
+
+Upstream shipped v1.16.0 while this repository's review baseline named v1.15.0.
+Ticket 0738 moves the baseline; this ticket owns the separate question of what
+the release is worth shipping, read against release criteria rather than
+against our requirement rows.
+
+Five seats read `910310b` in parallel, each on its own lens, each instructed to
+cite file and line, trace one concrete failure per finding, fire a positive
+control before reporting a null, and rank for a maintainer who closes issues by
+building the fix within hours.
+
+## What the round establishes
+
+The conventional attack surface is closed, and that is recorded so the next
+round does not re-derive it: FTS5 term quoting with bound parameters, prepared
+statements throughout, a 128 MB EPUB inflate cap with zip64 rejected, a 20 MB
+PDF cap with `isEvalSupported:false`, realpath confinement on the caller path,
+OAuth with PKCE and an encrypted token store, constant-time secret comparison,
+key redaction before every log write, and no telemetry on the default path.
+The candidate-pool widening shipped for #65 terminates; the non-termination
+hazard the red-team brief named is not present in this tree.
+
+What the round found divides in three: silent-wrong-state defects in the index
+machinery, one SSRF story told twice, and a design-sized exposure that no patch
+closes. The triage, the ten findings and the ranked disposition live in
+`verification/REVIEW-v1.16.0-QA.md`; the five seat reports are preserved
+verbatim in `verification/qa-v1.16.0/`.
+
+## Prepared, not sent
+
+- `verification/upstream-prep/PR1-vector-codes.patch` — `clearFulltext` and
+  `clearOwnWords` delete passages and leave their `vector_codes`, so after the
+  first catch-up over a coded index every semantic query falls back to the
+  exact scan that #30 exists to avoid. Two `source`-scoped deletes plus the
+  cache invalidation, the scoping matching the existing passage deletes exactly.
+- `verification/upstream-prep/PR2-semantic-refusal.patch` — `mode:"semantic"`
+  answers `No matches` where the tool promises to refuse, when the index holds
+  vectors and embeddings are off. A second state, an embedder configured but
+  never started, changes with it; flagged in the body as a one-clause revert if
+  the maintainer disagrees.
+
+Each carries a PR body draft beside it.
+
+## Actions
+
+1. Author decides what is sent, and by which route. The security-shaped
+   findings should not go out as public issues: #66 asked for private
+   vulnerability reporting precisely so a channel would exist, and the
+   maintainer enabled it and wrote `SECURITY.md` the same evening.
+2. File the public issues for the non-security findings, one per defect.
+3. Write the test for the deletion-side page shift before filing it. The seat
+   traced it on the #59 fixture and predicted the sibling case red; a prediction
+   is not a measurement, and this project's own bar applies to a filing as much
+   as to a patch.
+
+## Exit criteria
+
+- [x] Five seats reported; findings triaged with severity and disposition
+- [x] Seat reports preserved in the repository rather than left in a scratchpad
+- [x] The three load-bearing findings re-verified against source by hand
+- [x] PR1 and PR2 prepared red-then-green with patches that apply cleanly
+- [x] Author's send decision recorded, and each finding routed public or private
+- [x] `make check` and `./tickets/erg check tickets/` pass
+
+## Boundaries
+
+No requirement row moves on this evidence: source reading cannot promote a row
+to `measured`, and nothing here ran against a live library. Ticket 0738 owns
+the baseline and the requirement verdicts. Nothing in this ticket authorises an
+outward action.
