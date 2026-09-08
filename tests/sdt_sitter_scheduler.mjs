@@ -535,10 +535,14 @@ await test('an idle library backs off; anything left to do keeps the 30 s cadenc
   assert.equal(worked.api.state.pending.length, 0);
   assert.equal(worked.api.state.candidates, 2);
   assert.equal(ui.nextSweepDelayMS(worked.api.state), 30000);
-  // And a sweep halted by a resource gate has work waiting: look again soon.
+  // Ticket 0745. A sweep halted by a resource gate backs off to the idle
+  // cadence, not the 30 s active one: the gate names a resource the machine
+  // does not currently have, not work the sitter is doing, and retrying it
+  // every 30 s made the plugin busiest exactly when it had decided the
+  // machine was too busy.
   const held = fixture(); held.host.blocked = async () => 'low-disk';
   await held.api.sweep();
-  assert.equal(ui.nextSweepDelayMS(held.api.state), 30000);
+  assert.equal(ui.nextSweepDelayMS(held.api.state), 30000 * 20);
   // A census that threw also found no candidate, and it is the case the count
   // alone cannot tell from a finished library. Only the phase separates them,
   // and a broken census must be retried in seconds, not in ten minutes.
