@@ -1,0 +1,220 @@
+From dcaf67d28bc96f02bec74d7a5c36f8380090a6cc Mon Sep 17 00:00:00 2001
+From: Minh Ha-Duong <minh.haduong@gmail.com>
+Date: Tue, 8 Sep 2026 08:52:01 +0200
+Subject: [PATCH 1/2] test(search): mode:"semantic" over vectors with no
+ embedder must refuse, not answer nothing
+
+---
+ tests/features/embedder-degradation.test.ts | 66 +++++++++++++++++++++
+ 1 file changed, 66 insertions(+)
+
+diff --git a/tests/features/embedder-degradation.test.ts b/tests/features/embedder-degradation.test.ts
+index 33a1824..538c2c3 100644
+--- a/tests/features/embedder-degradation.test.ts
++++ b/tests/features/embedder-degradation.test.ts
+@@ -194,6 +194,72 @@ describe('zotero_semantic_search with no vectors', () => {
+   });
+ });
+ 
++describe('zotero_semantic_search with vectors but nothing to embed the query', () => {
++  /**
++   * The state an index reaches when it was built with an embedder and the server was then
++   * restarted with ZOTEUS_EMBEDDINGS=off: the vectors are still on disk and are kept (they
++   * are not known-wrong, only unusable), so `hasVectors` is true and the 0-vector refusal
++   * does not fire. Semantic mode still cannot rank, because ranking needs the query
++   * embedded too — and `embedderNotice` is deliberately silent about a provider that was
++   * switched off on purpose, so nothing else explains the empty page either.
++   */
++  async function vectorsWithoutEmbedder(configured: string, unavailable?: string): Promise<SearchIndex> {
++    const embedder: EmbeddingProvider = {
++      name: 'openai',
++      model: 'text-embedding-3-small',
++      embed: async (texts) => texts.map(() => [1, 0, 0]),
++    };
++    const built = new MemorySearchIndex({ embedder, configured: 'openai', logger: silentLogger });
++    await built.build(items);
++    const saved = JSON.parse(JSON.stringify(built.toJSON()));
++    // Provenance is what the vectors were built with; a server with no embedder of its own
++    // has nothing to compare it against, so the rows survive the load either way.
++    delete saved.embedderId;
++
++    const search = new MemorySearchIndex({ embedder: null, configured, unavailable, logger: silentLogger });
++    search.loadFromJSON(saved);
++    return search;
++  }
++
++  it('errors instead of answering "No matches" when embeddings are switched off', async () => {
++    const search = await vectorsWithoutEmbedder('off');
++    expect(search.hasVectors).toBe(true);
++    expect(search.hasEmbedder).toBe(false);
++
++    const res = await semanticSearch.handler({ q: 'deep learning', mode: 'semantic' }, { search } as any);
++
++    // The whole point: an empty hit list here is indistinguishable from a library that
++    // holds nothing on the subject, and no notice covers a deliberate `off`.
++    expect(res.isError).toBe(true);
++    expect(res.content[0].text).not.toMatch(/^No matches/);
++    expect(res.content[0].text).toMatch(/ZOTEUS_EMBEDDINGS/);
++    expect(res.content[0].text).toMatch(/mode:"keyword"/);
++    expect(res.structuredContent?.hits).toEqual([]);
++    expect(res.structuredContent?.embedderConfigured).toBe('off');
++    expect(res.structuredContent?.embedderActive).toBe(false);
++  });
++
++  it('names the provider and its cause when one was configured but is not running', async () => {
++    const search = await vectorsWithoutEmbedder('local', missingTransformersHint({ dist: 'mcpb' }));
++
++    const res = await semanticSearch.handler({ q: 'deep learning', mode: 'semantic' }, { search } as any);
++
++    expect(res.isError).toBe(true);
++    expect(res.content[0].text).toMatch(/@huggingface\/transformers/);
++    expect(res.structuredContent?.embedderConfigured).toBe('local');
++  });
++
++  it('still answers in auto and keyword mode, which do not need the query embedded', async () => {
++    const search = await vectorsWithoutEmbedder('off');
++
++    for (const args of [{ q: 'deep learning' }, { q: 'deep learning', mode: 'keyword' as const }]) {
++      const res = await semanticSearch.handler(args, { search } as any);
++      expect(res.isError).toBeUndefined();
++      expect((res.structuredContent?.hits as any[]).length).toBeGreaterThan(0);
++    }
++  });
++});
++
+ describe('local-embedding diagnostics name the path that was searched (#38)', () => {
+   /** A directory that resolves nothing: the shape of a mistyped or stale settings value. */
+   const emptyRoot = () => mkdtempSync(join(tmpdir(), 'zoteus-wrong-'));
+-- 
+2.53.0
+
+
+From 04350e2813cd050013812cd3d4b2eded3f3f9333 Mon Sep 17 00:00:00 2001
+From: Minh Ha-Duong <minh.haduong@gmail.com>
+Date: Tue, 8 Sep 2026 08:59:15 +0200
+Subject: [PATCH 2/2] fix(search): refuse mode:"semantic" when nothing can
+ embed the query, not just when vectors are missing
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Semantic ranking needs both ends of the comparison — vectors in the index, and
+an embedder to turn the query into one — but the refusal only tested the first.
+An index built with an embedder and reopened with ZOTEUS_EMBEDDINGS=off keeps
+its vectors: reconcileVectorProvenance has no current identity to compare them
+against, so they are unusable rather than known-wrong and stay on the rows. That
+makes hasVectors true, so the 0-vector refusal never fires; query() then closes
+the keyword ranker (mode !== 'semantic' is false) and never builds a query
+vector (opts.embedder is undefined), and returns []. The tool renders that as a
+bare `No matches for "…"`, which is exactly the #7 failure mode the refusal
+exists to prevent — an empty page indistinguishable from a library that holds
+nothing on the subject. Nothing else covers it either: embedderNotice is
+deliberately silent when embeddings were switched off on purpose, so the one
+sentence that would have explained the empty page is suppressed by design.
+
+The gate now tests hasVectors AND hasEmbedder, and the message names which half
+is missing. The 0-vector wording is unchanged; the new branch says how many
+vectors are stranded and either points at ZOTEUS_EMBEDDINGS or names the
+configured provider and why it is not running. It is the same refusal an index
+with no vectors and a downed embedder already got, which differed only in
+whether the index happened to hold rows the query could not reach.
+
+Unaffected: "auto" and "keyword", which do not need the query embedded, and a
+provider that fails during the query itself — embedderActive is still true when
+the gate runs, and the existing post-query notice reports it.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JjUPSUzz4wLjNTNPLSLzir
+---
+ CHANGELOG.md                 | 16 ++++++++++++++++
+ src/tools/semantic-search.ts | 26 +++++++++++++++++++-------
+ 2 files changed, 35 insertions(+), 7 deletions(-)
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 2407308..80bf61a 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -4,6 +4,22 @@ All notable changes to Zoteus are documented here. The format is based on
+ [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to
+ [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+ 
++## [Unreleased]
++
++### Fixed
++- **`mode:"semantic"` no longer answers "No matches" when nothing can embed the query.**
++  Semantic ranking needs both ends of the comparison — vectors in the index, and an
++  embedder to turn the query into one — but the refusal only tested the first. An index
++  built with an embedder and reopened with `ZOTEUS_EMBEDDINGS=off` keeps its vectors (they
++  are unusable, not known-wrong), so `hasVectors` stayed true, the refusal did not fire,
++  and the query fell through to a ranker with no query vector and a keyword ranker closed
++  by `mode:"semantic"`. The result was a bare `No matches for "…"`, indistinguishable from
++  a library that genuinely holds nothing on the subject; `embedderNotice` is deliberately
++  silent about a provider switched off on purpose, so nothing else explained it either.
++  Semantic mode now refuses whenever there is no embedder, names which of the two halves
++  is missing, and points at `mode:"keyword"`. `auto` and `keyword` are unaffected, and a
++  provider that fails mid-query still reports itself through the existing notice.
++
+ ## [1.16.0] - 2026-09-07
+ 
+ ### Fixed
+diff --git a/src/tools/semantic-search.ts b/src/tools/semantic-search.ts
+index 6be39e2..48a971a 100644
+--- a/src/tools/semantic-search.ts
++++ b/src/tools/semantic-search.ts
+@@ -17,7 +17,7 @@ const semanticSearch: ToolDefinition = {
+   name: 'zotero_semantic_search',
+   title: 'Semantic / hybrid library search',
+   description:
+-    'Search the library by meaning, not just keywords. Combines BM25 keyword scoring with vector similarity (when an embedding provider is configured) via reciprocal-rank fusion, and returns the best-matching items with a snippet and score. By default it searches item metadata and abstracts; if the index was built with `fulltext` on (zotero_index fulltext:true, or ZOTEUS_INDEX_FULLTEXT=true) it also searches the body text of attachments, and a hit whose snippet came from a PDF body is marked source:"fulltext". It ALSO searches the words the reader wrote — child notes and PDF annotations (highlight text and comments) — unless that was turned off (ZOTEUS_INDEX_OWN_WORDS=false); a hit from one is marked source:"note" or source:"annotation" and is attributed to the item it hangs off, so an item with forty annotations is one result rather than forty. `mode`: "auto" (hybrid, default), "keyword" (BM25 only), or "semantic" (vector only). "semantic" needs vectors in the index: when the configured embedder is not running (e.g. the on-device model runtime is not installed) it returns an error naming the cause instead of an empty result set, and "auto" keeps working as keyword search while saying so. The index must be built once before first use: when it is empty this tool starts a background build automatically (`auto_build`, on by default) and tells you to poll zotero_index action:"status" and retry — pass `auto_build:false` to opt out. For exact field/tag/itemType filtering use zotero_search_items instead; use this for conceptual/"papers about X" queries. To read the actual passages of a found item (with page locators) use zotero_get_fulltext.',
++    'Search the library by meaning, not just keywords. Combines BM25 keyword scoring with vector similarity (when an embedding provider is configured) via reciprocal-rank fusion, and returns the best-matching items with a snippet and score. By default it searches item metadata and abstracts; if the index was built with `fulltext` on (zotero_index fulltext:true, or ZOTEUS_INDEX_FULLTEXT=true) it also searches the body text of attachments, and a hit whose snippet came from a PDF body is marked source:"fulltext". It ALSO searches the words the reader wrote — child notes and PDF annotations (highlight text and comments) — unless that was turned off (ZOTEUS_INDEX_OWN_WORDS=false); a hit from one is marked source:"note" or source:"annotation" and is attributed to the item it hangs off, so an item with forty annotations is one result rather than forty. `mode`: "auto" (hybrid, default), "keyword" (BM25 only), or "semantic" (vector only). "semantic" needs both vectors in the index and a running embedder to turn the query into one: when either is missing (embeddings switched off, or e.g. the on-device model runtime is not installed) it returns an error naming the cause instead of an empty result set, and "auto" keeps working as keyword search while saying so. The index must be built once before first use: when it is empty this tool starts a background build automatically (`auto_build`, on by default) and tells you to poll zotero_index action:"status" and retry — pass `auto_build:false` to opt out. For exact field/tag/itemType filtering use zotero_search_items instead; use this for conceptual/"papers about X" queries. To read the actual passages of a found item (with page locators) use zotero_get_fulltext.',
+   inputSchema: {
+     q: z.string().min(1).describe('Natural-language query.'),
+     limit: z.number().int().min(1).max(50).optional().describe('Max results (default 10).'),
+@@ -93,26 +93,38 @@ const semanticSearch: ToolDefinition = {
+       };
+     }
+     const status = ctx.search.buildStatus();
+-    // Semantic mode ranks by vectors alone. With none in the index every query returns an
+-    // empty list, which reads exactly like "your library has nothing on this": the failure
+-    // mode reported in #7. Refuse instead, and name the cause.
++    // Semantic mode ranks by vectors alone, and that needs both ends of the comparison:
++    // vectors in the index, and an embedder to turn the query into one. Missing either,
++    // every query returns an empty list, which reads exactly like "your library has
++    // nothing on this": the failure mode reported in #7. Refuse instead, and name the
++    // cause. The embedder half is the quieter one, because an index built with vectors
++    // and reopened with ZOTEUS_EMBEDDINGS=off keeps them (they are unusable, not
++    // known-wrong) — so the 0-vector test alone lets it through, and `embedderNotice` is
++    // deliberately silent about a provider switched off on purpose.
+     // A store that could not be opened explains itself; this branch would otherwise tell
+     // the caller their index holds no vectors and to rebuild it, which is true and beside
+     // the point. Falling through lets query() refuse with the file and the command.
+-    if (args.mode === 'semantic' && !ctx.search.hasVectors && !ctx.search.storeFault) {
+-      const why =
++    if (args.mode === 'semantic' && !(ctx.search.hasVectors && ctx.search.hasEmbedder) && !ctx.search.storeFault) {
++      const noVectors =
+         // A model switch is the one cause that names its own remedy, so it wins over the
+         // generic "no vectors yet" line.
+         status.vectorsStaleReason ??
+         (ctx.search.embedderActive
+           ? 'The index holds no vectors yet. Rebuild it with zotero_index action:"build" (an index built while the embedder was unavailable stays keyword-only until rebuilt).'
+           : `No vectors exist because the embedder is not active: ${ctx.search.embedderReason ?? 'unavailable'}`);
++      const noEmbedder =
++        status.embedderConfigured === 'off'
++          ? 'Embeddings are switched off (ZOTEUS_EMBEDDINGS=off), so the stored vectors have nothing to be ranked against. Set ZOTEUS_EMBEDDINGS back to the provider that built them to rank by meaning again.'
++          : `The configured ${status.embedderConfigured} embedder is not running: ${ctx.search.embedderReason ?? 'unavailable'}`;
++      const cause = ctx.search.hasVectors
++        ? `this index holds ${status.vectors} vectors but nothing can embed the query. ${noEmbedder}`
++        : `this index has 0 vectors. ${noVectors}`;
+       return {
+         content: [
+           {
+             type: 'text',
+             text:
+-              `mode:"semantic" cannot run: it ranks by vector similarity only, and this index has 0 vectors. ${why} ` +
++              `mode:"semantic" cannot run: it ranks by vector similarity only, and ${cause} ` +
+               'Re-run with mode:"keyword" (or the default "auto") to search this library right now.',
+           },
+         ],
+-- 
+2.53.0
+

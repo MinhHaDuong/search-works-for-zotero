@@ -1,0 +1,313 @@
+From a2f7fef6ada635bd4c48ecda51ced5b92fc9d7bf Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 8 Sep 2026 08:59:19 +0200
+Subject: [PATCH] fix(search): take an item's binary codes with the passages a
+ catch-up clears (#30)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+deleteItem drops a whole item's codes before its passages go, because codes are
+keyed by rowid and after the delete there is nothing left to name them by. Its
+two partial siblings did not. clearFulltext and clearOwnWords remove one item's
+body passages, or its notes and annotations, together with the vectors those
+passages carry, and left every code taken from them behind.
+
+Those two are the catch-up passes an action:"update" runs. Opening a PDF makes
+Zotero extract its text and touches no item version (#26); writing a note
+versions the child and not the parent (#33); so these are the only paths that
+reach either kind of text, and both replace the item's passages wholesale. One
+update over an index that carries codes therefore leaves one orphan code per
+replaced passage, permanently: refreshCodes only writes codes for vectors that
+have none, so nothing later removes them. loadCodes counts one code per stored
+vector, finds more codes than vectors, and declines — every semantic query goes
+back to the exact scan the codes exist to avoid, on every query, until someone
+runs a full action:"build". Nothing reports it beyond the scan notice on
+action:"status", which is why this can sit unnoticed on a working index.
+
+The delete is scoped by source rather than reusing deleteItemCodes. That
+statement takes every code of the item, and clearFulltext deliberately leaves
+the item's metadata passages in place: stripping their codes would exchange a
+surplus for a shortfall and decline the coded path just the same, for rows
+nothing touched.
+
+invalidateCodes() is called too, for the same reason every other path that
+removes or replaces a vector calls it. The resident cache names rowids, and
+between a clear and the update's own finalizeVectors there is an await on the
+embedder: a query arriving in that window would otherwise be answered from a
+cache naming rows that no longer exist, and stage one would score candidates
+chosen on the sign bits of text this index no longer holds. Rebuilding the
+cache is one pass over a table sized 384 bytes a passage, and putVector already
+invalidates once per embedded passage, so this adds no cost a build did not
+already pay.
+
+Two cases, red before this change: a full-text catch-up and an own-words
+catch-up over a 600-item index above the candidate floor, each asserting that
+the codes still cover the vectors exactly, that no code names a passage the
+index no longer holds, and that the next semantic query is still served by the
+codes rather than by the scan.
+
+A third case was written and dropped: a catch-up on the LAST item indexed,
+where SQLite hands the cleared rowid straight back and the replacement inherits
+its predecessor's code with the counts still matching. It passes without this
+change, because putVector resolves a passage id to its rowid and deletes
+whatever code sits there before writing the new vector. The rowid-reuse hazard
+the deleteItemCodes comment warns about is real for a passage that is never
+re-embedded, and that case is caught by the count check like any other orphan.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JjUPSUzz4wLjNTNPLSLzir
+---
+ CHANGELOG.md                            |  16 +++
+ src/features/search/sqlite-index.ts     |  18 ++++
+ tests/features/search-two-stage.test.ts | 136 +++++++++++++++++++++++-
+ 3 files changed, 169 insertions(+), 1 deletion(-)
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 2407308..7a578e6 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -4,6 +4,22 @@ All notable changes to Zoteus are documented here. The format is based on
+ [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to
+ [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+ 
++## [Unreleased]
++
++### Fixed
++- **The first `action:"update"` after a build no longer costs every later semantic query the
++  two-stage vector path (#30).** An update runs two catch-up passes that replace one item's
++  passages wholesale — the full-text pass that picks up newly extracted attachment text
++  (#26), and the own-words pass that re-reads an edited note or annotation (#33). Both
++  removed those passages and their vectors and left the binary codes taken from them behind,
++  where a whole-item delete had always taken them with it. One code per replaced passage
++  then described a row the index no longer held; the coverage check that reads the codes
++  counts one per stored vector, found more codes than vectors, and sent every semantic query
++  back to the exact scan the codes exist to avoid — the 42x this path was landed for — until
++  someone noticed and ran a full `action:"build"`. Nothing said so beyond the scan notice on
++  `zotero_index action:"status"`. Both clears now drop the codes of the passages they remove,
++  scoped by source so the item's other passages keep theirs.
++
+ ## [1.16.0] - 2026-09-07
+ 
+ ### Fixed
+diff --git a/src/features/search/sqlite-index.ts b/src/features/search/sqlite-index.ts
+index 4edd831..882400a 100644
+--- a/src/features/search/sqlite-index.ts
++++ b/src/features/search/sqlite-index.ts
+@@ -321,6 +321,8 @@ interface Statements {
+   // The two-stage vector path (#30). Everything below reads or maintains `vector_codes`.
+   insertCode: StatementSync;
+   deleteItemCodes: StatementSync;
++  deleteFulltextCodes: StatementSync;
++  deleteOwnWordsCodes: StatementSync;
+   deletePassageCode: StatementSync;
+   anyCode: StatementSync;
+   allCodes: StatementSync;
+@@ -1039,6 +1041,16 @@ export class SqliteSearchIndex extends SearchIndexBase {
+       // insert once it is the largest one free. So a code MUST leave with the passage it
+       // was taken from: left behind, it would eventually describe a different passage.
+       deleteItemCodes: db.prepare('DELETE FROM vector_codes WHERE pid IN (SELECT pid FROM passages WHERE item_key = ?)'),
++      // Scoped by source, and deliberately not the statement above: the two partial clears
++      // leave the item's other passages in place, so a delete over the whole item would
++      // strip the codes off rows nothing touched and send every later query back to the
++      // exact scan for the coverage gap it opened.
++      deleteFulltextCodes: db.prepare(
++        "DELETE FROM vector_codes WHERE pid IN (SELECT pid FROM passages WHERE item_key = ? AND source = 'fulltext')",
++      ),
++      deleteOwnWordsCodes: db.prepare(
++        "DELETE FROM vector_codes WHERE pid IN (SELECT pid FROM passages WHERE item_key = ? AND source IN ('note', 'annotation'))",
++      ),
+       deletePassageCode: db.prepare('DELETE FROM vector_codes WHERE pid = (SELECT pid FROM passages WHERE id = ?)'),
+       anyCode: db.prepare('SELECT 1 AS present FROM vector_codes LIMIT 1'),
+       allCodes: db.prepare('SELECT pid, code FROM vector_codes ORDER BY pid'),
+@@ -1359,6 +1371,10 @@ export class SqliteSearchIndex extends SearchIndexBase {
+    */
+   protected clearFulltext(itemKey: string): void {
+     this.begin();
++    // Before the passages go, exactly as in deleteItem: the codes are keyed by their
++    // rowids, and after the delete there is nothing left to name them by.
++    if (this.hasCodes) this.stmts.deleteFulltextCodes.run(itemKey);
++    this.invalidateCodes();
+     const rows = this.stmts.itemFulltext.all(itemKey) as Array<{ pid: number; text: string; has_vector: number }>;
+     for (const row of rows) {
+       this.stmts.deleteFts.run(row.pid, normalizeForSearch(row.text));
+@@ -1377,6 +1393,8 @@ export class SqliteSearchIndex extends SearchIndexBase {
+   /** The own-words twin of `clearFulltext`, down to the external-content delete protocol. */
+   protected clearOwnWords(itemKey: string): void {
+     this.begin();
++    if (this.hasCodes) this.stmts.deleteOwnWordsCodes.run(itemKey);
++    this.invalidateCodes();
+     const rows = this.stmts.itemOwnWords.all(itemKey) as Array<{ pid: number; text: string; has_vector: number }>;
+     for (const row of rows) {
+       this.stmts.deleteFts.run(row.pid, normalizeForSearch(row.text));
+diff --git a/tests/features/search-two-stage.test.ts b/tests/features/search-two-stage.test.ts
+index d92a112..809b0e6 100644
+--- a/tests/features/search-two-stage.test.ts
++++ b/tests/features/search-two-stage.test.ts
+@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
+ import { tmpdir } from 'node:os';
+ import { basename, dirname, join } from 'node:path';
+ import { createSearchIndex, nodeSqliteAvailable, sqliteIndexPath } from '../../src/features/search/factory.js';
+-import type { SearchIndex } from '../../src/features/search/backend.js';
++import type { OwnWordsAccess, OwnWordsEntry, SearchIndex } from '../../src/features/search/backend.js';
+ import type { EmbeddingProvider } from '../../src/features/search/embeddings.js';
+ 
+ /**
+@@ -89,6 +89,48 @@ async function corpus(opts: CorpusOptions = {}): Promise<{ index: SearchIndex; j
+   return { index, jsonPath };
+ }
+ 
++/**
++ * A corpus whose items carry body text, built through the incremental path so the index
++ * stores a full-text cursor. Both are what an `action:"update"` catch-up needs: without a
++ * cursor the pass is narrowed to items holding no body passages at all, which is the one
++ * shape where the clear it runs has nothing to remove.
++ */
++async function bodyCorpus(count: number): Promise<{ index: SearchIndex; jsonPath: string; keys: string[] }> {
++  const dir = mkdtempSync(join(tmpdir(), 'zoteus-ann-body-'));
++  const jsonPath = join(dir, 'search-index.json');
++  const all = items(count);
++  const keys = all.map((i) => i.key as string);
++  const index = await createSearchIndex({
++    backend: 'sqlite',
++    jsonPath,
++    embedder: new DenseEmbedder(),
++    logger: silentLogger,
++  });
++  await index.buildIncremental(
++    async (start: number) =>
++      start === 0 ? { items: all, totalResults: count, lastModifiedVersion: 7 } : { items: [], totalResults: count },
++    {
++      fulltextFor: async (key: string) => `the body of ${key}, on widgets and the gears they drive`,
++      fulltextKeys: async () => new Set(keys),
++      // A stored cursor, so a later update asks the full-text sequence what has been
++      // extracted since it rather than treating the whole library as a coverage gap.
++      fulltextVersion: () => 100,
++    },
++  );
++  await index.save();
++  return { index, jsonPath, keys };
++}
++
++/** One item's notes and annotations, as the update's census serves them. */
++function ownWordsAccess(noteVersion: number, text: string, itemKey: string): OwnWordsAccess {
++  return {
++    childVersions: async () => new Map([[`${itemKey}N`, noteVersion]]),
++    itemsFor: async () => new Set([itemKey]),
++    textsFor: async (key: string) =>
++      key === itemKey ? [{ key: `${itemKey}N`, kind: 'note', text }] : ([] as OwnWordsEntry[]),
++  };
++}
++
+ /** The protected ranker, as the fusion calls it: ids and scores, best first. */
+ function rank(index: SearchIndex, query: number[], topK: number): Array<{ id: string; score: number }> {
+   return (index as unknown as { vectorSearch(q: number[], k: number): Array<{ id: string; score: number }> }).vectorSearch(
+@@ -106,6 +148,22 @@ function codeRows(dbPath: string): { codes: number; vectors: number; dim: string
+   return { codes, vectors, dim };
+ }
+ 
++/**
++ * Codes naming a passage the index no longer holds. Nothing can fill them in, and SQLite
++ * hands their rowids to the next inserts, so this count is the invariant the two
++ * catch-up passes below are asserted against.
++ */
++function orphanCodes(dbPath: string): number {
++  const db = new DatabaseSync(dbPath);
++  const n = (
++    db
++      .prepare('SELECT count(*) AS n FROM vector_codes c LEFT JOIN passages p ON p.pid = c.pid WHERE p.pid IS NULL')
++      .get() as { n: number }
++  ).n;
++  db.close();
++  return n;
++}
++
+ /** Strip an index back to what a build before this feature wrote: no codes, no mean. */
+ function removeCodes(dbPath: string): void {
+   const db = new DatabaseSync(dbPath);
+@@ -318,6 +376,82 @@ describe('the codes stay level with the vectors', () => {
+     }
+   });
+ 
++  sqliteIt('takes the codes with the body passages a full-text catch-up replaces', async () => {
++    const { index, jsonPath, keys } = await bodyCorpus(600);
++    const dbPath = sqliteIndexPath(jsonPath);
++    try {
++      expect(codeRows(dbPath).codes).toBe(1200);
++      // Opening a PDF makes Zotero extract its text and touches no item version, so this
++      // is the pass that reaches that item: its body passages are replaced wholesale
++      // (their ids are reused by the new text) while its metadata passages stay put.
++      await index.updateIncremental({
++        backend: 'local',
++        fetchChanged: async () => ({ items: [], totalResults: 0, lastModifiedVersion: 8 }),
++        liveKeys: async () => new Set(keys),
++        fulltextFor: async (key: string) => `the revised body of ${key}, on sprockets and escapements`,
++        fulltextKeys: async () => new Set(keys),
++        fulltextCatchUp: async () => ({ itemKeys: new Set(['K0001']), version: 101 }),
++      });
++      await index.save();
++
++      const rows = codeRows(dbPath);
++      expect(rows.codes).toBe(rows.vectors);
++      expect(orphanCodes(dbPath)).toBe(0);
++      // And the point of keeping them level: the next semantic query is still served by
++      // the codes, instead of falling back to the exact scan this path exists to avoid.
++      const hits = rank(index, vectorFor('a query after the catch-up'), 10);
++      expect(hits).toHaveLength(10);
++      expect(index.buildStatus().vectorScan).toBe('codes');
++      expect(index.buildStatus().vectorScanNotice).toBeUndefined();
++    } finally {
++      await index.close();
++    }
++  });
++
++  sqliteIt('takes the codes with the own words an update rewrites', async () => {
++    const dir = mkdtempSync(join(tmpdir(), 'zoteus-ann-notes-'));
++    const jsonPath = join(dir, 'search-index.json');
++    const all = items(600);
++    const keys = all.map((i) => i.key as string);
++    const index = await createSearchIndex({
++      backend: 'sqlite',
++      jsonPath,
++      embedder: new DenseEmbedder(),
++      logger: silentLogger,
++    });
++    const dbPath = sqliteIndexPath(jsonPath);
++    try {
++      await index.buildIncremental(
++        async (start: number) =>
++          start === 0 ? { items: all, totalResults: 600, lastModifiedVersion: 7 } : { items: [], totalResults: 600 },
++        { ownWords: ownWordsAccess(5, 'a note on widgets and the gears they drive', 'K0001') },
++      );
++      await index.save();
++      expect(codeRows(dbPath).codes).toBe(601);
++
++      // The own-words twin of the pass above: a note edited after the build appears in no
++      // item delta, so this is the only thing that re-reads it, and it too replaces the
++      // item's passages wholesale.
++      await index.updateIncremental({
++        backend: 'local',
++        fetchChanged: async () => ({ items: [], totalResults: 0, lastModifiedVersion: 8 }),
++        liveKeys: async () => new Set(keys),
++        ownWords: ownWordsAccess(9, 'the same note, rewritten around sprockets', 'K0001'),
++      });
++      await index.save();
++
++      const rows = codeRows(dbPath);
++      expect(rows.codes).toBe(rows.vectors);
++      expect(orphanCodes(dbPath)).toBe(0);
++      const hits = rank(index, vectorFor('a query after the note was rewritten'), 10);
++      expect(hits).toHaveLength(10);
++      expect(index.buildStatus().vectorScan).toBe('codes');
++      expect(index.buildStatus().vectorScanNotice).toBeUndefined();
++    } finally {
++      await index.close();
++    }
++  });
++
+   sqliteIt('refuses the coded path when the codes do not cover the vectors', async () => {
+     const { index, jsonPath } = await corpus();
+     await index.close();
+-- 
+2.53.0
+
