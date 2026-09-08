@@ -12,3 +12,8 @@ def pytest_configure(config):
         "markers",
         "integration: spawns a subprocess (node, a driver) — costlier than the pure tier",
     )
+    config.addinivalue_line(
+        "markers",
+        "slow: reads real data off the host — an installed Zotero, a model, a large archive — "
+        "so it skips where that is absent rather than passing",
+    )
