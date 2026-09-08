@@ -7028,3 +7028,39 @@ The alternative the author rejected implicitly by ruling at all — keep the
 session-only exclusion and make the extraction cheaper — was no alternative: the
 documents at issue cannot succeed, so no reduction in cost makes asking them
 again worth anything. Ticket 0740 carries the measurement.
+
+**2026-09-08 — RATIFIED: the sitter's failure suppression is session-scoped, and
+the entry above is withdrawn.** The author, asked to choose between keeping the
+persisted verdict with a UI to manage it, dropping suppression altogether, or
+holding it in memory for the session only: the cache is session-scoped, gone on
+restart, and nothing is written to disk for this purpose. He accepted the cost
+by name — a failure is retried again after every Zotero restart — in exchange
+for no orphaned or undiscoverable state on disk.
+
+So the narrowing recorded immediately above does not stand, and the 2026-09-05
+ruling is restored whole: the disposable cache carries pack freshness and
+duration observations, and never a durable failure or active-job ledger. The
+distinction that entry drew between a "record" and a "ledger" turned on the
+identity re-opening the question by itself, and that turned out to be too weak a
+guarantee. Two independent review rounds reproduced the same path: a document
+refused once is reported unrecoverable forever, and if a pack for that identity
+later arrives by any route other than this plugin's own `ensure()` — native
+indexing, another plugin, a user retriggering extraction — the verdict short-
+circuits the inspection before the pack is ever stat'ed. Nothing in the UI can
+clear one entry; only deleting a file the user is never told exists.
+
+The repo's own verification of the native contract says the same thing from the
+other side. `verification/SDT-PLUGIN-PREREQUISITES.md` records that native SDT
+retries a generic extraction failure on every new call and suppresses only a
+password failure. A persisted verdict converted every transient cause — a worker
+out of memory, a momentary disk fault — into a permanent one, overriding that
+contract rather than extending it. Session scope matches it exactly.
+
+Suppression itself is not withdrawn: within one activation a document that
+failed is not resubmitted, which is the `failed-session` mechanism the scheduler
+already had before ticket 0740 and which that ticket's measurement was really
+about. What changes is only the span.
+
+Ticket 0740's other half is unaffected and was never persisted: refusing a
+document whose leading bytes contradict its declared type is recomputed from the
+file on every census and written nowhere.

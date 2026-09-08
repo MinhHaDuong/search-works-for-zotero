@@ -27,13 +27,10 @@ model reports the finish estimate as unavailable rather than completion now.
 It does not extrapolate an unobserved tail or repair its own selection bias.
 
 The disposable `sdt-sitter-cache.jsonl` in Zotero's data directory retains
-verified census hints, the latest successful duration observation per
-attachment, and — since 2026-09-08 — one verdict per document that native
-extraction answered without persisting a pack, so that document is asked once
-rather than once per session. It contains no text, source paths and no active
-tasks. The refusal is not a ledger: it is keyed on the identity that embeds the
-source hash and the processor versions, so a re-saved file or a version bump
-re-opens the question, and deleting the file re-opens every one of them.
+verified census hints and the latest successful duration observation per
+attachment. It contains no text, source paths, active tasks or failure ledger:
+a document whose extraction fails is suppressed in memory for the remainder of
+the session and asked again on the next activation.
 Native source hashes, processor versions and pack filesystem fingerprints
 gate reuse. Missing/corrupt records fall back to inspection. The first completed
 census compacts the cache; later writes append changed derived rows, avoiding

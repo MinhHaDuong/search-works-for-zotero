@@ -18,18 +18,14 @@ var SDT_STATUS_CLASSES = {
   // resources allow an admission right now), and one word for both invites the
   // reader to take a stalled sitter for a library full of failures.
   //
-  // `failed-session` and `failed-remembered` are the same outcome held for
-  // different spans, and the pair is the point (ticket 0740). A session-scoped
-  // exclusion is right for a failure the next activation might not repeat; it
-  // was wrong for the 39 documents native SDT answers about in 50–90 ms every
-  // time, which were re-admitted, re-failed and re-counted for the life of the
-  // library. `failed-remembered` is the verdict that outlives the session,
-  // written against the document's identity so a re-saved source or a native
-  // version bump re-opens the question by itself. Both stay in this class: the
-  // author's "could not be indexed" figure must not shrink because the sitter
-  // stopped asking.
-  failed: ['failed-session', 'failed-remembered', 'inspection-error', 'unsupported-pack',
-    'missing-source'],
+  // `failed-session` is held for the session and no longer (ticket 0740). The
+  // span is the author's ruling of 2026-09-08 and it is also native SDT's own:
+  // its service retries a generic extraction failure on every new call, so a
+  // verdict that outlived the session would override the contract this repo
+  // verified rather than extend it. A failure stays in this class while it is
+  // held — the author's "could not be indexed" figure must not shrink because
+  // the sitter stopped asking within the session.
+  failed: ['failed-session', 'inspection-error', 'unsupported-pack', 'missing-source'],
   // Not indexed yet. Exactly the statuses admission accepts, and nothing else.
   queued: ['missing-pack', 'stale-source', 'stale-processor', 'invalid-pack'],
   // Not the sitter's business: trashed or not an attachment, or no processor exists.
@@ -154,26 +150,13 @@ var createSDTSitter = function (host) {
             if (!state.enabled) break;
             const after = await host.inspect(id);
             if (!state.enabled) break;
-            if (!ok || after.status !== 'current') {
-              // Remembered here rather than in the catch below, because this is
-              // the one failure that is an answer ABOUT the document: native was
-              // asked, it came back, and it produced nothing. Everything the
-              // catch also handles — a platform throw out of ensure(), a
-              // rejection from the host — is an accident of the moment and must
-              // stay session-scoped, or one out-of-memory worker would write a
-              // document off until its file changes (ticket 0740).
-              //
-              // Contained for the reason host.observed is: the sweep is already
-              // failing this document, and a throw from the cache write must not
-              // replace the sentence that says WHY with the sentence that says
-              // the cache is unhappy. No detail travels — the throw can come
-              // from the platform, and a platform message names its own paths.
-              if (host.refuse) {
-                try { await host.refuse(before); }
-                catch (_error) { if (host.emit) host.emit('refuse-failed', { id }, 'trace'); }
-              }
-              throw new Error('Native SDT did not persist a current pack');
-            }
+            // Thrown, and nothing else: the catch below adds the identity to the
+            // session's `failed` set, which is the whole of the suppression
+            // ticket 0740 asks for. Native returning without a pack and native
+            // throwing are the same span here on purpose — a worker that ran out
+            // of memory and a photograph that holds no text are indistinguishable
+            // from this side, and only one of them is permanent.
+            if (!ok || after.status !== 'current') throw new Error('Native SDT did not persist a current pack');
             state.completed++; state.serviceMS += host.now() - state.startedAt;
             // No progress tick means no observed start, and the window from
             // submission is not a stand-in for one: it IS ensure()'s hash, pack
@@ -243,12 +226,7 @@ var createSDTSitter = function (host) {
   };
 };
 
-/* Disposable derived records, without paths, text or active jobs. One failure
-   is kept: the verdict that native extraction persisted no pack for this exact
-   identity, so the document is asked once rather than once per session
-   (ticket 0740, DECISIONS.md 2026-09-08). It is a record and not a ledger
-   because the identity invalidates it — and because deleting this file re-opens
-   every one of them. */
+/* Disposable derived records, without paths, text, failures or active jobs. */
 var createSDTCache = function (raw, versions) {
   const records = Object.create(null);
   const dirty = new Set();
@@ -259,12 +237,6 @@ var createSDTCache = function (raw, versions) {
     for (const [key, r] of Object.entries(raw.records)) {
       if (!r || typeof r.signature !== 'string') continue;
       records[key] = { signature: r.signature };
-      // A remembered refusal carries the identity it was decided against and
-      // nothing else: there is no pack, so no fingerprint, and nothing ran to
-      // completion, so no duration. Read strictly — `=== true`, not truthy — so
-      // a row from some later format cannot promote itself into a verdict that
-      // stops a document being offered to the extractor (ticket 0740).
-      if (r.refused === true) records[key].refused = true;
       if (typeof r.fingerprint === 'string' && Number.isFinite(r.sourceBytes) && r.sourceBytes > 0 &&
           (r.pages == null || (Number.isFinite(r.pages) && r.pages > 0))) {
         Object.assign(records[key], { fingerprint: r.fingerprint, sourceBytes: r.sourceBytes, pages: r.pages });
@@ -279,25 +251,6 @@ var createSDTCache = function (raw, versions) {
       const record = records[key];
       if (record?.signature !== signature) { if (record) dirty.add(key); delete records[key]; return null; }
       return record.fingerprint === fingerprint ? record : null;
-    },
-    /* The one verdict in this store that is not a measurement: native SDT was
-       handed this exact identity and persisted no pack. It replaces whatever
-       was there, because a document that cannot yield a pack has no pack
-       fingerprint and no duration worth keeping — and `remember()` below
-       replaces it right back the moment the document does yield one. The
-       author's ruling is why this belongs in a disposable cache at all: a wrong
-       entry costs one re-attempt after a cache reset, which is the correct
-       price for being wrong (ticket 0740). */
-    refuse(key, signature) { records[key] = { signature, refused: true }; dirty.add(key); },
-    /* Invalidation is the signature, exactly as in `check()` above: the identity
-       embeds the source hash and the pack versions, so a re-saved file or a
-       native version bump makes this record unreadable and the document is
-       offered again without anything having to remember to re-open it. */
-    refused(key, signature) {
-      const record = records[key];
-      if (!record?.refused) return false;
-      if (record.signature !== signature) { dirty.add(key); delete records[key]; return false; }
-      return true;
     },
     remember(key, signature, fingerprint, info) {
       const previous = records[key];

@@ -10,6 +10,9 @@ Author: sim
 2026-09-08T10:14Z claude note GOVERNANCE, caught by the pre-PR adherence gate and worth recording because the code was finished before anyone noticed. Persisting a refusal contradicted four standing sites — SPEC.md, the 2026-09-05 RATIFIED entry, the shipped manifest description and verification/SDT-SITTER-LAUNCH.md — and the author's superseding ruling existed only in this ticket's log. AGENTS.md puts rulings in DECISIONS.md first and SPEC.md second, so the ruling is now appended there, narrowing the 2026-09-05 clause rather than withdrawing it: active jobs stay unpersisted unconditionally, and what is allowed is one identity-keyed verdict in a disposable cache. Manifest version 0.3.3 -> 0.3.6; 0.3.4 and 0.3.5 are skipped because ticket 0727 hand-installed both into the author's Zotero this morning without either reaching git, so the version gate cannot see them.
 2026-09-08T11:06Z claude note CORRECTION to the entry above, from round 1 of the review panel: the sweep of standing sites found four and there were FIVE. `createSDTCache`'s own header comment in scheduler.js — "without paths, text, failures or active jobs" — sat directly above the function this change extends with `refuse()`, and a grep for "failure ledger" could not see it because it does not use the phrase. The lesson is the grep, not the count: a sweep keyed on one wording cannot find a site that words the same claim differently. Also fixed in the same round: a paragraph break landed one sentence early in SPEC.md and left the cache paragraph with no privacy guarantee, and SPEC.md's header date was not bumped for a substantive edit. Version 0.3.6 -> 0.3.7 for the payload comment change.
 
+2026-09-08T11:30Z claude note DESIGN CHANGED MID-FLIGHT, by the author, and action 2 is rebuilt rather than repaired. Asked to choose between keeping the persisted verdict with a UI to manage it, dropping suppression entirely, or holding it in memory for the session only, he ruled: session-scoped, gone on restart, nothing written to disk for this purpose, accepting by name that a failure is retried after every Zotero restart in exchange for no orphaned or undiscoverable disk state. That also closes what two review rounds (10 reviewer passes) reproduced independently: a persisted refusal short-circuits inspect() before the pack is ever stat'ed, so a document whose pack later arrives by any route other than this plugin's own ensure() is reported unrecoverable forever, with no UI to clear one entry. And it restores this repo's own verified native contract (verification/SDT-PLUGIN-PREREQUISITES.md:51,95-97): native SDT retries a generic failure on every new call, so a persisted verdict overrode that contract rather than extending it. Implementation: host.refuse, cache.refuse/refused, the persisted `refused` field and the `failed-remembered` status are all removed; the suppression is the scheduler's pre-existing in-memory `failed` Set, which was already session-scoped and already kept a failure out of the candidate list within the activation. Action 1 is untouched — it was never persisted.
+2026-09-08T11:30Z claude note GOVERNANCE reversal, appended not amended. The 2026-09-08 DECISIONS.md entry that narrowed the 2026-09-05 "disposable, never a durable failure ledger" ruling is withdrawn by a new entry rather than edited in place; SPEC.md, the manifest description and verification/SDT-SITTER-LAUNCH.md revert to the un-narrowed claim, with one sentence added to each saying that suppression is session-scoped. Confirmed rather than assumed: bootstrap.js's `launch-disable` string ("Errors stay confined to the session... it holds no text and no running job") is true again under this design and needed no edit — a grep across plugins/, verification/ and SPEC.md finds that claim in no other site. Version 0.3.7 -> 0.3.8 in manifest.json and update.json.
+
 --- body ---
 ## Context
 
@@ -114,14 +117,17 @@ recount that reaches the same place from the other direction.
    against a document that is otherwise about to be handed to a worker. A
    mismatch is `unsupported`, not a failure: the document is fine, our
    classification of it was wrong.
-2. **Persist the refusal.** When a document is admitted and native returns
-   without a current pack, remember that in the on-disk cache against the
-   document's identity, so the next session does not retry it. Author's ruling:
-   the cache is the right home precisely because it is disposable — a wrong
-   entry costs one re-attempt after a cache reset, which is the correct price
-   for being wrong. The identity already embeds the source hash and the pack
-   versions, so a re-saved file or a native version bump re-opens the question
-   by itself, which is exactly the invalidation this needs.
+2. **Hold the refusal for the session, in memory.** Superseded by the author's
+   ruling of 2026-09-08T11:30Z (see the log): the cache is session-scoped and
+   gone on restart, and nothing is written to disk for this purpose. Within one
+   activation a document that failed is not resubmitted; after a restart it is
+   asked again, which is the accepted cost and is also what the native service
+   does with a generic failure. The mechanism is the scheduler's existing
+   in-memory `failed` Set, so what this action really required was measuring
+   that the mechanism was already right and stopping the persistence work that
+   had been built on top of it. The earlier form of this action — a verdict
+   persisted in `sdt-sitter-cache.jsonl` against the identity — is recorded here
+   only because the reversal is the interesting part.
 3. Keep the genuine HTML snapshot out of this fix and out of its story. One
    real snapshot failing is a separate question; record it and leave it.
 
@@ -131,11 +137,15 @@ recount that reaches the same place from the other direction.
   whose bytes are a JPEG must be classified `unsupported`, and must never reach
   `submit`. Against the current tree it is admitted and fails, so the test
   reddens today. The mock already carries the seams for a fixture of this shape.
-- Red first, for action 2: a document that fails with "no current pack" must not
-  be a candidate on the NEXT activation — drive two activations over one cache
-  and assert the second admits nothing. Note the trap: asserting "it failed
-  again" passes against both the fixed and unfixed code. Assert that it was
-  never admitted.
+- For action 2, the assertion is now two-sided and the second half is the
+  redesign's accepted cost stated as a test. Within one activation: drive a
+  second sweep through the timer the sitter armed for itself and assert the
+  failing document is not resubmitted, asserting on the whole `ensure` call list
+  rather than a count of new calls, since a sitter that stopped sweeping
+  altogether also resubmits nothing. Across a restart: a fresh activation over
+  the same cache file DOES ask the document again. And on the bytes rather than
+  on behaviour, since the two would look identical if a verdict were written and
+  then ignored: the cache file contains no refusal record at all.
 - The mixed-population trap is the one to watch on any count assertion here: a
   test whose fixture holds only failures cannot see a fix that also stops
   admitting the good documents.
@@ -143,7 +153,8 @@ recount that reaches the same place from the other direction.
 ## Verification
 
 - [x] A byte/label mismatch is classified `unsupported` and never submitted
-- [x] A "no current pack" outcome survives a restart and is not retried
+- [x] A "no current pack" outcome is not retried within the session, IS retried
+      after a restart, and nothing about it is written to the cache file
 - [x] Both tests reddened against the unfixed tree before the fix
 - [ ] The census total still equals the sum of its classes on the live library
       — not closeable from the machine this was written on, which has no synced
@@ -159,14 +170,15 @@ recount that reaches the same place from the other direction.
 
 - The plugin still never writes to `storage/`, never changes extraction
   settings, and never replaces a source attachment.
-- A document is never permanently written off on a ground that can change: the
-  persisted refusal is keyed on the identity, so a re-saved source or a native
-  version bump re-admits it.
+- A document is never permanently written off. Nothing about a failure outlives
+  the activation that saw it, so no restart inherits a verdict and no state on
+  disk can survive the thing it describes.
 - Native SDT is not second-guessed. This ticket stops us handing it work it
   cannot do; it does not add extraction of our own.
 
 ## Exit criteria
 
 Images declared as HTML are classified rather than submitted, a document that
-cannot yield a pack is asked once rather than every session, and both are held
-by tests that were red first.
+cannot yield a pack is asked once per activation rather than once per sweep, no
+failure verdict reaches the disk, and all of it is held by tests with a
+demonstrated red.

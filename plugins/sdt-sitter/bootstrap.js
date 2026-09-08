@@ -1330,13 +1330,6 @@ async function initialize(rootURI, token) {
       identity: `${item.libraryID}/${item.key}/${hash}/${JSON.stringify(versions)}` };
     result.cacheKey = cacheKey;
     seen.add(result.cacheKey);
-    // Read before the pack is stat'ed, because a refused document HAS no pack:
-    // the pack branch below drops its cache record on the way past, which would
-    // erase the verdict this returns. Nothing else here can reinstate it — the
-    // identity is the invalidation, and it has just been checked (ticket 0740).
-    if (cache.refused(result.cacheKey, result.identity)) {
-      return { ...result, status: 'failed-remembered' };
-    }
     result.sourceBytes = source.size;
     result.pages = processor === 'pdf' ? await Zotero.DB.valueQueryAsync(
       'SELECT totalPages FROM fulltextItems WHERE itemID = ?', [id]) : null;
@@ -1347,6 +1340,12 @@ async function initialize(rootURI, token) {
     // read 'invalid-pack'. Both re-extract, so only the diagnostic bucket
     // differs, and 'missing-pack' is the truer of the two for a file the
     // filesystem will not describe.
+    //
+    // An absent pack falls THROUGH rather than returning, which it did not
+    // before ticket 0740: no pack is the commonest state of the documents the
+    // label check below exists for — a page scan recorded as `text/html` has
+    // never yielded one and never will — so an early return here would skip the
+    // check on precisely the population it was written for.
     let stat = null;
     try { stat = await IOUtils.stat(path); }
     catch (_error) { cache.drop(result.cacheKey); }
@@ -1444,10 +1443,6 @@ async function initialize(rootURI, token) {
       cache.prune(seen); sourceHashes.prune(seen); await saveCache(); return cache.samples();
     },
     observed: async (info, sample) => { cache.observe(info.cacheKey, info.identity, sample); await saveCache(); },
-    // Written through the same store and the same write path as every other
-    // derived record, because it is one: disposable, keyed on the identity, and
-    // gone the moment the source or the native versions move.
-    refuse: async info => { cache.refuse(info.cacheKey, info.identity); await saveCache(); },
     // Every number the scheduler stamps with this — startedAt, lastProgressAt,
     // serviceMS, and the duration samples the estimator is fitted on — is a span.
     inspect, blocked, now: monotonic, changed: render,
