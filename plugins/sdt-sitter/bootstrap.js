@@ -37,31 +37,37 @@ var environment = {}, admission = null;
 // cannot run the loop at all — and a loop nothing runs is where 0696's
 // cross-generation defect hid from two suites at once, past a green mutation.
 var timer, pulse, heartbeat, timers;
-const closeJournalled = new WeakSet();
-const BUTTON = 'sdt-pack-sitter-button';
-const SWEEP_INTERVAL_MS = 30000;
-const IDLE_SWEEP_INTERVAL_MS = 10 * 60 * 1000;
+// `var`, not `const`: ticket 0730 found that loading this file twice into one
+// scope throws `Identifier '...' has already been declared` on the first
+// `const`/`let` binding it reaches — a redeclaration `var` tolerates. Whether
+// Zotero ever re-runs bootstrap.js into a scope it has already used is
+// recorded in that ticket's log; every top-level binding in this file is
+// `var` unconditionally so the question never matters again.
+var closeJournalled = new WeakSet();
+var BUTTON = 'sdt-pack-sitter-button';
+var SWEEP_INTERVAL_MS = 30000;
+var IDLE_SWEEP_INTERVAL_MS = 10 * 60 * 1000;
 // How long the end-of-sweep toast stays up. Presentation, like the 1400 ms
 // completion blink and the 100 ms redraw beside it, so it lives here rather than
 // in SPEC.md, which owns gates, decision rules and budgets. Long enough to read
 // two short lines without looking up quickly, and comfortably shorter than the
 // 30 s floor above, so two toasts can never be on screen at once.
-const SWEEP_TOAST_MS = 8000;
-const DEBUG_PREF = 'extensions.sdt-pack-sitter.debug';
+var SWEEP_TOAST_MS = 8000;
+var DEBUG_PREF = 'extensions.sdt-pack-sitter.debug';
 // SPEC.md owns these two numbers; this file needs them to compare against, and
 // the diagnostics layer needs to print them. One statement each, so a threshold
 // moved in the gate cannot leave a stale figure on screen beside the reading.
-const MIN_FREE_MEMORY = 4 * 1024 ** 3, MIN_FREE_DISK = 8 * 1024 ** 3;
+var MIN_FREE_MEMORY = 4 * 1024 ** 3, MIN_FREE_DISK = 8 * 1024 ** 3;
 // Bootstrap reason constants are numeric here and named elsewhere; accept both.
-const SHUTDOWN_REASONS = { 2: 'app-shutdown', 3: 'enable', 4: 'disable',
+var SHUTDOWN_REASONS = { 2: 'app-shutdown', 3: 'enable', 4: 'disable',
   5: 'install', 6: 'uninstall', 7: 'upgrade', 8: 'downgrade' };
 // Also `var`, and 0696 needs it writable rather than merely readable: the
 // disable/re-enable race IS a generation change, so a test that cannot move this
 // number cannot stage the defect, and the guard against it would be asserted by
 // reading the source — which is how the defect got in.
 var generation = 0;
-let lastCompleted = 0;
-let completionBlinkUntil = 0;
+var lastCompleted = 0;
+var completionBlinkUntil = 0;
 
 /* ---- the user-facing text, and the only place any of it lives ----
 
@@ -90,7 +96,7 @@ let completionBlinkUntil = 0;
    `count === 1`. That is an English rule in JavaScript, which is exactly what
    the Fluent selector existed to prevent -- correctly, while there were four
    languages, and pointlessly now that there is one. */
-const SDT_TEXT = {
+var SDT_TEXT = {
     "index": "Index",
     "index-coverage": "Index {percent} %",
     "scope-one": "Library: {names}",
@@ -722,7 +728,7 @@ function describeSDTJournalTail(limit = 50) {
    the guard is the assertion in tests/sdt_sitter_dialog.mjs that the composed
    text holds no scheme and no home directory, run against a ring the real
    startup path contaminated. */
-const CLIPBOARD_OMITTED = ['rootURI'];
+var CLIPBOARD_OMITTED = ['rootURI'];
 
 function scrubSDTRecord(record) {
   const copy = { ...record };
