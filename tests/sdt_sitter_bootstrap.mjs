@@ -24,7 +24,7 @@ import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
 
-import { CACHE_PATH, ROOT_URI, VERSIONS_JSON, createHarness, deferred }
+import { CACHE_PATH, ROOT_URI, STORAGE, VERSIONS, VERSIONS_JSON, createHarness, deferred }
   from './sdt_sitter_zotero_mock.mjs';
 
 const results = [];
@@ -1361,4 +1361,138 @@ await test('an empty discovery set reports NOT-RUN, and a planted file proves th
   }
 });
 
+await test('notifier bursts inspect only affected attachments and quiet time does no census', async () => {
+  let blocked = true;
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')],
+    meminfo: () => blocked ? 'MemAvailable: 1 kB' : 'MemAvailable: 8000000 kB' });
+  await h.start(); const read = h.calls.hash.length;
+  assert.equal(h.observers.size, 1); assert.equal(h.calls.list, 1);
+  h.calls.inspect.length = 0;
+  h.notify('modify', 'item', [1]); h.notify('modify', 'item', [1]); h.notify('download', 'file', 1);
+  await h.quiet();
+  assert.deepEqual(h.calls.inspect, [1, 1, 1001]);
+  assert.equal(h.calls.list, 1); assert.equal(h.calls.hash.length, read);
+  blocked = false; await h.nextSweep(); assert.deepEqual(h.calls.ensure, [1, 2]);
+  assert.equal(h.calls.list, 1);
+  const armed = h.timers.ids('timeout');
+  assert.equal(h.timers.pending.get(armed[0]).ms,
+    h.context.sitter.state.nextReconciliationAt - h.clock.mono);
+  h.advance(30000); h.notify('modify', 'collection', [1]); await h.quiet();
+  assert.equal(h.calls.list, 1);
+});
+await test('unnotified source disappearance and restoration update coverage without deleting its pack', async () => {
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111')] }); await h.start();
+  const source = `${STORAGE}/AAAA1111/file.pdf`, pack = `${STORAGE}/AAAA1111/.zotero-sdt-cache`;
+  const original = h.files.files.get(source); const hashReads = h.calls.hash.length;
+  h.files.files.delete(source); await h.nextSweep();
+  assert.equal(h.context.sitter.state.counts['missing-source'], 1);
+  assert.equal(h.context.sitter.state.counts.current || 0, 0);
+  assert(h.files.files.has(pack)); assert(h.library.has(1));
+  h.files.files.set(source, original); await h.nextSweep();
+  assert.equal(h.context.sitter.state.counts.current, 1);
+  assert.equal(h.calls.hash.length, hashReads + 1);
+  assert.deepEqual(h.calls.ensure, [1]);
+  h.files.files.delete(pack); await h.nextSweep();
+  assert.deepEqual(h.calls.ensure, [1, 1]);
+  assert.equal(h.context.sitter.state.counts.current, 1);
+});
+await test('source replacement and processor upgrades invalidate pack identity and cached durations', async () => {
+  let versions = structuredClone(VERSIONS);
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111')], versions: () => versions });
+  await h.start();
+  const row = h.library.get(1); row.pack.hash = row.hash; row.hash = 'replacement-md5';
+  h.files.put(`${STORAGE}/AAAA1111/file.pdf`, new Uint8Array(8192), 501);
+  await h.nextSweep(); assert.deepEqual(h.calls.ensure, [1, 1]);
+  assert.equal(h.context.sitter.state.samples.length, 1, 'old source duration survived changed identity');
+  assert.equal(h.context.sitter.state.samples[0].sourceBytes, 8192);
+  // Keep native generation blocked so the stale-processor bucket can be inspected.
+  h.Zotero.PDFWorker._processingQueue = true;
+  versions = { ...versions, SDT_PROCESSOR_VERSIONS: { ...versions.SDT_PROCESSOR_VERSIONS, pdf: '8' } };
+  await h.nextSweep();
+  assert.equal(h.context.sitter.state.counts['stale-processor'], 1);
+  assert.equal(h.context.sitter.state.samples.length, 0);
+  assert.equal(h.context.environment.packVersions.SDT_PROCESSOR_VERSIONS.pdf, '8');
+});
+await test('targeted current-pack inspection preserves unrelated cached duration records', async () => {
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')] }); await h.start();
+  const cache = h.files.text(CACHE_PATH);
+  h.notify('modify', 'item', [1]); await h.quiet();
+  assert.equal(h.calls.list, 1); assert.equal(h.context.sitter.state.samples.length, 2);
+  assert.equal(h.files.text(CACHE_PATH), cache);
+});
+await test('parent trash restoration and erase affect children without a library census', async () => {
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')] }); await h.start();
+  h.library.get(1).parentDeleted = true; h.notify('trash', 'item', [1001]); await h.quiet();
+  assert.equal(h.context.sitter.state.counts.excluded, 1);
+  assert.equal(h.context.sitter.state.counts.current, 1);
+  h.library.get(1).parentDeleted = false; h.notify('modify', 'item', [1001]); await h.quiet();
+  assert.equal(h.context.sitter.state.counts.current, 2);
+  h.library.delete(1); h.notify('delete', 'item', [1001]); await h.quiet();
+  assert.equal(h.context.sitter.state.total, 1);
+  assert.equal(h.context.sitter.state.counts.current, 1);
+  assert.equal(h.calls.list, 1);
+});
+await test('download notifications restore missing sources and late observers are inert after shutdown', async () => {
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111', { missingSource: true })] }); await h.start();
+  const old = [...h.observers.values()][0].observer;
+  h.library.get(1).missingSource = false;
+  h.files.put(`${STORAGE}/AAAA1111/file.pdf`, new Uint8Array(4096), 500);
+  h.notify('download', 'file', [1]); await h.quiet();
+  assert.deepEqual(h.calls.ensure, [1]); assert.equal(h.calls.list, 1);
+  h.context.shutdown({}, 4); assert.equal(h.observers.size, 0);
+  old.notify('modify', 'item', [1]); await h.quiet();
+  assert.equal(h.timers.ids('timeout').length, 0);
+  await h.start(); const lists = h.calls.list;
+  old.notify('modify', 'item', [1]); await h.quiet(); assert.equal(h.calls.list, lists);
+  assert.equal(h.observers.size, 1);
+});
+await test('events ignored while off are repaired on re-enable and reconciliation age is visible', async () => {
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111')] }); await h.start();
+  h.context.disarmSDTSitter(); h.files.files.delete(`${STORAGE}/AAAA1111/file.pdf`);
+  h.notify('modify', 'item', [1]); await h.quiet(); assert.equal(h.calls.list, 1);
+  h.context.armSDTSitter(); await h.quiet(); assert.equal(h.calls.list, 2);
+  assert.equal(h.context.sitter.state.counts['missing-source'], 1);
+  h.context.openDialog(h.windows[0]); h.context.render();
+  const dialog = [...h.context.dialogs][0];
+  assert.match(dialog.document.getElementById('sdt-scope').textContent, /Coverage is last observed.*Last full reconciliation/s);
+});
+await test('a worker activated during admission inspection wins the final native guard', async () => {
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  const inspect = h.context.IOUtils.stat; let reads = 0;
+  h.context.IOUtils.stat = async path => {
+    const result = await inspect(path);
+    if (path.endsWith('/file.pdf') && ++reads === 2) h.Zotero.PDFWorker._processingQueue = true;
+    return result;
+  };
+  await h.start(); assert.deepEqual(h.calls.ensure, []);
+  assert.equal(h.context.sitter.state.phase, 'native-worker-busy');
+  h.Zotero.PDFWorker._processingQueue = false; await h.nextSweep();
+  assert.deepEqual(h.calls.ensure, [1]); assert.equal(h.calls.list, 1);
+});
+await test('a targeted replacement removes old-source ETA samples before resource admission', async () => {
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111')] }); await h.start();
+  assert.equal(h.context.sitter.state.samples.length, 1);
+  const row = h.library.get(1); row.pack.hash = row.hash; row.hash = 'changed';
+  h.files.put(`${STORAGE}/AAAA1111/file.pdf`, new Uint8Array(8192), 501);
+  h.Zotero.PDFWorker._processingQueue = true;
+  h.notify('modify', 'item', [1]); await h.quiet();
+  assert.equal(h.calls.list, 1); assert.equal(h.context.sitter.state.samples.length, 0);
+  assert.equal(h.context.sitter.state.fittedSamples.length, 0);
+  assert.deepEqual(h.calls.ensure, [1]);
+});
+await test('targeted observations preserve completion refit cadence while dropping invalidated samples', async () => {
+  const h = createHarness({ attachments: [1, 2, 3, 4, 5, 6].map(id =>
+    pdf(id, `KEY${id}`, { missingSource: id > 3 })) });
+  await h.start(); assert.equal(h.context.sitter.state.fittedSamples.length, 3);
+  for (const id of [4, 5, 6]) {
+    h.library.get(id).missingSource = false;
+    h.files.put(`${STORAGE}/KEY${id}/file.pdf`, new Uint8Array(4096), 500);
+    h.notify('download', 'file', [id]); await h.quiet();
+    assert.equal(h.context.sitter.state.samples.length, id);
+    assert.equal(h.context.sitter.state.fittedSamples.length, id === 6 ? 6 : 3);
+  }
+  h.files.files.delete(`${STORAGE}/KEY1/file.pdf`);
+  h.notify('modify', 'item', [1]); await h.quiet();
+  assert.equal(h.context.sitter.state.fittedSamples.length, 5);
+});
 console.log(JSON.stringify({ tests: results, result: 'pass' }));

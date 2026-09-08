@@ -36,7 +36,7 @@ var environment = {}, admission = null;
 // sweep reschedules through this handle, so a test that cannot install a clock
 // cannot run the loop at all — and a loop nothing runs is where 0696's
 // cross-generation defect hid from two suites at once, past a green mutation.
-var timer, pulse, heartbeat, timers;
+var timer, pulse, heartbeat, timers, notifierID;
 // `var`, not `const`: ticket 0730 found that loading this file twice into one
 // scope throws `Identifier '...' has already been declared` on the first
 // `const`/`let` binding it reaches — a redeclaration `var` tolerates. Whether
@@ -54,6 +54,7 @@ var BUTTON = 'sdt-pack-sitter-button';
 var GLOBAL_SECTION = 'sdt-global-section';
 var SWEEP_INTERVAL_MS = 30000;
 var IDLE_SWEEP_INTERVAL_MS = 10 * 60 * 1000;
+var RECONCILIATION_INTERVAL_MS = 60 * 60 * 1000;
 // How long the end-of-sweep toast stays up. Presentation, like the 1400 ms
 // completion blink and the 100 ms redraw beside it, so it lives here rather than
 // in SPEC.md, which owns gates, decision rules and budgets. Long enough to read
@@ -263,6 +264,8 @@ var SDT_TEXT = {
     "observations-basis": "Observed durations: {count} — basis: {basis}",
     "basis-pages": "per page",
     "basis-bytes": "per byte",
+    "reconciliation-never": "Coverage is last observed; a full reconciliation has not completed yet.",
+    "reconciliation-age": "Coverage is last observed. Last full reconciliation: {age} ago.",
     "diagnostics-census": "{total} attachments in the library.",
     "diagnostics-completed": "Attachments indexed this session: {count}",
     "census-total-label": "Attachments counted in all",
@@ -438,30 +441,22 @@ function heartbeatTick() {
     pending: s.pending.length }, 'trace');
 }
 
-/* How long before the next census. Ticket 0701: a library with nothing left to
-   index was re-censused every 30 seconds, all night, and every census walked the
-   whole item table. A sweep that ended `waiting` having found no candidate found
-   nothing to react to, so the next look is a floor poll rather than a work queue.
-
-   A floor rather than a notifier subscription, deliberately: the poll is the
-   robust half either way, and 10 minutes is 20x fewer wake-ups while still
-   picking up a newly added attachment within one coffee. `candidates`, not
-   `pending`: pending drains as documents settle, so by the end of a productive
-   sweep it is empty too, and the two cases are not the same one. */
-// The five phases host.blocked() returns (scheduler.js's admission gate) name a
-// resource the machine does not currently have, not work the sitter is doing.
-// Retrying them on the 30 s active cadence made the plugin sweep fastest
-// exactly when it had just decided the machine was too busy to work -- the
-// opposite of the quiet-overnight-supervisor obligation SPEC.md's sitter
-// paragraph states. Found live (bench/results/sdt-sitter-2026-09-08/), never
-// ticketed: two full censuses, eight minutes apart, both correctly refused
-// cpu-busy, neither one backed off. A machine that stays busy for the refusal's
-// whole duration was being re-polled twenty times in that window instead of
-// once.
+/* Queue retries do no discovery. Quiet libraries wait for reconciliation;
+   notifications can wake the pump earlier. SPEC.md §5.2.7 owns the cadence. */
 var SDT_BLOCKED_PHASES = ['cpu-busy', 'low-memory', 'low-disk', 'storage-unavailable', 'resources-unavailable'];
 function nextSweepDelayMS(state) {
-  return (state.phase === 'waiting' && state.candidates === 0) || SDT_BLOCKED_PHASES.includes(state.phase)
-    ? IDLE_SWEEP_INTERVAL_MS : SWEEP_INTERVAL_MS;
+  if (state.busy) return SWEEP_INTERVAL_MS;
+  const untilReconciliation = state.nextReconciliationAt == null ? SWEEP_INTERVAL_MS
+    : Math.max(0, state.nextReconciliationAt - monotonic());
+  const retry = SDT_BLOCKED_PHASES.includes(state.phase) ? IDLE_SWEEP_INTERVAL_MS
+    : state.pending?.length || state.phase === 'error' || state.busy ? SWEEP_INTERVAL_MS : Infinity;
+  return Math.min(untilReconciliation, retry);
+}
+
+function wakeSDTSitter() {
+  if (!alive || !sitter?.state.enabled || sitter.state.busy) return;
+  timers.clearTimeout(timer);
+  timer = timers.setTimeout(createSDTSweepLoop(activeToken, sweepGeneration), 0);
 }
 
 /* Ticket 0696. One toast when a sweep actually did something, and nothing at all
@@ -567,16 +562,19 @@ function announceSDTSweep(before) {
    that binding is gone the loop has no sweep to run either. */
 function createSDTSweepLoop(token, sweepToken) {
   const current = () => alive && token === generation && sweepToken === sweepGeneration;
+  const owner = sitter;
   const sweep = async () => {
+    if (!current()) return;
     const before = { completed: sitter.state.completed, failed: sitter.state.failed };
     try {
-      await sitter.sweep();
+      await owner.pump();
       if (current()) announceSDTSweep(before);
     } catch (error) {
       emit('sweep-error', { error: classifyError(error) }, 'error');
     } finally {
       if (current()) {
-        timer = timers.setTimeout(sweep, nextSweepDelayMS(sitter.state));
+        timers.clearTimeout(timer);
+        timer = timers.setTimeout(sweep, nextSweepDelayMS(owner.state));
       }
     }
   };
@@ -1404,7 +1402,10 @@ function renderState() {
     // composer the tooltip uses, because a group library loads lazily — text
     // frozen when the dialog opened would name a set the census no longer
     // covers.
-    doc.getElementById('sdt-scope').textContent = describeSDTScope() || '';
+    doc.getElementById('sdt-scope').textContent = [describeSDTScope(),
+      s.lastReconciliationAt == null ? sdtText('reconciliation-never')
+        : sdtText('reconciliation-age', { age: formatDocumentDuration(monotonic() - s.lastReconciliationAt) })
+    ].filter(Boolean).join('\n');
     const globalProgress = doc.getElementById('sdt-global-progress');
     globalProgress.max = Math.max(1, coverage.total);
     if (coverage.known) globalProgress.value = coverage.current;
@@ -1787,7 +1788,7 @@ async function initialize(rootURI, token) {
   if (!win || typeof Zotero.SDT?.ensure !== 'function') throw new Error('Zotero 10 native SDT unavailable');
   const SDT = win.require('resource://zotero/document-worker/structured-document-text.js');
   const pako = win.require('pako');
-  const versions = JSON.parse(await Zotero.File.getContentsFromURLAsync('resource://zotero/document-worker/metadata.json'));
+  let versions = JSON.parse(await Zotero.File.getContentsFromURLAsync('resource://zotero/document-worker/metadata.json'));
   environment = { ...environment, packVersions: versions };
   if (token !== generation) return;
   const cachePath = PathUtils.join(Zotero.DataDirectory.dir, 'sdt-sitter-cache.jsonl');
@@ -1803,12 +1804,13 @@ async function initialize(rootURI, token) {
       } catch (error) { /* Ignore incomplete/corrupt cache rows. */ }
     }
   } catch (error) { /* Disposable cache. */ }
-  const cache = createSDTCache(raw, JSON.stringify(versions));
+  let cache = createSDTCache(raw, JSON.stringify(versions));
   // In memory, never on disk: the pack cache above carries claims worth keeping
   // across sessions, and a source hash is reconstructible from the file itself.
   const sourceHashes = createSDTSourceHashes();
   emit('cache-load', { records: Object.keys(raw.records).length });
-  let seen = new Set();
+  let seen = null;
+  const children = new Map(), parents = new Map();
   let compact = true;
   // Latched exactly as render()'s guard is, and for the same reason: saveCache
   // runs once at the end of the census and again after every settled duration,
@@ -1869,20 +1871,33 @@ async function initialize(rootURI, token) {
 
   async function inspect(id) {
     const item = await Zotero.Items.getAsync(id);
-    if (!item?.isAttachment() || item.deleted) return { status: 'excluded' };
+    const previousParent = parents.get(id);
+    if (!item) {
+      children.get(previousParent)?.delete(id); parents.delete(id);
+      return { status: 'excluded', absent: true };
+    }
+    if (!item.isAttachment()) return { status: 'excluded' };
+    if (previousParent !== item.parentItemID) children.get(previousParent)?.delete(id);
+    parents.set(id, item.parentItemID);
+    if (item.parentItemID) {
+      if (!children.has(item.parentItemID)) children.set(item.parentItemID, new Set());
+      children.get(item.parentItemID).add(id);
+    }
+    if (item.deleted) return { status: 'excluded' };
     const parent = item.parentItemID ? await Zotero.Items.getAsync(item.parentItemID) : null;
     if (parent?.deleted) return { status: 'excluded' };
     const processor = item.isPDFAttachment() ? 'pdf' : item.isEPUBAttachment() ? 'epub' : item.isSnapshotAttachment() ? 'snapshot' : null;
     if (!processor) return { status: 'unsupported' };
+    const cacheKey = `${item.libraryID}/${item.key}`;
+    const missingSource = () => { sourceHashes.drop(cacheKey); cache.drop(cacheKey); return { status: 'missing-source' }; };
     const sourcePath = await item.getFilePathAsync();
-    if (!sourcePath) return { status: 'missing-source' };
+    if (!sourcePath) return missingSource();
     // One stat where there were an exists() and a stat(): it answers both
     // questions at once, and its (size, lastModified) is what lets the MD5 below
     // be skipped on a file nothing has touched since the last census.
     let source;
     try { source = await IOUtils.stat(sourcePath); }
-    catch (_error) { return { status: 'missing-source' }; }
-    const cacheKey = `${item.libraryID}/${item.key}`;
+    catch (_error) { return missingSource(); }
     // The re-verify window is an age, so it is a span like every other: on the
     // wall clock a backwards step shortens it and a forwards one can expire an
     // entry verified a second ago.
@@ -1896,7 +1911,7 @@ async function initialize(rootURI, token) {
       parentTitle: parentTitle || null,
       identity: `${item.libraryID}/${item.key}/${hash}/${JSON.stringify(versions)}` };
     result.cacheKey = cacheKey;
-    seen.add(result.cacheKey);
+    seen?.add(result.cacheKey);
     result.sourceBytes = source.size;
     result.pages = processor === 'pdf' ? await Zotero.DB.valueQueryAsync(
       'SELECT totalPages FROM fulltextItems WHERE itemID = ?', [id]) : null;
@@ -2012,14 +2027,40 @@ async function initialize(rootURI, token) {
   }
 
   sitter = createSDTSitter({
-    list: () => { seen = new Set(); return Zotero.DB.columnQueryAsync('SELECT itemID FROM itemAttachments ORDER BY itemID'); },
-    censusComplete: async () => {
-      cache.prune(seen); sourceHashes.prune(seen); await saveCache(); return cache.samples();
+    reconciliationIntervalMS: RECONCILIATION_INTERVAL_MS,
+    list: async () => {
+      const latest = JSON.parse(await Zotero.File.getContentsFromURLAsync('resource://zotero/document-worker/metadata.json'));
+      if (JSON.stringify(latest) !== JSON.stringify(versions)) {
+        versions = latest; raw.versions = JSON.stringify(versions);
+        cache = createSDTCache(null, raw.versions); compact = true;
+        environment = { ...environment, packVersions: versions };
+      }
+      seen = new Set();
+      return Zotero.DB.columnQueryAsync('SELECT itemID FROM itemAttachments ORDER BY itemID');
     },
+    // Parent erasure may report only the parent; retain previously observed
+    // child IDs as well as the current DB membership. Never await this inside
+    // notify(): item notifications can run within the transaction we query.
+    affected: async id => {
+      const ids = new Set([...(children.get(id) || [])]);
+      const item = await Zotero.Items.getAsync(id);
+      if (!item || item.isAttachment()) ids.add(id);
+      if (!item || !item.isAttachment()) {
+        for (const child of await Zotero.DB.columnQueryAsync(
+          'SELECT itemID FROM itemAttachments WHERE parentItemID = ?', [id])) ids.add(child);
+      }
+      return ids;
+    },
+    censusComplete: async () => {
+      cache.prune(seen); sourceHashes.prune(seen); seen = null;
+      await saveCache(); return cache.samples();
+    },
+    samples: () => cache.samples(),
     observed: async (info, sample) => { cache.observe(info.cacheKey, info.identity, sample); await saveCache(); },
     // Every number the scheduler stamps with this — startedAt, lastProgressAt,
     // serviceMS, and the duration samples the estimator is fitted on — is a span.
     inspect, blocked, now: monotonic, changed: render,
+    beforeSubmit: () => workerBusy() ? 'native-worker-busy' : null,
     // 0691's on-screen wording, this ticket's journal: describeError still shows
     // the author the file and the full error text, locally, and the failure that
     // reaches the journal is what replaced the retired on-disk error ledger.
@@ -2049,6 +2090,17 @@ async function initialize(rootURI, token) {
   alive = true;
   activeToken = token;
   Zotero.SDTPackSitter = { state: sitter.state, inspect, blocked, journal };
+  const owner = sitter;
+  notifierID = Zotero.Notifier.registerObserver({
+    notify(event, type, ids) {
+      if (!alive || token !== generation || owner !== sitter || !owner.state.enabled) return;
+      if ((type === 'item' && ['add', 'modify', 'trash', 'delete', 'refresh'].includes(event)) ||
+          (type === 'file' && event === 'download')) {
+        owner.invalidate(Array.isArray(ids) ? ids : [ids]);
+        wakeSDTSitter();
+      }
+    },
+  }, ['item', 'file'], 'sdt-pack-sitter');
   // Off is a state the plugin RUNS in: the button and the window are installed
   // either way, and they are what make "off" discoverable and reversible
   // without leaving Zotero's main window.
@@ -2063,6 +2115,9 @@ function shutdown(data, reason) {
   // to recover from a hang. The throw still propagates; the record is not lost.
   try {
     ++generation; alive = false; sitter?.stop();
+    try { if (notifierID !== undefined) Zotero.Notifier.unregisterObserver(notifierID); }
+    catch (error) { Zotero.logError(error); }
+    notifierID = undefined;
     if (timers) { timers.clearTimeout(timer); timers.clearInterval(pulse); timers.clearInterval(heartbeat); }
     // Cleared, not merely stopped. `pulse` is armSDTSitter()'s idempotence
     // guard (ticket 0742), and a stale non-null handle left here makes the next

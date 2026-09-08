@@ -68,92 +68,136 @@ var createSDTSitter = function (host) {
     // real shutdown, where nothing should update because the window is gone.
     host.changed(state);
   };
-  return {
+  // Only this pump mutates the observed map. Notifier callbacks enqueue work and
+  // return synchronously, including while Zotero is committing a transaction.
+  const observed = new Map(), dirty = new Set();
+  let reconciliationPending = true, epoch = 0;
+  const interval = host.reconciliationIntervalMS ?? 60 * 60 * 1000;
+  state.lastReconciliationAt = null;
+  state.nextReconciliationAt = null;
+  const classify = info => SDT_STATUS_CLASSES.queued.includes(info.status) &&
+    info.identity && failed.has(info.identity) ? 'failed-session' : info.status;
+  const inspect = async id => {
+    try { return await host.inspect(id); }
+    catch (error) { return { status: 'inspection-error', error: String(error) }; }
+  };
+  const refreshQueue = () => {
+    state.pending = [...observed].filter(([, info]) => SDT_STATUS_CLASSES.queued.includes(info.status))
+      .map(([id, info]) => ({ id, title: info.title ?? null, parentTitle: info.parentTitle ?? null,
+        sourceBytes: info.sourceBytes, pages: info.pages }));
+  };
+  const record = (id, info) => {
+    const previous = observed.get(id);
+    if (previous) state.counts[previous.status]--;
+    const status = classify(info);
+    if (info.absent) observed.delete(id);
+    else {
+      observed.set(id, { ...info, status });
+      state.counts[status] = (state.counts[status] || 0) + 1;
+    }
+    state.total = state.scanned = observed.size;
+    refreshQueue();
+    if (host.samples) {
+      state.samples = host.samples();
+      // Invalidation removes old observations immediately; newly collected ones
+      // join the fit only at the normal completion cadence below.
+      const validSamples = new Set(state.samples);
+      state.fittedSamples = state.fittedSamples.filter(sample => validSamples.has(sample));
+    }
+  };
+  const api = {
     state,
-    stop() { state.enabled = false; },
-    /* stop()'s twin, for the user's own switch (ticket 0742). Before it, the
-       only way back from a stopped sitter was a fresh createSDTSitter() — which
-       throws away the census, the counters and the fitted samples, so turning
-       indexing off and on again would have re-walked the whole library and lost
-       every duration observed in the session.
-
-       The phase is reset only from 'switched-off', the state this switch itself
-       sets. A sitter stopped mid-extraction leaves `phase` stale at
-       'extracting' (see `busy` above), and overwriting that here would erase
-       the one trace of how it stopped; the next sweep sets the phase anyway. */
+    stop() { state.enabled = false; epoch++; },
     start() {
-      state.enabled = true;
+      state.enabled = true; reconciliationPending = true;
       if (state.phase === 'switched-off') state.phase = 'ready';
     },
-    async sweep() {
+    invalidate(ids) { for (const id of ids) dirty.add(id); },
+    // Explicit callers retain the census API; ordinary wakeups use pump().
+    async sweep() { reconciliationPending = true; return api.pump(); },
+    async pump() {
       if (!state.enabled || state.busy) return;
       state.busy = true;
-      // The sweep's own boundaries. Without them a sweep that died silently and a
-      // sweep that never started again look identical in the ring, which is the
-      // trace ticket 0702's failure mode left behind: none at all.
+      const token = epoch;
+      const attempted = new Map();
+      const current = () => state.enabled && token === epoch;
       if (host.emit) host.emit('sweep-start', {}, 'trace');
       try {
-        // Snapshotted BEFORE the reset, not only at the next completion:
-        // `state.counts` is about to be overwritten with `{}`, and without
-        // this the coverage line has nothing to fall back on until this
-        // whole walk finishes -- minutes, at library scale, since every
-        // activation re-hashes from scratch. A census interrupted before its
-        // first-ever completion left no held snapshot at all, so switching
-        // off (which freezes the live count) and back on discarded a real,
-        // correct "1 515 / 16 606" for a bare "0" that lasted the length of
-        // the whole re-walk (found live, testing v0.3.19). A snapshot this
-        // publish() itself will overwrite once the walk actually completes,
-        // so it is never stale beyond one sweep.
-        if (state.total > 0) state.censusSnapshot = { counts: { ...state.counts }, total: state.total };
-        state.phase = 'census'; state.scanned = 0; state.counts = {};
-        const ids = await host.list();
-        if (!state.enabled) return;
-        state.total = ids.length; publish();
-        const candidates = [];
-        for (const id of ids) {
-          if (!state.enabled) break;
+        while (current()) {
+          if (state.nextReconciliationAt !== null && host.now() >= state.nextReconciliationAt)
+            reconciliationPending = true;
+          if (reconciliationPending) {
+            reconciliationPending = false;
+            if (state.total > 0 && state.scanned !== state.total)
+              state.censusSnapshot ??= { counts: { ...state.counts }, total: state.total };
+            state.phase = 'census'; state.scanned = 0; state.counts = {};
+            const ids = await host.list();
+            if (!current()) return;
+            state.total = ids.length; publish();
+            const next = new Map();
+            for (const id of ids) {
+              await host.yield();
+              if (!current()) return;
+              const info = await inspect(id);
+              if (!current()) return;
+              const status = classify(info);
+              next.set(id, { ...info, status });
+              state.scanned++;
+              state.counts[status] = (state.counts[status] || 0) + 1;
+              publish();
+            }
+            if (host.censusComplete) {
+              state.samples = await host.censusComplete();
+              if (!current()) return;
+              state.fittedSamples = state.samples.slice();
+            }
+            observed.clear(); for (const entry of next) observed.set(...entry);
+            state.lastReconciliationAt = host.now();
+            // A delayed or long scan is one reconciliation, never a catch-up loop.
+            state.nextReconciliationAt = state.lastReconciliationAt + interval;
+            refreshQueue(); state.candidates = state.pending.length; publish();
+          }
+          while (dirty.size && current()) {
+            const id = dirty.values().next().value;
+            dirty.delete(id); // BEFORE awaits: a new event for this ID survives.
+            const ids = host.affected ? await host.affected(id) : [id];
+            if (!current()) { dirty.add(id); return; }
+            for (const affected of ids) {
+              const info = await inspect(affected);
+              if (!current()) { dirty.add(id); return; }
+              record(affected, info); publish();
+            }
+          }
+          if (!current()) return;
+          const candidate = state.pending.find(item => !attempted.has(item.id) ||
+            attempted.get(item.id) !== observed.get(item.id)?.identity);
+          if (!candidate) { state.phase = 'waiting'; break; }
+          const id = candidate.id;
+          let before = observed.get(id);
+          const gated = before;
           await host.yield();
-          if (!state.enabled) break;
-          let before;
-          try { before = await host.inspect(id); }
-          catch (error) { before = { status: 'inspection-error', error: String(error) }; }
-          if (!state.enabled) break;
-          state.scanned++;
-          let status = before.status;
-          if (before.identity && failed.has(before.identity)) status = 'failed-session';
-          state.counts[status] = (state.counts[status] || 0) + 1;
-          publish();
-          if (!SDT_STATUS_CLASSES.queued.includes(status)) continue;
-          candidates.push({ id, before, status });
-        }
-        // Both titles travel with the queue. The attachment's own title is usually
-        // auto-generated ('Full Text PDF'), so the UI needs the parent reference to
-        // name anything a reader recognises.
-        // Kept apart from state.pending, which drains as documents settle. What
-        // the caller's poll interval needs is what this census FOUND, and by the
-        // end of the sweep pending says nothing about it (ticket 0701).
-        state.candidates = candidates.length;
-        state.pending = candidates.map(({ id, before }) => ({ id, title: before.title ?? null,
-          parentTitle: before.parentTitle ?? null, sourceBytes: before.sourceBytes, pages: before.pages }));
-        if (state.enabled && host.censusComplete) {
-          state.samples = await host.censusComplete();
-          state.fittedSamples = state.samples.slice();
-        }
-        publish();
-        for (const { id, before, status } of candidates) {
-          await host.yield();
-          if (!state.enabled) break;
+          if (!current()) return;
           const reason = await host.blocked(before);
-          if (!state.enabled) break;
-          // Journalled beside the halt rather than inside it, so the halt stays the
-          // one line verification/probes/sdt_sitter_scheduler_mutants.py anchors M4
-          // on. Queueing behind the native worker is the designed resting state,
-          // not a refusal; it repeats every sweep, so it is trace and never state.
+          if (!current()) return;
           if (reason && host.emit) {
             const idle = reason === 'native-worker-busy';
             host.emit(idle ? 'worker-idle-wait' : 'refuse', { reason }, idle ? 'trace' : 'state');
           }
-          if (reason) { state.phase = reason; publish(); break; }
+          if (reason) {
+            state.phase = reason; publish();
+            if (dirty.size) continue; // A resource wait must not delay discovery.
+            break;
+          }
+          // Resources may have taken time to read. Inspect again at admission so
+          // a removed source or a pack another consumer just produced wins.
+          before = await inspect(id);
+          if (!current()) return;
+          record(id, before); publish();
+          if (!SDT_STATUS_CLASSES.queued.includes(observed.get(id)?.status)) continue;
+          if (before.identity !== gated.identity || before.directory !== gated.directory) continue;
+          const admissionReason = host.beforeSubmit?.();
+          if (admissionReason) { state.phase = admissionReason; publish(); break; }
+          attempted.set(id, before.identity);
           if (host.emit) host.emit('admit', { id, sourceBytes: before.sourceBytes, pages: before.pages });
           state.active = id; state.startedAt = host.now();
           state.activeInfo = { title: before.title ?? null, parentTitle: before.parentTitle ?? null,
@@ -197,7 +241,7 @@ var createSDTSitter = function (host) {
             // throwing are the same span here on purpose — a worker that ran out
             // of memory and a photograph that holds no text are indistinguishable
             // from this side, and only one of them is permanent.
-            if (!ok || after.status !== 'current') throw new Error('Native SDT did not persist a current pack');
+            if (!ok || after.status !== 'current' || after.identity !== before.identity) throw new Error('Native SDT did not persist a current pack');
             state.completed++; state.serviceMS += host.now() - state.startedAt;
             // No progress tick means no observed start, and the window from
             // submission is not a stand-in for one: it IS ensure()'s hash, pack
@@ -236,25 +280,31 @@ var createSDTSitter = function (host) {
               catch (_error) { if (host.emit) host.emit('observe-failed', { id }, 'trace'); }
             }
             if (measured && state.samples.length % 3 === 0) state.fittedSamples = state.samples.slice();
-            state.counts[status]--; state.counts.current = (state.counts.current || 0) + 1;
+            record(id, after);
           } catch (error) {
-            failed.add(before.identity);
-            state.error = host.describeError ? host.describeError(before, error) : String(error);
-            if (host.reportError) await host.reportError(before, error);
-            state.counts[status]--; state.counts['failed-session'] = (state.counts['failed-session'] || 0) + 1;
+            const after = await inspect(id);
+            if (SDT_STATUS_CLASSES.queued.includes(after.status) && after.identity === before.identity) {
+              if (before.identity) failed.add(before.identity);
+            }
+            if (after.status === 'inspection-error' ||
+                (SDT_STATUS_CLASSES.queued.includes(after.status) && after.identity === before.identity)) {
+              state.error = host.describeError ? host.describeError(before, error) : String(error);
+              if (host.reportError) await host.reportError(before, error);
+            } else if (host.emit) {
+              host.emit('settle', { id, ok: false, status: after.status });
+            }
+            record(id, after);
+
           } finally {
             state.active = null;
-            state.pending = state.pending.filter(item => item.id !== id);
+            refreshQueue();
           }
           publish();
         }
-        if (state.enabled && state.phase === 'extracting') state.phase = 'waiting';
-        else if (state.enabled && state.phase === 'census') state.phase = 'waiting';
+        if (current() && state.phase === 'extracting') state.phase = 'waiting';
       } catch (error) {
-        if (state.enabled) { state.phase = 'error'; state.error = String(error); }
-      // sweep-end goes out BEFORE the last publish, because publish is the one
-      // call in this finally that can still throw out of sweep(): the record of
-      // how the sweep ended must not be lost to the thing that ended it.
+        if (current()) { state.phase = 'error'; state.error = String(error); }
+        reconciliationPending = true;
       } finally {
         state.busy = false;
         if (host.emit) host.emit('sweep-end',
@@ -264,6 +314,7 @@ var createSDTSitter = function (host) {
       }
     },
   };
+  return api;
 };
 
 /* Disposable derived records, without paths, text, failures or active jobs. */
@@ -347,6 +398,7 @@ var createSDTSourceHashes = function (maxAgeMS = 24 * 60 * 60 * 1000) {
       return hash;
     },
     prune(keys) { for (const key of records.keys()) if (!keys.has(key)) records.delete(key); },
+    drop(key) { records.delete(key); },
     size() { return records.size; },
   };
 };
