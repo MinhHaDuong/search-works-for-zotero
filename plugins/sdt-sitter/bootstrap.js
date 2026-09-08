@@ -104,7 +104,13 @@ var SDT_SOURCE_MAGIC = [
   // container is not a snapshot and is not a PDF.
   { format: 'zip', processor: 'epub', prefix: [0x50, 0x4B, 0x03, 0x04] },
 ];
-var SDT_MAGIC_BYTES = 8;
+/* Derived from the table, never written down beside it. A constant would be
+   right today by coincidence — PNG's eight bytes are the longest — and a
+   signature added later that outran it would simply stop matching, silently and
+   with nothing to catch it: `prefix.length <= head.length` is false, the entry
+   is skipped, the label stands, and the document is submitted exactly as it was
+   before the entry was added. */
+var SDT_MAGIC_BYTES = SDT_SOURCE_MAGIC.reduce((n, entry) => Math.max(n, entry.prefix.length), 0);
 
 /* The longest prefix above, read once. A read that fails answers `null`, which
    is the same answer as an unrecognised head: this function's job is to catch a
@@ -1377,8 +1383,15 @@ async function initialize(rootURI, token) {
     // there it would read eight bytes off every attachment in the library on
     // every 30-second sweep, where here it reads them only for a document that
     // is otherwise about to be handed to the worker — 4 890 snapshots minus the
-    // 4 729 that already carry a pack, once each, and nothing at all on a
-    // library that is fully indexed.
+    // 4 729 that already carry a pack, and nothing at all on a library that is
+    // fully indexed.
+    //
+    // Not once each, and the exception is the population this exists for: only
+    // `current` reaches cache.remember(), so a document the sniff rules out has
+    // no cache record and is re-read on every sweep. Eight bytes every thirty
+    // seconds against 39 documents, replacing a native extraction attempt of
+    // 50–90 ms each — cheap enough that memoizing it would buy a second store
+    // to keep consistent for no measurable return.
     //
     // A mismatch is `unsupported`, not a failure. The document is fine; our
     // classification of it was wrong, and the file that Zotero labelled
