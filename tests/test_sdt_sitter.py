@@ -170,7 +170,7 @@ def messages(tag: str = 'en') -> dict[str, str | list[str]]:
     read the wording without a JavaScript engine.
     """
     source = BOOTSTRAP.read_text(encoding='utf-8')
-    start = source.index('const SDT_TEXT = ')
+    start = source.index('var SDT_TEXT = ')
     begin = source.index('{', start)
     depth, index, in_string, escaped = 0, begin, False, False
     while index < len(source):
@@ -633,7 +633,7 @@ def test_no_ui_site_keeps_a_sentence_of_its_own():
     invariant did not change — one home per string — only where the home is.
     """
     source = BOOTSTRAP.read_text(encoding='utf-8')
-    begin = source.index('const SDT_TEXT = ')
+    begin = source.index('var SDT_TEXT = ')
     outside = source[:begin] + source[source.index('\n};', begin):]
     for tag in LOCALES:
         for name, pattern in messages(tag).items():

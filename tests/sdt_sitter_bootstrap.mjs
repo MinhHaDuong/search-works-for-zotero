@@ -19,6 +19,8 @@
  * made once in a merge request.
  */
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
 
 import { CACHE_PATH, ROOT_URI, VERSIONS_JSON, createHarness, deferred }
   from './sdt_sitter_zotero_mock.mjs';
@@ -721,6 +723,25 @@ await test('a disable, a re-enable, and the suspended sweep announces nothing', 
   // sweeps per interval for the rest of the session.
   assert.deepEqual(harness.timers.ids('timeout'), armed,
     'a sweep from a dead generation rescheduled itself');
+});
+
+/* Ticket 0730. Loading bootstrap.js twice into one scope used to throw at parse
+ * time -- `SyntaxError: Identifier 'closeJournalled' has already been declared`
+ * -- because `var`/`function` tolerate redeclaration and `const`/`let`/`class`
+ * do not, and the file mixed both. Whether Zotero ever re-runs bootstrap.js into
+ * a scope it has already used stays open (recorded in the ticket log against a
+ * real Zotero session); this arm makes the file safe regardless, the same way
+ * every other top-level binding in it is already `var` for the sandbox-exposure
+ * reason ticket 0695 recorded. A minimal context is deliberate: the ticket's own
+ * repro used one, and the failure is a parse-time SyntaxError that a full mock
+ * host would only obscure behind its own setup cost.
+ */
+await test('bootstrap.js loads twice into one scope without throwing', async () => {
+  const source = fs.readFileSync('plugins/sdt-sitter/bootstrap.js', 'utf8');
+  const context = vm.createContext({ Zotero: {}, Services: {}, ChromeUtils: {} });
+  vm.runInContext(source, context);
+  assert.doesNotThrow(() => vm.runInContext(source, context),
+    'a second load into the same scope threw -- a top-level const/let/class crept back in');
 });
 
 console.log(JSON.stringify({ tests: results, result: 'pass' }));
