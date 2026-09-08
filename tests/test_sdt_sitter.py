@@ -117,8 +117,13 @@ UI_SITES = (
     ('indexSummary.textContent = ', ';'),
     ("getElementById('sdt-fulltext').textContent", ';'),
     ('const globalLegend = ', 'const globalProgress'),
-    ('Services.prompt.confirm(', 'if (token !== generation) return;'),
+    ('function askSDTLaunch(win) {', '\n}'),
     ('describeError: (info, error) =>', 'reportError:'),
+    # The switch of ticket 0742. Two sites, because the control is built once
+    # and reworded on every redraw, and a literal could arrive at either.
+    ("doc.getElementById('sdt-switch-state').textContent", ';'),
+    ("doc.getElementById('sdt-switch').textContent", ';'),
+    ('const disclosures = element(', 'details.append(summary'),
     # The disclosure layers of ticket 0693. A site added to the dialog and not
     # added here is a site the vocabulary ban stops covering, which is the
     # asymmetry this list fails on: removing a site is loud, arriving is silent.
@@ -797,7 +802,7 @@ def test_launch_prompt_states_the_library_scope():
     the dialog heading cannot name three different scopes."""
     assert 'whole library' not in messages()['launch-question'], \
         'the launch prompt still asks about one library'
-    site = _site('Services.prompt.confirm(', 'if (token !== generation) return;')
+    site = _site('function askSDTLaunch(win) {', '\n}')
     assert 'describeSDTScope(' in site, 'the launch prompt states no library scope'
 
 
@@ -841,18 +846,108 @@ def test_launch_prompt_title_is_the_index_assistant():
 
 
 def test_launch_prompt_body_speaks_of_indexing_not_packs():
+    """Ticket 0742 rewrote the question and moved two of its four paragraphs out.
+
+    Both halves of the old wording were false. "tonight" described a loop that
+    reschedules for as long as Zotero is open, and "the whole library" described
+    a census that walks every attachment Zotero holds — a different set from the
+    library in view, and one the sitter never scoped itself to. The assertions
+    are on their absence rather than on the replacement's exact phrasing: a
+    reworded question is the author's call, a question that lies again is not.
+    """
     english = messages()
-    # Reworded by ticket 0717: the plural is what the census measures, and the
-    # scope itself is appended at the call site by describeSDTScope().
-    assert 'Index every library' in english['launch-question']
+    question = visible(english['launch-question']).lower()
+    assert 'tonight' not in question, 'the prompt still promises the work ends at dawn'
+    assert 'whole library' not in question, 'the prompt still claims a scope the census has not'
+    assert 'index' in question, 'the prompt no longer says what it is asking to do'
+    # Ticket 0717's scope paragraph survives 0742's rewrite, and moves from the
+    # question's own words into the reading beside it: the set the census covers
+    # is read from Zotero's records by the composer the tooltip and the dialog
+    # heading also use, never asserted by this string.
+    assert 'describeSDTScope()' in _site('function askSDTLaunch(win) {', '\n}'), \
+        'the prompt names no scope at all'
     assert 'full-text search index' in english['launch-conditions'], \
         "Zotero's own index must be named apart from the sitter's"
     assert 'packs SDT' not in ' '.join(visible(v) for v in english.values())
-    # The four paragraphs are read at the call site in order, so the prompt keeps
-    # the shape it had when they were one concatenated literal.
-    site = _site('Services.prompt.confirm(', 'if (token !== generation) return;')
-    for name in ('launch-question', 'launch-conditions', 'launch-worker', 'launch-disable'):
+    # Three paragraphs now, read at the call site in order. The worker and
+    # disable disclosures moved to the dialog's Details layer, where they are
+    # readable at any time instead of once inside a modal — so their absence
+    # HERE is the assertion, and tests/sdt_sitter_dialog.mjs holds the other
+    # half, that they arrive in the window.
+    site = _site('function askSDTLaunch(win) {', '\n}')
+    for name in ('launch-question', 'launch-conditions', 'launch-details',
+                 'launch-yes', 'launch-no'):
         assert f"'{name}'" in site, f'{name} is no longer part of the launch prompt'
+    for name in ('launch-worker', 'launch-disable'):
+        assert f"'{name}'" not in site, f'{name} is back inside the modal'
+
+
+def test_the_launch_answer_is_persisted_and_asked_once():
+    """R22's one obvious way, ratified 2026-09-08 (ticket 0742).
+
+    The old prompt fired at every Zotero start because nothing recorded the
+    answer; a decline was session-only, so it satisfied neither of R22's two
+    clauses. What makes the question once-only is the tri-state read: a pref
+    that is neither true nor false is the ONLY state in which it is asked.
+
+    Read from the source because the alternative is a live Zotero. The driven
+    half — the count of prompts across a restart and a disable/re-enable — is in
+    tests/sdt_sitter_bootstrap.mjs, and neither half stands alone: this one
+    cannot see that the read is reached, that one cannot see the tri-state.
+    """
+    source = BOOTSTRAP.read_text(encoding='utf-8')
+    assert "var ENABLED_PREF = 'extensions.sdt-pack-sitter.enabled';" in source, \
+        'the switch has no pref, so no answer can hold across a restart'
+    read = _site('function readSDTSwitch() {', '\n}')
+    assert 'ENABLED_PREF' in read and 'Zotero.Prefs.get' in read
+    assert "typeof value === 'boolean' ? value : null" in read, \
+        'the pref is not read tri-state, so "never answered" cannot be told from "no"'
+    write = _site('function writeSDTSwitch(enabled) {', '\n}')
+    assert 'Zotero.Prefs.set' in write and 'ENABLED_PREF' in write
+    # Asked only on the unanswered state, and the answer written straight back.
+    launch = _site('let enabled = readSDTSwitch();', 'alive = true;')
+    assert 'enabled === null' in launch, 'the question is not gated on an unanswered pref'
+    assert 'askSDTLaunch(win)' in launch and 'writeSDTSwitch(enabled)' in launch
+
+
+def test_the_question_is_asked_before_the_sitter_is_armed():
+    """Defect 6 of ticket 0742: `alive = true` and the toolbar button were
+    installed BEFORE the modal, so the button appeared under a dialog still
+    asking whether the sitter should run at all — the same class of defect
+    ticket 0696 had to guard against.
+
+    Asserted on the order of three statements in one function, which is what the
+    fix is. The driven half (a hook that reads the window while the modal is up)
+    is in tests/sdt_sitter_bootstrap.mjs.
+    """
+    tail = _site('let enabled = readSDTSwitch();', 'function shutdown(')
+    ask = tail.index('askSDTLaunch(win)')
+    assert ask < tail.index('alive = true;'), 'the sitter is armed before the question'
+    assert ask < tail.index('onMainWindowLoad({ window })'), \
+        'the toolbar button is installed before the question'
+
+
+def test_off_is_a_state_with_a_label_and_a_control():
+    """"Off" must be discoverable and reversible from the sitter's own surfaces,
+    which declining the old prompt never was: it left the toolbar reading "Index"
+    and pointed the reader at Tools -> Add-ons, four clicks away, where the act
+    of disabling removes the window that would have shown it stopped."""
+    assert 'switched-off' in phase_names(), 'the switch has no phase of its own'
+    assert messages()['phase-off'] == 'Indexing off'
+    # The toolbar says so rather than showing a coverage figure for a sitter
+    # that is not indexing.
+    assert "s.phase === 'switched-off'" in _site(*BUTTON_BLOCK), \
+        'the toolbar reads the same label whether indexing is on or off'
+    # And the window carries the way back.
+    toggle = _site('function toggleSDTSwitch() {', '\n}')
+    assert 'writeSDTSwitch(' in toggle, 'the switch does not persist what it was told'
+    assert 'armSDTSitter()' in toggle and 'disarmSDTSitter()' in toggle
+    # Graceful, exactly as add-on disable is: admissions stop, the file under way
+    # finishes, nothing is cancelled.
+    disarm = _site('function disarmSDTSitter() {', '\n}')
+    assert 'sitter?.stop()' in disarm, 'turning indexing off does not stop admissions'
+    assert 'alive = false' not in disarm, \
+        'turning indexing off tears the UI down, so "off" stops being discoverable'
 
 
 def test_global_status_line_names_the_unit_it_counts():

@@ -61,6 +61,19 @@ var IDLE_SWEEP_INTERVAL_MS = 10 * 60 * 1000;
 // 30 s floor above, so two toasts can never be on screen at once.
 var SWEEP_TOAST_MS = 8000;
 var DEBUG_PREF = 'extensions.sdt-pack-sitter.debug';
+/* R22's one obvious way, ratified 2026-09-08 (ticket 0742). Tri-state: unset
+   means the question has never been answered, and is the ONLY state in which
+   the launch prompt is shown. `true` and `false` are the user's own answer,
+   and both hold across a restart and across a disable/re-enable, which is what
+   R22 requires and what the old session-only decline never gave.
+
+   Same mechanism and same naming as DEBUG_PREF above (ticket 0693), so a
+   reader who found one in the Config Editor finds the other beside it. */
+var ENABLED_PREF = 'extensions.sdt-pack-sitter.enabled';
+// The generation token the armed loop belongs to. The dialog's switch can arm a
+// sweep long after initialize() returned, and a sweep armed against a stale
+// token is the cross-generation defect ticket 0696 shipped.
+var activeToken = 0;
 // SPEC.md owns these two numbers; this file needs them to compare against, and
 // the diagnostics layer needs to print them. One statement each, so a threshold
 // moved in the gate cannot leave a stale figure on screen beside the reading.
@@ -157,7 +170,27 @@ async function sniffSDTSource(path) {
    The two plural-sensitive entries are `[singular, plural]`, chosen by
    `count === 1`. That is an English rule in JavaScript, which is exactly what
    the Fluent selector existed to prevent -- correctly, while there were four
-   languages, and pointlessly now that there is one. */
+   languages, and pointlessly now that there is one.
+
+   NO COMMENTS INSIDE THE TABLE. `tests/test_sdt_sitter.py` reads the wording by
+   parsing this literal as JSON, which is what lets it argue with a rewording
+   without a JavaScript engine; a `//` line in there fails fifteen tests at once
+   with a decoder error that names nothing. Wording notes go here instead.
+
+   Three of them, from ticket 0742:
+
+   * "Waiting", never "Paused", for the phases the sitter gates itself on. The
+     switch below owns "on" and "off", and a reader who met "Paused: processor
+     busy" beside a switch he never touched would go looking for how to unpause
+     something he never paused.
+   * `launch-question` says neither "tonight" nor "whole library". The sweep
+     reschedules for as long as Zotero is open, so nothing ends at dawn, and the
+     census walks every attachment Zotero holds, which is not the library in
+     view. What is left is the question actually being asked.
+   * `launch-details` is the pointer that replaces two paragraphs of consent
+     box. `launch-worker` and `launch-disable` are still here, and are now read
+     in the window's Details layer, at any time, rather than once inside a modal
+     that is the format least likely to be read at all. */
 var SDT_TEXT = {
     "index": "Index",
     "index-coverage": "Index {percent} %",
@@ -173,13 +206,17 @@ var SDT_TEXT = {
     "phase-error": "Error",
     "phase-disabled": "Turned off",
     "phase-native-worker-busy": "Waiting: native indexing under way",
-    "phase-cpu-busy": "Paused: processor busy",
-    "phase-low-memory": "Paused: not enough memory",
-    "phase-low-disk": "Paused: not enough disk space",
-    "phase-storage-unavailable": "Paused: storage unavailable",
-    "phase-resources-unavailable": "Paused: system resources unreadable",
-    "phase-launch-declined": "Not started: turn the add-on off, then on again",
+    "phase-cpu-busy": "Waiting: processor busy",
+    "phase-low-memory": "Waiting: not enough memory",
+    "phase-low-disk": "Waiting: not enough disk space",
+    "phase-storage-unavailable": "Waiting: storage unavailable",
+    "phase-resources-unavailable": "Waiting: system resources unreadable",
+    "phase-off": "Indexing off",
     "dialog-title": "Indexing assistant",
+    "switch-state-on": "Indexing is on.",
+    "switch-state-off": "Indexing is off. Nothing is scanned and nothing is sent for indexing.",
+    "switch-turn-on": "Turn indexing on",
+    "switch-turn-off": "Turn indexing off",
     "section-global": "Overall progress",
     "section-active": "Indexing under way",
     "details-title": "Details",
@@ -248,10 +285,13 @@ var SDT_TEXT = {
     "settle-failed": "“{file}” failed: {error}",
     "resources-read": "Reading resources: {error}",
     "launch-title": "Indexing assistant — experimental",
-    "launch-question": "Index every library tonight?",
+    "launch-question": "Index attachments in the background, from now on?",
     "launch-conditions": "One file at a time, with at least 4 GiB of memory available and 8 GiB of free disk. PDFs and the full-text search index settings are left untouched.",
+    "launch-details": "This answer is remembered. The assistant's window carries what it does not control, and the switch that turns it off again.",
+    "launch-yes": "Start indexing",
+    "launch-no": "Not now",
     "launch-worker": "The shared worker cannot be interrupted, nor given a system priority of its own. A large file can delay native work that arrived after it. The thresholds do not cap what it consumes.",
-    "launch-disable": "Turning the add-on off stops new admissions; the file under way finishes. Errors stay confined to the session. A disposable local cache keeps the freshness checks and the durations; it holds no text and no running job."
+    "launch-disable": "Turning indexing off stops new admissions; the file under way finishes. Errors stay confined to the session. A disposable local cache keeps the freshness checks and the durations; it holds no text and no running job."
   };
 
 /* Every string a reader sees passes through here. */
@@ -583,8 +623,110 @@ var SDT_PHASE_LABELS = {
   'low-disk': 'phase-low-disk',
   'storage-unavailable': 'phase-storage-unavailable',
   'resources-unavailable': 'phase-resources-unavailable',
-  'launch-declined; disable/re-enable to launch': 'phase-launch-declined',
+  // The user's own switch, off. Distinct from `disabled`, which is what the
+  // scheduler reports when the whole plugin is being torn down: this one is a
+  // state the plugin is running in, with a window and a control that leaves it.
+  'switched-off': 'phase-off',
 };
+
+/* ---- the switch: R22's one obvious way (ticket 0742) ----
+
+   Three functions and one pref. What they replace was two half-controls that
+   between them satisfied neither clause of R22: add-on disable held across
+   restarts but lived four clicks away in Tools -> Add-ons and removed the very
+   window that would have shown the sitter stopped; declining the launch prompt
+   was one click away and was forgotten by the next Zotero start, so the prompt
+   came back every session and the answer meant nothing. */
+
+/* `null` for "never answered", which is what makes the prompt a once-only
+   event rather than a startup ritual. An unreadable pref reads as unanswered
+   deliberately: asking a question that was already answered is a nuisance,
+   where silently indexing on a machine whose answer could not be read is the
+   thing the question exists to prevent. */
+function readSDTSwitch() {
+  try {
+    const value = Zotero.Prefs.get(ENABLED_PREF, true);
+    return typeof value === 'boolean' ? value : null;
+  } catch (_error) { return null; }
+}
+
+/* Guarded like the debug pref's own write. A pref that will not persist leaves
+   the session running on the answer just given — the wrong failure would be
+   refusing to act on an answer the user did give. */
+function writeSDTSwitch(enabled) {
+  try { Zotero.Prefs.set(ENABLED_PREF, !!enabled, true); }
+  catch (_error) { /* The next read falls back to asking again. */ }
+  emit('switch', { enabled: !!enabled });
+}
+
+/* Labelled buttons, because OK/Cancel do not answer the question asked: a
+   reader meeting `launch-question` over OK/Cancel has to work out which of the
+   two means yes. `confirmEx` returns the index of the button pressed, and
+   button 0 is the affirmative one.
+
+   Three of the four paragraphs are gone: the worker limitation and the disable
+   semantics moved into the dialog's Details layer, where they can be read at
+   any time rather than once, inside the modal least likely to be read at all.
+
+   The scope paragraph stays (ticket 0717), and stays SECOND, right under the
+   question it qualifies. It is the same composer the tooltip and the dialog
+   heading read, so a reader cannot be given three different answers to what the
+   sitter covers, and it is dropped when nothing can be read — a prompt naming
+   no scope is degraded, one naming a wrong scope is worse. That is also why the
+   question itself no longer says "every library": the scope is a reading taken
+   from Zotero's own records, not a claim this string can make. */
+function askSDTLaunch(win) {
+  const buttons = Services.prompt.BUTTON_POS_0 * Services.prompt.BUTTON_TITLE_IS_STRING +
+    Services.prompt.BUTTON_POS_1 * Services.prompt.BUTTON_TITLE_IS_STRING;
+  const body = [sdtText('launch-question'), describeSDTScope(),
+    ...['launch-conditions', 'launch-details'].map(id => sdtText(id))]
+    .filter(Boolean).join('\n\n');
+  return Services.prompt.confirmEx(win, sdtText('launch-title'), body,
+    buttons, sdtText('launch-yes'), sdtText('launch-no'), null, null, {}) === 0;
+}
+
+/* Arming and disarming, as the two halves of one switch rather than as
+   initialize()'s tail and shutdown()'s teardown. The dialog can reach both, so
+   both have to be reachable from outside initialize()'s closure — which is why
+   the sweep loop was hoisted (see createSDTSweepLoop) and why `activeToken`
+   exists at all.
+
+   `pulse` is the idempotence guard: a second arm while the loop is running
+   would leave two sweeps per interval and two render intervals, which is the
+   defect a toggle clicked twice would otherwise produce for free. */
+function armSDTSitter() {
+  if (!alive || !sitter || pulse) return;
+  sitter.start();
+  pulse = timers.setInterval(render, 100);
+  heartbeat = timers.setInterval(heartbeatTick, 60000);
+  timer = timers.setTimeout(createSDTSweepLoop(activeToken), 0);
+  render();
+}
+
+/* The graceful half, and deliberately the same semantics the 2026-09-05 ruling
+   gave add-on disable: `stop()` ends admissions and breaks the census out of
+   its loop, and an `ensure()` already handed to the native worker settles on
+   its own. Nothing is cancelled; the sitter simply stops asking.
+
+   `alive` stays true, which is the whole difference from shutdown(): the
+   button and the window remain, so "off" is a state the user can see and
+   leave, not the silence a removed UI leaves behind. */
+function disarmSDTSitter() {
+  if (timers) { timers.clearTimeout(timer); timers.clearInterval(pulse); timers.clearInterval(heartbeat); }
+  timer = pulse = heartbeat = undefined;
+  sitter?.stop();
+  if (sitter) sitter.state.phase = 'switched-off';
+  render();
+}
+
+/* The dialog's control. It writes the pref FIRST, so a toggle that is followed
+   by a crash still holds across the restart — the persistence is the
+   requirement, the arming is the effect. */
+function toggleSDTSwitch() {
+  const turningOn = !!sitter && sitter.state.phase === 'switched-off';
+  writeSDTSwitch(turningOn);
+  if (turningOn) armSDTSitter(); else disarmSDTSitter();
+}
 
 /* One composer for the coverage percentage, so the toolbar strip and the tooltip
    cannot round or space it two different ways — the lesson describeSDTFile
@@ -1017,7 +1159,13 @@ function renderState() {
     // read as the two call sites of one composer at the sites themselves. The
     // composer now carries the word as well as the figure — before the first
     // census there is no percentage, and the button still has to say what it is.
-    const coverageLabel = describeSDTCoverage(s) || sdtText('index');
+    // Off reads as off, in plain words, at zero clicks. A coverage percentage
+    // beside a sitter that is not indexing states a figure and hides the one
+    // fact the reader needs (ticket 0742); the label table owns the wording so
+    // the button and the tooltip cannot say it two ways.
+    const coverageLabel = s.phase === 'switched-off'
+      ? sdtText(SDT_PHASE_LABELS['switched-off'])
+      : describeSDTCoverage(s) || sdtText('index');
     const working = s.phase === 'census' || s.active !== null;
     // The blink deadline and the two animation phases are all spans, so they
     // read the monotonic clock: a wall-clock step backwards would otherwise
@@ -1055,6 +1203,14 @@ function renderState() {
     const doc = dialog.document;
     const status = doc.getElementById('sdt-status');
     if (!status) continue;
+    // The switch, reread from the sitter's own phase rather than from the pref:
+    // the two agree, and the phase is what every other line in this window is
+    // drawn from, so a disagreement shows here instead of hiding.
+    const off = s.phase === 'switched-off';
+    doc.getElementById('sdt-switch-state').textContent =
+      sdtText(off ? 'switch-state-off' : 'switch-state-on');
+    doc.getElementById('sdt-switch').textContent =
+      sdtText(off ? 'switch-turn-on' : 'switch-turn-off');
     const elapsed = s.active === null ? null : Math.round((monotonic() - s.startedAt) / 1000);
     const silence = s.active === null ? null : Math.round((monotonic() - s.lastProgressAt) / 1000);
     const formatDuration = ms => {
@@ -1233,6 +1389,20 @@ function openDialog(window) {
       }
       body.append(group);
     };
+    /* Layer 1's first line, above every reading: the one switch (ticket 0742).
+       First because it is the answer to the only question a user opens this
+       window in a hurry to ask — how do I stop this — and because R22's "one
+       obvious way" is not obvious three sections down. A native <button>, so
+       keyboard reach and the accessible name come from the platform, exactly as
+       the diagnostics layer's controls do. */
+    const control = element('div', 'sdt-switch-row');
+    control.style.cssText = 'display: flex; gap: 12px; align-items: center; margin: 0 0 16px;';
+    const state = element('span', 'sdt-switch-state');
+    const toggle = element('button', 'sdt-switch');
+    toggle.setAttribute('type', 'button');
+    toggle.addEventListener('click', () => toggleSDTSwitch());
+    control.append(state, toggle);
+    body.append(control);
     // Layer 1, always visible and always first: progress, what is being worked
     // on, how long it has taken and when it should end. Nothing below is needed
     // to read any of it.
@@ -1249,7 +1419,17 @@ function openDialog(window) {
     const details = element('details', 'sdt-details');
     const summary = element('summary', 'sdt-details-title');
     summary.textContent = sdtText('details-title');
-    details.append(summary, element('pre', 'sdt-diagnostics'));
+    /* The two disclosures ticket 0742 moved out of the launch modal: what the
+       sitter does not control (the shared worker), and what turning it off does
+       and does not do. They were the third and fourth paragraphs of a ~90-word
+       consent box shown once, which is the format least likely to be read and
+       impossible to re-read; here they are readable at any time, beside the
+       switch they describe. Composed once at build rather than in render(),
+       which runs ten times a second over text that never changes. */
+    const disclosures = element('pre', 'sdt-disclosures');
+    disclosures.textContent = ['launch-worker', 'launch-disable']
+      .map(id => sdtText(id)).join('\n\n');
+    details.append(summary, disclosures, element('pre', 'sdt-diagnostics'));
     const indexDetails = element('details', 'sdt-index-details');
     const indexSummary = element('summary', 'sdt-index-title');
     indexSummary.textContent = sdtText('fulltext-title');
@@ -1632,27 +1812,30 @@ async function initialize(rootURI, token) {
     yield: () => new Promise(resolve => timers.setTimeout(resolve, 0)),
     ensure: (id, onProgress) => Zotero.SDT.ensure(id, { isPriority: false, onProgress }),
   });
+  /* Ask BEFORE arming, which is the ordering the modal always deserved and
+     never had (ticket 0742). What stood here set `alive = true` and installed
+     the toolbar button first, so the button appeared in the window UNDER a
+     modal that was still asking whether the sitter should run at all — the same
+     class of defect ticket 0696 had to guard against, and a promise made to the
+     user before he had answered.
+
+     The prompt is now reached at most once per profile: an answered pref skips
+     it entirely, which is what makes disable/re-enable (ticket 0727 arm 4) and
+     every later restart silent. */
+  let enabled = readSDTSwitch();
+  if (enabled === null) {
+    enabled = askSDTLaunch(win);
+    if (token !== generation) return;
+    writeSDTSwitch(enabled);
+  }
   alive = true;
+  activeToken = token;
   Zotero.SDTPackSitter = { state: sitter.state, inspect, blocked, journal };
+  // Off is a state the plugin RUNS in: the button and the window are installed
+  // either way, and they are what make "off" discoverable and reversible
+  // without leaving Zotero's main window.
+  if (enabled) armSDTSitter(); else disarmSDTSitter();
   for (const window of Zotero.getMainWindows()) onMainWindowLoad({ window });
-  // Four paragraphs, one message each: a translator gets sentences to work on
-  // rather than one wall of text whose internal `\n\n` he has to preserve.
-  //
-  // The question asks about every library because that is what the census reads,
-  // and the set itself follows it as its own paragraph (ticket 0717) — the same
-  // composer the tooltip and the dialog heading use, so a reader cannot be given
-  // three different answers to what "everything" covers. It is dropped when
-  // nothing can be read, exactly as it is on the other two surfaces: a prompt
-  // that named no scope is degraded, one that named a wrong one is worse.
-  const launch = Services.prompt.confirm(win, sdtText('launch-title'),
-    [sdtText('launch-question'), describeSDTScope(),
-      ...['launch-conditions', 'launch-worker', 'launch-disable'].map(id => sdtText(id))]
-      .filter(Boolean).join('\n\n'));
-  if (token !== generation) return;
-  if (!launch) { sitter.state.phase = 'launch-declined; disable/re-enable to launch'; render(); return; }
-  pulse = timers.setInterval(render, 100);
-  heartbeat = timers.setInterval(heartbeatTick, 60000);
-  timer = timers.setTimeout(createSDTSweepLoop(token), 0);
 }
 function shutdown(data, reason) {
   // try/finally, because the teardown between here and the seal calls out to the
@@ -1663,6 +1846,12 @@ function shutdown(data, reason) {
   try {
     ++generation; alive = false; sitter?.stop();
     if (timers) { timers.clearTimeout(timer); timers.clearInterval(pulse); timers.clearInterval(heartbeat); }
+    // Cleared, not merely stopped. `pulse` is armSDTSitter()'s idempotence
+    // guard (ticket 0742), and a stale non-null handle left here makes the next
+    // activation's arm a silent no-op: the plugin re-enables, builds a second
+    // sitter, and never sweeps again. Nothing before this ticket read these
+    // three after clearing them, so leaving them set cost nothing then.
+    timer = pulse = heartbeat = undefined;
     for (const button of buttons) button.remove();
     buttons.clear();
     for (const dialog of dialogs) if (!dialog.closed) { noteDialogClose(dialog); dialog.close(); }

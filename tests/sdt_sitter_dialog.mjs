@@ -120,6 +120,19 @@ ui.Zotero = makeZotero();
 ui.journal = ui.createSDTJournal(2000);
 ui.alive = true;
 ui.sealed = false;
+/* What `startup()` imports from `resource://gre/modules/Timer.sys.mjs` and binds
+   here. The dialog fixture never runs `startup()`, and until ticket 0742 nothing
+   in this file needed it — the switch does: turning indexing on arms the sweep
+   loop and the two intervals, which is the half of the control a source grep
+   cannot see. Counted rather than merely accepted, so an arm that never happened
+   and an arm that happened twice are different observations. */
+const armed = { intervals: 0, timeouts: 0, cleared: 0 };
+ui.timers = {
+  setInterval: () => ++armed.intervals,
+  setTimeout: () => ++armed.timeouts,
+  clearInterval: () => { armed.cleared++; },
+  clearTimeout: () => { armed.cleared++; },
+};
 ui.environment = {
   version: '9.9.9-fixture', rootURI: INSTALL_PATH, zoteroVersion: '10.0.5-stub',
   strictMinVersion: '10.0.1', strictMaxVersion: '10.*',
@@ -163,7 +176,11 @@ const layer3 = doc.getElementById('sdt-tech-details');
 
 test('the three layers exist, in order, with diagnostics nested inside details', () => {
   const top = doc.body.childNodes.map(node => node.id);
-  assert.deepEqual(top, ['sdt-global-section', 'sdt-document-section', 'sdt-details'],
+  // The switch leads (ticket 0742): R22's "one obvious way" is not obvious three
+  // sections down, and a reader who opens this window in a hurry opens it to
+  // stop the thing. Progress still leads everything that is a READING.
+  assert.deepEqual(top,
+    ['sdt-switch-row', 'sdt-global-section', 'sdt-document-section', 'sdt-details'],
     'primary progress no longer leads the window');
   assert(layer2 && layer3, 'a disclosure layer is missing');
   assert.equal(layer3.parentNode, layer2,
@@ -181,6 +198,56 @@ test('layer 1 still carries progress, and layer 2 still carries the counts', () 
   assert(doc.getElementById('sdt-diagnostics').textContent.includes('Census: 3 / 3'));
   assert(doc.getElementById('sdt-fulltext').textContent.includes('"indexed": 3'),
     'the native index statistics did not land');
+});
+
+/* Ticket 0742. The switch is layer 1's first control, and "off" is a state the
+   window can both show and leave. A source grep sees the strings; only driving
+   the control shows that clicking it stops the sitter, persists the answer, and
+   redraws the two lines the reader is looking at — and that clicking it again
+   comes back. The order matters to the arms below, so they run as one. */
+test('the switch turns indexing off and on again, persisting each answer', () => {
+  const control = doc.getElementById('sdt-switch');
+  const label = doc.getElementById('sdt-switch-state');
+  assert.equal(control.tagName, 'button', 'the switch is not a native control');
+  assert.equal(control.parentNode.id, 'sdt-switch-row');
+  assert.equal(control.textContent, 'Turn indexing off');
+  assert.equal(label.textContent, 'Indexing is on.');
+
+  control.fire('click');
+  assert.equal(sitter.state.enabled, false, 'the sitter kept admitting after the switch');
+  assert.equal(sitter.state.phase, 'switched-off');
+  assert.equal(state.prefs.get('extensions.sdt-pack-sitter.enabled'), false,
+    'the answer was not persisted, so it would not hold across a restart');
+  assert.equal(control.textContent, 'Turn indexing on', 'the switch offers no way back');
+  assert(label.textContent.startsWith('Indexing is off.'));
+
+  const before = armed.intervals;
+  control.fire('click');
+  assert.equal(sitter.state.enabled, true, 'turning indexing on left the sitter stopped');
+  assert.equal(sitter.state.phase, 'ready');
+  assert.equal(state.prefs.get('extensions.sdt-pack-sitter.enabled'), true);
+  assert.equal(control.textContent, 'Turn indexing off');
+  // The redraw pulse and the heartbeat, armed again. Without this the switch
+  // could flip the pref and the phase and never restart the loop, and every
+  // assertion above would still pass.
+  assert.equal(armed.intervals - before, 2, 'turning indexing on armed no loop');
+});
+
+/* Ticket 0742's other half. The worker limitation and the disable semantics were
+   the third and fourth paragraphs of a modal shown once per session and gone the
+   moment it was dismissed. The assertion is on WHERE they hang, which is the
+   thing the move was for: readable at any time, beside the switch they describe.
+   `getElementById` finds them wherever they were appended, so the parent is the
+   only question a source grep cannot answer. */
+test('the launch disclosures are readable in the Details layer, not only in a modal', () => {
+  const disclosures = doc.getElementById('sdt-disclosures');
+  assert(disclosures, 'the disclosures reach no layer of the window at all');
+  assert.equal(disclosures.parentNode.id, layer2.id,
+    'the disclosures are not in the Details layer');
+  assert(disclosures.textContent.includes('shared worker cannot be interrupted'),
+    'the worker limitation is not readable in the window');
+  assert(disclosures.textContent.includes('the file under way finishes'),
+    'what turning indexing off does is not readable in the window');
 });
 
 // Author's ruling of 2026-09-08, second half: "Observed durations" is technical
