@@ -27,9 +27,9 @@ opening a PDF makes Zotero extract its text and touches no item version), and
 writing a note versions the child, never the parent). Both replace the item's
 passages wholesale.
 
-## The failure a user sees
+## The failures a user sees
 
-Nothing, until they look at the timings.
+**Every semantic query goes back to the exact scan, permanently.**
 
 After the first incremental catch-up over an index that holds codes,
 `vector_codes` carries one row per replaced passage whose passage is gone.
@@ -40,23 +40,36 @@ vectors, and returns
 
 > There are more binary codes than the 1200 stored vectors they must describe.
 
-`codesFor` then declines, and **every** semantic query falls back to the exact
-float scan the codes exist to avoid — the 42x the feature was landed for — on
-every query, for the life of the index, until someone runs a full
-`action:"build"`. The only trace is the `vectorScanNotice` on `zotero_index
-action:"status"`; a user who does not read it sees a semantic search that was
-fast after the build and is slow ever after.
+`codesFor` then declines, and every semantic query falls back to the exact float
+scan the codes exist to avoid — the 42x this path was landed for — for the life
+of the index, until someone runs a full `action:"build"`. The only trace is the
+`vectorScanNotice` on `zotero_index action:"status"`; a user who does not read it
+sees a semantic search that was fast after the build and slow ever after.
 
-I reproduced this end to end through the public API before writing anything —
-see the red run below. The consequence is the silent fallback, not wrong
-results: every score still comes from a real float32 vector, so the ranking a
-declined query returns is correct, just slow.
+**And a query that arrives during the catch-up throws.**
+
+`zotero_semantic_search` (`src/tools/semantic-search.ts:32-34`) declines during a
+running job only when the index is empty, so on a populated index queries and an
+update overlap by design. The catch-up clears the item's passages, inserts their
+replacements with no vector yet, and awaits the embedder. A resident `codeCache`
+that outlived the clear still names the freed rowid; SQLite has just handed that
+rowid back to one of the new rows; and `rescoreStatement` (`:1656`) selects
+candidates by rowid — `SELECT id, vector FROM passages WHERE pid IN (…)`, with no
+`vector IS NOT NULL` filter — so `toFloats` (`:2205`) dereferences null:
+
+```
+TypeError: Cannot read properties of null (reading 'byteOffset')
+```
+
+Both are reproduced end to end through the public API by the tests below.
+Neither produces *wrong* results: every score still comes from a real float32
+vector, so a query that returns at all returns the correct ranking.
 
 ## The fix, and why that shape
 
 Two source-scoped statements, mirroring the existing `deleteFulltext` /
-`deleteOwnWords` pair one for one, run at the top of each clear before the
-passages go:
+`deleteOwnWords` pair one for one, plus `invalidateCodes()`, at the top of each
+clear:
 
 ```sql
 DELETE FROM vector_codes WHERE pid IN
@@ -73,22 +86,27 @@ vectors" and decline the coded path just the same, for rows nothing touched.
 Scoping the delete by `source` is what keeps the two halves of the item
 independent.
 
-**Why `invalidateCodes()` as well.** It is not a table wipe (that is
-`dropCodes()`, `:1889`); it drops the *resident* `codeCache` and any verdict
-about it, and every other path that removes or replaces a vector calls it —
-`putVector` (`:1416`), `adoptVector` (`:898`), `deleteItem` (`:1317`),
-`dropCodes` (`:1895`). The clears were the only vector-removing paths that did
-not. Concretely: the catch-up loop awaits the embedder between the clear and the
-update's own `finalizeVectors`, and `codesFor` only consults `isBuilding` when
-the cache is *absent* — so a query arriving in that window is answered from a
-cache naming rowids that no longer exist, and stage one picks candidates on the
-sign bits of text the index no longer holds. Cost is nil: the cache is rebuilt
-lazily on the next query, and `putVector` already invalidates once per embedded
-passage.
+**Why before the delete, not after.** The subquery names the doomed rows through
+`passages`; run after `deleteFulltext`, it selects nothing and the statement is a
+no-op. This is the ordering `deleteItem` already uses, for the same reason.
+
+**Why `invalidateCodes()` as well.** It is not housekeeping and it is not a table
+wipe (that is `dropCodes()`, `:1889`): it drops the *resident* `codeCache`, and
+it is what turns the `TypeError` above into the ordinary refusal — with no cache,
+`codesFor` sees a job running and declines to build one over rows the update is
+still writing, so the query scans exactly and says so. Every other path that
+removes or replaces a vector already calls it — `putVector` (`:1416`),
+`adoptVector` (`:898`), `deleteItem` (`:1317`), `dropCodes` (`:1895`); the two
+clears were the only ones that did not.
+
+Both halves are independently necessary, and that is measured rather than
+asserted: with the two scoped deletes in place and only the two
+`this.invalidateCodes();` lines removed, the third test below fails with the same
+`TypeError` while the other two pass.
 
 ## What the tests assert, and that they were seen red
 
-Two cases in `tests/features/search-two-stage.test.ts`, under the existing
+Three cases in `tests/features/search-two-stage.test.ts`, under the existing
 `the codes stay level with the vectors` block:
 
 1. **`takes the codes with the body passages a full-text catch-up replaces`** —
@@ -101,67 +119,63 @@ Two cases in `tests/features/search-two-stage.test.ts`, under the existing
 2. **`takes the codes with the own words an update rewrites`** — the same over
    the own-words pass: 600 metadata passages plus one note (601 vectors), then an
    update whose `ownWords` census reports a newer note version. Same three
-   assertions.
+   assertions. Its comment records the one thing its redness depends on: the note
+   must not hold the largest rowid, which holds because `indexItem`
+   (`index-manager.ts:2216`) interleaves own words per item during the build.
+3. **`forgets the resident codes a catch-up clears, so a query racing it cannot
+   read a cleared row`** — the crash. Warm the cache with one query, then run a
+   catch-up on the **last** item indexed with a semantic query fired from inside
+   the embedder, i.e. during the await between the clear and the first
+   `putVector`. Asserts the query does not throw, that it scanned exactly with
+   the build-running notice, and that it still returned its ten hits.
 
-The fixture is built through the public build/update API with the documented
+The fixtures are built through the public build/update API with the documented
 options; nothing reaches into internals beyond the existing `rank()` cast the
-file already uses, and the index is over the code-building floor honestly rather
+file already uses, and each index is over the code-building floor honestly rather
 than by lowering it.
 
-**Red step, on the committed unfixed tree** (tests committed alone at
-`98bbb5b`, source untouched, working tree clean):
+**Red step, on the committed unfixed tree** (tests committed alone, source
+untouched, working tree clean):
 
 ```
- × the codes stay level with the vectors > takes the codes with the body passages a full-text catch-up replaces
+ × ... takes the codes with the body passages a full-text catch-up replaces
    → expected 1201 to be 1200 // Object.is equality
- × the codes stay level with the vectors > takes the codes with the own words an update rewrites
+ × ... takes the codes with the own words an update rewrites
    → expected 602 to be 601 // Object.is equality
+ × ... forgets the resident codes a catch-up clears, so a query racing it cannot read a cleared row
+   → expected TypeError: Cannot read properties of null… to be undefined
+     Received: [TypeError: Cannot read properties of null (reading 'byteOffset')]
 
  Test Files  1 failed (1)
-      Tests  2 failed | 14 passed (16)
+      Tests  3 failed | 14 passed (17)
 ```
 
-Full suite on that tree: **1250 passed, 2 failed (these two), 7 skipped, 1259
-total**. After the fix: **1252 passed, 7 skipped, 1259 total, 0 failed**.
+Full suite on that tree: **1250 passed, 3 failed (these three), 7 skipped, 1260
+total**. After the fix: **1253 passed, 7 skipped, 1260 total, 0 failed**.
 `npm run typecheck`, `npm run typecheck:tests`, `npm run lint` and `npm run
 build` are all clean. (Prettier reports all three touched files as unformatted,
 but it reports each of them unformatted on `4467663` too, so it is not a gate
 here and I left formatting alone.)
 
-## A third case I wrote and dropped, and why
+## A fourth case written and dropped, and why
 
-I also wrote a case for the sharper hazard the `deleteItemCodes` comment warns
-about: run the catch-up on the **last** item indexed, whose passage holds the
-largest rowid, which SQLite hands straight back to the next insert. The
-replacement then inherits its predecessor's code, the count of codes still
-matches the count of vectors, and `loadCodes` cannot see anything wrong — stage
-one would silently rank the new passage by the old text's sign bits.
+I also wrote a case for the hazard the `deleteItemCodes` comment warns about:
+after a catch-up on the last item indexed, assert the replacement does not keep
+its predecessor's code at the reused rowid.
 
-**That case passes without this change**, so I removed it rather than ship a
-test that proves nothing. The reason it passes: `putVector` (`:1407-1416`)
-resolves a passage id to its rowid and deletes whatever code sits there before
-storing the new vector, so any re-embedded replacement cleans up an inherited
-code by itself. The reuse hazard is real only for a passage that is cleared and
-never re-embedded — and that case shows up as an ordinary orphan and is caught
-by the count check like any other.
-
-I mention it because it is the one place my reading revised the defect
-description: the durable consequence is the silent exact-scan fallback, and *not*
-silently wrong candidate selection on a healthy-looking index.
+**That case passes without this change**, so I removed it rather than ship a test
+that proves nothing. `putVector` (`:1407-1416`) resolves a passage id to its
+rowid and deletes whatever code sits there before storing the new vector, and
+`refreshCodes` then writes a fresh one — so a re-embedded replacement never keeps
+a stale code. The reuse hazard is real only for a passage that is cleared and
+never re-embedded, and that case shows up as an ordinary orphan, caught by the
+count check like any other. What the reuse *does* cause is the crash in case 3,
+where the inherited rowid is read before the vector is written.
 
 ## What I could not verify
 
-- **The resident-cache half of the fix is not covered by a test.** The
-  `invalidateCodes()` calls rest on the reasoning above (consistency with every
-  other vector-removing path, plus the await window inside the catch-up loop). I
-  could not find a public-API observation that distinguishes a stale resident
-  cache from a fresh one: after a normal update the cache is dropped anyway by
-  `refreshCodes`, and during one the difference shows up only as recall wobble on
-  a query racing the update, which no deterministic assertion I could write
-  pins down. Stated plainly rather than papered over with a test that would pass
-  either way.
 - **No measurement on a real library.** The 42x figure is the maintainer's own,
-  from the 1.9.0 CHANGELOG entry for #30; I did not re-measure it, and the tests
+  from the 1.9.0 CHANGELOG entry for #30; I did not re-measure it. The tests
   assert the coded path is *taken*, not how fast it is.
 - The fix touches the SQLite backend only. The JSON backend
   (`index-manager.ts:2614/2630`) and the corrupt-store stub

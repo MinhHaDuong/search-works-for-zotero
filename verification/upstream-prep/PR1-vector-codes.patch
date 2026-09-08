@@ -1,6 +1,6 @@
-From a2f7fef6ada635bd4c48ecda51ced5b92fc9d7bf Mon Sep 17 00:00:00 2001
-From: Claude <noreply@anthropic.com>
-Date: Tue, 8 Sep 2026 08:59:19 +0200
+From 4d07efaaffaaf9642a756475ecd9706430a533cd Mon Sep 17 00:00:00 2001
+From: Minh Ha-Duong <minh.haduong@gmail.com>
+Date: Tue, 8 Sep 2026 09:30:34 +0200
 Subject: [PATCH] fix(search): take an item's binary codes with the passages a
  catch-up clears (#30)
 MIME-Version: 1.0
@@ -29,39 +29,45 @@ The delete is scoped by source rather than reusing deleteItemCodes. That
 statement takes every code of the item, and clearFulltext deliberately leaves
 the item's metadata passages in place: stripping their codes would exchange a
 surplus for a shortfall and decline the coded path just the same, for rows
-nothing touched.
+nothing touched. It runs before the passages are deleted, not after, because
+its subquery names them through `passages` and finds nothing once they are gone.
 
-invalidateCodes() is called too, for the same reason every other path that
-removes or replaces a vector calls it. The resident cache names rowids, and
-between a clear and the update's own finalizeVectors there is an await on the
-embedder: a query arriving in that window would otherwise be answered from a
-cache naming rows that no longer exist, and stage one would score candidates
-chosen on the sign bits of text this index no longer holds. Rebuilding the
-cache is one pass over a table sized 384 bytes a passage, and putVector already
-invalidates once per embedded passage, so this adds no cost a build did not
-already pay.
+invalidateCodes() is the second half, and it is not housekeeping: without it a
+semantic query that arrives during the catch-up throws. zotero_semantic_search
+declines during a job only on an empty index, so on a populated one queries and
+an update overlap by design. The pass clears the item's passages, inserts their
+replacements with no vector yet, and awaits the embedder. A resident cache that
+outlived the clear still names the freed rowid, SQLite has just handed that
+rowid back to one of the new rows, and the rescore statement selects candidates
+by rowid with no `vector IS NOT NULL` filter — so toFloats dereferences null and
+the query fails with "Cannot read properties of null (reading 'byteOffset')".
+Dropping the cache is what turns that into the ordinary refusal: no cache, the
+job is running, so the query scans exactly and says so.
 
-Two cases, red before this change: a full-text catch-up and an own-words
-catch-up over a 600-item index above the candidate floor, each asserting that
-the codes still cover the vectors exactly, that no code names a passage the
-index no longer holds, and that the next semantic query is still served by the
-codes rather than by the scan.
+Three cases, all red before this change: a full-text catch-up and an own-words
+catch-up, each asserting that the codes still cover the vectors exactly, that no
+code names a passage the index no longer holds, and that the next semantic query
+is still served by the codes rather than by the scan; and a query fired from
+inside the embedder during a catch-up on the last item indexed, asserting that
+it returns its page instead of throwing. The third is red with the two
+source-scoped deletes in place and invalidateCodes() alone removed, so both
+halves are carrying their own weight.
 
-A third case was written and dropped: a catch-up on the LAST item indexed,
-where SQLite hands the cleared rowid straight back and the replacement inherits
-its predecessor's code with the counts still matching. It passes without this
-change, because putVector resolves a passage id to its rowid and deletes
-whatever code sits there before writing the new vector. The rowid-reuse hazard
-the deleteItemCodes comment warns about is real for a passage that is never
-re-embedded, and that case is caught by the count check like any other orphan.
+A fourth case was written and dropped: a catch-up on the last item indexed,
+asserting that the replacement does not keep its predecessor's code. It passes
+without this change, because putVector resolves a passage id to its rowid and
+deletes whatever code sits there before writing the new vector. The rowid-reuse
+hazard the deleteItemCodes comment warns about is real for a passage that is
+never re-embedded, and that case is caught by the count check like any other
+orphan.
 
 Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01JjUPSUzz4wLjNTNPLSLzir
 ---
- CHANGELOG.md                            |  16 +++
- src/features/search/sqlite-index.ts     |  18 ++++
- tests/features/search-two-stage.test.ts | 136 +++++++++++++++++++++++-
- 3 files changed, 169 insertions(+), 1 deletion(-)
+ CHANGELOG.md                            |  16 ++
+ src/features/search/sqlite-index.ts     |  18 ++
+ tests/features/search-two-stage.test.ts | 215 +++++++++++++++++++++++-
+ 3 files changed, 248 insertions(+), 1 deletion(-)
 
 diff --git a/CHANGELOG.md b/CHANGELOG.md
 index 2407308..7a578e6 100644
@@ -141,7 +147,7 @@ index 4edd831..882400a 100644
      for (const row of rows) {
        this.stmts.deleteFts.run(row.pid, normalizeForSearch(row.text));
 diff --git a/tests/features/search-two-stage.test.ts b/tests/features/search-two-stage.test.ts
-index d92a112..809b0e6 100644
+index d92a112..526de05 100644
 --- a/tests/features/search-two-stage.test.ts
 +++ b/tests/features/search-two-stage.test.ts
 @@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
@@ -153,17 +159,50 @@ index d92a112..809b0e6 100644
  import type { EmbeddingProvider } from '../../src/features/search/embeddings.js';
  
  /**
-@@ -89,6 +89,48 @@ async function corpus(opts: CorpusOptions = {}): Promise<{ index: SearchIndex; j
+@@ -45,6 +45,25 @@ class DenseEmbedder implements EmbeddingProvider {
+   }
+ }
+ 
++/**
++ * The same embedder, with one hook: a callback runs inside the next `embed` call and then
++ * disarms itself. That is the only place a test can stand in the middle of a catch-up — the
++ * pass clears an item's passages, inserts their replacements, and awaits the embedder before
++ * any of them has a vector, which is exactly the window a live query arrives in.
++ */
++class ProbingEmbedder extends DenseEmbedder {
++  private probe: (() => void) | undefined;
++  probeOnce(fn: () => void): void {
++    this.probe = fn;
++  }
++  override async embed(texts: string[]): Promise<number[][]> {
++    const probe = this.probe;
++    this.probe = undefined;
++    probe?.();
++    return super.embed(texts);
++  }
++}
++
+ function vectorFor(text: string, dim = DIM): number[] {
+   let s = 2166136261;
+   for (let i = 0; i < text.length; i++) s = (Math.imul(s ^ text.charCodeAt(i), 16777619) >>> 0) || 1;
+@@ -89,6 +108,55 @@ async function corpus(opts: CorpusOptions = {}): Promise<{ index: SearchIndex; j
    return { index, jsonPath };
  }
  
++/** The body text a full-text pass serves for one item, and the text it replaces it with. */
++const bodyOf = (key: string) => `the body of ${key}, on widgets and the gears they drive`;
++const revisedBodyOf = (key: string) => `the revised body of ${key}, on sprockets and escapements`;
++
 +/**
 + * A corpus whose items carry body text, built through the incremental path so the index
 + * stores a full-text cursor. Both are what an `action:"update"` catch-up needs: without a
 + * cursor the pass is narrowed to items holding no body passages at all, which is the one
 + * shape where the clear it runs has nothing to remove.
 + */
-+async function bodyCorpus(count: number): Promise<{ index: SearchIndex; jsonPath: string; keys: string[] }> {
++async function bodyCorpus(
++  count: number,
++  embedder: EmbeddingProvider = new DenseEmbedder(),
++): Promise<{ index: SearchIndex; jsonPath: string; keys: string[] }> {
 +  const dir = mkdtempSync(join(tmpdir(), 'zoteus-ann-body-'));
 +  const jsonPath = join(dir, 'search-index.json');
 +  const all = items(count);
@@ -171,14 +210,14 @@ index d92a112..809b0e6 100644
 +  const index = await createSearchIndex({
 +    backend: 'sqlite',
 +    jsonPath,
-+    embedder: new DenseEmbedder(),
++    embedder,
 +    logger: silentLogger,
 +  });
 +  await index.buildIncremental(
 +    async (start: number) =>
 +      start === 0 ? { items: all, totalResults: count, lastModifiedVersion: 7 } : { items: [], totalResults: count },
 +    {
-+      fulltextFor: async (key: string) => `the body of ${key}, on widgets and the gears they drive`,
++      fulltextFor: async (key: string) => bodyOf(key),
 +      fulltextKeys: async () => new Set(keys),
 +      // A stored cursor, so a later update asks the full-text sequence what has been
 +      // extracted since it rather than treating the whole library as a coverage gap.
@@ -202,7 +241,7 @@ index d92a112..809b0e6 100644
  /** The protected ranker, as the fusion calls it: ids and scores, best first. */
  function rank(index: SearchIndex, query: number[], topK: number): Array<{ id: string; score: number }> {
    return (index as unknown as { vectorSearch(q: number[], k: number): Array<{ id: string; score: number }> }).vectorSearch(
-@@ -106,6 +148,22 @@ function codeRows(dbPath: string): { codes: number; vectors: number; dim: string
+@@ -106,6 +174,22 @@ function codeRows(dbPath: string): { codes: number; vectors: number; dim: string
    return { codes, vectors, dim };
  }
  
@@ -225,7 +264,7 @@ index d92a112..809b0e6 100644
  /** Strip an index back to what a build before this feature wrote: no codes, no mean. */
  function removeCodes(dbPath: string): void {
    const db = new DatabaseSync(dbPath);
-@@ -318,6 +376,82 @@ describe('the codes stay level with the vectors', () => {
+@@ -318,6 +402,135 @@ describe('the codes stay level with the vectors', () => {
      }
    });
  
@@ -241,7 +280,7 @@ index d92a112..809b0e6 100644
 +        backend: 'local',
 +        fetchChanged: async () => ({ items: [], totalResults: 0, lastModifiedVersion: 8 }),
 +        liveKeys: async () => new Set(keys),
-+        fulltextFor: async (key: string) => `the revised body of ${key}, on sprockets and escapements`,
++        fulltextFor: async (key: string) => revisedBodyOf(key),
 +        fulltextKeys: async () => new Set(keys),
 +        fulltextCatchUp: async () => ({ itemKeys: new Set(['K0001']), version: 101 }),
 +      });
@@ -284,7 +323,12 @@ index d92a112..809b0e6 100644
 +
 +      // The own-words twin of the pass above: a note edited after the build appears in no
 +      // item delta, so this is the only thing that re-reads it, and it too replaces the
-+      // item's passages wholesale.
++      // item's passages wholesale. That this case is red at all depends on the note NOT
++      // holding the largest rowid, which is true because indexItem interleaves an item's
++      // own words with its metadata during the build. Were own words ever moved to a pass
++      // of their own after the items, the replacement would reuse the note's rowid and
++      // putVector would clear the inherited code, leaving this green over a store that
++      // still leaks.
 +      await index.updateIncremental({
 +        backend: 'local',
 +        fetchChanged: async () => ({ items: [], totalResults: 0, lastModifiedVersion: 8 }),
@@ -300,6 +344,54 @@ index d92a112..809b0e6 100644
 +      expect(hits).toHaveLength(10);
 +      expect(index.buildStatus().vectorScan).toBe('codes');
 +      expect(index.buildStatus().vectorScanNotice).toBeUndefined();
++    } finally {
++      await index.close();
++    }
++  });
++
++  sqliteIt('forgets the resident codes a catch-up clears, so a query racing it cannot read a cleared row', async () => {
++    // A semantic query is not refused while an update runs: zotero_semantic_search only
++    // declines on an empty index, so on a populated one the two overlap by design. The
++    // resident codes name rowids, the catch-up frees the largest of them, and SQLite hands
++    // that rowid straight back to the passage the same pass inserts — which has no vector
++    // yet, because it is the batch this await is embedding. A cache that outlives the clear
++    // therefore offers the rescore a candidate whose vector is NULL, and the rescore selects
++    // by rowid with no `vector IS NOT NULL` filter to catch it.
++    const embedder = new ProbingEmbedder();
++    const { index, jsonPath, keys } = await bodyCorpus(600, embedder);
++    try {
++      // Warm the codes, so the query below has a resident cache to be served from.
++      rank(index, vectorFor('warm the cache'), 10);
++      expect(index.buildStatus().vectorScan).toBe('codes');
++
++      let raced: { error?: unknown; scan?: string; notice?: string; hits?: number } = {};
++      embedder.probeOnce(() => {
++        try {
++          const hits = rank(index, vectorFor(bodyOf('K0599')), 10);
++          const status = index.buildStatus();
++          raced = { scan: status.vectorScan, notice: status.vectorScanNotice, hits: hits.length };
++        } catch (e) {
++          raced = { error: e };
++        }
++      });
++      await index.updateIncremental({
++        backend: 'local',
++        fetchChanged: async () => ({ items: [], totalResults: 0, lastModifiedVersion: 8 }),
++        liveKeys: async () => new Set(keys),
++        fulltextFor: async (key: string) => revisedBodyOf(key),
++        fulltextKeys: async () => new Set(keys),
++        // The LAST item indexed, whose body passage holds the largest rowid.
++        fulltextCatchUp: async () => ({ itemKeys: new Set(['K0599']), version: 101 }),
++      });
++      await index.save();
++
++      expect(raced.error).toBeUndefined();
++      // The clear dropped the cache, so the query found none and declined rather than
++      // building one over rows the running update is still writing.
++      expect(raced.scan).toBe('exact');
++      expect(raced.notice).toContain('update is running');
++      expect(raced.hits).toBe(10);
++      expect(codeRows(sqliteIndexPath(jsonPath)).codes).toBe(1200);
 +    } finally {
 +      await index.close();
 +    }
