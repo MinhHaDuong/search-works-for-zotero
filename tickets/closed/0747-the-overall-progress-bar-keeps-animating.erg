@@ -2,10 +2,12 @@
 Title: the overall-progress bar keeps animating after indexing is switched off mid-census
 Created: 2026-09-08
 Author: MinhHaDuong
+Closed: autoclosed — PR #485
 
 --- log ---
 2026-09-08T19:01Z MinhHaDuong created
 
+2026-09-08T19:03Z MinhHaDuong closed — autoclosed — PR #485
 --- body ---
 ## Context
 
