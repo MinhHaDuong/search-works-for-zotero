@@ -153,6 +153,28 @@ UI_SITES = (
 # from the other side.
 BANNED_IN_UI = ('document', 'élément', 'pièce jointe', 'item', 'pack')
 
+#: A quoted census status, in either quote style, over the whole JavaScript
+#: identifier character set. Both halves are load-bearing, and the first draft of
+#: the reading-order guard had neither.
+#:
+#: The narrow `'([a-z-]+)'` it used extracts from BOTH sides of that comparison,
+#: so a status it could not match dropped out of both and the equality agreed
+#: about a set it had never seen. A red team reproduced two false greens on the
+#: branch: a double-quoted duplicate (`"current", 'current'`), and a duplicate
+#: renamed consistently to `unsupported2` on both sides. It also produced a false
+#: RED in the other direction, since a legitimate rename into either character
+#: class would vanish from one list only.
+#:
+#: The backreference is what refuses `'current"`, which is not a string literal
+#: at all; a bare `['\"]` on each end would match it and quietly widen the guard
+#: to source that does not parse.
+QUOTED_STATUS = re.compile(r"""(['"])([A-Za-z0-9_-]+)\1""")
+
+
+def _statuses(source: str) -> list[str]:
+    """The quoted statuses of one table, in source order."""
+    return [status for _quote, status in QUOTED_STATUS.findall(source)]
+
 
 def _site(start: str, end: str, path: Path | None = None) -> str:
     """Return the source between two anchors, so an assertion is scoped to one
@@ -1043,7 +1065,7 @@ def test_every_census_status_is_named_in_words_a_reader_can_read():
     behind.
     """
     classes = _site('var SDT_STATUS_CLASSES = {', '\n};', SCHEDULER)
-    classified = sorted(set(re.findall(r"'([a-z-]+)'", classes)))
+    classified = sorted(set(_statuses(classes)))
     assert classified, 'the census-status extraction matched nothing'
     # The reading order is the other half, and it was unguarded on the first
     # draft: a red-team control dropped two statuses from `SDT_STATUS_ORDER` and
@@ -1052,7 +1074,7 @@ def test_every_census_status_is_named_in_words_a_reader_can_read():
     # of the curated order into an arbitrary tail, which is the substance of the
     # ruling rather than a detail of it.
     order = _site('var SDT_STATUS_ORDER = [', '];')
-    ordered = re.findall(r"'([a-z-]+)'", order)
+    ordered = _statuses(order)
     assert len(ordered) == len(set(ordered)), f'a status is ordered twice: {ordered}'
     assert set(ordered) == set(classified), \
         f'the account order and the classification disagree: {sorted(set(ordered) ^ set(classified))}'
