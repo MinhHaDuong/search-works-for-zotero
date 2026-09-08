@@ -565,7 +565,6 @@ def test_no_ambiguous_slash_can_hide_the_call_site_beside_it(tmp_path):
     )
 
 
-
 def test_an_unreadable_application_ini_degrades_rather_than_raising(tmp_path):
     """The version lookup runs while composing a failure message, so it may not throw.
 
