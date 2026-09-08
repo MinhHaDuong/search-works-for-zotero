@@ -6,6 +6,8 @@ Author: sim
 --- log ---
 2026-09-06T15:41Z sim created
 
+2026-09-08T17:05Z claude note Merged as PR #471 (two review rounds); verified on origin/main and all three acceptance items ticked, the first with a qualification written into the box rather than waved through. Acceptance item 1 as WRITTEN asks the coverage figure to state the scope; as BUILT the figure is scoped structurally — same fieldset, whose legend carries the enumeration, with the progress bar bound to that legend by aria-labelledby — and not textually. That was reviewed and kept: restating the enumeration on a line re-rendered at 10 Hz, inside the bordered group already headed by it, buys repetition rather than disclosure. The reasoning lives in the code at bootstrap.js:1084-1090, so it is a decision a later reader meets rather than a gap they rediscover. The memoization worry the Work section raised is unrealised: composing on the legend is one call per tick, and the composer is the same one the tooltip already ran.
+
 --- body ---
 
 ## Context
@@ -43,11 +45,32 @@ sites, not new design.
 
 ## Acceptance
 
-- [ ] Dialog heading and its coverage figure state the library scope,
-      consistent with the toolbar tooltip's wording (0710/0691's vocabulary).
-- [ ] Launch prompt states scope; its pinned test string updated to match.
-- [ ] No new false-scope surface introduced or left inconsistent with the
-      other three (tooltip, heading, launch prompt all agree).
+- [x] Dialog heading and its coverage figure state the library scope,
+      consistent with the toolbar tooltip's wording (0710/0691's vocabulary)
+      — with one qualification, disclosed rather than silently met. The
+      HEADING carries the scope textually: `renderState` recomposes the
+      overall-progress `<legend>` on every tick as
+      `[sdtText('section-global'), describeSDTScope()]`
+      (`bootstrap.js:1097-1099`), through the same composer the tooltip uses,
+      so a lazily-loaded group library cannot leave it naming a stale set.
+      The coverage FIGURE is scoped structurally rather than textually: it is
+      `sdt-status`, a child of the very fieldset that legend heads
+      (`bootstrap.js:1228-1230`), and the progress bar beside it is bound to
+      that legend by `aria-labelledby` (`:1220`). Repeating the enumeration on
+      the figure's own line was reviewed and not taken — it would restate the
+      scope twice within one bordered group, on a line re-rendered at 10 Hz.
+      The reasoning is recorded in the code at `bootstrap.js:1084-1090`, so a
+      later reader meets it as a decision.
+- [x] Launch prompt states scope; its pinned test string updated to match —
+      `bootstrap.js:1637` composes `launch-question` with
+      `describeSDTScope()`; the pinned string is now "Index every library
+      tonight?" (`bootstrap.js:251`), asserted at
+      `tests/test_sdt_sitter.py:825`, with `:776` guarding the retired
+      singular ("whole library" must not reappear).
+- [x] No new false-scope surface introduced or left inconsistent with the
+      other three (tooltip, heading, launch prompt all agree) — all three go
+      through the single composer `describeSDTScope()` (`bootstrap.js:616`),
+      so the vocabulary cannot drift between them by construction.
 
 ## Scope
 

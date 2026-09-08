@@ -6,6 +6,8 @@ Author: sim
 --- log ---
 2026-09-06T12:15Z sim created
 
+2026-09-08T17:05Z claude note Merged as PR #465 and later rebased to carry ticket 0743's EACCES fix; verified on origin/main. All three acceptance items met. The delegation is asserted rather than assumed: tests/test_host_addon_record.py monkeypatches a spy over each importing module's bound name and drives the real call site through it, so a future hand-inlined copy in either file reddens instead of passing. The dual import form in both callers (`bench.host_addon_record` then bare `host_addon_record`) is deliberate — `bench/sdt_sitter_install.py` is run as a standalone script from the package root as well as imported, and a single form breaks one of those two.
+
 --- body ---
 
 ## Context
@@ -53,12 +55,21 @@ mechanically easy; the objection is architectural, not technical.
 
 ## Acceptance
 
-- [ ] One function implements the shape-guarded `extensions.json`
+- [x] One function implements the shape-guarded `extensions.json`
       reader; both `bench/sdt_sitter_install.py` and
-      `bench/acceptance/adapters/beaver.py` call it.
-- [ ] No behavior regression: all existing tests for both call sites
-      still pass (or their shared replacement covers the same cases).
-- [ ] `make check` green.
+      `bench/acceptance/adapters/beaver.py` call it —
+      `host_addon_record(profile, addon_id)` in `bench/host_addon_record.py`,
+      imported at `bench/sdt_sitter_install.py:45` and
+      `bench/acceptance/adapters/beaver.py:164`; both former bodies are now
+      one-line delegations (`sdt_sitter_install.py:67`, `beaver.py:947`).
+- [x] No behavior regression: all existing tests for both call sites
+      still pass (or their shared replacement covers the same cases) —
+      `tests/test_host_addon_record.py` carries the merged shape-guard suite
+      against the shared function, plus two delegation arms
+      (`:268`, `:284`) that monkeypatch a spy into each module and assert the
+      call site actually reaches it; `tests/test_acceptance_adapter_beaver.py`
+      keeps its section-11 tests through `_host_addon_record`.
+- [x] `make check` green.
 
 ## Scope
 
