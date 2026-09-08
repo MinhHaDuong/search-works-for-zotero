@@ -930,9 +930,19 @@ class Beaver:
         import json
 
         path = self.profile / "extensions.json"
-        if not path.is_file():
-            return {"read": False, "why": f"{path} does not exist"}
         try:
+            # Inside the guard: `Path.is_file()` swallows OSError only for
+            # ENOENT, ENOTDIR, EBADF and ELOOP, so EACCES on the profile
+            # DIRECTORY re-raised PermissionError from above the try — past
+            # every guard below and into the unguarded call sites this
+            # docstring names (ticket 0743).
+            if not path.is_file():
+                # ENOENT keeps the friendlier sentence; a symlink loop, which
+                # pathlib also folds into "not a file", says what it is rather
+                # than denying an inode an `ls` plainly shows.
+                if path.is_symlink() or path.exists():
+                    return {"read": False, "why": f"{path} is not a regular file"}
+                return {"read": False, "why": f"{path} does not exist"}
             document = json.loads(path.read_text(encoding="utf-8"))
         except (ValueError, OSError, RecursionError, MemoryError) as exc:
             # RecursionError and MemoryError, not only ValueError: json rejects
