@@ -69,17 +69,26 @@ undocumented gets trusted past it:
   ``ruff``, ``pytest`` and ``numpy``, and neither ``esprima`` nor
   ``tree_sitter`` is importable here — so one added for an auxiliary guard costs
   more than the false red it buys. See PR #461 before trying again.
-* **A URL inside a multi-line template literal, on a line beginning ``//`` or
-  ``*``.** ``LINE_COMMENT`` drops that line, and inside a template literal the
-  text is data rather than comment, so the URL is lost with nothing said. This
-  is a silent pass and is stated as one. Telling the two apart is the same
-  parser problem as the entry above, at line granularity instead of character
-  granularity; no call site has ever written the shape, and
-  ``test_a_block_comment_that_closes_beside_code_is_not_dropped`` pins it so a
-  future fix cannot land without this list going stale loudly. Two neighbouring
-  shapes that WERE silent passes — a block comment closing beside code, and one
-  opening and closing on one line — were found in round 4 of that review and
-  are fixed, not accepted.
+* **A line ``LINE_COMMENT`` drops that was not a comment.** Two shapes, both
+  silent passes, both accepted for the same reason as the entry above: a line
+  beginning ``*`` that is code rather than a JSDoc continuation — a generator
+  method ``*steps()``, an exponent or a multiplication continued onto the next
+  line — and any line inside a multi-line template literal, where the text is
+  data. Separating either from a real comment means deciding whether a line is
+  code, which is the parser problem stated above at line granularity instead of
+  character granularity. Nothing under ``plugins/`` writes either shape (the
+  census is zero lines matching ``^\\s*\\*``), and
+  ``test_a_block_comment_that_closes_beside_code_is_not_dropped`` pins both as
+  losses, so a future fix cannot land while this list still claims them.
+
+  Three neighbouring shapes that WERE silent passes are fixed rather than
+  accepted, because each had a rule that needed no judgement about what the
+  source means: a block comment closing beside code and one opening and closing
+  on the same line (round 4 of the review on PR #461), and a line cut where
+  Python breaks lines but JavaScript does not — ``str.splitlines`` also splits
+  on ``\\v``, ``\\f``, ``\\x1c``-``\\x1e``, ``\\x85``, ``\\u2028`` and
+  ``\\u2029``, the last two legal raw inside a JavaScript string since ES2019
+  (round 5).
 * **A directory it cannot enter.** ``Path.rglob`` drops an unreadable directory
   silently — no entry, no error, no warning — so a subtree under ``plugins/``
   with the wrong mode is not scanned and nothing says so. An unreadable *file*
@@ -151,8 +160,7 @@ ASSET_SUFFIXES = (".png", ".jpg", ".jpeg", ".gif", ".ico", ".woff", ".woff2")
 #:
 #: * `\*` also matched `*/`, so an ordinary block-comment close with code
 #:   trailing it — `*/ win.require('resource://…')` — was dropped whole, and the
-#:   call site went unchecked with nothing said. `\*(?!/)` keeps the continuation
-#:   line (` * still about Fluent`) and releases the close.
+#:   call site went unchecked with nothing said.
 #: * `/\*` matched an opener whose comment CLOSES on the same line, so
 #:   `/* aside */ win.require('resource://…')` went the same way. The lookahead
 #:   drops the opener only when no `*/` follows it on the line, which is the case
@@ -162,11 +170,27 @@ ASSET_SUFFIXES = (".png", ".jpg", ".jpeg", ".gif", ".ico", ".woff", ".woff2")
 #: no fixture. `test_a_block_comment_that_closes_beside_code_is_not_dropped`
 #: pins them.
 #:
-#: What remains is a multi-line template literal with a line beginning `//` or
-#: `*`: inside one, that text is data, not comment, and a URL there is lost. No
-#: call site has ever written one, it is named here rather than left to be
-#: discovered, and unlike a stateful stripper the damage cannot spread past the
-#: line.
+#: `\*(?!/)` is still wider than "comment", and round 5 said where: a line may
+#: legitimately begin with `*` and be code — a generator method (`*entries()`),
+#: an exponent continued onto the next line (`** 2`), a multiplication (`* h`).
+#: All are dropped. That is a silent pass, and it is ACCEPTED rather than fixed,
+#: for the reason the module docstring gives at length: separating those from a
+#: JSDoc continuation means deciding whether a line is code, which is the parser
+#: problem this file stopped trying to solve after three rounds of heuristics
+#: each shipped a worse defect than the gap. A fourth narrowing here would be the
+#: same mistake at line granularity.
+#:
+#: So the residues are listed instead, each a silent pass, none able to spread
+#: past its own line:
+#:
+#: * a line beginning `*` that is code, not a JSDoc continuation;
+#: * inside a multi-line template literal, a line beginning `//` or `*`, where
+#:   the text is data rather than comment.
+#:
+#: `test_a_block_comment_that_closes_beside_code_is_not_dropped` pins both as
+#: losses, so a future fix cannot land while this list still claims them. The
+#: census over `plugins/` is zero lines matching `^\s*\*` at all, which is why
+#: the exposure today is nil and the entry is a warning rather than a bug report.
 LINE_COMMENT = re.compile(r"^\s*(?://|\*(?!/)|/\*(?!.*\*/))")
 
 #: Anchored on the opening quote, so the match is a string literal rather than
@@ -381,6 +405,16 @@ def named_resource_urls(tree: Path) -> dict[str, list[str]]:
     quoted in a comment trailing code, reported as a call site — a false red,
     argued in the module docstring and pinned by
     `test_a_url_quoted_in_a_trailing_comment_is_a_known_false_red`.
+
+    Lines are cut on `\\n` alone, not by `str.splitlines`. Python's idea of a
+    line boundary is wider than JavaScript's: it also breaks on `\\v`, `\\f`,
+    `\\x1c`-`\\x1e`, `\\x85`, `\\u2028` and `\\u2029`. The last two are legal raw
+    inside a JavaScript string literal and inside JSON, so one of them earlier in
+    a line made the tail a "line" of its own — and where that tail began `//`,
+    `LINE_COMMENT` ate the call site after it, with no warning. Six separators
+    reproduced it (round 5 of the review on PR #461);
+    `test_a_javascript_line_is_cut_only_on_a_newline` pins them. Trailing `\\r`
+    is stripped so a CRLF file behaves as `splitlines` did.
     """
     sites: dict[str, list[str]] = {}
     for path in sorted(tree.rglob("*")):
@@ -395,7 +429,8 @@ def named_resource_urls(tree: Path) -> dict[str, list[str]]:
                 stacklevel=2,
             )
             continue
-        for number, line in enumerate(text.splitlines(), 1):
+        for number, raw in enumerate(text.split("\n"), 1):
+            line = raw.rstrip("\r")
             if LINE_COMMENT.match(line):
                 continue
             for match in RESOURCE_URL.finditer(line):
@@ -538,15 +573,23 @@ def test_a_block_comment_that_closes_beside_code_is_not_dropped(tmp_path):
     Both reddened here before the pattern was narrowed to `\\*(?!/)` and
     `/\\*(?!.*\\*/)`. This is the one test in the file whose subject is the
     *dropping* rather than the extraction, and it is deliberately the
-    silent-pass direction: the fixture asserts the URL is FOUND. Block comments
-    closing beside code are ordinary style in `bootstrap.js`, so this is not a
-    hypothetical.
+    silent-pass direction: the first two arms assert the URL is FOUND.
 
-    The third arm is the residue, pinned as a known loss rather than fixed: a
-    multi-line template literal whose line begins `//` is data, not comment, and
-    telling the two apart needs the parser this file does without. It is a
-    silent pass, it is named in `LINE_COMMENT`'s own comment, and no call site
-    has ever written one.
+    Neither shape appears under `plugins/` today — the census is zero, and an
+    earlier draft of this docstring claimed otherwise ("ordinary style in
+    `bootstrap.js`"), which a reviewer disproved by grepping every block-comment
+    span in the tree. The fix is precautionary, and that is reason enough: it
+    costs two lookaheads and removes a way for the guard to go green over an
+    unchecked URL. What it is not is a response to a live defect.
+
+    The last two arms are residues, pinned as known LOSSES rather than fixed —
+    they assert the URL is absent. A line beginning `*` that is code rather than
+    a JSDoc continuation, and any line inside a multi-line template literal, are
+    both dropped. Separating either from a real comment means deciding whether a
+    line is code, which is the parser problem this file gave up after three
+    rounds of heuristics; `LINE_COMMENT`'s own comment argues it. Pinning the
+    losses is what keeps the blind-spot list honest: fix one and this test
+    reddens, so the list cannot quietly go stale.
     """
     closes_beside_code = tmp_path / "closes"
     closes_beside_code.mkdir()
@@ -595,6 +638,79 @@ def test_a_block_comment_that_closes_beside_code_is_not_dropped(tmp_path):
         "the template-literal residue is fixed, not merely reported — if that is "
         "deliberate, the LINE_COMMENT comment naming it as a known loss is now stale"
     )
+
+    star_code = tmp_path / "star"
+    star_code.mkdir()
+    (star_code / "e.js").write_text(
+        "class Sitter {\n  *steps() { win.require('resource://zotero/a.js'); }\n}\n",
+        encoding="utf-8",
+    )
+    (star_code / "f.js").write_text(
+        "const n = base\n  ** 2; win.require('resource://zotero/b.js');\n",
+        encoding="utf-8",
+    )
+
+    assert named_resource_urls(star_code) == {}, (
+        "a line beginning `*` that is code is no longer dropped — if that is "
+        "deliberate, the LINE_COMMENT comment listing it as a known loss, and the "
+        "module docstring's blind-spot entry, are now stale and must be updated"
+    )
+
+
+#: Characters `str.splitlines` treats as line boundaries and JavaScript does not.
+#: U+2028 and U+2029 are the ones that matter: since ES2019 both are legal raw
+#: inside a string literal, and both are legal inside JSON, so a file can carry
+#: one without being malformed. The rest are here because the fix is the same for
+#: all of them and a fixture that covered only the reachable two would invite the
+#: next reader to re-widen the split.
+PYTHON_ONLY_LINE_BREAKS = ("\v", "\f", "\x1c", "\x1d", "\x1e", "\x85", " ", " ")
+
+
+def test_a_javascript_line_is_cut_only_on_a_newline(tmp_path):
+    """Python breaks lines where JavaScript does not, and the tail can be eaten.
+
+    `str.splitlines` splits on eight characters beyond `\\n`. Put one earlier in
+    a line and the remainder becomes a line of its own; where that remainder
+    begins `//`, `LINE_COMMENT` drops it and the call site after it goes with it
+    — a silent pass, found in round 5 of the review on PR #461 and reproduced on
+    all eight separators.
+
+    The fixture writes the separator inside a string literal, which is where a
+    real one would be: U+2028 and U+2029 have been legal raw in a JavaScript
+    string since ES2019, and are legal in JSON, so this needs no malformed file.
+
+    Cutting on `\\n` alone fixes it, and unlike everything else in this file the
+    fix required no judgement about what the source means — Python's rule was
+    simply not JavaScript's. The `\\r` strip keeps a CRLF file reading as it did.
+    """
+    for number, separator in enumerate(PYTHON_ONLY_LINE_BREAKS):
+        url = f"resource://zotero/document-worker/sep-{number}.js"
+        source = tmp_path / f"case-{number}.js"
+        source.write_text(
+            f"const s = 'a{separator}// b'; win.require('{url}');\n", encoding="utf-8"
+        )
+
+        sites = named_resource_urls(source.parent)
+
+        assert url in sites, (
+            f"{separator!r} inside a string literal cut the line, and the tail "
+            f"beginning `//` took the call site with it: {sites}"
+        )
+        assert sites[url] == [f"{source.name}:1"], (
+            f"{separator!r} shifted the reported line number: {sites}"
+        )
+        source.unlink()
+
+    crlf = tmp_path / "crlf.js"
+    crlf.write_text(
+        "win.require('resource://zotero/document-worker/crlf.js');\r\n"
+        "// a comment\r\n",
+        encoding="utf-8",
+    )
+
+    assert named_resource_urls(crlf.parent) == {
+        "resource://zotero/document-worker/crlf.js": ["crlf.js:1"]
+    }, "a CRLF file must read as it did under splitlines"
 
 
 #: A `/` beside a call site, once per way a scanner has been caught misreading
