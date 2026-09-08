@@ -2,12 +2,14 @@
 Title: Extract a shared host-addon-record reader for beaver.py and sdt_sitter_install.py
 Created: 2026-09-06
 Author: sim
+Closed: One shape-guarded reader, bench/host_addon_record.py, is called by both bench/sdt_sitter_install.py and bench/acceptance/adapters/beaver.py; the duplicated bodies are gone. Adoption is asserted rather than assumed — tests/test_host_addon_record.py spies on each module's bound name and drives the real call site through it, so a future hand-inlined copy reddens.
 
 --- log ---
 2026-09-06T12:15Z sim created
 
 2026-09-08T17:05Z claude note Merged as PR #465 and later rebased to carry ticket 0743's EACCES fix; verified on origin/main. All three acceptance items met. The delegation is asserted rather than assumed: tests/test_host_addon_record.py monkeypatches a spy over each importing module's bound name and drives the real call site through it, so a future hand-inlined copy in either file reddens instead of passing. The dual import form in both callers (`bench.host_addon_record` then bare `host_addon_record`) is deliberate — `bench/sdt_sitter_install.py` is run as a standalone script from the package root as well as imported, and a single form breaks one of those two.
 
+2026-09-08T17:04Z MinhHaDuong closed — One shape-guarded reader, bench/host_addon_record.py, is called by both bench/sdt_sitter_install.py and bench/acceptance/adapters/beaver.py; the duplicated bodies are gone. Adoption is asserted rather than assumed — tests/test_host_addon_record.py spies on each module's bound name and drives the real call site through it, so a future hand-inlined copy reddens.
 --- body ---
 
 ## Context

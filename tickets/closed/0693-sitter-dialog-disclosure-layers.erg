@@ -2,6 +2,7 @@
 Title: Reorganize sitter dialog into primary/details/diagnostics layers
 Created: 2026-09-06
 Author: claude
+Closed: The three disclosure layers, the debug checkbox and ring tail, and the census rendered as an account (named labels, reading order, total last and summed from the rows printed) are all on main, with PR #475 closing the two round-1 gaps that landed after #473 merged. Acceptance item 2 is a pointer to ticket 0686, not a duplicate of it: the real-window accessibility reading is still owed and 0686 stays open carrying it, against this layout.
 
 --- log ---
 2026-09-06T00:00Z claude created
@@ -16,6 +17,7 @@ Author: claude
 
 2026-09-08T17:05Z claude note CLOSING, on the reading its own acceptance item 2 states: that criterion is a POINTER to ticket 0686, not a duplicate of it, and 0686 stays open carrying all three residual items. The real-window reading is still owed — nobody has run it, and closing this ticket does not claim otherwise — but it is owed on 0686, whose 17:05Z entry now names it against THIS layout rather than the pre-census one. What 0693 itself owns is delivered on origin/main: the three layers, the debug checkbox and ring tail readable with the pref off, the census rendered as an account through describeSDTCensusAccount with named labels and the total last, and sdt-observations moved to layer 3. PR #475 closed the two round-1 gaps that landed after #473 had merged: SDT_STATUS_ORDER now carries the set-equality-plus-duplicate guard its comment had been claiming (the control — dropping 'excluded' and 'unsupported' — used to leave 48/48 Python and 14/14 JS green and now reddens naming both), and an empty census prints no rows and no bare zero total. Manifest 0.3.13; 0.3.12 was bumped again in the same PR as this note because merging #475 left two different payloads answering to it, which check_sitter_version caught.
 
+2026-09-08T17:04Z MinhHaDuong closed — The three disclosure layers, the debug checkbox and ring tail, and the census rendered as an account (named labels, reading order, total last and summed from the rows printed) are all on main, with PR #475 closing the two round-1 gaps that landed after #473 merged. Acceptance item 2 is a pointer to ticket 0686, not a duplicate of it: the real-window accessibility reading is still owed and 0686 stays open carrying it, against this layout.
 --- body ---
 ## Context
 

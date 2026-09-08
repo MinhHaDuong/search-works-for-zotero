@@ -2,6 +2,7 @@
 Title: Every plugin bootstrap.js must survive a double load, not just the sitter's
 Created: 2026-09-08
 Author: sim
+Closed: Every bootstrap.js in the tree survives a double load, found by walking rather than by a list, and the guard's red state was seen before any conversion. Discovery is controlled two-sided: an empty tree reports NOT-RUN, a planted broken file reaches FAIL, and both skip-list shapes are exercised, so the walk cannot green over nothing.
 
 --- log ---
 2026-09-08T08:27Z sim created
@@ -10,6 +11,7 @@ Author: sim
 
 2026-09-08T17:05Z claude note All four verification boxes ticked against origin/main and the exit criteria met: every bootstrap.js in the tree survives a double load, the guard finds them by walking, and its red state was seen (09:57Z entry) before any conversion. The two-sided discovery control is the part worth keeping: an always-empty walk would satisfy the NOT-RUN half alone and leave the guard green over nothing forever, so the same fixture tree also plants a deliberately broken bootstrap.js and requires FAIL, and plants one under each skip-list shape and requires it skipped. `make check` green on this tree.
 
+2026-09-08T17:04Z MinhHaDuong closed — Every bootstrap.js in the tree survives a double load, found by walking rather than by a list, and the guard's red state was seen before any conversion. Discovery is controlled two-sided: an empty tree reports NOT-RUN, a planted broken file reaches FAIL, and both skip-list shapes are exercised, so the walk cannot green over nothing.
 --- body ---
 ## Context
 

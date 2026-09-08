@@ -2,12 +2,14 @@
 Title: Apply the sitter's library-scope label to the dialog heading and launch prompt
 Created: 2026-09-06
 Author: sim
+Closed: The dialog heading and the launch prompt both state the library scope through describeSDTScope(), the same composer the toolbar tooltip uses, so the three cannot drift apart. Acceptance item 1's coverage figure is scoped structurally rather than textually — it sits inside the fieldset that legend heads — a reviewed call recorded at bootstrap.js:1084-1090 and written into the box.
 
 --- log ---
 2026-09-06T15:41Z sim created
 
 2026-09-08T17:05Z claude note Merged as PR #471 (two review rounds); verified on origin/main and all three acceptance items ticked, the first with a qualification written into the box rather than waved through. Acceptance item 1 as WRITTEN asks the coverage figure to state the scope; as BUILT the figure is scoped structurally — same fieldset, whose legend carries the enumeration, with the progress bar bound to that legend by aria-labelledby — and not textually. That was reviewed and kept: restating the enumeration on a line re-rendered at 10 Hz, inside the bordered group already headed by it, buys repetition rather than disclosure. The reasoning lives in the code at bootstrap.js:1084-1090, so it is a decision a later reader meets rather than a gap they rediscover. The memoization worry the Work section raised is unrealised: composing on the legend is one call per tick, and the composer is the same one the tooltip already ran.
 
+2026-09-08T17:04Z MinhHaDuong closed — The dialog heading and the launch prompt both state the library scope through describeSDTScope(), the same composer the toolbar tooltip uses, so the three cannot drift apart. Acceptance item 1's coverage figure is scoped structurally rather than textually — it sits inside the fieldset that legend heads — a reviewed call recorded at bootstrap.js:1084-1090 and written into the box.
 --- body ---
 
 ## Context
