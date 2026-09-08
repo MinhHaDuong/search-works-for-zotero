@@ -1,0 +1,33 @@
+{
+  "capturedAt": "2026-09-08T09:35+02:00",
+  "capturedBy": "author, via the plugin's own scrubbed diagnostics clipboard",
+  "note": "Two complete censuses, eight minutes of work, zero documents indexed. Sweep 1 runs 367 s (six consecutive census heartbeats), writes its compact cache of 13 699 rows, and is refused cpu-busy. Sweep 2 starts exactly 30 s later, re-walks the whole library for 116 s, and is refused identically with byte-identical counters. Load at capture was 11,56 on 8 cores, with Firefox and its content processes above 80 % against 12,8 % for zotero-bin — so the refusal was correct; what is defective is the price of reaching it.",
+  "version": "0.3.5",
+  "zoteroVersion": "10.0.1",
+  "nativeVersions": {
+    "SDT_SCHEMA_VERSION": "1.1.0",
+    "SDT_PACK_VERSION": 1,
+    "SDT_PROCESSOR_VERSIONS": { "pdf": 3, "epub": 1, "snapshot": 1 }
+  },
+  "records": [
+    { "at": 1788852266733, "kind": "cache-load", "level": "state", "records": 13699 },
+    { "at": 1788852275146, "kind": "sweep-start", "level": "trace" },
+    { "at": 1788852335157, "kind": "heartbeat", "level": "trace", "id": null, "phase": "census", "progress": null, "elapsedMS": null, "sinceProgressMS": null, "pending": 0 },
+    { "at": 1788852395166, "kind": "heartbeat", "level": "trace", "id": null, "phase": "census", "progress": null, "elapsedMS": null, "sinceProgressMS": null, "pending": 0 },
+    { "at": 1788852455174, "kind": "heartbeat", "level": "trace", "id": null, "phase": "census", "progress": null, "elapsedMS": null, "sinceProgressMS": null, "pending": 0 },
+    { "at": 1788852515645, "kind": "heartbeat", "level": "trace", "id": null, "phase": "census", "progress": null, "elapsedMS": null, "sinceProgressMS": null, "pending": 0 },
+    { "at": 1788852575651, "kind": "heartbeat", "level": "trace", "id": null, "phase": "census", "progress": null, "elapsedMS": null, "sinceProgressMS": null, "pending": 0 },
+    { "at": 1788852636006, "kind": "heartbeat", "level": "trace", "id": null, "phase": "census", "progress": null, "elapsedMS": null, "sinceProgressMS": null, "pending": 0 },
+    { "at": 1788852642314, "kind": "cache-write", "level": "state", "rows": 13699, "compact": true },
+    { "at": 1788852642320, "kind": "refuse", "level": "state", "reason": "cpu-busy" },
+    { "at": 1788852642320, "kind": "sweep-end", "level": "trace", "phase": "cpu-busy", "scanned": 16706, "completed": 0, "failed": 367, "pending": 39 },
+    { "at": 1788852642329, "kind": "toast", "level": "state", "completed": 0, "failed": 367 },
+    { "at": 1788852672350, "kind": "sweep-start", "level": "trace" },
+    { "at": 1788852696012, "kind": "heartbeat", "level": "trace", "id": null, "phase": "census", "progress": null, "elapsedMS": null, "sinceProgressMS": null, "pending": 39 },
+    { "at": 1788852756093, "kind": "heartbeat", "level": "trace", "id": null, "phase": "census", "progress": null, "elapsedMS": null, "sinceProgressMS": null, "pending": 39 },
+    { "at": 1788852788899, "kind": "refuse", "level": "state", "reason": "cpu-busy" },
+    { "at": 1788852788900, "kind": "sweep-end", "level": "trace", "phase": "cpu-busy", "scanned": 16706, "completed": 0, "failed": 367, "pending": 39 },
+    { "at": 1788852803013, "kind": "dialog-open", "level": "state", "reused": false },
+    { "at": 1788852803019, "kind": "dialog-close", "level": "state" }
+  ]
+}
