@@ -615,18 +615,27 @@ function noteDialogClose(dialog) {
    composes to nothing. Rendering "0 %" there would be a wrong claim where the
    caller wants no claim. */
 function getSDTCoverage(state) {
-  const duringCensus = state.phase === 'census';
-  // Held only when a PRIOR complete census actually produced one — a snapshot
-  // this young cannot exist before the library's first census has ever
-  // finished. Falling through to the live counts in that case, rather than
-  // forcing "unknown", is the fix: switching on while the first census had
-  // never once completed re-armed a fresh census, `duringCensus` went true
-  // with no snapshot to hold, and the reader watched a correct "1 515 /
-  // 16 606" regress to a bare "0" — the number the switch-off fix
-  // (ticket 0747) had just frozen, discarded for nothing, since the very
-  // counts the switch-off arm reads (`state.counts`/`state.total`) were
-  // sitting right there the whole time (found live, testing v0.3.19).
-  const held = duringCensus ? state.censusSnapshot : null;
+  // The one question that decides everything below: is the walk that most
+  // recently touched `state.counts` actually FINISHED? Not "which phase are
+  // we in" — `state.phase` becomes 'switched-off' the instant the switch is
+  // thrown, whatever the walk under it was doing, so it cannot tell a
+  // completed classification from one caught and aborted mid-rebuild.
+  // `scanned === total` can: the census loop increments `scanned` once per
+  // item and nothing else does, so it only reaches `total` when every item
+  // has actually been reclassified this walk.
+  //
+  // Switching off used to freeze whatever `state.counts` held at that
+  // instant unconditionally (ticket 0747) — right if the last walk had
+  // finished, wrong if the sitter happened to be mid-way through one of its
+  // own periodic re-censuses (every ~30 s, from empty, regardless of the
+  // switch) when the click landed: the reader froze on a half-rebuilt
+  // classification, a different, plausible-looking wrong number on every
+  // such off depending on exactly how far that walk had got when it was cut
+  // off (found live, testing v0.3.20). `held` now stands in for the live
+  // counts specifically when they are mid-rebuild, falling back to the last
+  // walk that DID finish rather than to whichever fragment survives.
+  const complete = state.scanned === state.total;
+  const held = complete ? null : state.censusSnapshot;
   const counts = held ? held.counts : (state.counts || {});
   const censusTotal = held ? held.total : state.total;
   const classes = SDT_STATUS_CLASSES;
@@ -635,15 +644,10 @@ function getSDTCoverage(state) {
   const failed = classes ? tally(classes.failed) : 0;
   const queued = classes ? tally(classes.queued) : 0;
   const outOfScope = classes ? tally(classes.outOfScope) : 0;
-  // Off freezes the count instead of leaving it unsayable: nothing will move
-  // it further, so "known" here means settled, not merely completed. Without
-  // this arm, switching off mid-census left `<progress>` without a `value`
-  // attribute forever — the platform's own indeterminate rendering, which
-  // animates natively and keeps animating with the sitter off and the 100 ms
-  // render loop itself long since cleared (found live, ticket 0742 follow-up).
-  return { known: !!classes && (held ? true
-      : state.phase === 'switched-off'
-        || (state.scanned === state.total && state.phase !== 'ready')),
+  // `ready` is excluded even though 0 === 0 satisfies `complete` trivially:
+  // a freshly booted sitter has finished no walk at all, and a lone "0
+  // attachments" there would be a measurement where there is none.
+  return { known: !!classes && (held ? true : complete && state.phase !== 'ready'),
     current, failed, queued, outOfScope,
     total: classes ? Math.max(0, censusTotal - outOfScope) : 0 };
 }
@@ -1447,8 +1451,16 @@ function renderState() {
     // single extraction failure is routine and already carries its own row in
     // the account below, and reading it as "Error:" at the top overclaimed
     // what one failed attachment among many means.
+    // Before host.list() has ever resolved, `total` still holds its initial
+    // 0 -- not a measurement of an empty library, but the absence of one,
+    // exactly the distinction `describeSDTCensusAccount` already draws for
+    // its own rows. `censusSnapshot` is null in that state and in no other:
+    // once a census completes, even on a genuinely empty library, publish()
+    // sets a real (if empty) snapshot, so this line becomes true the moment
+    // there is anything to be true about (found live, testing v0.3.20).
+    const totalKnown = s.total > 0 || s.censusSnapshot !== null;
     doc.getElementById('sdt-diagnostics').textContent = [
-      sdtText('diagnostics-census', { scanned: s.scanned, total: s.total }),
+      totalKnown ? sdtText('diagnostics-census', { total: s.total }) : '',
       // `completed` accumulates over the whole session and says so; it is not a
       // census class and does not belong among the rows the census total sums.
       sdtText('diagnostics-completed', { count: s.completed }),
