@@ -112,7 +112,7 @@ UI_SITES = (
     ('const quietMessage = ', ';'),
     ("getElementById('sdt-failures').textContent", ';'),
     ('doc.title = ', ';'),
-    ("section('sdt-global-section'", ']);'),
+    ('section(GLOBAL_SECTION', ']);'),
     ("section('sdt-document-section'", ']);'),
     ('indexSummary.textContent = ', ';'),
     ("getElementById('sdt-fulltext').textContent", ';'),
@@ -739,6 +739,27 @@ def test_dialog_heading_scopes_the_progress_to_the_libraries_it_covers():
     site = _site('const globalLegend = ', 'const globalProgress')
     assert 'describeSDTScope(' in site, 'the dialog heading states no library scope'
     assert "sdtText('section-global'" in site, 'the heading holds no message id'
+
+
+def test_the_scoped_heading_and_its_coverage_figure_cannot_be_separated():
+    """Ticket 0717's first exit criterion covers the heading *and* the coverage
+    figure under it, and the heading is what scopes the figure — so the two have
+    to be built as one section, and the legend the scope is written into has to
+    be the legend that section builds. Both were literals, one in `renderState`
+    and one in `populate`, with nothing tying them: a rename of the section (0693
+    reorganizes exactly this dialog) would leave `getElementById` returning null
+    forever, the scope silently gone from a window that still renders and a suite
+    that still passes. One binding names the section, both sites read it."""
+    source = BOOTSTRAP.read_text(encoding='utf-8')
+    assert "var GLOBAL_SECTION = 'sdt-global-section';" in source, \
+        'the overall-progress section is not named once'
+    assert source.count("'sdt-global-section'") == 1, \
+        'the section id is written at a call site rather than read from the binding'
+    assert '${GLOBAL_SECTION}-title' in _site('const globalLegend = ', 'const globalProgress'), \
+        'the heading is looked up by a literal the section could be renamed out from under'
+    built = _site('section(GLOBAL_SECTION', ']);')
+    for child in ('sdt-status', 'sdt-global-progress'):
+        assert child in built, f'{child} is no longer under the scoped heading'
 
 
 def test_launch_prompt_states_the_library_scope():

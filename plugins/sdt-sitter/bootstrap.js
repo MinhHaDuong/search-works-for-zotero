@@ -45,6 +45,13 @@ var timer, pulse, heartbeat, timers;
 // `var` unconditionally so the question never matters again.
 var closeJournalled = new WeakSet();
 var BUTTON = 'sdt-pack-sitter-button';
+// The overall-progress section, named once. `section()` builds its legend as
+// `${id}-title`, and `renderState` recomposes that legend on every tick to carry
+// the library scope (ticket 0717): two literals a rename could separate, where a
+// missed one leaves `getElementById` returning null forever and the scope
+// silently absent from a window that still renders. One binding, so the rename
+// cannot be half-done.
+var GLOBAL_SECTION = 'sdt-global-section';
 var SWEEP_INTERVAL_MS = 30000;
 var IDLE_SWEEP_INTERVAL_MS = 10 * 60 * 1000;
 // How long the end-of-sweep toast stays up. Presentation, like the 1400 ms
@@ -960,7 +967,7 @@ function renderState() {
     // here rather than at populate time, and through the same composer the
     // tooltip uses, because a group library loads lazily — a heading frozen when
     // the dialog opened would name a set the census no longer covers.
-    const globalLegend = doc.getElementById('sdt-global-section-title');
+    const globalLegend = doc.getElementById(`${GLOBAL_SECTION}-title`);
     if (globalLegend) globalLegend.textContent =
       [sdtText('section-global'), describeSDTScope()].filter(Boolean).join(' — ');
     const globalProgress = doc.getElementById('sdt-global-progress');
@@ -1086,7 +1093,7 @@ function openDialog(window) {
     // Layer 1, always visible and always first: progress, what is being worked
     // on, how long it has taken and when it should end. Nothing below is needed
     // to read any of it.
-    section('sdt-global-section', sdtText('section-global'), [
+    section(GLOBAL_SECTION, sdtText('section-global'), [
       ['pre', 'sdt-status'], ['progress', 'sdt-global-progress'], ['pre', 'sdt-global-estimate'],
       ['pre', 'sdt-failures']]);
     section('sdt-document-section', sdtText('section-active'), [
