@@ -2289,9 +2289,21 @@ not they match, so a source rewritten in place at the same size and modification
 time is detected within a day. The hash memory is in-session only and is
 discarded on disable or restart. Source or processor changes
 invalidate observations; pack deletion or changed fingerprints force inspection.
-The cache is derived, not a work ledger: active jobs and failures are never
-persisted. Missing, corrupt or unwritable cache falls back to native inspection
-and fresh measurements. It contains no text, titles or source paths and keeps
+The cache is derived, not a work ledger: active jobs are never persisted. One
+failure is: when native extraction returns having persisted no pack, that verdict
+is kept against the same identity, so the document is asked once rather than once
+per session. It is a cache record and not a ledger because the identity embeds
+the source hash and the processor versions — a re-saved file or a version bump
+re-opens the question by itself — and because a wrong entry costs one re-attempt
+after a cache reset. Such a document remains inside the census's failure class,
+not out of scope. Missing, corrupt or unwritable cache falls back to native
+inspection and fresh measurements.
+
+Declared attachment content types are not trusted against the file. Before a
+document becomes a candidate the sitter reads its leading bytes; a signature that
+names a format the declared processor cannot be handling makes the attachment
+unsupported rather than a failure. An unrecognised head leaves the declared type
+standing, since the snapshot format has no signature. It contains no text, titles or source paths and keeps
 only the latest observation per attachment. An active document exceeding its
 empirical upper duration makes the displayed finish time unavailable, not now.
 

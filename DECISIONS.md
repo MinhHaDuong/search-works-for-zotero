@@ -6992,3 +6992,32 @@ title and website metadata, and `5a81cee` adds root Open Plugins manifests.
 They change three registry JSON files and no shipped npm, search, storage or
 requirement mechanism. The reviewed tip is therefore `5a81cee` (v1.15.0+2),
 not the tag `037bba8`; the bounded verdicts and focused executable run stand.
+
+**2026-09-08 — RATIFIED: a refusal IS a cache record, superseding "failures are
+never persisted".** The author, on the 39 documents the sitter resubmitted every
+session: « oui on persiste en cache, jetable c'est un cache ». The 2026-09-05
+ruling above forbade "a durable active-job or failure ledger", and that clause is
+narrowed here rather than withdrawn: what it rules out is a LEDGER — a private,
+durable record of work state that outlives the thing it describes and that the
+author cannot clear. What the sitter may now keep is a single verdict per
+document in the same disposable cache that already holds pack freshness and
+duration observations: native SDT was handed this exact identity and persisted
+no pack.
+
+Three properties are what make it a cache record and not a ledger, and all three
+are load-bearing. It is keyed on the identity that already embeds the source hash
+and the pack versions, so a re-saved file or a native version bump re-opens the
+question with nothing having to remember to. It is disposable, which is the whole
+of the author's argument: a wrong entry costs one re-attempt after a cache reset,
+which is the correct price for being wrong. And it stays inside the census's
+failure class as `failed-remembered`, so the author's "could not be indexed"
+figure does not shrink because the sitter stopped asking.
+
+Active jobs remain unpersisted, unconditionally. That half of the 2026-09-05
+clause is untouched: a job in flight is state about a process, and a process does
+not survive its session.
+
+The alternative the author rejected implicitly by ruling at all — keep the
+session-only exclusion and make the extraction cheaper — was no alternative: the
+documents at issue cannot succeed, so no reduction in cost makes asking them
+again worth anything. Ticket 0740 carries the measurement.
