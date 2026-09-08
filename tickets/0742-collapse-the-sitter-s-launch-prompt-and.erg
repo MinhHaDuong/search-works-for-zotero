@@ -9,6 +9,8 @@ Author: claude
 2026-09-08T11:24Z Minh Ha-Duong note additional design guidance, in session, for whoever implements this ticket's dialog work: for a document the sitter classifies as unsupported or refused, the dialog/details layer should be helpful about what the user could do to make it indexable if they want to — e.g. what changes would let a mismatched-type or unextractable document succeed — but this must stay informational, never directive. No nagging, no "fix this" framing, no implied obligation; the user is told what is possible, not what to do.
 2026-09-08T11:28Z Minh Ha-Duong note refinement of the 11:24Z guidance, organized rather than a flat message: group the affected documents by problem class (a class being a shared reason and a shared fix — e.g. "scanned image, no text layer" versus "snapshot failed extraction"), state per class what would resolve it, and list the affected items by title under that class. Then offer, not impose: ask whether the user would like a Zotero collection created from that class's items, so they have something concrete to act on later if they choose to — never automatic, never a nag to act now.
 2026-09-08T16:48Z claude note RULING RECEIVED, needs-human label removed. Put to the author as a named choice — adopt Fable's persisted-switch design (superseding add-on disable as R22's control), keep add-on disable as the only control, or leave the ticket parked — he chose to adopt it. Recorded in DECISIONS.md. Action 1 (the ruling) is done; the remaining implementation actions (2-4) are now unblocked and open for a hunt.
+2026-09-08T17:06Z claude note actions 2-4 implemented on branch t0742-persisted-indexing-switch. Tri-state pref `extensions.sdt-pack-sitter.enabled` named and read like 0693's debug pref; `scheduler.js` gains `start()` as `stop()`'s twin so turning indexing off and on again keeps the census, the counters and the fitted samples. All six launch-dialog defects closed: the prompt is gated on the unanswered pref, the question drops "tonight" and "whole library", buttons are labelled via `confirmEx`, "off" is a phase (`switched-off`) with a toolbar label and a control in the window's first row, the worker and disable disclosures moved to the Details layer, and the question is asked before `alive = true` and before the toolbar entry is installed. `shutdown()` now clears the three timer handles as well as stopping them — `pulse` is the new arm's idempotence guard, and a stale handle made every re-activation a silent no-op. Automatic gate phases reworded "Paused:" -> "Waiting:", so on/off name only the user's switch. Governance in the same change: SPEC.md's R22 sitter paragraph, the manifest description, verification/SDT-SITTER-LAUNCH.md; manifest bumped 0.3.11 -> 0.3.12 for the payload guard. Five positive controls run against the committed tree — pref never read, ordering race restored, off phase removed, disclosures removed, switch not persisting — each reddened the arm written for it.
+2026-09-08T17:07Z claude note the 11:24Z and 11:28Z design guidance is NOT implemented here and is filed as ticket 0744 instead. It is a feature of its own — a problem-class mapping the census does not currently compute (`unsupported` alone covers three distinct remedies, and the sniffer's verdict that would separate them is discarded at the call site), a per-class remedy text under a tone constraint the author owns, and a Zotero collection-creation offer, which is a library write this plugin has never made. Folding it in would have bundled a second sign-off unit into this ticket and blocked a switch that is complete without it. This ticket's exit criteria are met without it; 0744 carries the guidance verbatim.
 
 --- body ---
 ## The two questions asked
@@ -166,16 +168,28 @@ than reopening it; repeats nothing 0687/0684/0696 already tried or reverted.
 
 ## Verification
 
-- [ ] DECISIONS.md carries the author's ruling on R22's "one obvious way"
-      before implementation is merged
-- [ ] The launch question is asked at most once per profile and its answer
-      persists across restart and across disable/re-enable
-- [ ] "Off" is a discoverable, single-switch state inside the dialog, not
-      only reachable via Add-ons manager
-- [ ] The worker-limitation and disable-semantics disclosures are readable
-      in the dialog's Details layer at any time, not gated behind a modal
-- [ ] The ordering race (button installed before confirm) is closed
-- [ ] `make check` passes
+- [x] DECISIONS.md carries the author's ruling on R22's "one obvious way"
+      before implementation is merged — merged 2026-09-08 in PR #474
+- [x] The launch question is asked at most once per profile and its answer
+      persists across restart and across disable/re-enable — driven in
+      `tests/sdt_sitter_bootstrap.mjs`, "the launch question is asked once and
+      never again"; the source half (the tri-state read that gates it) in
+      `tests/test_sdt_sitter.py::test_the_launch_answer_is_persisted_and_asked_once`
+- [x] "Off" is a discoverable, single-switch state inside the dialog, not
+      only reachable via Add-ons manager — `tests/sdt_sitter_dialog.mjs`, "the
+      switch turns indexing off and on again, persisting each answer", and the
+      toolbar half in "a profile that answered no runs switched off"
+- [x] The worker-limitation and disable-semantics disclosures are readable
+      in the dialog's Details layer at any time, not gated behind a modal —
+      `tests/sdt_sitter_dialog.mjs`, "the launch disclosures are readable in the
+      Details layer, not only in a modal", with their absence from the modal
+      asserted in `test_launch_prompt_body_speaks_of_indexing_not_packs`
+- [x] The ordering race (button installed before confirm) is closed — observed
+      through a hook that reads the window while the modal is up
+      (`options.onPrompt`), not inferred from source order
+- [x] `make check` passes — one unrelated pre-existing failure,
+      `test_acceptance_posture_isolation_order`, a host-capability check on
+      podman-unshare that touches nothing in this diff
 
 ## Invariants
 
