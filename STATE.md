@@ -27,8 +27,9 @@ segmenter and all other feature work. [SYNC.md](SYNC.md) owns upstream state.
 - **Left with us on #62:** install a 1.16.0 bundle on native macOS or Windows
   and run `zotero_fulltext` with a `page_range` over an uncached PDF. A failure
   reopens the issue; this host cannot produce the evidence.
-- **v1.15.0:** upstream shipped the uninstall procedure and durable pause; the
-  source range also moves local embedding inference into a worker thread.
+- **Sitter NOT releasable (0908):** 30 of 38 mutations silent in `blocked()`
+  and `inspect()`. Landed 0730, 0731; filed 0737, 0740, 0741. 0727's two
+  hypotheses refuted, still no cause. 0606's residue is 158, not 3 853 (0728).
 
 ## Handoff
 
@@ -40,5 +41,5 @@ Start with correctness/privacy acceptance gaps: R10 (0660–0664), R13
 
 Reviewed upstream: **v1.16.0+1** at `4467663` (ticket 0738).
 Requirements: **24 ratified** ([SPEC.md](SPEC.md)).
-Tickets: **78 ready, 39 blocked, 8 awaiting author** (`erg ready tickets/`).
+Tickets: **77 ready, 123 open total** (`erg ready tickets/`).
 In flight: **none**.
