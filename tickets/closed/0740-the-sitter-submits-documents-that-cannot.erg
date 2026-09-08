@@ -2,6 +2,7 @@
 Title: The sitter submits documents that cannot yield a pack, and forgets it every session
 Created: 2026-09-08
 Author: sim
+Closed: Images declared as HTML are classified rather than submitted (magic-number read in inspect(), bootstrap.js:120/:128), a failing document is asked once per activation through the scheduler's in-memory failed Set, no verdict reaches the disk after the 11:30Z redesign removed host.refuse and the persisted field, and both halves reddened against the unfixed tree. One Verification line stays unticked by nature, not by neglect: the live-library census sum needs the author's own synced Zotero and is his to take.
 
 --- log ---
 2026-09-08T08:02Z sim created
@@ -17,6 +18,9 @@ Author: sim
 
 2026-09-08T13:02Z claude note Round 3 verdict: approve, no blockers, 1279 passed with the one environmental failure and mutants 30/30 and 16/16 reproduced independently by the reviewer rather than read off the PR. One finding taken here, on the wording rather than the code: the earlier log entries say the "could not be indexed" figure must not shrink, and action 1 makes it shrink by eleven on purpose. Both are true of different mechanisms and the clause needed splitting, which the Invariants section now does -- suppression must not shrink the figure, reclassification must, because `unsupported` sits in `outOfScope` and is therefore out of the coverage denominator as well: coverage rises on the live library and that is the correct reading, since a photograph was never a document a text extractor could index. Left as reported, not fixed: the no-persistence assertion greps for the literal string `refused`, so a future field under another name would slip past it. Below the severity floor -- the assertion is the second of two on the same property, and the first is behavioural.
 
+2026-09-08T17:04Z claude note CLOSING, with the one unticked box named rather than ticked. The Exit criteria are met on origin/main: images declared as HTML are classified — `SDT_SOURCE_MAGIC` and the derived `SDT_MAGIC_BYTES` at bootstrap.js:120, read in inspect() at :128 — a document that cannot yield a pack is asked once per activation through the scheduler's pre-existing in-memory `failed` Set, no failure verdict reaches the disk (host.refuse, cache.refuse/refused, the persisted `refused` field and the `failed-remembered` status were all removed by the 11:30Z redesign), and both halves are held by tests confirmed red against the unfixed tree. The remaining Verification box — the census total still equalling the sum of its classes on the LIVE library — is not a criterion this or any headless machine can close: it needs the author's own synced Zotero and its SDT packs. Both tests assert the sum over their own fixture populations, and the live reading is the author's to take, expecting the count to fall by roughly eleven as the page scans reclassify to `unsupported` (which is intended and shrinks the coverage denominator too, per the Invariants).
+
+2026-09-08T17:04Z MinhHaDuong closed — Images declared as HTML are classified rather than submitted (magic-number read in inspect(), bootstrap.js:120/:128), a failing document is asked once per activation through the scheduler's in-memory failed Set, no verdict reaches the disk after the 11:30Z redesign removed host.refuse and the persisted field, and both halves reddened against the unfixed tree. One Verification line stays unticked by nature, not by neglect: the live-library census sum needs the author's own synced Zotero and is his to take.
 --- body ---
 ## Context
 
