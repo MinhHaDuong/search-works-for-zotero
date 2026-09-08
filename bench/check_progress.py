@@ -751,24 +751,33 @@ def run(repo: Path) -> int:
     # every check below reads the half it was written for.
     outside, goals = goal_split(text)
     declared = sheet_requirements(sheet.read_text(encoding="utf-8"))
-    if "## Deliverables" in text:
+    deliverable_heading = (
+        "## Workshop Deliverables" if "## Workshop Deliverables" in text
+        else "## Deliverables"
+    )
+    if deliverable_heading in text:
         required = (
             "| Formal specification | **Complete** |",
             "| [Multilingual Menagerie](https://www.zotero.org/groups/6659303/semantic_search_challenge_fixture) | **In progress** |",
             "| Verification and scoring bench | **In progress** |",
             "| Library-level bench | **In progress** |",
         )
+        if deliverable_heading == "## Workshop Deliverables":
+            required += (
+                "| SDT pack sitter plugin |",
+                "| Full-text API plugin |",
+            )
         missing = [row for row in required if row not in text]
         for heading in ("### Multilingual Menagerie", "### Verification and scoring bench", "### Library-level bench"):
             if heading not in text:
                 missing.append(heading)
-        public = text.split("## Deliverables", 1)[1].split("### Multilingual Menagerie", 1)[0]
+        public = text.split(deliverable_heading, 1)[1].split("### Multilingual Menagerie", 1)[0]
         public_rows = [
             line for line in public.splitlines()
             if line.startswith("|") and not line.startswith("|---") and "deliverable |" not in line
         ]
-        if len(public_rows) != 4:
-            missing.append("exactly four public deliverable rows")
+        if len(public_rows) != len(required):
+            missing.append(f"exactly {len(required)} public deliverable rows")
         for heading, following in (
             ("### Multilingual Menagerie", "### Verification and scoring bench"),
             ("### Verification and scoring bench", "### Library-level bench"),
@@ -788,7 +797,7 @@ def run(repo: Path) -> int:
         spec_text = sheet.read_text(encoding="utf-8")
         if "| Formal specification | **Complete** |" in text and "- **Status:** COMPLETE" not in spec_text:
             missing.append("SPEC.md status COMPLETE")
-        deliverables = text.split("## Deliverables", 1)[1]
+        deliverables = text.split(deliverable_heading, 1)[1]
         for ticket in sorted(set(re.findall(r"\b0\d{3}\b", deliverables))):
             if not list((repo / "tickets").glob(f"**/{ticket}-*.erg")):
                 missing.append(f"ticket {ticket}")
@@ -797,8 +806,8 @@ def run(repo: Path) -> int:
                 log.error("DELIVERABLES: missing %s", item)
             return 1
         log.info(
-            "PROGRESS: four public deliverables present; %d requirements remain in SPEC.md, 0 findings",
-            len(declared),
+            "PROGRESS: %d public deliverables present; %d requirements remain in SPEC.md, 0 findings",
+            len(required), len(declared),
         )
         return 0
     rows = page_rows(outside)

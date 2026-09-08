@@ -177,6 +177,18 @@ def test_compact_deliverables_pass(tmp_path):
 """
     assert cp.run(build(tmp_path, page=page, sheet="- **Status:** COMPLETE\n" + SHEET)) == 0
 
+    workshop = page.replace("## Deliverables", "## Workshop Deliverables").replace(
+        "### Multilingual Menagerie",
+        "| SDT pack sitter plugin | **Experimental** | plugin |\n"
+        "| Full-text API plugin | **In design** | plugin |\n\n"
+        "### Multilingual Menagerie",
+    )
+    assert cp.run(build(tmp_path, page=workshop, sheet="- **Status:** COMPLETE\n" + SHEET)) == 0
+    # Keeping the row count while losing either named plugin must still fail.
+    for name in ("SDT pack sitter plugin", "Full-text API plugin"):
+        changed = workshop.replace(f"| {name} |", "| Unrelated plugin |")
+        assert cp.run(build(tmp_path, page=changed, sheet="- **Status:** COMPLETE\n" + SHEET)) == 1
+
 
 def test_compact_deliverables_missing_one_fails(tmp_path):
     page = """# Landing
