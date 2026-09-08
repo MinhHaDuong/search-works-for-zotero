@@ -115,12 +115,12 @@ undeletable.
 
 ## Verification
 
-- [ ] The new test is red before the fix and green after.
-- [ ] `python3 bench/sdt_sitter_install.py verify --profile <mode-600 dir>`
+- [x] The new test is red before the fix and green after.
+- [x] `python3 bench/sdt_sitter_install.py verify --profile <mode-600 dir>`
       exits **3**, not 1, and prints the three-valued record.
-- [ ] `Beaver._host_addon_record()` on such a profile returns a record rather
+- [x] `Beaver._host_addon_record()` on such a profile returns a record rather
       than raising.
-- [ ] The absent, present, and unreadable arms already in the suite still pass
+- [x] The absent, present, and unreadable arms already in the suite still pass
       with their existing `why` wording.
 
 ## Invariants
@@ -134,7 +134,9 @@ undeletable.
 
 ## Exit criteria
 
-- [ ] A permission-denied profile directory yields `read: False`, not a raise,
+- [x] A permission-denied profile directory yields `read: False`, not a raise,
       through both call sites.
-- [ ] The suite owns that arm, with a control that fails against today's code.
-- [ ] `make check` green.
+- [x] The suite owns that arm, with a control that fails against today's code.
+- [x] `make check` green — 1282 passed, with the one pre-existing failure
+      `test_identity_switch_outside_the_namespace_runs_where_the_reverse_is_refused`
+      that reproduces unchanged on `origin/main` and is untouched by this diff.
