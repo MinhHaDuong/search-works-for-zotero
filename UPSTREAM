@@ -2,14 +2,16 @@
 UPSTREAM_REPOSITORY=https://github.com/oscardvs/zoteus.git
 FORK_REPOSITORY=https://github.com/MinhHaDuong/zoteus.git
 UPSTREAM_BRANCH=main
-# The reviewed SHA is `main` two registry-only commits past the v1.15.0 tag
-# (`037bba8`). The release notes name PRs #55 and #57; the source range also
-# contains the citation forwarding and local embedding-worker changes from #58
-# and #59. The two post-tag commits add registry display metadata and an Open
-# Plugins manifest; neither changes the shipped npm package. Ticket 0735.
-UPSTREAM_REVIEWED_SHA=5a81cee88be6d979e9ca1e99e897b6b6df25beef
-UPSTREAM_REVIEWED_VERSION=v1.15.0
-UPSTREAM_REVIEWED_DATE=2026-09-07
+# The reviewed SHA is `main` one README-only commit past the v1.16.0 tag
+# (`910310b`). The release closed six issues filed from here in one evening —
+# #61 library routing, #63 census-cursor catch-up, #64 item-key bibliographies,
+# #65 candidate-pool exhaustion, #66 the security policy, #62 the per-OS `.mcpb`
+# bundles — and merged our PR #60 (vitest temp-directory teardown). The source
+# range therefore touches library routing, the index manager, the candidate
+# pool and the bundle build; it is not a documentation release. Ticket 0738.
+UPSTREAM_REVIEWED_SHA=446766320867f1a0a2c6c55ab63b3df734a05c69
+UPSTREAM_REVIEWED_VERSION=v1.16.0
+UPSTREAM_REVIEWED_DATE=2026-09-08
 # The index schema generation the bench drivers target: upstream's `SCHEMA_VERSION` in
 # `src/features/search/sqlite-index.ts`, mirrored in `bench/index_schema.mjs` and stamped
 # into the current-generation fixture by `bench/fixtures/make_index_fixture.mjs`. It was 1
