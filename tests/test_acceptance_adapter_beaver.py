@@ -636,6 +636,32 @@ def test_the_host_record_reads_present_absent_and_unreadable_apart(tmp_path, art
     assert record["read"] is False and "present" not in record
 
 
+@pytest.mark.skipif(os.geteuid() == 0,
+                    reason="root ignores the search bit, so the arm discriminates nothing")
+def test_an_unsearchable_profile_is_unread_rather_than_a_crash(tmp_path, artifact):
+    """The failure the `try` could not see, because it happened before the `try`.
+
+    `is_file()` sat above the guard, and `pathlib` swallows OSError only for
+    ENOENT, ENOTDIR, EBADF and ELOOP. EACCES is not among them, so a profile
+    directory without its search bit re-raised PermissionError straight through
+    `_host_addon_record` into the evidence dictionaries `install` and
+    `uninstall` return unguarded.
+    """
+    target = with_extensions(
+        tmp_path, artifact, "unsearchable",
+        json.dumps({"schemaVersion": 35, "addons": []}))
+    target.profile.chmod(0o600)
+    try:
+        # Positive control: the mode really does bite here.
+        with pytest.raises(PermissionError):
+            (target.profile / "extensions.json").read_text(encoding="utf-8")
+        record = target._host_addon_record()
+    finally:
+        target.profile.chmod(0o700)
+    assert record["read"] is False and "present" not in record
+    assert "PermissionError" in record["why"], record["why"]
+
+
 def test_a_document_of_the_wrong_shape_is_unread_rather_than_a_crash(
         tmp_path, artifact):
     """Valid JSON is not a valid record, and `except (ValueError, OSError)` cannot tell.

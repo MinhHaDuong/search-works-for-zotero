@@ -55,9 +55,23 @@ def read_addon_record(profile: Path, addon_id: str = ADDON_ID) -> dict:
     than inferred, and never coerced to a bare False.
     """
     path = Path(profile) / "extensions.json"
-    if not path.is_file():
-        return {"read": False, "why": f"{path} does not exist"}
     try:
+        # Inside the guard, and this is where the fourth draft was wrong.
+        # `Path.is_file()` swallows OSError only for ENOENT, ENOTDIR, EBADF and
+        # ELOOP; EACCES is not among them, so a profile directory without its
+        # search bit re-raised PermissionError from ABOVE the try — past every
+        # guard below, out of read_addon_record, into main(), which exits 1: the
+        # code this tool means by ABSENT. A profile nobody could read reported
+        # as a plugin that is gone (ticket 0743).
+        if not path.is_file():
+            # ENOENT keeps the friendlier sentence: it is the common diagnostic
+            # and an errno dump would be a regression for it. ELOOP is folded
+            # in here too by pathlib, and saying "does not exist" of a path an
+            # `ls` plainly shows is a sentence nobody debugging will believe —
+            # so a path that is there and is not a file says so instead.
+            if path.is_symlink() or path.exists():
+                return {"read": False, "why": f"{path} is not a regular file"}
+            return {"read": False, "why": f"{path} does not exist"}
         document = json.loads(path.read_text(encoding="utf-8"))
     except (ValueError, OSError, RecursionError) as exc:
         # RecursionError and not only ValueError: json rejects deep nesting by

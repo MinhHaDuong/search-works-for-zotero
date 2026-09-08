@@ -30,6 +30,7 @@ crept back into a call site. The two halves are still checked apart, because a
 wording test that read the call sites would go green the day a string moved.
 """
 import json
+import os
 import re
 import subprocess
 import sys
@@ -380,6 +381,58 @@ def test_an_element_of_the_wrong_shape_is_absent_rather_than_a_crash(tmp_path):
     # And the add-on is still found when it sits among that debris.
     write_extensions(profile, [{"id": 17}, sitter_entry(), "junk"])
     assert read_addon_record(profile)["present"] is True
+
+
+@pytest.fixture
+def unsearchable_profile(tmp_path):
+    """A profile holding `extensions.json`, then stripped of its search bit.
+
+    Mode 0o600 is readable and not searchable, so `open()` on anything inside
+    fails with EACCES — the errno `pathlib` does *not* fold into "not a file".
+    The mode is restored in teardown so a failing assertion cannot leave
+    `tmp_path` undeletable.
+    """
+    profile = tmp_path / "locked"
+    write_extensions(profile, [sitter_entry()])
+    profile.chmod(0o600)
+    try:
+        yield profile
+    finally:
+        profile.chmod(0o700)
+
+
+@pytest.mark.skipif(os.geteuid() == 0,
+                    reason="root ignores the search bit, so the arm discriminates nothing")
+def test_an_unsearchable_profile_is_unread_rather_than_a_crash(unsearchable_profile):
+    """`is_file()` sat outside the `try`, and EACCES is not one of the errnos
+    `pathlib` swallows — so a profile directory without its search bit raised
+    PermissionError past the guard, out of the reader, into the caller. Exit 1
+    is what this tool means by ABSENT, so a profile nobody could read reported
+    as a plugin that is gone: the exact collapse the three-valued read exists
+    to prevent.
+    """
+    # Positive control: the setup really is unreadable, so a green below is the
+    # reader's doing and not the filesystem's indulgence.
+    with pytest.raises(PermissionError):
+        (unsearchable_profile / "extensions.json").read_text(encoding="utf-8")
+
+    record = read_addon_record(unsearchable_profile)
+    assert record["read"] is False
+    assert "present" not in record
+    # Named as a permission, so the arm cannot be satisfied by a reader that
+    # reports the file missing.
+    assert "PermissionError" in record["why"], record["why"]
+
+
+@pytest.mark.integration
+@pytest.mark.skipif(os.geteuid() == 0,
+                    reason="root ignores the search bit, so the arm discriminates nothing")
+def test_verify_on_an_unsearchable_profile_exits_could_not_read(unsearchable_profile):
+    """The contract a Make target sees: 3, not the traceback-and-1 of a crash."""
+    result = cli("verify", "--profile", str(unsearchable_profile))
+    assert result.returncode == 3, result.stderr
+    assert "Traceback" not in result.stderr
+    assert json.loads(result.stdout)["read"] is False
 
 
 def test_install_refuses_an_addon_id_that_is_not_one_path_component(tmp_path):
