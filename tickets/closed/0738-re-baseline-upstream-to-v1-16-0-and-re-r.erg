@@ -2,6 +2,7 @@
 Title: Re-baseline upstream to v1.16.0 and re-read the rows the release moved
 Created: 2026-09-08
 Author: sim
+Closed: baseline pinned at v1.16.0, delta re-read, five SPEC anchors re-pointed; PR #450
 
 --- log ---
 2026-09-08T06:19Z sim created
@@ -11,6 +12,7 @@ Author: sim
 2026-09-08T06:46Z sim note two findings the re-read raises that this ticket does not own. The #65 pool loop re-runs both rankers per doubling — bounded at `index-manager.ts:2403`, up to fifteen extra rounds against §5.2.9's measured 567 829 passages at `limit:10` — and the worst case falls on exactly the concentrated ranking the fix is for; left as an open question with the experiment named, deliberately not multiplied out of our own scan figure, which measures a different thing. And R17 gains a gap while closing one: `duplicatePassages`/`duplicateItems` reach the logger and never `buildStatus()`, five occurrences against the neighbouring `ownWordsReason` at `:868` as the grep's positive control
 2026-09-08T06:51Z sim note the SPEC re-pointing broke `tests/test_upstream_catchup.py::test_citations_in_reads_the_real_spec_md`, which pins two real SPEC citations as a no-mock smoke check that the parser reads the committed file — and both samples it pinned were among the five anchors this ticket moved. Fixture updated to the corrected anchors, with a comment saying it is expected to move at a baseline bump and why the two samples are a single line and a range. The failure is the fixture doing its job, not collateral: it fired the moment the file it reads changed. `make check` 1285 passed, 15 skipped
 
+2026-09-08T07:10Z sim closed — baseline pinned at v1.16.0, delta re-read, five SPEC anchors re-pointed; PR #450
 --- body ---
 
 ## Context
