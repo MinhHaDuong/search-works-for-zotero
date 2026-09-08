@@ -1,0 +1,54 @@
+%erg 0.1
+Title: the overall-progress bar keeps animating after indexing is switched off mid-census
+Created: 2026-09-08
+Author: MinhHaDuong
+
+--- log ---
+2026-09-08T19:01Z MinhHaDuong created
+
+--- body ---
+## Context
+
+Found live, by the author, testing v0.3.15 (ticket 0742's persisted switch)
+right after install: turning indexing off left the dialog's overall-progress
+bar visibly animating, as if work were still under way.
+
+## Root cause
+
+`getSDTCoverage()`'s `known` flag governs whether the dialog's
+`sdt-global-progress` element gets a `value` attribute. Off census
+(`duringCensus` false), `known` required `state.scanned === state.total`.
+Switching off before a census finishes — the ordinary case, since a user
+reaches for the switch precisely while indexing is running — leaves that
+false forever: nothing moves `scanned` or `total` again once off. So
+`<progress>` never gets a `value` attribute, which makes it indeterminate,
+which the platform renders with its own native, continuously looping
+animation — independent of the 100 ms `render()` pulse, which `disarmSDTSitter()`
+already clears correctly. The loop being stopped proved nothing; the bug
+was never in the loop.
+
+## Fix
+
+`getSDTCoverage()` now also treats `state.phase === 'switched-off'` as
+"known": once off, the counts are frozen, not merely stalled, so the bar
+should read a settled number rather than stay unsayable.
+
+## Test
+
+`tests/sdt_sitter_dialog.mjs`, "switching off mid-census freezes the
+progress bar instead of leaving it animating" — sets `scanned`/`total` to an
+unfinished split, fires the switch off, and asserts the progress element
+carries a `value`. Verified red against the unfixed code (positive control,
+via `git stash`) and green after.
+
+## Verification
+
+- [x] `tests/sdt_sitter_dialog.mjs` — new arm, reddens on the unfixed code
+- [x] `tests/sdt_sitter_bootstrap.mjs`, `tests/sdt_sitter_scheduler.mjs`,
+      `tests/sdt_sitter_startup.mjs` — unaffected, still pass
+- [x] `tests/test_sdt_sitter.py` — 54 passed
+
+## Exit criteria
+
+Switching indexing off while a census is incomplete leaves the dialog's
+overall-progress bar at a fixed, non-animating value.
