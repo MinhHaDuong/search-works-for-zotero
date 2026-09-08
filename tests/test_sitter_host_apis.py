@@ -116,8 +116,8 @@ LINE_COMMENT = re.compile(r"^\s*(//|\*|/\*)")
 #: `strip_comments` has to make that call: `/['"]/` carries both quote
 #: characters, and a scanner that read it as division would open a string on the
 #: apostrophe and swallow every literal after it — a call site lost, which is a
-#: silent pass. `scheduler.js` splits on `/[\\/]/` today, so this is live code,
-#: not a hypothetical.
+#: silent pass. `bootstrap.js` splits a path on `/[\\/]/` today, so this is live
+#: code, not a hypothetical.
 REGEX_AFTER_CHARS = frozenset("(,=:[!&|?{};+-*%~^<>")
 
 #: The same decision after a keyword, where the preceding token is a word rather
@@ -592,8 +592,9 @@ def test_a_regex_literal_does_not_swallow_the_call_site_beside_it(tmp_path):
     Reading comments costs a false red. Misreading *code* costs a false green,
     and a regular expression is where that happens: `/['"]/` carries both quote
     characters, so a scanner that does not know regex syntax opens a string on
-    the apostrophe. `scheduler.js` already splits on `/[\\\\/]/`, so the shape is
-    live rather than invented.
+    the apostrophe. `bootstrap.js` already splits a path on `/[\\\\/]/`, so the
+    shape is live rather than invented — the fixture below is named for a
+    sibling only to keep it distinct from the other fixtures here.
 
     The regex and the call have to share a LINE for this to discriminate, and
     that is the whole reason line 1 is written the way it is. With regex
@@ -719,16 +720,10 @@ def test_no_plugin_file_type_escapes_the_scan():
     carry `resource://` literals that this suite never reads, and nothing would
     say so.
 
-    It fires on an icon as readily as on a new source format, and that is the
-    design rather than a rough edge: no rule distinguishes them, so the
-    classification is a person's to make once, recorded in `ASSET_SUFFIXES`.
-    Adding a suffix to one list or the other is a line; noticing an unscanned
-    format later is not.
-
-    Re-examined and kept on 2026-09-08 (ticket 0737 item 5), after two reviewers
-    raised the same trade independently. The module docstring carries the
-    decision so a PR that trips this on an icon meets a stated cost rather than
-    a surprise.
+    It fires on an icon as readily as on a new source format. That is the
+    design, not a rough edge, and the trade it makes is argued once — in the
+    module docstring, under the over-reaches this file keeps on purpose.
+    Re-examined and kept there on 2026-09-08 (ticket 0737 item 5).
     """
     shipped = {path.suffix for path in PLUGINS.rglob("*") if path.is_file()}
     unscanned = shipped - set(SOURCE_SUFFIXES) - set(ASSET_SUFFIXES)
