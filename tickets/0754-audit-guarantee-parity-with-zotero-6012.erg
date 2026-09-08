@@ -1,0 +1,79 @@
+%erg 0.1
+Title: Audit guarantee parity with Zotero 6012 tests
+Created: 2026-09-08
+Author: Codex
+
+--- log ---
+2026-09-08T21:29Z Codex created
+
+2026-09-08T21:30Z Codex note Filed at author request; pinned 6012 native and embedding test suites; children 0755-0757 own extraction, scheduling and readiness evidence. Existing coverage must be mapped before additions.
+2026-09-08T21:32Z Codex note Author reminded us of existing Zoteus work; inspected conductor-integration source and 0028/0554/0565/0566/0568/0575 logs. Added reuse mapping and retained the worker-rewrite hold.
+2026-09-08T21:34Z Codex note Added GPU runtime boundary to parity scope after author reminder; existing BRIDGE-0496 evidence and 0491/0493/0575 own reuse, device validation and service work. Re-read 6012 engine and outbound passage paths at pinned head.
+--- body ---
+## Context
+
+Author request: "Add tickets to test what they test, we want at least as good
+guarantees." This is a test-parity work train, not a claim of present parity or
+authorization to replace ratified scheduling policy.
+
+Baseline inspected: zotero/zotero#6012 head
+19e79625b1c6fbbdd75367aa85b62d5a7080d7f6, read 2026-09-08.
+Pinned suites:
+- https://github.com/zotero/zotero/blob/19e79625b1c6fbbdd75367aa85b62d5a7080d7f6/test/tests/embeddingsTest.js
+- https://github.com/zotero/zotero/blob/19e79625b1c6fbbdd75367aa85b62d5a7080d7f6/test/tests/sdtTest.js
+
+Read before filing: plugins/sdt-sitter/bootstrap.js and scheduler.js;
+tests/sdt_sitter_scheduler.mjs and bootstrap tests; fork/src/features/search/
+build.ts and embeddings.ts; SYNC.md upstream and Zotero core rows.
+make upstream-catchup returned TOUCHED at zoteus 357ad1f, after UPSTREAM's
+baseline: changes include attachment-read retry/preservation, shared index
+metadata, code invalidation and explicit semantic-mode refusal tests. Inspect
+those existing implementations and tests before proposing additions. This
+ticket does not re-baseline historical evidence.
+
+## Work and exit criteria
+
+- [ ] Commit verification/6012-GUARANTEE-PARITY.md mapping each behavior asserted
+      by the pinned suites to its purpose, owning SPEC requirement/design
+      section, responsible component and exact local test/evidence path.
+- [ ] Distinguish tested equivalent, missing test, observed failure, inherited
+      native guarantee, deliberate design difference and inapplicable behavior.
+      A mocked native success is not evidence for the inherited guarantee.
+- [ ] Include chunk boundaries and source locations, auxiliary/reference
+      handling, notes/annotations, stale previews, model identity and switching,
+      embedding retries, concurrent requests, calibration, deletion and memory
+      pressure, as well as extraction and scheduling.
+- [ ] Route sitter cases to 0755 and 0756; readiness to 0757. Route remaining
+      consumer cases to existing tickets where possible, otherwise file bounded
+      local test tickets after inspecting current fork/upstream code.
+- [ ] Do not copy smallest-first ordering, numerical settings or fallback
+      semantics over different ratified contracts. Record the user-visible
+      guarantee and unresolved differences; any new design choice goes through
+      DECISIONS.md and SPEC.md before implementation.
+- [ ] Each applicable row has discriminating evidence or an open owning ticket.
+      Open failures, unmeasured native behavior and skips preclude claiming
+      parity for that row. Test counts alone never establish parity.
+- [ ] 0755, 0756 and 0757 outcomes are reflected in the matrix; make check passes.
+
+Reports are evidence; requirements and design numbers remain in SPEC.md.
+
+## Existing pipeline work to reuse
+
+The author's reminder prompted a branch-and-log read: fork branch
+origin/conductor-integration contains the ledger, election, reconciliation,
+extraction dispatcher/drain, pacing, activity and priority modules; seg/1 also
+exists on origin/t0028-seg1. The checked-out fork alone hides this work.
+Read 0568 and 0028's logs and those branches before claiming an absent module.
+The existing continuation owners are 0565 (segmenter write-loop wiring), 0554
+(bounded embed worker/client), 0575 (shared embedding service) and 0566
+(runnable process assembly). Route relevant parity tests to those tickets;
+do not create a duplicate chunk/embedding-sitter implementation train.
+STATE.md's hold on the indexer/worker rewrite remains in force; auditing and
+testing available modules does not authorize resuming that implementation.
+
+Include the GPU/runtime boundary in the parity map: reuse
+verification/BRIDGE-0496.md, 0491, 0493 and 0575. Verify actual device usability,
+query/passage vector compatibility and endpoint failure behavior; #6012's
+outbound passage endpoint is not its local query path. Do not infer GPU use
+from an out-of-process engine or a configured device name, and do not count
+the sitter's pack production as evidence that embedding used a GPU.

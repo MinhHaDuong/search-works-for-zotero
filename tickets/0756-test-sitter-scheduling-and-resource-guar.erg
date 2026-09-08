@@ -1,0 +1,52 @@
+%erg 0.1
+Title: Test sitter scheduling and resource guarantees against 6012
+Created: 2026-09-08
+Author: Codex
+
+--- log ---
+2026-09-08T21:29Z Codex created
+
+2026-09-08T21:30Z Codex note Filed scheduling/resource parity tests; preserve ruled policies and route inference-only guarantees through 0754.
+2026-09-08T22:02Z Codex note Reconciled against current main before publication: 0752 implementation has merged; reuse its notification and reconciliation tests rather than treating it as pending.
+--- body ---
+## Context
+
+Child of 0754. #6012's pinned embeddingsTest.js tests phase ordering,
+smallest-first attachment processing, skipping current embeddings, engine
+release under memory pressure and the batch-shrinking floor. These mechanisms
+serve different components; parity means proving applicable user guarantees,
+not copying mechanisms into an extraction-only plugin.
+
+Read: plugins/sdt-sitter/bootstrap.js (blocked, workerBusy, list),
+scheduler.js, tests/sdt_sitter_scheduler.mjs and bootstrap tests, and their
+mutation probes. The current sitter enumerates by item ID. SPEC.md §5.2.3
+rejects smallest-first for the search pipeline; SPEC.md §5.2.7 owns the sitter
+admission and lifecycle contract. 0752 already owns notification coalescing and
+reconciliation races.
+
+## Work and exit criteria
+
+- [ ] Map upstream scheduling/resource assertions to the owner and existing
+      local evidence. Classify model shutdown and adaptive inference batches
+      as consumer work for 0754 to route, not sitter features.
+- [ ] Test production admission code as resources change between documents,
+      while asynchronous checks run and across off/on or disable/re-enable.
+      Cover unreadable/non-finite resource reports and native queue changes.
+      Threshold values must resolve to their SPEC owner, not new ticket rules.
+- [ ] Prove refusal admits nothing, clears without losing eligible work, and
+      never multiplies unresolved submissions. Preserve settlement reporting
+      for admitted work after the switch turns off.
+- [ ] Test current-pack skipping at the production inspection boundary.
+      Keep priority/queue order distinct from the single-admission guarantee;
+      expose ordering differences without silently adopting smallest-first.
+- [ ] Reuse 0752's implemented coalesced notifications and reconciliation
+      tests; inspect the merged code and evidence before identifying gaps.
+      Existing admission tests can be strengthened independently.
+- [ ] Use behavioral controls or mutation probes that break each newly covered
+      safeguard. Record surviving mutations as uncovered guarantees, not passes.
+- [ ] Commit evidence under verification/ and bench/results/ with host and code
+      identity. Separate deterministic admission guarantees from unmeasured
+      peak-memory control, preemption and foreground responsiveness.
+- [ ] Update 0754's matrix and make check passes.
+
+This work does not add resource enforcement to the shared native worker.
