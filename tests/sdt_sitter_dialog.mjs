@@ -257,7 +257,15 @@ test('the census reads as an account: words, then a total at the bottom', () => 
     'an unnamed status vanished from the account');
   assert.equal(Number(withUnknown[withUnknown.length - 1].replace(/[^0-9]/g, '')), 16713);
 
+  // Before the first census there are no rows, and a lone total of zero would be
+  // a measurement where there is none. The scan line above already says 0 / 0.
   for (const key of Object.keys(counts)) delete counts[key];
+  ui.render();
+  const empty = doc.getElementById('sdt-diagnostics').textContent;
+  assert(!empty.includes('Attachments counted in all'),
+    `an empty census still prints a total: ${empty}`);
+  assert(empty.includes('Census: '), 'the scan line went with it');
+
   Object.assign(counts, saved);
   ui.render();
 });

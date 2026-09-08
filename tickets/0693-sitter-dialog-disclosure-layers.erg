@@ -29,13 +29,16 @@ skeleton: two existing `<details>` disclosures (`sdt-details`,
 1. **Primary** (always visible): progress bar, "Index 43 %" (0691),
    current document title, elapsed time, estimated finish, p5/p50/p95
    labelled "total scenarios" per SPEC.md R22.
-2. **Details** (`<details>`, closed by default): observation count,
-   covariate used (per-page vs. per-byte), last exceptions in plain
-   words, native text-search-index stats (0691's renamed Zotero panel).
+2. **Details** (`<details>`, closed by default): the census account --
+   every class named in three to five words, total at the bottom (ruling
+   of 2026-09-08) -- last exceptions in plain words, native
+   text-search-index stats (0691's renamed Zotero panel).
 3. **Diagnostics** (`<details>` nested inside Details, closed by
-   default): the debug checkbox from 0689, the ring-buffer tail (last 50
-   records, auto-refreshed), a "copy journal" action, versions (plugin,
-   Zotero, pack/schema/processor), admission readings, install path.
+   default): the observation count and the covariate used (per-page vs.
+   per-byte), moved down from layer 2 by the ruling of 2026-09-08; the
+   debug checkbox from 0689, the ring-buffer tail (last 50 records,
+   auto-refreshed), a "copy journal" action, versions (plugin, Zotero,
+   pack/schema/processor), admission readings, install path.
 
 Nothing already shown is removed -- this is ordering, not deletion. 0689
 has merged, so this is one build pass, not two: the debug checkbox and
