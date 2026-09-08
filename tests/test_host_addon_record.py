@@ -17,6 +17,7 @@ keeps the duplication from growing back unnoticed.
 
 import importlib
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -81,6 +82,68 @@ def test_present_absent_and_unread_are_three_findings(tmp_path):
     truncated = profile_with(tmp_path, "truncated", "{ truncated")
     record = read(truncated, ADDON_ID)
     assert record["read"] is False and "present" not in record
+
+
+@pytest.fixture
+def unsearchable_profile(tmp_path):
+    """A profile holding `extensions.json`, then stripped of its search bit.
+
+    Mode 0o600 is readable and not searchable, so `open()` on anything inside
+    fails with EACCES — the errno `pathlib` does *not* fold into "not a file".
+    The mode is restored in teardown so a failing assertion cannot leave
+    `tmp_path` undeletable.
+    """
+    profile = with_addons(tmp_path, "locked", [{"id": ADDON_ID}])
+    profile.chmod(0o600)
+    try:
+        yield profile
+    finally:
+        profile.chmod(0o700)
+
+
+@pytest.mark.skipif(os.geteuid() == 0,
+                    reason="root ignores the search bit, so the arm discriminates nothing")
+def test_an_unsearchable_profile_is_unread_rather_than_a_crash(unsearchable_profile):
+    """The failure the `try` could not see, because it happened before the `try`.
+
+    `is_file()` sat above the guard, and `pathlib` swallows OSError only for
+    ENOENT, ENOTDIR, EBADF and ELOOP. EACCES is not among them, so a profile
+    directory without its search bit re-raised PermissionError past every guard
+    below — out of this reader, into the sitter's `main()` (which exits 1, the
+    code that tool means by ABSENT) and into the evidence dictionaries beaver's
+    verbs return unguarded. Fixed on the two originals as ticket 0743, and
+    carried here with them when 0713 merged the copies.
+    """
+    # Positive control: the mode really does bite here, so a green below is the
+    # reader's doing and not the filesystem's indulgence.
+    with pytest.raises(PermissionError):
+        (unsearchable_profile / "extensions.json").read_text(encoding="utf-8")
+
+    record = read(unsearchable_profile, ADDON_ID)
+    assert record["read"] is False
+    assert "present" not in record
+    # Named as a permission, so the arm cannot be satisfied by a reader that
+    # reports the file missing.
+    assert "PermissionError" in record["why"], record["why"]
+
+
+def test_a_path_that_is_there_and_is_not_a_file_says_so(tmp_path):
+    """"Does not exist" is a false sentence about a path `ls` plainly shows.
+
+    `pathlib` folds a symlink loop (ELOOP) into "not a file" exactly as it
+    folds ENOENT, and `exists()` follows the link and comes back False on the
+    loop — so `is_symlink()` is what tells the two apart.
+    """
+    profile = tmp_path / "looped"
+    profile.mkdir()
+    path = profile / "extensions.json"
+    path.symlink_to(path)
+    record = read(profile, ADDON_ID)
+    assert record == {"read": False, "why": f"{path} is not a regular file"}
+
+    directory = tmp_path / "adirectory"
+    (directory / "extensions.json").mkdir(parents=True)
+    assert read(directory, ADDON_ID)["why"].endswith("is not a regular file")
 
 
 def test_an_id_matches_on_the_id_and_not_on_a_neighbouring_field(tmp_path):
