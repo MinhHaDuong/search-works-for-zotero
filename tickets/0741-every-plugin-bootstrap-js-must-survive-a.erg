@@ -1,0 +1,114 @@
+%erg 0.1
+Title: Every plugin bootstrap.js must survive a double load, not just the sitter's
+Created: 2026-09-08
+Author: sim
+
+--- log ---
+2026-09-08T08:27Z sim created
+2026-09-08T08:27Z claude note Filed from the roar sweep of PR #444 (ticket 0730), which converted the sitter's top-level bindings to `var` and added a double-load arm for that ONE file. The sweep asked the obvious next question — how many other plugin bootstraps in this tree have the same shape — and the answer is three, one of which is installed and active in the author's live Zotero right now.
+
+--- body ---
+## Context
+
+Ticket 0730 established that loading a bootstrapped add-on's `bootstrap.js` a
+second time into a scope that has already evaluated it throws at parse time,
+because `var` and `function` tolerate redeclaration while `const`, `let` and
+`class` do not. PR #444 converted `plugins/sdt-sitter/bootstrap.js` and added a
+regression arm — **for that file only**.
+
+The sweep, run over every `bootstrap.js` this tree ships:
+
+    plugins/sdt-sitter/bootstrap.js                          0   (fixed, #444)
+    bench/zotero-fulltext-plugin/bootstrap.js               12
+    verification/probes/sdt-diagnostic-plugin/bootstrap.js    4
+    verification/probes/sdt-sitter-harness/bootstrap.js       1
+    verification/probes/sdt-diagnostic-harness/bootstrap.js   0
+    verification/probes/sdt-phase-harness/bootstrap.js        0
+
+`bench/zotero-fulltext-plugin` is not hypothetical: it is
+`fulltext-control@search-works-for-zotero.invalid`, and on 2026-09-08 it was
+the one other add-on installed and `active: true` in the author's profile.
+
+## What is and is not established
+
+**Latent, not live.** Ticket 0727's arm 3, run the same morning, installed a
+build carrying the un-converted bootstrap over a live one and it started
+cleanly — dialog, pulse, census, cache write. So Zotero hands a replaced add-on
+a FRESH scope, and on the upgrade path this defect cannot fire.
+
+**But 0730's own question was never about the upgrade path.** It asked about
+DISABLE/RE-ENABLE — "turn the add-on off, then on again", the recovery the
+sitter's own UI recommends and which the launch-declined phase forces on the
+user. That is a different Gecko path, nothing has measured it, and it is one
+toggle away from being measured.
+
+So this ticket is a guard, not a repair. The failure mode it guards against is
+the one worth guarding: a parse error takes the whole file, `startup()` never
+runs, no journal record is written, and the window keeps whatever the previous
+instance left on screen. Silent and total, and indistinguishable from the stale
+button that cost ticket 0688 several weeks.
+
+## What this ticket asks for
+
+A standing test that loads EVERY `bootstrap.js` this tree ships twice into one
+`vm` context and asserts the second load succeeds — discovered by walking the
+tree, not by a hand-written list. A hand-listed guard covers the files someone
+remembered; the next plugin added is exactly the one it will not cover, which is
+the failure `feedback_a_move_can_leave_the_gate` names.
+
+`tests/sdt_sitter_bootstrap.mjs` already carries the single-file arm from #444
+and is the model: create a context, run the source, run it again, assert no
+throw. The generalisation is the discovery step, not the assertion.
+
+## Relevant files
+
+- `tests/sdt_sitter_bootstrap.mjs` — the existing one-file arm to generalise
+- `bench/zotero-fulltext-plugin/bootstrap.js` — 12 bindings, live-installed
+- `verification/probes/sdt-diagnostic-plugin/bootstrap.js` — 4
+- `verification/probes/sdt-sitter-harness/bootstrap.js` — 1
+
+## Actions
+
+1. Write the class guard: discover every `bootstrap.js` under the plugin and
+   probe directories, load each twice into a fresh context, assert the second
+   load does not throw. It must FAIL today against the three files above —
+   that is the control, and it must be seen red before anything is converted.
+2. Convert the three files' top-level `const`/`let` to `var`, for the same two
+   reasons the sitter's carry: redeclaration tolerance, and the sandbox
+   exposure ticket 0695 recorded.
+3. Leave a comment in each converted file saying why, so a future reader
+   tidying them back to `const` meets the reason rather than a style choice.
+
+## Test
+
+The guard IS the test, and its control is already available: it must redden
+against the tree as it stands (three files fail), and green after the
+conversion. Run it red first — a guard whose red state nobody has seen is a
+guard nobody can trust, and this tree has been bitten by exactly that
+(0693's vacuous privacy test, demonstrated by restoring the defect).
+
+Second control, cheaper and worth having: point the discovery step at a
+directory with no `bootstrap.js` and confirm it reports NOT-RUN rather than
+passing over an empty set. A guard that greens because it found nothing to
+check is the failure this repository keeps meeting.
+
+## Verification
+
+- [ ] The guard reddens against the current tree, naming all three files
+- [ ] It greens after the conversion
+- [ ] It discovers files by walking the tree, and a newly added plugin is
+      covered without editing the test
+- [ ] An empty discovery set reports NOT-RUN, not a pass
+- [ ] `make check` passes
+
+## Invariants
+
+- Ticket 0695's `var` bindings stay `var`, in every file.
+- The guard does not import or execute plugin behaviour beyond the double
+  load: it is a parse-level assertion, and widening it into a behavioural test
+  of four plugins is how it becomes slow and gets deleted.
+
+## Exit criteria
+
+Every `bootstrap.js` in the tree survives a double load, the guard finds them
+by walking rather than by a list, and its red state has been seen.
