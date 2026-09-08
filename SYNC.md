@@ -1,4 +1,4 @@
-# SYNC — the fork against upstream v1.15.0
+# SYNC — the fork against upstream v1.16.0
 
 *Written 2026-08-26 against upstream `edf2748` (v1.7.0); updated 2026-08-27
 against `309204b` (v1.8.0); updated 2026-08-28 against `bb414df`
@@ -117,6 +117,51 @@ a disposable copy of `fork-0091` (949/949 tests unchanged, leftover count to
 zero), body in `verification/UPSTREAM-PR-0714-TMPDIR-TEARDOWN.md`. **Staged,
 not sent** — no branch pushed, no PR opened, per this raid's own instruction to
 stop short of upstream. Files next time a slot opens.
+
+Updated 2026-09-08 — **it was sent, and the tracker drained a fourth time.**
+The teardown went up as PR #60 on 2026-09-07 at 09:58Z and merged at 21:15Z as
+`ed12d83`; one review round, the maintainer flagging that redirecting `TMPDIR`
+alone leaves Node workers resolving `os.tmpdir()` outside the owned root, fixed
+in `9709a60` with a worker-confinement test over `TMPDIR`, `TMP` and `TEMP`.
+That is the **sixteenth merged PR** from this fork, none rejected. In the same
+evening he closed six issues filed from here, each by building the fix: #66 (a
+security policy and private vulnerability reporting) at 21:19Z, #65 (annotation
+passages exhausting the semantic candidate pool before item deduplication) at
+21:42Z, then #61 (resolve the effective library once and route writes and
+annotation reads by it), #63 (a transient census failure advancing the cursor
+and blocking catch-up on retry) and #64 (item-key bibliographies and CSL-JSON
+exports through the library router) together at 21:45Z. **v1.16.0 shipped at
+21:49Z** (`910310b`), four minutes after the last close.
+
+#62 is the substantial one and closed separately, 04:04Z on 09-08. The `.mcpb`
+bundle advertised `darwin|win32|linux` in its manifest while carrying only the
+Linux canvas binaries, so page extraction on macOS and Windows died at
+`DOMMatrix is not defined`. He reproduced the inventory from the lockfile,
+measured a single all-targets archive at 103 MB against 34, and split it into
+three per-OS bundles — macOS 33.3 MB, Windows 31.9, Linux 56.7 — driven by
+`scripts/mcpb-bundle.ts` reading the platform packages out of the lockfile
+rather than a hardcoded list, with a `check` subcommand as the release gate and
+17 tests. He closed against SHA-256s of the **published** assets, not local
+builds. **One ask is left with us**: nobody has yet installed a 1.16.0 bundle on
+native macOS or Windows and run `zotero_fulltext` with a `page_range` over a PDF
+Zotero has not cached. He named a failure there as grounds to reopen. This host
+is Linux, so the evidence cannot be produced here.
+
+The reviewed baseline moves to `main` at `4467663`, one README-only commit past
+the v1.16.0 tag; the delta from `5a81cee` is 14 commits and 54 files, reaching
+`index-manager.ts` (+338/-55), a new `src/router/library-router.ts` and
+`src/api/local-client.ts`, and `821629a`, which withholds the index version
+stamp when an update cannot catch up notes and annotations. Ticket 0738 owns
+the bump and `verification/UPSTREAM-1.16.0-REREAD.md` the evidence.
+
+**The largest thread in the range is not ours, and the issue list hides that.**
+Three of the fourteen commits and most of `index-manager.ts`'s churn answer
+**#59, opened by Michael-Logies on 2026-09-06**: a plain `INSERT` aborted a
+whole build with `UNIQUE constraint failed: passages.id` when the library was
+edited mid-crawl, destroying a complete 97 000-passage index about 1 300 items
+into a 10 500-item library. Per-item SQLite savepoints and `INSERT OR IGNORE`
+are the fix, and it lands on R1 and R13. Reading this release as ours would
+have missed the one change with the largest blast radius in it.
 
 ## What happened upstream
 

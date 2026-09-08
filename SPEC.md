@@ -1022,7 +1022,7 @@ superseded.
 Seven facts about upstream shaped the design below. They were read at v1.7.0
 (`c5d25aa`), where all seven were exact; five have since been repaired, four
 of those by the maintainer acting on this repository's own filings. They are
-therefore stated against the reviewed baseline `037bba8` (v1.15.0), because a
+therefore stated against the reviewed baseline `4467663` (v1.16.0), because a
 reader takes a premise as current unless told otherwise. Every line number
 below was re-read there rather than carried: successive diffs moved most of
 them, which is the reason a
@@ -1032,8 +1032,8 @@ Still true there. `DEFAULT_FULLTEXT_MAX_CHARS = 40_000`
 (`fulltext-source.ts:11`) truncates the 44,9 MB living example roughly
 1 100-fold — the one citation the bump left where it was, in the one file the
 release did not touch. Changing embedder drops every vector at open
-(`dropStaleVectors` → `clearVectors()`, `index-manager.ts:641`).
-`clearStore()` sits in the build path (`index-manager.ts:850`).
+(`dropStaleVectors` → `clearVectors()`, `index-manager.ts:672`).
+`clearStore()` sits in the build path (`index-manager.ts:881`).
 
 Repaired since. The query tokenizer folds Unicode — `normalizeForSearch` then
 `/[\p{L}\p{N}]+/gu` (`tokenize.ts:221`, `4f61b2a`, v1.7.2). `busy_timeout` is
@@ -1041,7 +1041,7 @@ set to 10 s on both the writable handle and the read-only probe
 (`sqlite-index.ts:499` and `:590`, `80f8aa0`, v1.7.1). `SCHEMA_VERSION` is read
 before any DDL, through `reconcileSchema()` (`sqlite-index.ts:585`, `fd51659`,
 v1.9.0). Builds no longer crawl `top:true` alone: a second pass indexes child
-notes and annotations, on by default (`own-words-source.ts:132`, `d8266f7`,
+notes and annotations, on by default (`own-words-source.ts:145`, `d8266f7`,
 v1.11.0). The fifth is this repository's own, merged as PR #46 and #47 in
 v1.13.0: the 29-word English stopword set is deleted, so no word is dropped
 from any document on either backend, and what a query prunes is a droplist
@@ -1475,7 +1475,9 @@ author or abstract, and body text fills in behind that for hours.
   follow, in a second pass filtered by item type. Upstream did not do this
   when the phase was designed; it does now, and on by default — a second
   crawl on `itemType: 'note || annotation'` with no `top` filter
-  (`own-words-source.ts:157`, `d8266f7`, v1.11.0, read at `b05ed69`). What
+  (`own-words-source.ts:179`, `d8266f7`, v1.11.0, read at `4467663`; the
+  same predicate now appears twice, and `:105` is the versions crawl, not
+  this one). What
   remains ours is the ordering: the pass is a *phase* here, after records and
   before body text, which is a discovery-order claim and not a coverage one.
 
@@ -1581,9 +1583,11 @@ reacting to degradation before an error, since the serving process is
 Zotero's own. Upstream's #39 answered the same pressure differently, and not
 with a fallback: it sets the crawl's concurrency from whichever API serves it,
 2 for the desktop app against 4 for the cloud, and backs off to one on
-degradation (`c859407`, and re-read at `b0e0bc8` where the rule has moved out
-of the router into `limits.ts:69` and `build.ts:617-620`, unchanged in
-substance). That is not adopted (ticket 0505). The stage keeps its key: `text_hash` (§5.2.1) is computed over the
+degradation (`c859407`, and re-read at `4467663` where the rule has moved out
+of the router into `limits.ts:69` and `build.ts:631-633`, unchanged in
+substance; the earlier `build.ts:617-620` was wrong on content, not merely
+stale — at `5a81cee` those lines already held the embed-batch dials and the
+rule sat at `627-629`). That is not adopted (ticket 0505). The stage keeps its key: `text_hash` (§5.2.1) is computed over the
 stream as it passes, so nothing has to hold the document to identify it.
 Three things per library.
 
@@ -3351,7 +3355,8 @@ which that section rules out. The default path sends nothing.
 
 **Read-transport fallback, a narrower and separate gap.** The two paths above
 are the only ones R10 counts, and both stay accurate. Item-metadata reads —
-`getItem`, `getItemChildren`, `listCollections` — are a different surface: the
+`getItem`, `getItemChildren`, `listCollections`, and since v1.16.0's #64 also
+`exportItems` and `getBibliography` — are a different surface: the
 router prefers the local Zotero API and falls back to the cloud Web API when
 the local one is unreachable, a rule that predates this design's review and is
 not gated on a per-call opt-in. It cannot fire without a cloud API key already

@@ -1,0 +1,82 @@
+%erg 0.1
+Title: Re-baseline upstream to v1.16.0 and re-read the rows the release moved
+Created: 2026-09-08
+Author: sim
+
+--- log ---
+2026-09-08T06:19Z sim created
+2026-09-08T06:46Z sim note baseline pinned at `4467663` and schema generation confirmed rather than assumed: `make schema-gate` passes its strict leg, which compares this repository's declaration against upstream's own constant at the new SHA, and the re-read read `const SCHEMA_VERSION = 2;` out of both trees with `git show` plus a line-by-line `createSchema` comparison. `make upstream-status` reports the pin current with `main`
+2026-09-08T06:46Z sim note five of eleven `SPEC.md` anchors were stale and are re-pointed; the positive control is that the same method returned six unmoved with their current text quoted. Each of the five was re-verified against the source by hand before the edit. One is worse than drift: `build.ts:617-620` pointed at the embed-batch dials rather than at the concurrency rule even at `5a81cee`, so the v1.15.0 report's "re-read and remains the correct anchor" was wrong on content. SPEC now records that instead of quietly correcting it
+2026-09-08T06:46Z sim note CORRECTION TO THIS TICKET'S OWN CONTEXT TABLE: the largest thread in the delta is not ours. Three of the fourteen commits and most of `index-manager.ts`'s +338/-55 answer issue #59, opened by Michael-Logies on 2026-09-06 — a plain `INSERT` aborting a whole build with `UNIQUE constraint failed: passages.id` on a mid-crawl library edit, losing a complete 97 000-passage index. The table above lists only the seven items that came from here, which is exactly how the miss happens: an issue list filtered to our own filings cannot show the release's biggest change. Recorded in `SYNC.md` too
+2026-09-08T06:46Z sim note two findings the re-read raises that this ticket does not own. The #65 pool loop re-runs both rankers per doubling — bounded at `index-manager.ts:2403`, up to fifteen extra rounds against §5.2.9's measured 567 829 passages at `limit:10` — and the worst case falls on exactly the concentrated ranking the fix is for; left as an open question with the experiment named, deliberately not multiplied out of our own scan figure, which measures a different thing. And R17 gains a gap while closing one: `duplicatePassages`/`duplicateItems` reach the logger and never `buildStatus()`, five occurrences against the neighbouring `ownWordsReason` at `:868` as the grep's positive control
+2026-09-08T06:51Z sim note the SPEC re-pointing broke `tests/test_upstream_catchup.py::test_citations_in_reads_the_real_spec_md`, which pins two real SPEC citations as a no-mock smoke check that the parser reads the committed file — and both samples it pinned were among the five anchors this ticket moved. Fixture updated to the corrected anchors, with a comment saying it is expected to move at a baseline bump and why the two samples are a single line and a range. The failure is the fixture doing its job, not collateral: it fired the moment the file it reads changed. `make check` 1285 passed, 15 skipped
+
+--- body ---
+
+## Context
+
+Upstream published v1.16.0 at `910310b` on 2026-09-07 21:49Z, and `main` now
+sits one README-only commit further at `4467663`. The range from the reviewed
+tip `5a81cee` is 14 commits and 54 files.
+
+This is not a documentation release. In one evening the maintainer closed six
+issues filed from here and merged one PR from here:
+
+| upstream | subject | landed |
+|---|---|---|
+| PR #60 | vitest global temp-directory teardown (our ticket 0714) | `ed12d83` |
+| #66 | a security policy; private vulnerability reporting | 21:19Z |
+| #65 | annotation passages exhausted the semantic candidate pool before item dedup | 21:42Z |
+| #61 | resolve the effective library once, route writes and annotation reads by it | 21:45Z |
+| #63 | a transient census failure advanced the cursor and blocked catch-up on retry | 21:45Z |
+| #64 | item-key bibliographies and CSL-JSON exports through the library router | 21:45Z |
+| #62 | the `.mcpb` bundle advertised darwin/win32 and shipped only Linux binaries | 04:04Z 09-08 |
+
+The source consequences reach the watched surface: `index-manager.ts` is
++338/-55, `src/router/library-router.ts` and `src/api/local-client.ts` are new,
+`scripts/mcpb-bundle.ts` and a release gate are new, and `821629a` withholds the
+index version stamp when an update cannot catch up notes and annotations. A
+release-note-only update would leave the review baseline false, which is the
+premise ticket 0735 established for the previous bump.
+
+Ticket 0714's record stops at "staged, not sent". PR #60 has since been filed
+and merged, so its third verification line — which reads as unmet *because* the
+fix had not landed upstream — is now stale in the archive.
+
+## Work
+
+- pin `UPSTREAM` to `main` at `4467663`, naming v1.16.0 and the schema
+  generation, and confirm that generation independently rather than carrying
+  2 forward on assumption;
+- read every changed watched source file; reconsider a requirement row only
+  where a changed mechanism can move its verdict or invalidate its evidence,
+  per the delta-bounded rule ratified at the 0618 bump;
+- re-point every stale `SPEC.md` source citation the moved `index-manager.ts`
+  and the new router left behind, and demonstrate the search for them could
+  have found one;
+- record the release in `SYNC.md` and `STATE.md`, and write
+  `verification/UPSTREAM-1.16.0-REREAD.md` as the evidence report;
+- append the upstream landing of PR #60 to closed ticket 0714's log, so the
+  archive stops recording a fix as unsent that shipped;
+- do not promote any row to `measured` on source reading, and do not carry a
+  v1.15 measurement across a changed executable path.
+
+## Exit criteria
+
+- [x] `UPSTREAM` names `main` at `4467663`, v1.16.0, dated 2026-09-08, with the
+      schema generation confirmed against upstream's own constant
+- [x] `verification/UPSTREAM-1.16.0-REREAD.md` accounts for the full 14-commit
+      delta and every affected requirement row, and names what it could not check
+- [x] stale `SPEC.md` source citations are re-pointed, with a positive control
+      recorded for the search that found them
+- [x] `SYNC.md` and `STATE.md` record the release, the six closes and PR #60
+- [x] closed ticket 0714 carries the landing of PR #60 in its log
+- [x] `make check` and `./tickets/erg check tickets/` pass
+
+## Boundaries
+
+No live-library mutation and no upstream post. This ticket moves the reviewed
+source baseline; it does not close trackers 0613, 0648 or 0665, and it does not
+manufacture an acceptance verdict for R15 or R22. The release-readiness review
+running in parallel against `910310b` is a separate line of work and files its
+own tickets; findings from it do not enter this one.

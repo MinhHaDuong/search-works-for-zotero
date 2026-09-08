@@ -1,6 +1,6 @@
 # STATE — Search Works for Zotero
 
-*Live handoff, under forty lines. Updated 2026-09-07. Ownership: [AGENTS.md](AGENTS.md).*
+*Live handoff, under forty lines. Updated 2026-09-08. Ownership: [AGENTS.md](AGENTS.md).*
 
 ## North Star
 
@@ -19,9 +19,14 @@ segmenter and all other feature work. [SYNC.md](SYNC.md) owns upstream state.
 
 ## Recent outcomes
 
-- **PR #359:** re-baselined every standing row on zoteus v1.14.0, including the
-  default-off update check, model pooling and caller-path safety.
-- **PR #360:** limited re-baselines to measurements affected by the source delta.
+- **v1.16.0:** upstream merged our PR #60 (the sixteenth, none rejected) and
+  closed six issues filed from here in one evening — library routing, the
+  census cursor, item-key bibliographies, the semantic candidate pool, a
+  security policy, and the `.mcpb` bundles that advertised three platforms
+  while shipping one platform's binaries.
+- **Left with us on #62:** install a 1.16.0 bundle on native macOS or Windows
+  and run `zotero_fulltext` with a `page_range` over an uncached PDF. A failure
+  reopens the issue; this host cannot produce the evidence.
 - **v1.15.0:** upstream shipped the uninstall procedure and durable pause; the
   source range also moves local embedding inference into a worker thread.
 
@@ -33,7 +38,7 @@ Start with correctness/privacy acceptance gaps: R10 (0660–0664), R13
 
 ## Basic state
 
-Reviewed upstream: **v1.15.0+2** at `5a81cee` (ticket 0735).
+Reviewed upstream: **v1.16.0+1** at `4467663` (ticket 0738).
 Requirements: **24 ratified** ([SPEC.md](SPEC.md)).
 Tickets: **78 ready, 39 blocked, 8 awaiting author** (`erg ready tickets/`).
 In flight: **none**.

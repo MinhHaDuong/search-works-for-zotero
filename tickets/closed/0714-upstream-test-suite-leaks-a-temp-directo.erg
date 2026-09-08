@@ -12,6 +12,7 @@ Closed: autoclosed — PR #397
 2026-09-06T16:19Z claude note also corrected this ticket's own log stamp (was 15:40Z, 7 minutes after the 15:33Z commit that wrote it) per check_ticket_logs.py's own remedy: correct the stamp to the time the record evidences
 
 2026-09-06T17:02Z sim closed — autoclosed — PR #397
+2026-09-08T06:21Z sim note the drafted teardown was filed and merged upstream after this ticket closed: oscardvs/zoteus PR #60, opened 2026-09-07T09:58Z, merged 21:15Z as `ed12d83`, released in v1.16.0. One review round — the maintainer flagged that redirecting `TMPDIR` alone leaves Node workers resolving `os.tmpdir()` outside the owned root, fixed in `9709a60` by saving and restoring `TMPDIR`, `TMP` and `TEMP` with a focused worker-confinement test. Exit criterion 1 said "staged, not sent"; it has now been sent. Recorded here rather than reopening, per ticket 0738
 --- body ---
 ## Context
 On 2026-09-06 `/tmp` (a 12 GB tmpfs, mounted `usrquota`, per-user cap 80 %
