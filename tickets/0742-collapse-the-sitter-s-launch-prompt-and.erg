@@ -1,0 +1,194 @@
+%erg 0.1
+Title: Collapse the sitter's launch prompt and pause into one persisted switch
+Created: 2026-09-08
+Author: claude
+Label: needs-human
+
+--- log ---
+2026-09-08T10:15Z claude created — filed from a Fable-model UX consult requested by the author (pause/unpause switch question, launch-dialog clarity question). Full analysis below is Fable's, lightly reorganized into ticket sections; verdict and reasoning are Fable's own, grounded in a read of bootstrap.js, scheduler.js, SPEC.md R22, the 2026-09-05 DECISIONS ratifications, and the closed/open sitter dialog tickets — not a cold take from the title alone. Label needs-human because the recommendation requires amending which control counts as R22's "one obvious way", a ratification-level call this ticket does not have standing to make.
+
+2026-09-08T11:24Z Minh Ha-Duong note additional design guidance, in session, for whoever implements this ticket's dialog work: for a document the sitter classifies as unsupported or refused, the dialog/details layer should be helpful about what the user could do to make it indexable if they want to — e.g. what changes would let a mismatched-type or unextractable document succeed — but this must stay informational, never directive. No nagging, no "fix this" framing, no implied obligation; the user is told what is possible, not what to do.
+2026-09-08T11:28Z Minh Ha-Duong note refinement of the 11:24Z guidance, organized rather than a flat message: group the affected documents by problem class (a class being a shared reason and a shared fix — e.g. "scanned image, no text layer" versus "snapshot failed extraction"), state per class what would resolve it, and list the affected items by title under that class. Then offer, not impose: ask whether the user would like a Zotero collection created from that class's items, so they have something concrete to act on later if they choose to — never automatic, never a nag to act now.
+
+--- body ---
+## The two questions asked
+
+1. Should the sitter's dialog carry an explicit pause/unpause switch, distinct
+   from add-on disable?
+2. Is the launch confirmation dialog clear and well-behaved, and if not, what
+   should change?
+
+## TL;DR (Fable's verdict)
+
+1. No separate pause toggle. Turn the existing launch answer into the one
+   persisted on/off switch the dialog carries — that switch IS the pause, and
+   it is the only one the plugin should have.
+2. The launch confirmation is not well-behaved: synchronous modal at every
+   Zotero start, answer forgotten at restart and at disable/re-enable,
+   "tonight?" mis-describes a loop that runs forever, "No" is a dead end
+   recoverable only through the Add-ons manager. Fix: ask once, persisted
+   pref, labelled buttons, move disclosures into the dialog.
+
+## Question 1 — why not a third control
+
+The plugin already has two stop mechanisms, and that is the problem:
+
+- **Add-on disable** (ratified 2026-09-05, SPEC.md R22's named control):
+  graceful, holds across restarts, but lives four clicks away in Tools ->
+  Add-ons, removes the button/dialog that would show it stopped, and
+  re-enable restarts the census from scratch and re-asks the launch question
+  (confirmed live, ticket 0727 arm 4, 2026-09-08).
+- **Declining the launch prompt**: session-only, nothing persisted, next
+  Zotero start asks again. Leaves the toolbar reading "Index" with tooltip
+  "Not started: turn the add-on off, then on again" and the dialog showing
+  "Files indexed: 0 / No indexing under way" with no control on it.
+
+Adding a third, in-dialog "Pause" would collide with vocabulary already on
+screen: `phase-cpu-busy`, `phase-low-memory`, `phase-low-disk` all render as
+"Paused: ..." (bootstrap.js:114-118). A user seeing "Paused: processor busy"
+next to a Pause button will look for how to unpause something they did not
+pause.
+
+R22 itself requires "one obvious way ... and it MUST hold across restarts."
+A session-only pause fails the restart clause; a second persisted switch
+fails the "one" clause. The design that satisfies both: collapse the launch
+decision and the pause into one persisted state, replacing the launch
+prompt's role.
+
+- **Off** — no sweep scheduled, no census (R22 covers all background work,
+  and the census hashes files). In-flight `ensure()` finishes — the same
+  graceful semantics already ratified for disable. Toolbar reads a plain
+  "Indexing off"; dialog's first line offers the one control to turn it on.
+- **On** — current behaviour.
+
+Alternatives considered and rejected: a session-only pause button (violates
+R22's restart clause); keeping the modal and adding pause as a third control
+(three controls, three persistence behaviours); leaving disable as the only
+switch (defensible only if the launch prompt stops acting as a de facto
+second switch — fixing question 2 already builds this persisted state, so
+the toggle costs one line of UI on top).
+
+## Question 2 — the launch confirmation's concrete defects
+
+What the user meets today (bootstrap.js:1388-1392): a `Services.prompt.confirm`
+— synchronous OS modal, OK/Cancel — fired from `initialize()` right after
+`uiReadyPromise`, at EVERY Zotero start. Title "Indexing assistant —
+experimental", ~90 words across four paragraphs (the question, resource
+conditions, worker-non-preemption disclosure, disable semantics).
+
+1. **Fires every startup.** No pref records the answer; unrelated to
+   yesterday's choice. Confirmed to also fire on disable/re-enable (0727
+   arm 4).
+2. **"Index the whole library tonight?" is false twice.** Asked at whatever
+   hour Zotero opens, and the sweep loop reschedules for the session's whole
+   life — nothing ends at dawn. "Whole library" — unscoped census (0717
+   already tracks this surface).
+3. **Decline is a dead end.** `phase-launch-declined` points the user to the
+   Add-ons manager; the button/dialog stay installed but inert (`alive` is
+   true, pulse never starts, dialog doesn't redraw). A "No" undoable only
+   outside the plugin is a trap.
+4. **OK/Cancel don't answer the question asked.** `confirmEx` allows labelled
+   buttons ("Start indexing" / "Not now") instead.
+5. **Disclosure buried in a consent box.** The 2026-09-05 worker-limitation
+   disclosure must stay, but a four-paragraph confirm is the format least
+   likely to be read. Belongs in the dialog (0693's Details layer), with the
+   first-run question carrying one short sentence and a pointer.
+6. **Ordering race.** `alive = true` and the toolbar button are installed
+   BEFORE the confirm (bootstrap.js:1383-1385), so the button is visible
+   under a modal saying the thing may not start — the same class of defect
+   0696 had to guard against.
+
+## Rough build shape (Fable's sketch, not a committed design)
+
+- One tri-state pref (unset / on / off), read in `initialize()`. Unset -> ask
+  once via `confirmEx` with labelled buttons, then write the answer. Never
+  ask again.
+- Off is a real, persisted state: toolbar "Indexing off"; dialog layer 1
+  shows the switch; no census runs.
+- Move `launch-worker` / `launch-disable` strings into 0693's Details layer;
+  shrink `launch-question`, drop "tonight".
+- Ask before arming: move the confirm before `alive = true` / button
+  installation, closing the ordering race.
+- `scheduler.js`'s existing `enabled` flag covers most of on/off; `stop()`
+  needs a resumable twin or a fresh `createSDTSitter` call.
+- Tests to update: `tests/test_sdt_sitter.py:715-723` pins the four string
+  ids at the confirm site; `sdt_sitter_zotero_mock.mjs` needs an
+  `options.launch`; 0727 arm 4's "re-asks on re-enable" observation becomes
+  the red fixture for the persistence claim.
+- Paperwork: a DECISIONS.md entry amending which control is R22's "one
+  obvious way" (add-on disable keeps its graceful host-level semantics; the
+  plugin's own persisted switch becomes the R22 control); SPEC.md's sitter
+  paragraph edited in the same PR; 0691's vocabulary table gains "off/on"
+  and a rename of the automatic gate labels from "Paused:" to "Waiting:" (so
+  "on/off" stays reserved for the user's own switch); 0717's launch-prompt
+  surface narrows to the shortened first-run text.
+
+Composes with 0693 (switch lives in layer 1, disclosures in layer 2) rather
+than reopening it; repeats nothing 0687/0684/0696 already tried or reverted.
+
+## Relevant files
+
+- `plugins/sdt-sitter/bootstrap.js` — `initialize()` (1129-1396), the confirm
+  (1388-1392), the phase table (489-503), `shutdown()` (1397)
+- `plugins/sdt-sitter/scheduler.js` — `stop()`, the `enabled` flag
+- `SPEC.md` — R22 (line 617) and its sitter design paragraph (2241-2258)
+- `DECISIONS.md` — the 2026-09-05 ratifications (6594-6630)
+- `tests/test_sdt_sitter.py:715-723` — pins the confirm-site string ids
+- Closed: 0680, 0684, 0685, 0687, 0691, 0694, 0696, 0727 (design history —
+  read before proposing anything, don't repeat a reverted attempt)
+- Open, composes with: 0693 (dialog layers), 0717 (launch-prompt copy)
+
+## Actions
+
+1. **Author ruling first** (this is why the ticket is `needs-human`): decide
+   whether the plugin's own persisted switch becomes R22's "one obvious way",
+   with add-on disable remaining the host-level graceful control. Record the
+   ruling in DECISIONS.md before any code changes land.
+2. Once ruled: implement the persisted tri-state pref, the once-only labelled
+   first-run question, the ordering fix (ask before arming), and the on/off
+   dialog control per the build shape above.
+3. Move the worker-limitation and disable-semantics disclosures into 0693's
+   Details layer.
+4. Update SPEC.md's sitter paragraph and 0691's vocabulary table
+   ("Paused:" -> "Waiting:" for automatic gates) in the same change.
+
+## Test
+
+- Red first: a fresh profile's first activation asks once and persists the
+  answer; a second activation in a new session does not ask again.
+- Red first: disabling then re-enabling the add-on (0727 arm 4's scenario)
+  does not re-ask the launch question if a persisted answer already exists.
+- Red first: declining leaves a real, discoverable "off" state reachable
+  from the dialog, not only from the Add-ons manager.
+- Mixed-population trap to watch: a test that only exercises the "on" path
+  cannot see a regression that stops "off" from ever completing a clean
+  shutdown of in-flight `ensure()` work.
+
+## Verification
+
+- [ ] DECISIONS.md carries the author's ruling on R22's "one obvious way"
+      before implementation is merged
+- [ ] The launch question is asked at most once per profile and its answer
+      persists across restart and across disable/re-enable
+- [ ] "Off" is a discoverable, single-switch state inside the dialog, not
+      only reachable via Add-ons manager
+- [ ] The worker-limitation and disable-semantics disclosures are readable
+      in the dialog's Details layer at any time, not gated behind a modal
+- [ ] The ordering race (button installed before confirm) is closed
+- [ ] `make check` passes
+
+## Invariants
+
+- No change to the disposable-cache ruling: a pref recording on/off is not
+  a job or failure ledger.
+- No change to the graceful-stop semantics: in-flight `ensure()` still
+  finishes on either disable or the new "off" state.
+- The plugin still never writes to `storage/`, never changes extraction
+  settings, never replaces a source attachment.
+
+## Exit criteria
+
+The author has ruled on which control is R22's "one obvious way"; the launch
+prompt asks at most once and its answer persists across every transition
+tested in 0727; "off" is a real, single, discoverable state; disclosures are
+readable outside the modal; and the tests above are red-first and green.

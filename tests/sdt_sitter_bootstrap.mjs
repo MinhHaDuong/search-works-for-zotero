@@ -268,6 +268,163 @@ await test('an unwritable data directory is journalled once per episode, and the
 });
 
 /* --------------------------------------------------------------------------
+   What the sitter refuses to hand the extractor, and what it remembers refusing.
+
+   Ticket 0740. Both halves are about the same 39 documents on the author's
+   library: submitted every session, failing in 50-90 ms every session, counted
+   as failures every session, and unable to succeed in any of them.
+
+   Both scenarios below hold a MIXED population on purpose. A fixture made only
+   of the failing documents cannot tell a fix that stops submitting them from
+   one that has stopped submitting anything, and stopping the sitter altogether
+   would pass every assertion an all-failures fixture can carry. So each
+   scenario asserts the whole census: which documents were handed to the
+   extractor, which were not, and that the classes still sum to what was
+   scanned.
+   -------------------------------------------------------------------------- */
+const JPEG = [0xFF, 0xD8, 0xFF, 0xE0];
+const PNG = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+const ZIP = [0x50, 0x4B, 0x03, 0x04];
+const PDF_MAGIC = [0x25, 0x50, 0x44, 0x46];
+// '<!DOCTYPE ' — a real snapshot's opening bytes, which name no format at all.
+const DOCTYPE = [0x3C, 0x21, 0x44, 0x4F, 0x43, 0x54, 0x59, 0x50, 0x45];
+
+await test('a file whose bytes contradict its declared type is classified, not submitted', async () => {
+  const harness = createHarness({
+    attachments: [
+      // The eleven page scans of the live journal, in one row: Zotero holds it
+      // with `attachmentContentType == 'text/html'` — nothing else could have
+      // satisfied `isSnapshotAttachment()` — and the file is a JPEG.
+      { id: 1, key: 'AAAA1111', kind: 'snapshot', pages: null, sourceBytes: 4096, magic: JPEG },
+      // The genuine snapshot beside it. Ticket 0740 keeps this case explicitly
+      // out of the image story, and here it is what proves the fix did not
+      // simply stop admitting snapshots.
+      { id: 2, key: 'BBBB2222', kind: 'snapshot', pages: null, sourceBytes: 4096, magic: DOCTYPE },
+      { id: 3, key: 'CCCC3333', kind: 'pdf', pages: 12, sourceBytes: 4096, magic: PDF_MAGIC },
+      // No signature at all. HTML has none either, so an unrecognised head must
+      // leave the label standing — the arm that fails if the check is inverted
+      // into "admit only what the table recognises".
+      { id: 4, key: 'DDDD4444', kind: 'pdf', pages: 12, sourceBytes: 4096 },
+      { id: 5, key: 'EEEE5555', kind: 'epub', pages: null, sourceBytes: 4096, magic: ZIP },
+      // The mismatch in the other direction: a known format that a REAL
+      // processor handles, declared as a different one. Without this arm an
+      // implementation that only ever looks for images passes.
+      { id: 6, key: 'FFFF6666', kind: 'pdf', pages: 12, sourceBytes: 4096, magic: PNG },
+    ],
+  });
+  await harness.start();
+  const state = harness.context.sitter.state;
+
+  // The whole population, in one assertion: four documents reached the
+  // extractor and two did not. `deepEqual` rather than a membership test — a
+  // fix that stopped submitting the two mislabelled files by submitting nothing
+  // is the failure this scenario exists to catch.
+  assert.deepEqual(harness.calls.ensure, [2, 3, 4, 5],
+    'the extractor was handed the wrong set of documents');
+  assert.deepEqual(harness.records('submit').map(record => record.id), [2, 3, 4, 5],
+    'a document was submitted that the census had already ruled out');
+
+  assert.equal(state.counts.unsupported, 2, 'a byte/label mismatch was not classified');
+  assert.equal(state.counts.current, 4, 'a document that extracts fine stopped being admitted');
+  assert.equal(state.failed, 0, 'a mismatch was counted as a failure rather than classified');
+  // The census still adds up, which is the property the whole status vocabulary
+  // exists to hold (ticket 0699): every attachment landed in exactly one class.
+  const classes = harness.context.SDT_STATUS_CLASSES;
+  const tally = keys => keys.reduce((n, key) => n + (state.counts[key] || 0), 0);
+  assert.equal(Object.values(classes).reduce((n, keys) => n + tally(keys), 0), state.scanned);
+});
+
+await test('a document that yields no pack is asked once a session, and again after a restart', async () => {
+  const attachments = [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222'), pdf(3, 'CCCC3333')];
+  const hooks = {};
+  const first = createHarness({ attachments, ensure: (id, onProgress) => hooks.ensure(id, onProgress) });
+  // Native SDT's own behaviour on the failing documents: it returns, promptly
+  // and without complaint, having persisted nothing. The plugin's `Native SDT
+  // did not persist a current pack` is its own sentence about that silence.
+  hooks.ensure = async (id, onProgress) => {
+    onProgress(10);
+    first.advance(1000);
+    if (id !== 2) first.persistPack(id);
+    onProgress(100);
+    return true;
+  };
+  await first.start();
+
+  // The positive control for everything below: the later assertions say nothing
+  // unless this sweep really did admit the document and really did fail on it.
+  assert.deepEqual(first.calls.ensure, [1, 2, 3], 'the failing document was never admitted at all');
+  assert.equal(first.context.sitter.state.counts['failed-session'], 1);
+  assert.equal(first.context.sitter.state.counts.current, 2);
+
+  // The second sweep of the SAME session, through the timer the sitter armed for
+  // itself. Nothing new was written to disk and nothing needs to have been: the
+  // failure is held in memory for the life of the activation, which is the span
+  // the author ruled for on 2026-09-08.
+  await first.nextSweep();
+  const held = first.context.sitter.state;
+  // `deepEqual` on the whole call list, not a count of new calls: a sitter that
+  // stopped sweeping altogether also never resubmits anything, and that outcome
+  // must not pass. The two documents that carry packs are `current` and were
+  // never candidates, so a correct second sweep calls `ensure` for nobody.
+  assert.deepEqual(first.calls.ensure, [1, 2, 3],
+    'the failure was resubmitted inside the session that had just recorded it');
+  assert.equal(held.counts['failed-session'], 1);
+  assert.equal(held.counts.current, 2, 'a document that can be indexed stopped being admitted');
+  // Still a failure the author is told about. A suppression that dropped out of
+  // the "could not be indexed" figure would trade a repeated submission for a
+  // silently shrinking count.
+  assert.equal(held.failed, 1);
+  // The census still adds up, which is the property the whole status vocabulary
+  // exists to hold (ticket 0699): every attachment landed in exactly one class.
+  const heldClasses = first.context.SDT_STATUS_CLASSES;
+  const heldTally = keys => keys.reduce((n, key) => n + (held.counts[key] || 0), 0);
+  assert.equal(Object.values(heldClasses).reduce((n, keys) => n + heldTally(keys), 0), held.scanned);
+
+  // Nothing about the failure reached the cache file. Asserted on the bytes
+  // rather than on behaviour, because the behaviour below would look identical
+  // if a refusal were written and then ignored — and a row nobody reads is
+  // exactly the orphaned disk state the author's ruling forbids.
+  assert.equal((first.files.text(CACHE_PATH) || '').includes('refused'), false,
+    'a failure verdict was written to the disposable cache');
+  const persisted = first.files.text(CACHE_PATH);
+
+  // A new session over the same cache file — the plugin restarted, or Zotero
+  // did. The suppression is gone with the memory that held it, and the document
+  // is asked again. This is the accepted cost of the 2026-09-08 ruling, not an
+  // oversight: it is also what native SDT's own service does with a generic
+  // failure, which it retries on every new call
+  // (verification/SDT-PLUGIN-PREREQUISITES.md).
+  const second = createHarness({
+    attachments: [pdf(1, 'AAAA1111', { pack: { lastModified: 950 } }), pdf(2, 'BBBB2222'),
+      pdf(3, 'CCCC3333', { pack: { lastModified: 950 } })],
+    cache: persisted,
+    // Native answers the same way it did last session, so the retry costs a real
+    // failure rather than quietly succeeding: the assertions below are about a
+    // document that is still unextractable, not about one that got better.
+    ensure: (id, onProgress) => hooks.ensure(id, onProgress),
+  });
+  hooks.ensure = async (id, onProgress) => {
+    onProgress(10);
+    second.advance(1000);
+    if (id !== 2) second.persistPack(id);
+    onProgress(100);
+    return true;
+  };
+  await second.start();
+  const state = second.context.sitter.state;
+
+  assert.deepEqual(second.calls.ensure, [2],
+    'a restart did not re-open the question, or it re-opened documents that were current');
+  assert.deepEqual(second.records('submit').map(record => record.id), [2]);
+  assert.equal(state.counts['failed-session'], 1, 'the retried failure was not classified as one');
+  assert.equal(state.counts.current, 2, 'a document that can be indexed stopped being admitted');
+  assert.equal(state.failed, 1);
+  const classes = second.context.SDT_STATUS_CLASSES;
+  const tally = keys => keys.reduce((n, key) => n + (state.counts[key] || 0), 0);
+  assert.equal(Object.values(classes).reduce((n, keys) => n + tally(keys), 0), state.scanned);
+});
+
+/* --------------------------------------------------------------------------
    The dialog, and the two windows the plugin can be started into.
    -------------------------------------------------------------------------- */
 await test('a dialog closed and reopened mid-job is one instance, one listener, and the same state', async () => {
