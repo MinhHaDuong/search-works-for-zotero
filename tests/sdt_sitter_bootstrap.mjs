@@ -20,6 +20,8 @@
  */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import vm from 'node:vm';
 
 import { CACHE_PATH, ROOT_URI, VERSIONS_JSON, createHarness, deferred }
@@ -882,23 +884,127 @@ await test('a disable, a re-enable, and the suspended sweep announces nothing', 
     'a sweep from a dead generation rescheduled itself');
 });
 
-/* Ticket 0730. Loading bootstrap.js twice into one scope used to throw at parse
- * time -- `SyntaxError: Identifier 'closeJournalled' has already been declared`
- * -- because `var`/`function` tolerate redeclaration and `const`/`let`/`class`
- * do not, and the file mixed both. Whether Zotero ever re-runs bootstrap.js into
- * a scope it has already used stays open (recorded in the ticket log against a
- * real Zotero session); this arm makes the file safe regardless, the same way
- * every other top-level binding in it is already `var` for the sandbox-exposure
- * reason ticket 0695 recorded. A minimal context is deliberate: the ticket's own
- * repro used one, and the failure is a parse-time SyntaxError that a full mock
- * host would only obscure behind its own setup cost.
+/* Ticket 0730, generalised by ticket 0741. Loading a bootstrap.js twice into one
+ * scope used to throw at parse time -- `SyntaxError: Identifier 'closeJournalled'
+ * has already been declared` -- because `var`/`function` tolerate redeclaration
+ * and `const`/`let`/`class` do not, and the file mixed both. Whether Zotero ever
+ * re-runs a bootstrap.js into a scope it has already used stays open on the
+ * upgrade path (0727's arm 3 saw a fresh scope there), but disable/re-enable is a
+ * different Gecko path and nothing has measured it; the guard makes every file
+ * safe regardless, the same way the sitter's top-level bindings are already `var`
+ * for the sandbox-exposure reason ticket 0695 recorded.
+ *
+ * The discovery is the point, and it is why this is no longer one hard-coded
+ * path: a hand-listed guard covers the files someone remembered, and the next
+ * plugin added is exactly the one it will not cover. A minimal context is
+ * deliberate -- the failure is a parse-time SyntaxError, and a full mock host
+ * would only obscure it behind its own setup cost. Nothing here executes plugin
+ * behaviour beyond the two loads.
  */
-await test('bootstrap.js loads twice into one scope without throwing', async () => {
-  const source = fs.readFileSync('plugins/sdt-sitter/bootstrap.js', 'utf8');
-  const context = vm.createContext({ Zotero: {}, Services: {}, ChromeUtils: {} });
-  vm.runInContext(source, context);
-  assert.doesNotThrow(() => vm.runInContext(source, context),
-    'a second load into the same scope threw -- a top-level const/let/class crept back in');
+
+/* Directories the walk refuses to enter, and why each one: they are the
+ * gitignored checkouts and caches this repository does not ship. `fork`,
+ * `fork-*` and `upstream.git` are upstream's own source -- a bootstrap.js
+ * appearing there would redden a gate over code we neither wrote nor may
+ * change, and walking a full Zotero checkout on every test run is not free.
+ * Dot-directories are skipped as a class, which is what keeps the walk out of
+ * `.git` and out of `.claude/worktrees/`, where every parallel session's copy of
+ * this same tree lives. Everything else IS walked, so a plugin added under a
+ * directory nobody has thought of yet is still covered.
+ *
+ * Two shapes, because .gitignore has two. `UNSHIPPED` is matched on the
+ * directory's own name and covers the ignores that sit at the repository root;
+ * `UNSHIPPED_PATHS` is matched on the path relative to the walk root, and is
+ * what reaches a nested ignore like `bench/data/`, whose bare name is far too
+ * common to refuse everywhere. */
+const UNSHIPPED = new Set(['node_modules', 'fork', 'upstream.git', 'corpus-cache', '__pycache__']);
+const UNSHIPPED_PATHS = new Set(['bench/data']);
+
+function discoverBootstraps(root) {
+  const found = [];
+  const walk = dir => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name.startsWith('.') || entry.name.startsWith('fork-')
+          || UNSHIPPED.has(entry.name)
+          || UNSHIPPED_PATHS.has(path.relative(root, full).split(path.sep).join('/'))) continue;
+        walk(full);
+      } else if (entry.isFile() && entry.name === 'bootstrap.js') {
+        found.push(full);
+      }
+    }
+  };
+  walk(root);
+  return found.sort();
+}
+
+/* PASS / FAIL / NOT-RUN, rather than a boolean. A guard that greens because it
+ * found nothing to check is the failure this repository keeps meeting, so the
+ * empty set gets a verdict of its own and the caller has to say what it does
+ * with it. */
+function doubleLoadReport(root) {
+  const files = discoverBootstraps(root);
+  const failures = [];
+  for (const file of files) {
+    const source = fs.readFileSync(file, 'utf8');
+    const context = vm.createContext({ Zotero: {}, Services: {}, ChromeUtils: {} });
+    vm.runInContext(source, context);
+    try {
+      vm.runInContext(source, context);
+    } catch (error) {
+      failures.push(`${file}: ${error.message}`);
+    }
+  }
+  return { verdict: files.length === 0 ? 'NOT-RUN' : failures.length ? 'FAIL' : 'PASS', files, failures };
+}
+
+await test('every bootstrap.js this tree ships loads twice into one scope without throwing', async () => {
+  const report = doubleLoadReport('.');
+  assert.notEqual(report.verdict, 'NOT-RUN',
+    'the walk found no bootstrap.js at all -- the tree moved, not the plugins');
+  assert.deepEqual(report.failures, [],
+    `a second load threw; a top-level const/let/class is declared in:\n${report.failures.join('\n')}`);
+});
+
+/* The control for the discovery step, and it is two-sided on purpose. A walk
+ * that always returned nothing would satisfy the empty half alone, and the guard
+ * above would then be green over an empty set forever -- which is the exact
+ * shape this file exists to refuse. So: a tree with a decoy file and a nested
+ * directory reports NOT-RUN, and the SAME tree with one real bootstrap.js
+ * reaches a verdict. The planted file is deliberately broken in the way the
+ * guard is about, so the positive half also proves the assertion fires and not
+ * merely that discovery counted to one. */
+await test('an empty discovery set reports NOT-RUN, and a planted file proves the walk can see one', async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sdt-bootstrap-walk-'));
+  try {
+    fs.mkdirSync(path.join(root, 'plugin', 'nested'), { recursive: true });
+    fs.writeFileSync(path.join(root, 'plugin', 'not-bootstrap.js'), 'const x = 1;\n');
+    const empty = doubleLoadReport(root);
+    assert.equal(empty.verdict, 'NOT-RUN', `an empty tree was reported ${empty.verdict}`);
+    assert.deepEqual(empty.files, []);
+
+    fs.writeFileSync(path.join(root, 'plugin', 'nested', 'bootstrap.js'), 'const planted = 1;\n');
+    const planted = doubleLoadReport(root);
+    assert.equal(planted.verdict, 'FAIL',
+      'a planted double-load failure was not seen -- the walk or the assertion is blind');
+    assert.equal(planted.files.length, 1);
+    assert(planted.failures[0].includes('planted'), planted.failures[0]);
+
+    // And the refusals refuse. Both shapes are exercised, since a name match and
+    // a path match are different code: `node_modules` by name, `bench/data` by
+    // its position under the root. Without this the skip list is a branch no run
+    // ever takes, and a typo in either would read as green forever.
+    for (const ignored of ['node_modules', path.join('bench', 'data')]) {
+      fs.mkdirSync(path.join(root, ignored), { recursive: true });
+      fs.writeFileSync(path.join(root, ignored, 'bootstrap.js'), 'const ignored = 1;\n');
+    }
+    const withIgnored = doubleLoadReport(root);
+    assert.deepEqual(withIgnored.files, planted.files,
+      'the walk entered a directory this repository does not ship');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 });
 
 console.log(JSON.stringify({ tests: results, result: 'pass' }));

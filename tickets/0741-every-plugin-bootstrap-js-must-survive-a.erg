@@ -6,6 +6,7 @@ Author: sim
 --- log ---
 2026-09-08T08:27Z sim created
 2026-09-08T08:27Z claude note Filed from the roar sweep of PR #444 (ticket 0730), which converted the sitter's top-level bindings to `var` and added a double-load arm for that ONE file. The sweep asked the obvious next question — how many other plugin bootstraps in this tree have the same shape — and the answer is three, one of which is installed and active in the author's live Zotero right now.
+2026-09-08T09:57Z claude note Guard written and seen RED before any conversion: it named bench/zotero-fulltext-plugin/bootstrap.js (PREFIX), verification/probes/sdt-diagnostic-plugin/bootstrap.js (api) and verification/probes/sdt-sitter-harness/bootstrap.js (observer), and named neither the already-converted plugins/sdt-sitter/bootstrap.js nor the two zero-binding harnesses. Green after the three conversions.
 
 --- body ---
 ## Context
