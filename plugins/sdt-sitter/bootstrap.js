@@ -715,6 +715,12 @@ function describeSDTCensusAccount(counts) {
     rows.push(sdtText('census-row', { label: describeSDTStatusLabel(status),
       count: sdtNumber(count) }));
   }
+  // Before the first census `counts` is empty, and a lone "Attachments counted
+  // in all: 0" there is a measurement where there is none — the same wrong claim
+  // `getSDTCoverage` refuses when it makes the percentage unsayable rather than
+  // zero. An account with no rows is not an account, so it is not printed; the
+  // scan line above already says 0 / 0.
+  if (!rows.length) return rows;
   rows.push(sdtText('census-total', { count: sdtNumber(total) }));
   return rows;
 }
@@ -1207,8 +1213,11 @@ function openDialog(window) {
       ['pre', 'sdt-failures']]);
     section('sdt-document-section', sdtText('section-active'), [
       ['pre', 'sdt-document-status'], ['progress', 'sdt-progress'], ['pre', 'sdt-document-estimate']]);
-    // Layer 2, closed: the counts and the fit behind the estimates. 0686 asked
-    // for exactly this — technical detail kept, moved below primary progress.
+    // Layer 2, closed: the census account, and the native index's own statistics
+    // below it. 0686 asked for exactly this — technical detail kept, moved below
+    // primary progress. The fit behind the estimates used to sit here too and no
+    // longer does: the ruling of 2026-09-08 put it a layer further down, with the
+    // rest of what is about the machine rather than about the library.
     const details = element('details', 'sdt-details');
     const summary = element('summary', 'sdt-details-title');
     summary.textContent = sdtText('details-title');

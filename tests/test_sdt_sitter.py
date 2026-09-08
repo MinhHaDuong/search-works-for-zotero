@@ -1045,6 +1045,17 @@ def test_every_census_status_is_named_in_words_a_reader_can_read():
     classes = _site('var SDT_STATUS_CLASSES = {', '\n};', SCHEDULER)
     classified = sorted(set(re.findall(r"'([a-z-]+)'", classes)))
     assert classified, 'the census-status extraction matched nothing'
+    # The reading order is the other half, and it was unguarded on the first
+    # draft: a red-team control dropped two statuses from `SDT_STATUS_ORDER` and
+    # the whole suite stayed green, because the composer's `extra` tail still
+    # prints an unordered status. Nothing crashes -- the status merely falls out
+    # of the curated order into an arbitrary tail, which is the substance of the
+    # ruling rather than a detail of it.
+    order = _site('var SDT_STATUS_ORDER = [', '];')
+    ordered = re.findall(r"'([a-z-]+)'", order)
+    assert len(ordered) == len(set(ordered)), f'a status is ordered twice: {ordered}'
+    assert set(ordered) == set(classified), \
+        f'the account order and the classification disagree: {sorted(set(ordered) ^ set(classified))}'
     catalogue = messages()
     for status in classified:
         key = f'status-{status}'
