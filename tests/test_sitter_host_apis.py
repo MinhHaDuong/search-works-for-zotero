@@ -138,7 +138,7 @@ PLUGINS = ROOT / "plugins"
 #: file leaving it, never a literal arriving in a sibling — moving the
 #: `win.require` call into `scheduler.js` would otherwise retire the guard
 #: silently. `test_no_plugin_file_type_escapes_the_scan` guards the other axis.
-SOURCE_SUFFIXES = (".js", ".mjs", ".json")
+SOURCE_SUFFIXES = (".js", ".mjs", ".json", ".md")
 
 #: Formats that cannot carry a readable `resource://` literal, exempted by name
 #: rather than by silence. The scan cannot tell an icon from an `.xhtml` dialog,

@@ -2271,9 +2271,18 @@ filesystem. These are checks before admission, not enforced peak resource caps.
 The sitter submits at most one attachment at a time, only to an idle native
 worker, at native background priority. It does not claim independent OS nice
 control or preemption. Unavailable resource readings prevent admission.
-The sitter censuses the library 30 seconds after each sweep ends, and 10 minutes
-after one that ended idle having found nothing to index, so a library with no
-work left is not re-walked twice a minute all night.
+The sitter uses Zotero attachment-change notifications to queue affected
+attachments for inspection, coalescing repeated events. It reconciles the library
+on activation while enabled and every 1 hour thereafter to discover changes
+outside those notifications, including missing or restored source files, deleted
+packs and processor upgrades. Re-enabling requests reconciliation. Reconciliations
+do not overlap; a missed interval coalesces into a pending reconciliation rather
+than a backlog of scans. External filesystem changes are detected at the next
+successful reconciliation, subject to scan duration and host availability;
+closed, suspended or disabled operation carries no wall-clock detection promise.
+Before admitting an attachment it rechecks source availability;
+missing sources are reported as unavailable rather than submitted for extraction.
+Coverage reflects the last observation and discloses reconciliation freshness.
 An unresolved native promise prevents further submissions; lack of progress
 alone does not prove a hang. Failures are suppressed for the session by source
 and processor identity, without a private durable ledger.
