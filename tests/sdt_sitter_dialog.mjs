@@ -181,10 +181,85 @@ test('layer 1 still carries progress, and layer 2 still carries the counts', () 
   assert(doc.getElementById('sdt-diagnostics').textContent.includes('Census: 3 / 3'));
   assert(doc.getElementById('sdt-fulltext').textContent.includes('"indexed": 3'),
     'the native index statistics did not land');
-  // The fit the estimates rest on: count and covariate, both in layer 2. Three
-  // page counts were observed, so the per-page covariate is the one that carried.
-  assert.equal(doc.getElementById('sdt-observations').textContent,
-    'Observed durations: 3 — basis: per page');
+});
+
+// Author's ruling of 2026-09-08, second half: "Observed durations" is technical
+// diagnostics, not a primary reading. It kept its wording and changed layer, so
+// the arm is about WHERE the node hangs — which is precisely what a source grep
+// cannot answer, since `getElementById` finds it wherever it was appended.
+test('the observed durations are read in the diagnostics layer, not in Details', () => {
+  const observations = doc.getElementById('sdt-observations');
+  assert.equal(observations.parentNode.id, layer3.id,
+    'the durations still hang in Details, above the diagnostics layer they belong to');
+  // Three page counts were observed, so the per-page covariate is the one that
+  // carried. The reading itself must survive the move.
+  assert.equal(observations.textContent, 'Observed durations: 3 — basis: per page');
+});
+
+/* Author's ruling of 2026-09-08, first half, taken live while he read the census
+   on his own library: THE CENSUS IS AN ACCOUNT AND SHOULD READ AS ONE.
+
+   What it replaces read `unsupported: 2600 / missing-source: 367 /
+   failed-session: 39` — internal keys, in the order a JavaScript object happened
+   to hand them over — above a separate `Could not be indexed (last census): 406`
+   that silently added 367 files merely absent from this disk to 39 real
+   failures. Two unrelated facts under one label. The classes sum exactly, so
+   the arithmetic was honest and only the presentation was not.
+
+   Driven rather than read, because the two things that can go wrong here are
+   both invisible to a grep: a status the scheduler can produce and this table
+   cannot name (it would render as its raw key, which is the defect), and a
+   total that does not equal the rows printed above it (which is what makes an
+   account an account). */
+test('the census reads as an account: words, then a total at the bottom', () => {
+  const counts = sitter.state.counts;
+  const saved = { ...counts };
+  for (const key of Object.keys(counts)) delete counts[key];
+  Object.assign(counts, { current: 13699, unsupported: 2600, 'missing-source': 367,
+    'failed-session': 39, 'missing-pack': 1 });
+  ui.render();
+  const lines = doc.getElementById('sdt-diagnostics').textContent.split('\n');
+
+  // No internal key survives as a label. `failed-session:` is the exact string
+  // the author read on screen and objected to.
+  for (const key of ['unsupported:', 'missing-source:', 'failed-session:', 'missing-pack:']) {
+    assert(!lines.some(line => line.startsWith(key)),
+      `the raw status key ${key} is still the label a reader is shown`);
+  }
+  // The conflating aggregate is gone: every one of its constituents is now on a
+  // row of its own, so nothing is lost and nothing is summed that should not be.
+  assert(!lines.some(line => line.includes('Could not be indexed (last census)')),
+    'the line that added files-not-on-this-disk to real failures is still there');
+
+  const row = label => {
+    const found = lines.find(line => line.startsWith(`${label}: `));
+    assert(found, `no row named ${label}: ${lines.join(' | ')}`);
+    return Number(found.slice(label.length + 2).replace(/[^0-9]/g, ''));
+  };
+  assert.equal(row('Indexed and up to date'), 13699);
+  assert.equal(row('No extractor for this format'), 2600);
+  assert.equal(row('File missing from this disk'), 367);
+  assert.equal(row('Extraction failed this session'), 39);
+  assert.equal(row('Waiting to be indexed'), 1);
+
+  // The total is last, and it is the sum of the rows above it — 13 699 + 2 600 +
+  // 367 + 39 + 1 = 16 706, the author's own arithmetic.
+  const last = lines[lines.length - 1];
+  assert(last.startsWith('Attachments counted in all: '), `the total is not at the bottom: ${last}`);
+  assert.equal(Number(last.replace(/[^0-9]/g, '')), 16706);
+
+  // A status nobody named must be visible, not silently dropped from an account
+  // that still claims to add up.
+  Object.assign(counts, { 'a-status-nobody-named': 7 });
+  ui.render();
+  const withUnknown = doc.getElementById('sdt-diagnostics').textContent.split('\n');
+  assert(withUnknown.some(line => line.startsWith('a-status-nobody-named: 7')),
+    'an unnamed status vanished from the account');
+  assert.equal(Number(withUnknown[withUnknown.length - 1].replace(/[^0-9]/g, '')), 16713);
+
+  for (const key of Object.keys(counts)) delete counts[key];
+  Object.assign(counts, saved);
+  ui.render();
 });
 
 test('the debug switch is a labelled native checkbox', () => {

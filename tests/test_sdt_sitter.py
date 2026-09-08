@@ -132,6 +132,12 @@ UI_SITES = (
     ('function composeSDTJournalReport() {', '\n}'),
     ('function buildSDTDiagnostics(doc, element) {', '\n}'),
     ("getElementById('sdt-observations').textContent", ';'),
+    # The census account of ticket 0693's second pass. Both halves are sites: the
+    # composer that builds the rows, and the label lookup that decides what a
+    # status is called -- a raw key falling through the lookup is the defect the
+    # ruling repaired, and a literal written here is how it would come back.
+    ('function describeSDTStatusLabel(status) {', '\n}'),
+    ('function describeSDTCensusAccount(counts) {', '\n}'),
     # The end-of-sweep toast of ticket 0696, and the first site this list
     # acquired after 0692 externalized the wording. It arrived carrying one
     # French literal for its headline, which is what the note above predicts and
@@ -1019,6 +1025,40 @@ def test_the_census_classification_has_exactly_one_owner():
     assert emitted <= classified, f'unclassified census statuses: {sorted(emitted - classified)}'
 
 
+def test_every_census_status_is_named_in_words_a_reader_can_read():
+    """Ticket 0693, the author's ruling of 2026-09-08: every category named in
+    three to five words instead of one.
+
+    The third face of `SDT_STATUS_CLASSES`'s single ownership. The two tests
+    above force a new status into a class and force the coverage line to agree
+    about which; neither forces anybody to say what it MEANS. Without this, a
+    status added to the scheduler renders in the account as its own internal
+    key -- `failed-session: 39` -- which is exactly the line the author read on
+    his own library and objected to.
+
+    The word count is a real bound, not decoration: one word is the defect
+    being repaired, and a clause long enough to wrap turns an account into
+    prose. Read out of the classification rather than listed here, so a status
+    renamed in `scheduler.js` fails here instead of leaving a dead entry
+    behind.
+    """
+    classes = _site('var SDT_STATUS_CLASSES = {', '\n};', SCHEDULER)
+    classified = sorted(set(re.findall(r"'([a-z-]+)'", classes)))
+    assert classified, 'the census-status extraction matched nothing'
+    catalogue = messages()
+    for status in classified:
+        key = f'status-{status}'
+        assert key in catalogue, f'census status {status!r} has no reader-facing name'
+        words = catalogue[key].split()
+        assert 3 <= len(words) <= 5, \
+            f'{key} is {len(words)} words, not three to five: {catalogue[key]!r}'
+        assert words[0][0].isupper(), f'{key} does not open an account row: {catalogue[key]!r}'
+    # And the account's own two lines: a row template that is punctuation, and a
+    # total whose wording says it is a total.
+    assert '{label}' in catalogue['census-row'] and '{count}' in catalogue['census-row']
+    assert '{count}' in catalogue['census-total']
+
+
 def test_the_coverage_denominator_reads_the_classification():
     """The other half of the same fact, and the one a reader sees as a percentage.
 
@@ -1053,17 +1093,31 @@ def test_the_session_clause_names_only_session_counters():
     Two messages, and the assertion is that they stay two: the risk a translator
     runs is folding them into one line, which reads better and is false. So the
     session clause must appear in exactly one of the pair, in every locale --
-    and the call site must render both."""
+    and both must be rendered somewhere a reader reaches.
+
+    Ticket 0693 moved the census half. `diagnostics-failed` -- "Could not be
+    indexed (last census)" -- was the aggregate the author objected to on
+    2026-09-08: it added files merely absent from this disk to real extraction
+    failures under one label. It is gone from the account, where every one of
+    its constituents now holds a named row of its own, and the census-derived
+    total a reader still meets is the layer-1 banner `files-failed`. So the
+    pair this test guards is `diagnostics-completed` against that banner. The
+    invariant did not change -- one "this session", governing only the counter
+    that accumulates over one -- only which two lines carry it."""
     for tag in LOCALES:
         catalogue = messages(tag)
-        session, census = catalogue['diagnostics-completed'], catalogue['diagnostics-failed']
-        assert session != census, f'{tag}.ftl: the two totals share one sentence'
-        assert '{count}' in session and '{count}' in census
+        session, census = catalogue['diagnostics-completed'], catalogue['files-failed']
+        assert session not in census, f'{tag}.ftl: the two totals share one sentence'
+        assert '{count}' in session and all('{count}' in form for form in census)
     english = messages()
     assert 'this session' in english['diagnostics-completed']
-    assert 'cette session' not in english['diagnostics-failed'], \
-        'a census-derived total is rendered under a "cette session" clause'
-    assert 'last census' in english['diagnostics-failed']
+    assert not any('session' in form for form in english['files-failed']), \
+        'a census-derived total is rendered under a session clause'
+    # And the aggregate that conflated two facts is not merely reworded.
+    assert 'diagnostics-failed' not in english, \
+        'the conflating "could not be indexed (last census)" aggregate is back'
     site = _site("getElementById('sdt-diagnostics').textContent", '.filter(Boolean)')
     assert "sdtText('diagnostics-completed', { count: s.completed })" in site
-    assert "sdtText('diagnostics-failed', { count: s.failed })" in site
+    assert 'describeSDTCensusAccount(s.counts)' in site, \
+        'the census block no longer renders through the account composer'
+    assert "sdtText('diagnostics-failed'" not in BOOTSTRAP.read_text(encoding='utf-8')
