@@ -1,0 +1,162 @@
+%erg 0.1
+Title: The sitter submits documents that cannot yield a pack, and forgets it every session
+Created: 2026-09-08
+Author: sim
+
+--- log ---
+2026-09-08T08:02Z sim created
+2026-09-08T08:02Z claude note Found by following the author's live journal on doudou during the 2026-09-08 pre-release review, not by reading code. The census reported 406 "could not be indexed", which is what sent me looking; the number turned out to conflate two unrelated facts, and the residue under it is this defect. Author's rulings, same session, verbatim in substance: (1) "ne pas croire l'etiquette, le B A BA du consommateur averti"; (2) "oui on persiste en cache, jetable c'est un cache"; (3) the census categories are to be separated in the dialog's account, which is filed against 0693 rather than here.
+
+--- body ---
+## Context
+
+The sitter's census reports a single figure, "Could not be indexed (last
+census): 406". Read on the author's live library on 2026-09-08 it decomposes,
+and the classes sum exactly to the scanned total:
+
+    current           13 699
+    unsupported        2 600
+    missing-source       367
+    failed-session        39
+    excluded               1
+                      ------
+    scanned           16 706
+
+So **367 of the 406 are `missing-source`** — the file is not on this disk,
+which is an ordinary fact about a synced library and not a failure of anything.
+Only **39 are real failures**, and they are what this ticket is about. The
+conflation is not cosmetic: it sent this session's own analysis the wrong way
+twice before the breakdown was read, which is the argument for the separated
+account filed against 0693.
+
+## What the 39 are
+
+The live journal (`bench/results/sdt-sitter-2026-09-08/0.3.5-all-admissions-fail.json`)
+names twelve of them by cache key. Resolved against `~/data/Zotero/storage` and
+matched by byte size to the `admit` records — every size matches to the digit,
+so the mapping is measured and not assumed:
+
+- **Eleven are JPEG images**, page scans of historical works: `Cantor1896-p161
+  .jpg`, `-p162`, `-p163`, `Westergaard1890-p220.jpg`, `Sincov1904-p216.jpg`,
+  `-p217`, `Frisch1930-p398.jpg`, `-p401`, `-p403`, `Frisch1936-p7.jpg`,
+  `Frege1874-p5.jpg`. `file(1)` confirms real `JPEG image data, JFIF standard
+  1.01` bytes.
+- **One is a genuine HTML snapshot**, `Shananin2009-sciup-snapshot.html`, real
+  UTF-8 HTML. Its failure has a DIFFERENT and still unknown cause and must not
+  be folded into the image story.
+
+Every failing admission carries `pages: null`, and each takes 50–90 ms from
+`admit` to `settle` — far too fast to be extraction trying and losing. The error
+is the plugin's own sentence, not a platform exception: `Native SDT did not
+persist a current pack`.
+
+## Why an image reaches a text extractor
+
+`inspect()` (bootstrap.js:1259) classifies by the host's own predicates:
+
+    const processor = item.isPDFAttachment() ? 'pdf'
+      : item.isEPUBAttachment() ? 'epub'
+      : item.isSnapshotAttachment() ? 'snapshot' : null;
+    if (!processor) return { status: 'unsupported' };
+
+Read in the installed build (`chrome/content/zotero/xpcom/data/item.js`),
+`isSnapshotAttachment()` is
+
+    this.attachmentLinkMode == LINK_MODE_IMPORTED_URL &&
+    this.attachmentContentType == 'text/html'
+
+which a JPEG cannot satisfy. Since these items WERE admitted, and `snapshot` is
+the only class they could have entered under, **Zotero records these JPEGs with
+`attachmentContentType == 'text/html'`**. That step is a deduction from the code
+rather than a direct read — `zotero.sqlite` is locked while Zotero runs — but
+the code leaves no other path, and it is consistent with how the files were
+acquired: a captured page that served an image.
+
+So the plugin trusts a label that is wrong about the bytes underneath it. Native
+SDT is handed a document declared HTML whose content is a photograph, finds no
+text, persists no pack, and returns. The platform is behaving correctly
+throughout — 4 729 of this library's 4 890 snapshot directories DO carry a pack,
+so snapshots as a class are handled fine.
+
+## Why it repeats forever
+
+`failed-session` is exactly what its name says: the exclusion lasts the session.
+Next activation, the same 39 documents are candidates again, are admitted again,
+fail again in the same 50–90 ms, and are counted again. They can never succeed,
+and nothing remembers that.
+
+## What this does to ticket 0606
+
+0606 turns on how many documents native extraction genuinely cannot handle,
+since that is the case for producing packs ourselves. On the evidence here the
+answer is smaller than any figure so far quoted: eleven of twelve sampled
+failures are images that a text extractor is right to refuse. They argue for not
+submitting them, not for building a producer. Ticket 0728 carries the residue
+recount that reaches the same place from the other direction.
+
+## Relevant files
+
+- `plugins/sdt-sitter/bootstrap.js` — `inspect()` at :1254, the processor
+  classification at :1259
+- `plugins/sdt-sitter/scheduler.js` — `failed-session` and the candidate queue
+- `bench/results/sdt-sitter-2026-09-08/` — the two live journals this rests on
+- `/opt/zotero7/app/omni.ja`, `chrome/content/zotero/xpcom/data/item.js` — the
+  three `is*Attachment()` predicates as the running build defines them
+
+## Actions
+
+1. **Do not trust the declared type.** Before admitting, confirm the bytes are
+   what the label claims — a magic-number read of the first few bytes is enough
+   to separate a JPEG from HTML and costs one short read per candidate, once,
+   against a document that is otherwise about to be handed to a worker. A
+   mismatch is `unsupported`, not a failure: the document is fine, our
+   classification of it was wrong.
+2. **Persist the refusal.** When a document is admitted and native returns
+   without a current pack, remember that in the on-disk cache against the
+   document's identity, so the next session does not retry it. Author's ruling:
+   the cache is the right home precisely because it is disposable — a wrong
+   entry costs one re-attempt after a cache reset, which is the correct price
+   for being wrong. The identity already embeds the source hash and the pack
+   versions, so a re-saved file or a native version bump re-opens the question
+   by itself, which is exactly the invalidation this needs.
+3. Keep the genuine HTML snapshot out of this fix and out of its story. One
+   real snapshot failing is a separate question; record it and leave it.
+
+## Test
+
+- Red first, for action 1: an attachment whose declared type is `text/html` and
+  whose bytes are a JPEG must be classified `unsupported`, and must never reach
+  `submit`. Against the current tree it is admitted and fails, so the test
+  reddens today. The mock already carries the seams for a fixture of this shape.
+- Red first, for action 2: a document that fails with "no current pack" must not
+  be a candidate on the NEXT activation — drive two activations over one cache
+  and assert the second admits nothing. Note the trap: asserting "it failed
+  again" passes against both the fixed and unfixed code. Assert that it was
+  never admitted.
+- The mixed-population trap is the one to watch on any count assertion here: a
+  test whose fixture holds only failures cannot see a fix that also stops
+  admitting the good documents.
+
+## Verification
+
+- [ ] A byte/label mismatch is classified `unsupported` and never submitted
+- [ ] A "no current pack" outcome survives a restart and is not retried
+- [ ] Both tests reddened against the unfixed tree before the fix
+- [ ] The census total still equals the sum of its classes on the live library
+- [ ] `make check` passes
+
+## Invariants
+
+- The plugin still never writes to `storage/`, never changes extraction
+  settings, and never replaces a source attachment.
+- A document is never permanently written off on a ground that can change: the
+  persisted refusal is keyed on the identity, so a re-saved source or a native
+  version bump re-admits it.
+- Native SDT is not second-guessed. This ticket stops us handing it work it
+  cannot do; it does not add extraction of our own.
+
+## Exit criteria
+
+Images declared as HTML are classified rather than submitted, a document that
+cannot yield a pack is asked once rather than every session, and both are held
+by tests that were red first.
