@@ -388,8 +388,19 @@ function heartbeatTick() {
    picking up a newly added attachment within one coffee. `candidates`, not
    `pending`: pending drains as documents settle, so by the end of a productive
    sweep it is empty too, and the two cases are not the same one. */
+// The five phases host.blocked() returns (scheduler.js's admission gate) name a
+// resource the machine does not currently have, not work the sitter is doing.
+// Retrying them on the 30 s active cadence made the plugin sweep fastest
+// exactly when it had just decided the machine was too busy to work -- the
+// opposite of the quiet-overnight-supervisor obligation SPEC.md's sitter
+// paragraph states. Found live (bench/results/sdt-sitter-2026-09-08/), never
+// ticketed: two full censuses, eight minutes apart, both correctly refused
+// cpu-busy, neither one backed off. A machine that stays busy for the refusal's
+// whole duration was being re-polled twenty times in that window instead of
+// once.
+var SDT_BLOCKED_PHASES = ['cpu-busy', 'low-memory', 'low-disk', 'storage-unavailable', 'resources-unavailable'];
 function nextSweepDelayMS(state) {
-  return state.phase === 'waiting' && state.candidates === 0
+  return (state.phase === 'waiting' && state.candidates === 0) || SDT_BLOCKED_PHASES.includes(state.phase)
     ? IDLE_SWEEP_INTERVAL_MS : SWEEP_INTERVAL_MS;
 }
 

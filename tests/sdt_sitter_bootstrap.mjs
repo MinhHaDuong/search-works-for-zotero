@@ -130,14 +130,29 @@ await test('the sitter recovers on the next sweep once the readings come back', 
   });
   await harness.start();
   assert.equal(harness.context.sitter.state.phase, 'resources-unavailable');
-  // A halted sweep still has work waiting, so the sitter looks again in 30 s
-  // rather than backing off to the idle cadence — and this fires that timer
-  // through bootstrap.js's own wrapper, which is where the reschedule lives.
+  // A resource refusal backs off to the idle cadence (not the 30 s active one)
+  // -- this fires that timer through bootstrap.js's own wrapper, which is where
+  // the reschedule lives, regardless of which cadence it armed.
   readable = true;
   await harness.nextSweep();
   assert.deepEqual(harness.calls.ensure, [1, 2]);
   assert.equal(harness.context.sitter.state.phase, 'waiting');
   assert.equal(harness.context.sitter.state.completed, 2);
+});
+
+await test('a resource refusal backs off to the idle cadence, not the active one', async () => {
+  // Found live, never ticketed: two full censuses eight minutes apart, both
+  // correctly refused cpu-busy, neither one backed off -- the sitter was
+  // busiest exactly when it had just decided the machine was too busy.
+  const harness = createHarness({
+    attachments: [pdf(1, 'AAAA1111')],
+    loadavg: () => '99.00 99.00 99.00 1/200 12345',
+  });
+  await harness.start();
+  assert.equal(harness.context.sitter.state.phase, 'cpu-busy');
+  const [id] = harness.timers.ids('timeout');
+  assert.equal(harness.timers.pending.get(id).ms, 10 * 60 * 1000,
+    'a refused sweep rescheduled on the 30 s active cadence instead of backing off');
 });
 
 /* --------------------------------------------------------------------------
