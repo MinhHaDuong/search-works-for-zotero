@@ -525,6 +525,73 @@ await test('two windows and two startups leave one sitter, one launch prompt and
 });
 
 /* --------------------------------------------------------------------------
+   Ticket 0686: the toolbar under assistive technology.
+
+   `verification/SDT-SITTER-UI-PANEL.md` records the accessibility reviewer's
+   two findings about this button — the spinner rewrites the accessible name,
+   and nothing here reads `prefers-reduced-motion`. Both are behaviour of the
+   render loop, so both are testable against the mock host rather than only in
+   a live window, which is where the sitter harness probe had to leave them.
+   -------------------------------------------------------------------------- */
+await test('the spinner does not rename the button, and reduced motion stops it spinning', async () => {
+  // The frame is `floor(now / 140) % 4`, so pinning the monotonic clock pins
+  // the glyph: both arms are rendered at the same instant and the preference is
+  // the only thing that differs between them.
+  const SPIN = ['◐', '◓', '◑', '◒'];
+  const arm = async reducedMotion => {
+    const entered = deferred(), finish = deferred();
+    const harness = createHarness({
+      attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')],
+      reducedMotion,
+      ensure: async (_id, onProgress) => { onProgress(40); entered.resolve(); await finish.promise; return false; },
+    });
+    await harness.startHanging();
+    await admitted(harness, entered, 'the toolbar spinner');
+    assert.equal(harness.context.sitter.state.active, 1,
+      'no document is being indexed, so there would be nothing to spin either way');
+    harness.clock.mono = 140 * 4 * 1000 + 140;    // frame 1, whatever the run did before
+    harness.context.render();
+    return harness.windows[0].document.getElementById('sdt-pack-sitter-button');
+  };
+
+  // The positive control. Without the preference the glyph really is in the
+  // label, so the arm below measures suppression and not absence.
+  const animated = await arm(false);
+  assert.equal(animated.getAttribute('label'), `${SPIN[1]} Index 0 %`);
+  assert.equal(animated.getAttribute('aria-label'), 'Index 0 %',
+    'the spinner frame reached the accessible name, which is then rewritten four times a second');
+
+  const still = await arm(true);
+  assert.equal(still.getAttribute('label'), 'Index 0 %',
+    'the spinner runs under prefers-reduced-motion: reduce');
+  assert.equal(still.getAttribute('aria-label'), 'Index 0 %');
+});
+
+await test('reduced motion stops the completion blink', async () => {
+  const arm = async reducedMotion => {
+    const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')], reducedMotion });
+    await harness.start();
+    // Land inside the 1400 ms blink window, on a frame the animation dims:
+    // `floor(now / 180)` odd. Read from the clock the sweep left, so the window
+    // is the one the plugin actually armed.
+    let target = harness.clock.mono + 200;
+    while (Math.floor(target / 180) % 2 !== 1) target += 180;
+    assert(target < harness.clock.mono + 1400, 'the chosen frame is outside the blink window');
+    harness.clock.mono = target;
+    harness.context.render();
+    return harness.windows[0].document.getElementById('sdt-pack-sitter-button');
+  };
+
+  const animated = await arm(false);
+  assert.equal(animated.style.properties.get('opacity'), '0.2',
+    'the completion blink does not dim, so the arm below would pass against anything');
+
+  const still = await arm(true);
+  assert.equal(still.style.properties.get('opacity'), '1',
+    'the button is blinked under prefers-reduced-motion: reduce');
+});
+
+/* --------------------------------------------------------------------------
    The two clocks.
    -------------------------------------------------------------------------- */
 await test('a document past its empirical upper bound withdraws the finish time, not the estimate', async () => {

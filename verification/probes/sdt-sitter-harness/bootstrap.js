@@ -134,13 +134,23 @@ async function run() {
     assert(layerDoc.getElementById('sdt-environment').textContent.includes(Zotero.version),
       'the diagnostics layer does not name the running host');
     layer2.open = false; layer3.open = false;
+    // The toolbar's accessible name, asserted rather than recorded: the plugin
+    // now pins it with `aria-label` so the spinner cannot rewrite it (0686). The
+    // label may or may not carry a spinner frame at this instant — the sweep is
+    // over, but nothing here synchronises with the 10 Hz render — and that is
+    // exactly the point: the name must be free of the glyph either way.
+    const accessibleName = button.getAttribute('aria-label');
+    assert(accessibleName, 'the toolbar carries no stable accessible name');
+    assert(!/[◐◓◑◒]/.test(accessibleName), `the spinner frame reached the accessible name: ${accessibleName}`);
     report.tests.push({ name: 'diagnostics nests inside details, both closed, ring readable with debug off',
       result: 'pass',
-      // Not assertions: reduced-motion is 0686's open item and this plugin does
-      // not yet honour it. Recorded so the run produces the evidence rather than
-      // leaving it to another reading of the source.
+      // Not an assertion: whether the host prefers reduced motion is the
+      // machine's setting, not the plugin's behaviour. Recorded so a run on a
+      // machine that does prefer it says so, and the suppression the unit tests
+      // pin can be read against a real window rather than inferred.
       reducedMotionPreferred: dialog.matchMedia('(prefers-reduced-motion: reduce)').matches,
-      toolbarAccessibleName: button.getAttribute('label') });
+      toolbarAccessibleName: accessibleName,
+      toolbarLabel: button.getAttribute('label') });
     const firstDialog = dialog;
     button.doCommand();
     await sleep(100);

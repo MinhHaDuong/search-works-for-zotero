@@ -945,6 +945,30 @@ function buildSDTDiagnostics(doc, element) {
    the whole 2000-record ring in under four minutes — destroying exactly the
    evidence ticket 0703 keeps. The layer above widens what runs under it, which
    is the reason this guard is worth more now than when it was written. */
+/* Whether the reader has asked the platform for less motion (ticket 0686).
+
+   Three things move in the toolbar strip — the spinner, the census pulse and
+   the completion blink — and none of them carries information the label and the
+   tooltip do not already state in words. `prefers-reduced-motion` is a system
+   preference rather than a taste, and on the platforms that expose it, it is
+   set by people for whom the animation is a symptom, not a nuisance. So all
+   three stop together: suppressing one and leaving the others would honour the
+   preference on paper and not on screen.
+
+   Read per node, because a media query is answered by the window and the
+   plugin puts a button in every main window; read through `ownerDocument`,
+   because inside the render loop that node is the only handle on its window
+   there is. Guarded and defaulting to motion, because this runs ten times a
+   second: a window whose docshell is going away throws from `matchMedia`, and
+   an unguarded throw here is not a stuttering button, it is the sitter
+   (the render() wrapper above records that class rather than surviving it). */
+function prefersSDTReducedMotion(node) {
+  try {
+    return node?.ownerDocument?.defaultView
+      ?.matchMedia('(prefers-reduced-motion: reduce)')?.matches === true;
+  } catch (_error) { return false; }
+}
+
 function render() {
   try {
     renderState();
@@ -975,13 +999,22 @@ function renderState() {
       lastCompleted = s.completed;
       completionBlinkUntil = now + 1400;
     }
-    const spinning = s.active !== null;
-    const blinking = !working && now < completionBlinkUntil;
+    const still = prefersSDTReducedMotion(button);
+    const spinning = s.active !== null && !still;
+    const blinking = !working && !still && now < completionBlinkUntil;
     button.setAttribute('label', spinning
       ? `${['◐', '◓', '◑', '◒'][Math.floor(now / 140) % 4]} ${coverageLabel}` : coverageLabel);
-    const opacity = s.phase === 'census'
-      ? 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(now / 450))
-      : blinking ? ((Math.floor(now / 180) % 2) ? 0.2 : 1) : 1;
+    // The name a screen reader speaks, pinned to the figure alone. In XUL the
+    // `label` IS the accessible name, and the spinner rewrites it four times a
+    // second — a reader following the button hears a new name at 7 Hz and
+    // learns nothing from any of them. `aria-label` overrides that name, and
+    // it changes only when the coverage does, which is the one thing here
+    // worth announcing (ticket 0686).
+    button.setAttribute('aria-label', coverageLabel);
+    const opacity = still ? 1
+      : s.phase === 'census'
+        ? 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(now / 450))
+        : blinking ? ((Math.floor(now / 180) % 2) ? 0.2 : 1) : 1;
     button.style.setProperty('opacity', String(opacity), 'important');
     button.setAttribute('tooltiptext', describeSDTTooltip(s));
   }
