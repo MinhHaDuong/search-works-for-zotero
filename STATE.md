@@ -4,29 +4,24 @@
 
 ## North Star
 
-Search should work across a whole scholarly library — records, notes,
-annotations and full text, in every language present — while remaining local
-by default, current, bounded and honest about coverage. [README.md](README.md)
-owns the proposition; [SPEC.md](SPEC.md) owns the promises and design.
+Semantic search should work across a whole Zotero scholarly library
+— records, notes, annotations and full text, in every language present —
+while remaining local by default, current, bounded and honest about coverage.
+[README.md](README.md) owns the proposition;
+[SPEC.md](SPEC.md) owns the promises and design.
 
-## Now through September 21
+## Current Goals
 
-Feature freeze. Deliver the checkpoint by concentrating on **correctness,
-packaging and privacy**, and write the unfinished QA tests for those dimensions,
-as promised on the upstream issue tracker. Re-test the durable pause shipped in
-upstream v1.15.0 without expanding its acceptance scope. Hold the separate indexer/worker rewrite, oversized-document
-segmenter and all other feature work. [SYNC.md](SYNC.md) owns upstream state.
+- Release the SDT pack sitter plugin
+- Release the Multilingual test library and questions + grader as public Challenge 
+- Zoteus feature freeze for September 21 release. Concentrate on **correctness, packaging and privacy**,
+write QA tests for those dimensions, hold the separate indexer/worker rewrite, oversized-document segmenter.
 
 ## Recent outcomes
 
 - **v1.16.0:** upstream merged our PR #60 (the sixteenth, none rejected) and
-  closed six issues filed from here in one evening — library routing, the
-  census cursor, item-key bibliographies, the semantic candidate pool, a
-  security policy, and the `.mcpb` bundles that advertised three platforms
-  while shipping one platform's binaries.
-- **Left with us on #62:** install a 1.16.0 bundle on native macOS or Windows
-  and run `zotero_fulltext` with a `page_range` over an uncached PDF. A failure
-  reopens the issue; this host cannot produce the evidence.
+closed six issues filed from here in one evening. [SYNC.md](SYNC.md) owns upstream state.
+- Filed 2 PR, 5 public issues and 6 private security issues upstream
 - **Sitter NOT releasable (0908):** 30 of 38 mutations silent in `blocked()`
   and `inspect()`. Landed 0730, 0731; filed 0737, 0740, 0741. 0727's two
   hypotheses refuted, still no cause. 0606's residue is 158, not 3 853 (0728).
