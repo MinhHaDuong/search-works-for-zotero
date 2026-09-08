@@ -199,9 +199,20 @@ var SDT_TEXT = {
     "basis-bytes": "per byte",
     "diagnostics-phase": "State: {phase}",
     "diagnostics-census": "Census: {scanned} / {total}",
-    "diagnostics-count": "{status}: {count}",
     "diagnostics-completed": "Created this session: {count}",
-    "diagnostics-failed": "Could not be indexed (last census): {count}",
+    "census-row": "{label}: {count}",
+    "census-total": "Attachments counted in all: {count}",
+    "status-current": "Indexed and up to date",
+    "status-missing-pack": "Waiting to be indexed",
+    "status-stale-source": "Changed since it was indexed",
+    "status-stale-processor": "Indexed by an older extractor",
+    "status-invalid-pack": "Stored index unreadable",
+    "status-failed-session": "Extraction failed this session",
+    "status-inspection-error": "Could not be examined",
+    "status-unsupported-pack": "Index format not supported",
+    "status-missing-source": "File missing from this disk",
+    "status-excluded": "Trashed, or not an attachment",
+    "status-unsupported": "No extractor for this format",
     "diagnostics-error": "Error: {error}",
     "cache-not-saved": "Cache not saved: {error}",
     "debug-label": "Log every step to Zotero’s debug output",
@@ -645,6 +656,69 @@ function describeSDTFailures(count) {
   return sdtText('files-failed', { count });
 }
 
+/* The order the account is read in, which is not the order a JavaScript object
+   hands its keys over. It runs from what is done, through what is owed, to what
+   failed, to what was never this add-on's business — so a reader who stops after
+   two rows has stopped at the two that answer "is it working".
+
+   A list, and not `Object.keys(SDT_STATUS_CLASSES).flat()`, because the classes
+   partition by MEANING and this orders by READING; `queued` before `failed` is a
+   choice about the reader, not a fact about the classification. The classes stay
+   the single owner of which statuses exist — `tests/test_sdt_sitter.py` reads
+   them and fails here for any status this list or the label table forgets. */
+var SDT_STATUS_ORDER = ['current', 'missing-pack', 'stale-source', 'stale-processor',
+  'invalid-pack', 'failed-session', 'inspection-error', 'unsupported-pack',
+  'missing-source', 'excluded', 'unsupported'];
+
+/* A status nobody has named renders as its own key rather than as the message id
+   `sdtText` would otherwise hand back. Both are ugly; only one is greppable back
+   to the scheduler that emitted it. */
+function describeSDTStatusLabel(status) {
+  const id = `status-${status}`;
+  return id in SDT_TEXT ? sdtText(id) : status;
+}
+
+/* The census, as an account. Author's ruling of 2026-09-08, taken while he read
+   this block on his own library.
+
+   What it replaces printed the internal key as the label — `unsupported: 2600 /
+   missing-source: 367 / failed-session: 39` — and then, below, a separate
+   `Could not be indexed (last census): 406` that added 367 files merely absent
+   from this disk to 39 real extraction failures. Two unrelated facts under one
+   label, and this session's own analysis went wrong on that figure twice before
+   the breakdown was read. The classes summed exactly, so the arithmetic was
+   honest and only the presentation was not, which is the cheapest kind to
+   repair: name every category in words, and put the total at the bottom, under
+   the rows that make it up.
+
+   The aggregate is not reworded, it is gone: each of its constituents now holds
+   a row of its own, so the account carries strictly more than the line it
+   replaced. The failure total a reader still meets is the layer-1 banner, whose
+   span the account's own rows now explain. Why those files fail is ticket 0740;
+   this owns only how they are shown.
+
+   The total is summed from the rows PRINTED, never read off `state.total`: an
+   account whose bottom line does not equal the column above it is worse than no
+   bottom line, and the two diverge for real during a census, where `counts` is
+   being rebuilt from empty while `total` still holds the last generation's.
+   Zero rows are dropped — an account lists what is there — so the sum is over
+   what a reader can actually add up. */
+function describeSDTCensusAccount(counts) {
+  const tallied = counts || {};
+  const extra = Object.keys(tallied).filter(status => !SDT_STATUS_ORDER.includes(status));
+  const rows = [];
+  let total = 0;
+  for (const status of [...SDT_STATUS_ORDER, ...extra]) {
+    const count = tallied[status] || 0;
+    if (!count) continue;
+    total += count;
+    rows.push(sdtText('census-row', { label: describeSDTStatusLabel(status),
+      count: sdtNumber(count) }));
+  }
+  rows.push(sdtText('census-total', { count: sdtNumber(total) }));
+  return rows;
+}
+
 /* Four segments joined by one em dash.
 
    Before the first census there is no percentage, and the bare word "Index"
@@ -848,7 +922,13 @@ function buildSDTDiagnostics(doc, element) {
     doc.getElementById('sdt-journal-copy-status').textContent =
       sdtText(copySDTText(composeSDTJournalReport()) ? 'journal-copied' : 'journal-copy-failed');
   });
-  group.append(summary, row, element('pre', 'sdt-environment'), element('pre', 'sdt-admission'),
+  // Author's ruling of 2026-09-08: "Observed durations" is technical diagnostics
+  // and belongs here, not among the primary readings. It leads the layer because
+  // it is the one line that explains a number shown above — the estimate rests on
+  // this count and this covariate — where everything below is about the add-on
+  // rather than about the library.
+  group.append(summary, element('pre', 'sdt-observations'), row,
+    element('pre', 'sdt-environment'), element('pre', 'sdt-admission'),
     copy, element('pre', 'sdt-journal-copy-status'), element('pre', 'sdt-journal'));
   return group;
 }
@@ -979,33 +1059,38 @@ function renderState() {
     // count — through the composer, so this banner and the toast cannot word
     // one number two ways, and its plural comes from the locale.
     doc.getElementById('sdt-failures').textContent = describeSDTFailures(s.failed);
+    // Order matters, and it is the ruling's: the state of the machine, then the
+    // scan's own progress, then the session counter — and only then the account,
+    // so its total is the last thing on the block and nothing is printed under
+    // the bottom line that a reader could mistake for another row. The error and
+    // the cache warning are exceptions rather than rows, and they appear only
+    // when there is one, which is why they may sit below without reading as a
+    // continuation of the column.
     doc.getElementById('sdt-diagnostics').textContent = [
       sdtText('diagnostics-phase', { phase: s.phase }),
       sdtText('diagnostics-census', { scanned: s.scanned, total: s.total }),
-      ...Object.entries(s.counts).map(([key, n]) =>
-        sdtText('diagnostics-count', { status: key, count: n })),
-      // Two clauses, because the two numbers have different spans and one
-      // "this session" governing both would misdescribe the second: `completed`
-      // accumulates over the whole session, `failed` is read off the last census
-      // and includes attachments this session never touched.
+      // `completed` accumulates over the whole session and says so; it is not a
+      // census class and does not belong among the rows the census total sums.
       sdtText('diagnostics-completed', { count: s.completed }),
-      // Not "not indexed": that would cover the queued statuses too, which are
-      // work still owed rather than work that failed. The banner's own verb.
-      sdtText('diagnostics-failed', { count: s.failed }),
       s.error ? sdtText('diagnostics-error', { error: s.error }) : '',
       // The cache is derived and disposable, so a failed write changes nothing
       // about what is indexed and belongs in the disclosure rather than beside
       // the totals — but it was set and read nowhere at all, which made an
       // unwritable data directory a silence instead of a line.
       s.cacheWarning || '',
+      ...describeSDTCensusAccount(s.counts),
     ].filter(Boolean).join('\n');
     const progress = doc.getElementById('sdt-progress');
     progress.hidden = s.active === null;
     if (s.active !== null && Number.isFinite(s.progress)) progress.value = s.progress;
     else progress.removeAttribute('value');
-    // Layer 2. What the estimates above rest on: how many durations were kept,
-    // and which covariate carried the fit. An estimate whose basis is unreadable
-    // is a number the reader has no way to disbelieve.
+    // Layer 3 since the ruling of 2026-09-08. What the estimates above rest on:
+    // how many durations were kept, and which covariate carried the fit. An
+    // estimate whose basis is unreadable is a number the reader has no way to
+    // disbelieve — but it is a reading about the machine, not about the library,
+    // which is what put it below rather than beside the numbers it explains.
+    // Composed unconditionally, unlike the ring: this is one short line, where
+    // rendering the ring whole behind a closed disclosure is the work nobody sees.
     const fit = s.activeInfo ? estimateSDTDuration(s.fittedSamples, s.activeInfo) : null;
     doc.getElementById('sdt-observations').textContent = s.fittedSamples.length < 3
       ? sdtText('observations-waiting', { count: s.fittedSamples.length })
@@ -1086,7 +1171,7 @@ function openDialog(window) {
     const details = element('details', 'sdt-details');
     const summary = element('summary', 'sdt-details-title');
     summary.textContent = sdtText('details-title');
-    details.append(summary, element('pre', 'sdt-observations'), element('pre', 'sdt-diagnostics'));
+    details.append(summary, element('pre', 'sdt-diagnostics'));
     const indexDetails = element('details', 'sdt-index-details');
     const indexSummary = element('summary', 'sdt-index-title');
     indexSummary.textContent = sdtText('fulltext-title');
