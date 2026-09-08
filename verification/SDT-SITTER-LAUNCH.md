@@ -28,7 +28,9 @@ It does not extrapolate an unobserved tail or repair its own selection bias.
 
 The disposable `sdt-sitter-cache.jsonl` in Zotero's data directory retains
 verified census hints and the latest successful duration observation per
-attachment. It contains no text, source paths, active tasks or failure ledger.
+attachment. It contains no text, source paths, active tasks or failure ledger:
+a document whose extraction fails is suppressed in memory for the remainder of
+the session and asked again on the next activation.
 Native source hashes, processor versions and pack filesystem fingerprints
 gate reuse. Missing/corrupt records fall back to inspection. The first completed
 census compacts the cache; later writes append changed derived rows, avoiding

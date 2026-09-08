@@ -103,6 +103,15 @@ MUTANTS = [
     ("M9 inspection-error falls out of the failure classification (the 0699 under-report)",
      "  failed: ['failed-session', 'inspection-error', 'unsupported-pack', 'missing-source'],",
      "  failed: ['failed-session'],"),
+    # Ticket 0740's action 2, after the author's 2026-09-08 ruling narrowed it to
+    # the session: the suppression IS this line, and nothing else in the codebase
+    # holds a failure for any span at all. Removed, a document that native answers
+    # in 50-90 ms with no pack is re-admitted on every sweep of the same session,
+    # which is the defect the ticket was filed for -- and every count still sums,
+    # because the resubmission fails again and lands in the same bucket.
+    ("M34 the session's failure set is never consulted, so a failure is resubmitted every sweep",
+     "          if (before.identity && failed.has(before.identity)) status = 'failed-session';\n",
+     ""),
     ("M10 a throwing duration observation reaches the verdict again (the 0699 false failure)",
      "              try { await host.observed(before, measured); }\n",
      "              await host.observed(before, measured);\n"

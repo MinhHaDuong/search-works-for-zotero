@@ -220,6 +220,24 @@ MUTANTS = [
     ("M28 coverage reads the half-filled live census instead of the held generation",
      "  const counts = duringCensus ? (held?.counts || {}) : (state.counts || {});",
      "  const counts = state.counts || {};"),
+
+    # ---- ticket 0740: the label, and the verdict that outlives the session ----
+    # The whole of the first half, removed. The declared content type is believed
+    # again, so a page scan recorded as `text/html` is handed to a text extractor
+    # that cannot read a photograph — 39 documents resubmitted every session on
+    # the author's library.
+    ("M29 the declared content type is trusted again, so a JPEG reaches the extractor",
+     "    if (SDT_STATUS_CLASSES.queued.includes(result.status)) {\n"
+     "      const sniffed = await sniffSDTSource(sourcePath);\n"
+     "      if (sniffed && sniffed.processor !== processor) result.status = 'unsupported';\n"
+     "    }\n",
+     ""),
+    # The over-reach, which is the failure an all-failures fixture cannot see: a
+    # head the table does not recognise is not evidence of anything, and HTML has
+    # no signature at all. Inverted, the check refuses every genuine snapshot.
+    ("M30 an unrecognised head is read as a mismatch, so real snapshots stop being admitted",
+     "      if (sniffed && sniffed.processor !== processor) result.status = 'unsupported';",
+     "      if (!sniffed || sniffed.processor !== processor) result.status = 'unsupported';"),
 ]
 
 

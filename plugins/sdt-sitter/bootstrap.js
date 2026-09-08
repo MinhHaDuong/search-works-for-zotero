@@ -69,6 +69,61 @@ var generation = 0;
 var lastCompleted = 0;
 var completionBlinkUntil = 0;
 
+/* What the first bytes of a source file prove about it, and which processor —
+   if any — handles that format.
+
+   `inspect()` classifies by the host's three `is*Attachment()` predicates, and
+   every one of them reads `attachmentContentType`, a label recorded when the
+   file was saved rather than a reading of the file. On the author's library
+   eleven page scans are stored as `text/html` over JPEG bytes: they satisfy
+   `isSnapshotAttachment()`, are admitted as snapshots, and native SDT finds no
+   text in a photograph, persists no pack, and returns in 50–90 ms — every
+   session, forever (ticket 0740). The author's rule: « ne pas croire
+   l'étiquette, le B A BA du consommateur averti ».
+
+   `processor: null` means no processor handles this format at all. A format
+   whose bytes name a processor OTHER than the declared one is the same
+   mismatch, so both cases are read the same way at the call site.
+
+   The table is deliberately short of what a full sniffer would carry. HTML has
+   no signature — a snapshot may open on a BOM, a comment, whitespace or a
+   doctype — so this can only ever rule a document OUT, never in, and an
+   unrecognised head means the label stands. Under-reaching here costs one
+   failed extraction; over-reaching would stop admitting documents that extract
+   perfectly well, which is the failure a fixture of failures alone cannot see.
+   BMP ('BM') is left out for that reason: two bytes are not a proof. */
+var SDT_SOURCE_MAGIC = [
+  { format: 'jpeg', processor: null, prefix: [0xFF, 0xD8, 0xFF] },
+  { format: 'png', processor: null, prefix: [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A] },
+  { format: 'gif', processor: null, prefix: [0x47, 0x49, 0x46, 0x38] },
+  { format: 'tiff', processor: null, prefix: [0x49, 0x49, 0x2A, 0x00] },
+  { format: 'tiff', processor: null, prefix: [0x4D, 0x4D, 0x00, 0x2A] },
+  { format: 'pdf', processor: 'pdf', prefix: [0x25, 0x50, 0x44, 0x46] },
+  // EPUB is a zip, and so are a dozen other things; what this entry says is
+  // narrower than "this is an EPUB" and is all the call site needs — a zip
+  // container is not a snapshot and is not a PDF.
+  { format: 'zip', processor: 'epub', prefix: [0x50, 0x4B, 0x03, 0x04] },
+];
+/* Derived from the table, never written down beside it. A constant would be
+   right today by coincidence — PNG's eight bytes are the longest — and a
+   signature added later that outran it would simply stop matching, silently and
+   with nothing to catch it: `prefix.length <= head.length` is false, the entry
+   is skipped, the label stands, and the document is submitted exactly as it was
+   before the entry was added. */
+var SDT_MAGIC_BYTES = SDT_SOURCE_MAGIC.reduce((n, entry) => Math.max(n, entry.prefix.length), 0);
+
+/* The longest prefix above, read once. A read that fails answers `null`, which
+   is the same answer as an unrecognised head: this function's job is to catch a
+   label that is provably wrong, and a file it cannot read proves nothing. The
+   file's absence is already `missing-source` two branches earlier. */
+async function sniffSDTSource(path) {
+  let head;
+  try { head = await IOUtils.read(path, { offset: 0, maxBytes: SDT_MAGIC_BYTES }); }
+  catch (_error) { return null; }
+  return SDT_SOURCE_MAGIC.find(entry => entry.prefix.length <= head.length &&
+    entry.prefix.every((byte, index) => head[index] === byte)) || null;
+}
+
 /* ---- the user-facing text, and the only place any of it lives ----
 
    ENGLISH ONLY, by the author's instruction of 2026-09-07: "REMOVE ALL THE
@@ -1291,10 +1346,16 @@ async function initialize(rootURI, token) {
     // read 'invalid-pack'. Both re-extract, so only the diagnostic bucket
     // differs, and 'missing-pack' is the truer of the two for a file the
     // filesystem will not describe.
-    let stat;
+    //
+    // An absent pack falls THROUGH rather than returning, which it did not
+    // before ticket 0740: no pack is the commonest state of the documents the
+    // label check below exists for — a page scan recorded as `text/html` has
+    // never yielded one and never will — so an early return here would skip the
+    // check on precisely the population it was written for.
+    let stat = null;
     try { stat = await IOUtils.stat(path); }
-    catch (_error) { cache.drop(result.cacheKey); return result; }
-    try {
+    catch (_error) { cache.drop(result.cacheKey); }
+    if (stat) try {
       const fingerprint = JSON.stringify([stat.size, stat.lastModified]);
       const cached = cache.check(result.cacheKey, result.identity, fingerprint);
       if (cached) return { ...result, status: 'current', cached: true };
@@ -1317,6 +1378,34 @@ async function initialize(rootURI, token) {
       if (result.status === 'current') cache.remember(result.cacheKey, result.identity, fingerprint, result);
       else cache.drop(result.cacheKey);
     } catch (error) { result.status = 'invalid-pack'; }
+    // The label check, and the last thing before a document becomes a candidate.
+    // Placed here rather than beside the `is*Attachment()` predicates on purpose:
+    // there it would read eight bytes off every attachment in the library on
+    // every 30-second sweep, where here it reads them only for a document that
+    // is otherwise about to be handed to the worker — 4 890 snapshots minus the
+    // 4 729 that already carry a pack, and nothing at all on a library that is
+    // fully indexed.
+    //
+    // Not once each, and the exception is the population this exists for: only
+    // `current` reaches cache.remember(), so a document the sniff rules out has
+    // no cache record and is re-read on every sweep. Eight bytes every thirty
+    // seconds against 39 documents, replacing a native extraction attempt of
+    // 50–90 ms each — cheap enough that memoizing it would buy a second store
+    // to keep consistent for no measurable return.
+    //
+    // A mismatch is `unsupported`, not a failure. The document is fine; our
+    // classification of it was wrong, and the file that Zotero labelled
+    // `text/html` was never something a text extractor could have read.
+    // Read without a guard, unlike the coverage line's `classes ? …`: there an
+    // absent classification must make a figure unsayable rather than wrong,
+    // here it would silently stop checking labels. scheduler.js is loaded
+    // before initialize() builds this closure, so absence is impossible — and
+    // if that ever changed, a throw becoming `inspection-error` is the loud
+    // failure, which is the one to have.
+    if (SDT_STATUS_CLASSES.queued.includes(result.status)) {
+      const sniffed = await sniffSDTSource(sourcePath);
+      if (sniffed && sniffed.processor !== processor) result.status = 'unsupported';
+    }
     return result;
   }
 

@@ -17,6 +17,14 @@ var SDT_STATUS_CLASSES = {
   // `host.blocked()` in the same codebase answers a different question (whether
   // resources allow an admission right now), and one word for both invites the
   // reader to take a stalled sitter for a library full of failures.
+  //
+  // `failed-session` is held for the session and no longer (ticket 0740). The
+  // span is the author's ruling of 2026-09-08 and it is also native SDT's own:
+  // its service retries a generic extraction failure on every new call, so a
+  // verdict that outlived the session would override the contract this repo
+  // verified rather than extend it. A failure stays in this class while it is
+  // held — the author's "could not be indexed" figure must not shrink because
+  // the sitter stopped asking within the session.
   failed: ['failed-session', 'inspection-error', 'unsupported-pack', 'missing-source'],
   // Not indexed yet. Exactly the statuses admission accepts, and nothing else.
   queued: ['missing-pack', 'stale-source', 'stale-processor', 'invalid-pack'],
@@ -142,6 +150,12 @@ var createSDTSitter = function (host) {
             if (!state.enabled) break;
             const after = await host.inspect(id);
             if (!state.enabled) break;
+            // Thrown, and nothing else: the catch below adds the identity to the
+            // session's `failed` set, which is the whole of the suppression
+            // ticket 0740 asks for. Native returning without a pack and native
+            // throwing are the same span here on purpose — a worker that ran out
+            // of memory and a photograph that holds no text are indistinguishable
+            // from this side, and only one of them is permanent.
             if (!ok || after.status !== 'current') throw new Error('Native SDT did not persist a current pack');
             state.completed++; state.serviceMS += host.now() - state.startedAt;
             // No progress tick means no observed start, and the window from
