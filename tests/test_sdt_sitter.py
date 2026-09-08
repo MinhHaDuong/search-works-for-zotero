@@ -383,6 +383,34 @@ def test_an_element_of_the_wrong_shape_is_absent_rather_than_a_crash(tmp_path):
     assert read_addon_record(profile)["present"] is True
 
 
+def test_a_path_that_is_there_and_is_not_a_file_says_so(tmp_path):
+    """"does not exist" is a false sentence about a path `ls` plainly shows.
+
+    `pathlib` folds a symlink loop into "not a file", and so does a directory
+    or a FIFO standing where `extensions.json` should be. All are still
+    `read: False` — the record is safe either way — but a human debugging
+    `verify` against a listing that shows the name will not believe a reader
+    that denies the inode, and will go looking for the wrong fault.
+    """
+    loop = tmp_path / "loop"
+    loop.mkdir()
+    (loop / "extensions.json").symlink_to(loop / "extensions.json")
+    record = read_addon_record(loop)
+    assert record["read"] is False and "present" not in record
+    assert "does not exist" not in record["why"], record["why"]
+    assert "not a regular file" in record["why"], record["why"]
+
+    # A directory standing in for the file reaches the same branch.
+    directory = tmp_path / "directory"
+    (directory / "extensions.json").mkdir(parents=True)
+    assert "not a regular file" in read_addon_record(directory)["why"]
+
+    # And the genuinely-absent case keeps its friendlier, unchanged wording.
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    assert read_addon_record(empty)["why"].endswith("does not exist")
+
+
 @pytest.fixture
 def unsearchable_profile(tmp_path):
     """A profile holding `extensions.json`, then stripped of its search bit.

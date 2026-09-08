@@ -73,11 +73,16 @@ def read_addon_record(profile: Path, addon_id: str = ADDON_ID) -> dict:
                 return {"read": False, "why": f"{path} is not a regular file"}
             return {"read": False, "why": f"{path} does not exist"}
         document = json.loads(path.read_text(encoding="utf-8"))
-    except (ValueError, OSError, RecursionError) as exc:
-        # RecursionError and not only ValueError: json rejects deep nesting by
-        # exhausting the stack, and RecursionError descends from RuntimeError,
-        # so a tuple naming only the two obvious families lets it out of main()
-        # — into exit 1, which this tool reads as ABSENT.
+    except (ValueError, OSError, RecursionError, MemoryError) as exc:
+        # RecursionError and MemoryError, and not only ValueError: json rejects
+        # deep nesting by exhausting the stack and a large enough document by
+        # exhausting the heap. Neither descends from ValueError or OSError —
+        # RecursionError is a RuntimeError and MemoryError inherits Exception
+        # directly — so a tuple naming only the two obvious families lets them
+        # out of main(), into exit 1, which this tool reads as ABSENT.
+        # MemoryError was in the twin `_host_addon_record` and not here; the
+        # review of ticket 0743 reproduced the gap under RLIMIT_AS, and it is
+        # the same ABSENT-collapse this ticket is about, one word away.
         return {"read": False, "why": f"{type(exc).__name__}: {exc}"}
     # Shape, separately from syntax, and this is where the first draft was wrong.
     # `[]` and `"text"` are valid JSON, so nothing above rejects them, and
