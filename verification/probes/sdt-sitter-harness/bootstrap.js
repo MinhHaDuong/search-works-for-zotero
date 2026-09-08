@@ -1,5 +1,11 @@
 /* Test driver only: admits synthetic attachments in a marked private profile. */
-let observer;
+// `var`, not `let` — and not a style choice. Gecko can evaluate a bootstrapped
+// add-on's bootstrap.js a second time into a scope that has already run it, and
+// `const`/`let`/`class` refuse redeclaration where `var`/`function` tolerate it:
+// the second load then dies at PARSE time, so `startup()` never runs, nothing is
+// journalled, and the failure is silent and total. Tickets 0730 and 0741;
+// tests/sdt_sitter_bootstrap.mjs holds every bootstrap.js in this tree to it.
+var observer;
 function startup() {
   const { setTimeout } = ChromeUtils.importESModule('resource://gre/modules/Timer.sys.mjs');
   setTimeout(() => run().catch(error => Zotero.logError(error)), 0);
