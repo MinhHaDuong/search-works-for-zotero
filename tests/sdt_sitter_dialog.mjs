@@ -84,7 +84,7 @@ class StubDocument {
 
 /* ------------------------------- the host -------------------------------- */
 
-const state = { prefs: new Map(), clipboard: null, copyAvailable: true };
+const state = { prefs: new Map(), clipboard: null, copyAvailable: true, libraries: [] };
 
 function makeZotero() {
   return {
@@ -94,6 +94,7 @@ function makeZotero() {
       set: (name, value, full) => { assert.equal(full, true, 'the pref name must be fully qualified'); state.prefs.set(name, value); },
     },
     Fulltext: { getIndexStats: async () => ({ indexed: 3, partial: 0, unindexed: 1 }) },
+    Libraries: { getAll: () => state.libraries },
     Utilities: { Internal: { copyTextToClipboard: text => {
       if (!state.copyAvailable) throw new Error('clipboard unavailable');
       state.clipboard = text;
@@ -213,11 +214,33 @@ test('the three layers exist, in order, with diagnostics nested inside details',
     'the active-file box has no reserved height, so it can still collapse between files');
 });
 
+/* Found live, testing v0.3.18: three long library names joined into the bold
+   `<legend>` wrapped it five lines deep on a narrow window. Moved into its
+   own plain line (`sdt-scope`), which wraps like any other sentence, while
+   the heading itself stays the short, static message id. */
+test('the library scope reads as its own line, not as part of the bold heading', () => {
+  const legend = doc.getElementById('sdt-global-section-title');
+  assert.equal(legend.textContent, 'Overall progress',
+    'the heading still carries the scope it was asked to drop');
+  state.libraries = [{ name: 'A First Very Long Library Name' },
+    { name: 'A Second Very Long Library Name' },
+    { name: 'A Third Very Long Library Name' }];
+  ui.render();
+  const scope = doc.getElementById('sdt-scope');
+  assert.equal(scope.parentNode.id, 'sdt-global-section',
+    'the scope line is not under the section it scopes');
+  assert(scope.textContent.includes('A First Very Long Library Name'), scope.textContent);
+  assert.equal(legend.textContent, 'Overall progress',
+    'the heading changed when the library set did');
+  state.libraries = [];
+  ui.render();
+});
+
 test('layer 1 still carries progress, and layer 2 still carries the counts', () => {
   assert(doc.getElementById('sdt-status').textContent.startsWith('Files indexed'));
   assert.equal(doc.getElementById('sdt-global-progress').parentNode.id, 'sdt-global-section');
   assert.equal(doc.getElementById('sdt-progress').parentNode.id, 'sdt-document-section');
-  assert(doc.getElementById('sdt-diagnostics').textContent.includes('Census: 3 / 3'));
+  assert(doc.getElementById('sdt-diagnostics').textContent.includes('Scanned 3 attachments out of 3.'));
   // A real `<table>` now, not a JSON dump and not padded text (found live,
   // testing v0.3.15, then v0.3.17 once the padding turned out not to align in
   // the dialog's own proportional font): a row named after the field, its
@@ -241,7 +264,9 @@ test('the switch turns indexing off and on again, persisting each answer', () =>
   assert.equal(control.tagName, 'button', 'the switch is not a native control');
   assert.equal(control.parentNode.id, 'sdt-switch-row');
   assert.equal(control.textContent, 'Turn indexing off');
-  assert.equal(label.textContent, 'Indexing is on.');
+  // The switch line and the raw "State: {phase}" line merged into one
+  // (found live, testing v0.3.18): the phase now speaks in a sentence, here.
+  assert.equal(label.textContent, 'Indexing is on. Nothing to index right now.');
 
   control.fire('click');
   assert.equal(sitter.state.enabled, false, 'the sitter kept admitting after the switch');
@@ -249,7 +274,8 @@ test('the switch turns indexing off and on again, persisting each answer', () =>
   assert.equal(state.prefs.get('extensions.sdt-pack-sitter.enabled'), false,
     'the answer was not persisted, so it would not hold across a restart');
   assert.equal(control.textContent, 'Turn indexing on', 'the switch offers no way back');
-  assert(label.textContent.startsWith('Indexing is off.'));
+  assert.equal(label.textContent,
+    'Indexing is off. Zotero will still index PDFs as you view them.');
 
   const before = armed.intervals;
   control.fire('click');
@@ -394,6 +420,15 @@ test('the census reads as an account: words, then a total at the bottom', () => 
   assert(body.childNodes.every(candidate =>
     candidate.childNodes[1].style.cssText.includes('text-align: right')),
     'a value cell is not right-aligned');
+  // A rule sets the total off from the rows it sums (found live, testing
+  // v0.3.18) — a plain visual convention for a sum row, and none of the
+  // category rows above it carries the same border.
+  assert(last.childNodes[0].style.cssText.includes('border-top'),
+    'no rule separates the total from the rows above it');
+  assert(!body.childNodes[0].style.cssText.includes('border-top'),
+    'a category row carries the total\'s own rule');
+  assert(doc.getElementById('sdt-census-table').style.cssText.includes('margin: 8px 0'),
+    'the table carries no space below it');
 
   // A status nobody named must be visible, not silently dropped from an account
   // that still claims to add up.
@@ -410,10 +445,56 @@ test('the census reads as an account: words, then a total at the bottom', () => 
   for (const key of Object.keys(counts)) delete counts[key];
   ui.render();
   assert.equal(body.childNodes.length, 0, 'an empty census still prints an account');
-  assert(doc.getElementById('sdt-diagnostics').textContent.includes('Census: '),
+  assert(doc.getElementById('sdt-diagnostics').textContent.includes('Scanned '),
     'the scan line went with it');
 
   Object.assign(counts, saved);
+  ui.render();
+});
+
+/* Found live, testing v0.3.18: the account visibly blinked between
+   documents, because `render()` rebuilt the whole `<table>` from scratch on
+   every 100 ms tick regardless of whether the census had changed since the
+   last one -- almost always, since a document transition is a small minority
+   of ticks. Node identity across two unchanged renders is the proof a source
+   grep cannot give: the same `<tr>` survives, not a new one wearing the same
+   text. */
+test('the census table is rebuilt only when the account itself changes', () => {
+  const body = doc.getElementById('sdt-census-body');
+  const before = body.childNodes[0];
+  ui.render();
+  assert.equal(body.childNodes[0], before, 'the table rebuilt on an unchanged census');
+
+  const counts = sitter.state.counts;
+  counts.current = (counts.current || 0) + 1;
+  ui.render();
+  assert.notEqual(body.childNodes[0], before, 'the table did not rebuild on a real change');
+  counts.current--;
+  ui.render();
+});
+
+/* Found live, testing v0.3.18: the switch line and the raw "State: {phase}"
+   line merged into one. Every phase a reader can actually meet while on,
+   driven rather than read, since a phase this composer forgets falls
+   through to the idle wording silently -- a source grep sees the branches,
+   not which phase reaches which one. */
+test('the switch line names the phase, in a sentence, for every phase a reader can meet', () => {
+  const label = doc.getElementById('sdt-switch-state');
+  const on = phase => {
+    sitter.state.phase = phase;
+    ui.render();
+    return label.textContent;
+  };
+  assert.equal(on('ready'), 'Indexing is on. Nothing to index right now.');
+  assert.equal(on('waiting'), 'Indexing is on. Nothing to index right now.');
+  assert.equal(on('census'), 'Indexing is on. Scanning the library for new or modified attachments.');
+  assert.equal(on('extracting'), 'Indexing is on. Extracting structured text from attachments.');
+  assert.equal(on('error'), 'Indexing is on. An unexpected problem stopped the last scan — see Technical diagnostics.');
+  // A resource-blocked phase reuses the toolbar tooltip's own label verbatim
+  // (no trailing period there, since the tooltip joins it by em dash), so
+  // the two never word the same fact two different ways.
+  assert.equal(on('cpu-busy'), 'Indexing is on. Waiting: processor busy');
+  sitter.state.phase = 'ready';
   ui.render();
 });
 
@@ -443,6 +524,10 @@ test('opening diagnostics shows the ring tail with debug logging off', () => {
   // the switch is thrown, which is the acceptance criterion.
   assert(tail.includes('progress'), 'trace records are gated behind the pref');
   assert(!tail.includes('Secret'), 'the ring tail leaked a title into the window');
+  // The raw phase name moved here with the "State: {phase}" line it used to
+  // be (found live, testing v0.3.18) — greppable against the source for
+  // debugging, apart from the sentence the switch line now carries instead.
+  assert.equal(doc.getElementById('sdt-internal-phase').textContent, 'Internal phase: ready');
 });
 
 /* Found live, testing v0.3.17: a routine single-attachment extraction failure

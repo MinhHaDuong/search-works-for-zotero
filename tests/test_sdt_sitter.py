@@ -116,7 +116,10 @@ UI_SITES = (
     ("section('sdt-document-section'", ']);'),
     ('indexSummary.textContent = ', ';'),
     ("getElementById('sdt-fulltext').textContent", ';'),
-    ('const globalLegend = ', 'const globalProgress'),
+    # The scope line, moved out of the bold heading into its own line
+    # (v0.3.18) when three long library names wrapped that heading five
+    # lines deep on a narrow window.
+    ("getElementById('sdt-scope').textContent", ';'),
     ('function askSDTLaunch(win) {', '\n}'),
     ('describeError: (info, error) =>', 'reportError:'),
     # The switch of ticket 0742. Two sites, because the control is built once
@@ -780,39 +783,39 @@ def test_toolbar_tooltip_scopes_the_coverage_to_the_libraries_it_covers():
 
 
 def test_dialog_heading_scopes_the_progress_to_the_libraries_it_covers():
-    """Ticket 0717, the follow-up 0710 named. The dialog's overall-progress
-    section holds the same unscoped census the toolbar tooltip does, and its
-    heading read "Overall progress — library": one library, where the figure
-    below it counts every attachment in the database. The heading is where the
-    scope belongs, because the coverage figure it heads is measured over exactly
-    that set — so the heading is recomposed on render through the same composer
-    the tooltip uses, rather than frozen at populate time when a group library
-    may not have loaded yet."""
+    """Ticket 0717, the follow-up 0710 named, revised live testing v0.3.18: the
+    scope moved out of the bold `<legend>` into a plain line of its own — three
+    long library names joined into the heading wrapped it five lines deep on a
+    narrow window, where the same text as an ordinary line wraps like any other
+    sentence. The heading itself is now the message id alone, set once at
+    build time; the scope line is recomposed on every render through the same
+    composer the tooltip uses, rather than frozen at populate time when a
+    group library may not have loaded yet."""
     assert 'library' not in messages()['section-global'].lower(), \
         'the section heading still names one library for an unscoped census'
-    site = _site('const globalLegend = ', 'const globalProgress')
-    assert 'describeSDTScope(' in site, 'the dialog heading states no library scope'
-    assert "sdtText('section-global'" in site, 'the heading holds no message id'
+    heading_site = _site('section(GLOBAL_SECTION', ']);')
+    assert "sdtText('section-global')" in heading_site, 'the heading holds no message id'
+    scope_site = _site("getElementById('sdt-scope').textContent", ';')
+    assert 'describeSDTScope(' in scope_site, 'the scope line states no library scope'
 
 
 def test_the_scoped_heading_and_its_coverage_figure_cannot_be_separated():
-    """Ticket 0717's first exit criterion covers the heading *and* the coverage
-    figure under it, and the heading is what scopes the figure — so the two have
-    to be built as one section, and the legend the scope is written into has to
-    be the legend that section builds. Both were literals, one in `renderState`
-    and one in `populate`, with nothing tying them: a rename of the section (0693
-    reorganizes exactly this dialog) would leave `getElementById` returning null
-    forever, the scope silently gone from a window that still renders and a suite
-    that still passes. One binding names the section, both sites read it."""
+    """Ticket 0717's first exit criterion covers the scope line *and* the
+    coverage figure under it, so the two have to be built as one section. Both
+    were literals, one in `renderState` and one in `populate`, with nothing
+    tying them: a rename of the section (0693 reorganizes exactly this dialog)
+    would leave `getElementById` returning null forever, the scope silently
+    gone from a window that still renders and a suite that still passes. One
+    binding names the section; `sdt-scope` (moved out of the bold heading,
+    v0.3.18) is one of the children it builds, alongside the figures it
+    scopes."""
     source = BOOTSTRAP.read_text(encoding='utf-8')
     assert "var GLOBAL_SECTION = 'sdt-global-section';" in source, \
         'the overall-progress section is not named once'
     assert source.count("'sdt-global-section'") == 1, \
         'the section id is written at a call site rather than read from the binding'
-    assert '${GLOBAL_SECTION}-title' in _site('const globalLegend = ', 'const globalProgress'), \
-        'the heading is looked up by a literal the section could be renamed out from under'
     built = _site('section(GLOBAL_SECTION', ']);')
-    for child in ('sdt-status', 'sdt-global-progress'):
+    for child in ('sdt-scope', 'sdt-status', 'sdt-global-progress'):
         assert child in built, f'{child} is no longer under the scoped heading'
 
 

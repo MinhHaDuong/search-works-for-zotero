@@ -195,7 +195,16 @@ async function sniffSDTSource(path) {
    * `launch-details` is the pointer that replaces two paragraphs of consent
      box. `launch-worker` and `launch-disable` are still here, and are now read
      in the window's Details layer, at any time, rather than once inside a modal
-     that is the format least likely to be read at all. */
+     that is the format least likely to be read at all.
+
+   A fourth, from live testing of v0.3.18: the switch line and the raw
+   "State: {phase}" line merged into one. The raw phase name in its own line
+   said less than the window already knew, and read as a second,
+   disconnected status next to the one the reader came to check. `switch-on-*`
+   supplies the second half of a sentence whose first half is always
+   `switch-on-prefix`; the full explanation of what "off" does and does not do
+   still lives in the About disclosure, so `switch-off` only has to say what a
+   glance needs. */
 var SDT_TEXT = {
     "index": "Index",
     "index-coverage": "Index {percent} %",
@@ -218,8 +227,13 @@ var SDT_TEXT = {
     "phase-resources-unavailable": "Waiting: system resources unreadable",
     "phase-off": "Indexing off",
     "dialog-title": "Indexing assistant",
-    "switch-state-on": "Indexing is on.",
-    "switch-state-off": "Indexing is off. No new attachment is checked while it stays off; one already under way still finishes. Zotero's own full-text indexing is unaffected.",
+    "switch-on-prefix": "Indexing is on.",
+    "switch-off": "Indexing is off. Zotero will still index PDFs as you view them.",
+    "switch-on-idle": "Nothing to index right now.",
+    "switch-on-census": "Scanning the library for new or modified attachments.",
+    "switch-on-extracting": "Extracting structured text from attachments.",
+    "switch-on-error": "An unexpected problem stopped the last scan — see Technical diagnostics.",
+    "diagnostics-internal-phase": "Internal phase: {phase}",
     "switch-turn-on": "Turn indexing on",
     "switch-turn-off": "Turn indexing off",
     "section-global": "Overall progress",
@@ -247,8 +261,7 @@ var SDT_TEXT = {
     "observations-basis": "Observed durations: {count} — basis: {basis}",
     "basis-pages": "per page",
     "basis-bytes": "per byte",
-    "diagnostics-phase": "State: {phase}",
-    "diagnostics-census": "Census: {scanned} / {total}",
+    "diagnostics-census": "Scanned {scanned} attachments out of {total}.",
     "diagnostics-completed": "Attachments indexed this session: {count}",
     "census-total-label": "Attachments counted in all",
     "status-current": "Indexed and up to date",
@@ -899,15 +912,23 @@ function describeSDTStatusLabel(status) {
    shipped and still didn't align). Rebuilt whole on every call rather than
    diffed; the row count changes across a census and this runs far below
    10 Hz. */
-function fillSDTTable(doc, tbody, entries) {
+function fillSDTTable(doc, tbody, entries, { totalRow = false } = {}) {
   const XHTML = 'http://www.w3.org/1999/xhtml';
-  tbody.replaceChildren(...entries.map(([label, value]) => {
+  tbody.replaceChildren(...entries.map(([label, value], index) => {
     const row = doc.createElementNS(XHTML, 'tr');
     const labelCell = doc.createElementNS(XHTML, 'td');
     labelCell.textContent = label;
     const valueCell = doc.createElementNS(XHTML, 'td');
     valueCell.textContent = value;
     valueCell.style.cssText = 'text-align: right; padding-left: 1em; white-space: nowrap;';
+    // A rule above the total, the way a reader expects a sum to be set off
+    // from what it adds up (found live, testing v0.3.18) -- only when there
+    // is more than one row, so a lone total is not drawn under a rule that
+    // separates it from nothing.
+    if (totalRow && index === entries.length - 1 && entries.length > 1) {
+      labelCell.style.cssText = 'border-top: 1px solid GrayText; padding-top: 4px;';
+      valueCell.style.cssText += 'border-top: 1px solid GrayText; padding-top: 4px;';
+    }
     row.append(labelCell, valueCell);
     return row;
   }));
@@ -944,6 +965,22 @@ function describeSDTCensusAccount(counts) {
   if (!entries.length) return [];
   entries.push([sdtText('census-total-label'), sdtNumber(total)]);
   return entries;
+}
+
+/* The switch line and the phase both answered in one sentence (found live,
+   testing v0.3.18) rather than the on/off half beside an unrelated raw phase
+   name shown in a different part of the window. "On" carries a
+   phase-specific second half; a resource-blocked phase reuses the label the
+   toolbar tooltip already shows, so the two never say the same fact two
+   different ways. */
+function describeSDTSwitchLine(state) {
+  if (state.phase === 'switched-off') return sdtText('switch-off');
+  const detail = state.phase === 'census' ? sdtText('switch-on-census')
+    : state.phase === 'extracting' ? sdtText('switch-on-extracting')
+    : state.phase === 'error' ? sdtText('switch-on-error')
+    : SDT_PHASE_LABELS[state.phase] ? sdtText(SDT_PHASE_LABELS[state.phase])
+    : sdtText('switch-on-idle');
+  return `${sdtText('switch-on-prefix')} ${detail}`;
 }
 
 /* Four segments joined by one em dash.
@@ -1173,7 +1210,8 @@ function buildSDTDiagnostics(doc, element) {
   // it is the one line that explains a number shown above — the estimate rests on
   // this count and this covariate — where everything below is about the add-on
   // rather than about the library.
-  group.append(summary, element('pre', 'sdt-observations'), element('pre', 'sdt-error'), row,
+  group.append(summary, element('pre', 'sdt-observations'), element('pre', 'sdt-internal-phase'),
+    element('pre', 'sdt-error'), row,
     element('pre', 'sdt-admission'),
     copy, element('pre', 'sdt-journal-copy-status'), element('pre', 'sdt-journal'));
   return group;
@@ -1287,8 +1325,7 @@ function renderState() {
     // the two agree, and the phase is what every other line in this window is
     // drawn from, so a disagreement shows here instead of hiding.
     const off = s.phase === 'switched-off';
-    doc.getElementById('sdt-switch-state').textContent =
-      sdtText(off ? 'switch-state-off' : 'switch-state-on');
+    doc.getElementById('sdt-switch-state').textContent = describeSDTSwitchLine(s);
     doc.getElementById('sdt-switch').textContent =
       sdtText(off ? 'switch-turn-on' : 'switch-turn-off');
     const elapsed = s.active === null ? null : Math.round((monotonic() - s.startedAt) / 1000);
@@ -1334,16 +1371,19 @@ function renderState() {
       total.median += unknown * quantile(0.5);
       total.high += unknown * quantile(0.95);
     }
-    // The heading of the section carries the scope of the figures under it
-    // (ticket 0717): the progress bar and the file count below are the whole
-    // census, and "Overall progress" alone invites the reader of a dialog opened
-    // from one collection's toolbar to read them as that collection's. Composed
-    // here rather than at populate time, and through the same composer the
-    // tooltip uses, because a group library loads lazily — a heading frozen when
-    // the dialog opened would name a set the census no longer covers.
-    const globalLegend = doc.getElementById(`${GLOBAL_SECTION}-title`);
-    if (globalLegend) globalLegend.textContent =
-      [sdtText('section-global'), describeSDTScope()].filter(Boolean).join(' — ');
+    // The scope of the figures under it is stated before the reader can
+    // misread them (ticket 0717): the progress bar and the file count below
+    // are the whole census, and "Overall progress" alone invites the reader
+    // of a dialog opened from one collection's toolbar to read them as that
+    // collection's. It moved out of the bold `<legend>` into a plain line of
+    // its own (found live, testing v0.3.18): three long library names joined
+    // into a heading wrapped five lines on a narrow window, where the same
+    // text as an ordinary line wraps like any other sentence in the window.
+    // Composed here rather than at populate time, and through the same
+    // composer the tooltip uses, because a group library loads lazily — text
+    // frozen when the dialog opened would name a set the census no longer
+    // covers.
+    doc.getElementById('sdt-scope').textContent = describeSDTScope() || '';
     const globalProgress = doc.getElementById('sdt-global-progress');
     globalProgress.max = Math.max(1, coverage.total);
     if (coverage.known) globalProgress.value = coverage.current;
@@ -1370,17 +1410,18 @@ function renderState() {
     // count — through the composer, so this banner and the toast cannot word
     // one number two ways, and its plural comes from the locale.
     doc.getElementById('sdt-failures').textContent = describeSDTFailures(s.failed);
-    // Order matters, and it is the ruling's: the state of the machine, then the
-    // scan's own progress, then the session counter — and only then the account
-    // (its own table, below this text). The cache warning is an exception
-    // rather than a row, and appears only when there is one. The error moved
-    // to Technical diagnostics (found live, testing v0.3.17): a single
-    // extraction failure is routine and already carries its own row in the
-    // account below, and reading it as "Error:" at the top of the window this
-    // add-on's own README shows a reader with no prior warning overclaimed
+    // Order matters, and it is the ruling's: the scan's own progress, then the
+    // session counter — and only then the account (its own table, below this
+    // text). The cache warning is an exception rather than a row, and appears
+    // only when there is one. The raw phase name moved to Technical
+    // diagnostics and the state of the machine into the switch line itself,
+    // in words (found live, testing v0.3.18): "State: extracting" said less
+    // than the window already knew, next to the line that says the same fact
+    // in a sentence. The error moved there too a round earlier (v0.3.17): a
+    // single extraction failure is routine and already carries its own row in
+    // the account below, and reading it as "Error:" at the top overclaimed
     // what one failed attachment among many means.
     doc.getElementById('sdt-diagnostics').textContent = [
-      sdtText('diagnostics-phase', { phase: s.phase }),
       sdtText('diagnostics-census', { scanned: s.scanned, total: s.total }),
       // `completed` accumulates over the whole session and says so; it is not a
       // census class and does not belong among the rows the census total sums.
@@ -1391,7 +1432,20 @@ function renderState() {
       // unwritable data directory a silence instead of a line.
       s.cacheWarning || '',
     ].filter(Boolean).join('\n');
-    fillSDTTable(doc, doc.getElementById('sdt-census-body'), describeSDTCensusAccount(s.counts));
+    // Rebuilt only when the account itself changed, not on every 100 ms tick:
+    // `replaceChildren` tears the table down to rebuild it, and doing that
+    // ten times a second whether or not a single number moved is a visible
+    // flicker in the very layer a reader has open to watch a census update
+    // (found live, testing v0.3.18). The signature lives on the dialog, not
+    // in a module-level variable — a second open window's table must still
+    // fill on its own first render even if it happens to match what another
+    // window already shows.
+    const accountEntries = describeSDTCensusAccount(s.counts);
+    const accountSignature = JSON.stringify(accountEntries);
+    if (dialog._censusSignature !== accountSignature) {
+      dialog._censusSignature = accountSignature;
+      fillSDTTable(doc, doc.getElementById('sdt-census-body'), accountEntries, { totalRow: true });
+    }
     const progress = doc.getElementById('sdt-progress');
     progress.hidden = s.active === null;
     if (s.active !== null && Number.isFinite(s.progress)) progress.value = s.progress;
@@ -1424,6 +1478,8 @@ function renderState() {
     // closed independently of the debug/log one beside it.
     if (about.open) doc.getElementById('sdt-environment').textContent = describeSDTEnvironment();
     if (technical.open) {
+      doc.getElementById('sdt-internal-phase').textContent =
+        sdtText('diagnostics-internal-phase', { phase: s.phase });
       doc.getElementById('sdt-error').textContent =
         s.error ? sdtText('diagnostics-error', { error: s.error }) : '';
       doc.getElementById('sdt-admission').textContent = describeSDTAdmission();
@@ -1464,7 +1520,7 @@ function openDialog(window) {
       const node = doc.createElementNS('http://www.w3.org/1999/xhtml', tag);
       node.id = id;
       if (tag === 'progress') { node.max = 100; node.style.width = '100%'; }
-      else if (tag === 'table') node.style.cssText = 'border-collapse: collapse; margin-top: 8px;';
+      else if (tag === 'table') node.style.cssText = 'border-collapse: collapse; margin: 8px 0;';
       else if (tag === 'tbody') { /* rows carry their own cell styling */ }
       else node.style.cssText = 'white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; line-height: 1.5;';
       return node;
@@ -1516,6 +1572,7 @@ function openDialog(window) {
     // on, how long it has taken and when it should end. Nothing below is needed
     // to read any of it.
     section(GLOBAL_SECTION, sdtText('section-global'), [
+      ['pre', 'sdt-scope'],
       ['pre', 'sdt-status'], ['progress', 'sdt-global-progress'], ['pre', 'sdt-global-estimate'],
       ['pre', 'sdt-failures']]);
     section('sdt-document-section', sdtText('section-active'), [
