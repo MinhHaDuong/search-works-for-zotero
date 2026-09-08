@@ -172,7 +172,7 @@ name.
   "previous_run": {"run": {"...same shape..."}, "replies": ["...same shape..."]},
   "replies": [
     {"id": "q-0001", "mode": "lexical", "results": [
-      {"rank": 1, "item_key": "GEWEZPJ4", "attachment_key": null, "work_id": "vn-decision-11-2017-qdttg-solar-fit-en",
+      {"rank": 1, "item_key": "RIIGM2EC", "attachment_key": null, "work_id": "vn-decision-11-2017-qdttg-solar-fit-en",
        "evidence": "<the snippet>", "page": null,
        "chain": {"title": "...", "author": "...", "date": "2017", "identifier": "https://...",
                  "section_heading": null, "page_printed": null, "part_title": null, "part_byline": null},
