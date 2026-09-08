@@ -47,6 +47,31 @@ undocumented gets trusted past it:
 * **Delivery.** ``jar:`` URIs built from ``rootURI`` at runtime, the second
   defect of that evening, carry no ``resource://`` literal and are out of range
   here.
+* **Comments, only as far as a scanner can tell.** ``strip_comments`` reads
+  JavaScript with a character scanner rather than a parser: it knows quotes,
+  template literals, regular expressions and both comment forms, and it does
+  not evaluate ``${}`` holes, so a comment written inside one survives and a URL
+  inside one is reported. Every construct it misreads costs a false RED, except
+  blanking real code, which would cost a silent pass — that direction is bounded
+  by keeping ``'``/``"`` literals inside their line and by handling regex
+  literals, and it is checked against the shipped tree by
+  ``test_no_url_the_live_tree_writes_in_code_is_lost_to_comment_stripping``.
+
+Two over-reaches this file keeps on purpose, written down so the next reader
+meets them as decisions rather than as surprises (ticket 0737, 2026-09-08):
+
+* **The file-type tripwire fires on assets too.**
+  ``test_no_plugin_file_type_escapes_the_scan`` reddens on any suffix under
+  ``plugins/`` that neither ``SOURCE_SUFFIXES`` nor ``ASSET_SUFFIXES`` names — an
+  icon or a font as readily as an ``.xhtml`` dialog that really could carry a
+  literal. Two reviewers raised the trade independently and it is kept: no rule
+  separates the two cases, so the classification is a person's to make once, and
+  a line added to a list is cheaper than a scannable format arriving unnoticed.
+  A PR that only adds an asset pays one line for that.
+* **Duplicate ``resource`` host declarations still resolve last-wins**, silently
+  — see ``resource_roots``, which states the limit. Left as it is pending the
+  author's ruling on whether the derivation engine survives at all; a table
+  would delete the code the fix would live in.
 
 The install is found at ``$ZOTERO_INSTALL_DIR`` when set, else at the first of
 ``CANDIDATE_INSTALLS`` that carries both jars. With none, the archive-reading
@@ -80,13 +105,33 @@ SOURCE_SUFFIXES = (".js", ".mjs", ".json")
 #: this list is where that decision is recorded.
 ASSET_SUFFIXES = (".png", ".jpg", ".jpeg", ".gif", ".ico", ".woff", ".woff2")
 
-#: Whole-line comments, stripped before the scan. The quote anchor below rules
-#: out unquoted prose; this rules out the quoted kind, which `bootstrap.js`
-#: writes when it names the historical spec inside its own narration. A URL
-#: quoted in a comment *trailing* a line of code still reads as a call site —
-#: the residue is a false red, never a false green, and no call site here has
-#: ever written one.
+#: Whole-line comments, stripped before the scan. `strip_comments` below already
+#: removes every comment the language actually delimits; this catches the shape
+#: it cannot — a bare continuation line (` * still about Fluent`) whose opening
+#: `/*` is not in the text being scanned, which is how a fixture or an excerpt
+#: writes one. Cheap, and it fails toward a false red.
 LINE_COMMENT = re.compile(r"^\s*(//|\*|/\*)")
+
+#: Characters after which a `/` opens a regular expression rather than dividing.
+#: `strip_comments` has to make that call: `/['"]/` carries both quote
+#: characters, and a scanner that read it as division would open a string on the
+#: apostrophe and swallow every literal after it — a call site lost, which is a
+#: silent pass. `scheduler.js` splits on `/[\\/]/` today, so this is live code,
+#: not a hypothetical.
+REGEX_AFTER_CHARS = frozenset("(,=:[!&|?{};+-*%~^<>")
+
+#: The same decision after a keyword, where the preceding token is a word rather
+#: than punctuation (`return /x/`).
+REGEX_AFTER_WORDS = frozenset(
+    {
+        "return", "typeof", "case", "in", "of", "new", "delete", "void",
+        "do", "else", "yield", "await", "instanceof",
+    }
+)
+
+#: Consumed whole, so the character before a `/` is the whole preceding token
+#: rather than its last letter — `return` must be distinguishable from `n`.
+IDENTIFIER = re.compile(r"[A-Za-z_$][A-Za-z0-9_$]*")
 
 #: Anchored on the opening quote, so the match is a string literal rather than
 #: prose: `bootstrap.js` still discusses the Fluent episode in several comments,
@@ -150,11 +195,20 @@ def installed_version(install: Path) -> str:
     version in the message, a failure reported from another machine cannot be
     told from a failure on this one, and the first question after any red run —
     which Zotero was it — has no answer in the artifact.
+
+    Every way of failing to read it degrades to a stated `version unknown`,
+    including an unreadable one. This runs while the caller is composing a
+    failure message about a real defect, so a raise here would replace the
+    assertion that names it with a traceback about a `.ini` file.
     """
     ini = install / "app" / "application.ini"
     if not ini.is_file():
         return "version unknown (no app/application.ini)"
-    for line in ini.read_text(encoding="utf-8", errors="replace").splitlines():
+    try:
+        text = ini.read_text(encoding="utf-8", errors="replace")
+    except OSError as error:
+        return f"version unknown (app/application.ini unreadable: {error})"
+    for line in text.splitlines():
         if line.startswith("Version="):
             return line.split("=", 1)[1].strip()
     return "version unknown (application.ini names none)"
@@ -267,14 +321,152 @@ def resolve_in(url: str, roots: dict[str, tuple[str, str]]) -> tuple[str, str] |
     return role, prefix + match.group(2)
 
 
+def end_of_quoted(source: str, start: int, quote: str) -> int:
+    """One past a `'` or `"` literal — which JavaScript does not let cross a line.
+
+    Stopping at the newline is a safety property rather than a nicety. An
+    apostrophe the scanner met in prose it misread as code would otherwise open
+    a literal that ran to the next apostrophe anywhere in the file, blanking
+    real call sites in between. Bounded to the line, that mistake costs at most
+    the rest of one line, and costs it in the direction of a false red.
+    """
+    index = start + 1
+    while index < len(source):
+        char = source[index]
+        if char == "\\":
+            index += 2
+            continue
+        if char == quote:
+            return index + 1
+        if char == "\n":
+            return index
+        index += 1
+    return len(source)
+
+
+def end_of_template(source: str, start: int) -> int:
+    """One past a backtick literal, which may span lines.
+
+    `${}` holes are read as part of the literal rather than as the code they
+    are. A comment inside a hole therefore survives stripping, and a URL inside
+    one is reported — both false reds, and the module docstring says so.
+    """
+    index = start + 1
+    while index < len(source):
+        if source[index] == "\\":
+            index += 2
+            continue
+        if source[index] == "`":
+            return index + 1
+        index += 1
+    return len(source)
+
+
+def end_of_regex(source: str, start: int) -> int:
+    """One past a regular-expression literal, character class and escapes included."""
+    index = start + 1
+    in_class = False
+    while index < len(source):
+        char = source[index]
+        if char == "\\":
+            index += 2
+            continue
+        if char == "\n":
+            return index
+        if char == "[":
+            in_class = True
+        elif char == "]":
+            in_class = False
+        elif char == "/" and not in_class:
+            return index + 1
+        index += 1
+    return len(source)
+
+
+def strip_comments(source: str) -> str:
+    """`source` with every comment blanked, character for character.
+
+    Blanked rather than removed so line numbers and columns survive: the scan
+    reports where a URL is written, and a stripper that shifted the text would
+    make every site it names wrong.
+
+    A scanner, not a parser. It knows the four constructs that decide whether a
+    character is code — single and double quotes, template literals, regular
+    expressions, and both comment forms — and nothing else. Where it is wrong it
+    is wrong toward reporting too much: an unstripped comment reads as a call
+    site and reddens, which is the state this function replaces. The one
+    direction that would cost a silent pass is blanking real code, which is what
+    `end_of_quoted`'s line bound and the regex handling exist to prevent, and
+    what `test_no_url_the_live_tree_writes_in_code_is_lost_to_comment_stripping`
+    checks against the tree that actually ships.
+    """
+    out = list(source)
+    length = len(source)
+    index = 0
+    previous = ""
+    while index < length:
+        char = source[index]
+        if char in "'\"":
+            index = end_of_quoted(source, index, char)
+            previous = char
+            continue
+        if char == "`":
+            index = end_of_template(source, index)
+            previous = char
+            continue
+        if source.startswith("//", index):
+            while index < length and source[index] != "\n":
+                out[index] = " "
+                index += 1
+            continue
+        if source.startswith("/*", index):
+            close = source.find("*/", index + 2)
+            end = length if close == -1 else close + 2
+            for position in range(index, end):
+                if source[position] != "\n":
+                    out[position] = " "
+            index = end
+            continue
+        if char == "/" and (
+            previous == "" or previous in REGEX_AFTER_CHARS or previous in REGEX_AFTER_WORDS
+        ):
+            index = end_of_regex(source, index)
+            previous = "/"
+            continue
+        word = IDENTIFIER.match(source, index)
+        if word:
+            previous = word.group(0)
+            index = word.end()
+            continue
+        if not char.isspace():
+            previous = char
+        index += 1
+    return "".join(out)
+
+
 def named_resource_urls(tree: Path) -> dict[str, list[str]]:
-    """Every `resource://` string literal in the tree, mapped to where it is written."""
+    """Every `resource://` string literal in the tree, mapped to where it is written.
+
+    A file that cannot be read is warned about and skipped rather than allowed
+    to abort the walk: one unreadable sibling would otherwise take down the
+    scan of every file beside it. The warning is what keeps that honest — a
+    quiet skip would turn a file the guard could not read into a file the guard
+    approved, the failure `require_install` warns about one level up.
+    """
     sites: dict[str, list[str]] = {}
     for path in sorted(tree.rglob("*")):
         if not path.is_file() or path.suffix not in SOURCE_SUFFIXES:
             continue
-        text = path.read_text(encoding="utf-8", errors="replace")
-        for number, line in enumerate(text.splitlines(), 1):
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError as error:
+            warnings.warn(
+                f"{path} could not be read ({error}); any resource:// literal it "
+                f"names went UNCHECKED, and this is not a pass",
+                stacklevel=2,
+            )
+            continue
+        for number, line in enumerate(strip_comments(text).splitlines(), 1):
             if LINE_COMMENT.match(line):
                 continue
             for match in RESOURCE_URL.finditer(line):
@@ -353,6 +545,149 @@ def test_prose_about_an_absent_module_is_not_read_as_a_call_site(tmp_path):
     )
 
 
+def test_a_url_quoted_in_a_trailing_comment_is_not_a_call_site(tmp_path):
+    """A comment that shares its line with code is still a comment.
+
+    `LINE_COMMENT` drops narration owning a whole line; it cannot see a comment
+    opened after a statement, and the quote anchor then reads the URL inside it
+    as a literal. `bootstrap.js` narrates the Fluent episode in half a dozen
+    places, so the guard passes today only because none of that narration
+    happens to quote the path on a line that also carries code — a property of
+    the prose, not of the checker, and the same accident round 1 fixed one layer
+    down.
+
+    The fixture writes the three shapes a stripper has to tell apart: a `//`
+    comment after a statement, a `/* */` comment after a statement, and a block
+    comment whose continuation line starts with neither a slash nor a star, so
+    that only real block-comment state can drop it.
+    """
+    source = tmp_path / "bootstrap.js"
+    source.write_text(
+        "const timers = ChromeUtils.importESModule('resource://gre/modules/Timer.sys.mjs');"
+        f" // we used to require '{HISTORICAL_ABSENT}' here\n"
+        "const SDT = win.require('resource://zotero/document-worker/sdt.js');"
+        f" /* and once as '{HISTORICAL_ABSENT}' */\n"
+        "/* the episode, at length:\n"
+        f"   the spec was '{HISTORICAL_ABSENT}', and it threw on every startup\n"
+        "*/\n"
+        "win.require('resource://zotero/document-worker/metadata.json');\n",
+        encoding="utf-8",
+    )
+
+    sites = named_resource_urls(tmp_path)
+
+    assert HISTORICAL_ABSENT not in sites, (
+        f"narration quoted beside code is still narration: {sites}"
+    )
+    assert sorted(sites) == [
+        "resource://gre/modules/Timer.sys.mjs",
+        "resource://zotero/document-worker/metadata.json",
+        "resource://zotero/document-worker/sdt.js",
+    ], sites
+
+
+def test_a_regex_literal_does_not_swallow_the_call_site_beside_it(tmp_path):
+    """The stripper's own control, in the direction that would fail silently.
+
+    Reading comments costs a false red. Misreading *code* costs a false green,
+    and a regular expression is where that happens: `/['"]/` carries both quote
+    characters, so a scanner that does not know regex syntax opens a string on
+    the apostrophe and every literal after it disappears into it. `scheduler.js`
+    already splits on `/[\\\\/]/`, so this is the live shape, not an invented one.
+    """
+    source = tmp_path / "scheduler.js"
+    source.write_text(
+        "const parts = String(path).split(/[\\\\/]/);\n"
+        "const quoted = /['\"]/.test(path);\n"
+        "const SDT = win.require('resource://zotero/document-worker/sdt.js');\n",
+        encoding="utf-8",
+    )
+
+    sites = named_resource_urls(tmp_path)
+
+    assert sites == {"resource://zotero/document-worker/sdt.js": ["scheduler.js:3"]}, sites
+
+
+def test_no_url_the_live_tree_writes_in_code_is_lost_to_comment_stripping():
+    """Positive control for the stripper against the tree that actually ships.
+
+    A fixture proves the stripper handles the shapes someone thought to write.
+    Only the shipped tree proves it handles the shapes someone did write. So
+    every URL the unstripped scan reports under `plugins/` must still be
+    reported after stripping — otherwise the guard would go green by having
+    blanked the call sites it exists to check, which is this suite's own
+    all-clear-indistinguishable-from-could-not-look failure, one layer down.
+
+    A legitimate divergence is possible: it means someone wrote a `resource://`
+    URL inside a comment trailing a line of code, which is exactly what the
+    stripper is for. Read the two sets before relaxing this — a URL that
+    vanished from a line carrying no comment is the defect.
+    """
+    unstripped: dict[str, list[str]] = {}
+    for path in sorted(PLUGINS.rglob("*")):
+        if not path.is_file() or path.suffix not in SOURCE_SUFFIXES:
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for number, line in enumerate(text.splitlines(), 1):
+            if LINE_COMMENT.match(line):
+                continue
+            for match in RESOURCE_URL.finditer(line):
+                site = f"{path.relative_to(PLUGINS).as_posix()}:{number}"
+                unstripped.setdefault(match.group(1), []).append(site)
+
+    assert unstripped, "the unstripped control found nothing, so it can witness no loss"
+    assert named_resource_urls(PLUGINS) == unstripped, (
+        "comment stripping changed what the shipped plugin tree reports"
+    )
+
+
+def test_an_unreadable_application_ini_degrades_rather_than_raising(tmp_path):
+    """The version lookup runs while composing a failure message, so it may not throw.
+
+    Missing, empty, binary and a directory in its place all already fall back to
+    `version unknown (...)`. An unreadable one raised `PermissionError` instead,
+    on the one path where the caller is already reporting a real defect: the
+    traceback would replace the assertion naming it.
+    """
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 file, so the permission error never fires")
+    install = tmp_path / "zotero"
+    (install / "app").mkdir(parents=True)
+    ini = install / "app" / "application.ini"
+    ini.write_text("Version=10.0.1\n", encoding="utf-8")
+    ini.chmod(0o000)
+
+    version = installed_version(install)
+
+    assert "version unknown" in version, version
+    assert "10.0.1" not in version, version
+    assert str(install) in describe(install)
+
+
+def test_an_unreadable_plugin_file_is_reported_rather_than_aborting_the_scan(tmp_path):
+    """One unreadable file must not take the whole scan down with it.
+
+    The warning is what keeps the degradation honest: skipping quietly would
+    turn a file the guard could not read into a file the guard approved, which
+    is the failure `require_install` already warns about one level up.
+    """
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 file, so the permission error never fires")
+    (tmp_path / "bootstrap.js").write_text(
+        "win.require('resource://zotero/document-worker/sdt.js');\n", encoding="utf-8"
+    )
+    blocked = tmp_path / "scheduler.js"
+    blocked.write_text(
+        "win.require('resource://zotero/document-worker/other.js');\n", encoding="utf-8"
+    )
+    blocked.chmod(0o000)
+
+    with pytest.warns(UserWarning, match="scheduler.js"):
+        sites = named_resource_urls(tmp_path)
+
+    assert sites == {"resource://zotero/document-worker/sdt.js": ["bootstrap.js:1"]}, sites
+
+
 def test_no_plugin_file_type_escapes_the_scan():
     """`SOURCE_SUFFIXES` covers every file the plugin tree actually ships.
 
@@ -366,6 +701,11 @@ def test_no_plugin_file_type_escapes_the_scan():
     classification is a person's to make once, recorded in `ASSET_SUFFIXES`.
     Adding a suffix to one list or the other is a line; noticing an unscanned
     format later is not.
+
+    Re-examined and kept on 2026-09-08 (ticket 0737 item 5), after two reviewers
+    raised the same trade independently. The module docstring carries the
+    decision so a PR that trips this on an icon meets a stated cost rather than
+    a surprise.
     """
     shipped = {path.suffix for path in PLUGINS.rglob("*") if path.is_file()}
     unscanned = shipped - set(SOURCE_SUFFIXES) - set(ASSET_SUFFIXES)
