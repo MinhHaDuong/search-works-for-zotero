@@ -27,6 +27,7 @@ Author: sim
 
 2026-09-08T10:10Z MinhHaDuong closed — parked, not disproven — no reproduction across 4 deliberate arms on 2 machines; original 2026-09-06 occurrences stand on hard evidence; reopen on recurrence
 2026-09-08T20:28Z MinhHaDuong reopened — recurrence reported live, 2026-09-08. Distinct from the four deliberate arms this ticket closed on: this session had already installed five consecutive builds (0.3.15 through 0.3.19) as GUI-menu REPLACEMENTS into what is very likely one continuously-running Zotero process, never restarted between installs, over roughly one hour -- arm 2 tested exactly ONE replacement and survived, so cumulative rapid replacement count in one long session is a candidate the accumulated arms never isolated. Diagnostic details (exact version at time of disappearance, disabled-then-removed vs simply gone, whether Tools > Add-ons currently shows anything) requested from the author, not yet in hand.
+2026-09-08T20:30Z MinhHaDuong reported the sitter still gone from Tools > Add-ons as of 20:30Z, no restart yet -- the disable-then-vanish transition itself was not observed (he stopped looking once it was noticed missing, so whether it passed through a disabled/grayed state first is unrecorded for this occurrence, unlike the 2026-09-06 hard evidence which had extensions.json's own mutation). Recommended: restart Zotero fully, then reinstall v0.3.19 via Tools -> Add-ons -> Install Add-on From File -- a first install into a fresh process is the one transition all four prior arms agreed is reliable.
 --- body ---
 ## Context
 
