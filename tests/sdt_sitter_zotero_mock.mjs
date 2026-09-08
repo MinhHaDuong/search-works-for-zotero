@@ -230,7 +230,8 @@ export function createHarness(options = {}) {
   // times a reading was taken, which is the difference between one check per
   // admission and a poll, and between a cache hit and a native re-inspection.
   const calls = { meminfo: 0, loadavg: 0, openPack: [], ensure: [], prompt: 0,
-    prompts: [], writes: [], hash: [] };
+    prompts: [], writes: [], hash: [], list: 0, affected: [], inspect: [] };
+  const observers = new Map(); let observerSequence = 0;
 
   // Two clocks, moving independently. `mono` is what ChromeUtils.now() answers
   // and every span in bootstrap.js is measured on; `wall` is the calendar.
@@ -393,8 +394,13 @@ export function createHarness(options = {}) {
         return (options.ensure || defaultEnsure)(id, onProgress);
       },
     },
+    Notifier: {
+      registerObserver(observer, types) { const id = ++observerSequence; observers.set(id, { observer, types }); return id; },
+      unregisterObserver(id) { observers.delete(id); },
+    },
     Items: {
       getAsync: async id => {
+        calls.inspect.push(id);
         const row = library.get(id);
         if (row) return item(row);
         const owner = library.get(id - 1000);
@@ -402,7 +408,11 @@ export function createHarness(options = {}) {
       },
     },
     DB: {
-      columnQueryAsync: async () => rows.map(row => row.id),
+      columnQueryAsync: async (sql, params) => {
+        if (params) { calls.affected.push(params[0]); return [...library.values()]
+          .filter(row => row.parentTitle && row.id + 1000 === params[0]).map(row => row.id); }
+        calls.list++; return [...library.keys()];
+      },
       valueQueryAsync: async (_sql, [id]) => library.get(id).pages,
     },
     File: {
@@ -419,7 +429,7 @@ export function createHarness(options = {}) {
       },
       getContentsFromURLAsync: async url => {
         if (url === `${ROOT_URI}manifest.json`) return fs.readFileSync(`${SITTER}/manifest.json`, 'utf8');
-        if (url === 'resource://zotero/document-worker/metadata.json') return VERSIONS_JSON;
+        if (url === 'resource://zotero/document-worker/metadata.json') return options.versions ? JSON.stringify(options.versions()) : VERSIONS_JSON;
         // The locale files, served the way the real host serves them — off the
         // packaged tree, one fetch per candidate in the fallback chain, and a
         // throw for a tag this build does not ship (ticket 0692). Reading them
@@ -584,7 +594,9 @@ export function createHarness(options = {}) {
   }
 
   return {
-    context, Zotero, files, timers, calls, windows,
+    context, Zotero, files, timers, calls, windows, library, observers,
+    notify(event, type, ids) { for (const { observer, types } of observers.values())
+      if (types.includes(type)) observer.notify(event, type, ids, {}); },
     clock, advance, quiet, turn, persistPack, debugged, logged,
     /** Every toast shown, in order, with the lines it carried. */
     toasts,
@@ -603,6 +615,7 @@ export function createHarness(options = {}) {
     async nextSweep() {
       const armed = timers.ids('timeout');
       assert.equal(armed.length, 1, `expected one armed sweep, found ${armed.length}`);
+      advance(timers.pending.get(armed[0]).ms);
       timers.fire(armed[0]);
       await quiet();
     },

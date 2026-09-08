@@ -12,7 +12,7 @@ vm.runInNewContext(schedulerSource, context);
 // The host half of the journal (emit, heartbeat, shutdown) lives in bootstrap.js;
 // loading it here lets the ring be driven by the real scheduler rather than by hand.
 // Read once for the same reason, and reused by the phase enumeration below.
-const ui = {};
+const ui = { ChromeUtils: { now: () => 10000 } };
 const bootstrapSource = fs.readFileSync('plugins/sdt-sitter/bootstrap.js', 'utf8');
 // The plugin loads scheduler.js into bootstrap's own global before it renders
 // anything (`Services.scriptloader.loadSubScript(..., globalThis)`), so the census
@@ -41,6 +41,20 @@ function fixture() {
 }
 const results = [];
 async function test(name, body) { await body(); results.push(name); }
+await test('events coalesce targeted inspection and resource retries never repeat the census', async () => {
+  const f = fixture(), inspected = []; let lists = 0;
+  f.host.list = async () => { lists++; return [1, 2]; };
+  const inspect = f.host.inspect;
+  f.host.inspect = async id => { inspected.push(id); return inspect(id); };
+  f.host.blocked = async () => 'low-memory';
+  await f.api.sweep(); inspected.length = 0;
+  f.api.invalidate([1]); f.api.invalidate([1]);
+  await f.api.pump();
+  assert.equal(lists, 1); assert.deepEqual(inspected, [1]);
+  f.host.blocked = async () => null;
+  await f.api.pump();
+  assert.equal(lists, 1); assert.deepEqual(f.calls, [1, 2]);
+});
 await test('census precedes generation; cache hit is read-only', async () => {
   const f = fixture();
   const ensure = f.host.ensure;
@@ -364,7 +378,7 @@ await test('after a hang the ring names the active document, its last progress a
   const ring = context.createSDTJournal(50);
   ui.journal = ring; ui.sealed = false; ui.alive = true; ui.sitter = f.api;
   ui.Zotero = { debug: () => {}, Prefs: { get: () => true } };
-  f.host.emit = ui.emit; f.host.now = () => Date.now();
+  f.host.emit = ui.emit; f.host.now = () => ui.monotonic();
   let callback;
   f.host.ensure = async (id, progress) => {
     f.calls.push(id); callback = progress; entered.resolve(); await finish.promise; return true;
@@ -531,7 +545,7 @@ await test('a memoized hash expires, so a silent in-place rewrite is caught with
     assert.equal(hashed, 3, label);
   }
 });
-await test('an idle library backs off; anything left to do keeps the 30 s cadence', async () => {
+await test('quiet libraries wait for reconciliation and resource retries stay independent', async () => {
   const idle = fixture();
   idle.host.inspect = async () => ({ status: 'current' });
   await idle.api.sweep();
@@ -545,7 +559,7 @@ await test('an idle library backs off; anything left to do keeps the 30 s cadenc
   assert.equal(worked.api.state.phase, 'waiting');
   assert.equal(worked.api.state.pending.length, 0);
   assert.equal(worked.api.state.candidates, 2);
-  assert.equal(ui.nextSweepDelayMS(worked.api.state), 30000);
+  assert(ui.nextSweepDelayMS(worked.api.state) > 30000 * 20);
   // Ticket 0745. A sweep halted by a resource gate backs off to the idle
   // cadence, not the 30 s active one: the gate names a resource the machine
   // does not currently have, not work the sitter is doing, and retrying it
@@ -666,7 +680,7 @@ await test('shutdown is the last record even with a submission still in flight',
   const ring = context.createSDTJournal(50);
   ui.journal = ring; ui.sealed = false; ui.alive = true; ui.sitter = f.api;
   ui.Zotero = { debug: () => {}, Prefs: { get: () => true }, SDTPackSitter: { state: f.api.state } };
-  f.host.emit = ui.emit; f.host.now = () => Date.now();
+  f.host.emit = ui.emit; f.host.now = () => ui.monotonic();
   let callback;
   f.host.ensure = async (id, progress) => {
     f.calls.push(id); callback = progress; entered.resolve(); await finish.promise;
@@ -1082,6 +1096,7 @@ await test('a sweep loop left over from a previous generation announces nothing'
   // misattribution to have anything to misattribute.
   const suspendMidExtraction = (f, entered, finish) => {
     f.host.list = async () => [1, 2, 3];
+    f.api.invalidate([3]);
     f.host.ensure = async (id, progress) => {
       f.calls.push(id); entered.resolve(); await finish.promise;
       progress(90); f.cached.add(id); return true;
@@ -1122,8 +1137,147 @@ await test('a sweep loop left over from a previous generation announces nothing'
   // open the gate.
   assert.deepEqual(shown[0].lines, ['3 files indexed']);
   assert.equal(scheduled.length, 1, 'the live loop stopped rescheduling itself');
-  assert.equal(scheduled[0].ms, 30000);
+  assert(scheduled[0].ms > 30000 * 20);
   ui.timers = undefined;
+});
+await test('events during inspection and native work remain dirty until observed', async () => {
+  const f = fixture(); f.host.blocked = async () => 'low-memory';
+  await f.api.sweep();
+  let inspections = 0;
+  const original = f.host.inspect;
+  f.host.inspect = async id => {
+    if (id === 1 && ++inspections === 1) { f.api.invalidate([1]); return original(id); }
+    return original(id);
+  };
+  f.api.invalidate([1]); await f.api.pump(); assert.equal(inspections, 2);
+  f.host.blocked = async () => null;
+  const ensure = f.host.ensure;
+  f.host.ensure = async (id, progress) => {
+    if (id === 1) { f.api.invalidate([3]); f.api.invalidate([3]); }
+    return ensure(id, progress);
+  };
+  await f.api.pump();
+  assert.deepEqual(f.calls, [1, 2, 3]);
+  assert.equal(f.api.state.total, 3); assert.equal(f.api.state.counts.current, 3);
+});
+await test('an event during parent expansion is retained and no partial update prunes', async () => {
+  const f = fixture(); f.host.blocked = async () => 'low-memory';
+  let prune = 0, expansions = 0;
+  f.host.censusComplete = async () => { prune++; return []; };
+  await f.api.sweep();
+  f.host.affected = async id => {
+    if (++expansions === 1) f.api.invalidate([id]);
+    return [1, 2];
+  };
+  f.api.invalidate([99]); await f.api.pump();
+  assert.equal(expansions, 2); assert.equal(prune, 1);
+  assert.equal(f.api.state.total, 2);
+});
+await test('quiet pump calls and a missed deadline produce only one reconciliation', async () => {
+  const f = fixture(); let now = 0, lists = 0;
+  f.host.now = () => now;
+  f.host.list = async () => { lists++; return [1, 2]; };
+  await f.api.sweep(); const deadline = f.api.state.nextReconciliationAt;
+  now = deadline - 1; await f.api.pump(); await f.api.pump(); assert.equal(lists, 1);
+  now = deadline * 7; await f.api.pump(); await f.api.pump(); assert.equal(lists, 2);
+  assert.equal(f.api.state.lastReconciliationAt, now);
+  assert(f.api.state.nextReconciliationAt > now);
+});
+await test('disappearance before admission or during native work never blacklists a restored source', async () => {
+  for (const when of ['gate', 'native']) {
+    const f = fixture(); f.host.list = async () => [1]; let missing = false;
+    const inspect = f.host.inspect;
+    f.host.inspect = async id => missing ? { status: 'missing-source' } : inspect(id);
+    if (when === 'gate') f.host.blocked = async () => { missing = true; return null; };
+    else f.host.ensure = async id => { f.calls.push(id); missing = true; throw new Error('gone'); };
+    await f.api.sweep();
+    assert.equal(f.api.state.counts['missing-source'], 1);
+    assert.equal(f.api.state.counts['failed-session'] || 0, 0);
+    assert.equal(f.calls.length, when === 'gate' ? 0 : 1);
+    missing = false; f.host.blocked = async () => null;
+    f.host.ensure = async id => { f.calls.push(id); f.cached.add(id); return true; };
+    f.api.invalidate([1]); await f.api.pump();
+    assert.equal(f.api.state.counts.current, 1);
+  }
+});
+await test('real extraction failures survive same-byte restoration, but an external current pack wins', async () => {
+  const f = fixture(); f.host.list = async () => [1]; let missing = false;
+  const inspect = f.host.inspect;
+  f.host.inspect = async id => missing ? { status: 'missing-source' } : inspect(id);
+  f.host.ensure = async id => { f.calls.push(id); return false; };
+  await f.api.sweep(); missing = true; f.api.invalidate([1]); await f.api.pump();
+  missing = false; f.api.invalidate([1]); await f.api.pump();
+  assert.deepEqual(f.calls, [1]); assert.equal(f.api.state.counts['failed-session'], 1);
+  f.cached.add(1); f.api.invalidate([1]); await f.api.pump();
+  assert.equal(f.api.state.counts.current, 1); assert.equal(f.api.state.failed, 0);
+});
+await test('a source changed during native work inherits neither failure nor duration from its predecessor', async () => {
+  const f = fixture(); f.host.list = async () => [1]; let identity = 'A';
+  f.host.inspect = async () => ({ status: f.cached.has(1) ? 'current' : 'missing-pack',
+    identity, sourceBytes: identity === 'A' ? 10 : 20 });
+  f.host.ensure = async (id, progress) => {
+    f.calls.push(identity); progress(10);
+    if (identity === 'A') { identity = 'B'; return true; }
+    f.cached.add(id); return true;
+  };
+  await f.api.sweep();
+  assert.deepEqual(f.calls, ['A', 'B']); assert.equal(f.api.state.completed, 1);
+  assert.equal(f.api.state.samples.length, 1); assert.equal(f.api.state.samples[0].sourceBytes, 20);
+});
+await test('worker becoming busy during final inspection blocks native admission', async () => {
+  const f = fixture(); let workerBusy = false, inspections = 0;
+  const inspect = f.host.inspect;
+  f.host.inspect = async id => { if (++inspections > 2) workerBusy = true; return inspect(id); };
+  f.host.beforeSubmit = () => workerBusy ? 'native-worker-busy' : null;
+  await f.api.sweep(); assert.deepEqual(f.calls, []);
+  assert.equal(f.api.state.phase, 'native-worker-busy');
+});
+await test('off then on during extraction cannot resurrect the old pump or spin an overdue timer', async () => {
+  const f = fixture(), entered = deferred(), release = deferred();
+  let lists = 0; f.host.list = async () => { lists++; return [1, 2]; };
+  f.host.ensure = async id => { f.calls.push(id); entered.resolve(); await release.promise; f.cached.add(id); return true; };
+  const running = f.api.sweep(); await entered.promise;
+  f.api.stop(); f.api.start(); await f.api.pump();
+  assert(ui.nextSweepDelayMS({ ...f.api.state, nextReconciliationAt: 0 }) > 0);
+  release.resolve(); await running;
+  assert.deepEqual(f.calls, [1]);
+  await f.api.pump(); assert.deepEqual(f.calls, [1, 2]); assert.equal(lists, 2);
+});
+await test('partial reconciliation never prunes derived records or advances freshness', async () => {
+  const f = fixture(), entered = deferred(), release = deferred(); let prunes = 0;
+  f.host.censusComplete = async () => { prunes++; return []; };
+  await f.api.sweep(); const stamp = f.api.state.lastReconciliationAt;
+  const inspect = f.host.inspect;
+  f.host.inspect = async id => { if (id === 2) { entered.resolve(); await release.promise; } return inspect(id); };
+  const running = f.api.sweep(); await entered.promise; f.api.stop(); release.resolve(); await running;
+  assert.equal(prunes, 1); assert.equal(f.api.state.lastReconciliationAt, stamp);
+});
+await test('settled aggregate publications retain nonnegative conserved counts and unique queue IDs', async () => {
+  const f = fixture(); f.host.ensure = async id => { f.calls.push(id); return false; };
+  await f.api.sweep(); f.api.invalidate([1, 2, 1]); await f.api.pump();
+  f.cached.add(1); f.api.invalidate([1]); await f.api.pump();
+  for (const raw of f.updates) {
+    const state = JSON.parse(raw);
+    assert(Object.values(state.counts).every(n => n >= 0));
+    assert.equal(new Set(state.pending.map(item => item.id)).size, state.pending.length);
+    if (state.scanned === state.total)
+      assert.equal(Object.values(state.counts).reduce((sum, n) => sum + n, 0), state.total);
+  }
+});
+await test('source moving during admission requires a resource reading for its new directory', async () => {
+  const f = fixture(); f.host.list = async () => [1]; let directory = 'old'; const gated = [];
+  f.host.inspect = async () => ({ status: 'missing-pack', identity: 'same', directory });
+  f.host.blocked = async info => { gated.push(info.directory); directory = 'new'; return gated.length === 2 ? 'low-disk' : null; };
+  await f.api.sweep(); assert.deepEqual(gated, ['old', 'new']); assert.deepEqual(f.calls, []);
+});
+await test('events arriving during a refused resource read update coverage before the pump sleeps', async () => {
+  const f = fixture(); let reads = 0;
+  f.host.blocked = async () => {
+    if (++reads === 1) { f.cached.add(2); f.api.invalidate([2]); }
+    return 'low-memory';
+  };
+  await f.api.sweep(); assert.equal(f.api.state.counts.current, 1);
+  assert.equal(f.api.state.pending.length, 1); assert.deepEqual(f.calls, []);
 });
 console.log(JSON.stringify({ tests: results, result: 'pass' }));
 

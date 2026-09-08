@@ -184,7 +184,7 @@ MUTANTS = [
     # `before`. Distinct from M12, which burns the token: this one leaves the
     # token intact and stops the announcement from reading it.
     ("M23 the toast is spent against whatever generation happens to be current",
-     "      if (token === generation) announceSDTSweep(before);",
+     "      if (current()) announceSDTSweep(before);",
      "      announceSDTSweep(before);"),
     # The gate itself, in both directions, because a gate has two ways to be
     # wrong and only one of them is the toast storm. Removing the comparison
@@ -218,7 +218,7 @@ MUTANTS = [
     # Ticket 0718. The scheduler can retain a complete generation and the UI can
     # still defeat it by reading the live counts being rebuilt underneath it.
     ("M28 coverage reads the half-filled live census instead of the held generation",
-     "  const counts = duringCensus ? (held?.counts || {}) : (state.counts || {});",
+     "  const counts = held ? held.counts : (state.counts || {});",
      "  const counts = state.counts || {};"),
 
     # ---- ticket 0740: the label, and the verdict that outlives the session ----

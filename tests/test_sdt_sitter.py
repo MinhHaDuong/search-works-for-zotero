@@ -1067,7 +1067,7 @@ def test_the_sweep_toast_is_gated_on_work_the_sweep_actually_did():
     """
     site = _site('function createSDTSweepLoop(token, sweepToken) {', '\n}')
     snapshot = site.index('sitter.state.completed')
-    swept = site.index('await sitter.sweep()')
+    swept = site.index('await owner.pump()')
     announced = site.index('announceSDTSweep(before)')
     assert snapshot < swept, 'the counts are snapshotted after the sweep changed them'
     assert swept < announced, 'the toast is composed before the sweep it reports'
@@ -1109,8 +1109,9 @@ def test_every_deferred_callback_checks_the_generation_it_was_armed_in():
     # regression test cannot stage it and this convention goes back to being
     # asserted by reading. `let` at script top level does not.
     source = BOOTSTRAP.read_text(encoding='utf-8')
-    for binding in ('var generation = 0;', 'var timer, pulse, heartbeat, timers;'):
-        assert binding in source, f'{binding!r} is out of reach of a driven test'
+    for binding in ('generation', 'timer', 'pulse', 'heartbeat', 'timers', 'notifierID'):
+        assert re.search(r'^var [^;\n]*\b' + binding + r'\b', source, re.MULTILINE), \
+            f'{binding!r} is out of reach of a driven test'
 
 
 def test_the_mock_host_carries_the_toast_primitive():
@@ -1184,7 +1185,7 @@ def test_admission_readings_are_recorded_where_they_are_read():
 
 
 def test_scheduler_threads_both_titles_to_the_ui():
-    for anchor in ('state.pending = candidates.map', 'state.activeInfo = '):
+    for anchor in ('state.pending = [...observed]', 'state.activeInfo = '):
         site = _site(anchor, ';', SCHEDULER)
         assert 'title:' in site
         assert 'parentTitle:' in site
@@ -1223,7 +1224,7 @@ def test_the_census_classification_has_exactly_one_owner():
     quartet = "'missing-pack', 'stale-source', 'stale-processor', 'invalid-pack'"
     assert scheduler.count(quartet) == 1, 'the admissible statuses are spelt out twice'
     assert quartet not in bootstrap, 'the dialog keeps a second copy of the whitelist'
-    assert 'SDT_STATUS_CLASSES.queued.includes(status)' in scheduler, \
+    assert 'SDT_STATUS_CLASSES.queued.includes(observed.get(id)?.status)' in scheduler, \
         'admission no longer reads the classification'
     # Every status the classification names, and nothing else, may be produced by
     # the census -- a status the census emits and no class claims is invisible in

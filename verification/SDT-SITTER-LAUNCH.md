@@ -20,6 +20,13 @@ says so on the toolbar; on is ordinary operation. Editing the preference away in
 the Config Editor puts the profile back in the unanswered state, and the question
 is asked once more.
 
+Attachment changes and completed file downloads now queue targeted inspections.
+Full reconciliation runs on activation, re-enabling and the cadence owned by
+SPEC.md §5.2.7. Resource retries resume the queue without another library census.
+Coverage reports the last observed state and the age of the last completed
+reconciliation. [Scheduling verification](SDT-SITTER-EVENTS.md) records the host
+notification mapping and tests; live deployment of this change is not measured.
+
 The toolbar button opens session coverage and progress, elapsed time and time
 since the last native signal, empirical processing speed, an indicative ETA
 after census, and a snapshot of native full-text index statistics. ETA is not
@@ -72,8 +79,8 @@ disabling the extension in Zotero's add-ons manager does the same and also
 removes the window and the toolbar entry. Under either, the already submitted
 native job can finish and persist its pack. Re-enabling does not ask for
 confirmation again — the persisted answer stands — and reconstructs coverage
-from native caches. Session failures are forgotten, so turning indexing back on
-can retry them. No unresolved native promise is retried.
+from native caches. Turning the in-window switch back on retains session
+failures; a fresh extension activation creates a new session and can retry them. No unresolved native promise is retried.
 
 What the sitter does not control (the shared worker's priority and
 interruptibility) and what stopping it does and does not do are readable in the

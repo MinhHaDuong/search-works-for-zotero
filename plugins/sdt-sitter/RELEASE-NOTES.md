@@ -18,13 +18,20 @@ build a search index or isolate a stuck native worker. Coverage describes the
 last observed state; preparation depends on local files, available resources
 and successful native extraction.
 
-## Pending before describing the new scheduling behavior as shipped
+## Prepared for the next release
 
-Ticket [0752](../../tickets/0752-make-sdt-sitter-event-driven-with-reconc.erg)
-replaces frequent full-library sweeps with event-driven updates and reconciliation
-on startup, re-enabling and the periodic cadence owned by
-[SPEC.md §5.2.7](../../SPEC.md#527-custody-and-lifecycle). This behavior is ticketed,
-not implemented. Update this paragraph against release evidence before publishing.
+Ticket [0752](../../tickets/closed/0752-make-sdt-sitter-event-driven-with-reconc.erg)
+replaces frequent full-library sweeps with targeted updates from attachment and
+file-download notifications. Reconciliation runs on startup and re-enabling, and
+at the periodic cadence owned by
+[SPEC.md §5.2.7](../../SPEC.md#527-custody-and-lifecycle).
+Resource retries resume queued work without rescanning the library. The window
+shows how recently reconciliation completed; disk availability remains a last
+observation. Missing files stay in Zotero and their native packs are preserved.
+
+Implementation and host-mock verification are recorded in
+[the scheduling report](../../verification/SDT-SITTER-EVENTS.md). This draft does
+not claim a live-profile deployment or a published release.
 
 The experimental scope and operational limitations are recorded in
 [the launch report](../../verification/SDT-SITTER-LAUNCH.md).
