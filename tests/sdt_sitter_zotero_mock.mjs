@@ -329,7 +329,9 @@ export function createHarness(options = {}) {
             if (!dialog.listeners.has(type)) dialog.listeners.set(type, []);
             dialog.listeners.get(type).push(listener);
           },
-          fire(type) { for (const listener of dialog.listeners.get(type) || []) listener({}); },
+          fire(type, event = {}) {
+            for (const listener of dialog.listeners.get(type) || []) listener(event);
+          },
         };
         dialogs.push(dialog);
         return dialog;

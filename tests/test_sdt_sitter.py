@@ -123,7 +123,12 @@ UI_SITES = (
     # and reworded on every redraw, and a literal could arrive at either.
     ("doc.getElementById('sdt-switch-state').textContent", ';'),
     ("doc.getElementById('sdt-switch').textContent", ';'),
-    ('const disclosures = element(', 'details.append(summary'),
+    # The disclosures moved into their own About disclosure (found live,
+    # testing v0.3.16), a whole function now rather than a few lines inline —
+    # scoped to that function so the site tracks wherever it lives next,
+    # instead of scanning forward to a same-named anchor that may since have
+    # drifted arbitrarily far away.
+    ('function buildSDTAbout(doc, element) {', '\n}'),
     # The disclosure layers of ticket 0693. A site added to the dialog and not
     # added here is a site the vocabulary ban stops covering, which is the
     # asymmetry this list fails on: removing a site is loud, arriving is silent.
@@ -1183,7 +1188,7 @@ def test_a_cache_that_cannot_be_written_reaches_a_surface_and_is_cleared():
     warning that is only ever set survives the condition that raised it and
     ends the session on screen after the disk was emptied.
     """
-    site = _site("getElementById('sdt-diagnostics').textContent", '.filter(Boolean)')
+    site = _site('const diagnosticsHead = [', ".filter(Boolean).join('\\n');")
     assert 'cacheWarning' in site, 'the cache warning is still rendered nowhere'
     write = _site('await IOUtils.write(cachePath', 'catch (error)')
     assert 'cacheWarning = null' in write, 'a transient cache failure would stick for the session'
@@ -1269,10 +1274,13 @@ def test_every_census_status_is_named_in_words_a_reader_can_read():
         assert 3 <= len(words) <= 5, \
             f'{key} is {len(words)} words, not three to five: {catalogue[key]!r}'
         assert words[0][0].isupper(), f'{key} does not open an account row: {catalogue[key]!r}'
-    # And the account's own two lines: a row template that is punctuation, and a
-    # total whose wording says it is a total.
-    assert '{label}' in catalogue['census-row'] and '{count}' in catalogue['census-row']
-    assert '{count}' in catalogue['census-total']
+    # And the account's own total row: a plain label, not a template -- the
+    # number beside it is now a column position (`formatSDTColumns`), not an
+    # interpolation, since the author read the punctuated version live and
+    # asked for a column instead (found live, testing v0.3.15).
+    assert catalogue['census-total-label'], 'the total row has no reader-facing label'
+    assert '{' not in catalogue['census-total-label'], \
+        'the total label carries a placeholder; it is composed positionally now'
 
 
 def test_the_coverage_denominator_reads_the_classification():
@@ -1332,7 +1340,7 @@ def test_the_session_clause_names_only_session_counters():
     # And the aggregate that conflated two facts is not merely reworded.
     assert 'diagnostics-failed' not in english, \
         'the conflating "could not be indexed (last census)" aggregate is back'
-    site = _site("getElementById('sdt-diagnostics').textContent", '.filter(Boolean)')
+    site = _site('const diagnosticsHead = [', ': diagnosticsHead;')
     assert "sdtText('diagnostics-completed', { count: s.completed })" in site
     assert 'describeSDTCensusAccount(s.counts)' in site, \
         'the census block no longer renders through the account composer'

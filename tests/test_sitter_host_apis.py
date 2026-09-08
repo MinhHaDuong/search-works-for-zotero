@@ -226,6 +226,9 @@ CANDIDATE_INSTALLS = (
     Path("/usr/lib/zotero"),
     Path("/usr/lib/zotero7"),
     Path.home() / "Zotero_linux-x86_64",
+    # The Zotero-provided Linux installer's own default target, distinct from
+    # a manual tarball extraction straight into $HOME (the line above).
+    Path.home() / ".local" / "Zotero_linux-x86_64",
 )
 
 

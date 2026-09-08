@@ -219,12 +219,13 @@ var SDT_TEXT = {
     "phase-off": "Indexing off",
     "dialog-title": "Indexing assistant",
     "switch-state-on": "Indexing is on.",
-    "switch-state-off": "Indexing is off. Nothing is scanned and nothing is sent for indexing.",
+    "switch-state-off": "Indexing is off. No new attachment is checked while it stays off; one already under way still finishes. Zotero's own full-text indexing is unaffected.",
     "switch-turn-on": "Turn indexing on",
     "switch-turn-off": "Turn indexing off",
     "section-global": "Overall progress",
     "section-active": "Indexing under way",
     "details-title": "Details",
+    "about-title": "About and limitations",
     "fulltext-title": "Full-text search index",
     "fulltext-body": "Zotero’s own full-text search index (distinct from the index the assistant prepares):",
     "fulltext-unavailable": "Statistics unavailable: {error}",
@@ -249,8 +250,7 @@ var SDT_TEXT = {
     "diagnostics-phase": "State: {phase}",
     "diagnostics-census": "Census: {scanned} / {total}",
     "diagnostics-completed": "Created this session: {count}",
-    "census-row": "{label}: {count}",
-    "census-total": "Attachments counted in all: {count}",
+    "census-total-label": "Attachments counted in all",
     "status-current": "Indexed and up to date",
     "status-missing-pack": "Waiting to be indexed",
     "status-stale-source": "Changed since it was indexed",
@@ -295,8 +295,8 @@ var SDT_TEXT = {
     "launch-details": "This answer is remembered. The assistant's window carries what it does not control, and the switch that turns it off again.",
     "launch-yes": "Start indexing",
     "launch-no": "Not now",
-    "launch-worker": "The shared worker cannot be interrupted, nor given a system priority of its own. A large file can delay native work that arrived after it. The thresholds do not cap what it consumes.",
-    "launch-disable": "Turning indexing off stops new admissions; the file under way finishes. Errors stay confined to the session. A disposable local cache keeps the freshness checks and the durations; it holds no text and no running job."
+    "launch-worker": "Extraction runs on a background process Zotero itself also uses, and it cannot be paused once a file has started: a large file can delay a smaller one that arrived just after it. The free-memory and free-disk amounts above only decide whether a new file is started — they do not limit what that process uses once a file is already being processed.",
+    "launch-disable": "Turning indexing off stops the assistant from picking up new attachments; one already being processed still finishes. A failed extraction is only remembered for this session and is tried again the next time Zotero starts. A small file on disk remembers which attachments are already up to date and how long extraction usually takes — never their text, and never an unfinished job."
   };
 
 /* Every string a reader sees passes through here. */
@@ -892,26 +892,49 @@ function describeSDTStatusLabel(status) {
    being rebuilt from empty while `total` still holds the last generation's.
    Zero rows are dropped — an account lists what is there — so the sum is over
    what a reader can actually add up. */
+/* A plain two-column table: label, then its number flush against the right
+   edge of the widest number, with no punctuation between them. One column
+   width for the whole table, the total's longer label included, so every
+   number lines up under every other — "the numbers in the accounting should
+   be right aligned in their column" (found live, testing v0.3.15). */
+function formatSDTColumns(entries) {
+  const labelWidth = Math.max(0, ...entries.map(([label]) => label.length));
+  const valueWidth = Math.max(0, ...entries.map(([, value]) => value.length));
+  return entries.map(([label, value]) =>
+    `${label.padEnd(labelWidth)}  ${value.padStart(valueWidth)}`);
+}
+
+/* A key from Zotero's own statistics object, read as a label rather than a
+   property name: camelCase and snake_case both split into words, and the
+   first word capitalizes. Zotero's exact fields are unverified on this host
+   (ticket 0746's own caveat), so this reads whatever the object holds rather
+   than naming fields in advance. */
+function humanizeSDTKey(key) {
+  return String(key)
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/[_-]+/g, ' ')
+    .replace(/^./, c => c.toUpperCase());
+}
+
 function describeSDTCensusAccount(counts) {
   const tallied = counts || {};
   const extra = Object.keys(tallied).filter(status => !SDT_STATUS_ORDER.includes(status));
-  const rows = [];
+  const entries = [];
   let total = 0;
   for (const status of [...SDT_STATUS_ORDER, ...extra]) {
     const count = tallied[status] || 0;
     if (!count) continue;
     total += count;
-    rows.push(sdtText('census-row', { label: describeSDTStatusLabel(status),
-      count: sdtNumber(count) }));
+    entries.push([describeSDTStatusLabel(status), sdtNumber(count)]);
   }
   // Before the first census `counts` is empty, and a lone "Attachments counted
   // in all: 0" there is a measurement where there is none — the same wrong claim
   // `getSDTCoverage` refuses when it makes the percentage unsayable rather than
   // zero. An account with no rows is not an account, so it is not printed; the
   // scan line above already says 0 / 0.
-  if (!rows.length) return rows;
-  rows.push(sdtText('census-total', { count: sdtNumber(total) }));
-  return rows;
+  if (!entries.length) return [];
+  entries.push([sdtText('census-total-label'), sdtNumber(total)]);
+  return formatSDTColumns(entries);
 }
 
 /* Four segments joined by one em dash.
@@ -1093,6 +1116,25 @@ function copySDTText(text) {
    checkbox carrying a real <label for>, a <button> — so keyboard reach comes
    from the platform instead of from key handling this file would have to get
    right, which is the half of 0686 a source review cannot certify anyway. */
+/* A separate disclosure for what the reader would call "About": the two
+   paragraphs ticket 0742 moved out of the launch modal, and the version and
+   compatibility lines that used to sit inside the debug/log disclosure
+   instead. Found live, testing v0.3.16: both belong together, and neither
+   belongs beside a journal tail and a resource reading, which a reader opens
+   to debug a problem rather than to learn what the add-on does or does not
+   do. Composed once, like the disclosures already were — this text never
+   changes across a render. */
+function buildSDTAbout(doc, element) {
+  const group = element('details', 'sdt-about-details');
+  const summary = element('summary', 'sdt-about-title');
+  summary.textContent = sdtText('about-title');
+  const disclosures = element('pre', 'sdt-disclosures');
+  disclosures.textContent = ['launch-worker', 'launch-disable']
+    .map(id => sdtText(id)).join('\n\n');
+  group.append(summary, disclosures, element('pre', 'sdt-environment'));
+  return group;
+}
+
 function buildSDTDiagnostics(doc, element) {
   const group = element('details', 'sdt-tech-details');
   const summary = element('summary', 'sdt-tech-title');
@@ -1123,7 +1165,7 @@ function buildSDTDiagnostics(doc, element) {
   // this count and this covariate — where everything below is about the add-on
   // rather than about the library.
   group.append(summary, element('pre', 'sdt-observations'), row,
-    element('pre', 'sdt-environment'), element('pre', 'sdt-admission'),
+    element('pre', 'sdt-admission'),
     copy, element('pre', 'sdt-journal-copy-status'), element('pre', 'sdt-journal'));
   return group;
 }
@@ -1326,7 +1368,7 @@ function renderState() {
     // the cache warning are exceptions rather than rows, and they appear only
     // when there is one, which is why they may sit below without reading as a
     // continuation of the column.
-    doc.getElementById('sdt-diagnostics').textContent = [
+    const diagnosticsHead = [
       sdtText('diagnostics-phase', { phase: s.phase }),
       sdtText('diagnostics-census', { scanned: s.scanned, total: s.total }),
       // `completed` accumulates over the whole session and says so; it is not a
@@ -1338,8 +1380,12 @@ function renderState() {
       // the totals — but it was set and read nowhere at all, which made an
       // unwritable data directory a silence instead of a line.
       s.cacheWarning || '',
-      ...describeSDTCensusAccount(s.counts),
     ].filter(Boolean).join('\n');
+    const accountRows = describeSDTCensusAccount(s.counts);
+    // A blank line, not `.filter(Boolean)`, marks the table as a table and not
+    // one more reading in the column above it (found live, testing v0.3.15).
+    doc.getElementById('sdt-diagnostics').textContent = accountRows.length
+      ? `${diagnosticsHead}\n\n${accountRows.join('\n')}` : diagnosticsHead;
     const progress = doc.getElementById('sdt-progress');
     progress.hidden = s.active === null;
     if (s.active !== null && Number.isFinite(s.progress)) progress.value = s.progress;
@@ -1360,15 +1406,18 @@ function renderState() {
     // Layer 3. The checkbox is reread rather than written once, so a pref changed
     // from Zotero's own advanced settings is not silently contradicted here.
     const technical = doc.getElementById('sdt-tech-details');
+    const about = doc.getElementById('sdt-about-details');
     const toggle = doc.getElementById('sdt-debug');
     try {
       const enabled = !!Zotero.Prefs.get(DEBUG_PREF, true);
       if (toggle.checked !== enabled) toggle.checked = enabled;
     } catch (_error) { /* An unreadable pref must not fight the checkbox. */ }
-    // Only while it is open. This loop runs ten times a second and the ring is
-    // rendered whole; behind a closed disclosure that is work nobody can see.
+    // Only while each is open. This loop runs ten times a second and the ring
+    // is rendered whole; behind a closed disclosure that is work nobody can
+    // see. The environment line moved to its own disclosure (About), open and
+    // closed independently of the debug/log one beside it.
+    if (about.open) doc.getElementById('sdt-environment').textContent = describeSDTEnvironment();
     if (technical.open) {
-      doc.getElementById('sdt-environment').textContent = describeSDTEnvironment();
       doc.getElementById('sdt-admission').textContent = describeSDTAdmission();
       doc.getElementById('sdt-journal').textContent = describeSDTJournalTail(50);
     }
@@ -1389,6 +1438,11 @@ function openDialog(window) {
     'chrome,dialog=no,resizable,width=700,height=650');
   emit('dialog-open', { reused: false });
   dialog.addEventListener('unload', () => { dialogs.delete(dialog); noteDialogClose(dialog); }, { once: true });
+  // A bare `chrome,dialog=no` window carries none of a XUL <dialog>'s built-in
+  // key bindings, so Escape does nothing unless asked to (found live, testing
+  // v0.3.15). `dialog.close()` is the same call the window's own unload path
+  // already goes through, so this adds no second way to tear the window down.
+  dialog.addEventListener('keydown', event => { if (event.key === 'Escape') dialog.close(); });
   const populate = async () => {
     if (!alive || dialog.closed) return;
     const doc = dialog.document;
@@ -1425,7 +1479,14 @@ function openDialog(window) {
        keyboard reach and the accessible name come from the platform, exactly as
        the diagnostics layer's controls do. */
     const control = element('div', 'sdt-switch-row');
-    control.style.cssText = 'display: flex; gap: 12px; align-items: center; margin: 0 0 16px;';
+    // The salient state leads, in reading order, as everywhere else in this
+    // window — but "on" and "off" describe very different lengths of text, and
+    // a button placed right after that text moves sideways every time the
+    // reader clicks it (found live, testing v0.3.15). `space-between` pins the
+    // button to the row's fixed right edge regardless of how long the state
+    // text runs, rather than to wherever that text happens to end.
+    control.style.cssText = 'display: flex; gap: 12px; align-items: center; ' +
+      'justify-content: space-between; margin: 0 0 16px;';
     const state = element('span', 'sdt-switch-state');
     const toggle = element('button', 'sdt-switch');
     toggle.setAttribute('type', 'button');
@@ -1440,6 +1501,13 @@ function openDialog(window) {
       ['pre', 'sdt-failures']]);
     section('sdt-document-section', sdtText('section-active'), [
       ['pre', 'sdt-document-status'], ['progress', 'sdt-progress'], ['pre', 'sdt-document-estimate']]);
+    // The active-file line ordinarily wraps to two lines (a long filename), but
+    // briefly reads shorter — between one document settling and the next being
+    // admitted — and a box sized to its content collapses to one line and back,
+    // a visible blink at every handoff (found live, testing v0.3.15). Two lines
+    // at this element's own line-height, reserved regardless of which message
+    // is showing, so nothing here ever needs to shrink to grow again.
+    doc.getElementById('sdt-document-status').style.minHeight = '3em';
     // Layer 2, closed: the census account, and the native index's own statistics
     // below it. 0686 asked for exactly this — technical detail kept, moved below
     // primary progress. The fit behind the estimates used to sit here too and no
@@ -1448,31 +1516,33 @@ function openDialog(window) {
     const details = element('details', 'sdt-details');
     const summary = element('summary', 'sdt-details-title');
     summary.textContent = sdtText('details-title');
-    /* The two disclosures ticket 0742 moved out of the launch modal: what the
-       sitter does not control (the shared worker), and what turning it off does
-       and does not do. They were the third and fourth paragraphs of a ~90-word
-       consent box shown once, which is the format least likely to be read and
-       impossible to re-read; here they are readable at any time, beside the
-       switch they describe. Composed once at build rather than in render(),
-       which runs ten times a second over text that never changes. */
-    const disclosures = element('pre', 'sdt-disclosures');
-    disclosures.textContent = ['launch-worker', 'launch-disable']
-      .map(id => sdtText(id)).join('\n\n');
-    details.append(summary, disclosures, element('pre', 'sdt-diagnostics'));
+    details.append(summary, element('pre', 'sdt-diagnostics'));
     const indexDetails = element('details', 'sdt-index-details');
     const indexSummary = element('summary', 'sdt-index-title');
     indexSummary.textContent = sdtText('fulltext-title');
     indexDetails.append(indexSummary, element('pre', 'sdt-fulltext'));
     details.append(indexDetails);
-    // Layer 3, nested inside layer 2 and closed in its turn. Discoverable
-    // without being in the way, which is the whole of the author's request.
+    // Layer 3, nested inside layer 2 and closed in its turn, each discoverable
+    // without being in the way. About (the two consent-box disclosures ticket
+    // 0742 moved out of the launch modal, plus the version/compatibility
+    // lines) is its own disclosure, apart from the debug/log one below it —
+    // found live, testing v0.3.16: a reader opens one of these to learn what
+    // the add-on does or does not do, and the other to chase a problem, and a
+    // journal tail buried the former inside the latter.
+    details.append(buildSDTAbout(doc, element));
     details.append(buildSDTDiagnostics(doc, element));
     body.append(details);
     dialogs.add(dialog); render();
     try {
       const stats = await Zotero.Fulltext.getIndexStats();
-      if (alive && !dialog.closed) doc.getElementById('sdt-fulltext').textContent =
-        `${sdtText('fulltext-body')}\n${JSON.stringify(stats, null, 2)}`;
+      // A raw JSON dump reads as a debug printout, not as an account (found
+      // live, testing v0.3.15) — the same two-column table the census uses,
+      // over whatever fields this Zotero build's own statistics carry.
+      const rows = Object.entries(stats || {}).map(([key, value]) =>
+        [humanizeSDTKey(key), typeof value === 'number' ? sdtNumber(value) : String(value)]);
+      if (alive && !dialog.closed) doc.getElementById('sdt-fulltext').textContent = rows.length
+        ? `${sdtText('fulltext-body')}\n\n${formatSDTColumns(rows).join('\n')}`
+        : sdtText('fulltext-body');
     } catch (error) {
       if (alive && !dialog.closed) doc.getElementById('sdt-fulltext').textContent =
         sdtText('fulltext-unavailable', { error: String(error) });
