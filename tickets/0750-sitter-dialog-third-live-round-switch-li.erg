@@ -1,0 +1,72 @@
+%erg 0.1
+Title: sitter dialog third live round: switch line merge, census wording, table borders, scope heading
+Created: 2026-09-08
+Author: MinhHaDuong
+
+--- log ---
+2026-09-08T20:15Z MinhHaDuong created
+
+--- body ---
+## Context
+
+Third round of live findings, testing v0.3.18 right after install. All
+wording, layout, and rendering-cost findings — no correctness bugs this
+round.
+
+## Findings and fixes
+
+1. **The switch-state line and the raw "State: {phase}" line were separate
+   and disconnected.** Merged into one sentence: "Indexing is on/off." plus
+   a phase-specific clause. Every reachable phase gets a plain-language
+   second half (idle, scanning, extracting, an unexpected error, or a
+   resource-blocked reason reusing the toolbar tooltip's own wording so the
+   two never say the same fact two different ways). The raw phase name moved
+   to Technical diagnostics ("Internal phase: {phase}"), for debugging.
+2. **"Census: {scanned} / {total}"** reworded to "Scanned {scanned}
+   attachments out of {total}."
+3. **The census table had no visual separation from the readings above it,
+   and no rule setting the total off from the category rows it sums.** The
+   table now carries margin above and below; the total row's cells get a
+   top border, applied only when there is more than one row.
+4. **The "Overall progress" heading grew a library-name list that wrapped
+   five lines deep on a narrow window with three long library names.** Moved
+   the scope out of the bold `<legend>` (frozen at build time, message id
+   alone now) into a plain line of its own (`sdt-scope`), which wraps like
+   any other sentence and is recomposed on every render exactly as before.
+5. **The Details layer visibly blinked between documents.** `renderState()`
+   rebuilt the whole census `<table>` via `replaceChildren` on every 100 ms
+   tick regardless of whether the account had actually changed — almost
+   always, since a real document transition is a small minority of ticks.
+   Memoized per dialog (a signature stored on the dialog object, since two
+   open windows must each fill their own table on first render even if they
+   happen to agree) and skipped when the account is unchanged.
+
+## Test
+
+- `tests/sdt_sitter_dialog.mjs`: every reachable phase's merged switch line,
+  driven through `describeSDTSwitchLine`; the total row's border and the
+  table's margin; the internal-phase debug line; the scope line's new
+  location and the heading's now-static text, with a mock `Libraries.getAll`
+  added to exercise it; node-identity proof that the census table only
+  rebuilds on a real change (verified red against the pre-fix code by
+  temporarily disabling the memoization guard, and separately for the scope
+  fix via `git stash`).
+- `tests/test_sdt_sitter.py`: three tests updated for the moved scope
+  line and its own `_site` anchors; one `UI_SITES` entry retargeted.
+
+## Verification
+
+- [x] All four `.mjs` suites pass
+- [x] `tests/test_sdt_sitter.py`, `tests/test_sitter_host_apis.py` pass
+- [x] `make check-fast` — 1311 passed, 1 pre-existing environmental failure
+      (podman rootless-container store, unrelated, documented this session)
+- [x] Manifest/update.json bumped 0.3.18 -> 0.3.19, version guard clean
+- [x] Both the memoization fix and the scope-line move verified with a
+      positive control (red against the pre-fix behavior)
+
+## Exit criteria
+
+The switch line names the phase in one sentence for every reachable phase.
+The census table carries visible separation and a total rule, without
+rebuilding on ticks where nothing changed. The scope line wraps normally
+regardless of how many libraries are named.
