@@ -2,6 +2,7 @@
 Title: bootstrap.js cannot be loaded twice into one scope
 Created: 2026-09-07
 Author: sim
+Closed: autoclosed — PR #444
 
 --- log ---
 2026-09-06T22:34Z sim created
@@ -9,6 +10,7 @@ Author: sim
 2026-09-08T04:50Z claude note Applied the fix unconditionally rather than gating it on Action 1's live answer: every top-level `const`/`let` binding in bootstrap.js is now `var` (closeJournalled, BUTTON, SWEEP_INTERVAL_MS, IDLE_SWEEP_INTERVAL_MS, SWEEP_TOAST_MS, DEBUG_PREF, MIN_FREE_MEMORY, MIN_FREE_DISK, SHUTDOWN_REASONS, generation was already var, lastCompleted, completionBlinkUntil, SDT_TEXT, CLIPBOARD_OMITTED). The conversion is safe and free either way, so there is no reason to wait on the live-Zotero answer to apply it -- only the JUSTIFICATION differs by branch, not the diff. Added the double-load arm to tests/sdt_sitter_bootstrap.mjs per the Test section; verified it reddens against the pre-fix file (git HEAD) with the exact `closeJournalled` SyntaxError the ticket names, and greens against the fixed file. Bumped the payload to 0.3.3 (manifest.json + update.json, check_sitter_version.py's guard) since bootstrap.js changed. `make check` passes (1277 passed, 15 skipped).
 2026-09-08T04:50Z claude note Action 1 (does Zotero reuse the scope on disable/enable without a restart) was NOT settled live. Attempting it surfaced a bigger, unrelated blocker, recorded in ticket 0727's log: bench/sdt_sitter_install.py's persistent-install method (drop a bare XPI at <profile>/extensions/<id>.xpi) did not register in this profile's extensions.json even after a full Zotero restart, so the disable/enable toggle test never got a build to toggle. This ticket's exit criteria are satisfied via its own OR clause: the code is converted and the double-load is guarded, independent of the live answer.
 
+2026-09-08T05:01Z sim closed — autoclosed — PR #444
 --- body ---
 ## Context
 
