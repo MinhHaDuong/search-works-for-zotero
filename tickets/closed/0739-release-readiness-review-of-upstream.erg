@@ -2,6 +2,7 @@
 Title: Release-readiness review of upstream v1.16.0 — triage and staged filings
 Created: 2026-09-08
 Author: sim
+Closed: five issues, two PRs and a six-finding private report filed upstream; #67-#73, GHSA-wm62-f2g5-j33x
 
 --- log ---
 2026-09-08T07:04Z sim created
@@ -16,6 +17,10 @@ Author: sim
 2026-09-08T07:34Z sim note PR2 SENT BACK WITH A BLOCKING REGRESSION its own author could not have seen from the states it measured. The new gate keys on `hasEmbedder` = `Boolean(embedder) && !embedderError` (`index-manager.ts:576-578`), and `embedderError` is sticky — cleared only by `build`, `buildIncremental` and `updateIncremental`, never by a later success — while `query()` keys on the provider object (`:2378`) and therefore retries. Measured on both trees with a flaky embedder: base recovers with 2 hits and one embed call, patched returns an error with zero embed calls and stays dead until an index job runs. None of upstream's 1253 tests pins that path, which is why the patched suite was green with the regression in it
 2026-09-08T07:34Z sim note FIVE ISSUE DRAFTS WRITTEN AND RE-VERIFIED, none retracted. Eleven line references corrected against the seat reports, all cosmetic. One finding got materially stronger under checking: for the full-text catch-up, `crawlOptions` ALREADY supplies `fulltextFailures` from `opened.readFailures()` (`build.ts:566`) and spreads it into `updateIncremental` (`:524`) — the update lane simply never reads it, while `buildIncremental` does at `:1412-1413`. That turns "add a signal" into "consult the signal you already pass". One factual claim was withdrawn: the dependencies seat said a grep for `citationstyles.org` returns nothing; it does not, `README.md:49` and `:115` both link it, so the citeproc draft was narrowed to what is genuinely absent
 2026-09-08T07:34Z sim note THE SAME DEFECT APPEARED IN A THIRD SEAT, which makes it the pattern of this round rather than an accident: the safety seat's test sketches carried `FAILS today` annotations, and no test ran in that session — the same shape as the correctness seat's "sibling test is red today". Both were caught before filing and both are carried as acceptance criteria to be written, never as results. A seat that cannot execute must not write in the past tense, and the cheap guard is to ask of every past-tense claim which command produced it
+2026-09-08T07:39Z sim note PR2 REVISED, AND IT REFUSED BOTH ROUTES I OFFERED, on measurement rather than taste. I relayed the reviewer's two options — gate on `embedderConfigured === 'off'`, or move the check after `query()` — and the author took neither. Both key on embedder HEALTH; it gated on `embedderId` (`backend.ts:604`, undefined exactly when no provider exists), which is the same thing `query()` tests at `:2375`, so it means "no query can ever be embedded here" rather than "the provider failed once and the flag is stuck". It then constructed the state that condemns the post-query route: `VectorStore.search` filters `score > 0`, so a query that embeds successfully and honestly matches nothing is reachable, and after a blip that query returns `embedCalls=1, hits=0, embedderActive=false` — the post-query gate would refuse a query it had just embedded. That also removed the need for the `hits.length === 0` proxy I had asked it to comment as a stand-in. The regression was worse than the review found: after the refusal fired, `auto` on the same index still embedded and returned hits, so the patched tool was refusing a mode using an embedder it was simultaneously using elsewhere
+2026-09-08T07:39Z sim note THE RECOVERY TEST IS GREEN ON BASE AND SAYS SO. It is a guard, not a red step, and its positive control is the REJECTED revision `04350e2`, where it fails on the spurious `isError`. Without that control it would be exactly the vacuous kind this project keeps catching — green everywhere, proving nothing. Recorded because it is the first time in this round a seat supplied its own control for a test that could not have a red step
+2026-09-08T07:39Z sim note ALL FILED, on the author's instruction, and read back from the forge rather than trusted from the create calls. Public issues oscardvs/zoteus#67 (full-text catch-up, #63's sibling), #68 (two-process stamp), #69 (pdfjs Node floor), #70 (citeproc attribution), #71 (untrusted library content). Pull requests #72 (vector codes) and #73 (semantic refusal), both from branches on `MinhHaDuong/zoteus`. Private report GHSA-wm62-f2g5-j33x, state `triage`, carrying six findings — the three held since 2026-09-07 plus the SSRF pair and the `fly.toml` metrics exposure. The author overrode my proposed pacing (file 1 and 2, space the rest) and my suggestion to consider routing #71 privately; both were proposals, and the instruction was to file everything
+2026-09-08T07:39Z sim closed — five issues, two PRs and a six-finding private report filed upstream; #67-#73, GHSA-wm62-f2g5-j33x
 --- body ---
 
 ## Context
@@ -80,7 +85,7 @@ Each carries a PR body draft beside it.
 - [x] Seat reports preserved in the repository rather than left in a scratchpad
 - [x] The three load-bearing findings re-verified against source by hand
 - [x] PR1 and PR2 prepared red-then-green with patches that apply cleanly
-- [ ] Author's send decision recorded, and each finding routed public or private
+- [x] Author's send decision recorded, and each finding routed public or private
 - [x] `make check` and `./tickets/erg check tickets/` pass
 
 ## Boundaries

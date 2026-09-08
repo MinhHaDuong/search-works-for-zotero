@@ -1,18 +1,26 @@
-From dcaf67d28bc96f02bec74d7a5c36f8380090a6cc Mon Sep 17 00:00:00 2001
+From df42626bb6192dbe51fc1a34bd5a3dc95167c45d Mon Sep 17 00:00:00 2001
 From: Minh Ha-Duong <minh.haduong@gmail.com>
-Date: Tue, 8 Sep 2026 08:52:01 +0200
+Date: Tue, 8 Sep 2026 09:33:23 +0200
 Subject: [PATCH 1/2] test(search): mode:"semantic" over vectors with no
  embedder must refuse, not answer nothing
 
+Pins the two states in which semantic mode returns an empty page it cannot
+justify, and the two it must go on serving. The recovery case is green before
+the fix as well as after: it is not a red step but a guard on the one behaviour
+a refusal keyed on embedder *health* rather than embedder *presence* would
+break, and upstream pins it nowhere.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JjUPSUzz4wLjNTNPLSLzir
 ---
- tests/features/embedder-degradation.test.ts | 66 +++++++++++++++++++++
- 1 file changed, 66 insertions(+)
+ tests/features/embedder-degradation.test.ts | 116 ++++++++++++++++++++
+ 1 file changed, 116 insertions(+)
 
 diff --git a/tests/features/embedder-degradation.test.ts b/tests/features/embedder-degradation.test.ts
-index 33a1824..538c2c3 100644
+index 33a1824..307e19e 100644
 --- a/tests/features/embedder-degradation.test.ts
 +++ b/tests/features/embedder-degradation.test.ts
-@@ -194,6 +194,72 @@ describe('zotero_semantic_search with no vectors', () => {
+@@ -194,6 +194,122 @@ describe('zotero_semantic_search with no vectors', () => {
    });
  });
  
@@ -33,10 +41,10 @@ index 33a1824..538c2c3 100644
 +    };
 +    const built = new MemorySearchIndex({ embedder, configured: 'openai', logger: silentLogger });
 +    await built.build(items);
++    // The provenance stamp is kept, not stripped: a server with no embedder of its own has
++    // nothing to compare it against, so reconcileVectorProvenance leaves the rows alone and
++    // vectorEmbedderId still names what produced them — which is what the message quotes.
 +    const saved = JSON.parse(JSON.stringify(built.toJSON()));
-+    // Provenance is what the vectors were built with; a server with no embedder of its own
-+    // has nothing to compare it against, so the rows survive the load either way.
-+    delete saved.embedderId;
 +
 +    const search = new MemorySearchIndex({ embedder: null, configured, unavailable, logger: silentLogger });
 +    search.loadFromJSON(saved);
@@ -56,6 +64,9 @@ index 33a1824..538c2c3 100644
 +    expect(res.content[0].text).not.toMatch(/^No matches/);
 +    expect(res.content[0].text).toMatch(/ZOTEUS_EMBEDDINGS/);
 +    expect(res.content[0].text).toMatch(/mode:"keyword"/);
++    // The index knows what produced the vectors it is still holding; the way back is to
++    // that provider, not to any provider, so the message says which.
++    expect(res.content[0].text).toContain('openai:text-embedding-3-small');
 +    expect(res.structuredContent?.hits).toEqual([]);
 +    expect(res.structuredContent?.embedderConfigured).toBe('off');
 +    expect(res.structuredContent?.embedderActive).toBe(false);
@@ -80,6 +91,53 @@ index 33a1824..538c2c3 100644
 +      expect((res.structuredContent?.hits as any[]).length).toBeGreaterThan(0);
 +    }
 +  });
++
++  /**
++   * The refusal must not fire on a provider that is merely *unhealthy*, and the two are
++   * easy to conflate: `embedderActive` goes false on the first query-time failure and stays
++   * false until the next build or update, because `noteEmbedFailure` records only the first
++   * edge and nothing clears it on a later success. `query()` does not consult that flag —
++   * it keys on the provider object — so it re-embeds and ranks again the moment the
++   * provider recovers. A refusal keyed on the flag would convert one rate-limit blip into a
++   * mode that stays dead until the user rebuilds the index, while `auto` went on embedding
++   * the same query successfully.
++   *
++   * This test passes before the change as well as after: it is not the red step, it is the
++   * guard on the one behaviour the fix could plausibly break, and nothing upstream pinned
++   * it.
++   */
++  it('keeps ranking after a transient embedder failure, without an index rebuild', async () => {
++    let failing = false;
++    let embedCalls = 0;
++    const flaky: EmbeddingProvider = {
++      name: 'openai',
++      model: 'text-embedding-3-small',
++      embed: async (texts) => {
++        embedCalls += 1;
++        if (failing) throw new Error('429 rate limited');
++        return texts.map(() => [1, 0, 0]);
++      },
++    };
++    const search = new MemorySearchIndex({ embedder: flaky, configured: 'openai', logger: silentLogger });
++    await search.build(items);
++
++    failing = true;
++    const during = await semanticSearch.handler({ q: 'deep learning', mode: 'semantic' }, { search } as any);
++    // The failing query itself is not refused: the notice is what reports it, as before.
++    expect(during.isError).toBeUndefined();
++    expect(during.content[0].text).toMatch(/Semantic ranking is OFF/);
++    expect(search.embedderActive).toBe(false); // and the flag is now stuck false
++
++    failing = false;
++    const before = embedCalls;
++    const after = await semanticSearch.handler({ q: 'deep learning', mode: 'semantic' }, { search } as any);
++
++    expect(after.isError).toBeUndefined();
++    expect((after.structuredContent?.hits as any[]).length).toBeGreaterThan(0);
++    // Ranked because the query was embedded again, not because a keyword ranker answered:
++    // in mode:"semantic" the keyword side is closed, so a hit here can only be a vector hit.
++    expect(embedCalls).toBe(before + 1);
++  });
 +});
 +
  describe('local-embedding diagnostics name the path that was searched (#38)', () => {
@@ -89,76 +147,117 @@ index 33a1824..538c2c3 100644
 2.53.0
 
 
-From 04350e2813cd050013812cd3d4b2eded3f3f9333 Mon Sep 17 00:00:00 2001
+From 9f25f0cf4185596aaaa21f4f6fc3c2d66d1eaabe Mon Sep 17 00:00:00 2001
 From: Minh Ha-Duong <minh.haduong@gmail.com>
-Date: Tue, 8 Sep 2026 08:59:15 +0200
-Subject: [PATCH 2/2] fix(search): refuse mode:"semantic" when nothing can
- embed the query, not just when vectors are missing
+Date: Tue, 8 Sep 2026 09:33:49 +0200
+Subject: [PATCH 2/2] fix(search): refuse mode:"semantic" when no provider can
+ embed the query (#7)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Semantic ranking needs both ends of the comparison — vectors in the index, and
-an embedder to turn the query into one — but the refusal only tested the first.
-An index built with an embedder and reopened with ZOTEUS_EMBEDDINGS=off keeps
-its vectors: reconcileVectorProvenance has no current identity to compare them
-against, so they are unusable rather than known-wrong and stay on the rows. That
-makes hasVectors true, so the 0-vector refusal never fires; query() then closes
-the keyword ranker (mode !== 'semantic' is false) and never builds a query
-vector (opts.embedder is undefined), and returns []. The tool renders that as a
-bare `No matches for "…"`, which is exactly the #7 failure mode the refusal
-exists to prevent — an empty page indistinguishable from a library that holds
-nothing on the subject. Nothing else covers it either: embedderNotice is
-deliberately silent when embeddings were switched off on purpose, so the one
-sentence that would have explained the empty page is suppressed by design.
+Semantic ranking needs both ends of the comparison — vectors in the index, and a
+provider to turn the query into one — but the refusal only tested the first.
 
-The gate now tests hasVectors AND hasEmbedder, and the message names which half
-is missing. The 0-vector wording is unchanged; the new branch says how many
-vectors are stranded and either points at ZOTEUS_EMBEDDINGS or names the
-configured provider and why it is not running. It is the same refusal an index
-with no vectors and a downed embedder already got, which differed only in
-whether the index happened to hold rows the query could not reach.
+reconcileVectorProvenance drops stored vectors only when a current embedder
+identity disagrees with the stored one, so with ZOTEUS_EMBEDDINGS=off there is
+nothing to disagree and the rows are kept: unusable, not known-wrong. hasVectors
+therefore stays true, the 0-vector refusal never fires, and query() closes the
+keyword ranker (mode !== 'semantic' is false) and builds no query vector
+(opts.embedder is undefined), returning []. The tool renders that as a bare
+`No matches for "…"`, indistinguishable from a library that holds nothing on the
+subject — the #7 failure mode the refusal exists to prevent. Nothing else covers
+it: embedderNotice is deliberately silent when a provider was switched off on
+purpose, so the one sentence that would have explained the empty page is
+suppressed by design.
 
-Unaffected: "auto" and "keyword", which do not need the query embedded, and a
-provider that fails during the query itself — embedderActive is still true when
-the gate runs, and the existing post-query notice reports it.
+The gate now also requires embedderId, and the choice of that flag over
+hasEmbedder is the substance of this commit. embedderId is undefined exactly
+when there is no provider object, which is what query() itself keys on, so it
+marks the case where no query can ever be embedded. hasEmbedder is
+embedderActive, which additionally goes false on the first query-time failure
+and is sticky: noteEmbedFailure records only the first edge, and embedderError
+is cleared solely by build/buildIncremental/updateIncremental, never by a later
+success. query() ignores the flag and keeps using the provider, so after a 429
+the next semantic query re-embeds and ranks normally. Refusing on hasEmbedder
+would convert one rate-limit blip into a mode that stays dead until the user
+rebuilds the index — while auto went on embedding the same query successfully.
+A transient failure keeps being reported by embedderNotice on the query that
+hit it, which is the existing contract.
+
+The 0-vector wording is unchanged. The new branch says how many vectors are
+stranded and either names the provider that built them (vectorEmbedderId
+survives the switch-off) or names the configured provider and why it is not
+active. It is the same refusal an index with no vectors and no provider already
+got, which differed only in whether the index happened to hold rows the query
+could not reach.
 
 Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01JjUPSUzz4wLjNTNPLSLzir
 ---
- CHANGELOG.md                 | 16 ++++++++++++++++
- src/tools/semantic-search.ts | 26 +++++++++++++++++++-------
- 2 files changed, 35 insertions(+), 7 deletions(-)
+ CHANGELOG.md                 | 19 ++++++++++++++++
+ docs/semantic-search.md      | 15 ++++++++-----
+ src/tools/semantic-search.ts | 43 ++++++++++++++++++++++++++++++------
+ 3 files changed, 65 insertions(+), 12 deletions(-)
 
 diff --git a/CHANGELOG.md b/CHANGELOG.md
-index 2407308..80bf61a 100644
+index 2407308..1d2c207 100644
 --- a/CHANGELOG.md
 +++ b/CHANGELOG.md
-@@ -4,6 +4,22 @@ All notable changes to Zoteus are documented here. The format is based on
+@@ -4,6 +4,25 @@ All notable changes to Zoteus are documented here. The format is based on
  [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to
  [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
  
 +## [Unreleased]
 +
 +### Fixed
-+- **`mode:"semantic"` no longer answers "No matches" when nothing can embed the query.**
-+  Semantic ranking needs both ends of the comparison — vectors in the index, and an
-+  embedder to turn the query into one — but the refusal only tested the first. An index
-+  built with an embedder and reopened with `ZOTEUS_EMBEDDINGS=off` keeps its vectors (they
-+  are unusable, not known-wrong), so `hasVectors` stayed true, the refusal did not fire,
-+  and the query fell through to a ranker with no query vector and a keyword ranker closed
-+  by `mode:"semantic"`. The result was a bare `No matches for "…"`, indistinguishable from
-+  a library that genuinely holds nothing on the subject; `embedderNotice` is deliberately
-+  silent about a provider switched off on purpose, so nothing else explained it either.
-+  Semantic mode now refuses whenever there is no embedder, names which of the two halves
-+  is missing, and points at `mode:"keyword"`. `auto` and `keyword` are unaffected, and a
-+  provider that fails mid-query still reports itself through the existing notice.
++- **`mode:"semantic"` no longer answers "No matches" when there is no embedder to turn the
++  query into a vector (#7).** Semantic ranking needs both ends of the comparison — vectors
++  in the index, and a provider to embed the query — but the refusal only tested the first.
++  An index built with an embedder and reopened with `ZOTEUS_EMBEDDINGS=off` keeps its
++  vectors (they are unusable, not known-wrong), so `hasVectors` stayed true, the refusal did
++  not fire, and the query fell through to a vector ranker with no query vector and a keyword
++  ranker closed by `mode:"semantic"`. The result was a bare `No matches for "…"`,
++  indistinguishable from a library that genuinely holds nothing on the subject;
++  `embedderNotice` is deliberately silent about a provider switched off on purpose, so
++  nothing else explained it either. Semantic mode now refuses whenever no provider is
++  configured at all, names which of the two halves is missing, and — when the vectors carry
++  their provenance — names the provider that built them. `auto` and `keyword` are
++  unaffected. So is a provider that is configured and merely failed: it is still reported
++  through the existing notice, and the next query ranks again as soon as it recovers,
++  without an index rebuild.
 +
  ## [1.16.0] - 2026-09-07
  
  ### Fixed
+diff --git a/docs/semantic-search.md b/docs/semantic-search.md
+index dcb6345..4bd5c0f 100644
+--- a/docs/semantic-search.md
++++ b/docs/semantic-search.md
+@@ -107,11 +107,16 @@ summary, because a build whose artifact never reached disk still reports `state:
+ - `q` — natural-language query. `mode`: `auto` (hybrid, default), `keyword` (BM25), or `semantic` (vector).
+ - Returns ranked items with a snippet and fused score. The index is built automatically on first use (see `auto_build` below), or ahead of time with `zotero_index`.
+ - `auto_build` (default `true`) — when the index is empty the tool starts a background build itself and tells you to poll `zotero_index` action:"status" until `done`, then retry, instead of returning a bare error; pass `auto_build: false` to opt out.
+-- `mode: "semantic"` ranks by vectors alone, so with **0 vectors** in the index it returns an
+-  explicit error naming the cause (missing embedder, or an index built before one was
+-  available) rather than an empty hit list, which would be indistinguishable from "your
+-  library has nothing on this". `auto` and `keyword` keep working on BM25; `auto` appends a
+-  one-line notice when vector ranking is off.
++- `mode: "semantic"` ranks by vectors alone, which needs both ends of the comparison:
++  vectors in the index, and an embedding provider to turn the query into one. With **0
++  vectors**, or with **no provider at all** (`ZOTEUS_EMBEDDINGS=off`, or one that never
++  started), it returns an explicit error naming the cause rather than an empty hit list,
++  which would be indistinguishable from "your library has nothing on this" — an index built
++  with vectors and reopened with embeddings off keeps those vectors, so the 0-vector test
++  alone would let that case through silently. A provider that is configured and merely
++  *failed* is not refused: the one-line notice reports it, and the next query ranks again as
++  soon as it recovers, with no rebuild. `auto` and `keyword` keep working on BM25; `auto`
++  appends a one-line notice when vector ranking is off.
+ - Snippets are query-centred and trimmed to word boundaries: the excerpt is positioned around the first query token hit rather than always taken from the document head, so the relevant phrase appears in the snippet even when it occurs deep in the abstract.
+ - A hit whose snippet came from a PDF body rather than the item's metadata is marked
+   `source: "fulltext"`, so the caller knows the passage is quotable and can fetch it with
 diff --git a/src/tools/semantic-search.ts b/src/tools/semantic-search.ts
-index 6be39e2..48a971a 100644
+index 6be39e2..34176e8 100644
 --- a/src/tools/semantic-search.ts
 +++ b/src/tools/semantic-search.ts
 @@ -17,7 +17,7 @@ const semanticSearch: ToolDefinition = {
@@ -170,7 +269,7 @@ index 6be39e2..48a971a 100644
    inputSchema: {
      q: z.string().min(1).describe('Natural-language query.'),
      limit: z.number().int().min(1).max(50).optional().describe('Max results (default 10).'),
-@@ -93,26 +93,38 @@ const semanticSearch: ToolDefinition = {
+@@ -93,26 +93,55 @@ const semanticSearch: ToolDefinition = {
        };
      }
      const status = ctx.search.buildStatus();
@@ -190,7 +289,20 @@ index 6be39e2..48a971a 100644
      // the point. Falling through lets query() refuse with the file and the command.
 -    if (args.mode === 'semantic' && !ctx.search.hasVectors && !ctx.search.storeFault) {
 -      const why =
-+    if (args.mode === 'semantic' && !(ctx.search.hasVectors && ctx.search.hasEmbedder) && !ctx.search.storeFault) {
++    //
++    // `embedderId`, not `hasEmbedder`, is the right test for the second half, and the
++    // difference is load-bearing. `embedderId` is undefined exactly when there is no
++    // provider object — which is what query() itself keys on (`this.opts.embedder`), so it
++    // is precisely the case where no query can ever be embedded. `hasEmbedder` is
++    // `embedderActive`, which ALSO goes false on the first query-time failure and stays
++    // false until the next build/update (noteEmbedFailure records the first edge;
++    // embedderError is cleared only by an index job). query() keeps trying the provider
++    // regardless and ranks again the moment it recovers, so refusing on `hasEmbedder`
++    // would turn one rate-limit blip into a mode that stays dead until the user rebuilds
++    // — while `auto` went on embedding the same query successfully. A transient failure is
++    // reported by embedderNotice on the query that hit it, which is the existing contract.
++    const canEmbedQuery = ctx.search.embedderId !== undefined;
++    if (args.mode === 'semantic' && !(ctx.search.hasVectors && canEmbedQuery) && !ctx.search.storeFault) {
 +      const noVectors =
          // A model switch is the one cause that names its own remedy, so it wins over the
          // generic "no vectors yet" line.
@@ -198,10 +310,14 @@ index 6be39e2..48a971a 100644
          (ctx.search.embedderActive
            ? 'The index holds no vectors yet. Rebuild it with zotero_index action:"build" (an index built while the embedder was unavailable stays keyword-only until rebuilt).'
            : `No vectors exist because the embedder is not active: ${ctx.search.embedderReason ?? 'unavailable'}`);
++      // The index knows which provider produced the vectors it is holding, and that
++      // survives the switch-off, so name it rather than making the user go and find out.
++      const builtWith = ctx.search.vectorEmbedderId;
 +      const noEmbedder =
 +        status.embedderConfigured === 'off'
-+          ? 'Embeddings are switched off (ZOTEUS_EMBEDDINGS=off), so the stored vectors have nothing to be ranked against. Set ZOTEUS_EMBEDDINGS back to the provider that built them to rank by meaning again.'
-+          : `The configured ${status.embedderConfigured} embedder is not running: ${ctx.search.embedderReason ?? 'unavailable'}`;
++          ? 'Embeddings are switched off (ZOTEUS_EMBEDDINGS=off), so the stored vectors have nothing to be ranked ' +
++            `against. Set ZOTEUS_EMBEDDINGS back to ${builtWith ? `the provider that built them (${builtWith})` : 'an embedding provider'} to rank by meaning again.`
++          : `The configured ${status.embedderConfigured} embedder is not active: ${ctx.search.embedderReason ?? 'unavailable'}`;
 +      const cause = ctx.search.hasVectors
 +        ? `this index holds ${status.vectors} vectors but nothing can embed the query. ${noEmbedder}`
 +        : `this index has 0 vectors. ${noVectors}`;
