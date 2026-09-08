@@ -71,9 +71,10 @@ undocumented gets trusted past it:
   two readings, on the argument that they fail on disjoint inputs — and a
   fuzzer found, on its second trial, a line where they desynchronise
   independently and agree on the same wrong answer. A parser would settle it;
-  this project depends on none (``requirements-check.txt`` names ``ruff`` and
-  ``pytest``), and one added for an auxiliary guard costs more than the false
-  red it buys. Do not attempt a fourth heuristic — see PR #461.
+  this project depends on none — ``requirements-check.txt`` names ``ruff``,
+  ``pytest`` and ``numpy``, and neither ``esprima`` nor ``tree_sitter`` is
+  importable here — and one added for an auxiliary guard costs more than the
+  false red it buys. Do not attempt a fourth heuristic — see PR #461.
 * **A directory it cannot enter.** ``Path.rglob`` drops an unreadable directory
   silently — no entry, no error, no warning — so a subtree under ``plugins/``
   with the wrong mode is not scanned and nothing says so. An unreadable *file*
