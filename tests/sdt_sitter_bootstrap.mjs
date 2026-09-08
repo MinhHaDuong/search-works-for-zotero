@@ -559,7 +559,7 @@ await test('the spinner does not rename the button, and reduced motion stops it 
   const animated = await arm(false);
   assert.equal(animated.getAttribute('label'), `${SPIN[1]} Index 0 %`);
   assert.equal(animated.getAttribute('aria-label'), 'Index 0 %',
-    'the spinner frame reached the accessible name, which is then rewritten four times a second');
+    'the spinner frame reached the accessible name, which then changes every 140 ms');
 
   const still = await arm(true);
   assert.equal(still.getAttribute('label'), 'Index 0 %',
@@ -589,6 +589,52 @@ await test('reduced motion stops the completion blink', async () => {
   const still = await arm(true);
   assert.equal(still.style.properties.get('opacity'), '1',
     'the button is blinked under prefers-reduced-motion: reduce');
+});
+
+await test('reduced motion stops the census pulse', async () => {
+  // The third animation, and the one the other two scenarios structurally
+  // cannot see: `spinning` and `blinking` are each gated on the preference
+  // separately, so deleting the census arm of the opacity expression leaves
+  // both of them green. Driven by putting the state in the census phase, which
+  // is what the pulse is keyed on.
+  const arm = async reducedMotion => {
+    const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')], reducedMotion });
+    await harness.start();
+    harness.context.sitter.state.phase = 'census';
+    // sin(now / 450) at a quarter turn: the pulse is at its trough, which is a
+    // value no other branch of the expression can produce.
+    harness.clock.mono = Math.round(450 * (3 * Math.PI / 2));
+    harness.context.render();
+    return harness.windows[0].document.getElementById('sdt-pack-sitter-button');
+  };
+
+  const animated = await arm(false);
+  assert.equal(Number(animated.style.properties.get('opacity')).toFixed(2), '0.55',
+    'the census pulse does not fade, so the arm below would pass against anything');
+
+  const still = await arm(true);
+  assert.equal(still.style.properties.get('opacity'), '1',
+    'the button is pulsed under prefers-reduced-motion: reduce');
+});
+
+await test('a window that throws from matchMedia leaves the render loop running', async () => {
+  // The guard in prefersSDTReducedMotion, held to a throw rather than assumed
+  // to hold against one. A docshell going away throws from matchMedia, and this
+  // is read once per button on every one of the loop's ten passes a second: an
+  // escape here is not a stuttering animation, it is the sitter stopping.
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  await harness.start();
+  const window = harness.windows[0];
+  window.matchMedia = () => { throw new Error('the docshell is going away'); };
+  harness.context.render();
+
+  const button = window.document.getElementById('sdt-pack-sitter-button');
+  assert.equal(button.getAttribute('aria-label'), 'Index 100 %', 'the render pass did not complete');
+  // Defaulting to motion, not to stillness: a reading that could not be taken
+  // is not a preference expressed, and the render() wrapper stays silent
+  // because nothing escaped it.
+  assert.equal(harness.records('render-error').length, 0,
+    'the throw reached the render loop, which then records it and stops re-trying');
 });
 
 /* --------------------------------------------------------------------------

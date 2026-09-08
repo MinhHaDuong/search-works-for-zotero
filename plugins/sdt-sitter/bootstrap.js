@@ -933,18 +933,6 @@ function buildSDTDiagnostics(doc, element) {
   return group;
 }
 
-/* Ticket 0702. renderState() runs unguarded DOM work over `dialogs`, and it is
-   reached from publish(), which the scheduler calls from inside its own finally.
-   A throw there — a dead XUL dialog after its window closed, getElementById
-   returning null mid-render — rejected sitter.sweep(), so the wrapper that
-   reschedules the next sweep never ran and the sitter stopped for the rest of
-   the session while `phase` still read 'waiting'. Indistinguishable from working.
-
-   The failure is recorded on its transition, not on its tick: the pulse calls
-   this at 10 Hz, and a persistent broken dialog emitting every time would evict
-   the whole 2000-record ring in under four minutes — destroying exactly the
-   evidence ticket 0703 keeps. The layer above widens what runs under it, which
-   is the reason this guard is worth more now than when it was written. */
 /* Whether the reader has asked the platform for less motion (ticket 0686).
 
    Three things move in the toolbar strip — the spinner, the census pulse and
@@ -960,8 +948,12 @@ function buildSDTDiagnostics(doc, element) {
    because inside the render loop that node is the only handle on its window
    there is. Guarded and defaulting to motion, because this runs ten times a
    second: a window whose docshell is going away throws from `matchMedia`, and
-   an unguarded throw here is not a stuttering button, it is the sitter
-   (the render() wrapper above records that class rather than surviving it). */
+   an unguarded throw here would take out the render loop rather than one
+   frame of an animation — the class the render() wrapper below records. The
+   guard is silent, deliberately: it fires during teardown, on every button, at
+   10 Hz, and journalling it would evict the ring the wrapper's own record
+   lives in. A scenario in tests/sdt_sitter_bootstrap.mjs makes matchMedia
+   throw, so this catch has been seen to hold rather than assumed to. */
 function prefersSDTReducedMotion(node) {
   try {
     return node?.ownerDocument?.defaultView
@@ -969,6 +961,18 @@ function prefersSDTReducedMotion(node) {
   } catch (_error) { return false; }
 }
 
+/* Ticket 0702. renderState() runs unguarded DOM work over `dialogs`, and it is
+   reached from publish(), which the scheduler calls from inside its own finally.
+   A throw there — a dead XUL dialog after its window closed, getElementById
+   returning null mid-render — rejected sitter.sweep(), so the wrapper that
+   reschedules the next sweep never ran and the sitter stopped for the rest of
+   the session while `phase` still read 'waiting'. Indistinguishable from working.
+
+   The failure is recorded on its transition, not on its tick: the pulse calls
+   this at 10 Hz, and a persistent broken dialog emitting every time would evict
+   the whole 2000-record ring in under four minutes — destroying exactly the
+   evidence ticket 0703 keeps. The layer above widens what runs under it, which
+   is the reason this guard is worth more now than when it was written. */
 function render() {
   try {
     renderState();
@@ -1005,9 +1009,13 @@ function renderState() {
     button.setAttribute('label', spinning
       ? `${['◐', '◓', '◑', '◒'][Math.floor(now / 140) % 4]} ${coverageLabel}` : coverageLabel);
     // The name a screen reader speaks, pinned to the figure alone. In XUL the
-    // `label` IS the accessible name, and the spinner rewrites it four times a
-    // second — a reader following the button hears a new name at 7 Hz and
-    // learns nothing from any of them. `aria-label` overrides that name, and
+    // `label` IS the accessible name, and the frame advances every 140 ms — so
+    // the spinner rewrites that name a little over seven times a second, and a
+    // reader following the button learns nothing from any of them. Whether
+    // `aria-label` in fact wins the accname computation on a XUL toolbarbutton,
+    // and whether Gecko re-announces on an identical-value write at 10 Hz, are
+    // readings for the Accessibility Inspector in a live window; neither is
+    // established here. `aria-label` overrides that name, and
     // it changes only when the coverage does, which is the one thing here
     // worth announcing (ticket 0686).
     button.setAttribute('aria-label', coverageLabel);

@@ -32,7 +32,7 @@ bars, system foreground/background colors and separate native fulltext stats.
   name and respect reduced-motion preference. Built in ticket 0686: `aria-label`
   now pins the accessible name to the coverage figure alone, and the spinner,
   the census pulse and the completion blink all stop under
-  `prefers-reduced-motion: reduce`. Pinned by two scenarios in
+  `prefers-reduced-motion: reduce`. One scenario per animation in
   `tests/sdt_sitter_bootstrap.mjs`, each with the motion arm as its positive
   control, and asserted in a real window by the sitter harness probe. Whether a
   screen reader in fact speaks that name is a live-session reading no unit test
