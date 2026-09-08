@@ -189,6 +189,19 @@ test('the three layers exist, in order, with diagnostics nested inside details',
   // Nothing sets `open`, which is what makes both closed on first paint.
   assert.equal(layer2.getAttribute('open'), null, 'Details ships expanded');
   assert.equal(layer3.getAttribute('open'), null, 'Technical diagnostics ships expanded');
+  // The stub document has no layout engine, so this cannot see the button
+  // actually hold still — only that the declaration a real browser would obey
+  // is present. `space-between` pins the button to the row's fixed edge
+  // instead of to wherever the state text happens to end, which is what moved
+  // when "on" and "off" describe very different lengths of text (found live,
+  // testing v0.3.15).
+  assert(doc.getElementById('sdt-switch-row').style.cssText.includes('justify-content: space-between'),
+    'the switch button is not pinned to a fixed edge of its row');
+  // Same caveat: this only proves the reservation exists, not that the box
+  // stops visibly collapsing between files — the defect this line guards
+  // against (found live, testing v0.3.15).
+  assert.equal(doc.getElementById('sdt-document-status').style.minHeight, '3em',
+    'the active-file box has no reserved height, so it can still collapse between files');
 });
 
 test('layer 1 still carries progress, and layer 2 still carries the counts', () => {
@@ -196,8 +209,12 @@ test('layer 1 still carries progress, and layer 2 still carries the counts', () 
   assert.equal(doc.getElementById('sdt-global-progress').parentNode.id, 'sdt-global-section');
   assert.equal(doc.getElementById('sdt-progress').parentNode.id, 'sdt-document-section');
   assert(doc.getElementById('sdt-diagnostics').textContent.includes('Census: 3 / 3'));
-  assert(doc.getElementById('sdt-fulltext').textContent.includes('"indexed": 3'),
-    'the native index statistics did not land');
+  // A table now, not a JSON dump (found live, testing v0.3.15): a row named
+  // after the field, not the field's own printed representation.
+  const indexedRow = doc.getElementById('sdt-fulltext').textContent.split('\n')
+    .find(line => line.startsWith('Indexed'));
+  assert(indexedRow, 'the native index statistics did not land');
+  assert.equal(Number(indexedRow.replace(/[^0-9]/g, '')), 3);
 });
 
 /* Ticket 0742. The switch is layer 1's first control, and "off" is a state the
@@ -262,15 +279,30 @@ test('switching off mid-census freezes the progress bar instead of leaving it an
    moment it was dismissed. The assertion is on WHERE they hang, which is the
    thing the move was for: readable at any time, beside the switch they describe.
    `getElementById` finds them wherever they were appended, so the parent is the
-   only question a source grep cannot answer. */
-test('the launch disclosures are readable in the Details layer, not only in a modal', () => {
+   only question a source grep cannot answer.
+
+   Found live, testing v0.3.16: they moved a level deeper, into their own About
+   disclosure alongside the version/compatibility lines, apart from the
+   debug/log one that used to hold both — a reader opens one to learn what the
+   add-on does, and the other to chase a problem. */
+test('the launch disclosures are readable in their own About disclosure', () => {
   const disclosures = doc.getElementById('sdt-disclosures');
   assert(disclosures, 'the disclosures reach no layer of the window at all');
-  assert.equal(disclosures.parentNode.id, layer2.id,
-    'the disclosures are not in the Details layer');
-  assert(disclosures.textContent.includes('shared worker cannot be interrupted'),
+  const about = doc.getElementById('sdt-about-details');
+  assert(about, 'the About disclosure does not exist');
+  assert.equal(about.parentNode.id, layer2.id, 'About is not nested inside the Details layer');
+  assert.equal(disclosures.parentNode.id, about.id,
+    'the disclosures are not inside the About disclosure');
+  assert.equal(doc.getElementById('sdt-environment').parentNode.id, about.id,
+    'the version/compatibility lines did not move into About with the disclosures');
+  assert.notEqual(about.id, layer3.id, 'About and the debug/log disclosure are the same element');
+  // Rewritten in plain language after the author read the jargon version live
+  // ("shared worker", "native work", "thresholds") and could not follow it
+  // (found live, testing v0.3.15) — the assertion is on the plain-language
+  // replacement, not on the words that were removed for being unclear.
+  assert(disclosures.textContent.includes('cannot be paused once a file has started'),
     'the worker limitation is not readable in the window');
-  assert(disclosures.textContent.includes('the file under way finishes'),
+  assert(disclosures.textContent.includes('one already being processed still finishes'),
     'what turning indexing off does is not readable in the window');
 });
 
@@ -311,21 +343,32 @@ test('the census reads as an account: words, then a total at the bottom', () => 
   ui.render();
   const lines = doc.getElementById('sdt-diagnostics').textContent.split('\n');
 
-  // No internal key survives as a label. `failed-session:` is the exact string
-  // the author read on screen and objected to.
-  for (const key of ['unsupported:', 'missing-source:', 'failed-session:', 'missing-pack:']) {
-    assert(!lines.some(line => line.startsWith(key)),
+  // No internal key survives as a label, exactly (a column of padding follows
+  // every label, so this checks the label ends where the raw key does, not
+  // merely that a line starts with it — "unsupported" must not pass for
+  // "unsupported-pack" or vice versa). `failed-session` is the exact string
+  // the author read on screen and objected to. The table has no colon since
+  // the author read one live and asked for a plain column instead.
+  for (const key of ['unsupported', 'missing-source', 'failed-session', 'missing-pack']) {
+    assert(!lines.some(line => line.split(/ {2,}/)[0] === key),
       `the raw status key ${key} is still the label a reader is shown`);
   }
   // The conflating aggregate is gone: every one of its constituents is now on a
   // row of its own, so nothing is lost and nothing is summed that should not be.
   assert(!lines.some(line => line.includes('Could not be indexed (last census)')),
     'the line that added files-not-on-this-disk to real failures is still there');
+  // A blank line marks the table as a table, distinct from the readings above
+  // it (found live, testing v0.3.15).
+  const blankAt = lines.indexOf('');
+  assert.notEqual(blankAt, -1, 'no blank line separates the account from the readings above it');
+  const accountLines = lines.slice(blankAt + 1);
+  assert(!accountLines.some(line => line.includes(':')),
+    'a colon survives in the account table');
 
   const row = label => {
-    const found = lines.find(line => line.startsWith(`${label}: `));
+    const found = lines.find(line => line.startsWith(label));
     assert(found, `no row named ${label}: ${lines.join(' | ')}`);
-    return Number(found.slice(label.length + 2).replace(/[^0-9]/g, ''));
+    return Number(found.replace(/[^0-9]/g, ''));
   };
   assert.equal(row('Indexed and up to date'), 13699);
   assert.equal(row('No extractor for this format'), 2600);
@@ -334,17 +377,26 @@ test('the census reads as an account: words, then a total at the bottom', () => 
   assert.equal(row('Waiting to be indexed'), 1);
 
   // The total is last, and it is the sum of the rows above it — 13 699 + 2 600 +
-  // 367 + 39 + 1 = 16 706, the author's own arithmetic.
+  // 367 + 39 + 1 = 16 706, the author's own arithmetic. Right-aligned against
+  // every other row's number, in the same column (found live, testing
+  // v0.3.15) — the widest label's row is the one that touches the column.
   const last = lines[lines.length - 1];
-  assert(last.startsWith('Attachments counted in all: '), `the total is not at the bottom: ${last}`);
+  assert(last.startsWith('Attachments counted in all'), `the total is not at the bottom: ${last}`);
   assert.equal(Number(last.replace(/[^0-9]/g, '')), 16706);
+  // Same line length for every row is exactly "flush against one right edge":
+  // both padEnd(labelWidth) and padStart(valueWidth) are constant across rows,
+  // so their sum only holds if every number ends at the same column.
+  const rows = lines.slice(blankAt + 1).filter(Boolean);
+  assert.equal(new Set(rows.map(line => line.length)).size, 1,
+    `rows do not share one column width: ${rows.join(' | ')}`);
 
   // A status nobody named must be visible, not silently dropped from an account
   // that still claims to add up.
   Object.assign(counts, { 'a-status-nobody-named': 7 });
   ui.render();
   const withUnknown = doc.getElementById('sdt-diagnostics').textContent.split('\n');
-  assert(withUnknown.some(line => line.startsWith('a-status-nobody-named: 7')),
+  assert(withUnknown.some(line => line.split(/ {2,}/)[0] === 'a-status-nobody-named'
+    && Number(line.replace(/[^0-9]/g, '')) === 7),
     'an unnamed status vanished from the account');
   assert.equal(Number(withUnknown[withUnknown.length - 1].replace(/[^0-9]/g, '')), 16713);
 
@@ -356,6 +408,8 @@ test('the census reads as an account: words, then a total at the bottom', () => 
   assert(!empty.includes('Attachments counted in all'),
     `an empty census still prints a total: ${empty}`);
   assert(empty.includes('Census: '), 'the scan line went with it');
+  assert(!empty.endsWith('\n\n') && !empty.includes('\n\n\n'),
+    'an empty census leaves a dangling blank line where the table would start');
 
   Object.assign(counts, saved);
   ui.render();
@@ -421,6 +475,10 @@ test('the checkbox writes the pref, and an outside change writes the checkbox', 
 });
 
 test('versions, admission readings and the install path are on screen', () => {
+  // The environment line now redraws only while About is open (found live,
+  // testing v0.3.16 — it moved out of the debug/log disclosure into its own).
+  doc.getElementById('sdt-about-details').open = true;
+  ui.render();
   const environment = doc.getElementById('sdt-environment').textContent;
   assert(environment.includes('9.9.9-fixture'), environment);
   assert(environment.includes('10.0.5-stub'), environment);

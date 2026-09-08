@@ -505,6 +505,24 @@ await test('a dialog closed and reopened mid-job is one instance, one listener, 
   assert.equal(harness.context.dialogs.size, 1);
 });
 
+// A bare `chrome,dialog=no` window carries none of a XUL <dialog>'s built-in
+// key bindings, so Escape did nothing until asked to (found live, testing
+// v0.3.16). The close path is the same `dialog.close()` `unload` already
+// exercises above, so this only has to prove the key is wired to it.
+await test('Escape closes the status dialog', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  await harness.start();
+  const window = harness.windows[0];
+  harness.context.openDialog(window);
+  await harness.turn();
+  const dialog = window.dialogs[0];
+  assert.equal(dialog.closed, false);
+  dialog.fire('keydown', { key: 'Tab' });
+  assert.equal(dialog.closed, false, 'an unrelated key closed the dialog');
+  dialog.fire('keydown', { key: 'Escape' });
+  assert.equal(dialog.closed, true, 'Escape did not close the dialog');
+});
+
 await test('two windows and two startups leave one sitter, one launch prompt and two toolbars', async () => {
   const harness = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')], windows: 2 });
   // Zotero serializes add-on startup, but a second main window opening while
