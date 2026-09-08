@@ -632,7 +632,12 @@ await test('a window that throws from matchMedia leaves the render loop running'
   assert.equal(button.getAttribute('aria-label'), 'Index 100 %', 'the render pass did not complete');
   // Defaulting to motion, not to stillness: a reading that could not be taken
   // is not a preference expressed, and the render() wrapper stays silent
-  // because nothing escaped it.
+  // because nothing escaped it. The completion blink is running at this exact
+  // render, so the opacity value is the one thing that actually depends on
+  // which way the guard defaulted -- a build that flipped the fallback to
+  // "reduce" would pass every assertion above this one.
+  assert.equal(button.style.properties.get('opacity'), '0.2',
+    'the guard defaulted to reduced motion instead of to motion');
   assert.equal(harness.records('render-error').length, 0,
     'the throw reached the render loop, which then records it and stops re-trying');
 });
