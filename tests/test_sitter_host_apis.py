@@ -53,11 +53,12 @@ undocumented gets trusted past it:
   not evaluate ``${}`` holes, so a comment written inside one survives and a URL
   inside one is reported. Every construct it misreads costs a false RED. The one
   direction that would cost a silent pass is blanking live code, and only
-  comments are blanked, so both ambiguities resolve away from opening one:
-  ``'``/``"`` literals stop at the newline, and an ambiguous ``/`` is read as a
-  regular expression whenever one could close on the line. ``REGEX_HAZARDS``
-  pins that second rule against the five preceding tokens no heuristic can
-  classify.
+  comments are blanked — so a comment opener is believed only when TWO readings
+  of the source agree it is one, one reading treating an ambiguous ``/`` as a
+  regular expression and the other knowing no regex syntax at all. Where they
+  disagree the text is left alone. ``REGEX_HAZARDS`` pins that against the six
+  shapes two rounds of review found, three of which each single reading gets
+  right and the other gets wrong.
 * **A directory it cannot enter.** ``Path.rglob`` drops an unreadable directory
   silently — no entry, no error, no warning — so a subtree under ``plugins/``
   with the wrong mode is not scanned and nothing says so. An unreadable *file*
@@ -190,8 +191,8 @@ def installed_version(install: Path) -> str:
     assertion that names it with a traceback about a `.ini` file.
 
     The `is_file()` probe is inside the guarded block, not in front of it.
-    `Path.is_file` swallows only the errors `pathlib._ignore_error` lists —
-    ENOENT, ENOTDIR, EBADF, ELOOP, EINVAL — and EACCES is not among them, so an
+    `Path.is_file` swallows only the errors `pathlib._IGNORED_ERRNOS` lists —
+    ENOENT, ENOTDIR, EBADF, ELOOP — and EACCES is not among them, so an
     unreadable `app/` directory raises there rather than answering False. Put in
     front, the guard covered every way of failing to read the file except the
     one it was added for (round 1 of the review on PR #461).
@@ -371,14 +372,16 @@ def regex_span(source: str, start: int) -> int | None:
 
     An earlier version decided this from the preceding token instead, against a
     list of characters and keywords a regex may follow. The list could not be
-    complete — `)`, `]`, `.`, an identifier and a number may all precede one —
-    and each omission was one of those silent passes, reproduced on all five
-    (round 1 of the review on PR #461).
+    complete — `)`, `]`, an identifier and a number all precede a regex and a
+    division alike — and each omission was a silent pass, reproduced on all of
+    them (round 1 of the review on PR #461).
 
-    A `//` outside a character class ends the search rather than closing the
-    literal: a comment opener is not a terminator, and treating it as one would
-    swallow the comment that `a / b; // note` ends in. Inside `[...]` nothing
-    terminates, which is what carries `/[/*]/`.
+    This reading is deliberately credulous, and on its own it is wrong often: it
+    calls `done / total; const sep = 'a/b'` a regular expression, ending inside
+    a string that has nothing to do with it. That is why nothing acts on it
+    alone. `comment_mask` runs it against a second reading that knows no regex
+    syntax at all, and `strip_comments` blanks only where the two agree — so a
+    span this misreads is a span that does not get blanked.
     """
     index = start + 1
     in_class = False
@@ -394,42 +397,27 @@ def regex_span(source: str, start: int) -> int | None:
         elif char == "]":
             in_class = False
         elif char == "/" and not in_class:
-            return None if source.startswith("//", index) else index + 1
+            return index + 1
         index += 1
     return None
 
 
-def strip_comments(source: str) -> str:
-    """`source` with every comment blanked, character for character.
+def comment_mask(source: str, *, regex_aware: bool) -> list[bool]:
+    """Which characters one reading of `source` calls comment.
 
-    Blanked rather than removed so line numbers and columns survive: the scan
-    reports where a URL is written, and a stripper that shifted the text would
-    make every site it names wrong.
+    Two readings exist because JavaScript's `/` cannot be classified without a
+    parser, and the two plausible guesses fail on disjoint inputs.
 
-    A scanner, not a parser. It knows the four constructs that decide whether a
-    character is code — single and double quotes, template literals, regular
-    expressions, and both comment forms — and nothing else. Every construct it
-    misreads has to cost a false RED, never a silent pass, because the state it
-    replaces already was a false red: an unstripped comment reported as a call
-    site. Only one operation here can delete a call site, blanking, and only
-    comments are blanked, so each ambiguity is resolved away from opening one:
+    `regex_aware=True` believes `regex_span`: any `/` that could close on its
+    line opens a literal, which is then opaque. It is right about `/[/*]/` and
+    wrong about `done / total; const sep = 'a/b'`, where it runs into a string.
 
-    * `'`/`"` literals stop at the newline, so an apostrophe met in prose the
-      scanner misread costs at most the rest of one line;
-    * an ambiguous `/` is read as a regular expression whenever one could close
-      on that line (`regex_span`), because reading a regex as division walks its
-      body as code, where a `/*` opens a block comment that runs to the next
-      `*/` or to end of file.
+    `regex_aware=False` knows no regex syntax at all. It is right about that
+    division and wrong about `/[/*]/`, whose `/*` it reads as a block comment.
 
-    What that buys is checked two ways, and neither alone is enough:
-    `test_a_regex_literal_does_not_swallow_the_call_site_beside_it` puts each
-    hazardous construct on the same line as a call site, and
-    `test_no_url_the_live_tree_writes_in_code_is_lost_to_comment_stripping`
-    watches the tree that actually ships. The fixture carries the guarantee; the
-    live comparison only fires when the shipped tree happens to contain the
-    shape, and today it does not (round 1 of the review on PR #461).
+    Neither is trustworthy. `strip_comments` intersects them.
     """
-    out = list(source)
+    mask = [False] * len(source)
     length = len(source)
     index = 0
     while index < length:
@@ -442,24 +430,80 @@ def strip_comments(source: str) -> str:
             continue
         if source.startswith("//", index):
             while index < length and source[index] != "\n":
-                out[index] = " "
+                mask[index] = True
                 index += 1
             continue
         if source.startswith("/*", index):
             close = source.find("*/", index + 2)
-            end = length if close == -1 else close + 2
-            for position in range(index, end):
+            if close == -1:
+                # An opener with no closer is not a comment: real source does
+                # not end inside one, so this is a scanner that has lost its
+                # place. Masking to end of file would let a single misread
+                # character delete every call site below it -- and it did, until
+                # the six-shape fixture put two hazards in one file.
+                index += 1
+                continue
+            for position in range(index, close + 2):
                 if source[position] != "\n":
-                    out[position] = " "
-            index = end
+                    mask[position] = True
+            index = close + 2
             continue
-        if char == "/":
+        if regex_aware and char == "/":
             span = regex_span(source, index)
             if span is not None:
                 index = span
                 continue
         index += 1
-    return "".join(out)
+    return mask
+
+
+def strip_comments(source: str) -> str:
+    """`source` with every comment blanked, character for character.
+
+    Blanked rather than removed so line numbers and columns survive: the scan
+    reports where a URL is written, and a stripper that shifted the text would
+    make every site it names wrong.
+
+    Blanking is the only operation here that can delete a call site, and only
+    comments are blanked, so the whole design question is when to believe a
+    comment opener. Two rounds of review on PR #461 answered it by elimination.
+    A single scanner cannot: classifying `/` needs a parser, both available
+    guesses are wrong on real code from `bootstrap.js`, and whichever one is
+    chosen, the inputs it misreads are the ones where it blanks live code — a
+    silent pass, the failure ticket 0737 forbids. Round 1 shipped the
+    preceding-token guess and round 2 the credulous-regex guess; each closed the
+    other's cases and opened its own.
+
+    So neither is trusted. `comment_mask` produces both readings and this blanks
+    only where they AGREE. Disagreement means at least one scanner is confused,
+    and the response to confusion is to leave the text alone — which costs an
+    unstripped comment reported as a call site, exactly the false red this
+    function was written to reduce, never a call site deleted. The two readings
+    fail on disjoint inputs by construction, since they differ only in whether a
+    `/` is opaque, and that is what makes the intersection safe rather than
+    merely quieter.
+
+    `'`/`"` literals additionally stop at the newline, so an apostrophe met in
+    prose that one reading misread costs at most the rest of one line. `${}`
+    holes in a template literal are not evaluated: a comment inside one survives
+    and a URL inside one is reported, both false reds.
+
+    Checked two ways, and neither alone is enough.
+    `test_a_regex_literal_does_not_swallow_the_call_site_beside_it` puts every
+    hazardous construct on the same line as a call site — that fixture carries
+    the guarantee. `test_no_url_the_live_tree_writes_in_code_is_lost_to_comment
+    _stripping` watches the tree that actually ships, and only fires when the
+    shipped tree happens to contain the shape.
+    """
+    agreed = zip(
+        source,
+        comment_mask(source, regex_aware=True),
+        comment_mask(source, regex_aware=False),
+        strict=True,
+    )
+    return "".join(
+        " " if believed and confirmed else char for char, believed, confirmed in agreed
+    )
 
 
 def named_resource_urls(tree: Path) -> dict[str, list[str]]:
@@ -604,24 +648,31 @@ def test_a_url_quoted_in_a_trailing_comment_is_not_a_call_site(tmp_path):
     ], sites
 
 
-#: A regex literal beside a call site, once per token that can precede a `/`.
-#: Each line must yield its URL. `strip_comments` deletes a call site only by
-#: blanking, and it blanks only comments, so every entry here is a way of
-#: tricking it into opening one over live code — the whole silent-pass surface
-#: the ambiguity rule in `regex_span` exists to close.
+#: A `/` beside a call site, once per way of misreading one. Each line must
+#: yield its URL. `strip_comments` deletes a call site only by blanking, and it
+#: blanks only comments, so every entry here is a way of tricking a scanner into
+#: opening one over live code — the whole silent-pass surface, and the reason
+#: `strip_comments` intersects two readings instead of trusting either.
 #:
-#: The bodies are chosen to punish the two readings that were tried and failed.
-#: `/[/*]/` opens a block comment that runs to the next `*/` or to end of file
-#: if the literal is walked as code; `/['"]/` opens a string literal, which the
-#: newline bound then limits to the line. The leading tokens are the five a
-#: preceding-token heuristic cannot classify — `)`, `]`, `.`, an identifier and
-#: a number all legally precede a regex *and* a division.
+#: The first four are regex literals a preceding-token heuristic cannot classify:
+#: `)`, `]`, an identifier and a number precede a regex and a division alike.
+#: Walked as code, `/[/*]/` opens a block comment that runs to the next `*/` or
+#: to end of file, and `/['"]/` opens a string literal. Round 1 of the review on
+#: PR #461 reproduced all four against the token heuristic.
+#:
+#: The last two are the mirror image, found in round 2 against the credulous
+#: reading that replaced it. A division whose search for a closing `/` runs into
+#: a later string desynchronises the quote state, and the `//` of a real URL then
+#: reads as a comment — both halves of that line exist verbatim in `bootstrap.js`
+#: (`:502` and `:512`). A regex closing immediately before another `/` presents a
+#: `//` that is not a comment.
 REGEX_HAZARDS = (
     "if (matches(p)) /[/*]/.test(p);",
     "const first = names[0] /[/*]/.exec(p);",
     "const flag = config.enabled /['\"]/.test(p);",
-    "const ratio = counted /[/*]/.source.length;",
     "const scaled = 42 /['\"]/.source.length;",
+    "const pct = done / total; const sep = 'a/b';",
+    "const n = /ab//1;",
 )
 
 
@@ -630,38 +681,54 @@ def test_a_regex_literal_does_not_swallow_the_call_site_beside_it(tmp_path):
 
     Reading a comment as code costs a false red. Reading *code* as a comment
     deletes a call site and the guard goes green — the failure ticket 0737
-    forbids outright. A regular expression is where that happens: its body can
+    forbids outright. A `/` is where that happens: its body, if it has one, can
     carry `/*` or a quote, and both are inert inside a literal and destructive
-    outside one. `bootstrap.js` already splits a path on `/[\\\\/]/`, so the
-    construct is live; the fixture is named for a sibling only to stay distinct
-    from the other fixtures here.
+    outside one. `bootstrap.js` splits a path on `/[\\\\/]/` and divides on
+    `:512`, so both shapes are live; the fixture is named for a sibling only to
+    stay distinct from the other fixtures here.
 
-    The regex and the call must share a LINE for this to discriminate. On
-    separate lines the damage is stopped by `end_of_quoted`'s newline bound
-    before it reaches the call, and the test passes against a stripper with no
-    regex handling at all — which is how the first draft of this test was
-    written, and why the shape is now pinned by construction.
+    The `/` and the call must share a LINE for this to discriminate. On separate
+    lines the damage is stopped by `end_of_quoted`'s newline bound before it
+    reaches the call, and the test then passes against a stripper with no regex
+    handling at all — which is how the first draft was written, and why the
+    shape is now pinned by construction.
 
-    Round 1 on PR #461 then found the same silent pass through a second door:
-    the version that decided the ambiguity from the preceding token missed all
-    five tokens in `REGEX_HAZARDS`. One line per token, so a heuristic that
-    closes four of them cannot read as a fix.
+    The table this drives is the record of two rounds of review on PR #461, and
+    the reason it is a table: round 1 found four cases the preceding-token
+    reading missed, round 2 found two more that the credulous reading which
+    replaced it missed, and each reading passed the other's cases. A repair that
+    closes one group and not the other cannot read as a fix here.
+
+    Each hazard runs alone and then all six run in one file, because the two are
+    different questions and only the second caught the last defect. A misread
+    `/*` opening a block comment nothing closes used to mask to end of file, so
+    one hazard on line 1 deleted another's call site four lines down while every
+    hazard passed in isolation.
     """
-    source = tmp_path / "scheduler.js"
     urls = [f"resource://zotero/document-worker/case-{n}.js" for n in range(len(REGEX_HAZARDS))]
-    source.write_text(
-        "".join(
-            f"{hazard} win.require('{url}');\n"
-            for hazard, url in zip(REGEX_HAZARDS, urls, strict=True)
-        ),
-        encoding="utf-8",
+    lines = [
+        f"{hazard} win.require('{url}');\n"
+        for hazard, url in zip(REGEX_HAZARDS, urls, strict=True)
+    ]
+
+    alone = tmp_path / "alone"
+    alone.mkdir()
+    for number, line in enumerate(lines):
+        (alone / f"case-{number}.js").write_text(line, encoding="utf-8")
+    solo = named_resource_urls(alone)
+    assert solo == {url: [f"case-{n}.js:1"] for n, url in enumerate(urls)}, (
+        "a call site was blanked by the `/` on its own line: "
+        + ", ".join(f"{REGEX_HAZARDS[urls.index(url)]!r}" for url in sorted(set(urls) - set(solo)))
     )
 
-    sites = named_resource_urls(tmp_path)
+    together = tmp_path / "together"
+    together.mkdir()
+    (together / "scheduler.js").write_text("".join(lines), encoding="utf-8")
+    sites = named_resource_urls(together)
 
     assert sites == {url: [f"scheduler.js:{n}"] for n, url in enumerate(urls, 1)}, (
-        f"a regex literal blanked the call site beside it; missing "
-        f"{sorted(set(urls) - set(sites))}"
+        "a hazard reached across lines to blank another's call site: "
+        + ", ".join(f"{REGEX_HAZARDS[urls.index(url)]!r}" for url in sorted(set(urls) - set(sites)))
     )
 
 
@@ -682,8 +749,10 @@ def test_no_url_the_live_tree_writes_in_code_is_lost_to_comment_stripping():
     function passes — which is correct, since removing nothing cannot lose a
     call site, and it is also why this is a floor and not a guarantee. Its
     sensitivity is a property of `plugins/`, not of the test: today the three
-    real URLs share no line with the one real regex, so the whole hazard class
-    in `REGEX_HAZARDS` is invisible here (round 1 of the review on PR #461).
+    real URLs (`bootstrap.js:1095`, `:1172`, `:1174`) share a line with none of
+    the tree's regex literals (`:189`, `:284`, `:1279`, `:1331`, `:1413`), so
+    the whole hazard class in `REGEX_HAZARDS` is invisible here — which is how
+    both rounds of review on PR #461 found silent passes this stayed green over.
     That fixture carries the guarantee. This watches the tree.
 
     A legitimate divergence is possible: it means someone wrote a `resource://`
@@ -736,8 +805,8 @@ def test_an_unreadable_app_directory_degrades_rather_than_raising(tmp_path):
     """The same contract one directory up, where the first fix did not reach.
 
     `Path.is_file` is not the total predicate it reads as: it swallows only the
-    errors `pathlib._ignore_error` lists, and EACCES is not among them, so an
-    unreadable `app/` raises out of the probe rather than answering False. The
+    errnos `pathlib._IGNORED_ERRNOS` lists (ENOENT, ENOTDIR, EBADF, ELOOP), and
+    EACCES is not among them, so an unreadable `app/` raises out of it. The
     guard was placed after that probe and therefore covered every way of failing
     to read the file except the one it was added for — found in round 1 of the
     review on PR #461, reproduced here.
