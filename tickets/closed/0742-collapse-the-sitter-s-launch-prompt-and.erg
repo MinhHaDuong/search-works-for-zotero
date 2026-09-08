@@ -2,6 +2,7 @@
 Title: Collapse the sitter's launch prompt and pause into one persisted switch
 Created: 2026-09-08
 Author: claude
+Closed: implemented and merged in PR #481
 
 --- log ---
 2026-09-08T10:15Z claude created — filed from a Fable-model UX consult requested by the author (pause/unpause switch question, launch-dialog clarity question). Full analysis below is Fable's, lightly reorganized into ticket sections; verdict and reasoning are Fable's own, grounded in a read of bootstrap.js, scheduler.js, SPEC.md R22, the 2026-09-05 DECISIONS ratifications, and the closed/open sitter dialog tickets — not a cold take from the title alone. Label needs-human because the recommendation requires amending which control counts as R22's "one obvious way", a ratification-level call this ticket does not have standing to make.
@@ -13,6 +14,7 @@ Author: claude
 2026-09-08T17:07Z claude note the 11:24Z and 11:28Z design guidance is NOT implemented here and is filed as ticket 0744 instead. It is a feature of its own — a problem-class mapping the census does not currently compute (`unsupported` alone covers three distinct remedies, and the sniffer's verdict that would separate them is discarded at the call site), a per-class remedy text under a tone constraint the author owns, and a Zotero collection-creation offer, which is a library write this plugin has never made. Folding it in would have bundled a second sign-off unit into this ticket and blocked a switch that is complete without it. This ticket's exit criteria are met without it; 0744 carries the guidance verbatim.
 2026-09-08T17:48Z claude note BLOCKING defect found by the semantic-adherence review and fixed, worth recording because the three switch tests written for this ticket could not see it: each drives the switch from a RESTING sitter. `disarmSDTSitter()` cleared the three timer handles, but a sweep suspended inside `ensure()` holds none of them — it reschedules from its own `finally`, gated on `alive` and `generation`, and the user's switch moves neither. So the zombie rearmed itself while the sitter read "off", contradicting SPEC.md's "schedules no sweep", and the next arm added a second loop beside it: two sweeps per interval for the rest of the session, which is the very defect `armSDTSitter`'s `pulse` guard exists to prevent, reached by a path that guard cannot see. Fixed with a second token, `sweepGeneration`, burned by `disarmSDTSitter()` exactly as `generation` is burned by `shutdown()` — not by reusing `generation` itself, which would have stood down the cache writer and every other closure reading it for a switch flip that tears nothing down. Both the announcement and the reschedule now read one predicate, so they cannot drift apart. New driven arm in `tests/sdt_sitter_bootstrap.mjs` asserts zero armed sweeps after an off mid-extraction and exactly one after the off/on round trip; a control with the token burn removed reddens the first. Manifest 0.3.14 -> 0.3.15 for the changed payload.
 
+2026-09-08T18:08Z MinhHaDuong closed — implemented and merged in PR #481
 --- body ---
 ## The two questions asked
 
