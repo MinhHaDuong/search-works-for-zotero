@@ -7089,3 +7089,21 @@ This also settles the launch prompt's own defects, which shared one root
 cause with the missing switch: asking every session with no persisted answer.
 Ticket 0742 carries the full design and the remaining implementation
 actions.
+
+**2026-09-08 — RATIFIED: make the SDT sitter event-driven, with reconciliation
+for changes outside Zotero notifications.** The author asked to ticket the
+event-driven design and rejected frequent full-library sweeping, explicitly
+asking how disappearance of an attachment file from disk is handled. Zotero
+notifications become the ordinary work trigger; startup and occasional
+reconciliation retain coverage of unnotified filesystem changes. The replacement
+reconciliation cadence and its detection bound remain to be settled in SPEC.md;
+this ruling supplies neither a new number nor an immediate-detection promise.
+Ticket 0752 owns implementation and verification. Native admission and graceful
+stop safeguards remain in force.
+
+**2026-09-08 — RATIFIED: settle the sitter reconciliation cadence.** In the
+follow-up to ticket 0752, the author chose startup reconciliation and a fixed
+periodic interval, now owned by SPEC.md §5.2.7. This resolves the open cadence
+in the preceding ruling. Notifications remain the ordinary trigger; the
+periodic check covers unnotified disk changes while enabled and running, not a
+wall-clock guarantee while Zotero is closed, suspended or unable to reconcile.

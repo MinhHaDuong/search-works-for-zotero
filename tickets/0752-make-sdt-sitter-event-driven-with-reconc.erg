@@ -1,0 +1,89 @@
+%erg 0.1
+Title: Make SDT sitter event-driven with reconciliation for unnotified disk changes
+Created: 2026-09-08
+Author: Codex
+
+--- log ---
+2026-09-08T21:02Z Codex created
+
+2026-09-08T21:03Z Codex note Filed at author request; recorded event-driven ruling and SPEC contract, including unnotified disk disappearance and restoration. Implementation remains open.
+2026-09-08T21:05Z Codex note Author settled startup and periodic reconciliation cadence; SPEC.md §5.2.7 now owns the interval. Implementation still pending.
+2026-09-08T21:06Z Codex note Release contribution wording saved in plugins/sdt-sitter/RELEASE-NOTES.md: observability, insurance against missed changes, independent preparation and cautious scheduling; pending scheduling distinguished from shipped behavior.
+2026-09-08T21:09Z Codex note Raid Imagine/Plan feasibility: proceed with scheduler refactor; cache pruning, failed-identity restoration, captured processor versions and event races identified. Concrete plan and first behavioral test recorded in body.
+--- body ---
+
+## Context
+
+Author request: "Ticket that. Sweeping every 30s is dumb. But what if a file
+disappear from disk for example ?" The event-driven direction is ratified in
+DECISIONS.md (2026-09-08); SPEC.md §5.2.7 owns the scheduling contract and its
+reconciliation cadence.
+
+Read before filing: plugins/sdt-sitter/bootstrap.js and scheduler.js still run
+repeated full censuses; fork/src has no SDT sitter implementation. SYNC.md's
+Zotero core/extraction rows distinguish native extraction from the external
+consumer. This is local plugin work, not an upstream filing.
+
+## Work
+
+Subscribe to appropriate Zotero notifications and inspect affected attachment
+IDs through a coalesced queue. Verify the actual notification contract, including
+attachment downloads and deletion, against the installed host; do not assume
+every disk change produces an item event. Events must not each launch a full
+census. Retain startup and occasional reconciliation for unnotified changes.
+Implement the subsequently ratified reconciliation cadence in SPEC.md;
+distinguish queue/resource retries from full censuses. Coalesce missed intervals
+without overlapping scans, and reconcile when re-enabled.
+
+File disappearance is an availability change, not deletion of the Zotero item.
+On observation, report the source as missing, remove obsolete queued work and
+stop counting it as available/current merely because an old pack remains. Do
+not delete the library item or its native pack. Recheck availability before
+admission and handle disappearance during extraction without a retry storm.
+A restored/downloaded file must become eligible again after inspection;
+unnotified restoration must be found by reconciliation. Preserve the ruled
+session-scoped extraction-failure policy and source-identity invalidation.
+
+## Exit criteria
+
+- [ ] Verified notification mapping and lifecycle cleanup; repeated events
+      coalesce and changes arriving during inspection/extraction are not lost.
+- [ ] Initial reconciliation and ordinary event processing replace the recurring
+      full-census loop; quiet-library checks prove events do not trigger sweeps.
+- [ ] Reconciliation detects source disappearance/restoration, external source
+      replacement, pack deletion and processor changes without notifications.
+- [ ] Source disappearance before admission and during extraction has an honest
+      outcome; restoring a missing file is not trapped behind an obsolete status.
+- [ ] UI preserves coherent coverage and exposes last reconciliation freshness;
+      it does not present last-observed disk availability as continuously verified.
+- [ ] On/off, disable/re-enable, resource waits, single native admission and
+      unresolved-job handling retain SPEC.md §5.2.7 semantics.
+- [ ] Behavioral tests cover the above races and missed-event recovery; evidence
+      is committed under verification/ and cited here. Documentation is updated.
+- [ ] Ratified reconciliation policy implemented and make check passes.
+
+## Raid plan and feasibility
+
+Read-only Imagine/Plan review: feasible as a scheduler refactor, not merely a
+replacement timer. Keep a status map, coalesced dirty attachment IDs and a pending
+reconciliation flag behind one serial pump. Events arriving during awaited work
+must remain pending. Reconciliation and targeted updates share inspection but
+only a completed full census may prune the derived cache against its seen set.
+Keep admission retries separate from discovery; recheck source identity and
+availability before submission and after a failed extraction. Verified current
+packs must not be hidden by an earlier session failure. Refresh processor
+identity at reconciliation, not solely at initial activation.
+
+First behavioral test: after an initial census, deliver repeated attachment
+notifications while admission is resource-blocked; assert only affected IDs are
+inspected, list() is not repeated, and work resumes after the resource clears.
+Then drive events during inspection/extraction, missed reconciliation intervals,
+parent/child deletion and restoration, lifecycle races, and the unnotified disk
+changes in the exit criteria. Preserve the existing mutation probes' behavioral
+purpose when changing their literal anchors.
+
+Relevant implementation: plugins/sdt-sitter/scheduler.js and bootstrap.js;
+tests/sdt_sitter_scheduler.mjs and sdt_sitter_bootstrap.mjs; corresponding
+verification/probes/sdt_sitter_*_mutants.py. No added package is needed for native
+notifications, Maps/Sets and host timers. Verify installed Zotero notification
+surfaces before relying on a particular event type.
