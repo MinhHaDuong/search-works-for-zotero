@@ -169,8 +169,14 @@ function createFiles() {
   const encoder = new TextEncoder();
   return {
     files, directories,
-    put(path, text, lastModified = 1000) {
-      files.set(path, { bytes: encoder.encode(text), lastModified });
+    /* `data` is text or raw bytes. The bytes form exists because a fixture has
+       to be able to hold a file whose CONTENT contradicts its declared type —
+       a JPEG recorded as `text/html` (ticket 0740) — and no string can express
+       one: 0xFF is not a valid UTF-8 lead byte, so `encoder.encode` cannot
+       produce a JPEG signature from any source text whatsoever. */
+    put(path, data, lastModified = 1000) {
+      const bytes = typeof data === 'string' ? encoder.encode(data) : Uint8Array.from(data);
+      files.set(path, { bytes, lastModified });
       let dir = path.slice(0, path.lastIndexOf('/')) || '/';
       while (dir && !directories.has(dir)) {
         directories.add(dir);
@@ -228,8 +234,18 @@ export function createHarness(options = {}) {
   const clock = { mono: 5_000, wall: 1_700_000_000_000 };
   const advance = ms => { clock.mono += ms; clock.wall += ms; };
 
+  /* The bytes on disk, which are not always what the attachment's declared type
+     claims. `magic` prepends a real file signature, so a row can be a snapshot
+     to `isSnapshotAttachment()` and a JPEG to anything that reads the file —
+     which is the whole of the population ticket 0740 is about. Without it the
+     body is filler, and filler is what every other scenario here wants. */
+  const sourceBody = row => {
+    const body = new Uint8Array(row.sourceBytes).fill(0x78);
+    if (row.magic) body.set(row.magic, 0);
+    return body;
+  };
   for (const row of rows) {
-    if (!row.missingSource) files.put(`${STORAGE}/${row.key}/file.pdf`, 'x'.repeat(row.sourceBytes), 500);
+    if (!row.missingSource) files.put(`${STORAGE}/${row.key}/file.pdf`, sourceBody(row), 500);
     if (row.pack) {
       // The pack's bytes name the pack, so the mock reader can identify the file
       // through the real `read(offset, length)` closure bootstrap.js builds —

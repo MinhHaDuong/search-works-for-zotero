@@ -101,7 +101,8 @@ MUTANTS = [
     # assertion in the suite green, because nothing throws and every bucket still
     # sums to the census.
     ("M9 inspection-error falls out of the failure classification (the 0699 under-report)",
-     "  failed: ['failed-session', 'inspection-error', 'unsupported-pack', 'missing-source'],",
+     "  failed: ['failed-session', 'failed-remembered', 'inspection-error', 'unsupported-pack',\n"
+     "    'missing-source'],",
      "  failed: ['failed-session'],"),
     ("M10 a throwing duration observation reaches the verdict again (the 0699 false failure)",
      "              try { await host.observed(before, measured); }\n",

@@ -220,6 +220,41 @@ MUTANTS = [
     ("M28 coverage reads the half-filled live census instead of the held generation",
      "  const counts = duringCensus ? (held?.counts || {}) : (state.counts || {});",
      "  const counts = state.counts || {};"),
+
+    # ---- ticket 0740: the label, and the verdict that outlives the session ----
+    # The whole of the first half, removed. The declared content type is believed
+    # again, so a page scan recorded as `text/html` is handed to a text extractor
+    # that cannot read a photograph — 39 documents resubmitted every session on
+    # the author's library.
+    ("M29 the declared content type is trusted again, so a JPEG reaches the extractor",
+     "    if (SDT_STATUS_CLASSES?.queued.includes(result.status)) {\n"
+     "      const sniffed = await sniffSDTSource(sourcePath);\n"
+     "      if (sniffed && sniffed.processor !== processor) result.status = 'unsupported';\n"
+     "    }\n",
+     ""),
+    # The over-reach, which is the failure an all-failures fixture cannot see: a
+    # head the table does not recognise is not evidence of anything, and HTML has
+    # no signature at all. Inverted, the check refuses every genuine snapshot.
+    ("M30 an unrecognised head is read as a mismatch, so real snapshots stop being admitted",
+     "      if (sniffed && sniffed.processor !== processor) result.status = 'unsupported';",
+     "      if (!sniffed || sniffed.processor !== processor) result.status = 'unsupported';"),
+    ("M31 the remembered refusal is never read, so the document is submitted every session",
+     "    if (cache.refused(result.cacheKey, result.identity)) {\n"
+     "      return { ...result, status: 'failed-remembered' };\n"
+     "    }\n",
+     ""),
+    # The ordering, on its own, and the reason the read sits where it does. The
+    # verdict is still consulted here — it is simply always absent, because a
+    # refused document has no pack and the pack branch drops its record on the
+    # way past. A mutant that still calls `refused()` and still returns the right
+    # status when it fires, and is wrong anyway.
+    ("M32 the refusal is read after the pack record has already been dropped",
+     "    if (cache.refused(result.cacheKey, result.identity)) {\n",
+     "    cache.drop(result.cacheKey);\n"
+     "    if (cache.refused(result.cacheKey, result.identity)) {\n"),
+    ("M33 nothing is written when native returns no pack, so the refusal dies with the session",
+     "    refuse: async info => { cache.refuse(info.cacheKey, info.identity); await saveCache(); },\n",
+     ""),
 ]
 
 

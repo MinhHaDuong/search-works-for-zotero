@@ -69,6 +69,55 @@ var generation = 0;
 var lastCompleted = 0;
 var completionBlinkUntil = 0;
 
+/* What the first bytes of a source file prove about it, and which processor —
+   if any — handles that format.
+
+   `inspect()` classifies by the host's three `is*Attachment()` predicates, and
+   every one of them reads `attachmentContentType`, a label recorded when the
+   file was saved rather than a reading of the file. On the author's library
+   eleven page scans are stored as `text/html` over JPEG bytes: they satisfy
+   `isSnapshotAttachment()`, are admitted as snapshots, and native SDT finds no
+   text in a photograph, persists no pack, and returns in 50–90 ms — every
+   session, forever (ticket 0740). The author's rule: « ne pas croire
+   l'étiquette, le B A BA du consommateur averti ».
+
+   `processor: null` means no processor handles this format at all. A format
+   whose bytes name a processor OTHER than the declared one is the same
+   mismatch, so both cases are read the same way at the call site.
+
+   The table is deliberately short of what a full sniffer would carry. HTML has
+   no signature — a snapshot may open on a BOM, a comment, whitespace or a
+   doctype — so this can only ever rule a document OUT, never in, and an
+   unrecognised head means the label stands. Under-reaching here costs one
+   failed extraction; over-reaching would stop admitting documents that extract
+   perfectly well, which is the failure a fixture of failures alone cannot see.
+   BMP ('BM') is left out for that reason: two bytes are not a proof. */
+var SDT_SOURCE_MAGIC = [
+  { format: 'jpeg', processor: null, prefix: [0xFF, 0xD8, 0xFF] },
+  { format: 'png', processor: null, prefix: [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A] },
+  { format: 'gif', processor: null, prefix: [0x47, 0x49, 0x46, 0x38] },
+  { format: 'tiff', processor: null, prefix: [0x49, 0x49, 0x2A, 0x00] },
+  { format: 'tiff', processor: null, prefix: [0x4D, 0x4D, 0x00, 0x2A] },
+  { format: 'pdf', processor: 'pdf', prefix: [0x25, 0x50, 0x44, 0x46] },
+  // EPUB is a zip, and so are a dozen other things; what this entry says is
+  // narrower than "this is an EPUB" and is all the call site needs — a zip
+  // container is not a snapshot and is not a PDF.
+  { format: 'zip', processor: 'epub', prefix: [0x50, 0x4B, 0x03, 0x04] },
+];
+var SDT_MAGIC_BYTES = 8;
+
+/* The longest prefix above, read once. A read that fails answers `null`, which
+   is the same answer as an unrecognised head: this function's job is to catch a
+   label that is provably wrong, and a file it cannot read proves nothing. The
+   file's absence is already `missing-source` two branches earlier. */
+async function sniffSDTSource(path) {
+  let head;
+  try { head = await IOUtils.read(path, { offset: 0, maxBytes: SDT_MAGIC_BYTES }); }
+  catch (_error) { return null; }
+  return SDT_SOURCE_MAGIC.find(entry => entry.prefix.length <= head.length &&
+    entry.prefix.every((byte, index) => head[index] === byte)) || null;
+}
+
 /* ---- the user-facing text, and the only place any of it lives ----
 
    ENGLISH ONLY, by the author's instruction of 2026-09-07: "REMOVE ALL THE
@@ -1281,6 +1330,13 @@ async function initialize(rootURI, token) {
       identity: `${item.libraryID}/${item.key}/${hash}/${JSON.stringify(versions)}` };
     result.cacheKey = cacheKey;
     seen.add(result.cacheKey);
+    // Read before the pack is stat'ed, because a refused document HAS no pack:
+    // the pack branch below drops its cache record on the way past, which would
+    // erase the verdict this returns. Nothing else here can reinstate it — the
+    // identity is the invalidation, and it has just been checked (ticket 0740).
+    if (cache.refused(result.cacheKey, result.identity)) {
+      return { ...result, status: 'failed-remembered' };
+    }
     result.sourceBytes = source.size;
     result.pages = processor === 'pdf' ? await Zotero.DB.valueQueryAsync(
       'SELECT totalPages FROM fulltextItems WHERE itemID = ?', [id]) : null;
@@ -1291,10 +1347,10 @@ async function initialize(rootURI, token) {
     // read 'invalid-pack'. Both re-extract, so only the diagnostic bucket
     // differs, and 'missing-pack' is the truer of the two for a file the
     // filesystem will not describe.
-    let stat;
+    let stat = null;
     try { stat = await IOUtils.stat(path); }
-    catch (_error) { cache.drop(result.cacheKey); return result; }
-    try {
+    catch (_error) { cache.drop(result.cacheKey); }
+    if (stat) try {
       const fingerprint = JSON.stringify([stat.size, stat.lastModified]);
       const cached = cache.check(result.cacheKey, result.identity, fingerprint);
       if (cached) return { ...result, status: 'current', cached: true };
@@ -1317,6 +1373,21 @@ async function initialize(rootURI, token) {
       if (result.status === 'current') cache.remember(result.cacheKey, result.identity, fingerprint, result);
       else cache.drop(result.cacheKey);
     } catch (error) { result.status = 'invalid-pack'; }
+    // The label check, and the last thing before a document becomes a candidate.
+    // Placed here rather than beside the `is*Attachment()` predicates on purpose:
+    // there it would read eight bytes off every attachment in the library on
+    // every 30-second sweep, where here it reads them only for a document that
+    // is otherwise about to be handed to the worker — 4 890 snapshots minus the
+    // 4 729 that already carry a pack, once each, and nothing at all on a
+    // library that is fully indexed.
+    //
+    // A mismatch is `unsupported`, not a failure. The document is fine; our
+    // classification of it was wrong, and the file that Zotero labelled
+    // `text/html` was never something a text extractor could have read.
+    if (SDT_STATUS_CLASSES?.queued.includes(result.status)) {
+      const sniffed = await sniffSDTSource(sourcePath);
+      if (sniffed && sniffed.processor !== processor) result.status = 'unsupported';
+    }
     return result;
   }
 
@@ -1367,6 +1438,10 @@ async function initialize(rootURI, token) {
       cache.prune(seen); sourceHashes.prune(seen); await saveCache(); return cache.samples();
     },
     observed: async (info, sample) => { cache.observe(info.cacheKey, info.identity, sample); await saveCache(); },
+    // Written through the same store and the same write path as every other
+    // derived record, because it is one: disposable, keyed on the identity, and
+    // gone the moment the source or the native versions move.
+    refuse: async info => { cache.refuse(info.cacheKey, info.identity); await saveCache(); },
     // Every number the scheduler stamps with this — startedAt, lastProgressAt,
     // serviceMS, and the duration samples the estimator is fitted on — is a span.
     inspect, blocked, now: monotonic, changed: render,
