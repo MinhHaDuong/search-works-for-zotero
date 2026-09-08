@@ -1,0 +1,96 @@
+%erg 0.1
+Title: File six upstream Zoteus issues and relay the responses
+Created: 2026-09-07
+Author: Codex
+Closed: six issues filed 2026-09-07, all closed by the maintainer's own build; feedback relayed
+
+--- log ---
+2026-09-07T13:17Z Codex created
+
+2026-09-07T13:18Z Codex note Restored the ticket from the author-supplied text; functional revalidation and duplicate checks in progress on upstream/main 5a81cee. No upstream code changes.
+2026-09-07T13:22Z Codex note Maintainer feedback already on https://github.com/oscardvs/zoteus/issues/58#issuecomment-5559939505 explicitly invites a separate issue or PR for local bibliography routing. Smallest plan: route bibliography rendering and item_keys CSL export through the local-capable router; keep the supplied-CSL path intact.
+2026-09-07T13:25Z Codex filed Resolve the configured/explicit library consistently for writes and annotation reads: https://github.com/oscardvs/zoteus/issues/61. Rechecked upstream/main 5a81cee and all issue/PR titles immediately before filing; verified the public issue title, body and author after creation.
+2026-09-07T13:25Z Codex filed MCPB advertises Windows/macOS but its Linux build omits their native PDF dependency: https://github.com/oscardvs/zoteus/issues/62. Rechecked upstream/main 5a81cee and all issue/PR titles immediately before filing; verified the public issue title, body and author after creation.
+2026-09-07T13:25Z Codex filed Transient note/annotation census failure advances the cursor and prevents catch-up on retry: https://github.com/oscardvs/zoteus/issues/63. Rechecked upstream/main 5a81cee and all issue/PR titles immediately before filing; verified the public issue title, body and author after creation.
+2026-09-07T13:25Z Codex filed Route item-key bibliography generation through the local API in key-free mode: https://github.com/oscardvs/zoteus/issues/64. Rechecked upstream/main 5a81cee and all issue/PR titles immediately before filing; verified the public issue title, body and author after creation.
+2026-09-07T13:25Z Codex filed Annotation passages can exhaust the semantic candidate pool before item deduplication: https://github.com/oscardvs/zoteus/issues/65. Rechecked upstream/main 5a81cee and all issue/PR titles immediately before filing; verified the public issue title, body and author after creation.
+2026-09-07T13:25Z Codex filed Enable GitHub private vulnerability reporting: https://github.com/oscardvs/zoteus/issues/66. Rechecked upstream/main 5a81cee and all issue/PR titles immediately before filing; verified the public issue title, body and author after creation.
+2026-09-07T13:26Z Codex note Revalidation evidence: verification/UPSTREAM-PUBLIC-REVIEW-0736.md and its linked executable probes, raw outputs and exact public issue text. All functional findings reproduced at their stated evidence grade; Windows/macOS PDF runtime remains a loader simulation, not a native smoke test.
+2026-09-07T13:27Z Codex note Follow-up poll: issues #61 through #66 are OPEN with no comments; private vulnerability reporting still returns enabled=false. No approval inferred. Filing complete; this ticket remains open for substantive responses and their response/patch plans.
+2026-09-07T13:28Z Codex note The committed reproduction test also passes upstream typecheck:tests. Public-page receipts and exact submitted bodies are under verification/upstream-issues-0736/; SYNC.md points here for follow-through.
+2026-09-07T13:31Z Codex verified make check PASS with local test sockets permitted; targeted upstream defect reproductions and typecheck:tests PASS. Gate output: bench/results/upstream-public-review-2026-09-07/make-check.txt.
+2026-09-08T07:12Z sim note MAINTAINER FEEDBACK RELAYED, and it is the last exit criterion. He built and shipped a fix for all six, five of them between 21:19Z and 21:45Z on the evening of 2026-09-07 and the sixth the next morning; v1.16.0 went out at 21:49Z, four minutes after the last close. #66 -> `e28413d`, private vulnerability reporting enabled and `SECURITY.md` written naming it as the first channel, `support@zoteus.com` as the second, with scope (npm package, `.mcpb` bundle, image, `mcp.zoteus.com`) and a latest-release-only fix policy; his words were "it should have been on from the start". #65 -> `99566eb`, the candidate pool widens until the page holds distinct items. #61 -> `4db3df5`, the effective library resolved once with writes and annotation reads routed by it. #63 -> `821629a`, the version stamp withheld when an update cannot catch up notes and annotations. #64 -> `34a8d66`, item-key bibliographies and CSL-JSON exports through the library router. #62 -> `dcbeef3`, the largest response: he reproduced the lockfile inventory exactly, measured a single all-targets archive at 103 MB against 34, and split it into three per-OS bundles (macOS 33.3 MB, Windows 31.9, Linux 56.7) built by a new `scripts/mcpb-bundle.ts` that reads the platform packages out of the lockfile rather than a hardcoded list, with a `check` subcommand as the release gate and 17 tests, then closed against SHA-256s of the published assets rather than local builds. NO RESPONSE OR PATCH IS OWED FROM US on any of the six: each was closed by his own build, none asked us for a change, and none was rejected
+2026-09-08T07:12Z sim note ONE ASK IS OUTSTANDING, AND IT IS NOT A PATCH. He closed #62 explicitly caveated: nobody has yet installed a 1.16.0 bundle on native macOS or Windows and run `zotero_fulltext` with a `page_range` over a PDF Zotero has not cached, and he named a failure there as grounds to reopen. The caveat stands in `docs/distribution.md` and the changelog. This host is Linux, so the evidence cannot be produced here; recorded on ticket 0613, whose rung is the install half this bears on
+2026-09-08T07:12Z sim note this branch sat unmerged and unreachable from any other branch for a day, found only because a search for something else read the commit. The six issues were filed and closed upstream while the record of filing them stayed off main. The filing session's GitHub authentication had failed, the ticket was restored from author-supplied text, and the branch was then never landed — the work survived, its record nearly did not
+
+2026-09-08T07:12Z sim closed — six issues filed 2026-09-07, all closed by the maintainer's own build; feedback relayed
+--- body ---
+
+## Context
+
+The 2026-09-07 whole-repository review of `oscardvs/zoteus` found five
+contained, user-visible defects suitable for ordinary public issues. A sixth
+public issue should ask the maintainer to enable GitHub private vulnerability
+reporting. GitHub authentication did not complete in the filing session, so
+the work is retained here instead of being silently lost.
+
+This ticket also owns the follow-through: bring substantive upstream comments,
+reviews, requested changes, merges, and fixes back into this repository's
+record, with the smallest response or patch plan each one requires.
+
+## Public issue queue
+
+1. Resolve the effective library consistently for writes and annotations.
+2. Package the native PDF dependency for every platform advertised by the
+   MCPB, or narrow the advertised platform support to what is verified.
+3. Do not advance the library cursor when incremental own-words/note catch-up
+   fails.
+4. Support bibliography generation from a key-free local Zotero library.
+5. Keep note passages from crowding distinct items out of semantic-search
+   results.
+6. Enable GitHub private vulnerability reporting. This issue is deliberately
+   neutral and contains no vulnerability details.
+
+## Filing rules
+
+- Re-check each public finding against live upstream `main` immediately before
+  filing; do not file work already fixed or duplicated by an existing issue.
+- One coherent defect per issue. Include a minimal reproduction, expected and
+  actual behaviour, the smallest plausible fix shape, and acceptance criteria.
+- Keep internal governance and all security-sensitive evidence out of public
+  issue text.
+- Ask only for the confidential reporting channel in issue 6. If it becomes
+  available, use it for security-sensitive reports rather than a public issue.
+- Record every filed URL and every substantive response in this ticket with
+  `erg log`; do not infer approval from silence.
+
+## Exit criteria
+
+- [x] The five functional findings are revalidated against current upstream.
+- [x] Existing upstream issues are checked for duplicates.
+- [x] Five public functional issues are filed, or this ticket logs why a
+      finding was deliberately not filed.
+- [x] The neutral private-vulnerability-reporting request is filed without
+      security details.
+- [x] Each filed issue URL is recorded here.
+- [x] Substantive maintainer feedback is relayed here with the smallest
+      appropriate response or patch plan. All six were closed by the
+      maintainer's own build; no response or patch is owed. The one
+      outstanding item is evidence this host cannot produce (#62's native
+      macOS/Windows page extraction), tracked on 0613.
+
+## References
+
+- `GOVERNANCE.md`, especially the disclosure rule and courtesy-filing norm.
+- `SYNC.md` for live upstream state and the reviewed baseline.
+- GitHub documentation: `https://docs.github.com/code-security/security-advisories/working-with-repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository`.
+
+## Evidence and handoff
+
+- `verification/UPSTREAM-PUBLIC-REVIEW-0736.md` records revalidation,
+  duplicate review, probe commands, limitations and the raw-evidence paths.
+- `verification/upstream-issues-0736/` holds the exact filed public bodies
+  and verified creation receipts.
+- Filing is complete. Follow-through stays open: read the filed pages and
+  associated fixes, record substantive responses with `erg log`, and name the
+  smallest response or patch plan. No background monitoring is configured.
