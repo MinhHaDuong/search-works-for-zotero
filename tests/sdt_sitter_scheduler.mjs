@@ -1275,9 +1275,56 @@ assert.equal(ui.describeSDTFile(null, 'unknown file'), 'unknown file');
 let coverage = ui.getSDTCoverage({ total: 10, scanned: 10, phase: 'waiting',
   counts: { current: 4, excluded: 2, unsupported: 1, 'failed-session': 1, 'missing-source': 2 } });
 assert.equal(coverage.current, 4); assert.equal(coverage.total, 7); assert.equal(coverage.known, true);
+// No censusSnapshot: the first-ever census has never once completed. `known`
+// still reads false (still counting, no denominator to trust yet), but the
+// live counts are used rather than zeroed -- switching off mid-first-census
+// used to freeze a real count, and switching back on discarded it for a bare
+// "0" that lasted the whole re-walk, since nothing held the pre-reset state
+// (found live, testing v0.3.19).
 coverage = ui.getSDTCoverage({ total: 10, scanned: 4, phase: 'census', counts: { current: 4 } });
 assert.equal(coverage.known, false);
-assert.equal(coverage.current, 0); assert.equal(coverage.total, 0);
+assert.equal(coverage.current, 4); assert.equal(coverage.total, 10);
+
+// Found live, testing v0.3.19: the author switched off partway through the
+// FIRST-EVER census (before it had once completed), watched the frozen
+// coverage line read "1 515 / 16 606" correctly, switched back on, and
+// watched it regress to "0" for the length of the whole re-walk -- minutes,
+// at library scale, since every activation re-hashes from scratch. Driven
+// through real sweep() calls, not the unit-level state literal above: what
+// matters is that sweep()'s own reset of state.counts happens AFTER a
+// snapshot of what was there, not merely that getSDTCoverage can read one if
+// given it.
+await test('a census interrupted before its first completion still shows the pre-restart count, not zero', async () => {
+  const f = fixture();
+  f.cached.add(1); // classifies 'current' -- a real, nonzero indexed count to lose
+  const entered = deferred(), release = deferred();
+  let hit = 0;
+  f.host.inspect = async id => {
+    if (id === 2 && hit++ === 0) { entered.resolve(); await release.promise; }
+    return { status: f.cached.has(id) ? 'current' : 'missing-pack', identity: String(id) };
+  };
+  const running = f.api.sweep();
+  await entered.promise;
+  // Mid-census, first-ever: id 1 classified 'current', id 2 paused before its
+  // own classification, no completion yet, so nothing has EVER populated
+  // censusSnapshot.
+  assert.equal(f.api.state.censusSnapshot, null, 'a snapshot exists before any census ever completed');
+  const beforeCoverage = ui.getSDTCoverage(f.api.state);
+  assert.equal(beforeCoverage.current, 1, 'the fixture set up differently than this test assumes');
+  f.api.stop();
+  release.resolve();
+  await running;
+
+  // Restart: the second sweep's own reset must not discard what the first
+  // one had classified so far.
+  f.api.start();
+  const running2 = f.api.sweep();
+  assert(f.api.state.censusSnapshot, 'the pre-reset state was not snapshotted before the second census reset it');
+  const midRestart = ui.getSDTCoverage(f.api.state);
+  assert.equal(midRestart.current, 1,
+    'the count regressed to zero on restart instead of holding what the first census had scanned');
+  await running2;
+});
 
 const cache = context.createSDTCache(null, 'v');
 cache.remember('1/a', 'source-v', 'pack-stamp', { sourceBytes: 100, pages: 2 });

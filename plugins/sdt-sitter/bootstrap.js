@@ -240,6 +240,7 @@ var SDT_TEXT = {
     "section-active": "Indexing under way",
     "details-title": "Details",
     "about-title": "About and limitations",
+    "about-intro": "Zotero reads a PDF attachment's structured text — a pack, produced by its own native extractor and stored as .zotero-sdt-cache beside the attachment, in its own storage folder — the first time a feature needs it, which for most attachments is the first time you open them yourself. This assistant builds that pack ahead of time, one attachment at a time, across the whole library, instead of waiting for that moment.",
     "fulltext-title": "Full-text search index",
     "fulltext-body": "Zotero’s own full-text search index (distinct from the index the assistant prepares):",
     "fulltext-unavailable": "Statistics unavailable: {error}",
@@ -248,6 +249,7 @@ var SDT_TEXT = {
     "files-indexed-count": "Files indexed: {current}",
     "global-estimate": "Estimated finish around {median} (between {low} and {high})",
     "active-none": "No indexing under way",
+    "active-preparing": "Preparing the next attachment…",
     "active-file": "Indexing: {file} — {progress} % — {elapsed} elapsed",
     "active-finalising": "Finishing…",
     "active-references": "Reading the references…",
@@ -261,7 +263,7 @@ var SDT_TEXT = {
     "observations-basis": "Observed durations: {count} — basis: {basis}",
     "basis-pages": "per page",
     "basis-bytes": "per byte",
-    "diagnostics-census": "Scanned {scanned} attachments out of {total}.",
+    "diagnostics-census": "{total} attachments in the library.",
     "diagnostics-completed": "Attachments indexed this session: {count}",
     "census-total-label": "Attachments counted in all",
     "status-current": "Indexed and up to date",
@@ -614,9 +616,19 @@ function noteDialogClose(dialog) {
    caller wants no claim. */
 function getSDTCoverage(state) {
   const duringCensus = state.phase === 'census';
+  // Held only when a PRIOR complete census actually produced one — a snapshot
+  // this young cannot exist before the library's first census has ever
+  // finished. Falling through to the live counts in that case, rather than
+  // forcing "unknown", is the fix: switching on while the first census had
+  // never once completed re-armed a fresh census, `duringCensus` went true
+  // with no snapshot to hold, and the reader watched a correct "1 515 /
+  // 16 606" regress to a bare "0" — the number the switch-off fix
+  // (ticket 0747) had just frozen, discarded for nothing, since the very
+  // counts the switch-off arm reads (`state.counts`/`state.total`) were
+  // sitting right there the whole time (found live, testing v0.3.19).
   const held = duringCensus ? state.censusSnapshot : null;
-  const counts = duringCensus ? (held?.counts || {}) : (state.counts || {});
-  const censusTotal = duringCensus ? (held?.total ?? 0) : state.total;
+  const counts = held ? held.counts : (state.counts || {});
+  const censusTotal = held ? held.total : state.total;
   const classes = SDT_STATUS_CLASSES;
   const tally = keys => keys.reduce((n, key) => n + (counts[key] || 0), 0);
   const current = classes ? tally(classes.indexed) : 0;
@@ -629,7 +641,7 @@ function getSDTCoverage(state) {
   // attribute forever — the platform's own indeterminate rendering, which
   // animates natively and keeps animating with the sitter off and the 100 ms
   // render loop itself long since cleared (found live, ticket 0742 follow-up).
-  return { known: !!classes && (duringCensus ? !!held
+  return { known: !!classes && (held ? true
       : state.phase === 'switched-off'
         || (state.scanned === state.total && state.phase !== 'ready')),
     current, failed, queued, outOfScope,
@@ -1174,10 +1186,15 @@ function buildSDTAbout(doc, element) {
   const group = element('details', 'sdt-about-details');
   const summary = element('summary', 'sdt-about-title');
   summary.textContent = sdtText('about-title');
+  // What the plugin does and why, ahead of its limitations (found live,
+  // testing v0.3.19): a reader who opens "About" reasonably expects to be
+  // told what the thing is before being told what it cannot do.
+  const intro = element('pre', 'sdt-about-intro');
+  intro.textContent = sdtText('about-intro');
   const disclosures = element('pre', 'sdt-disclosures');
   disclosures.textContent = ['launch-worker', 'launch-disable']
     .map(id => sdtText(id)).join('\n\n');
-  group.append(summary, disclosures, element('pre', 'sdt-environment'));
+  group.append(summary, intro, disclosures, element('pre', 'sdt-environment'));
   return group;
 }
 
@@ -1391,7 +1408,16 @@ function renderState() {
     status.textContent = coverage.known
       ? sdtText('files-indexed-of', { current: coverage.current, total: coverage.total })
       : sdtText('files-indexed-count', { current: coverage.current });
-    const activeMessage = s.active === null ? sdtText('active-none')
+    // Found live, testing v0.3.19: the box still blinked between documents
+    // even with its height reserved, because the text itself flashed to "No
+    // indexing under way" for real, however briefly — scheduler.js awaits
+    // twice (`host.yield()`, `host.blocked()`) between one document settling
+    // and the next being admitted, and `state.active` genuinely reads null
+    // for that span. `state.pending` still names what is queued behind it,
+    // so a reader is not told nothing is happening when something is about
+    // to be.
+    const activeMessage = s.active === null
+      ? (s.pending && s.pending.length > 0 ? sdtText('active-preparing') : sdtText('active-none'))
       : sdtText('active-file', { file: describeSDTActiveFile(s),
         progress: s.progress ?? sdtText('unknown-value'),
         elapsed: formatDocumentDuration(elapsed * 1000) });

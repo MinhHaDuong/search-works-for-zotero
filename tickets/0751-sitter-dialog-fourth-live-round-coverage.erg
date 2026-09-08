@@ -1,0 +1,82 @@
+%erg 0.1
+Title: sitter dialog fourth live round: coverage freeze, blink, wording, About intro
+Created: 2026-09-08
+Author: MinhHaDuong
+
+--- log ---
+2026-09-08T20:49Z MinhHaDuong created
+
+--- body ---
+## Context
+
+Fourth round of live findings, testing v0.3.19 right after install. One
+genuine correctness bug (a multi-minute display regression, not a
+flicker), plus wording/content fixes from the same session.
+
+## Findings and fixes
+
+1. **Turning indexing off mid-first-census, then back on, regressed a
+   correct "1 515 / 16 606" to a bare "0" for the length of the whole
+   re-walk** — minutes, at library scale, since every activation re-hashes
+   from scratch. Two contributing bugs, both fixed:
+   - `getSDTCoverage()` forced "unknown" during any census phase with no
+     `censusSnapshot` yet, even when the live counts were perfectly good
+     to show (case: the first-ever census, interrupted before its first
+     completion). Now falls back to live counts when no snapshot exists.
+   - `sweep()` reset `state.counts` to `{}` at the top of every census
+     with nothing capturing what was there first. Now snapshots the
+     pre-reset state (when there is one) before resetting, so a restarted
+     census always has something to show throughout its own re-walk,
+     until it completes and overwrites the snapshot with fresh numbers.
+2. **The "Indexing under way" box still blinked between documents** even
+   with its reserved height (ticket 0748): the text itself flashed to "No
+   indexing under way" for real, in the genuine gap `scheduler.js` awaits
+   through between one document settling and the next being admitted.
+   `state.pending` still names what is queued behind that gap, so the box
+   now reads "Preparing the next attachment…" instead of implying nothing
+   is happening.
+3. **"Scanned X attachments out of Y" duplicated the census table's own
+   total row** — `scanned` and the account's summed total are the same
+   number by construction, since every classified attachment adds to
+   both. Reworded to "{total} attachments in the library.", keeping the
+   one number the table doesn't already show.
+4. **The "About and limitations" disclosure opened straight into
+   limitations, with no sentence saying what the plugin does.** Added an
+   intro naming SDT, what a pack is, where it lives on disk
+   (`.zotero-sdt-cache`, beside the attachment in its own storage folder),
+   and why this assistant builds it ahead of time. The author's own call:
+   "pack" may appear here, the one place the term is explained rather than
+   assumed, via a scoped exception to the repo-wide vocabulary ban.
+
+## Test
+
+- `tests/sdt_sitter_scheduler.mjs`: the `getSDTCoverage` unit case for
+  "mid-census, no snapshot" updated to expect live counts, not zero; a new
+  integration test drives two real `sweep()` calls (interrupt before
+  completion, restart) and asserts the count survives the restart.
+  Verified red against the pre-fix `scheduler.js`.
+- `tests/sdt_sitter_bootstrap.mjs`: a new test drives the real gap between
+  two admissions and asserts "Preparing the next attachment…" appears
+  where "No indexing under way" is wrong. Verified red against the
+  pre-fix `bootstrap.js`.
+- `tests/sdt_sitter_dialog.mjs`: the census-line wording updated; the
+  About intro's presence, position, and file-path content asserted.
+- `tests/test_sdt_sitter.py`: a scoped exception added to the vocabulary
+  ban for `about-intro`'s use of "pack".
+
+## Verification
+
+- [x] All four `.mjs` suites pass
+- [x] `tests/test_sdt_sitter.py`, `tests/test_sitter_host_apis.py` pass
+- [x] `make check-fast` — 1313 passed, 15 skipped, no failures
+- [x] Manifest/update.json bumped 0.3.19 -> 0.3.20, version guard clean
+- [x] Both scheduler-level fixes verified with a positive control (red
+      against the pre-fix code)
+
+## Exit criteria
+
+Switching indexing off and back on never shows a worse number than what
+was already known. The active-file box never implies idleness while more
+work is queued behind a brief admission gap. The census line and the
+account table each say something the other doesn't. "About" opens with
+what the plugin is, before what it cannot do.

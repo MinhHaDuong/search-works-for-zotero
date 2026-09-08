@@ -1266,6 +1266,33 @@ await test('an open dialog shows a switched-off job reach completion, not just i
     'the dialog is still showing a stale 10 % after the job it belonged to finished');
 });
 
+// Found live, testing v0.3.19: the active-file box still blinked between
+// documents even with its height reserved, because the text itself flashed to
+// "No indexing under way" for real -- scheduler.js awaits twice between one
+// document settling and the next being admitted, and `state.active` genuinely
+// reads null for that span. `state.pending` still names what is queued behind
+// it, so the box should say so rather than imply nothing is happening.
+await test('the active-file box says "preparing" between documents, not "no indexing"', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')] });
+  await harness.start();
+  const window = harness.windows[0];
+  harness.context.openDialog(window);
+  await harness.turn();
+  const doc = window.dialogs[0].document;
+  const sitter = harness.context.sitter;
+
+  sitter.state.active = null;
+  sitter.state.pending = [{ id: 2, title: null, parentTitle: null }];
+  harness.context.render();
+  assert.equal(doc.getElementById('sdt-document-status').textContent, 'Preparing the next attachment…',
+    'a document queued behind this gap was read as genuine idleness');
+
+  sitter.state.pending = [];
+  harness.context.render();
+  assert.equal(doc.getElementById('sdt-document-status').textContent, 'No indexing under way',
+    'genuine idleness (nothing pending) still reads as "preparing"');
+});
+
 /* PASS / FAIL / NOT-RUN, rather than a boolean. A guard that greens because it
  * found nothing to check is the failure this repository keeps meeting, so the
  * empty set gets a verdict of its own and the caller has to say what it does

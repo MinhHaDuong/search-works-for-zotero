@@ -167,6 +167,13 @@ UI_SITES = (
 # from the other side.
 BANNED_IN_UI = ('document', 'élément', 'pièce jointe', 'item', 'pack')
 
+# `about-intro` is the one place a banned term is explained rather than
+# assumed -- the author's own call, 2026-09-08: it may name "pack", Zotero's
+# real internal term for the artifact, exactly because that sentence defines
+# it in place rather than dropping it unexplained the way the rule above
+# guards against everywhere else.
+BANNED_IN_UI_EXCEPTIONS = {'about-intro': {'pack'}}
+
 #: A quoted census status, in every quote style JavaScript has, over the whole
 #: identifier character set. Every part is load-bearing, and the first draft of
 #: the reading-order guard had none of them.
@@ -689,7 +696,10 @@ def test_no_user_facing_string_says_document():
     for tag in LOCALES:
         for name, pattern in messages(tag).items():
             text = visible(pattern).lower()
+            exempt = BANNED_IN_UI_EXCEPTIONS.get(name, ())
             for word in BANNED_IN_UI:
+                if word in exempt:
+                    continue
                 assert word not in text, f'{word!r} in {tag}.ftl message {name!r}: {pattern!r}'
 
 

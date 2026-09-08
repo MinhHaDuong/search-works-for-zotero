@@ -93,6 +93,18 @@ var createSDTSitter = function (host) {
       // trace ticket 0702's failure mode left behind: none at all.
       if (host.emit) host.emit('sweep-start', {}, 'trace');
       try {
+        // Snapshotted BEFORE the reset, not only at the next completion:
+        // `state.counts` is about to be overwritten with `{}`, and without
+        // this the coverage line has nothing to fall back on until this
+        // whole walk finishes -- minutes, at library scale, since every
+        // activation re-hashes from scratch. A census interrupted before its
+        // first-ever completion left no held snapshot at all, so switching
+        // off (which freezes the live count) and back on discarded a real,
+        // correct "1 515 / 16 606" for a bare "0" that lasted the length of
+        // the whole re-walk (found live, testing v0.3.19). A snapshot this
+        // publish() itself will overwrite once the walk actually completes,
+        // so it is never stale beyond one sweep.
+        if (state.total > 0) state.censusSnapshot = { counts: { ...state.counts }, total: state.total };
         state.phase = 'census'; state.scanned = 0; state.counts = {};
         const ids = await host.list();
         if (!state.enabled) return;
