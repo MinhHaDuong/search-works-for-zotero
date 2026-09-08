@@ -1,0 +1,139 @@
+%erg 0.1
+Title: is_file() raises before the guard: a permission-denied profile directory crashes the addon-record read
+Created: 2026-09-08
+Author: sim
+
+--- log ---
+2026-09-08T11:10Z sim created
+
+--- body ---
+
+## Context
+
+The shape-guarded reader of a Zotero profile's `extensions.json` exists to
+make the read three-valued: `read: False` means we could not look, and it must
+never be a raise, because both callers consume the record unguarded — one as an
+exit code, one inside an evidence dictionary its verbs return. Tickets 0688 and
+0712 each spent a review round closing four ways that contract leaked.
+
+A fifth way is still open, and it is the one the `try` cannot see, because it
+happens before the `try` begins:
+
+```python
+path = Path(profile) / "extensions.json"
+if not path.is_file():                # outside the try
+    return {"read": False, "why": f"{path} does not exist"}
+try:
+    document = json.loads(path.read_text(encoding="utf-8"))
+except (ValueError, OSError, RecursionError, MemoryError) as exc:
+    ...
+```
+
+`pathlib.Path.is_file()` swallows `OSError` only for the errnos in
+`_IGNORED_ERRNOS` (`ENOENT`, `ENOTDIR`, `EBADF`, `ELOOP`). `EACCES` is not among
+them, so a profile directory without the search bit makes `is_file()` re-raise
+`PermissionError` — past the guard, out of the reader, into the caller.
+
+This is **pre-existing**, not a regression: the same line sat outside the same
+`try` in both of the implementations that PR #465 merged, and the crash
+reproduces identically on `origin/main`. PR #465's extraction is a faithful
+port and did not introduce it; it did concentrate it into one place, which is
+what makes it cheap to fix now.
+
+Reproduction, on the shared module and on `origin/main` alike:
+
+```
+$ mkdir -p /tmp/p/profile && echo '{"addons":[]}' > /tmp/p/profile/extensions.json
+$ chmod 600 /tmp/p/profile
+$ python3 bench/sdt_sitter_install.py verify --profile /tmp/p/profile
+Traceback (most recent call last):
+  ...
+  File "bench/host_addon_record.py", line 44, in host_addon_record
+    if not path.is_file():
+PermissionError: [Errno 13] Permission denied: '/tmp/p/profile/extensions.json'
+$ echo $?
+1
+```
+
+Exit 1 is what this tool means by ABSENT. So a profile nobody could read reports
+as a plugin that is not installed — the exact collapse of "could not look" into
+"looked and found nothing" that the three-valued record was built to prevent,
+and the contract promises exit 3 here. The beaver adapter takes the same
+exception straight through `_host_addon_record` into the evidence dictionary.
+
+A profile directory with a restrictive mode is not exotic: one copied from
+another user's home, one mounted read-restricted, or one created by a different
+UID in a sandbox all reproduce it.
+
+Found by the red-team perspective of `/review-pr` on PR #465; classified there
+as a blocker, reclassified here as pre-existing after the control run on
+`origin/main` came back with the identical traceback.
+
+## Relevant files
+
+- `bench/host_addon_record.py` — the shared reader; the `is_file()` call at the
+  top is the defect site
+- `bench/sdt_sitter_install.py` — caller that turns the record into an exit code
+  (0 / 1 / 3); `report()` never runs when the exception escapes
+- `bench/acceptance/adapters/beaver.py` — caller that embeds the record in an
+  evidence dictionary its verbs return unguarded
+- `tests/test_host_addon_record.py` — owns the reader's behaviour; every
+  filesystem-hostility arm currently targets `extensions.json` itself, none the
+  containing directory's mode
+
+## Test
+
+Red first, in `tests/test_host_addon_record.py`: a profile directory created
+with `extensions.json` inside it and then `chmod 0o600` on the *directory*
+(readable, not searchable) must return `{"read": False, ...}` with `present`
+absent, not raise. Assert the `why` names the permission, so the arm cannot be
+satisfied by a reader that reports the file missing.
+
+Guard the arm against a root-run environment, where the search bit is not
+enforced and the test would pass while discriminating nothing: skip when
+`os.geteuid() == 0`, or assert the setup really is unreadable before asserting
+the reader's verdict.
+
+Restore the mode in a fixture teardown so a failure does not leave `tmp_path`
+undeletable.
+
+## Actions
+
+1. Write the failing test above and watch it raise `PermissionError`.
+2. Fold the existence probe into the same failure path — either move it inside
+   the `try`, or wrap the `is_file()` call so an `OSError` becomes
+   `{"read": False, "why": …}` like every other unreadable case.
+3. Keep the friendlier "does not exist" wording for the genuinely-absent case
+   (`ENOENT`), so the common diagnostic does not regress into an errno dump.
+4. While the errno mapping is open, consider the neighbouring cosmetic defect:
+   a symlink loop at `extensions.json` is `ELOOP`, which `pathlib` folds into
+   "not a file", so the reader reports "does not exist" for a path that plainly
+   does. Safe — it is still `read: False` — but the sentence is false, and a
+   human debugging `verify` against an `ls` that shows the file will not
+   believe it. Fix it in the same pass or record it as deliberately left.
+
+## Verification
+
+- [ ] The new test is red before the fix and green after.
+- [ ] `python3 bench/sdt_sitter_install.py verify --profile <mode-600 dir>`
+      exits **3**, not 1, and prints the three-valued record.
+- [ ] `Beaver._host_addon_record()` on such a profile returns a record rather
+      than raising.
+- [ ] The absent, present, and unreadable arms already in the suite still pass
+      with their existing `why` wording.
+
+## Invariants
+
+- The reader never raises for any state of the filesystem; every failure is a
+  `read: False` carrying a `why`.
+- `present` stays absent from every `read: False` record — no caller may read a
+  failure to measure as a measurement.
+- The three exit codes of `sdt_sitter_install.py verify` keep their meanings:
+  0 present, 1 absent, 3 could not read.
+
+## Exit criteria
+
+- [ ] A permission-denied profile directory yields `read: False`, not a raise,
+      through both call sites.
+- [ ] The suite owns that arm, with a control that fails against today's code.
+- [ ] `make check` green.
