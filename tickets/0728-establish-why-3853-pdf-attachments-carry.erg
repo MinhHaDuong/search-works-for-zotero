@@ -8,6 +8,10 @@ Author: claude
 2026-09-06T21:53Z claude note found while measuring ticket 0606's residue, not by a sitter sweep. The residue turned out to be this defect rather than documents native extraction cannot handle, which is what decides 0606 — so the measurement is recorded there too.
 2026-09-06T22:05Z claude note THE CAUSE THIS TICKET WAS FILED ON IS RETRACTED, found by the roar sweep of the change that filed it, before anyone worked on it. The 12 673-entry `sdt-sitter-errors.jsonl` is a STALE ARTIFACT: `bench/results/sdt-sitter-launch-2026-09-05/2.4.1-debug-journal.json` records that file retired at sitter revision 2.4.1 — "no code path writes that file" — and a grep of `plugins/sdt-sitter/` confirms none does. So it cannot evidence anything about the sitter that runs today, and the note above it, which says the residue is our defect rather than the platform's limit, is withdrawn. The title and body are rewritten to the observation, which is unaffected. One real defect did come out of the same read, verified at source; it is small and is recorded below rather than dropped.
 
+2026-09-08T06:49Z claude note THE RESIDUE HAS LARGELY CLOSED, and the observation this ticket rests on is now stale. Recounted on doudou 2026-09-08 08:46 by co-location — a pack is a sibling of the file, so the count is over storage directories, not over the two populations globally (a global ratio mixes denominators: 13 699 packs against 9 290 PDFs, because packs also sit beside epub and snapshots). Result: **9 108 directories holding a PDF, 8 950 with a `.zotero-sdt-cache`, 158 without — a 1,7 % residue**, against the 42 % (5 255 / 3 853) recorded here on 2026-09-06. The denominator is identical to the digit, 9 108 both times, so this is not a counting artefact: the residue really fell from 3 853 to 158 in two days. Script: `bench/pack_census.sh`, committed with this note so the number is re-runnable; read-only, and it reports NOT MEASURED rather than dividing by a zero denominator.
+2026-09-08T06:49Z claude note WHAT THAT DOES TO 0606, which this ticket exists to inform. The body says the decision turns on what the packless documents ARE — documents native extraction cannot handle argue for a producer of our own; documents nothing has yet asked about argue for finishing the asking. A 42 % residue was consistent with either reading. A 1,7 % residue that fell this fast is the second reading: the sitter was simply still working. The 158 that remain are now a SMALL, ENUMERABLE set, which is the first time this question has been cheap to answer properly — list them and read what they are, rather than reasoning about a population. That is the measurement 0606 has been waiting for, and it is now an afternoon's work rather than a research programme.
+2026-09-08T06:49Z claude note Cross-check against the plugin's own figure, which is what makes the recount trustworthy rather than a second lonely number: the sitter's toolbar read "Index 97 %" in the author's live window at the same time, and `Math.floor` puts its true value in [97, 98). My filesystem count says 98,3 % over PDFs alone. The two agree to within the difference their denominators predict — the button's census counts every attachment kind, mine counts PDF directories. So the user-facing figure is not lying, which was the live question when this recount was taken.
+
 --- body ---
 ## Context
 
@@ -18,10 +22,17 @@ nothing has yet asked about argue for finishing the asking. **Nothing
 established which**, and this ticket exists to close that gap rather than to
 assert an answer.
 
-**The observation, firm.** Doudou, 2026-09-06, counted over
+**The observation, and it has moved.** Doudou, 2026-09-06, counted over
 `~/data/Zotero/storage`: **9 108 PDF attachments, 5 255 carrying a
-`.zotero-sdt-cache`, 3 853 without.** That is a 42 % residue, and it is a
-filesystem count, not an inference.
+`.zotero-sdt-cache`, 3 853 without** — a 42 % residue, a filesystem count and
+not an inference.
+
+Recounted 2026-09-08 with `bench/pack_census.sh` over the same directory and
+the same denominator to the digit: **9 108 holding a PDF, 8 950 with a pack,
+158 without — 1,7 %.** The residue closed while this ticket sat. The 2026-09-06
+figure is kept above because it is what the ticket was filed on and what 0606
+was told; the live number is the second one, and the Actions below are written
+to it.
 
 **What was retracted, and why the retraction is recorded rather than tidied
 away.** The first version of this ticket read
@@ -67,10 +78,12 @@ residue.
 1. Run the current sitter over the library and capture its own account of
    every attachment it does not cover, from the channel it actually writes
    today — `Zotero.debug()` and the in-session ring, not the retired file.
-2. Classify the 3 853 by the sitter's own vocabulary: not yet attempted,
-   missing source file, unsupported attachment type, read failure, and
-   genuine extraction failure. The first and the last argue opposite ways
-   about 0606, which is the point of separating them.
+2. Classify the **158** that remain by the sitter's own vocabulary: not yet
+   attempted, missing source file, unsupported attachment type, read failure,
+   and genuine extraction failure. The first and the last argue opposite ways
+   about 0606, which is the point of separating them. At 158 this is no longer
+   a population to reason about — it is a list to read, one afternoon's work,
+   and that is the whole reason the recount matters.
 3. Fix the `loadData` guard to `loadAllData`, with the coordination note
    above. One line; it does not need a ticket of its own.
 
@@ -87,7 +100,10 @@ residue.
 
 ## Verification
 
-- [ ] The 3 853 are classified, and the classes sum to it.
+- [ ] The remaining packless PDFs are classified, and the classes sum to the
+      count `bench/pack_census.sh` reports on the day of the run (158 on
+      2026-09-08). Re-run it first: this ticket has already been overtaken by
+      the sitter once.
 - [ ] The count in the "genuine extraction failure" class is stated as a
       number, since that is the only class arguing for 0606's producer.
 - [ ] The stale `sdt-sitter-errors.jsonl` is deleted from the author's data
