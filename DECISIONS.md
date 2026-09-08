@@ -7017,6 +7017,13 @@ Active jobs remain unpersisted, unconditionally. That half of the 2026-09-05
 clause is untouched: a job in flight is state about a process, and a process does
 not survive its session.
 
+The same ticket's other half needs no such licence, and the asymmetry is recorded
+because it is easy to read the ruling as covering both. Refusing a document whose
+bytes contradict its declared type is recomputed from the file on every census
+and written nowhere, so the disposability argument has nothing to protect there:
+a wrong verdict corrects itself on the next sweep without anyone resetting
+anything.
+
 The alternative the author rejected implicitly by ruling at all — keep the
 session-only exclusion and make the extraction cheaper — was no alternative: the
 documents at issue cannot succeed, so no reduction in cost makes asking them

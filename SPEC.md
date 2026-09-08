@@ -2,7 +2,7 @@
 
 - **Status:** COMPLETE
 - **Author:** Minh Ha-Duong (CNRS)
-- **Date:** 2026-09-07
+- **Date:** 2026-09-08
 
 ## 1. Introduction
 
@@ -2297,15 +2297,18 @@ the source hash and the processor versions — a re-saved file or a version bump
 re-opens the question by itself — and because a wrong entry costs one re-attempt
 after a cache reset. Such a document remains inside the census's failure class,
 not out of scope. Missing, corrupt or unwritable cache falls back to native
-inspection and fresh measurements.
+inspection and fresh measurements. It contains no text, titles or source paths
+and keeps only the latest observation per attachment. An active document
+exceeding its empirical upper duration makes the displayed finish time
+unavailable, not now.
 
 Declared attachment content types are not trusted against the file. Before a
 document becomes a candidate the sitter reads its leading bytes; a signature that
 names a format the declared processor cannot be handling makes the attachment
 unsupported rather than a failure. An unrecognised head leaves the declared type
-standing, since the snapshot format has no signature. It contains no text, titles or source paths and keeps
-only the latest observation per attachment. An active document exceeding its
-empirical upper duration makes the displayed finish time unavailable, not now.
+standing, since the snapshot format has no signature. This verdict is recomputed
+from the file on every census and never cached, so it carries no risk of
+outliving what it describes.
 
 The sitter records its own state transitions to the host's debug output and to
 a volatile in-session ring. A record carries a timestamp, a kind, a level and

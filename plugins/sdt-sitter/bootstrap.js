@@ -1384,7 +1384,13 @@ async function initialize(rootURI, token) {
     // A mismatch is `unsupported`, not a failure. The document is fine; our
     // classification of it was wrong, and the file that Zotero labelled
     // `text/html` was never something a text extractor could have read.
-    if (SDT_STATUS_CLASSES?.queued.includes(result.status)) {
+    // Read without a guard, unlike the coverage line's `classes ? …`: there an
+    // absent classification must make a figure unsayable rather than wrong,
+    // here it would silently stop checking labels. scheduler.js is loaded
+    // before initialize() builds this closure, so absence is impossible — and
+    // if that ever changed, a throw becoming `inspection-error` is the loud
+    // failure, which is the one to have.
+    if (SDT_STATUS_CLASSES.queued.includes(result.status)) {
       const sniffed = await sniffSDTSource(sourcePath);
       if (sniffed && sniffed.processor !== processor) result.status = 'unsupported';
     }

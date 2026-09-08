@@ -227,7 +227,7 @@ MUTANTS = [
     # that cannot read a photograph — 39 documents resubmitted every session on
     # the author's library.
     ("M29 the declared content type is trusted again, so a JPEG reaches the extractor",
-     "    if (SDT_STATUS_CLASSES?.queued.includes(result.status)) {\n"
+     "    if (SDT_STATUS_CLASSES.queued.includes(result.status)) {\n"
      "      const sniffed = await sniffSDTSource(sourcePath);\n"
      "      if (sniffed && sniffed.processor !== processor) result.status = 'unsupported';\n"
      "    }\n",

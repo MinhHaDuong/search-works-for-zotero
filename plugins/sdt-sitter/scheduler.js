@@ -243,7 +243,12 @@ var createSDTSitter = function (host) {
   };
 };
 
-/* Disposable derived records, without paths, text, failures or active jobs. */
+/* Disposable derived records, without paths, text or active jobs. One failure
+   is kept: the verdict that native extraction persisted no pack for this exact
+   identity, so the document is asked once rather than once per session
+   (ticket 0740, DECISIONS.md 2026-09-08). It is a record and not a ledger
+   because the identity invalidates it — and because deleting this file re-opens
+   every one of them. */
 var createSDTCache = function (raw, versions) {
   const records = Object.create(null);
   const dirty = new Set();
