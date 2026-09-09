@@ -60,6 +60,10 @@ REPO = Path(__file__).resolve().parent.parent
 #: worst version of it: the document becomes permanent at exactly that moment.
 PROSE = {
     "v0674": ["verification/SDT-PARALLELISM-0674.md"],
+    # The sitter's release notes quote the parallelism pilot to say which axis paid
+    # for extraction cost. A shipped plugin's notes are read outside this repo, so a
+    # stale figure there outlives the branch that wrote it.
+    "sitternotes": ["plugins/sdt-sitter/RELEASE-NOTES.md"],
     "readme": ["README.md"],
     "sync": ["SYNC.md"],
     "design": ["SPEC.md"],
@@ -475,7 +479,14 @@ FIGURES = [
      {"v0674": "| 12 | {} |"}),
     ("0674-sdt-padme/summary.json", "batch.12.speedup", 2,
      {"v0674": "| 12 | 4,49 | {}× |"}),
-    ("0674-sdt-padme/summary.json", "batch.1.pages", 0, {"v0674": "**{} pages**"}),
+    ("0674-sdt-padme/summary.json", "batch.1.pages", 0,
+     {"v0674": "**{} pages**", "sitternotes": "totalling **{} pages**"}),
+    ("0674-sdt-padme/summary.json", "batch.1.wallSeconds", 2,
+     {"sitternotes": "extracted in {} s in one process"}),
+    ("0674-sdt-padme/summary.json", "batch.12.wallSeconds", 2,
+     {"sitternotes": "and in {} s across twelve"}),
+    ("0674-sdt-padme/summary.json", "batch.12.speedup", 2,
+     {"sitternotes": "across twelve, a {}\u00d7 gain"}),
     ("0674-sdt-padme/summary.json", "replay.cpu.medianMs", 2, {"v0674": "| CPU | {} |"}),
     ("0674-sdt-padme/summary.json", "replay.cuda.medianMs", 2, {"v0674": "| CUDA | {} |"}),
     ("0674-sdt-padme/source-counts.json", "structure.lines", 0, {"v0674": "**{} physical lines**"}),
