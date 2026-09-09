@@ -2,6 +2,7 @@
 Title: Residual robustness gaps in the sitter host-API guard
 Created: 2026-09-08
 Author: sim
+Closed: autoclosed — PR #499
 
 --- log ---
 2026-09-08T06:02Z sim created
@@ -18,6 +19,7 @@ Author: sim
 
 2026-09-09T00:00Z claude note RULING: keep derivation. Asked to walk the trade-off (21 hosts derived from the two manifests vs. a 2-entry hand-written table); the author's own call, taken directly, not inferred. Item 2 is now a real fix rather than a moot one: `resource_roots` raises `AssertionError` naming both targets when a host is declared twice with different ones, in place of last-wins, on the same "reads the install, not this repo's belief about it" ground the derivation itself stands on. Demonstrated on a synthetic two-jar fixture (`test_a_host_declared_twice_with_different_targets_is_not_silent`, positive-controlled against the pre-fix last-wins code, which DID NOT RAISE); a same-target redeclaration is confirmed harmless by a second test rather than only claimed so. Module docstring's "over-reaches kept on purpose" list drops item 2 — it is no longer a kept gap, it is fixed. Box 2 below now MET; this ticket is CLOSED.
 
+2026-09-09T07:42Z MinhHaDuong closed — autoclosed — PR #499
 --- body ---
 ## Context
 
