@@ -93,6 +93,17 @@ semantic search" means above. Extraction in #6012 is therefore eager
 derivatively, pulled by an embedding pipeline that is itself eager; the sitter's
 is eager in its own right.
 
+The two also converge on how an eager run stops, which is worth recording
+because it shows the shape is the host's and not our preference. #6012's
+consumer threads a `shouldStop` predicate through its passes and checks it
+*before* each `Zotero.SDT.ensure()` call, so a document already handed to the
+extractor finishes; `stopIndexing()` clears both queues and the pending kick
+timer around it. That is the same graceful stop the sitter implements and the
+author ratified for it on 2026-09-05 — stop admitting, let the submitted
+document finish and persist its pack — arrived at independently, and for the
+same reason: the generation entry point takes no abort signal, so between
+documents is the only place either scheduler can stop.
+
 What the experiment can decide is correspondingly narrow: whether whole-library
 preparation runs unattended on a working machine without the user noticing it,
 and at what observed rate. It is an overnight arrangement on the author's own
@@ -184,6 +195,22 @@ bounded extraction-worker pool is a candidate patch, not one this experiment has
 measured, and any such change would have to preserve interactive priority,
 per-item deduplication, error routing and resource limits
 ([parallelism pilot](../../verification/SDT-PARALLELISM-0674.md)).
+
+The same split runs through the stop controls, and this one bears on a
+requirement of ours. R22 asks for one obvious way to stop all background work.
+#6012 has a real one for its own indexer: `embeddings.indexingPaused` is a
+persisted preference, so a stop survives a restart, and while it is set nothing
+is indexed at all — item changes are not even enqueued — until `startIndexing()`
+clears it and re-enqueues, cheaply, since already-indexed items are skipped by
+source hash. It carries a second, finer control besides: turning
+`embeddings.indexFulltext` off keeps metadata indexing running while dropping
+attachment work and pruning its chunks. The sitter's switch is the same kind of
+object, persisted the same way, and the two cannot see each other. Each stops
+its own consumer and nothing else; extraction that a reader or the other
+consumer triggers continues either way. There is no way for a user, or for
+either component, to say "stop indexing on this machine" — which is the R22
+question asked of the platform rather than of one plugin, and the answer to it
+is currently a list of switches a user has to know to find.
 
 The model is also not local, and the removal rationale is itself the proof:
 marking full-text content unsynced caused uploads, server reindexing and
