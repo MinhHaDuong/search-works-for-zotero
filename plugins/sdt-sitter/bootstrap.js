@@ -235,6 +235,8 @@ var SDT_TEXT = {
     "switch-on-extracting": "Extracting structured text from attachments.",
     "switch-on-error": "An unexpected problem stopped the last scan — see Technical diagnostics.",
     "diagnostics-internal-phase": "Internal phase: {phase}",
+    "diagnostics-denominator-live": "The totals above track the library as it changes, not only a completed scan; a count can move without meaning anything is wrong.",
+    "diagnostics-denominator-churn": " It moved by {delta} since you last opened this panel.",
     "switch-turn-on": "Turn indexing on",
     "switch-turn-off": "Turn indexing off",
     "section-global": "Overall progress",
@@ -613,25 +615,35 @@ function noteDialogClose(dialog) {
    composes to nothing. Rendering "0 %" there would be a wrong claim where the
    caller wants no claim. */
 function getSDTCoverage(state) {
-  // The one question that decides everything below: is the walk that most
-  // recently touched `state.counts` actually FINISHED? Not "which phase are
-  // we in" — `state.phase` becomes 'switched-off' the instant the switch is
-  // thrown, whatever the walk under it was doing, so it cannot tell a
-  // completed classification from one caught and aborted mid-rebuild.
-  // `scanned === total` can: the census loop increments `scanned` once per
-  // item and nothing else does, so it only reaches `total` when every item
-  // has actually been reclassified this walk.
+  // The one question that decides everything below: is `state.counts` right
+  // now a COMPLETE classification, or a half-rebuilt one? Not "which phase
+  // are we in" — `state.phase` becomes 'switched-off' the instant the switch
+  // is thrown, whatever was under it, so it cannot tell a completed
+  // classification from one caught and aborted mid-rebuild.
+  // `scanned === total` can, but the two counters are set by two different
+  // writers with two different meanings (ticket 0759): a full reconciliation
+  // walk sets `total` once, up front, to the count it is about to reclassify,
+  // then increments `scanned` one at a time — genuinely mid-rebuild while
+  // `scanned < total`. Every ORDINARY per-item event (scheduler.js's
+  // `record()`) instead sets `total = scanned = observed.size` together, in
+  // one assignment, so it reads "complete" immediately, every time — which
+  // is what makes this denominator live: the author ruled 2026-09-09 (ticket
+  // 0759, ticket 0752's own event-driven library-state philosophy) that Y
+  // should track real attachment churn as it happens rather than hold still
+  // between reconciliations. A `2 -> 3 -> 2` sequence across two ordinary
+  // events, with no reconciliation between them, is that ruling working as
+  // intended, not a bug — each of the three counts is genuinely complete for
+  // the library state at the instant it was read.
   //
   // Switching off used to freeze whatever `state.counts` held at that
   // instant unconditionally (ticket 0747) — right if the last walk had
-  // finished, wrong if the sitter happened to be mid-way through one of its
-  // own periodic re-censuses (every ~30 s, from empty, regardless of the
-  // switch) when the click landed: the reader froze on a half-rebuilt
-  // classification, a different, plausible-looking wrong number on every
-  // such off depending on exactly how far that walk had got when it was cut
-  // off (found live, testing v0.3.20). `held` now stands in for the live
-  // counts specifically when they are mid-rebuild, falling back to the last
-  // walk that DID finish rather than to whichever fragment survives.
+  // finished, wrong if the sitter happened to be mid-way through a
+  // reconciliation walk when the click landed: the reader froze on a
+  // half-rebuilt classification, a different, plausible-looking wrong number
+  // on every such off depending on exactly how far that walk had got when it
+  // was cut off (found live, testing v0.3.20). `held` now stands in for the
+  // live counts specifically when they are mid-rebuild, falling back to the
+  // last walk that DID finish rather than to whichever fragment survives.
   const complete = state.scanned === state.total;
   const held = complete ? null : state.censusSnapshot;
   const counts = held ? held.counts : (state.counts || {});
@@ -1230,6 +1242,7 @@ function buildSDTDiagnostics(doc, element) {
   // this count and this covariate — where everything below is about the add-on
   // rather than about the library.
   group.append(summary, element('pre', 'sdt-observations'), element('pre', 'sdt-internal-phase'),
+    element('pre', 'sdt-denominator-note'),
     element('pre', 'sdt-error'), row,
     element('pre', 'sdt-admission'),
     copy, element('pre', 'sdt-journal-copy-status'), element('pre', 'sdt-journal'));
@@ -1519,10 +1532,29 @@ function renderState() {
     if (technical.open) {
       doc.getElementById('sdt-internal-phase').textContent =
         sdtText('diagnostics-internal-phase', { phase: s.phase });
+      // Ticket 0759: Y is live-tracked by design (the author's ruling, given
+      // the churn this note itself explains), not a bug to hide -- so this is
+      // disclosure, not damage control, and it only exists on demand behind
+      // this closed-by-default panel. The baseline is taken once, at the
+      // closed-to-open transition, and held while the panel stays open -- not
+      // reread every ~100 ms tick, which would make the delta flash for one
+      // frame and vanish the instant it had anything to say. So "since you
+      // opened this panel" means exactly that, including a churn that keeps
+      // growing while the reader watches.
+      if (!dialog._sdtDenominatorOpen) dialog._sdtDenominatorAt = s.total;
+      dialog._sdtDenominatorOpen = true;
+      const delta = s.total - dialog._sdtDenominatorAt;
+      doc.getElementById('sdt-denominator-note').textContent = sdtText('diagnostics-denominator-live') +
+        (delta !== 0 ? sdtText('diagnostics-denominator-churn', { delta: delta > 0 ? `+${delta}` : `${delta}` }) : '');
       doc.getElementById('sdt-error').textContent =
         s.error ? sdtText('diagnostics-error', { error: s.error }) : '';
       doc.getElementById('sdt-admission').textContent = describeSDTAdmission();
       doc.getElementById('sdt-journal').textContent = describeSDTJournalTail(50);
+    } else {
+      // Closing the panel forgets the baseline, so the NEXT open takes a fresh
+      // reading rather than comparing against whatever the library looked like
+      // several opens ago.
+      dialog._sdtDenominatorOpen = false;
     }
   }
 }

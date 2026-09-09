@@ -7,6 +7,10 @@ Author: MinhHaDuong
 2026-09-09T08:35Z MinhHaDuong created
 2026-09-09T08:35Z claude note Investigation of the still-open denominator-bounce report (author: "Files indexed X/Y — the denominator Y is unstable, bounces up and down," asked to investigate the root cause rather than debounce it). The prior session got only as far as an unconfirmed hypothesis (a sniffSDTSource format-mismatch check misbehaving during sync settling) against the OLD scheduler. Ticket 0752 has since replaced that scheduler (full census every ~30s) with an event-driven one with reconciliation; the old mechanism no longer exists to inspect. This ticket documents what the CURRENT code does instead, confirmed with a reproduction, not a theory.
 
+2026-09-09T09:15Z MinhHaDuong note RULING: live. Accept the truth and disclose it, rather than hiding or debouncing it.
+
+2026-09-09T09:15Z claude note Closing per the ruling. getSDTCoverage's stale "this walk" comment (bootstrap.js ~line 616) rewritten to describe what "complete" actually means under record()'s per-event assignment, and to say plainly that live tracking is intentional (ticket 0759), not a residue of the old scheduler. Beyond the comment fix, the author asked for the truth to also reach the reader: Technical diagnostics (on demand, closed by default, no library write) now carries a standing line explaining the totals track the library live, plus a signed churn note ("moved by +N/-N since you last opened this panel") when the denominator has changed since the panel's own closed-to-open transition. The baseline is taken once at that transition and held while open -- not reread every ~100 ms render tick, which would make the note flash for one frame and vanish; pinned by a positive-controlled test (tests/sdt_sitter_dialog.mjs) that reddens against the per-tick version. v0.3.23.
+
 --- body ---
 ## Context
 
