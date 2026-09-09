@@ -1,0 +1,142 @@
+%erg 0.1
+Title: Denominator (Files indexed X/Y) is live-tracked per event, not reconciliation-anchored
+Created: 2026-09-09
+Author: MinhHaDuong
+
+--- log ---
+2026-09-09T08:35Z MinhHaDuong created
+2026-09-09T08:35Z claude note Investigation of the still-open denominator-bounce report (author: "Files indexed X/Y — the denominator Y is unstable, bounces up and down," asked to investigate the root cause rather than debounce it). The prior session got only as far as an unconfirmed hypothesis (a sniffSDTSource format-mismatch check misbehaving during sync settling) against the OLD scheduler. Ticket 0752 has since replaced that scheduler (full census every ~30s) with an event-driven one with reconciliation; the old mechanism no longer exists to inspect. This ticket documents what the CURRENT code does instead, confirmed with a reproduction, not a theory.
+
+--- body ---
+## Context
+
+`getSDTCoverage(state)` (bootstrap.js, currently ~line 615) decides whether a
+census is safe to display by testing `state.scanned === state.total`. That
+comment, carried over from before ticket 0752, still describes the OLD
+scheduler: "the census loop increments `scanned` once per item and nothing
+else does, so it only reaches `total` when every item has actually been
+reclassified this walk." Under the event-driven scheduler that ticket 0752
+shipped, that description is no longer accurate, and the inaccuracy is not
+cosmetic -- it is why the denominator moves.
+
+## What the current code actually does
+
+`scheduler.js`'s `record(id, info)` (~line 89) is called both by full
+reconciliation and by every single targeted event (an item notification
+routed through `dirty` -> `affected()` -> `inspect()` -> `record()`,
+~line 160-169), and by the admission loop's own re-checks. Every call ends
+with:
+
+```js
+state.total = state.scanned = observed.size;
+```
+
+Both are set to the SAME value, by construction, on every single call --
+not only at the end of a full census. `publish()` (~line 55) treats
+`state.scanned === state.total` as "safe to trust and snapshot," and since
+`record()` makes that trivially true after literally every event, `publish()`
+refreshes `state.censusSnapshot` -- the "last known-COMPLETE classification"
+ticket 0753 built specifically to distinguish a genuinely finished walk from
+a live, still-rebuilding one -- after every single-item event too, not only
+after a reconciliation.
+
+Net effect: `state.total` (the UI's denominator Y) is now live-tracked from
+`observed.size`, and updates immediately whenever the library gains or loses
+even one attachment -- a new file added, one trashed, a parent item deleted
+and cascading its children, a linked file replaced under a new item ID. None
+of this needs the ~1-hour reconciliation interval (`RECONCILIATION_INTERVAL_MS`,
+SPEC.md 5.2.7) to elapse.
+
+## Reproduction
+
+Using the existing scheduler test fixture shape (`tests/sdt_sitter_scheduler.mjs`),
+loading only `scheduler.js` (no bootstrap.js `affected()` involved -- this is
+scheduler-level, not a bootstrap wiring artifact):
+
+1. `host.list()` reports attachments `[1, 2]`; `api.sweep()` completes a full
+   census. `state.total === 2`, `state.scanned === 2`.
+2. A single targeted event reports a genuinely new attachment: `present.add(3)`,
+   `api.invalidate([3])`, `api.pump()`. No reconciliation ran.
+   Result: `state.total === 3`, `state.scanned === 3` -- both trivially equal,
+   `getSDTCoverage` would call this "complete."
+3. A single targeted event reports that attachment 3 is gone again:
+   `present.delete(3)`, `api.invalidate([3])`, `api.pump()`.
+   Result: `state.total === 2` again.
+
+Denominator sequence across three points `getSDTCoverage` would each call
+"complete": `2 -> 3 -> 2`, driven by two ordinary single-item events, with
+zero reconciliations in between. Confirmed by running this scenario directly
+against `plugins/sdt-sitter/scheduler.js` (not committed as a test -- this
+ticket is investigation, not the fix).
+
+## What this is not
+
+I looked for a way `observed.size` could move WITHOUT a genuine corresponding
+change to a real attachment's presence -- a phantom inflation/deflation bug
+rather than live tracking of real churn. Two paths in bootstrap.js's
+`affected()`/`inspect()` looked suspicious and I could not make either
+misbehave:
+
+- A parent-item deletion adds both cached former children (`children.get(id)`)
+  and current DB children to the affected set (bootstrap.js ~line 2044). A
+  stale cached child that no longer exists resolves through `inspect()`'s
+  `!item` branch, which always returns `{status: 'excluded', absent: true}`
+  regardless of whether the id was ever an attachment -- and `record()`'s
+  `observed.delete(id)` on a key that was never present is a harmless no-op
+  (Map semantics). No inflation.
+- A non-attachment id can only reach the affected set via `affected()`'s own
+  `!item || item.isAttachment()` test (bootstrap.js ~line 2047), which never
+  adds an EXISTING non-attachment item's own id -- only a deleted one (which
+  again resolves through the `absent: true` branch above) or its real
+  attachment children (via a DB query scoped to `itemAttachments`, which by
+  definition only returns genuine attachments).
+
+So every `observed.size` change I could construct corresponds to a real
+attachment appearing or disappearing from `itemAttachments` (including trash/
+restore, since neither the full census's `list()` nor the event path filters
+on `deleted` -- consistent between the two, and by design: `outOfScope`
+subtracts excluded/unsupported from the coverage total in `getSDTCoverage`
+rather than the census itself dropping them). I did not find a defect that
+moves Y without a real corresponding library change.
+
+## The open question this leaves
+
+Given a large, actively-synced library (the author's own: 2 600 `unsupported`,
+367 `missing-source`), Zotero's own background sync plausibly adds, removes or
+replaces attachments continuously and quietly -- which this scheduler will now
+report as an immediate Y change, live, rather than holding Y steady until the
+next reconciliation. That may be exactly the small real churn the author saw
+bouncing. Whether that is wanted (Y as a live, honest reflection of the
+library, matching the event-driven ticket 0752's own philosophy) or unwanted
+(Y should read as a "census" figure, stable between reconciliation points, with
+per-item events only moving the numerator X until the next reconciliation
+settles Y) is a product decision, not a bug this ticket can rule on -- the
+same shape as ticket 0737's table-vs-derivation arbitration.
+
+If Y-should-be-stable is the ruling: the fix is narrow. `record()`'s
+`state.total = state.scanned = observed.size` line would need to stop moving
+`total` outside of the full-census branch (~line 136,
+`state.total = ids.length`), and `getSDTCoverage`'s "complete" test would need
+a real signal for "a reconciliation just finished" distinct from "the
+scheduler's bookkeeping happens to be self-consistent right now" -- `record()`
+currently gives it none. `state.lastReconciliationAt` (set at ~line 155) is
+the nearest existing candidate.
+
+## Relevant files
+
+- `plugins/sdt-sitter/scheduler.js` -- `record()` (~line 89), `publish()`
+  (~line 55), the reconciliation branch (~line 126-158)
+- `plugins/sdt-sitter/bootstrap.js` -- `getSDTCoverage()` (~line 615, the
+  stale "this walk" comment), `affected()` (~line 2044), `inspect()`
+  (~line 1872)
+- `tests/sdt_sitter_scheduler.mjs` -- fixture shape used for the reproduction
+  above; a committed version of it would be Action 1 for whoever picks this up
+
+## Exit criteria
+
+Not a fix ticket as filed: the author has ruled whether Y should be live
+(matching current behaviour, in which case this ticket closes by correcting
+`getSDTCoverage`'s stale comment to describe what "complete" actually means
+now) or reconciliation-anchored (in which case a child ticket implements the
+narrow fix above). Either way, the denominator's actual contract is written
+down somewhere a reader can find it, which today it is not.
