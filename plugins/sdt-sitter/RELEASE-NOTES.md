@@ -19,6 +19,31 @@ build a search index or isolate a stuck native worker. Coverage describes the
 last observed state; preparation depends on local files, available resources
 and successful native extraction.
 
+## Prepared for the next release
+
+Ticket [0752](../../tickets/closed/0752-make-sdt-sitter-event-driven-with-reconc.erg)
+replaces frequent full-library sweeps with targeted updates from attachment and
+file-download notifications. Reconciliation runs on startup and re-enabling, and
+at the periodic cadence owned by
+[SPEC.md §5.2.7](../../SPEC.md#527-custody-and-lifecycle).
+Resource retries resume queued work without rescanning the library. The window
+shows how recently reconciliation completed; disk availability remains a last
+observation. Missing files stay in Zotero and their native packs are preserved.
+
+Implementation and host-mock verification are recorded in
+[the scheduling report](../../verification/SDT-SITTER-EVENTS.md). This draft does
+not claim a live-profile deployment or a published release.
+
+The experimental scope and operational limitations are recorded in
+[the launch report](../../verification/SDT-SITTER-LAUNCH.md).
+
+---
+
+The rest of these notes is written for a Zotero developer rather than for
+someone installing the plugin: what this release is an experiment in, what
+trying to be polite inside the platform revealed about it, and what none of it
+claims. Nothing below is needed to use the sitter.
+
 ## Three experiments in one plugin
 
 This release is three experiments rather than one, and they are worth separating
@@ -330,21 +355,3 @@ The review also identifies an existing outbound passage-embedding hook in
 still embed locally through that implementation. Our existing service work
 (tickets 0491 and 0575) is the reuse path; device usability and compatibility
 between query and passage vectors must be verified before claiming GPU benefit.
-
-## Prepared for the next release
-
-Ticket [0752](../../tickets/closed/0752-make-sdt-sitter-event-driven-with-reconc.erg)
-replaces frequent full-library sweeps with targeted updates from attachment and
-file-download notifications. Reconciliation runs on startup and re-enabling, and
-at the periodic cadence owned by
-[SPEC.md §5.2.7](../../SPEC.md#527-custody-and-lifecycle).
-Resource retries resume queued work without rescanning the library. The window
-shows how recently reconciliation completed; disk availability remains a last
-observation. Missing files stay in Zotero and their native packs are preserved.
-
-Implementation and host-mock verification are recorded in
-[the scheduling report](../../verification/SDT-SITTER-EVENTS.md). This draft does
-not claim a live-profile deployment or a published release.
-
-The experimental scope and operational limitations are recorded in
-[the launch report](../../verification/SDT-SITTER-LAUNCH.md).
