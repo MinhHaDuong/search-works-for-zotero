@@ -666,6 +666,44 @@ test('a torn-down ring degrades to a message instead of throwing', () => {
   ui.journal = ring;
 });
 
+// Ticket 0759: the denominator is live-tracked by design (the author's
+// ruling), and Technical diagnostics discloses that on demand rather than
+// leaving a reader to wonder why "Files indexed" moved. A fresh open takes a
+// baseline; nothing here writes to the library.
+layer3.open = false; ui.render(); layer3.open = true; ui.render();
+
+test('opening the panel explains the live denominator, with no churn note when nothing has moved', () => {
+  const note = doc.getElementById('sdt-denominator-note').textContent;
+  assert(note.includes('track the library as it changes'), note);
+  assert(!note.includes('since you last opened'), note);
+});
+
+sitter.invalidate([4]);
+await sitter.pump();
+ui.render();
+
+test('an attachment joining the library shows as a signed churn note, not a bare recount', () => {
+  assert.equal(sitter.state.total, 4, 'the fixture attachment never joined the census');
+  const note = doc.getElementById('sdt-denominator-note').textContent;
+  assert(note.includes('+1'), note);
+  assert(note.includes('since you last opened this panel'), note);
+});
+
+ui.render();
+
+test('the churn note holds its baseline across an ordinary redraw, not just the tick it happened on', () => {
+  const note = doc.getElementById('sdt-denominator-note').textContent;
+  assert(note.includes('+1'),
+    `the baseline reread on every ~100 ms tick instead of holding until the next open: ${note}`);
+});
+
+layer3.open = false; ui.render(); layer3.open = true; ui.render();
+
+test('reopening the panel takes a fresh baseline instead of carrying the old churn forward', () => {
+  const note = doc.getElementById('sdt-denominator-note').textContent;
+  assert(!note.includes('since you last opened'), note);
+});
+
 /* The arm the clipboard invariant actually rests on, and the one the first draft
    of this file got wrong. Assigning `ui.environment` by hand never contaminates
    the ring, so asserting the clipboard is clean proved nothing: it was a null
