@@ -23,6 +23,8 @@ Author: MinhHaDuong
 
 2026-09-09T13:34Z claude note Third derisking fork landed, all three confirmed: attachmentFilename is already-loaded primary data (item.js:3571-3592, item.js:76/88's _primaryDataSQLParts), zero extra cost beyond what inspect() already pays, names even a missing-source attachment; measured at 25.5ms at full-library scale via a SQL-shape approximation of the same JOIN Zotero already runs -- resolve on every sweep, no lazy fallback needed. One residual case named: LINK_MODE_LINKED_URL's attachmentFilename is empty, handled as its own small case rather than a blank row. Multi-library spread confirmed real on a 3-library fixture, not an edge case -- a group library carried a population comparable to the user library's for both title-less classes measured, which raises the stakes on Open item 1's remaining multi-library-selection question without settling it (still the author's call). Action 2, Test and the Derisking findings updated to record the resolution; two Open items remain, both genuinely the author's own naming/design call, not further measurable.
 
+2026-09-09T13:47Z MinhHaDuong note Final two rulings, taken one at a time. Section name: "Not indexed" -- drops "attachments," which disagreed with its own "No attachment" subsection. Multi-library selection: asked to discuss cause-primary (the design as built) against a structural pivot to library-primary before ruling -- library-primary would solve button-scoping for free but breaks the design's own settled repair-based principle for no gain in the common single-library case, and scatters each cause's size and remedy text across parallel subtrees in the measured multi-library case. Kept cause-primary; where a cause's members span more than one library, the subsection splits at the row (title list + both buttons per library), not at the top level, so the remedy sentence is still stated once. No open design decisions remain; Actions/Test/Verification/Exit-criteria updated accordingly.
+
 --- body ---
 ## The ruling, 2026-09-09
 
@@ -31,7 +33,7 @@ recorded in the reimagine addenda. Reached in conversation, not from a
 written brief; recorded here verbatim in spirit rather than left implicit in
 the log.
 
-**Structure.** A new collapsible section, "Unindexed attachments," under the
+**Structure.** A new collapsible section, "Not indexed," under the
 existing Details layer. Under it, one collapsible subsection per class.
 Classes are grouped by REPAIR — the action, if any, that resolves them — not
 by internal status or mechanism. This is a sharper cut than "problem class"
@@ -195,23 +197,34 @@ conclusion.
   — cheap, the subsection is already a `<details>`, nesting one more costs
   nothing.
 
-**Recorded as still open, for the author:**
+**Resolved, 2026-09-09, both the author's own call:**
 
-- **The section's own name.** "Unindexed attachments" includes "No
-  attachment," whose members have no attachment at all — the heading and one
-  of its own subsections disagree about what an "attachment" is. Rename the
-  section, or place "No attachment" outside it as its own statement with its
-  own count. Naming is the author's call, per this ticket's own precedent
-  (Action 1 below).
-- **Multi-library selection.** `ZoteroPane.selectItems` cannot select across
-  libraries, and a class of 2,600 can span more than one. Undecided whether
-  "Show in Zotero" splits per library, is disabled when a class spans more
-  than one, or something else.
+- **The section's own name: "Not indexed."** Dropped "attachments" entirely
+  — the word disagreed with its own "No attachment" subsection, whose
+  members have no attachment to begin with. "Not indexed" covers both the
+  attachment-level classes and the item-level one under one honest word.
+- **Multi-library selection: keep cause-primary; split at the row, not the
+  hierarchy.** Discussed as a genuine structural pivot — cause-primary (the
+  design as built: subsections by repair, library only surfacing where a
+  class actually spans one) against library-primary (subsections by
+  library, cause nested inside). Library-primary would solve the
+  multi-library button-scoping question for free — every leaf row would
+  already be single-library — but it breaks the design's own settled
+  principle (classify by repair) for no gain in the common single-library
+  case, and on the measured multi-library case it scatters each cause's
+  true size and its remedy text across two parallel subtrees instead of
+  stating each once. Kept cause-primary. Where a cause-subsection's members
+  span more than one library, it splits at the row level — one title list,
+  one "Show in Zotero" and one "Export list to clipboard" per library
+  within that subsection, not a second top-level section — so the remedy
+  sentence is still stated once per cause, and only the action itself,
+  which `ZoteroPane.selectItems` makes inherently library-scoped, repeats
+  per library.
 - **`missing-source`'s inclusion was argued through, not silently overridden**
   — recorded here since the review is right that the ticket itself didn't
   say so: the reimagine note raised ticket 0740's "ordinary fact, not a
   failure" ruling as a reason to exclude it; asked directly, the resolution
-  reached was to include it under the neutral "Unindexed attachments" framing
+  reached was to include it under the neutral "Not indexed" framing
   (rather than "problems") with fact-only wording and no remedy imperative
   for the sync-pending case — which is what "Need sync"/"hit the button and
   wait" already is. Recorded as the reasoning, not left implicit.
@@ -286,7 +299,7 @@ problem, only facts reporting."** Not only the remedy sentences — the word
 document, "failure" applied to a document rather than to an extraction
 attempt) is banned from every heading, subsection title and button label in
 this feature, not only the per-class remedy text the original guidance
-named. "Unindexed attachments," the section name, already reads as fact
+named. "Not indexed," the section name, already reads as fact
 rather than complaint; the same bar applies to whatever the section is
 eventually renamed to (Open item 1) and to every subsection title.
 
@@ -311,10 +324,11 @@ eventually renamed to (Open item 1) and to every subsection title.
 
 ## Actions
 
-1. Settle the two remaining Open items with the author: the section's own
-   name ("Unindexed attachments" contradicting its own "No attachment" row),
-   and multi-library selection behaviour for "Show in Zotero" — confirmed
-   live on day one, not a rare case, see Derisking finding 5.
+1. Both remaining decisions are settled: the section is named "Not indexed,"
+   and a cause-subsection spanning more than one library splits at the row
+   (one "Show in Zotero"/"Export list to clipboard" pair per library within
+   the subsection), not at the top level. No further design decisions block
+   implementation.
 2. **Resolve titles for the four classes that currently have none — decided
    and settled.** `unsupported`, both `missing-source` flavours, and
    `inspection-error` all return from `inspect()` before title resolution
@@ -332,7 +346,7 @@ eventually renamed to (Open item 1) and to every subsection title.
 4. Depends on ticket 0760: the "No text layer" subsection reads whatever new
    status 0760 introduces; this ticket does not duplicate that measurement or
    that fix.
-5. Render "Unindexed attachments" in the Details layer: one collapsible
+5. Render "Not indexed" in the Details layer: one collapsible
    subsection per class from the ruling's table, each with its remedy in the
    indicative — for `inspection-error`, one composed sentence per error CLASS
    via `classifyError`, never the raw platform message — the affected titles
@@ -356,7 +370,7 @@ eventually renamed to (Open item 1) and to every subsection title.
 ## Test
 
 - Red first: a fixture library holding one document of each class renders one
-  subsection per class under "Unindexed attachments," each naming its remedy
+  subsection per class under "Not indexed," each naming its remedy
   (or, for `inspection-error`, its composed per-class sentence) and listing
   its titles — including the four classes that have no title today, proving
   Action 2 actually supplies one via `attachmentFilename`.
@@ -367,13 +381,18 @@ eventually renamed to (Open item 1) and to every subsection title.
   same status today, different class, and a test that only exercises one of
   them cannot see the collapse come back.
 - Red first: an empty class renders no subsection; a library where every
-  class is empty renders no "Unindexed attachments" section at all.
+  class is empty renders no "Not indexed" section at all.
 - Red first: "Show in Zotero" selects without writing, and "Export list to
   clipboard" writes to the clipboard and nowhere else — both inert until
   operated, meaning specifically that expanding a subsection's `<details>`
   alone triggers neither.
 - Red first: both buttons act on the FULL class on a fixture whose class
   exceeds the in-dialog cap, not only the titles rendered before it.
+- Red first: a fixture where one cause's members span two libraries renders
+  one row (title list + both buttons) per library within that single
+  subsection — the remedy sentence appears once, not once per library — and
+  a fixture where a cause's members sit in one library renders a single row,
+  not a spurious per-library split.
 - Red first: `attachmentLinkMode` actually separates a stored-and-missing
   attachment from a linked-and-missing one on a real or faithfully mocked
   host — the derisking findings above are evidence for the design, not a
@@ -406,6 +425,8 @@ eventually renamed to (Open item 1) and to every subsection title.
 - [ ] Empty classes and an entirely-empty section render nothing
 - [ ] No section heading, subsection title or button label uses "problem,"
       "issue," or "error"/"failure" applied to a document
+- [ ] A cause-subsection whose members span more than one library shows one
+      row (title list + both buttons) per library, remedy text stated once
 - [ ] No Zotero collection is created anywhere in this feature
 - [ ] `make check` passes
 
@@ -425,17 +446,18 @@ eventually renamed to (Open item 1) and to every subsection title.
 
 ## Exit criteria
 
-The Details layer shows a section (name resolved per Open item 1) with one
-collapsible subsection per class from the ruling's table as corrected by the
-Opus review — ten rows, none empty-rendered, none using "problem" or a
-synonym anywhere in its heading or controls — each stating its remedy in the
+The Details layer shows a "Not indexed" section with one collapsible
+subsection per class from the ruling's table as corrected by the Opus
+review — ten rows, none empty-rendered, none using "problem" or a synonym
+anywhere in its heading or controls — each stating its remedy in the
 indicative, or for `inspection-error` a composed per-error-class sentence via
 `classifyError` with no path and no raw platform text, with real titles
 listed underneath (including the four classes that have none today) and a
 "show all" past the in-dialog cap. Each subsection carries a "Show in
 Zotero" and an "Export list to clipboard" button, both inert until operated,
 both carrying a clarifying tooltip, both acting on the full class regardless
-of the cap, and neither writing anything. No Zotero collection, no API. The
-two remaining Open items (section name, multi-library selection) and the
-title-resolution cost measurement are resolved — measured, not guessed —
-before this is considered done, and the author has read the rendered tone.
+of the cap, and neither writing anything — split per library at the row when
+a subsection's members span more than one. No Zotero collection, no API.
+Every design decision this ticket names is resolved — measured where a fact
+was checkable, ruled where it was genuinely a choice — and the author has
+read the rendered tone.
