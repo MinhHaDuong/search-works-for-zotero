@@ -97,8 +97,8 @@ undocumented gets trusted past it:
   false red. Nothing under ``plugins/`` has ever carried such a mode, and a
   reader who changes that should expect no help from this suite.
 
-Two over-reaches this file keeps on purpose, written down so the next reader
-meets them as decisions rather than as surprises (ticket 0737, 2026-09-08):
+One over-reach this file keeps on purpose, written down so the next reader
+meets it as a decision rather than as a surprise (ticket 0737, 2026-09-08):
 
 * **The file-type tripwire fires on assets too.**
   ``test_no_plugin_file_type_escapes_the_scan`` reddens on any suffix under
@@ -108,10 +108,13 @@ meets them as decisions rather than as surprises (ticket 0737, 2026-09-08):
   separates the two cases, so the classification is a person's to make once, and
   a line added to a list is cheaper than a scannable format arriving unnoticed.
   A PR that only adds an asset pays one line for that.
-* **Duplicate ``resource`` host declarations still resolve last-wins**, silently
-  — see ``resource_roots``, which states the limit. Left as it is pending the
-  author's ruling on whether the derivation engine survives at all; a table
-  would delete the code the fix would live in.
+
+The author ruled 2026-09-09 (ticket 0737) to keep the derivation engine over a
+hand-written table: it reads what the install actually declares rather than
+this repository's belief about where Zotero puts things, which is one level
+above the failure ticket 0731 exists to prevent. That settles the one item the
+ruling had parked — a host declared twice with different targets now raises
+in ``resource_roots`` instead of resolving last-wins; see its docstring.
 
 The install is found at ``$ZOTERO_INSTALL_DIR`` when set, else at the first of
 ``CANDIDATE_INSTALLS`` that carries both jars. With none, the archive-reading
@@ -338,13 +341,17 @@ def resource_roots(install: Path) -> dict[str, tuple[str, str]]:
     to sit relative to the alias it names. Nothing shipped today needs more than
     one round, which is exactly why the ordering dependency would go unnoticed.
 
-    One limit, recorded rather than engineered around: a host declared twice
-    with different targets resolves last-wins, silently. Zotero 10.0.1 declares
-    none twice, and the two hosts the sitter actually uses are each declared
-    once, so reporting the ambiguity would add engine for a case no install
-    presents. A URL that resolved through the losing declaration would fail as
-    "absent from the archive", which points at the right file and the wrong
-    reason.
+    A host declared twice with two different targets raises rather than
+    resolving last-wins: the author's 2026-09-09 ruling (ticket 0737) keeps
+    this derivation engine over a hand-written table, so a wrong answer here
+    is the guard misreading the install, not a table someone forgot to update
+    — the same failure ticket 0731 exists to prevent, one level in. A URL that
+    resolved through a silently-losing declaration would otherwise fail as
+    "absent from the archive", naming the right file and the wrong reason.
+    Zotero 10.0.1 declares no host twice, so the assertion has nothing live to
+    fire on; ``test_a_host_declared_twice_with_different_targets_is_not_silent``
+    demonstrates it on a synthetic two-jar install. A second declaration of
+    the identical target is not a conflict and passes through unremarked.
     """
     roots: dict[str, tuple[str, str]] = {GRE_HOST: ("gre", "")}
     aliases: dict[str, str] = {}
@@ -362,8 +369,16 @@ def resource_roots(install: Path) -> dict[str, tuple[str, str]]:
                     host, target = fields[1], fields[2]
                     if target.startswith("resource://"):
                         aliases[host] = target
-                    else:
-                        roots[host] = (role, base + target.rstrip("/") + "/")
+                        continue
+                    entry = (role, base + target.rstrip("/") + "/")
+                    existing = roots.get(host)
+                    if existing is not None and existing != entry:
+                        raise AssertionError(
+                            f"resource host {host!r} is declared twice with "
+                            f"different targets: {existing} and {entry} "
+                            f"(from {name}) — last-wins would silently pick one"
+                        )
+                    roots[host] = entry
     while aliases:
         resolved_now = {
             host: resolve_in(target, roots)
@@ -912,6 +927,46 @@ def test_no_plugin_file_type_escapes_the_scan():
         f"{sorted(unscanned)} — add each to SOURCE_SUFFIXES, or to ASSET_SUFFIXES "
         f"if it cannot carry a readable resource:// literal"
     )
+
+
+def test_a_host_declared_twice_with_different_targets_is_not_silent(tmp_path):
+    """A synthetic two-jar install, standing in for ticket 0737 item 2.
+
+    Nothing shipped declares a host twice, so this cannot be demonstrated
+    against a real Zotero — the whole point of the assertion is a case no
+    install presents today. Each jar's own `chrome.manifest` declares
+    `resource dup` to a different target; before the author's 2026-09-09
+    ruling to keep the derivation engine, this resolved to whichever jar
+    happened to be iterated last, with no assertion and no warning.
+    """
+    install = tmp_path / "zotero"
+    (install / "app").mkdir(parents=True)
+    with zipfile.ZipFile(install / "omni.ja", "w") as gre:
+        gre.writestr("chrome.manifest", "resource dup modules/gre-side/\n")
+    with zipfile.ZipFile(install / "app" / "omni.ja", "w") as app:
+        app.writestr("chrome.manifest", "resource dup modules/app-side/\n")
+
+    with pytest.raises(AssertionError, match="dup"):
+        resource_roots(install)
+
+
+def test_a_host_declared_twice_with_the_same_target_is_not_a_conflict(tmp_path):
+    """The assertion fires on a disagreement, not on repetition.
+
+    A manifest that names the same host and target twice — the harmless half
+    of the shape above — must still resolve, since nothing is actually
+    ambiguous about it.
+    """
+    install = tmp_path / "zotero"
+    (install / "app").mkdir(parents=True)
+    with zipfile.ZipFile(install / "omni.ja", "w") as gre:
+        gre.writestr("chrome.manifest", "resource dup modules/same/\nresource dup modules/same/\n")
+    with zipfile.ZipFile(install / "app" / "omni.ja", "w") as app:
+        app.writestr("chrome.manifest", "")
+
+    roots = resource_roots(install)
+
+    assert roots["dup"] == ("gre", "modules/same/")
 
 
 def test_the_skip_reason_names_only_what_was_looked_at(monkeypatch):
