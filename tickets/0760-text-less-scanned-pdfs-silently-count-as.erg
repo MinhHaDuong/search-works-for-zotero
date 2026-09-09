@@ -1,0 +1,97 @@
+%erg 0.1
+Title: Text-less scanned PDFs silently count as indexed
+Created: 2026-09-09
+Author: MinhHaDuong
+
+--- log ---
+2026-09-09T13:25Z MinhHaDuong created
+
+--- body ---
+## Context
+
+Found while derisking ticket 0744's "No text layer" Open item (was the
+class visible as `failed-session`, or hidden inside silent `current`?). It
+is the second: `inspect()`'s pack-reading branch (bootstrap.js:1977-1988)
+only distinguishes `current` from `unsupported-pack`/`stale-source`/
+`stale-processor`/`invalid-pack` by comparing versions, the source hash and
+the processor identity. Nothing there reads how much text the pack actually
+carries. A scanned PDF with no text layer produces a well-formed pack —
+correct magic header, parses cleanly, every identity field matches — with
+near-zero extracted content, and it reads as `current`: successfully
+indexed.
+
+This is not hypothetical. Measured on `~/data/Zotero-fresh/zotero.sqlite`
+(Zotero not running, queried read-only): of 1,195 existing
+`.zotero-sdt-cache` packs sampled, 61 (5.1%) carry under 20 characters of
+extracted text across their PDF's first 5 pages despite the pack existing —
+spot-checked 5 of those pack files directly, all well-formed (correct
+`\x89SDT\r\n\x1a\n` header, 462-767 bytes, consistent with near-empty
+content, not a stub or a truncated write). Scaled to that library's ~9,263
+PDF attachments, this is a population in the low hundreds — large enough to
+move the "Files indexed X/Y" figure users already see today, not a rounding
+error.
+
+Zotero's own `fulltextItems.totalChars`/`indexedChars` were checked first as
+a cheaper proxy and found NULL for all 9,197 PDF rows in this library/
+version — dead in this environment, not usable as a shortcut here.
+
+This is upstream of and independent of ticket 0744: whether "current" means
+"successfully indexed" is a correctness question that matters regardless of
+whether 0744's grouping UI ever ships, and 0744's own "No text layer"
+subsection needs whatever status this ticket introduces to exist first.
+
+## Relevant files
+
+- `plugins/sdt-sitter/bootstrap.js` — `inspect()`'s pack-reading branch,
+  `~1963-1988`, where `current` is currently decided
+- `plugins/sdt-sitter/scheduler.js` — `SDT_STATUS_CLASSES`, where any new
+  status needs a home (not `indexed` — that arithmetic must stop counting an
+  empty pack as coverage)
+- Ticket 0744 — `bootstrap.js`'s "Unindexed attachments" design;
+  its "No text layer" class row is currently sourced to `failed-session` by
+  supposition, corrected by this ticket's finding
+
+## Actions
+
+1. Investigate whether the pack's own metadata (`reader.getMetadata()`, or
+   a field in the pack body itself) exposes a character/page-content count
+   cheaply. The measurement above used an external `pdftotext` pass as a
+   verification tool, not a reading of the pack's own declared content —
+   find out whether the native SDT pack format already carries something
+   this cheap to check on every census, before assuming the fix needs
+   re-parsing text on every sweep.
+2. Add a status distinguishing a well-formed-but-empty pack from a genuinely
+   current one; classify it out of `indexed`, so coverage arithmetic stops
+   counting it as success.
+3. Update `getSDTCoverage` and the census account so the corrected
+   classification is reflected everywhere the old count was read.
+4. Cross-reference from ticket 0744, whose "No text layer" subsection reads
+   this status once it exists.
+
+## Test
+
+- Red first: a fixture pack with well-formed headers/identity but near-zero
+  extracted content currently reads `current`; must read the new status
+  after the fix.
+- Red first: a genuinely full-text pack is unaffected — the new check must
+  not misclassify real content as empty.
+
+## Verification
+
+- [ ] The new status exists, is classified outside `indexed`, and is named
+      clearly (not `unsupported` or `invalid-pack`, which already mean
+      something else)
+- [ ] `getSDTCoverage`'s totals reflect the corrected classification
+- [ ] `make check` passes
+
+## Invariants
+
+- No change to what the sitter reads or writes on disk; this corrects a
+  classification, not the extraction itself.
+- The census account's total still equals the rows above it.
+
+## Exit criteria
+
+A well-formed pack carrying no meaningful extracted text is classified
+distinctly from a genuinely current one, and "Files indexed X/Y" no longer
+counts it as coverage.
