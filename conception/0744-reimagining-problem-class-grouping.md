@@ -201,32 +201,102 @@ how many of the 2,600 `unsupported` are declared image or office types (no
 extractor, nothing to say) versus label contradictions (a real remedy) — the
 class list should be drawn from those counts, not from the three examples.
 
-## Addendum, same day: could the existing "Copy the log" button do this instead?
+## Addendum, same day: a button to copy problematic references to the clipboard
 
-The author asked, after reading the above, whether the dialog's existing
-"Save log" control (`journal-copy`, bootstrap.js:1230-1235, backed by
-`composeSDTJournalReport`) could be postprocessed to distill the actionable
-errors, rather than building the new per-class rendering this note argues
-for.
+Correction to an earlier draft of this addendum, which misread the author's
+point as being about the existing "Copy the log" button specifically ("we
+already have a Save log button, actually" was cited as *precedent* for a
+working copy-to-clipboard pattern, not as the mechanism to reuse
+unmodified). The actual proposal: **add a button that saves the problematic
+references themselves to the clipboard** — modelled on the existing pattern,
+reading a different source.
 
-Checked against what that button actually holds: `composeSDTJournalReport`
-serializes `journal.tail(50)` — the last 50 trace/state records `emit()`
-wrote (`sweep-start`, `admit`, `refuse`, and similar), scrubbed of `rootURI`.
-It is a recent-activity ring, capped at 50 entries, built for pasting into a
-bug report. On a library with 2,600 `unsupported` and 367 `missing-source`
-items, 50 entries cannot hold even one pass over the standing population —
-it would surface whatever failed most recently, not the census's full,
-current classification. So the journal is the wrong source to postprocess
-for this ticket's purpose; it answers "what just happened," not "what does
-the library look like."
+This is a clean fit, and it sidesteps most of what makes the in-dialog
+rendering hard. The plumbing already exists and is proven: `journal-copy`
+(bootstrap.js:1230-1235) shows the shape — a composer function builds a text
+block, `copySDTText` (bootstrap.js:1178-1185) writes it to the platform
+clipboard, a status line reports success or "clipboard unavailable." A
+"Copy problematic references" control would be the same shape reading a
+different composer, built from Ticket A's per-class grouping (the census's
+`observed` map, carrying the sniffer's verdict instead of collapsing it) —
+title, class, and remedy per line, or grouped by class with a heading per
+group. Zero library writes, same as every other option this note considers;
+this one is not even a *read* from anywhere but the census already held in
+memory.
 
-The instinct underneath the question is right, though, and it is the same
-one this note's own recommendation rests on: reuse what the census already
-computes rather than build new plumbing to re-derive it. That source already
-exists and is unbounded — the scheduler's `observed` map (each attachment's
-current status, kept live by the event-driven pump) is exactly what
-`describeSDTCensusAccount` reads today to build the existing per-status
-account. Ticket A's per-class grouping is a second reading of that same map,
-carrying the sniffer's discarded verdict alongside the status rather than
-collapsing it — not a new subsystem, and not something the 50-entry journal
-could stand in for.
+Two things this option gets for free that the in-dialog rendering does not:
+
+- **No bounded-cap decision.** The Details layer needs a title cap because a
+  class holding 2,600 items is a wall, not a list, inside a fixed-height
+  window. A clipboard export has no such constraint — the whole class can go,
+  which is exactly the shape a downstream consumer (a note, a spreadsheet, an
+  agentic fixer's context) wants.
+- **The tone constraint moves downstream.** "Informational, never directive"
+  governs what the *dialog* says while the user is looking at it. Once the
+  same data is on the clipboard, the reader decides what to do with it in
+  whatever tool they paste it into — the plugin's own obligation not to nag
+  is met by definition, because nothing renders inside the plugin's own
+  surface. The remedy text should still avoid the imperative mood, if only
+  because clipboard content quoted back to the author (a bug report, a
+  fixer's prompt) inherits its own author's voice.
+
+This does not replace the account/grouping work Ticket A already describes
+— it needs the same class-carrying prerequisite, and the in-dialog rendering
+is still worth having so the reader can see the shape of the problem before
+deciding to export anything. It is best read as a second, cheap control on
+the same data Ticket A computes, not an alternative to computing it.
+
+## Addendum, same day: an API instead of (or beside) any of the above
+
+The author's next question: is the classification "in memory," and could an
+API expose it so agents "do what they want with it," rather than the sitter
+building any presentation logic — dialog or clipboard — at all?
+
+Half yes on the first part. The coarse status is already live in
+`scheduler.js`'s `observed` map — the same source every option above reads.
+The problem class specifically is not: `inspect()` computes the sniffer's
+verdict and discards it into bare `unsupported` today, so "carry the class
+out of `inspect()`" (Ticket A's Action 2) is a prerequisite for an API
+export exactly as it is for a dialog or a clipboard button — there is no
+path to this feature that skips it.
+
+On the API itself: there is direct precedent, not a green field.
+`bench/zotero-fulltext-plugin/bootstrap.js` already registers two endpoints
+on Zotero's own local HTTP server (`GET /search-works/fulltext/status`,
+`POST /search-works/fulltext/reindex`), loopback-bound and gated by Zotero's
+own `Zotero-Allowed-Request` header check — the security question is already
+answered by existing, shipped code, not open here. And ticket 0758 (Codex,
+filed the same day as this one) is already proposing to grow that same
+plugin into "a shared text foundation for Zotero AI tools" — fulltext,
+structured-text and chunk views, consumers free to choose their own models,
+rankings and interfaces. That is the same philosophy this question is
+asking for, currently scoped to document *content* rather than document
+*coverage*.
+
+A classification endpoint is the natural sibling: extend the existing
+`status?keys=...` response (or add a neighbouring one) to carry problem
+class and remedy reason per key, once Ticket A's carrying-through-`inspect()`
+step exists. Doing this removes almost the entire hard part of the ticket as
+filed — the indicative-not-directive tone design, the bounded list, the
+collection/tag write decision — because raw classified data carries no
+tone, and an agent consuming it decides what to do through Zotero's own
+item/collection/tag APIs, entirely outside the sitter's control.
+
+The one real fork this raises: the endpoint's home. 0758's own text argues
+for reusing the existing fulltext-control plugin rather than inventing a
+second API surface ("a shipping extension belongs under `plugins/`... any
+promotion should preserve its installation identity" — the existing plugin,
+not a new one). That argues against bolting an HTTP endpoint onto the sitter
+itself, and for treating this as one more view alongside 0758's fulltext/
+structured-text/chunk modes on the one shared API — which makes this
+addendum a note for 0758's contract review as much as for this ticket, not
+a fully separate feature.
+
+Where this leaves three related, non-exclusive options for what "problem
+class" ends up connected to: the in-dialog grouping (Ticket A, always
+useful so the reader can see the shape of the problem at a glance), the
+clipboard button (cheap, zero new infrastructure, ships as soon as Ticket A
+lands), and the API view (the most leveraged, since it is one addition to
+work 0758 already plans rather than a new surface — but it is 0758's
+contract review that should decide the shape, not this ticket unilaterally).
+None of the three requires choosing against the others.
