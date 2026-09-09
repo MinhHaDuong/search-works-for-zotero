@@ -80,6 +80,19 @@ extraction stage, arrived at independently, and its own comment identifies the
 head-of-line behaviour the live probe observed. Two eager schedulers over one
 serial worker is the situation the concurrency section below is about.
 
+It is eager by the same mechanisms. At `19e7962`, indexing resumes five seconds
+after startup whenever a model is selected and indexing is not paused; item add
+and modify notifications enqueue behind a three-second debounce; and
+`startIndexing()` re-enqueues every eligible item in every library. No query
+path starts an indexing run. What differs is the demand boundary, and that is
+the whole of the difference between the two schedulers: #6012's eagerness begins
+once semantic search is enabled with a model selected, and its attachments
+become eligible only while `embeddings.indexFulltext` is on, whereas the
+sitter's begins before either — which is what preparing "without enabling
+semantic search" means above. Extraction in #6012 is therefore eager
+derivatively, pulled by an embedding pipeline that is itself eager; the sitter's
+is eager in its own right.
+
 What the experiment can decide is correspondingly narrow: whether whole-library
 preparation runs unattended on a working machine without the user noticing it,
 and at what observed rate. It is an overnight arrangement on the author's own
@@ -144,6 +157,21 @@ leave the rest of the machine to the user"
 attachments smallest first; the sitter reads memory, load and disk before every
 admission. Three consumers, three private policies, one serial worker, and no
 shared budget any of them can see.
+
+The memory floors show it most sharply. At `19e7962` the embedding indexer
+declines to start a pass below 1,5 GiB available and retries five minutes later
+with its queue untouched; the sitter refuses admission below 4 GiB. Two
+components read the same meter on the same machine, disagree by more than a
+factor of two about what "enough" is, and neither can see the other's answer.
+They also disagree about the unreadable case, in opposite directions: where the
+platform cannot report available memory, `_availableMemory()` returns 0 and the
+check treats it as room to proceed, while the sitter refuses to admit. Neither
+default is wrong on its own terms — one protects progress, the other protects
+the machine — and that is exactly the point: they are answers to a question no
+document poses, so nothing makes them agree. One mechanism there is better than
+ours and worth saying so: under memory pressure #6012 shrinks its batches and
+releases the engine rather than stopping, so it keeps making progress where the
+sitter simply waits.
 
 Per-document cost has moved in the same direction. On our own harness a document
 set totalling **849 pages** extracted in 16,54 s in one process and in 4,49 s
