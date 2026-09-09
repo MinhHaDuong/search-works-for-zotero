@@ -19,7 +19,40 @@ build a search index or isolate a stuck native worker. Coverage describes the
 last observed state; preparation depends on local files, available resources
 and successful native extraction.
 
-## The experiment: an eager extracting scheduler
+## Three experiments in one plugin
+
+This release is three experiments rather than one, and they are worth separating
+because they can fail independently.
+
+**Scheduling.** Whether extraction can usefully run eagerly — ahead of any
+consumer's demand — over Zotero's own extractor and worker, under an admission
+policy that yields. The next section is this one.
+
+**Concurrency.** What an eager third party finds out about the platform's
+implicit concurrency model by trying to be polite inside it. That is the section
+following the removed controls, and its findings are about the platform rather
+than about the plugin.
+
+**Supervision.** Whether an unattended background process can be made
+accountable to the person whose machine it runs on. The commitments there are
+narrow and checkable: name what the sitter is waiting for rather than only that
+it waits, with the phases worded as waiting so that on and off name the user's
+own switch alone; never display a number nobody observed, so an unmeasured
+duration is withheld and an overrunning job makes the finish estimate
+unavailable rather than now; and keep what the sitter does not control readable
+at any time rather than only in a first-run dialog. This is the axis with the
+least favourable evidence of the three, and nothing here claims otherwise. The
+independent panel review returned "APPROUVÉ AVEC RÉSERVES pour un usage
+expérimental cette nuit", followed by "pas encore une interface de supervision
+aboutie", and "CHANGES REQUESTED pour qualifier l'UI d'accessible ; pas de
+blocage fonctionnel démontré pour l'usage visuel à la souris". Reduced-motion
+handling and a stable accessible name were built after it; keyboard access,
+focus restoration, screen-reader announcement and overflow at enlarged font
+sizes remain unestablished, and no unit test takes those readings. The verdicts
+and their disposition are in
+[the panel review](../../verification/SDT-SITTER-UI-PANEL.md).
+
+## The scheduling experiment: an eager extracting scheduler
 
 The sitter changes one thing about structured-text extraction: when it happens.
 The extractor, the shared worker, the pack format, the cache location and the
@@ -261,9 +294,24 @@ chunking and embedding without paying for their extraction then. Embedding still
 takes time, and installing the sitter only when semantic search is first wanted
 does not remove the initial extraction cost. Independent preparation is not a
 claim that the sitter builds a progressively searchable index or that its
-scheduler is better overall than #6012's. Stage separation alone also does not
-require a whole-backlog barrier; consuming ready packs incrementally is a
-separate consumer scheduling choice.
+scheduler is better overall than #6012's.
+
+Stage separation is not the same thing as that barrier, and the two are easy to
+conflate. Separating extraction from chunking and embedding pays for itself
+inside a single pipeline, before any second consumer exists: the stages have
+large disjoint working sets, and #6012 shuts its inference engine down at the
+start of its extraction pass for exactly that reason, downloading the model
+without instantiating it so that it is not resident while documents are
+extracted. The separation also gives the two artifacts their own invalidation
+lifetimes — a model switch wipes every stored vector and leaves packs untouched
+— their own failure classes, durable for extraction and transient for
+embedding, and their own resource shapes, since extraction parallelises across
+documents while embedding is batch- and memory-bound. What a whole-backlog
+barrier costs is therefore chargeable to running the stages at library
+granularity, not to separating them: a consumer that pipelines over ready packs
+keeps every one of those properties and regains progressive coverage. The sitter
+is not that consumer and does not decide its schedule. It makes the packs
+available early enough for the choice to exist.
 
 ## GPU embedding and runtime independence
 
