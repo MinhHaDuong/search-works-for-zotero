@@ -17,6 +17,12 @@ Author: MinhHaDuong
 
 2026-09-09T11:15Z claude note unsupported-pack and inspection-error's remedy text checked against the code rather than guessed, per the author's "reason a wording that is both correct and clear": unsupported-pack is confirmed exactly the author's own guess, a packVersion/schemaVersion mismatch against the running Zotero's own declared versions (bootstrap.js:1977-1988), self-correcting on the next inspection once a compatible pack replaces it, which per the plugin's own About text happens the next time a Zotero feature needs the attachment's text -- the remedy names that moment. inspection-error is scheduler.js's own catch-all for any exception inspect() throws; no single cause, so no single remedy sentence -- the caught error string already survives per item in observed, so the correct and clear treatment is showing it per item rather than inventing one sentence that would misdescribe most of its members. Body's Actions/Test/Verification/Invariants/Exit-criteria rewritten to match the ruling; three Open items recorded as blocking implementation (sync-state discriminator unverified, no-text-layer measurement not taken, "No attachment" scan not sized) rather than guessed past.
 
+2026-09-09T13:25Z claude note Two agents dispatched at the author's request: a derisking pass on the three Open items, and an independent Opus design review. Both resolved: the discriminator (attachmentLinkMode confirmed sound, attachmentSyncState confirmed too stale to use, measured 1.3% mismatch on the real library), the no-text-layer measurement (confirmed silent `current`, filed as its own correctness ticket 0760 since it affects the existing coverage count independent of this ticket), and the No-attachment scan (sized: 1,991 items). Opus review found a real blocker (four classes -- unsupported, both missing-source flavours, inspection-error -- have no title in `observed`, since inspect() returns before title resolution for all four) plus several real design gaps: failed-session had no subsection, unsupported-pack's remedy is direction-dependent (a `!==` comparison, not one-directional), inspection-error's raw error text risks leaking a filesystem path, empty classes should not render, and both buttons must act on the full class rather than only the capped visible titles. All folded into the body above. Two items (section name, multi-library selection) remain the author's own call.
+
+2026-09-09T13:31Z MinhHaDuong note Batch of decisions: fetch item titles (yes) and check `item.attachmentFilename` as an available identifier; redact the filepath from inspection-error's text (`classifyError` already does this by construction -- checked, not assumed, bootstrap.js:419-426, never reads `error.message`); failed-session and the unsupported-pack version split, both already folded in above; add a clarifying tooltip to both buttons; do not frame anything as a problem anywhere in this feature, only facts -- extended beyond the remedy sentences to every heading, subsection title and control label; do all necessary measurements rather than guess the remainder. A third derisking fork dispatched for the three still-unmeasured facts: attachmentFilename's real mechanism and coverage, the actual title-resolution cost across the affected population, and whether any class spans more than one library on real data.
+
+2026-09-09T13:34Z claude note Third derisking fork landed, all three confirmed: attachmentFilename is already-loaded primary data (item.js:3571-3592, item.js:76/88's _primaryDataSQLParts), zero extra cost beyond what inspect() already pays, names even a missing-source attachment; measured at 25.5ms at full-library scale via a SQL-shape approximation of the same JOIN Zotero already runs -- resolve on every sweep, no lazy fallback needed. One residual case named: LINK_MODE_LINKED_URL's attachmentFilename is empty, handled as its own small case rather than a blank row. Multi-library spread confirmed real on a 3-library fixture, not an edge case -- a group library carried a population comparable to the user library's for both title-less classes measured, which raises the stakes on Open item 1's remaining multi-library-selection question without settling it (still the author's call). Action 2, Test and the Derisking findings updated to record the resolution; two Open items remain, both genuinely the author's own naming/design call, not further measurable.
+
 --- body ---
 ## The ruling, 2026-09-09
 
@@ -53,62 +59,169 @@ work this ticket owns.
 | Class | Remedy (as given) | Source status(es) |
 |---|---|---|
 | No attachment | "must fetch from web" | new — item has zero attached files, not an attachment-level status at all |
-| Need sync | "hit the button and wait" | `missing-source`, stored/synced copy not yet downloaded |
-| Missing file / broken link | "sync from the other machine" | `missing-source`, the other case — discriminator NOT yet verified, see Open items |
+| Need sync | "hit the button and wait" | `missing-source`, `attachmentLinkMode` imported/embedded — verified, see Derisking findings |
+| Missing file / broken link | "sync from the other machine" | `missing-source`, `attachmentLinkMode` linked — verified, see Derisking findings |
 | Mismatched type | re-save with the true type, or OCR | `unsupported`, sniffed bytes contradict declared type (ticket 0740) |
 | No extractor for this format | nothing to be done inside Zotero | `unsupported`, genuinely no processor (e.g. `.docx`) |
-| No text layer | OCR | currently unmeasured — see Open items; may hide inside `failed-session` or silent `current` |
-| Stored index from a different version | regenerated automatically once a feature next needs it (e.g. opening the document) | `unsupported-pack`, own subsection |
-| Could not be examined | see the error named per item; whatever it names is the fix | `inspection-error`, own subsection |
+| No text layer | OCR | `current` with near-zero extracted content — confirmed by measurement, see Derisking findings; needs ticket 0760's new status to exist before this subsection has anything to read |
+| Extraction failed this session | tried again automatically the next time Zotero starts (ticket 0740's own ruling) | `failed-session`, own subsection — added per Opus review, see below |
+| Stored index from an older version | regenerated automatically once a feature next needs it (e.g. opening the document) | `unsupported-pack`, `packVersion`/`schemaVersion` behind the running Zotero — split by direction, see below |
+| Stored index from a newer version | nothing to be done here; the machine that wrote it is ahead of this one | `unsupported-pack`, the other direction — split by direction, see below |
+| Could not be examined | one line per item, composed from the error's CLASS (`classifyError`), not the raw platform message | `inspection-error`, own subsection — corrected per Opus review, see below |
 
-"Each error to its own section" (author): confirmed, `unsupported-pack` and
-`inspection-error` are each their own subsection, never folded into another.
+"Each error to its own section" (author): confirmed, every status above is
+its own subsection, never folded into another — including `failed-session`,
+missing from the table until the Opus review below caught it, and
+`unsupported-pack`, now split rather than folded, since its two directions
+carry opposite certainty.
 
-`unsupported-pack` checked against the code rather than guessed
-(bootstrap.js:1977-1988): it fires on `packVersionMismatch` —
-`reader.header.packVersion`/`schemaVersion` read off the stored
-`.zotero-sdt-cache` disagreeing with `versions.SDT_PACK_VERSION`/
-`SDT_SCHEMA_VERSION`, the ones this running Zotero's native extractor
-declares. The author's "probably means version mismatch?" is exactly right.
-It is classed `failed`, not `queued` (`SDT_STATUS_CLASSES`), so the sitter
-never re-submits it itself; nothing here is a persisted verdict either — the
-header is re-read and re-compared fresh on every inspection, so the status
-self-corrects the moment a compatible pack replaces it. Per the plugin's own
-About text, that replacement already happens outside this plugin's control,
-the first time a Zotero feature needs the attachment's text — which is why
-the remedy names that moment rather than an instruction.
+## Derisking findings, 2026-09-09 (resolves the three Open items above)
 
-`inspection-error` checked the same way: scheduler.js's own `inspect`
-wrapper (`try { return await host.inspect(id) } catch (error) { return
-{status: 'inspection-error', error: String(error)} }`) is a genuine
-catch-all for ANY exception `inspect()` throws — a file permission error, a
-platform API failure, anything. There is no single cause and therefore no
-single class-wide remedy to write; the caught message is retained per item
-in `observed`, not discarded, so the honest and clear treatment is to show
-the actual error text per item in this subsection rather than invent one
-sentence that would be wrong for most of its members.
+All three were checked against real Zotero source and real library data
+(`~/data/Zotero-fresh/zotero.sqlite`, Zotero not running, read-only) rather
+than guessed. None needed the author's judgment — they were facts.
 
-## Open items, blocking implementation
+1. **Need-sync / Missing-file discriminator: `attachmentLinkMode` confirmed,
+   `attachmentSyncState` confirmed too weak to use.** Every query driving
+   Zotero's own file-sync machinery, read directly out of
+   `chrome/content/zotero/xpcom/storage/storageLocal.js` inside `app/omni.ja`,
+   is scoped to `linkMode IN (LINK_MODE_IMPORTED_FILE, LINK_MODE_IMPORTED_URL,
+   LINK_MODE_EMBEDDED_IMAGE)` — linked attachments never appear in any of
+   them. `attachmentLinkMode` is sound, not a guess. The alternative
+   considered, `item.attachmentSyncState` (a cheap, synchronous, already-
+   loaded field), was measured and rejected: 200 of 15,855 imported/URL
+   attachments (1.3%) read `IN_SYNC` while genuinely absent from disk — it
+   only refreshes at Zotero's own sync-time scan, not continuously, so it is
+   stale exactly when this feature would need it to be current. Use
+   `attachmentLinkMode` alone. All 5 `LINK_MODE_LINKED_FILE` attachments in
+   the sampled library are absent — consistent with "sync from the other
+   machine" being the only real remedy for that branch, never automatic.
+2. **No text layer: confirmed silent `current`, not `failed-session`.**
+   Zotero's own `fulltextItems.totalChars`/`indexedChars` were checked first
+   as a cheap proxy and found NULL for every PDF row in this library/version
+   — dead here, not usable. Measured directly instead: of 1,195 existing
+   `.zotero-sdt-cache` packs sampled, 61 (5.1%) carry under 20 characters of
+   `pdftotext`-extracted text across their PDF's first 5 pages despite the
+   pack existing and being well-formed. Filed as its own correctness ticket,
+   0760 — this affects "Files indexed X/Y" today, independent of whether
+   this ticket ships, and this ticket's "No text layer" subsection has
+   nothing to read until 0760's new status exists.
+3. **"No attachment": sized at 1,991 of 13,407 bibliographic items** (real
+   spread: journalArticle 427, report 355, bookSection 288, conferencePaper
+   245, …), via one `Zotero.DB.queryAsync` join against `deletedItems` and
+   `itemAttachments`, near-instant against 31,325 total items. Cheap; no new
+   capability beyond adapting a query pattern already used elsewhere in this
+   codebase.
+4. **`attachmentFilename` confirmed: free, and settles Action 2's cost
+   question.** Read directly out of `app/omni.ja`'s
+   `chrome/content/zotero/xpcom/data/item.js:3571-3592`: the getter derives
+   from `attachmentPath`, itself part of `_primaryDataSQLParts` — joined into
+   the base item query Zotero always runs, not a lazy tier requiring
+   `loadData()`. `inspect()` already calls `Zotero.Items.getAsync(id)` first,
+   so this field is already on the object at zero extra cost, for every one
+   of the four title-less classes, including `missing-source` (it names the
+   file even though the file itself is absent). Timed the equivalent full
+   query shape directly against a copy of a real library (SQL approximation
+   of Zotero's own JOIN, not the live JS API, but the same shape and fields):
+   **25.5 ms at full-library scale (16,715 attachments)**, roughly six times
+   the size of the four affected classes combined. Resolve titles on every
+   sweep; the lazy-per-expanded-subsection fallback Action 2 named as a
+   fallback is unnecessary. One residual case: `LINK_MODE_LINKED_URL`
+   attachments (`attachmentPath` null) return an empty string, not a crash,
+   but not a usable identifier either — small population, name it plainly
+   ("no filename on record") rather than showing a blank row.
+5. **Multi-library spread: confirmed real, not an edge case (Open item 2).**
+   Measured on a 3-library fixture (1 user, 2 group): the title-less
+   populations span more than one library in both directions checked — the
+   `unsupported`-shaped population alone is user 4,006 · group-A 3,365 ·
+   group-B 69, and `missing-source`-shaped is user 447 · group-A 174. A
+   group library's population was comparable in size to the user library's,
+   not a rounding error. This doesn't resolve the open design question (how
+   "Show in Zotero" behaves when a class spans libraries — still the
+   author's call, `ZoteroPane.selectItems` cannot cross libraries) but it
+   settles that the question is live on day one, not a rare case safe to
+   defer.
 
-1. **The Need-sync / Missing-file discriminator is a guess, not a
-   measurement.** Proposed: `item.attachmentLinkMode` (linked file = never
-   Zotero-synced, so "really missing"; stored/imported = Zotero's own sync
-   should bring it). The author's remedy wording ("sync from the OTHER
-   machine") reads as still-recoverable-via-sync for both branches, which
-   fits less cleanly with a linked file than assumed. Verify against
-   `Zotero.Sync.Storage.Local`'s real sync-state fields before coding this
-   split; do not ship the linkMode guess unverified (this session already
-   corrected one unverified API claim on this same ticket).
-2. **"No text layer" needs the same live-library measurement Fable's note
-   already flagged**: does a text-less scanned PDF land in `failed-session`
-   or in silent `current`? Settles whether this class is visible to the
-   census at all today.
-3. **"No attachment" needs a new scan.** The sitter's census walks
-   attachments; an item with zero attachments never appears in it. This is a
-   different enumeration (over `Zotero.Items`, filtered to items with no
-   attachment children), not a new label on the existing per-attachment
-   classification — size and place it before Action 3 below assumes it is
-   free.
+## Opus review findings, 2026-09-09
+
+An independent design review (before implementation; no code existed to
+review). Findings that changed the design are folded into the table and
+sections above; recorded here so the reasoning survives, not just the
+conclusion.
+
+**Fixed in this revision:**
+
+- **`inspection-error`'s raw error text is a real defect, not a nitpick —
+  confirmed and fixed by redacting the filepath (author instruction).**
+  bootstrap.js's own comment on the platform-throw path states a platform
+  message "names the path it failed on" — `String(error)` on such a throw
+  puts an absolute filesystem path into the dialog and the clipboard export,
+  the latter of which this ticket's own reimagine note anticipates being
+  pasted into a bug report or an agent prompt. It is also a tone risk on its
+  own terms: a raw platform message reads as an alarm, which the rest of
+  this feature works to avoid. Fix: `classifyError` (bootstrap.js:419-426,
+  already used at the cache-error site) already exists for exactly this and
+  needs no new redaction logic — checked directly rather than assumed: it
+  reads only `error.name`, validated against `/^[\w.$-]{1,64}$/`, and never
+  touches `error.message` at all, so a stored filepath cannot reach the
+  output by construction (its own comment records three prior attempts to
+  scrub prose token-by-token, all of which leaked; not carrying the message
+  is what finally worked). `inspection-error`'s subsection therefore shows
+  one composed sentence per error CLASS (e.g. the class name itself, or a
+  short composed phrase keyed on it), never `error.message`, never a path.
+- **`unsupported-pack`'s remedy is direction-dependent.** `packVersionMismatch`
+  is a `!==` comparison and fires symmetrically whether the stored pack is
+  older or newer than what this running Zotero declares. "Regenerated
+  automatically" is true only in the older direction; a pack newer than this
+  Zotero (synced from a machine on a later version) will not regenerate here
+  at all. Both versions are already in hand at the comparison site, so
+  splitting by sign is free. Split into two rows above.
+- **`failed-session` (39 items) had no subsection.** The status→class
+  mapping was not exhaustive and had no residual bucket; this status simply
+  fell out of the design silently. Added as its own subsection, grounded in
+  ticket 0740's own ruling (cleared each restart, retried automatically) —
+  no guess needed, the remedy is already the documented behaviour.
+- **Empty subsections should not render.** Adopts the prior art the
+  reimagine note already found (Zotero's own Duplicate Items / Unfiled Items
+  / Retracted Items views appear only when non-empty) and the ruling had not
+  carried over. Eight always-present subsections, several reading "0
+  documents," is the checklist/backlog framing the tone rule forbids.
+- **The buttons act on the full class, never only the capped visible
+  titles.** Unstated before; selecting or exporting only what's shown in a
+  capped dialog list while a class holds thousands more would be a silent
+  undercount. Both controls always operate on the complete class.
+- **A "show all" expansion inside the dialog**, since the cap otherwise makes
+  "read the whole list" require leaving the plugin for the clipboard export
+  — cheap, the subsection is already a `<details>`, nesting one more costs
+  nothing.
+
+**Recorded as still open, for the author:**
+
+- **The section's own name.** "Unindexed attachments" includes "No
+  attachment," whose members have no attachment at all — the heading and one
+  of its own subsections disagree about what an "attachment" is. Rename the
+  section, or place "No attachment" outside it as its own statement with its
+  own count. Naming is the author's call, per this ticket's own precedent
+  (Action 1 below).
+- **Multi-library selection.** `ZoteroPane.selectItems` cannot select across
+  libraries, and a class of 2,600 can span more than one. Undecided whether
+  "Show in Zotero" splits per library, is disabled when a class spans more
+  than one, or something else.
+- **`missing-source`'s inclusion was argued through, not silently overridden**
+  — recorded here since the review is right that the ticket itself didn't
+  say so: the reimagine note raised ticket 0740's "ordinary fact, not a
+  failure" ruling as a reason to exclude it; asked directly, the resolution
+  reached was to include it under the neutral "Unindexed attachments" framing
+  (rather than "problems") with fact-only wording and no remedy imperative
+  for the sync-pending case — which is what "Need sync"/"hit the button and
+  wait" already is. Recorded as the reasoning, not left implicit.
+- **Not acted on**: i18n/pluralization debt (every new string is an
+  `SDT_TEXT` entry, subject to the existing vocabulary-ban test — stated
+  explicitly in Actions below rather than assumed), and the accessibility
+  notes (buttons inside a closed `<details>` are correctly out of the tab
+  order by construction; the clipboard button must reuse `journal-copy`'s
+  failure path, not only its success path) — both folded into Actions/Test
+  below rather than needing further discussion.
 
 ## Context
 
@@ -167,11 +280,25 @@ words: no imperative mood in the remedy text, and no count presented as a
 backlog. The collection offer is a control the user may operate, never a
 prompt that appears because the sitter thinks he should.
 
+**Restated and sharpened, 2026-09-09 (author): "Do not frame anything as
+problem, only facts reporting."** Not only the remedy sentences — the word
+"problem" (and its synonyms: "issue," "error" as a noun applied to a
+document, "failure" applied to a document rather than to an extraction
+attempt) is banned from every heading, subsection title and button label in
+this feature, not only the per-class remedy text the original guidance
+named. "Unindexed attachments," the section name, already reads as fact
+rather than complaint; the same bar applies to whatever the section is
+eventually renamed to (Open item 1) and to every subsection title.
+
 ## Relevant files
 
 - `plugins/sdt-sitter/bootstrap.js` — `describeSDTCensusAccount` (the account
   this extends), `SDT_TEXT`, the Details layer built in `openDialog`'s
-  `populate`, `sniffSDTSource` and `SDT_SOURCE_MAGIC` (the discarded verdict)
+  `populate`, `sniffSDTSource` and `SDT_SOURCE_MAGIC` (the discarded verdict),
+  `classifyError` (the composer `inspection-error`'s fix reuses), `inspect()`'s
+  early-return branches (`~1911, 1922, 1926, 1932` — where titles are absent,
+  see Action 2), `journal-copy`'s success/failure status-line pattern
+  (`~1230-1236`, `copySDTText`)
 - `plugins/sdt-sitter/scheduler.js` — `SDT_STATUS_CLASSES`, and `inspect`'s
   result shape in bootstrap.js, which is where a class would have to be carried
 - `tests/sdt_sitter_dialog.mjs` — drives the account against a real sweep
@@ -180,57 +307,105 @@ prompt that appears because the sitter thinks he should.
 - Ticket 0740 — the label-contradiction population, and why it is `unsupported`
 - Ticket 0742 — the Details layer this hangs in, and the author's guidance in
   its log
+- Ticket 0760 — the "No text layer" status this ticket's own subsection needs
 
 ## Actions
 
-1. Settle the three Open items above with the author before writing code:
-   the sync-state discriminator against `Zotero.Sync.Storage.Local`, the
-   text-less-PDF measurement, and the size/placement of the "No attachment"
-   scan.
-2. Carry the class out of `inspect()` beside the status, keeping the
-   sniffer's verdict instead of collapsing it. `inspection-error`'s existing
-   `error` field already survives into `observed`; this item needs no new
-   plumbing, only rendering it.
-3. Add the item-level "No attachment" scan (Open item 3), separate from the
-   attachment-walking census.
-4. Render "Unindexed attachments" in the Details layer: one collapsible
+1. Settle the two remaining Open items with the author: the section's own
+   name ("Unindexed attachments" contradicting its own "No attachment" row),
+   and multi-library selection behaviour for "Show in Zotero" — confirmed
+   live on day one, not a rare case, see Derisking finding 5.
+2. **Resolve titles for the four classes that currently have none — decided
+   and settled.** `unsupported`, both `missing-source` flavours, and
+   `inspection-error` all return from `inspect()` before title resolution
+   runs (Opus review's blocker finding). Use `item.attachmentFilename`
+   (Derisking finding 4): already-loaded primary data, zero extra cost, and
+   correctly names even a `missing-source` attachment whose file is absent.
+   Resolve on every sweep — measured at 25.5 ms at full-library scale, no
+   lazy fallback needed. One residual case to handle explicitly: a
+   `LINK_MODE_LINKED_URL` attachment's `attachmentFilename` is an empty
+   string; render "no filename on record" rather than a blank row for that
+   population. Carry the class (with the sniffer's verdict kept, not
+   collapsed) out of `inspect()` at the same time.
+3. Add the item-level "No attachment" scan (sized: 1,991 items, see Derisking
+   findings), separate from the attachment-walking census.
+4. Depends on ticket 0760: the "No text layer" subsection reads whatever new
+   status 0760 introduces; this ticket does not duplicate that measurement or
+   that fix.
+5. Render "Unindexed attachments" in the Details layer: one collapsible
    subsection per class from the ruling's table, each with its remedy in the
-   indicative (or, for `inspection-error`, the per-item error text — no
-   single sentence covers it), the affected titles under it, a "Show in
-   Zotero" button and an "Export list to clipboard" button. Bounded in the
-   dialog only — a class holding 2 600 titles is a wall in a fixed-height
-   window; the clipboard export has no such cap, per the reimagine note.
-5. No Zotero collection offer, no API — both ruled out. Do not build either
+   indicative — for `inspection-error`, one composed sentence per error CLASS
+   via `classifyError`, never the raw platform message — the affected titles
+   under it (with a "show all" expansion past the cap), a "Show in Zotero"
+   button and an "Export list to clipboard" button, both always acting on the
+   full class regardless of what's visible under the cap. A subsection with
+   zero members does not render, and the whole section does not render if
+   every class is empty. Every new string is an `SDT_TEXT` entry, covered by
+   the existing vocabulary-ban test (`tests/test_sdt_sitter.py`'s `UI_SITES`)
+   — add the new dialog site there in the same change.
+6. **Tooltip on each button (author).** Both "Show in Zotero" and "Export
+   list to clipboard" get a `title` attribute clarifying their behaviour —
+   what they act on (the full class, not only what's visible under the cap;
+   which library, once Open item 1's multi-library question is settled) and
+   that neither writes anything. Read-only clarification text, not a second
+   place the tone constraint could be violated — no "problem" language here
+   either.
+7. No Zotero collection offer, no API — both ruled out. Do not build either
    as part of this ticket.
 
 ## Test
 
 - Red first: a fixture library holding one document of each class renders one
   subsection per class under "Unindexed attachments," each naming its remedy
-  (or, for `inspection-error`, its own error text) and listing its titles.
+  (or, for `inspection-error`, its composed per-class sentence) and listing
+  its titles — including the four classes that have no title today, proving
+  Action 2 actually supplies one via `attachmentFilename`.
+- Red first: a `LINK_MODE_LINKED_URL` fixture (empty `attachmentFilename`)
+  renders "no filename on record," not a blank row.
 - Red first: a document whose bytes contradict its declared type lands in
   "Mismatched type" apart from one whose format has no extractor at all —
   same status today, different class, and a test that only exercises one of
   them cannot see the collapse come back.
+- Red first: an empty class renders no subsection; a library where every
+  class is empty renders no "Unindexed attachments" section at all.
 - Red first: "Show in Zotero" selects without writing, and "Export list to
   clipboard" writes to the clipboard and nowhere else — both inert until
-  operated.
-- Red first: the sync-state discriminator (once Open item 1 is settled)
-  actually separates a stored-and-pending attachment from a linked-and-absent
-  one on a real or faithfully mocked host, not merely on invented fixture
-  data shaped to agree with the guess.
-- Tone is not testable by assertion. It is a review item, and the author is
-  the reviewer.
+  operated, meaning specifically that expanding a subsection's `<details>`
+  alone triggers neither.
+- Red first: both buttons act on the FULL class on a fixture whose class
+  exceeds the in-dialog cap, not only the titles rendered before it.
+- Red first: `attachmentLinkMode` actually separates a stored-and-missing
+  attachment from a linked-and-missing one on a real or faithfully mocked
+  host — the derisking findings above are evidence for the design, not a
+  substitute for a committed test.
+- Red first: `inspection-error`'s rendered text never contains a filesystem
+  path or a raw platform message, on a fixture that reproduces the kind of
+  throw bootstrap.js's own comment names (a permission error naming a path).
+- Red first: both buttons carry a non-empty `title` attribute.
+- A mechanical sweep for "problem"/"issue"/"error" (as a noun about a
+  document)/"failure" (about a document) across every new `SDT_TEXT` entry
+  this feature adds catches the word-level violation; it cannot catch a
+  sentence that implies blame without using a banned word, which is why tone
+  stays a review item too.
+- Tone is not testable by assertion beyond the word sweep above. It is a
+  review item, and the author is the reviewer.
 
 ## Verification
 
-- [ ] The class list matches the ruling's table (plus whatever the Open
-      items resolve to), recorded before the rendering is built
+- [ ] The class list matches the ruling's table as corrected by the Opus
+      review (10 rows, `failed-session` and the split `unsupported-pack`
+      included), recorded before the rendering is built
+- [ ] Every one of the four title-less classes (Action 2) lists real titles,
+      not blanks
 - [ ] Each subsection states a remedy without an imperative and without a
-      backlog framing, except `inspection-error`, which shows its actual
-      per-item error text
+      backlog framing, except `inspection-error`, which shows a composed
+      per-error-class sentence — never a raw platform message or a path
 - [ ] "Show in Zotero" and "Export list to clipboard" are both inert until
-      operated, and neither writes anything, ever
+      operated, act on the full class, and neither writes anything, ever
+- [ ] Both buttons carry a clarifying tooltip
+- [ ] Empty classes and an entirely-empty section render nothing
+- [ ] No section heading, subsection title or button label uses "problem,"
+      "issue," or "error"/"failure" applied to a document
 - [ ] No Zotero collection is created anywhere in this feature
 - [ ] `make check` passes
 
@@ -241,17 +416,26 @@ prompt that appears because the sitter thinks he should.
   writes to the library at all. Neither of this feature's two controls is a
   write; there is no exception left to scope.
 - The census account's total still equals the rows above it: grouping is a
-  second reading of the same classification, never a second arithmetic.
+  second reading of the same classification, never a second arithmetic. The
+  item-level "No attachment" count is not part of that arithmetic and is
+  never implied to be — its members are outside the census by construction.
 - No nagging surface. Nothing here may appear unasked outside the Details layer.
+- No filesystem path, and no raw platform error message, reaches the dialog
+  or the clipboard export.
 
 ## Exit criteria
 
-The Details layer shows an "Unindexed attachments" section, one collapsible
-subsection per class from the ruling's table (plus whatever the Open items
-resolve to), each stating its remedy in the indicative — or, for
-`inspection-error`, its own per-item error text — with the affected titles
-listed underneath, and a "Show in Zotero" and an "Export list to clipboard"
-button, both inert until operated and neither writing anything. No Zotero
-collection, no API. The three Open items are resolved (measured, not
-guessed) before this is considered done, and the author has read the
-rendered tone.
+The Details layer shows a section (name resolved per Open item 1) with one
+collapsible subsection per class from the ruling's table as corrected by the
+Opus review — ten rows, none empty-rendered, none using "problem" or a
+synonym anywhere in its heading or controls — each stating its remedy in the
+indicative, or for `inspection-error` a composed per-error-class sentence via
+`classifyError` with no path and no raw platform text, with real titles
+listed underneath (including the four classes that have none today) and a
+"show all" past the in-dialog cap. Each subsection carries a "Show in
+Zotero" and an "Export list to clipboard" button, both inert until operated,
+both carrying a clarifying tooltip, both acting on the full class regardless
+of the cap, and neither writing anything. No Zotero collection, no API. The
+two remaining Open items (section name, multi-library selection) and the
+title-resolution cost measurement are resolved — measured, not guessed —
+before this is considered done, and the author has read the rendered tone.
