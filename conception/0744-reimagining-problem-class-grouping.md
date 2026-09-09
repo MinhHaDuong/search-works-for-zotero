@@ -273,30 +273,47 @@ rankings and interfaces. That is the same philosophy this question is
 asking for, currently scoped to document *content* rather than document
 *coverage*.
 
-A classification endpoint is the natural sibling: extend the existing
-`status?keys=...` response (or add a neighbouring one) to carry problem
-class and remedy reason per key, once Ticket A's carrying-through-`inspect()`
-step exists. Doing this removes almost the entire hard part of the ticket as
-filed — the indicative-not-directive tone design, the bounded list, the
-collection/tag write decision — because raw classified data carries no
-tone, and an agent consuming it decides what to do through Zotero's own
-item/collection/tag APIs, entirely outside the sitter's control.
+Correction to a first draft of this paragraph: the fit is not as direct as
+"extend `status?keys=...`". Checked against the actual handler
+(bootstrap.js:119-162) — `Status.init` reads `searchParams.get('keys')` and
+only ever answers for keys the caller already names; with none, `items`
+stays `[]` and the response falls back to `Zotero.FullText.getIndexStats()`,
+a library-wide aggregate with no per-item rows. `Reindex` is the same shape.
+And 0758's own three content modes are explicitly "views of the SAME
+extraction" — one document's text, in a chosen representation, not a
+listing. Every part of this existing/planned surface is a per-key lookup or
+a per-document read; none of it enumerates "every item matching a
+condition," which is exactly what "group unsupported and refused documents"
+needs — the caller does not know the keys in advance, that is the whole
+question being asked.
 
-The one real fork this raises: the endpoint's home. 0758's own text argues
-for reusing the existing fulltext-control plugin rather than inventing a
-second API surface ("a shipping extension belongs under `plugins/`... any
-promotion should preserve its installation identity" — the existing plugin,
-not a new one). That argues against bolting an HTTP endpoint onto the sitter
-itself, and for treating this as one more view alongside 0758's fulltext/
-structured-text/chunk modes on the one shared API — which makes this
-addendum a note for 0758's contract review as much as for this ticket, not
-a fully separate feature.
+So a classification view is not a field added to `status`; it is a new
+capability — an enumerate-by-class endpoint (`GET
+/search-works/fulltext/problems`, or similar), returning key + class +
+remedy for every item currently in a class, once Ticket A's
+carrying-through-`inspect()` step exists. The precedent still argues for
+where it lives (the same plugin 0758 already earmarks, not a second one),
+just not for treating it as a cheap addition to the existing response
+shape — it is closer in size to a third mode alongside 0758's three than to
+a query-string tweak. Doing this still removes almost the entire hard part
+of the ticket as filed — the indicative-not-directive tone design, the
+bounded list, the collection/tag write decision — because raw classified
+data carries no tone, and an agent consuming it decides what to do through
+Zotero's own item/collection/tag APIs, entirely outside the sitter's
+control.
+
+This makes the addendum a note for 0758's contract review as much as for
+this ticket: 0758's own text argues for reusing the existing fulltext-control
+plugin rather than inventing a second API surface, and an enumerate-by-class
+capability is real new design surface for that review to size and place, not
+a footnote to it.
 
 Where this leaves three related, non-exclusive options for what "problem
 class" ends up connected to: the in-dialog grouping (Ticket A, always
 useful so the reader can see the shape of the problem at a glance), the
 clipboard button (cheap, zero new infrastructure, ships as soon as Ticket A
-lands), and the API view (the most leveraged, since it is one addition to
-work 0758 already plans rather than a new surface — but it is 0758's
-contract review that should decide the shape, not this ticket unilaterally).
-None of the three requires choosing against the others.
+lands), and the API view (the most leveraged in the long run, since it
+serves every future consumer rather than one dialog or one clipboard paste
+— but the largest new surface of the three, and 0758's contract review
+should size and place it, not this ticket unilaterally). None of the three
+requires choosing against the others.

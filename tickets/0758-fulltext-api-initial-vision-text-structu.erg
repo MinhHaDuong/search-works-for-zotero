@@ -10,6 +10,8 @@ Author: Codex
 2026-09-08T21:51Z Codex note Author asked to preserve the framing: a shared text foundation for Zotero AI tools; convergence at document access, citation anchors and freshness, with models and search methods remaining open.
 
 2026-09-09T10:10Z claude note Cross-reference, not a scope change: ticket 0744 (sitter, group unsupported/refused documents by problem class) reimagined an option where the sitter's problem-class classification is exposed as a view on this same API surface rather than built into the sitter's own dialog -- see conception/0744-reimagining-problem-class-grouping.md's second addendum. Worth a look at this ticket's own contract review, since it argues against a second bolt-on endpoint given this ticket's own stance on reusing bench/zotero-fulltext-plugin rather than inventing another. Not acted on; 0744 stays the owning ticket for the classification feature itself.
+
+2026-09-09T10:35Z claude note Correction on the cross-reference above (author: "Document content API is one at a time"): checked against bench/zotero-fulltext-plugin/bootstrap.js's actual Status handler, which only answers for keys the caller already supplies -- an enumerate-by-class view for 0744 is not a small addition to that shape, it is new surface, closer in size to a fourth mode beside this ticket's fulltext/structured-text/chunks three than to a field on an existing response. Still argues for landing in this plugin over a second one; the sizing changes, not the placement.
 --- body ---
 ## Initial design vision
 
