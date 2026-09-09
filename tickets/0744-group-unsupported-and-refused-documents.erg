@@ -13,7 +13,103 @@ Author: MinhHaDuong
 
 2026-09-09T10:35Z claude note Correction, author's prompt: "Document content API is one at a time." Checked against the actual handler (bootstrap.js:119-162): Status.init only answers for keys the caller already supplies, and with none falls back to a library-wide aggregate with no per-item rows -- it cannot enumerate "every item matching a condition" any more than 0758's per-document content modes can. So a classification view is not a cheap field added to the existing status response as the previous draft said; it is a new enumerate-by-class capability, closer in size to a fourth mode alongside 0758's three than to a query-string tweak. The precedent still argues for where it lives (0758's plugin, not a second one) -- just not for how small it is. Corrected in the note.
 
+2026-09-09T11:15Z MinhHaDuong note RULING, reached in conversation and recorded in the body's new "The ruling, 2026-09-09" section: a new "Unindexed attachments" collapsible section, one collapsible subsection per class, classes grouped by REPAIR rather than by status. Per subsection: a "Show in Zotero" selection button and an "Export list to clipboard" button, both inert, neither a write. No Zotero collection offer (supersedes Action 4 as filed). No API (supersedes the reimagine note's second addendum for this ticket -- that option stays recorded at 0758, not built here). Classes confirmed: No attachment, Need sync, Missing file / broken link, Mismatched type, No extractor for this format, No text layer, and -- "each error to its own section" -- unsupported-pack and inspection-error as their own subsections rather than folded into others.
+
+2026-09-09T11:15Z claude note unsupported-pack and inspection-error's remedy text checked against the code rather than guessed, per the author's "reason a wording that is both correct and clear": unsupported-pack is confirmed exactly the author's own guess, a packVersion/schemaVersion mismatch against the running Zotero's own declared versions (bootstrap.js:1977-1988), self-correcting on the next inspection once a compatible pack replaces it, which per the plugin's own About text happens the next time a Zotero feature needs the attachment's text -- the remedy names that moment. inspection-error is scheduler.js's own catch-all for any exception inspect() throws; no single cause, so no single remedy sentence -- the caught error string already survives per item in observed, so the correct and clear treatment is showing it per item rather than inventing one sentence that would misdescribe most of its members. Body's Actions/Test/Verification/Invariants/Exit-criteria rewritten to match the ruling; three Open items recorded as blocking implementation (sync-state discriminator unverified, no-text-layer measurement not taken, "No attachment" scan not sized) rather than guessed past.
+
 --- body ---
+## The ruling, 2026-09-09
+
+Superseding Action 4 below (the Zotero collection offer) and the API option
+recorded in the reimagine addenda. Reached in conversation, not from a
+written brief; recorded here verbatim in spirit rather than left implicit in
+the log.
+
+**Structure.** A new collapsible section, "Unindexed attachments," under the
+existing Details layer. Under it, one collapsible subsection per class.
+Classes are grouped by REPAIR — the action, if any, that resolves them — not
+by internal status or mechanism. This is a sharper cut than "problem class"
+in the ticket as filed: it is what lets two different underlying causes
+share one subsection when their fix is the same, and it is what keeps a
+document that hits more than one obstacle simple to reason about — classify
+by whichever obstacle currently blocks it, and let a fix reveal the next.
+
+**Per-subsection controls.** Two buttons, both inert until operated, neither
+writing anything: "Show in Zotero" (a library-pane selection, ephemeral,
+per library — the mechanism Fable's reimagine note argued for in place of a
+collection) and "Export list to clipboard" (reusing the existing
+`copySDTText`/`journal-copy` plumbing, one line per item). No Zotero
+collection is created by this feature; if the author wants one, "Show in
+Zotero" already hands him a selection to build it from natively.
+
+**No API.** Ruled out directly ("No API"). The enumerate-by-class capability
+argued for in the reimagine note's second addendum is not built as part of
+this ticket; conception/0744-reimagining-problem-class-grouping.md and
+ticket 0758's cross-reference stand as the record of that option, not as
+work this ticket owns.
+
+**Classes confirmed so far**, remedy text as given, repair-grouped:
+
+| Class | Remedy (as given) | Source status(es) |
+|---|---|---|
+| No attachment | "must fetch from web" | new — item has zero attached files, not an attachment-level status at all |
+| Need sync | "hit the button and wait" | `missing-source`, stored/synced copy not yet downloaded |
+| Missing file / broken link | "sync from the other machine" | `missing-source`, the other case — discriminator NOT yet verified, see Open items |
+| Mismatched type | re-save with the true type, or OCR | `unsupported`, sniffed bytes contradict declared type (ticket 0740) |
+| No extractor for this format | nothing to be done inside Zotero | `unsupported`, genuinely no processor (e.g. `.docx`) |
+| No text layer | OCR | currently unmeasured — see Open items; may hide inside `failed-session` or silent `current` |
+| Stored index from a different version | regenerated automatically once a feature next needs it (e.g. opening the document) | `unsupported-pack`, own subsection |
+| Could not be examined | see the error named per item; whatever it names is the fix | `inspection-error`, own subsection |
+
+"Each error to its own section" (author): confirmed, `unsupported-pack` and
+`inspection-error` are each their own subsection, never folded into another.
+
+`unsupported-pack` checked against the code rather than guessed
+(bootstrap.js:1977-1988): it fires on `packVersionMismatch` —
+`reader.header.packVersion`/`schemaVersion` read off the stored
+`.zotero-sdt-cache` disagreeing with `versions.SDT_PACK_VERSION`/
+`SDT_SCHEMA_VERSION`, the ones this running Zotero's native extractor
+declares. The author's "probably means version mismatch?" is exactly right.
+It is classed `failed`, not `queued` (`SDT_STATUS_CLASSES`), so the sitter
+never re-submits it itself; nothing here is a persisted verdict either — the
+header is re-read and re-compared fresh on every inspection, so the status
+self-corrects the moment a compatible pack replaces it. Per the plugin's own
+About text, that replacement already happens outside this plugin's control,
+the first time a Zotero feature needs the attachment's text — which is why
+the remedy names that moment rather than an instruction.
+
+`inspection-error` checked the same way: scheduler.js's own `inspect`
+wrapper (`try { return await host.inspect(id) } catch (error) { return
+{status: 'inspection-error', error: String(error)} }`) is a genuine
+catch-all for ANY exception `inspect()` throws — a file permission error, a
+platform API failure, anything. There is no single cause and therefore no
+single class-wide remedy to write; the caught message is retained per item
+in `observed`, not discarded, so the honest and clear treatment is to show
+the actual error text per item in this subsection rather than invent one
+sentence that would be wrong for most of its members.
+
+## Open items, blocking implementation
+
+1. **The Need-sync / Missing-file discriminator is a guess, not a
+   measurement.** Proposed: `item.attachmentLinkMode` (linked file = never
+   Zotero-synced, so "really missing"; stored/imported = Zotero's own sync
+   should bring it). The author's remedy wording ("sync from the OTHER
+   machine") reads as still-recoverable-via-sync for both branches, which
+   fits less cleanly with a linked file than assumed. Verify against
+   `Zotero.Sync.Storage.Local`'s real sync-state fields before coding this
+   split; do not ship the linkMode guess unverified (this session already
+   corrected one unverified API claim on this same ticket).
+2. **"No text layer" needs the same live-library measurement Fable's note
+   already flagged**: does a text-less scanned PDF land in `failed-session`
+   or in silent `current`? Settles whether this class is visible to the
+   census at all today.
+3. **"No attachment" needs a new scan.** The sitter's census walks
+   attachments; an item with zero attachments never appears in it. This is a
+   different enumeration (over `Zotero.Items`, filtered to items with no
+   attachment children), not a new label on the existing per-attachment
+   classification — size and place it before Action 3 below assumes it is
+   free.
+
 ## Context
 
 The sitter's census classifies every attachment, and the Details layer now
@@ -87,54 +183,75 @@ prompt that appears because the sitter thinks he should.
 
 ## Actions
 
-1. Decide the class list with the author. It is a vocabulary he reads, so it is
-   his call, not the implementer's — propose one drawn from what the census can
-   actually distinguish today, and say for each class what the sitter knows and
-   what it is guessing.
-2. Carry the class out of `inspect()` beside the status, keeping the sniffer's
-   verdict instead of collapsing it.
-3. Render, per class, in the Details layer: the remedy in the indicative, and
-   the affected titles under it. Bounded — a class holding 2 600 titles is a
-   wall, not a list; agree a cap and how the remainder is stated.
-4. Offer a Zotero collection built from one class's items, as a control the user
-   operates. Never automatic. `Zotero.Collections` is the API; the plugin has
-   never written to the library, so this is a new capability and needs its own
-   look at what it may and may not touch.
+1. Settle the three Open items above with the author before writing code:
+   the sync-state discriminator against `Zotero.Sync.Storage.Local`, the
+   text-less-PDF measurement, and the size/placement of the "No attachment"
+   scan.
+2. Carry the class out of `inspect()` beside the status, keeping the
+   sniffer's verdict instead of collapsing it. `inspection-error`'s existing
+   `error` field already survives into `observed`; this item needs no new
+   plumbing, only rendering it.
+3. Add the item-level "No attachment" scan (Open item 3), separate from the
+   attachment-walking census.
+4. Render "Unindexed attachments" in the Details layer: one collapsible
+   subsection per class from the ruling's table, each with its remedy in the
+   indicative (or, for `inspection-error`, the per-item error text — no
+   single sentence covers it), the affected titles under it, a "Show in
+   Zotero" button and an "Export list to clipboard" button. Bounded in the
+   dialog only — a class holding 2 600 titles is a wall in a fixed-height
+   window; the clipboard export has no such cap, per the reimagine note.
+5. No Zotero collection offer, no API — both ruled out. Do not build either
+   as part of this ticket.
 
 ## Test
 
 - Red first: a fixture library holding one document of each class renders one
-  group per class, each naming its remedy and listing its titles.
-- Red first: a document whose bytes contradict its declared type is grouped
-  apart from one whose format has no extractor at all — same status today,
-  different class, and a test that only exercises one of them cannot see the
-  collapse come back.
-- Red first: the collection is created only when the control is operated, and
-  the library is untouched until then.
-- Tone is not testable by assertion. It is a review item, and the author is the
-  reviewer.
+  subsection per class under "Unindexed attachments," each naming its remedy
+  (or, for `inspection-error`, its own error text) and listing its titles.
+- Red first: a document whose bytes contradict its declared type lands in
+  "Mismatched type" apart from one whose format has no extractor at all —
+  same status today, different class, and a test that only exercises one of
+  them cannot see the collapse come back.
+- Red first: "Show in Zotero" selects without writing, and "Export list to
+  clipboard" writes to the clipboard and nowhere else — both inert until
+  operated.
+- Red first: the sync-state discriminator (once Open item 1 is settled)
+  actually separates a stored-and-pending attachment from a linked-and-absent
+  one on a real or faithfully mocked host, not merely on invented fixture
+  data shaped to agree with the guess.
+- Tone is not testable by assertion. It is a review item, and the author is
+  the reviewer.
 
 ## Verification
 
-- [ ] The class list is the author's, recorded before the rendering is built
-- [ ] Each group states a remedy without an imperative and without a backlog
-      framing
-- [ ] The collection offer is inert until operated, and creates nothing else
+- [ ] The class list matches the ruling's table (plus whatever the Open
+      items resolve to), recorded before the rendering is built
+- [ ] Each subsection states a remedy without an imperative and without a
+      backlog framing, except `inspection-error`, which shows its actual
+      per-item error text
+- [ ] "Show in Zotero" and "Export list to clipboard" are both inert until
+      operated, and neither writes anything, ever
+- [ ] No Zotero collection is created anywhere in this feature
 - [ ] `make check` passes
 
 ## Invariants
 
 - The plugin still never writes to `storage/`, never changes extraction
-  settings, never replaces a source attachment. Creating a collection on the
-  user's own instruction is the one new write and is scoped to that.
+  settings, never replaces a source attachment, and — per the ruling — never
+  writes to the library at all. Neither of this feature's two controls is a
+  write; there is no exception left to scope.
 - The census account's total still equals the rows above it: grouping is a
   second reading of the same classification, never a second arithmetic.
 - No nagging surface. Nothing here may appear unasked outside the Details layer.
 
 ## Exit criteria
 
-The Details layer groups the documents the sitter will not index by problem
-class, states per class what would resolve it in the indicative, lists the
-affected titles under a bounded cap, and offers — inert until operated — a
-Zotero collection built from a class's items. The author has ruled on the class
-list and has read the rendered tone.
+The Details layer shows an "Unindexed attachments" section, one collapsible
+subsection per class from the ruling's table (plus whatever the Open items
+resolve to), each stating its remedy in the indicative — or, for
+`inspection-error`, its own per-item error text — with the affected titles
+listed underneath, and a "Show in Zotero" and an "Export list to clipboard"
+button, both inert until operated and neither writing anything. No Zotero
+collection, no API. The three Open items are resolved (measured, not
+guessed) before this is considered done, and the author has read the
+rendered tone.
