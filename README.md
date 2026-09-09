@@ -61,7 +61,7 @@ Contents below the bar is generated to track implementation progress.
 ---
 
 
-## Deliverables
+## Workshop Deliverables
 
 <!-- generated status; sources are the linked owning documents and tickets -->
 
@@ -71,6 +71,19 @@ Contents below the bar is generated to track implementation progress.
 | [Multilingual Menagerie](https://www.zotero.org/groups/6659303/semantic_search_challenge_fixture) | **In progress** | ticket 0029 |
 | Verification and scoring bench | **In progress** | [bench/](bench/) and ticket 0026 |
 | Library-level bench | **In progress** | ticket 0719 |
+| SDT pack sitter plugin | **Experimental; release validation in progress** | [Plugin](plugins/sdt-sitter/), [launch evidence](verification/SDT-SITTER-LAUNCH.md) and ticket 0700 |
+| Full-text API plugin | **Existing control plugin; richer read interface in design** | [Plugin](bench/zotero-fulltext-plugin/), tickets 0726 and 0758 |
+
+The plugins aim to provide **a shared text foundation for Zotero AI tools**.
+The sitter prepares native structured-text packs; the API plugin's planned
+Fulltext, Structured-text and Chunks stream modes expose that text, its source
+locations and freshness, with a menu of chunking strategies. Tools can share
+document access and citation anchors while choosing their own models, indexes
+and search methods.
+
+The plugins have separate versions and release readiness. When both are ready,
+the workshop aims to offer a tested pair with a shared setup guide; neither
+requires a simultaneous release of the other.
 
 Numbers in the **work owner** columns are local issues tracked in
 [`tickets/`](tickets/) with [git-erg](https://github.com/MinhHaDuong/git-erg).

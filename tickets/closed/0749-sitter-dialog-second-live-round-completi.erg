@@ -1,0 +1,105 @@
+%erg 0.1
+Title: sitter dialog second live round: completion visibility, real tables, error placement
+Created: 2026-09-08
+Author: MinhHaDuong
+Closed: autoclosed — PR #487
+
+--- log ---
+2026-09-08T19:48Z MinhHaDuong created
+
+2026-09-08T19:49Z MinhHaDuong closed — autoclosed — PR #487
+--- body ---
+## Context
+
+Second round of live findings, testing v0.3.17 (ticket 0748's own fixes)
+right after install. Two of these are correctness bugs the author's own
+observation exposed, not cosmetic ones.
+
+## Findings and fixes
+
+1. **The progress bar never reached completion after switching off
+   mid-extraction, contradicting the disclosure's own "one already being
+   processed still finishes."** Root cause, in two parts:
+   - `scheduler.js`'s `publish()` gated `host.changed(state)` — the only
+     thing that repaints the dialog outside the periodic pulse the switch
+     already tears down — on `state.enabled`. So a job that kept genuinely
+     running never got shown doing so.
+   - Deeper: once a document was already handed to the native worker, several
+     `if (!state.enabled) break/return` checks skipped its own settlement
+     entirely — no `inspect()`, no `state.completed++`, no census update, on
+     success OR failure. The native pack really did persist (DECISIONS.md,
+     2026-09-05: "C'est plutot bien qu'il finisse le travail en cours" /
+     "may finish and persist its native pack"), but the sitter's own
+     bookkeeping silently dropped it, leaving the census wrong until some
+     later sweep happened to notice.
+
+   Fixed by removing the `enabled` gate from `publish()` and from every
+   check downstream of a document already being admitted — the OUTER loops
+   (census walk, next-candidate admission) still gate on `enabled`
+   unconditionally, so no new document is ever admitted while off; only the
+   one already in flight is now fully seen through to its real outcome.
+
+2. **The census-account and native-fulltext tables were padded `<pre>` text,
+   which does not align in the dialog's own proportional UI font
+   (`font: inherit`)** — ticket 0748's own alignment fix had shipped and
+   still didn't align, since a `<pre>` reflows to whatever font the
+   surrounding window uses, not necessarily a monospace one. Rebuilt both as
+   real `<table>` elements with `text-align: right` on the count cell, which
+   aligns in any font.
+
+3. **A single, routine extraction failure surfaced as a top-of-window
+   "Error:" banner**, alongside its own row in the census account
+   ("Extraction failed this session") — the same fact stated twice, one of
+   them reading as an unqualified alarm. Moved into Technical diagnostics,
+   where a reader opens specifically for raw detail, and reworded ("Last
+   extraction problem") so it no longer overclaims for one failed attachment
+   among possibly thousands.
+
+4. **"Created this session: {count}" named no subject.** Reworded to
+   "Attachments indexed this session: {count}".
+
+5. **The on/off button wrapped onto two lines at some dialog widths, turning
+   it into a square, one line at others.** `element()`'s default styling
+   (written for the prose blocks) carries `white-space: pre-wrap`, which the
+   button inherited along with everything else built through that helper.
+   The button now overrides it to a single line (`white-space: nowrap;
+   flex-shrink: 0`); the state text beside it gets `min-width: 0` so it is
+   the one that shrinks and wraps in a narrow window, not the control.
+
+## Test
+
+- `tests/sdt_sitter_scheduler.mjs`: the two tests pinning "no UI callback
+  while disabled" reworded to assert the opposite, with the new contract
+  spelled out (a scheduler-level `host.changed` unconditional on `enabled`;
+  what actually gates a redraw in production is `render()`'s own `alive`
+  check, which this fixture does not model).
+- `tests/sdt_sitter_bootstrap.mjs`: a real dialog opened, a job switched off
+  mid-extraction, and both `state.completed` and the document-status text
+  asserted to reach real completion — the integration-level proof the
+  scheduler-level test alone cannot give. Verified red against the
+  pre-fix `scheduler.js` via `git stash`.
+- `tests/sdt_sitter_dialog.mjs`: the census-account test rewritten against
+  the `<table>` DOM (row/cell lookups, not text-line splitting); the
+  fulltext-stats test likewise; a new test for the button's nowrap/min-width
+  declarations; a new test for the error line's disclosure and wording.
+  Verified red against the pre-fix `bootstrap.js` via `git stash`.
+- `tests/test_sdt_sitter.py`: two `_site` anchors updated to the code's new
+  shape (the named `diagnosticsHead` constant is gone; the assignment and the
+  account composer's call site moved).
+
+## Verification
+
+- [x] All four `.mjs` suites pass
+- [x] `tests/test_sdt_sitter.py`, `tests/test_sitter_host_apis.py` pass
+- [x] `make check-fast` — 1311 passed, 1 pre-existing environmental failure
+      (podman rootless-container store, unrelated, documented this session)
+- [x] Manifest/update.json bumped 0.3.17 -> 0.3.18, version guard clean
+- [x] Both scheduler-level behavior changes verified with a positive control
+      (reddened against the pre-fix code via `git stash`)
+
+## Exit criteria
+
+A document already handed to the native worker always reaches its real
+outcome in the census, on/off notwithstanding, and an open dialog shows that
+happening. The two tabular displays align in any font. The Error line and
+its wording no longer overclaim. The switch button never wraps.

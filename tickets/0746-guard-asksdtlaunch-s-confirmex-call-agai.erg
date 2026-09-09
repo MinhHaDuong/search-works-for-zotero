@@ -1,0 +1,103 @@
+%erg 0.1
+Title: Guard askSDTLaunch's confirmEx call against a throwing host surface
+Created: 2026-09-08
+Author: claude
+
+--- log ---
+2026-09-08T18:15Z claude created
+
+--- body ---
+## Context
+
+Found by the red-team perspective of `/review-pr` on PR #481
+(tickets/0742), which replaced the sitter's `Services.prompt.confirm(...)`
+launch-prompt call with `Services.prompt.confirmEx(...)` reading
+`BUTTON_POS_0`, `BUTTON_POS_1`, and `BUTTON_TITLE_IS_STRING` off
+`Services.prompt` and combining them into an arithmetic bitmask
+(`plugins/sdt-sitter/bootstrap.js`, `askSDTLaunch`).
+
+Neither the old 3-argument `confirm()` call nor the new 9-argument
+`confirmEx()` call is wrapped in try/catch. This is not a regression this
+PR introduced — the old code had the same absence — but the surface that
+can throw grew: four property reads feeding arithmetic, versus none
+before, and `confirmEx`'s XPCOM `unsigned long` argument coercion can
+throw on a non-finite value if any of the three `BUTTON_*` constants is
+undefined on a given host.
+
+If that happens, the throw is uncaught inside `initialize()` (an async
+function), propagates as a rejected promise to `startup()`'s
+`.catch(error => Zotero.logError(error))`, and leaves the plugin in a
+state where `sitter` exists but `alive` is never set true, the toolbar
+button and window never appear, and `armSDTSitter`/`disarmSDTSitter`
+never run. Net effect: total, silent (console-only) non-activation — not
+"indexing runs while the UI says off," but a plugin that never visibly
+starts, with no user-facing signal beyond the Zotero error console.
+
+The PR's own body already flagged this exact host surface as unverified:
+"`tests/test_sdt_sitter.py` warns that no Zotero install was found, so the
+host surface this diff newly names — `Services.prompt.confirmEx` and the
+`BUTTON_*` constants — went unverified on this machine. Worth a live
+check before release." This ticket is the live-check-and-harden half of
+that admission.
+
+## Relevant files
+
+- `plugins/sdt-sitter/bootstrap.js` — `askSDTLaunch` (the confirmEx call
+  and the `BUTTON_*` bitmask), and its caller in `initialize()`
+- `tests/sdt_sitter_zotero_mock.mjs` — the `Services.prompt` mock; its
+  `confirmEx` and `BUTTON_*` are hardcoded present and never throw, so no
+  existing test exercises this path
+- `tests/test_sdt_sitter.py` — the pref-handling tests (`readSDTSwitch`
+  coverage) that establish the sibling pattern: a hostile/throwing host
+  input is read defensively and falls back to a safe default, never left
+  to propagate
+
+## Actions
+
+1. On a real Zotero install, confirm `Services.prompt.BUTTON_POS_0`,
+   `BUTTON_POS_1`, and `BUTTON_TITLE_IS_STRING` are present and that
+   `confirmEx` accepts the 9-argument call as written (the live check the
+   PR body asked for).
+2. Wrap the bitmask computation and the `confirmEx` call in `askSDTLaunch`
+   with a try/catch, matching the defensive idiom already used by
+   `readSDTSwitch`/`writeSDTSwitch` for the pref. On catch, fail closed to
+   "never answered" (return `null`/treat as declined) rather than letting
+   the throw propagate into `initialize()`'s promise chain, and emit a
+   diagnosable journal/error event so the failure is visible somewhere
+   other than the Zotero error console.
+3. Add a driven test in `tests/sdt_sitter_bootstrap.mjs` or
+   `sdt_sitter_dialog.mjs` that makes the mock's `confirmEx` throw (or one
+   of the `BUTTON_*` properties `undefined`) and asserts the plugin still
+   reaches a visible, non-crashed state (toolbar + window present, phase
+   readable) rather than silent non-activation.
+
+## Test
+
+Red step: a test that sets the mock's `Services.prompt.confirmEx` to
+throw (or deletes `BUTTON_POS_0`) before `startup()`, then asserts the
+toolbar button and window exist afterward. This fails against the
+current code (no try/catch) and should pass once action 2 lands.
+
+## Verification
+
+- [ ] Live check on real Zotero confirms the three `BUTTON_*` constants
+      and the 9-arg `confirmEx` signature (action 1)
+- [ ] `askSDTLaunch` cannot propagate an uncaught throw into `initialize()`
+- [ ] New driven test in the .mjs suite reddens against the pre-fix code
+      and passes after the fix
+- [ ] `make check` green
+
+## Invariants
+
+- No change to the tri-state pref semantics or the ordering (ask before
+  `alive = true` and before toolbar install) ticket 0742 established.
+- A failure here must still fail closed (no silent indexing), matching
+  the existing `readSDTSwitch` failure mode.
+
+## Exit criteria
+
+`askSDTLaunch` cannot crash `initialize()` on a host where any of the
+`BUTTON_*` constants is absent or `confirmEx` throws; the live-Zotero
+check the PR body asked for has been run at least once; a driven test
+guards the fix.
+

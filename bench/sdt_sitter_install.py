@@ -38,6 +38,14 @@ import shutil
 import sys
 from pathlib import Path
 
+# Both spellings are live, so both are tried: the suite reaches this file with
+# the repo root on sys.path, while `python3 bench/sdt_sitter_install.py` puts
+# bench/ itself there and no `bench` package exists to qualify.
+try:
+    from bench.host_addon_record import host_addon_record
+except ImportError:  # run as a script, with bench/ itself on sys.path
+    from host_addon_record import host_addon_record
+
 #: `applications.zotero.id` in `plugins/sdt-sitter/manifest.json`. RFC 2606
 #: reserves `.invalid` so that nothing resolves it — which is correct for an
 #: id, since Zotero never dereferences one, and was a defect for the
@@ -50,49 +58,13 @@ log = logging.getLogger("sdt_sitter_install")
 def read_addon_record(profile: Path, addon_id: str = ADDON_ID) -> dict:
     """What the host's own extensions record says about this add-on.
 
-    Modelled on `bench/acceptance/adapters/beaver.py`'s `_host_addon_record`,
-    which asks the same question of a throwaway acceptance profile. Read rather
-    than inferred, and never coerced to a bare False.
+    The read itself is `bench/host_addon_record.py`, shared with
+    `bench/acceptance/adapters/beaver.py`, which asks the same question of a
+    throwaway acceptance profile. This wrapper adds only the default: the
+    shared function is plugin-neutral and takes the id, while this tool has
+    exactly one plugin to ask after (ticket 0713).
     """
-    path = Path(profile) / "extensions.json"
-    if not path.is_file():
-        return {"read": False, "why": f"{path} does not exist"}
-    try:
-        document = json.loads(path.read_text(encoding="utf-8"))
-    except (ValueError, OSError, RecursionError) as exc:
-        # RecursionError and not only ValueError: json rejects deep nesting by
-        # exhausting the stack, and RecursionError descends from RuntimeError,
-        # so a tuple naming only the two obvious families lets it out of main()
-        # — into exit 1, which this tool reads as ABSENT.
-        return {"read": False, "why": f"{type(exc).__name__}: {exc}"}
-    # Shape, separately from syntax, and this is where the first draft was wrong.
-    # `[]` and `"text"` are valid JSON, so nothing above rejects them, and
-    # `.get` on the result raised AttributeError straight out of main() — which
-    # exits 1, the code this tool means by ABSENT. A crash that lands on
-    # "the plugin is gone" is the exact collapse the three-valued read exists to
-    # prevent, so the shape is checked rather than assumed.
-    if not isinstance(document, dict):
-        return {"read": False,
-                "why": f"{path}: the document is {type(document).__name__}, not an object"}
-    addons = document.get("addons", [])
-    if not isinstance(addons, list):
-        return {"read": False,
-                "why": f'{path}: "addons" is {type(addons).__name__}, not a list'}
-    for addon in addons:
-        if isinstance(addon, dict) and addon.get("id") == addon_id:
-            return {"read": True, "present": True,
-                    "version": addon.get("version"),
-                    "active": addon.get("active"),
-                    "location": addon.get("location")}
-    # `isinstance(..., str)` and not a bare truth test, which is the third floor
-    # of the same trapdoor: the document was checked, then the container, and an
-    # ELEMENT whose id is a number still reached `sorted()` over mixed types,
-    # where `str < int` raises TypeError — out of main(), into exit 1, ABSENT
-    # again. An id that is not a string is not an id we could have installed
-    # under, so it is not one of the ids reported back.
-    return {"read": True, "present": False,
-            "ids": sorted(a["id"] for a in addons
-                          if isinstance(a, dict) and isinstance(a.get("id"), str) and a["id"])}
+    return host_addon_record(profile, addon_id)
 
 
 def install(profile: Path, xpi: Path, addon_id: str = ADDON_ID) -> Path:

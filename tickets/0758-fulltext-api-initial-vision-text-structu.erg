@@ -1,0 +1,126 @@
+%erg 0.1
+Title: Fulltext API initial vision: text, structure and chunk streams
+Created: 2026-09-08
+Author: Codex
+
+--- log ---
+2026-09-08T21:48Z Codex created
+
+2026-09-08T21:49Z Codex note Recorded at author request: three text views, caller-selected chunking strategy, reuse of the existing API plugin, and open contract choices. Initial vision only; no implementation or semantic-search commitment.
+2026-09-08T21:51Z Codex note Author asked to preserve the framing: a shared text foundation for Zotero AI tools; convergence at document access, citation anchors and freshness, with models and search methods remaining open.
+
+2026-09-09T10:10Z claude note Cross-reference, not a scope change: ticket 0744 (sitter, group unsupported/refused documents by problem class) reimagined an option where the sitter's problem-class classification is exposed as a view on this same API surface rather than built into the sitter's own dialog -- see conception/0744-reimagining-problem-class-grouping.md's second addendum. Worth a look at this ticket's own contract review, since it argues against a second bolt-on endpoint given this ticket's own stance on reusing bench/zotero-fulltext-plugin rather than inventing another. Not acted on; 0744 stays the owning ticket for the classification feature itself.
+
+2026-09-09T10:35Z claude note Correction on the cross-reference above (author: "Document content API is one at a time"): checked against bench/zotero-fulltext-plugin/bootstrap.js's actual Status handler, which only answers for keys the caller already supplies -- an enumerate-by-class view for 0744 is not a small addition to that shape, it is new surface, closer in size to a fourth mode beside this ticket's fulltext/structured-text/chunks three than to a field on an existing response. Still argues for landing in this plugin over a second one; the sizing changes, not the placement.
+--- body ---
+## Initial design vision
+
+Author request: "Ticket the initial design vision", following "Imagine 3 modes:
+Fulltext, Structured-text, Chunks stream" and "Chunking strategy is a menu".
+This records the direction for design work, not a finalized wire contract or
+authorization to implement a semantic-search system.
+
+Extend the existing full-text API plugin rather than invent another plugin
+merely to expose text. Its current source is
+bench/zotero-fulltext-plugin/bootstrap.js, with client bench/zotero_fulltext.py.
+It already registers control/status endpoints on Zotero's local HTTP server;
+it does not yet serve the structured-text views proposed here. A shipping
+extension belongs under plugins/ per AGENTS.md; any promotion should preserve
+its installation identity and lifecycle rather than create an unrelated add-on.
+
+## Framing: a shared text foundation for Zotero AI tools
+
+The sitter prepares structured text; the API plugin exposes it through a common
+document-access contract. The intended convergence is on extraction reuse,
+source locations, citation anchors, freshness and optional chunking strategies.
+Consumers remain free to choose their models, embedding runtimes, indexes,
+ranking methods and user interfaces.
+
+This is a proposed shared foundation, not a claim of ecosystem adoption or
+convergence of the whole AI stack. Adoption would need a stable documented
+contract, simple installation and compatibility tests that independent tools
+can run. Tools that must operate while Zotero is closed may also need an export
+or snapshot path; that is a candidate follow-up, not part of the initial scope.
+Keep the interface suitable for eventual native provision by Zotero, so the
+plugins can yield to a platform capability without forcing consumer rewrites.
+
+## The modes
+
+| Mode | Intended representation | Typical use |
+|---|---|---|
+| Fulltext | Plain text in reading order | Reading, export, text processing |
+| Structured-text | Blocks with types, flow classes, headings, page anchors and available positions | Citations, navigation, consumer-defined segmentation |
+| Chunks stream | Successive passages with text, heading context and source locations, produced by a selected strategy | Incremental embedding and retrieval pipelines |
+
+These are views of the same extraction, carrying a shared source and processor
+identity. Fulltext describes a representation, not a requirement to allocate
+or return a whole book at once. The bounded-read and identity contract remains
+owned by SPEC.md through the existing contract work in 0726.
+
+## Chunking strategy is a menu
+
+The author specified that callers choose a strategy. Candidate entries from
+the discussion, to evaluate rather than treat as a ratified release roster:
+
+- Page: preserve individual page boundaries.
+- Paragraph: preserve natural paragraph boundaries.
+- Section: follow document headings and hierarchy.
+- Token budget: bound passages against a specified tokenizer, with an overlap
+  option where supported.
+- #6012: reuse its section-aware splitting and merging policy at a pinned
+  implementation version.
+
+Each strategy exposes only meaningful parameters and states its guarantees.
+A page or section may exceed an embedding model's input window; offering it
+does not imply a token bound. Page locations accompany all strategies where
+the extraction supplies them. Chunk responses identify the strategy, version
+and effective parameters so consumers can invalidate downstream work when
+boundaries change.
+
+## Responsibility boundary
+
+The sitter prepares native structured-text packs. The API provides access to
+the available extraction and derived views. Embedding, GPU execution, vector
+storage, ranking and MCP translation remain consumer concerns; this feature
+does not require choosing any of them or resuming the held indexer rewrite.
+
+The discussed read-path proposal is to return explicit missing/stale states
+rather than silently wait for extraction. Final stale-read and preparation
+semantics belong in the contract review, including whether a read can ever
+request preparation explicitly. Turning the sitter off must not by itself
+make already available text unreadable.
+
+## Existing work and unresolved design
+
+0726 owns the structured-text API contract; 0572 owns the Zoteus consumer.
+This ticket supplies the initial product vision to that work, not a second
+implementation train. Read those tickets and their logs before coding. The
+remaining chunk-consumption and tokenizer-budget decisions are already recorded
+under 0726 in DECISIONS.md; the strategy menu does not silently settle them.
+
+Contract review should also settle:
+
+- The first supported strategies, defaults, option validation and discovery.
+- How extraction without physical pages represents locations.
+- How callers resume bounded reads, and detect extraction replacement between
+  requests without mixing document versions.
+- Strategy state across response boundaries: transport pagination must not
+  accidentally redefine paragraph, section or overlap geometry.
+- Which version/identity information all modes share and what chunks add.
+- Promotion of the existing measurement plugin to a maintained package, its
+  compatibility with Zotero 10, and the fate of its existing control endpoints.
+
+No numerical budget, API path or latency promise is chosen here.
+
+## Exit criteria for this design ticket
+
+- [ ] Review the initial vision against 0726, 0572, existing plugin code and
+      SPEC.md's owning sections; record accepted scope and unresolved choices.
+- [ ] Record any resulting rulings in DECISIONS.md first, then update SPEC.md
+      and reconcile 0726 so requirements have one owner.
+- [ ] Route concrete implementation and verification work through the existing
+      owners, with machine-readable dependencies where sequencing is needed.
+- [ ] Cover cross-mode text/location consistency, bounded/resumable reads,
+      mid-stream identity changes, strategy semantics and cache-only availability
+      in the resulting test plan; do not claim these tests already exist.
+- [ ] make check passes for the resulting design change.

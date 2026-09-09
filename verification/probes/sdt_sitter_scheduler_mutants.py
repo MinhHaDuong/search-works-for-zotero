@@ -49,104 +49,134 @@ TAIL = "console.log(JSON.stringify({ tests: results"
 # before the mutant's own edit, and anchored under the same replace_once rule -- a
 # setup that silently matched nothing would leave a mutant that means something
 # else entirely and still print a verdict.
-SETUPS = {
-    # `M7` reads a binding the real loop does not have.
-    "M7": (
-        "        for (const { id, before, status } of candidates) {",
-        "        const hoisted = candidates.length ? await host.blocked(candidates[0].before) : null;\n"
-        "        for (const { id, before, status } of candidates) {",
-    ),
-    # `M11` restores the increment that used to sit beside the census; its own edit
-    # then removes the derivation, reconstituting the pre-0699 running total.
-    "M11": (
-        "            failed.add(before.identity);\n",
-        "            failed.add(before.identity); state.failed++;\n",
-    ),
-}
+SETUPS = {'M7': ('        while (current()) {',
+        '        let gateChecked = false, hoisted;\n        while (current()) {'),
+ 'M11': ('              if (before.identity) failed.add(before.identity);\n',
+         '              if (before.identity) failed.add(before.identity); state.failed++;\n'),
+ 'M16': ('              record(affected, info); publish();',
+         '              record(affected, info); publish(); dirty.delete(id);')}
 
 MUTANTS = [
     ("M1 failure path does not decrement the document's original bucket",
-     "            state.counts[status]--; state.counts['failed-session'] =",
-     "            state.counts['failed-session'] ="),
-    ("M2 failure path does not set state.error (the UI tooltip source)",
-     "            state.error = host.describeError ? host.describeError(before, error) : String(error);\n",
-     ""),
-    ("M3 finally no longer clears state.active / state.pending (spinner sticks)",
-     "          } finally {\n            state.active = null;\n"
-     "            state.pending = state.pending.filter(item => item.id !== id);\n          }\n",
-     "          }\n"),
-    ("M4 resource block skips one document instead of halting the sweep",
-     "if (reason) { state.phase = reason; publish(); break; }",
-     "if (reason) { state.phase = reason; publish(); continue; }"),
-    ("M5 success path stops accumulating duration samples",
-     "            if (measured) state.samples.push(measured);\n",
-     ""),
-    ("M6 host.reportError is never called",
-     "            if (host.reportError) await host.reportError(before, error);\n",
-     ""),
-    ("M7 host.blocked hoisted out of the per-candidate loop",
-     "          const reason = await host.blocked(before);",
-     "          const reason = hoisted;"),
-    ("M8 per-candidate catch deleted, so a rejection ends the whole sweep",
-     "          } catch (error) {\n            if (!state.enabled) break;\n"
-     "            failed.add(before.identity);\n"
-     "            state.error = host.describeError ? host.describeError(before, error) : String(error);\n"
-     "            if (host.reportError) await host.reportError(before, error);\n"
-     "            state.counts[status]--; state.counts['failed-session'] = "
-     "(state.counts['failed-session'] || 0) + 1;\n",
-     ""),
+     '    if (previous) state.counts[previous.status]--;',
+     "    if (previous && classify(info) !== 'failed-session') state.counts[previous.status]--;"),
+    ('M2 failure path does not set state.error (the UI tooltip source)',
+     '              state.error = host.describeError ? host.describeError(before, error) : '
+     'String(error);\n',
+     ''),
+    ('M3 finally no longer clears state.active / state.pending (spinner sticks)',
+     '          } finally {\n'
+     '            state.active = null;\n'
+     '            refreshQueue();\n'
+     '          }\n',
+     '          }\n'),
+    ('M4 resource block skips one document instead of halting the sweep',
+     '          if (reason) {\n'
+     '            state.phase = reason; publish();\n'
+     '            if (dirty.size) continue; // A resource wait must not delay discovery.\n'
+     '            break;\n'
+     '          }',
+     "if (reason) { state.phase = reason; record(id, { status: 'excluded' }); publish(); "
+     'continue; }'),
+    ('M5 success path stops accumulating duration samples',
+     '            if (measured) state.samples.push(measured);\n',
+     ''),
+    ('M6 host.reportError is never called',
+     '              if (host.reportError) await host.reportError(before, error);\n',
+     ''),
+    ('M7 host.blocked hoisted out of the per-candidate loop',
+     '          const reason = await host.blocked(before);',
+     '          const reason = gateChecked ? hoisted : (gateChecked = true, hoisted = await '
+     'host.blocked(before));'),
+    ('M8 per-candidate catch deleted, so a rejection ends the whole sweep',
+     '          } catch (error) {\n'
+     '            const after = await inspect(id);\n'
+     '            if (SDT_STATUS_CLASSES.queued.includes(after.status) && after.identity === '
+     'before.identity) {\n'
+     '              if (before.identity) failed.add(before.identity);\n'
+     '            }\n'
+     "            if (after.status === 'inspection-error' ||\n"
+     '                (SDT_STATUS_CLASSES.queued.includes(after.status) && after.identity === '
+     'before.identity)) {\n'
+     '              state.error = host.describeError ? host.describeError(before, error) : '
+     'String(error);\n'
+     '              if (host.reportError) await host.reportError(before, error);\n'
+     '            } else if (host.emit) {\n'
+     "              host.emit('settle', { id, ok: false, status: after.status });\n"
+     '            }\n'
+     '            record(id, after);\n'
+     '\n',
+     '          } catch (error) { throw error;\n'),
     # M9 and M10 are ticket 0699's two halves. The classification is now the single
     # owner of what "not indexed" means, so a status dropped from it is exactly the
     # under-report the ticket was filed for -- and the one that leaves every other
     # assertion in the suite green, because nothing throws and every bucket still
     # sums to the census.
-    ("M9 inspection-error falls out of the failure classification (the 0699 under-report)",
+    ('M9 inspection-error falls out of the failure classification (the 0699 under-report)',
      "  failed: ['failed-session', 'inspection-error', 'unsupported-pack', 'missing-source'],",
      "  failed: ['failed-session'],"),
-    ("M10 a throwing duration observation reaches the verdict again (the 0699 false failure)",
-     "              try { await host.observed(before, measured); }\n",
-     "              await host.observed(before, measured);\n"
-     "              try { /* the catch below is now unreachable */ }\n"),
+    # Ticket 0740's action 2, after the author's 2026-09-08 ruling narrowed it to
+    # the session: the suppression IS this line, and nothing else in the codebase
+    # holds a failure for any span at all. Removed, a document that native answers
+    # in 50-90 ms with no pack is re-admitted on every sweep of the same session,
+    # which is the defect the ticket was filed for -- and every count still sums,
+    # because the resubmission fails again and lands in the same bucket.
+    ("M34 the session's failure set is never consulted, so a failure is resubmitted every sweep",
+     "    info.identity && failed.has(info.identity) ? 'failed-session' : info.status;",
+     "    false ? 'failed-session' : info.status;"),
+    ('M10 a throwing duration observation reaches the verdict again (the 0699 false failure)',
+     '              try { await host.observed(before, measured); }\n',
+     '              await host.observed(before, measured);\n'
+     '              try { /* the catch below is now unreachable */ }\n'),
     # The banner used to be incremented beside the census instead of derived from
     # it, so it grew by one sweep's failures every pass over an unchanged library.
     # Paired with the SETUPS["M11"] edit, this is exactly the pre-0699 shape.
-    ("M11 the failure total accumulates across sweeps instead of reading this census",
-     "      state.failed = SDT_STATUS_CLASSES.failed\n"
-     "        .reduce((n, key) => n + (counts[key] || 0), 0);\n",
-     ""),
+    ('M11 the failure total accumulates across sweeps instead of reading this census',
+     '      state.failed = SDT_STATUS_CLASSES.failed\n'
+     '        .reduce((n, key) => n + (counts[key] || 0), 0);\n',
+     ''),
     # The other half of the derivation, and the one only a mid-census observer can
     # see: an ungated recompute reads a `counts` the census has not finished
     # filling, so the banner empties at the top of every sweep and refills as the
     # scan runs. Every assertion taken after `sweep()` resolves is blind to it.
-    ("M12 the failure total is recomputed from a half-filled census",
-     "    if (state.scanned === state.total) {",
-     "    if (true) {"),
+    ('M12 the failure total is recomputed from a half-filled census',
+     '    if (state.scanned === state.total) {',
+     '    if (true) {'),
     # Ticket 0704's two shapes, and the pair is the point: the duration is the one
     # number in this loop that regresses to a WRONG value rather than a missing
     # one, so no count moves and no record disappears when either lands.
     # M13 is the original defect. `state.startedAt` is still in scope and still
     # correct a few lines above, which makes it the easiest edit in the file to
     # make by accident.
-    ("M13 duration sample measures from submission again, not from first progress",
-     "                milliseconds: host.now() - extractingSince };",
-     "                milliseconds: host.now() - state.startedAt };"),
+    ('M13 duration sample measures from submission again, not from first progress',
+     '                milliseconds: host.now() - extractingSince };',
+     '                milliseconds: host.now() - state.startedAt };'),
     # M14 is the defect the FIRST fix carried, found by red team on PR #389 and
     # invisible to every test that had progress ticks in its fixture: falling back
     # to the submission clock when no tick ever fired reinstates the whole of M13
     # for exactly the documents too small or too cached to report progress. A
     # mutant rather than only a test, because the fallback is the reflex fix and
     # will be proposed again by whoever next reads a null here as a bug.
-    ("M14 no-progress extraction falls back to the submission clock instead of withholding",
-     "            const measured = extractingSince === null ? null\n",
-     "            const measured = extractingSince === null\n"
-     "              ? { sourceBytes: before.sourceBytes, pages: before.pages,\n"
-     "                milliseconds: host.now() - state.startedAt }\n"),
+    ('M14 no-progress extraction falls back to the submission clock instead of withholding',
+     '            const measured = extractingSince === null ? null\n',
+     '            const measured = extractingSince === null\n'
+     '              ? { sourceBytes: before.sourceBytes, pages: before.pages,\n'
+     '                milliseconds: host.now() - state.startedAt }\n'),
     # Ticket 0718. Holding the failure banner was only one quarter of the repair:
     # a coverage reader that keeps looking at the half-filled live counts combines
     # two census generations and flickers on every sweep.
-    ("M15 the complete census snapshot is never retained for the next sweep",
-     "      state.censusSnapshot = { counts, total: state.total };\n",
-     ""),
+    ('M15 the complete census snapshot is never retained for the next sweep',
+     '      state.censusSnapshot = { counts, total: state.total };\n',
+     ''),
+    ('M16 dirty event erased after awaited inspection loses new notifications',
+     '            dirty.delete(id); // BEFORE awaits: a new event for this ID survives.',
+     '            // deletion incorrectly delayed until after inspection'),
+    ('M17 admission ignores worker started during final inspection',
+     '          const admissionReason = host.beforeSubmit?.();',
+     '          const admissionReason = null;'),
+    ('M18 current external packs remain masked by session failure',
+     '  const classify = info => SDT_STATUS_CLASSES.queued.includes(info.status) &&',
+     '  const classify = info =>'),
 ]
 
 

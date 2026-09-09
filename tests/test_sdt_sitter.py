@@ -30,6 +30,7 @@ crept back into a call site. The two halves are still checked apart, because a
 wording test that read the call sites would go green the day a string moved.
 """
 import json
+import os
 import re
 import subprocess
 import sys
@@ -111,12 +112,26 @@ UI_SITES = (
     ('const quietMessage = ', ';'),
     ("getElementById('sdt-failures').textContent", ';'),
     ('doc.title = ', ';'),
-    ("section('sdt-global-section'", ']);'),
+    ('section(GLOBAL_SECTION', ']);'),
     ("section('sdt-document-section'", ']);'),
     ('indexSummary.textContent = ', ';'),
     ("getElementById('sdt-fulltext').textContent", ';'),
-    ('Services.prompt.confirm(', 'if (token !== generation) return;'),
+    # The scope line, moved out of the bold heading into its own line
+    # (v0.3.18) when three long library names wrapped that heading five
+    # lines deep on a narrow window.
+    ("getElementById('sdt-scope').textContent", ';'),
+    ('function askSDTLaunch(win) {', '\n}'),
     ('describeError: (info, error) =>', 'reportError:'),
+    # The switch of ticket 0742. Two sites, because the control is built once
+    # and reworded on every redraw, and a literal could arrive at either.
+    ("doc.getElementById('sdt-switch-state').textContent", ';'),
+    ("doc.getElementById('sdt-switch').textContent", ';'),
+    # The disclosures moved into their own About disclosure (found live,
+    # testing v0.3.16), a whole function now rather than a few lines inline —
+    # scoped to that function so the site tracks wherever it lives next,
+    # instead of scanning forward to a same-named anchor that may since have
+    # drifted arbitrarily far away.
+    ('function buildSDTAbout(doc, element) {', '\n}'),
     # The disclosure layers of ticket 0693. A site added to the dialog and not
     # added here is a site the vocabulary ban stops covering, which is the
     # asymmetry this list fails on: removing a site is loud, arriving is silent.
@@ -131,6 +146,12 @@ UI_SITES = (
     ('function composeSDTJournalReport() {', '\n}'),
     ('function buildSDTDiagnostics(doc, element) {', '\n}'),
     ("getElementById('sdt-observations').textContent", ';'),
+    # The census account of ticket 0693's second pass. Both halves are sites: the
+    # composer that builds the rows, and the label lookup that decides what a
+    # status is called -- a raw key falling through the lookup is the defect the
+    # ruling repaired, and a literal written here is how it would come back.
+    ('function describeSDTStatusLabel(status) {', '\n}'),
+    ('function describeSDTCensusAccount(counts) {', '\n}'),
     # The end-of-sweep toast of ticket 0696, and the first site this list
     # acquired after 0692 externalized the wording. It arrived carrying one
     # French literal for its headline, which is what the note above predicts and
@@ -145,6 +166,35 @@ UI_SITES = (
 # add-on actually indexes. "élément" and "pièce jointe" are the same confusion
 # from the other side.
 BANNED_IN_UI = ('document', 'élément', 'pièce jointe', 'item', 'pack')
+
+# `about-intro` is the one place a banned term is explained rather than
+# assumed -- the author's own call, 2026-09-08: it may name "pack", Zotero's
+# real internal term for the artifact, exactly because that sentence defines
+# it in place rather than dropping it unexplained the way the rule above
+# guards against everywhere else.
+BANNED_IN_UI_EXCEPTIONS = {'about-intro': {'pack'}}
+
+#: A quoted census status, in every quote style JavaScript has, over the whole
+#: identifier character set. Every part is load-bearing, and the first draft of
+#: the reading-order guard had none of them.
+#:
+#: The narrow `'([a-z-]+)'` it used extracts from BOTH sides of the comparison it
+#: feeds, so a status it could not match dropped out of both and the equality
+#: agreed about a set it had never seen. A set equality is not a guard when one
+#: regex decides what either set contains. Three false greens were reproduced in
+#: two review rounds: a double-quoted duplicate (`"current", 'current'`), a
+#: duplicate renamed to `unsupported2` on both sides, and -- against the second
+#: draft, which had fixed the first two -- a coordinated rewrite to a backtick
+#: template literal. The last is not exotic: `bootstrap.js` writes
+#: `` `status-${status}` `` three lines from the order array.
+#:
+#: The backreference is what refuses `'current"`, which is not a string literal
+#: at all; a bare character class on each end would match it and quietly widen
+#: the guard to source that does not parse. And the widened identifier class buys
+#: a false RED that the narrow one did not: an ordinary quoted word in a comment
+#: inside the scoped region reads as a phantom status, which is why every caller
+#: strips comments first.
+QUOTED_STATUS = re.compile(r"""(['"`])([A-Za-z0-9_-]+)\1""")
 
 
 def _site(start: str, end: str, path: Path | None = None) -> str:
@@ -224,6 +274,17 @@ def visible(pattern: str | list[str]) -> str:
 #: reports it as prose in the source. Prose it is — in a comment, where it
 #: belongs.
 COMMENT = re.compile(r'/\*.*?\*/|//[^\n]*', re.DOTALL)
+
+
+def _statuses(source: str) -> list[str]:
+    """The quoted census statuses of one table, in source order.
+
+    Comments go first. Both status tables are heavily annotated, and with the
+    identifier class widened to what JavaScript actually allows, an ordinary
+    quoted word in that prose extracts as a phantom status -- a false RED the
+    narrow `[a-z-]` pattern was accidentally immune to and paid for elsewhere.
+    """
+    return [status for _quote, status in QUOTED_STATUS.findall(COMMENT.sub(' ', source))]
 
 
 def _ui_strings(site: str) -> list[str]:
@@ -380,6 +441,58 @@ def test_an_element_of_the_wrong_shape_is_absent_rather_than_a_crash(tmp_path):
     # And the add-on is still found when it sits among that debris.
     write_extensions(profile, [{"id": 17}, sitter_entry(), "junk"])
     assert read_addon_record(profile)["present"] is True
+
+
+@pytest.fixture
+def unsearchable_profile(tmp_path):
+    """A profile holding `extensions.json`, then stripped of its search bit.
+
+    Mode 0o600 is readable and not searchable, so `open()` on anything inside
+    fails with EACCES — the errno `pathlib` does *not* fold into "not a file".
+    The mode is restored in teardown so a failing assertion cannot leave
+    `tmp_path` undeletable.
+    """
+    profile = tmp_path / "locked"
+    write_extensions(profile, [sitter_entry()])
+    profile.chmod(0o600)
+    try:
+        yield profile
+    finally:
+        profile.chmod(0o700)
+
+
+@pytest.mark.skipif(os.geteuid() == 0,
+                    reason="root ignores the search bit, so the arm discriminates nothing")
+def test_an_unsearchable_profile_is_unread_rather_than_a_crash(unsearchable_profile):
+    """`is_file()` sat outside the `try`, and EACCES is not one of the errnos
+    `pathlib` swallows — so a profile directory without its search bit raised
+    PermissionError past the guard, out of the reader, into the caller. Exit 1
+    is what this tool means by ABSENT, so a profile nobody could read reported
+    as a plugin that is gone: the exact collapse the three-valued read exists
+    to prevent.
+    """
+    # Positive control: the setup really is unreadable, so a green below is the
+    # reader's doing and not the filesystem's indulgence.
+    with pytest.raises(PermissionError):
+        (unsearchable_profile / "extensions.json").read_text(encoding="utf-8")
+
+    record = read_addon_record(unsearchable_profile)
+    assert record["read"] is False
+    assert "present" not in record
+    # Named as a permission, so the arm cannot be satisfied by a reader that
+    # reports the file missing.
+    assert "PermissionError" in record["why"], record["why"]
+
+
+@pytest.mark.integration
+@pytest.mark.skipif(os.geteuid() == 0,
+                    reason="root ignores the search bit, so the arm discriminates nothing")
+def test_verify_on_an_unsearchable_profile_exits_could_not_read(unsearchable_profile):
+    """The contract a Make target sees: 3, not the traceback-and-1 of a crash."""
+    result = cli("verify", "--profile", str(unsearchable_profile))
+    assert result.returncode == 3, result.stderr
+    assert "Traceback" not in result.stderr
+    assert json.loads(result.stdout)["read"] is False
 
 
 def test_install_refuses_an_addon_id_that_is_not_one_path_component(tmp_path):
@@ -583,15 +696,23 @@ def test_no_user_facing_string_says_document():
     for tag in LOCALES:
         for name, pattern in messages(tag).items():
             text = visible(pattern).lower()
+            exempt = BANNED_IN_UI_EXCEPTIONS.get(name, ())
             for word in BANNED_IN_UI:
+                if word in exempt:
+                    continue
                 assert word not in text, f'{word!r} in {tag}.ftl message {name!r}: {pattern!r}'
 
 
 def phase_names() -> set[str]:
-    """The internal phase names, which are keys of `SDT_PHASE_LABELS` and one of
-    which reads like a sentence: `'launch-declined; disable/re-enable to
-    launch'`. Read from the source rather than listed, so a phase renamed in
-    `bootstrap.js` does not leave an exemption behind that covers nothing."""
+    """The internal phase names, which are the keys of `SDT_PHASE_LABELS`.
+
+    Read from the source rather than listed, so a phase renamed in `bootstrap.js`
+    does not leave an exemption behind that covers nothing — and this is not a
+    hypothetical: the key that motivated the exemption, `'launch-declined;
+    disable/re-enable to launch'`, was retired by ticket 0742 and replaced by
+    `'switched-off'`, which reads as an identifier and needs no exemption at all.
+    A listed set would still be carrying the dead one.
+    """
     table = _site('var SDT_PHASE_LABELS = {', '};')
     return {match for match in re.findall(r"^\s*'([^']+)':", table, re.MULTILINE)}
 
@@ -671,6 +792,54 @@ def test_toolbar_tooltip_scopes_the_coverage_to_the_libraries_it_covers():
         'the tooltip carries no coverage figure for the scope to qualify'
 
 
+def test_dialog_heading_scopes_the_progress_to_the_libraries_it_covers():
+    """Ticket 0717, the follow-up 0710 named, revised live testing v0.3.18: the
+    scope moved out of the bold `<legend>` into a plain line of its own — three
+    long library names joined into the heading wrapped it five lines deep on a
+    narrow window, where the same text as an ordinary line wraps like any other
+    sentence. The heading itself is now the message id alone, set once at
+    build time; the scope line is recomposed on every render through the same
+    composer the tooltip uses, rather than frozen at populate time when a
+    group library may not have loaded yet."""
+    assert 'library' not in messages()['section-global'].lower(), \
+        'the section heading still names one library for an unscoped census'
+    heading_site = _site('section(GLOBAL_SECTION', ']);')
+    assert "sdtText('section-global')" in heading_site, 'the heading holds no message id'
+    scope_site = _site("getElementById('sdt-scope').textContent", ';')
+    assert 'describeSDTScope(' in scope_site, 'the scope line states no library scope'
+
+
+def test_the_scoped_heading_and_its_coverage_figure_cannot_be_separated():
+    """Ticket 0717's first exit criterion covers the scope line *and* the
+    coverage figure under it, so the two have to be built as one section. Both
+    were literals, one in `renderState` and one in `populate`, with nothing
+    tying them: a rename of the section (0693 reorganizes exactly this dialog)
+    would leave `getElementById` returning null forever, the scope silently
+    gone from a window that still renders and a suite that still passes. One
+    binding names the section; `sdt-scope` (moved out of the bold heading,
+    v0.3.18) is one of the children it builds, alongside the figures it
+    scopes."""
+    source = BOOTSTRAP.read_text(encoding='utf-8')
+    assert "var GLOBAL_SECTION = 'sdt-global-section';" in source, \
+        'the overall-progress section is not named once'
+    assert source.count("'sdt-global-section'") == 1, \
+        'the section id is written at a call site rather than read from the binding'
+    built = _site('section(GLOBAL_SECTION', ']);')
+    for child in ('sdt-scope', 'sdt-status', 'sdt-global-progress'):
+        assert child in built, f'{child} is no longer under the scoped heading'
+
+
+def test_launch_prompt_states_the_library_scope():
+    """Ticket 0717. The prompt asked to index "the whole library" — the singular
+    the census never measured. The question names the plural, and the set itself
+    reaches the reader through describeSDTScope(), so the prompt, the tooltip and
+    the dialog heading cannot name three different scopes."""
+    assert 'whole library' not in messages()['launch-question'], \
+        'the launch prompt still asks about one library'
+    site = _site('function askSDTLaunch(win) {', '\n}')
+    assert 'describeSDTScope(' in site, 'the launch prompt states no library scope'
+
+
 def test_the_library_scope_is_read_from_zoteros_own_records():
     """A prefix that hardcoded "Ma bibliothèque" would pass any wording grep and
     still lie to every reader of a group library, so the assertion is on the
@@ -711,16 +880,108 @@ def test_launch_prompt_title_is_the_index_assistant():
 
 
 def test_launch_prompt_body_speaks_of_indexing_not_packs():
+    """Ticket 0742 rewrote the question and moved two of its four paragraphs out.
+
+    Both halves of the old wording were false. "tonight" described a loop that
+    reschedules for as long as Zotero is open, and "the whole library" described
+    a census that walks every attachment Zotero holds — a different set from the
+    library in view, and one the sitter never scoped itself to. The assertions
+    are on their absence rather than on the replacement's exact phrasing: a
+    reworded question is the author's call, a question that lies again is not.
+    """
     english = messages()
-    assert 'Index the whole library' in english['launch-question']
+    question = visible(english['launch-question']).lower()
+    assert 'tonight' not in question, 'the prompt still promises the work ends at dawn'
+    assert 'whole library' not in question, 'the prompt still claims a scope the census has not'
+    assert 'index' in question, 'the prompt no longer says what it is asking to do'
+    # Ticket 0717's scope paragraph survives 0742's rewrite, and moves from the
+    # question's own words into the reading beside it: the set the census covers
+    # is read from Zotero's records by the composer the tooltip and the dialog
+    # heading also use, never asserted by this string.
+    assert 'describeSDTScope()' in _site('function askSDTLaunch(win) {', '\n}'), \
+        'the prompt names no scope at all'
     assert 'full-text search index' in english['launch-conditions'], \
         "Zotero's own index must be named apart from the sitter's"
     assert 'packs SDT' not in ' '.join(visible(v) for v in english.values())
-    # The four paragraphs are read at the call site in order, so the prompt keeps
-    # the shape it had when they were one concatenated literal.
-    site = _site('Services.prompt.confirm(', 'if (token !== generation) return;')
-    for name in ('launch-question', 'launch-conditions', 'launch-worker', 'launch-disable'):
+    # Three paragraphs now, read at the call site in order. The worker and
+    # disable disclosures moved to the dialog's Details layer, where they are
+    # readable at any time instead of once inside a modal — so their absence
+    # HERE is the assertion, and tests/sdt_sitter_dialog.mjs holds the other
+    # half, that they arrive in the window.
+    site = _site('function askSDTLaunch(win) {', '\n}')
+    for name in ('launch-question', 'launch-conditions', 'launch-details',
+                 'launch-yes', 'launch-no'):
         assert f"'{name}'" in site, f'{name} is no longer part of the launch prompt'
+    for name in ('launch-worker', 'launch-disable'):
+        assert f"'{name}'" not in site, f'{name} is back inside the modal'
+
+
+def test_the_launch_answer_is_persisted_and_asked_once():
+    """R22's one obvious way, ratified 2026-09-08 (ticket 0742).
+
+    The old prompt fired at every Zotero start because nothing recorded the
+    answer; a decline was session-only, so it satisfied neither of R22's two
+    clauses. What makes the question once-only is the tri-state read: a pref
+    that is neither true nor false is the ONLY state in which it is asked.
+
+    Read from the source because the alternative is a live Zotero. The driven
+    half — the count of prompts across a restart and a disable/re-enable — is in
+    tests/sdt_sitter_bootstrap.mjs, and neither half stands alone: this one
+    cannot see that the read is reached, that one cannot see the tri-state.
+    """
+    source = BOOTSTRAP.read_text(encoding='utf-8')
+    assert "var ENABLED_PREF = 'extensions.sdt-pack-sitter.enabled';" in source, \
+        'the switch has no pref, so no answer can hold across a restart'
+    read = _site('function readSDTSwitch() {', '\n}')
+    assert 'ENABLED_PREF' in read and 'Zotero.Prefs.get' in read
+    assert "typeof value === 'boolean' ? value : null" in read, \
+        'the pref is not read tri-state, so "never answered" cannot be told from "no"'
+    write = _site('function writeSDTSwitch(enabled) {', '\n}')
+    assert 'Zotero.Prefs.set' in write and 'ENABLED_PREF' in write
+    # Asked only on the unanswered state, and the answer written straight back.
+    launch = _site('let enabled = readSDTSwitch();', 'alive = true;')
+    assert 'enabled === null' in launch, 'the question is not gated on an unanswered pref'
+    assert 'askSDTLaunch(win)' in launch and 'writeSDTSwitch(enabled)' in launch
+
+
+def test_the_question_is_asked_before_the_sitter_is_armed():
+    """Defect 6 of ticket 0742: `alive = true` and the toolbar button were
+    installed BEFORE the modal, so the button appeared under a dialog still
+    asking whether the sitter should run at all — the same class of defect
+    ticket 0696 had to guard against.
+
+    Asserted on the order of three statements in one function, which is what the
+    fix is. The driven half (a hook that reads the window while the modal is up)
+    is in tests/sdt_sitter_bootstrap.mjs.
+    """
+    tail = _site('let enabled = readSDTSwitch();', 'function shutdown(')
+    ask = tail.index('askSDTLaunch(win)')
+    assert ask < tail.index('alive = true;'), 'the sitter is armed before the question'
+    assert ask < tail.index('onMainWindowLoad({ window })'), \
+        'the toolbar button is installed before the question'
+
+
+def test_off_is_a_state_with_a_label_and_a_control():
+    """"Off" must be discoverable and reversible from the sitter's own surfaces,
+    which declining the old prompt never was: it left the toolbar reading "Index"
+    and pointed the reader at Tools -> Add-ons, four clicks away, where the act
+    of disabling removes the window that would have shown it stopped."""
+    assert 'switched-off' in phase_names(), 'the switch has no phase of its own'
+    assert messages()['phase-off'] == 'Indexing off'
+    # The toolbar says so rather than showing a coverage figure for a sitter
+    # that is not indexing.
+    assert "s.phase === 'switched-off'" in _site(*BUTTON_BLOCK), \
+        'the toolbar reads the same label whether indexing is on or off'
+    # And the window carries the way back.
+    toggle = _site('function toggleSDTSwitch() {', '\n}')
+    assert 'writeSDTSwitch(' in toggle, 'the switch does not persist what it was told'
+    assert 'armSDTSitter()' in toggle and 'disarmSDTSitter()' in toggle
+    # Graceful, exactly as add-on disable is: admissions stop, the file under way
+    # finishes, nothing is cancelled.
+    disarm = _site('function disarmSDTSitter() {', '\n}')
+    assert 'sitter?.stop()' in disarm, 'turning indexing off does not stop admissions'
+    assert 'alive = false' not in disarm, \
+        'turning indexing off tears the UI down, so "off" stops being discoverable'
 
 
 def test_global_status_line_names_the_unit_it_counts():
@@ -804,9 +1065,9 @@ def test_the_sweep_toast_is_gated_on_work_the_sweep_actually_did():
     initialize() for that reason and is driven whole, against real sweeps and a
     real generation change, in tests/sdt_sitter_scheduler.mjs.
     """
-    site = _site('function createSDTSweepLoop(token) {', '\n}')
+    site = _site('function createSDTSweepLoop(token, sweepToken) {', '\n}')
     snapshot = site.index('sitter.state.completed')
-    swept = site.index('await sitter.sweep()')
+    swept = site.index('await owner.pump()')
     announced = site.index('announceSDTSweep(before)')
     assert snapshot < swept, 'the counts are snapshotted after the sweep changed them'
     assert swept < announced, 'the toast is composed before the sweep it reports'
@@ -829,17 +1090,28 @@ def test_every_deferred_callback_checks_the_generation_it_was_armed_in():
     the gate alone in tests/sdt_sitter_scheduler.mjs; what is asserted here is
     the file-wide convention it broke, since a second deferred callback added
     without the check would reintroduce the same class in a new place."""
-    loop = _site('function createSDTSweepLoop(token) {', '\n}')
-    assert 'if (token === generation) announceSDTSweep(before)' in loop, \
+    loop = _site('function createSDTSweepLoop(token, sweepToken) {', '\n}')
+    # Both reads go through one predicate since ticket 0742, so the announcement
+    # and the reschedule cannot come to disagree about which loop is current.
+    assert 'if (current()) announceSDTSweep(before)' in loop, \
         'the announcement is spent against whatever generation happens to be current'
-    assert 'if (alive && token === generation)' in loop, \
+    assert 'if (current()) {' in loop, \
         'a stale loop reschedules itself, running two sweeps per interval'
+    assert 'alive && token === generation' in loop, \
+        'the loop no longer checks the activation it was armed in'
+    # And the second dimension, which the plugin generation cannot cover: the
+    # user's own switch tears nothing down, so a sweep suspended inside ensure()
+    # when it went off resumed into this finally with `alive` and `generation`
+    # both unchanged, rescheduled, and was doubled by the next arm.
+    assert 'sweepToken === sweepGeneration' in loop, \
+        'a sweep suspended across a switch-off reschedules itself'
     # The bindings the race walks through must reach a sandbox load, or the
     # regression test cannot stage it and this convention goes back to being
     # asserted by reading. `let` at script top level does not.
     source = BOOTSTRAP.read_text(encoding='utf-8')
-    for binding in ('var generation = 0;', 'var timer, pulse, heartbeat, timers;'):
-        assert binding in source, f'{binding!r} is out of reach of a driven test'
+    for binding in ('generation', 'timer', 'pulse', 'heartbeat', 'timers', 'notifierID'):
+        assert re.search(r'^var [^;\n]*\b' + binding + r'\b', source, re.MULTILINE), \
+            f'{binding!r} is out of reach of a driven test'
 
 
 def test_the_mock_host_carries_the_toast_primitive():
@@ -913,7 +1185,7 @@ def test_admission_readings_are_recorded_where_they_are_read():
 
 
 def test_scheduler_threads_both_titles_to_the_ui():
-    for anchor in ('state.pending = candidates.map', 'state.activeInfo = '):
+    for anchor in ('state.pending = [...observed]', 'state.activeInfo = '):
         site = _site(anchor, ';', SCHEDULER)
         assert 'title:' in site
         assert 'parentTitle:' in site
@@ -930,7 +1202,7 @@ def test_a_cache_that_cannot_be_written_reaches_a_surface_and_is_cleared():
     warning that is only ever set survives the condition that raised it and
     ends the session on screen after the disk was emptied.
     """
-    site = _site("getElementById('sdt-diagnostics').textContent", '.filter(Boolean)')
+    site = _site("getElementById('sdt-diagnostics').textContent = [", ".filter(Boolean).join('\\n');")
     assert 'cacheWarning' in site, 'the cache warning is still rendered nowhere'
     write = _site('await IOUtils.write(cachePath', 'catch (error)')
     assert 'cacheWarning = null' in write, 'a transient cache failure would stick for the session'
@@ -952,18 +1224,77 @@ def test_the_census_classification_has_exactly_one_owner():
     quartet = "'missing-pack', 'stale-source', 'stale-processor', 'invalid-pack'"
     assert scheduler.count(quartet) == 1, 'the admissible statuses are spelt out twice'
     assert quartet not in bootstrap, 'the dialog keeps a second copy of the whitelist'
-    assert 'SDT_STATUS_CLASSES.queued.includes(status)' in scheduler, \
+    assert 'SDT_STATUS_CLASSES.queued.includes(observed.get(id)?.status)' in scheduler, \
         'admission no longer reads the classification'
     # Every status the classification names, and nothing else, may be produced by
     # the census -- a status the census emits and no class claims is invisible in
     # both user-facing totals, which is the defect this ticket is about.
     classes = _site('var SDT_STATUS_CLASSES = {', '\n};', SCHEDULER)
-    classified = set(re.findall(r"'([a-z-]+)'", classes))
-    emitted = set(re.findall(r"status: '([a-z-]+)'", scheduler + bootstrap))
-    emitted |= set(re.findall(r"result\.status = '([a-z-]+)'", bootstrap))
-    emitted |= set(re.findall(r"status = '([a-z-]+)'", scheduler))
+    # One extractor for both sides, and it is the strict one: this comparison has
+    # the same false-green shape the reading-order guard shipped with -- a status
+    # neither pattern can match drops out of `emitted` and `classified` at once,
+    # and `<=` holds over a set nobody saw. `emitted` keeps its own patterns
+    # because it reads assignment sites rather than a table, but they now share
+    # the character class, so a status renamed outside `[a-z-]` reddens here
+    # instead of vanishing quietly.
+    classified = set(_statuses(classes))
+    status_value = r"""(['"`])([A-Za-z0-9_-]+)\1"""
+    emitted = {status for _quote, status
+               in re.findall(r'status: ' + status_value, scheduler + bootstrap)}
+    emitted |= {status for _quote, status
+                in re.findall(r'result\.status = ' + status_value, bootstrap)}
+    emitted |= {status for _quote, status
+                in re.findall(r'status = ' + status_value, scheduler)}
     assert emitted, 'the census-status extraction matched nothing'
     assert emitted <= classified, f'unclassified census statuses: {sorted(emitted - classified)}'
+
+
+def test_every_census_status_is_named_in_words_a_reader_can_read():
+    """Ticket 0693, the author's ruling of 2026-09-08: every category named in
+    three to five words instead of one.
+
+    The third face of `SDT_STATUS_CLASSES`'s single ownership. The two tests
+    above force a new status into a class and force the coverage line to agree
+    about which; neither forces anybody to say what it MEANS. Without this, a
+    status added to the scheduler renders in the account as its own internal
+    key -- `failed-session: 39` -- which is exactly the line the author read on
+    his own library and objected to.
+
+    The word count is a real bound, not decoration: one word is the defect
+    being repaired, and a clause long enough to wrap turns an account into
+    prose. Read out of the classification rather than listed here, so a status
+    renamed in `scheduler.js` fails here instead of leaving a dead entry
+    behind.
+    """
+    classes = _site('var SDT_STATUS_CLASSES = {', '\n};', SCHEDULER)
+    classified = sorted(set(_statuses(classes)))
+    assert classified, 'the census-status extraction matched nothing'
+    # The reading order is the other half, and it was unguarded on the first
+    # draft: a red-team control dropped two statuses from `SDT_STATUS_ORDER` and
+    # the whole suite stayed green, because the composer's `extra` tail still
+    # prints an unordered status. Nothing crashes -- the status merely falls out
+    # of the curated order into an arbitrary tail, which is the substance of the
+    # ruling rather than a detail of it.
+    order = _site('var SDT_STATUS_ORDER = [', '];')
+    ordered = _statuses(order)
+    assert len(ordered) == len(set(ordered)), f'a status is ordered twice: {ordered}'
+    assert set(ordered) == set(classified), \
+        f'the account order and the classification disagree: {sorted(set(ordered) ^ set(classified))}'
+    catalogue = messages()
+    for status in classified:
+        key = f'status-{status}'
+        assert key in catalogue, f'census status {status!r} has no reader-facing name'
+        words = catalogue[key].split()
+        assert 3 <= len(words) <= 5, \
+            f'{key} is {len(words)} words, not three to five: {catalogue[key]!r}'
+        assert words[0][0].isupper(), f'{key} does not open an account row: {catalogue[key]!r}'
+    # And the account's own total row: a plain label, not a template -- the
+    # number beside it is now a `<table>` cell (`fillSDTTable`), not an
+    # interpolation, since the author read the punctuated version live and
+    # asked for a column instead (found live, testing v0.3.15/17).
+    assert catalogue['census-total-label'], 'the total row has no reader-facing label'
+    assert '{' not in catalogue['census-total-label'], \
+        'the total label carries a placeholder; it is composed positionally now'
 
 
 def test_the_coverage_denominator_reads_the_classification():
@@ -1000,17 +1331,32 @@ def test_the_session_clause_names_only_session_counters():
     Two messages, and the assertion is that they stay two: the risk a translator
     runs is folding them into one line, which reads better and is false. So the
     session clause must appear in exactly one of the pair, in every locale --
-    and the call site must render both."""
+    and both must be rendered somewhere a reader reaches.
+
+    Ticket 0693 moved the census half. `diagnostics-failed` -- "Could not be
+    indexed (last census)" -- was the aggregate the author objected to on
+    2026-09-08: it added files merely absent from this disk to real extraction
+    failures under one label. It is gone from the account, where every one of
+    its constituents now holds a named row of its own, and the census-derived
+    total a reader still meets is the layer-1 banner `files-failed`. So the
+    pair this test guards is `diagnostics-completed` against that banner. The
+    invariant did not change -- one "this session", governing only the counter
+    that accumulates over one -- only which two lines carry it."""
     for tag in LOCALES:
         catalogue = messages(tag)
-        session, census = catalogue['diagnostics-completed'], catalogue['diagnostics-failed']
-        assert session != census, f'{tag}.ftl: the two totals share one sentence'
-        assert '{count}' in session and '{count}' in census
+        session, census = catalogue['diagnostics-completed'], catalogue['files-failed']
+        assert session not in census, f'{tag}.ftl: the two totals share one sentence'
+        assert '{count}' in session and all('{count}' in form for form in census)
     english = messages()
     assert 'this session' in english['diagnostics-completed']
-    assert 'cette session' not in english['diagnostics-failed'], \
-        'a census-derived total is rendered under a "cette session" clause'
-    assert 'last census' in english['diagnostics-failed']
-    site = _site("getElementById('sdt-diagnostics').textContent", '.filter(Boolean)')
+    assert not any('session' in form for form in english['files-failed']), \
+        'a census-derived total is rendered under a session clause'
+    # And the aggregate that conflated two facts is not merely reworded.
+    assert 'diagnostics-failed' not in english, \
+        'the conflating "could not be indexed (last census)" aggregate is back'
+    site = _site("getElementById('sdt-diagnostics').textContent = [",
+                  "const progress = doc.getElementById('sdt-progress');")
     assert "sdtText('diagnostics-completed', { count: s.completed })" in site
-    assert "sdtText('diagnostics-failed', { count: s.failed })" in site
+    assert 'describeSDTCensusAccount(s.counts)' in site, \
+        'the census block no longer renders through the account composer'
+    assert "sdtText('diagnostics-failed'" not in BOOTSTRAP.read_text(encoding='utf-8')

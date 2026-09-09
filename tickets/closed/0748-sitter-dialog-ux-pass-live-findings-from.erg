@@ -1,0 +1,97 @@
+%erg 0.1
+Title: sitter dialog UX pass: live findings from testing v0.3.15/16
+Created: 2026-09-08
+Author: MinhHaDuong
+Closed: autoclosed — PR #486
+
+--- log ---
+2026-09-08T19:23Z MinhHaDuong created
+
+2026-09-08T19:26Z MinhHaDuong closed — autoclosed — PR #486
+--- body ---
+## Context
+
+The author installed and used v0.3.15/v0.3.16 live, right after ticket 0742's
+persisted switch shipped, and reported nine distinct findings in one session
+while actually clicking through the dialog. None of these were caught by the
+Fable UX review or by any test — a review of prose and a test suite both miss
+what only running the thing shows.
+
+## Findings and fixes
+
+1. **Jargon disclosures.** `launch-worker`/`launch-disable` used "shared
+   worker", "native work", "thresholds", "what it consumes" — internal terms
+   that read as noise to a user. Rewritten in plain language, tying back to
+   the free-memory/free-disk figures the launch question already states.
+2. **Active-file box flicker.** The box holding the current filename normally
+   wraps to two lines; between one document settling and the next being
+   admitted, the shorter "No indexing under way" message let it collapse to
+   one line and back — a visible blink at every handoff. Fixed with a
+   `min-height: 3em` reservation.
+3. **Census-account table**: colon between label and count, no alignment, no
+   separation from the readings above it. Rewritten as a genuine two-column
+   table (`formatSDTColumns`): labels padded, numbers right-aligned to one
+   shared column width, no punctuation, a blank line ahead of it.
+4. **Zotero's own full-text stats printed as raw JSON** inside the
+   `sdt-fulltext` disclosure. Reformatted through the same column table,
+   reading whatever fields the real object carries (`humanizeSDTKey`) rather
+   than naming them in advance — unverified on this host per ticket 0746.
+5. **"Nothing is scanned" was false**: files scanned in earlier sessions, or
+   earlier in the current one before switching off, are not undone by "off".
+6. **"Nothing is sent for indexing" conflated two different things**: it read
+   as if Zotero's own indexing also stopped, and said nothing about a job
+   already in flight. Both switch-state-off findings fixed together: "No new
+   attachment is checked while it stays off; one already under way still
+   finishes. Zotero's own full-text indexing is unaffected."
+7. **ESC did not close the dialog.** A bare `chrome,dialog=no` window carries
+   none of a XUL `<dialog>`'s key bindings. Added a `keydown` listener that
+   closes on Escape, through the same `dialog.close()` path `unload` already
+   uses.
+8. **The on/off button changed screen position when clicked**, because it sat
+   right after a state description whose length changes drastically between
+   "Indexing is on." and the (then much longer) off sentence. Fixed by
+   pinning the button to the row's fixed right edge (`justify-content:
+   space-between`) rather than reordering the button before the state text —
+   the salient state should still lead in reading order.
+9. **New: a separate "About and limitations" disclosure.** The version/
+   compatibility line and the two consent-box disclosures used to live loose
+   or bundled inside the debug/log disclosure (`sdt-tech-details`), which a
+   reader opens to chase a *problem*, not to learn what the add-on does. Split
+   into its own `sdt-about-details` disclosure, independent of the debug one.
+
+## Also here (not a live finding, batched because touched by the same review)
+
+Widened the host-API guard's search path (`tests/test_sitter_host_apis.py`,
+ticket 0746 line of work) to include `~/.local/Zotero_linux-x86_64`, the
+Zotero-provided Linux installer's own default target — this host's real
+install sat there, distinct from the manual-tarball path already listed.
+
+## Test
+
+- `tests/sdt_sitter_dialog.mjs`: switching off mid-census freezes the
+  progress bar (already landed in PR #485, unaffected here); the census
+  table has no colon, one shared right-aligned column, and a blank-line
+  separator; the About disclosure holds the moved disclosures and the
+  environment line; the switch row's `space-between` declaration and the
+  active-file box's reserved height.
+- `tests/sdt_sitter_bootstrap.mjs`: Escape closes the dialog (an unrelated
+  key does not), verified red against the unfixed code.
+- `tests/test_sdt_sitter.py`: `census-total-label` replaces the removed
+  `census-row`/`census-total` templates; the `document`-ban test now passes
+  against the rewritten disclosures; two `_site` anchors updated to track
+  code the refactor moved (one drifted into an unrelated function and caught
+  a false positive on `(prefers-reduced-motion: reduce)`).
+
+## Verification
+
+- [x] All four `.mjs` suites pass
+- [x] `tests/test_sdt_sitter.py`, `tests/test_sitter_host_apis.py` pass, and
+      the host-API guard now genuinely checks against this host's install
+- [x] `make check-fast` — 1310 passed, 1 pre-existing environmental failure
+      (podman rootless-container store, unrelated, documented this session)
+- [x] Manifest/update.json bumped 0.3.16 -> 0.3.17, version guard clean
+
+## Exit criteria
+
+Every finding above has a corresponding code change and, where mechanically
+checkable, a driven test.

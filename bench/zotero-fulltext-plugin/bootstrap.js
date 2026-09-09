@@ -24,17 +24,25 @@
  * stock lets a consumer request extraction or see that one is in progress.
  */
 
-const PREFIX = '/search-works/fulltext/';
-const STATE_NAMES = ['unavailable', 'unindexed', 'partial', 'indexed', 'queued'];
+//: Every top-level binding in this file is `var`, and that is not a style choice.
+//: Gecko can evaluate a bootstrapped add-on's bootstrap.js a second time into a
+//: scope that has already run it — disable/re-enable is the path nothing here has
+//: measured — and `const`/`let`/`class` refuse redeclaration where `var`/`function`
+//: tolerate it. The second load then dies at PARSE time: `startup()` never runs,
+//: no endpoint is registered, nothing is logged, and the add-on is silently inert
+//: while the manager still calls it active. Tickets 0730 and 0741;
+//: tests/sdt_sitter_bootstrap.mjs holds every bootstrap.js in this tree to it.
+var PREFIX = '/search-works/fulltext/';
+var STATE_NAMES = ['unavailable', 'unindexed', 'partial', 'indexed', 'queued'];
 
-let running = 0;
-let lastError = null;
-let lastReindexMode = null;
-let pluginVersion = null;
+var running = 0;
+var lastError = null;
+var lastReindexMode = null;
+var pluginVersion = null;
 //: The version of this file, kept equal to manifest.json's. The add-on manager hands
 //: startup() the version it REGISTERED, which lags a replaced xpi until the profile
 //: re-reads the manifest (padme, 2026-09-06: new code ran under a 0.1.1 label).
-const CODE_VERSION = '0.5.0';
+var CODE_VERSION = '0.5.0';
 
 function reindexMode(complete) {
   return complete ? 'uncapped' : 'stock';
@@ -217,11 +225,12 @@ Import.prototype = {
  *     Whether sync is set up and in progress, the last status and error, and per
  *     library: type, group id, version, last sync, unsynced item count.
  */
-let syncRuns = 0;
-let lastSyncError = null;
-let lastSyncStarted = null;
-let lastSyncFinished = null;
-let apiKeyOverride = false;
+//: `var` for the double-load reason recorded at the top of this file.
+var syncRuns = 0;
+var lastSyncError = null;
+var lastSyncStarted = null;
+var lastSyncFinished = null;
+var apiKeyOverride = false;
 
 function findLibrary({ libraryID, groupID }) {
   for (const library of Zotero.Libraries.getAll()) {

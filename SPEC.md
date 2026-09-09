@@ -2,7 +2,7 @@
 
 - **Status:** COMPLETE
 - **Author:** Minh Ha-Duong (CNRS)
-- **Date:** 2026-09-07
+- **Date:** 2026-09-08
 
 ## 1. Introduction
 
@@ -2238,11 +2238,32 @@ paused asks). It survives restart by construction, and survives *sideline*
 by being carried into the fresh file. R1-versus-R22 resolves in the user's
 favor, disclosed: "paused since <date>".
 
-For a native SDT pack sitter, Zotero's plugin disable control stops further
-admissions and removes the sitter's UI and callbacks. The attachment already
-handed to Zotero may finish and persist its native pack; disabling does not
-cancel that work or authorize a queued library-wide drain. This graceful stop
-does not relax the separate obligation to avoid interfering with native work.
+For a native SDT pack sitter, R22's one obvious way is the sitter's own
+persisted on/off switch, carried in its window above every reading. A
+preference records the user's answer; the question is asked once per profile,
+on the first activation that finds it unanswered, and never again, so the
+answer holds across a restart and across a disable and re-enable. Off schedules
+no sweep and runs no census, and admits nothing; on is the sitter's ordinary
+behaviour. The switch is a user preference, not an active-job or failure
+ledger. Its "off" is a state the sitter runs in, with its toolbar entry and its
+window still present and saying so, rather than the silence a removed UI
+leaves. The phases the sitter gates itself on are worded as waiting, never as
+pausing, so on and off name only the user's own switch.
+
+Zotero's plugin disable control keeps its graceful host-level semantics and is
+no longer R22's control for the sitter. Disabling stops further admissions and
+removes the sitter's UI and callbacks. Turning the switch off stops further
+admissions and keeps them. Under either, the attachment already handed to
+Zotero may finish and persist its native pack; neither cancels that work or
+authorizes a queued library-wide drain. This graceful stop does not relax the
+separate obligation to avoid interfering with native work.
+
+The first-run question states what it asks and no more. It carries labelled
+buttons naming the two answers, promises no end time the loop does not have,
+claims no scope the census does not cover, and is asked before the sitter is
+armed and before its toolbar entry is installed. What the sitter does not
+control, and what turning it off does and does not do, are readable in the
+window's disclosure layer at any time rather than only in that dialog.
 
 For experimental overnight operation without competing native work, admission
 requires at least 4 GiB available RAM and 8 GiB free on the native pack's
@@ -2250,9 +2271,18 @@ filesystem. These are checks before admission, not enforced peak resource caps.
 The sitter submits at most one attachment at a time, only to an idle native
 worker, at native background priority. It does not claim independent OS nice
 control or preemption. Unavailable resource readings prevent admission.
-The sitter censuses the library 30 seconds after each sweep ends, and 10 minutes
-after one that ended idle having found nothing to index, so a library with no
-work left is not re-walked twice a minute all night.
+The sitter uses Zotero attachment-change notifications to queue affected
+attachments for inspection, coalescing repeated events. It reconciles the library
+on activation while enabled and every 1 hour thereafter to discover changes
+outside those notifications, including missing or restored source files, deleted
+packs and processor upgrades. Re-enabling requests reconciliation. Reconciliations
+do not overlap; a missed interval coalesces into a pending reconciliation rather
+than a backlog of scans. External filesystem changes are detected at the next
+successful reconciliation, subject to scan duration and host availability;
+closed, suspended or disabled operation carries no wall-clock detection promise.
+Before admitting an attachment it rechecks source availability;
+missing sources are reported as unavailable rather than submitted for extraction.
+Coverage reflects the last observation and discloses reconciliation freshness.
 An unresolved native promise prevents further submissions; lack of progress
 alone does not prove a hang. Failures are suppressed for the session by source
 and processor identity, without a private durable ledger.
@@ -2290,10 +2320,22 @@ time is detected within a day. The hash memory is in-session only and is
 discarded on disable or restart. Source or processor changes
 invalidate observations; pack deletion or changed fingerprints force inspection.
 The cache is derived, not a work ledger: active jobs and failures are never
-persisted. Missing, corrupt or unwritable cache falls back to native inspection
-and fresh measurements. It contains no text, titles or source paths and keeps
-only the latest observation per attachment. An active document exceeding its
-empirical upper duration makes the displayed finish time unavailable, not now.
+persisted. A document whose extraction fails is suppressed for the remainder of
+the session and asked again on the next activation, which is also what the native
+service does with a generic extraction failure; it stays inside the census's
+failure class while it is suppressed. Missing, corrupt or unwritable cache falls
+back to native inspection and fresh measurements. It contains no text, titles or
+source paths and keeps only the latest observation per attachment. An active document
+exceeding its empirical upper duration makes the displayed finish time
+unavailable, not now.
+
+Declared attachment content types are not trusted against the file. Before a
+document becomes a candidate the sitter reads its leading bytes; a signature that
+names a format the declared processor cannot be handling makes the attachment
+unsupported rather than a failure. An unrecognised head leaves the declared type
+standing, since the snapshot format has no signature. This verdict is recomputed
+from the file on every census and never cached, so it carries no risk of
+outliving what it describes.
 
 The sitter records its own state transitions to the host's debug output and to
 a volatile in-session ring. A record carries a timestamp, a kind, a level and

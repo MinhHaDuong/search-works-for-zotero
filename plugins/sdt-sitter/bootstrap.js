@@ -36,7 +36,7 @@ var environment = {}, admission = null;
 // sweep reschedules through this handle, so a test that cannot install a clock
 // cannot run the loop at all — and a loop nothing runs is where 0696's
 // cross-generation defect hid from two suites at once, past a green mutation.
-var timer, pulse, heartbeat, timers;
+var timer, pulse, heartbeat, timers, notifierID;
 // `var`, not `const`: ticket 0730 found that loading this file twice into one
 // scope throws `Identifier '...' has already been declared` on the first
 // `const`/`let` binding it reaches — a redeclaration `var` tolerates. Whether
@@ -45,8 +45,16 @@ var timer, pulse, heartbeat, timers;
 // `var` unconditionally so the question never matters again.
 var closeJournalled = new WeakSet();
 var BUTTON = 'sdt-pack-sitter-button';
+// The overall-progress section, named once. `section()` builds its legend as
+// `${id}-title`, and `renderState` recomposes that legend on every tick to carry
+// the library scope (ticket 0717): two literals a rename could separate, where a
+// missed one leaves `getElementById` returning null forever and the scope
+// silently absent from a window that still renders. One binding, so the rename
+// cannot be half-done.
+var GLOBAL_SECTION = 'sdt-global-section';
 var SWEEP_INTERVAL_MS = 30000;
 var IDLE_SWEEP_INTERVAL_MS = 10 * 60 * 1000;
+var RECONCILIATION_INTERVAL_MS = 60 * 60 * 1000;
 // How long the end-of-sweep toast stays up. Presentation, like the 1400 ms
 // completion blink and the 100 ms redraw beside it, so it lives here rather than
 // in SPEC.md, which owns gates, decision rules and budgets. Long enough to read
@@ -54,6 +62,24 @@ var IDLE_SWEEP_INTERVAL_MS = 10 * 60 * 1000;
 // 30 s floor above, so two toasts can never be on screen at once.
 var SWEEP_TOAST_MS = 8000;
 var DEBUG_PREF = 'extensions.sdt-pack-sitter.debug';
+/* R22's one obvious way, ratified 2026-09-08 (ticket 0742). Tri-state: unset
+   means the question has never been answered, and is the ONLY state in which
+   the launch prompt is shown. `true` and `false` are the user's own answer,
+   and both hold across a restart and across a disable/re-enable, which is what
+   R22 requires and what the old session-only decline never gave.
+
+   Same mechanism and same naming as DEBUG_PREF above (ticket 0693), so a
+   reader who found one in the Config Editor finds the other beside it. */
+var ENABLED_PREF = 'extensions.sdt-pack-sitter.enabled';
+// The generation token the armed loop belongs to. The dialog's switch can arm a
+// sweep long after initialize() returned, and a sweep armed against a stale
+// token is the cross-generation defect ticket 0696 shipped.
+var activeToken = 0;
+/* The sweep loop's own generation, burned every time the switch goes off. It is
+   NOT `generation`: that one is the plugin's activation, and burning it here
+   would stand down the cache writer and every other closure that reads it, for
+   a switch flip that tears nothing down. See createSDTSweepLoop. */
+var sweepGeneration = 0;
 // SPEC.md owns these two numbers; this file needs them to compare against, and
 // the diagnostics layer needs to print them. One statement each, so a threshold
 // moved in the gate cannot leave a stale figure on screen beside the reading.
@@ -68,6 +94,61 @@ var SHUTDOWN_REASONS = { 2: 'app-shutdown', 3: 'enable', 4: 'disable',
 var generation = 0;
 var lastCompleted = 0;
 var completionBlinkUntil = 0;
+
+/* What the first bytes of a source file prove about it, and which processor —
+   if any — handles that format.
+
+   `inspect()` classifies by the host's three `is*Attachment()` predicates, and
+   every one of them reads `attachmentContentType`, a label recorded when the
+   file was saved rather than a reading of the file. On the author's library
+   eleven page scans are stored as `text/html` over JPEG bytes: they satisfy
+   `isSnapshotAttachment()`, are admitted as snapshots, and native SDT finds no
+   text in a photograph, persists no pack, and returns in 50–90 ms — every
+   session, forever (ticket 0740). The author's rule: « ne pas croire
+   l'étiquette, le B A BA du consommateur averti ».
+
+   `processor: null` means no processor handles this format at all. A format
+   whose bytes name a processor OTHER than the declared one is the same
+   mismatch, so both cases are read the same way at the call site.
+
+   The table is deliberately short of what a full sniffer would carry. HTML has
+   no signature — a snapshot may open on a BOM, a comment, whitespace or a
+   doctype — so this can only ever rule a document OUT, never in, and an
+   unrecognised head means the label stands. Under-reaching here costs one
+   failed extraction; over-reaching would stop admitting documents that extract
+   perfectly well, which is the failure a fixture of failures alone cannot see.
+   BMP ('BM') is left out for that reason: two bytes are not a proof. */
+var SDT_SOURCE_MAGIC = [
+  { format: 'jpeg', processor: null, prefix: [0xFF, 0xD8, 0xFF] },
+  { format: 'png', processor: null, prefix: [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A] },
+  { format: 'gif', processor: null, prefix: [0x47, 0x49, 0x46, 0x38] },
+  { format: 'tiff', processor: null, prefix: [0x49, 0x49, 0x2A, 0x00] },
+  { format: 'tiff', processor: null, prefix: [0x4D, 0x4D, 0x00, 0x2A] },
+  { format: 'pdf', processor: 'pdf', prefix: [0x25, 0x50, 0x44, 0x46] },
+  // EPUB is a zip, and so are a dozen other things; what this entry says is
+  // narrower than "this is an EPUB" and is all the call site needs — a zip
+  // container is not a snapshot and is not a PDF.
+  { format: 'zip', processor: 'epub', prefix: [0x50, 0x4B, 0x03, 0x04] },
+];
+/* Derived from the table, never written down beside it. A constant would be
+   right today by coincidence — PNG's eight bytes are the longest — and a
+   signature added later that outran it would simply stop matching, silently and
+   with nothing to catch it: `prefix.length <= head.length` is false, the entry
+   is skipped, the label stands, and the document is submitted exactly as it was
+   before the entry was added. */
+var SDT_MAGIC_BYTES = SDT_SOURCE_MAGIC.reduce((n, entry) => Math.max(n, entry.prefix.length), 0);
+
+/* The longest prefix above, read once. A read that fails answers `null`, which
+   is the same answer as an unrecognised head: this function's job is to catch a
+   label that is provably wrong, and a file it cannot read proves nothing. The
+   file's absence is already `missing-source` two branches earlier. */
+async function sniffSDTSource(path) {
+  let head;
+  try { head = await IOUtils.read(path, { offset: 0, maxBytes: SDT_MAGIC_BYTES }); }
+  catch (_error) { return null; }
+  return SDT_SOURCE_MAGIC.find(entry => entry.prefix.length <= head.length &&
+    entry.prefix.every((byte, index) => head[index] === byte)) || null;
+}
 
 /* ---- the user-facing text, and the only place any of it lives ----
 
@@ -95,7 +176,36 @@ var completionBlinkUntil = 0;
    The two plural-sensitive entries are `[singular, plural]`, chosen by
    `count === 1`. That is an English rule in JavaScript, which is exactly what
    the Fluent selector existed to prevent -- correctly, while there were four
-   languages, and pointlessly now that there is one. */
+   languages, and pointlessly now that there is one.
+
+   NO COMMENTS INSIDE THE TABLE. `tests/test_sdt_sitter.py` reads the wording by
+   parsing this literal as JSON, which is what lets it argue with a rewording
+   without a JavaScript engine; a `//` line in there fails fifteen tests at once
+   with a decoder error that names nothing. Wording notes go here instead.
+
+   Three of them, from ticket 0742:
+
+   * "Waiting", never "Paused", for the phases the sitter gates itself on. The
+     switch below owns "on" and "off", and a reader who met "Paused: processor
+     busy" beside a switch he never touched would go looking for how to unpause
+     something he never paused.
+   * `launch-question` says neither "tonight" nor "whole library". The sweep
+     reschedules for as long as Zotero is open, so nothing ends at dawn, and the
+     census walks every attachment Zotero holds, which is not the library in
+     view. What is left is the question actually being asked.
+   * `launch-details` is the pointer that replaces two paragraphs of consent
+     box. `launch-worker` and `launch-disable` are still here, and are now read
+     in the window's Details layer, at any time, rather than once inside a modal
+     that is the format least likely to be read at all.
+
+   A fourth, from live testing of v0.3.18: the switch line and the raw
+   "State: {phase}" line merged into one. The raw phase name in its own line
+   said less than the window already knew, and read as a second,
+   disconnected status next to the one the reader came to check. `switch-on-*`
+   supplies the second half of a sentence whose first half is always
+   `switch-on-prefix`; the full explanation of what "off" does and does not do
+   still lives in the About disclosure, so `switch-off` only has to say what a
+   glance needs. */
 var SDT_TEXT = {
     "index": "Index",
     "index-coverage": "Index {percent} %",
@@ -111,16 +221,29 @@ var SDT_TEXT = {
     "phase-error": "Error",
     "phase-disabled": "Turned off",
     "phase-native-worker-busy": "Waiting: native indexing under way",
-    "phase-cpu-busy": "Paused: processor busy",
-    "phase-low-memory": "Paused: not enough memory",
-    "phase-low-disk": "Paused: not enough disk space",
-    "phase-storage-unavailable": "Paused: storage unavailable",
-    "phase-resources-unavailable": "Paused: system resources unreadable",
-    "phase-launch-declined": "Not started: turn the add-on off, then on again",
+    "phase-cpu-busy": "Waiting: processor busy",
+    "phase-low-memory": "Waiting: not enough memory",
+    "phase-low-disk": "Waiting: not enough disk space",
+    "phase-storage-unavailable": "Waiting: storage unavailable",
+    "phase-resources-unavailable": "Waiting: system resources unreadable",
+    "phase-off": "Indexing off",
     "dialog-title": "Indexing assistant",
-    "section-global": "Overall progress — library",
+    "switch-on-prefix": "Indexing is on.",
+    "switch-off": "Indexing is off. Zotero will still index PDFs as you view them.",
+    "switch-on-idle": "Nothing to index right now.",
+    "switch-on-census": "Scanning the library for new or modified attachments.",
+    "switch-on-extracting": "Extracting structured text from attachments.",
+    "switch-on-error": "An unexpected problem stopped the last scan — see Technical diagnostics.",
+    "diagnostics-internal-phase": "Internal phase: {phase}",
+    "diagnostics-denominator-live": "The totals above track the library as it changes, not only a completed scan; a count can move without meaning anything is wrong.",
+    "diagnostics-denominator-churn": " It moved by {delta} since you last opened this panel.",
+    "switch-turn-on": "Turn indexing on",
+    "switch-turn-off": "Turn indexing off",
+    "section-global": "Overall progress",
     "section-active": "Indexing under way",
     "details-title": "Details",
+    "about-title": "About and limitations",
+    "about-intro": "Zotero reads a PDF attachment's structured text — a pack, produced by its own native extractor and stored as .zotero-sdt-cache beside the attachment, in its own storage folder — the first time a feature needs it, which for most attachments is the first time you open them yourself. This assistant builds that pack ahead of time, one attachment at a time, across the whole library, instead of waiting for that moment.",
     "fulltext-title": "Full-text search index",
     "fulltext-body": "Zotero’s own full-text search index (distinct from the index the assistant prepares):",
     "fulltext-unavailable": "Statistics unavailable: {error}",
@@ -129,6 +252,7 @@ var SDT_TEXT = {
     "files-indexed-count": "Files indexed: {current}",
     "global-estimate": "Estimated finish around {median} (between {low} and {high})",
     "active-none": "No indexing under way",
+    "active-preparing": "Preparing the next attachment…",
     "active-file": "Indexing: {file} — {progress} % — {elapsed} elapsed",
     "active-finalising": "Finishing…",
     "active-references": "Reading the references…",
@@ -142,12 +266,23 @@ var SDT_TEXT = {
     "observations-basis": "Observed durations: {count} — basis: {basis}",
     "basis-pages": "per page",
     "basis-bytes": "per byte",
-    "diagnostics-phase": "State: {phase}",
-    "diagnostics-census": "Census: {scanned} / {total}",
-    "diagnostics-count": "{status}: {count}",
-    "diagnostics-completed": "Created this session: {count}",
-    "diagnostics-failed": "Could not be indexed (last census): {count}",
-    "diagnostics-error": "Error: {error}",
+    "reconciliation-never": "Coverage is last observed; a full reconciliation has not completed yet.",
+    "reconciliation-age": "Coverage is last observed. Last full reconciliation: {age} ago.",
+    "diagnostics-census": "{total} attachments in the library.",
+    "diagnostics-completed": "Attachments indexed this session: {count}",
+    "census-total-label": "Attachments counted in all",
+    "status-current": "Indexed and up to date",
+    "status-missing-pack": "Waiting to be indexed",
+    "status-stale-source": "Changed since it was indexed",
+    "status-stale-processor": "Indexed by an older extractor",
+    "status-invalid-pack": "Stored index unreadable",
+    "status-failed-session": "Extraction failed this session",
+    "status-inspection-error": "Could not be examined",
+    "status-unsupported-pack": "Index format not supported",
+    "status-missing-source": "File missing from this disk",
+    "status-excluded": "Trashed, or not an attachment",
+    "status-unsupported": "No extractor for this format",
+    "diagnostics-error": "Last extraction problem: {error}",
     "cache-not-saved": "Cache not saved: {error}",
     "debug-label": "Log every step to Zotero’s debug output",
     "journal-copy": "Copy the log",
@@ -175,10 +310,13 @@ var SDT_TEXT = {
     "settle-failed": "“{file}” failed: {error}",
     "resources-read": "Reading resources: {error}",
     "launch-title": "Indexing assistant — experimental",
-    "launch-question": "Index the whole library tonight?",
+    "launch-question": "Index attachments in the background, from now on?",
     "launch-conditions": "One file at a time, with at least 4 GiB of memory available and 8 GiB of free disk. PDFs and the full-text search index settings are left untouched.",
-    "launch-worker": "The shared worker cannot be interrupted, nor given a system priority of its own. A large file can delay native work that arrived after it. The thresholds do not cap what it consumes.",
-    "launch-disable": "Turning the add-on off stops new admissions; the file under way finishes. Errors stay confined to the session. A disposable local cache keeps the freshness checks and the durations; it holds no text and no running job."
+    "launch-details": "This answer is remembered. The assistant's window carries what it does not control, and the switch that turns it off again.",
+    "launch-yes": "Start indexing",
+    "launch-no": "Not now",
+    "launch-worker": "Extraction runs on a background process Zotero itself also uses, and it cannot be paused once a file has started: a large file can delay a smaller one that arrived just after it. The free-memory and free-disk amounts above only decide whether a new file is started — they do not limit what that process uses once a file is already being processed.",
+    "launch-disable": "Turning indexing off stops the assistant from picking up new attachments; one already being processed still finishes. A failed extraction is only remembered for this session and is tried again the next time Zotero starts. A small file on disk remembers which attachments are already up to date and how long extraction usually takes — never their text, and never an unfinished job."
   };
 
 /* Every string a reader sees passes through here. */
@@ -305,19 +443,22 @@ function heartbeatTick() {
     pending: s.pending.length }, 'trace');
 }
 
-/* How long before the next census. Ticket 0701: a library with nothing left to
-   index was re-censused every 30 seconds, all night, and every census walked the
-   whole item table. A sweep that ended `waiting` having found no candidate found
-   nothing to react to, so the next look is a floor poll rather than a work queue.
-
-   A floor rather than a notifier subscription, deliberately: the poll is the
-   robust half either way, and 10 minutes is 20x fewer wake-ups while still
-   picking up a newly added attachment within one coffee. `candidates`, not
-   `pending`: pending drains as documents settle, so by the end of a productive
-   sweep it is empty too, and the two cases are not the same one. */
+/* Queue retries do no discovery. Quiet libraries wait for reconciliation;
+   notifications can wake the pump earlier. SPEC.md §5.2.7 owns the cadence. */
+var SDT_BLOCKED_PHASES = ['cpu-busy', 'low-memory', 'low-disk', 'storage-unavailable', 'resources-unavailable'];
 function nextSweepDelayMS(state) {
-  return state.phase === 'waiting' && state.candidates === 0
-    ? IDLE_SWEEP_INTERVAL_MS : SWEEP_INTERVAL_MS;
+  if (state.busy) return SWEEP_INTERVAL_MS;
+  const untilReconciliation = state.nextReconciliationAt == null ? SWEEP_INTERVAL_MS
+    : Math.max(0, state.nextReconciliationAt - monotonic());
+  const retry = SDT_BLOCKED_PHASES.includes(state.phase) ? IDLE_SWEEP_INTERVAL_MS
+    : state.pending?.length || state.phase === 'error' || state.busy ? SWEEP_INTERVAL_MS : Infinity;
+  return Math.min(untilReconciliation, retry);
+}
+
+function wakeSDTSitter() {
+  if (!alive || !sitter?.state.enabled || sitter.state.busy) return;
+  timers.clearTimeout(timer);
+  timer = timers.setTimeout(createSDTSweepLoop(activeToken, sweepGeneration), 0);
 }
 
 /* Ticket 0696. One toast when a sweep actually did something, and nothing at all
@@ -397,6 +538,18 @@ function announceSDTSweep(before) {
    resumed closure would then diff one sitter's snapshot against another's
    counters and toast whatever the subtraction happened to say.
 
+   TWO tokens, not one, and the second is ticket 0742's (found by review, not by
+   the tests written for it). `generation` changes only when the plugin is torn
+   down and stood back up; the user's own switch changes neither it nor `alive`,
+   so a sweep suspended inside `ensure()` when the switch went off would run this
+   `finally` with both checks satisfied and reschedule itself. Turning the switch
+   back on then armed a SECOND loop beside the zombie, and the session ran two
+   sweeps per interval for the rest of its life — the exact defect the comment on
+   `armSDTSitter`'s `pulse` guard names, reached by a path that guard cannot see.
+   `sweepGeneration` is burned by `disarmSDTSitter()` for the same reason
+   `generation` is burned by `shutdown()`, and both are read here through
+   `current()` so the announcement and the reschedule cannot drift apart.
+
    The reschedule below already carried the same check, for the neighbouring
    reason: a stale loop that rescheduled would run two sweeps per interval. It is
    in a `finally` because it is the single point whose loss stops the sitter for
@@ -409,17 +562,21 @@ function announceSDTSweep(before) {
    which is a gate that never opens — the mutation above. Outside the try because
    there is nothing to catch: this reads two integers off a live binding, and if
    that binding is gone the loop has no sweep to run either. */
-function createSDTSweepLoop(token) {
+function createSDTSweepLoop(token, sweepToken) {
+  const current = () => alive && token === generation && sweepToken === sweepGeneration;
+  const owner = sitter;
   const sweep = async () => {
+    if (!current()) return;
     const before = { completed: sitter.state.completed, failed: sitter.state.failed };
     try {
-      await sitter.sweep();
-      if (token === generation) announceSDTSweep(before);
+      await owner.pump();
+      if (current()) announceSDTSweep(before);
     } catch (error) {
       emit('sweep-error', { error: classifyError(error) }, 'error');
     } finally {
-      if (alive && token === generation) {
-        timer = timers.setTimeout(sweep, nextSweepDelayMS(sitter.state));
+      if (current()) {
+        timers.clearTimeout(timer);
+        timer = timers.setTimeout(sweep, nextSweepDelayMS(owner.state));
       }
     }
   };
@@ -458,18 +615,49 @@ function noteDialogClose(dialog) {
    composes to nothing. Rendering "0 %" there would be a wrong claim where the
    caller wants no claim. */
 function getSDTCoverage(state) {
-  const duringCensus = state.phase === 'census';
-  const held = duringCensus ? state.censusSnapshot : null;
-  const counts = duringCensus ? (held?.counts || {}) : (state.counts || {});
-  const censusTotal = duringCensus ? (held?.total ?? 0) : state.total;
+  // The one question that decides everything below: is `state.counts` right
+  // now a COMPLETE classification, or a half-rebuilt one? Not "which phase
+  // are we in" — `state.phase` becomes 'switched-off' the instant the switch
+  // is thrown, whatever was under it, so it cannot tell a completed
+  // classification from one caught and aborted mid-rebuild.
+  // `scanned === total` can, but the two counters are set by two different
+  // writers with two different meanings (ticket 0759): a full reconciliation
+  // walk sets `total` once, up front, to the count it is about to reclassify,
+  // then increments `scanned` one at a time — genuinely mid-rebuild while
+  // `scanned < total`. Every ORDINARY per-item event (scheduler.js's
+  // `record()`) instead sets `total = scanned = observed.size` together, in
+  // one assignment, so it reads "complete" immediately, every time — which
+  // is what makes this denominator live: the author ruled 2026-09-09 (ticket
+  // 0759, ticket 0752's own event-driven library-state philosophy) that Y
+  // should track real attachment churn as it happens rather than hold still
+  // between reconciliations. A `2 -> 3 -> 2` sequence across two ordinary
+  // events, with no reconciliation between them, is that ruling working as
+  // intended, not a bug — each of the three counts is genuinely complete for
+  // the library state at the instant it was read.
+  //
+  // Switching off used to freeze whatever `state.counts` held at that
+  // instant unconditionally (ticket 0747) — right if the last walk had
+  // finished, wrong if the sitter happened to be mid-way through a
+  // reconciliation walk when the click landed: the reader froze on a
+  // half-rebuilt classification, a different, plausible-looking wrong number
+  // on every such off depending on exactly how far that walk had got when it
+  // was cut off (found live, testing v0.3.20). `held` now stands in for the
+  // live counts specifically when they are mid-rebuild, falling back to the
+  // last walk that DID finish rather than to whichever fragment survives.
+  const complete = state.scanned === state.total;
+  const held = complete ? null : state.censusSnapshot;
+  const counts = held ? held.counts : (state.counts || {});
+  const censusTotal = held ? held.total : state.total;
   const classes = SDT_STATUS_CLASSES;
   const tally = keys => keys.reduce((n, key) => n + (counts[key] || 0), 0);
   const current = classes ? tally(classes.indexed) : 0;
   const failed = classes ? tally(classes.failed) : 0;
   const queued = classes ? tally(classes.queued) : 0;
   const outOfScope = classes ? tally(classes.outOfScope) : 0;
-  return { known: !!classes && (duringCensus ? !!held
-      : state.scanned === state.total && state.phase !== 'ready'),
+  // `ready` is excluded even though 0 === 0 satisfies `complete` trivially:
+  // a freshly booted sitter has finished no walk at all, and a lone "0
+  // attachments" there would be a measurement where there is none.
+  return { known: !!classes && (held ? true : complete && state.phase !== 'ready'),
     current, failed, queued, outOfScope,
     total: classes ? Math.max(0, censusTotal - outOfScope) : 0 };
 }
@@ -499,8 +687,114 @@ var SDT_PHASE_LABELS = {
   'low-disk': 'phase-low-disk',
   'storage-unavailable': 'phase-storage-unavailable',
   'resources-unavailable': 'phase-resources-unavailable',
-  'launch-declined; disable/re-enable to launch': 'phase-launch-declined',
+  // The user's own switch, off. Distinct from `disabled`, which is what the
+  // scheduler reports when the whole plugin is being torn down: this one is a
+  // state the plugin is running in, with a window and a control that leaves it.
+  'switched-off': 'phase-off',
 };
+
+/* ---- the switch: R22's one obvious way (ticket 0742) ----
+
+   Three functions and one pref. What they replace was two half-controls that
+   between them satisfied neither clause of R22: add-on disable held across
+   restarts but lived four clicks away in Tools -> Add-ons and removed the very
+   window that would have shown the sitter stopped; declining the launch prompt
+   was one click away and was forgotten by the next Zotero start, so the prompt
+   came back every session and the answer meant nothing. */
+
+/* `null` for "never answered", which is what makes the prompt a once-only
+   event rather than a startup ritual. An unreadable pref reads as unanswered
+   deliberately: asking a question that was already answered is a nuisance,
+   where silently indexing on a machine whose answer could not be read is the
+   thing the question exists to prevent. */
+function readSDTSwitch() {
+  try {
+    const value = Zotero.Prefs.get(ENABLED_PREF, true);
+    return typeof value === 'boolean' ? value : null;
+  } catch (_error) { return null; }
+}
+
+/* Guarded like the debug pref's own write. A pref that will not persist leaves
+   the session running on the answer just given — the wrong failure would be
+   refusing to act on an answer the user did give. */
+function writeSDTSwitch(enabled) {
+  try { Zotero.Prefs.set(ENABLED_PREF, !!enabled, true); }
+  catch (_error) { /* The next read falls back to asking again. */ }
+  emit('switch', { enabled: !!enabled });
+}
+
+/* Labelled buttons, because OK/Cancel do not answer the question asked: a
+   reader meeting `launch-question` over OK/Cancel has to work out which of the
+   two means yes. `confirmEx` returns the index of the button pressed, and
+   button 0 is the affirmative one.
+
+   Three of the four paragraphs are gone: the worker limitation and the disable
+   semantics moved into the dialog's Details layer, where they can be read at
+   any time rather than once, inside the modal least likely to be read at all.
+
+   The scope paragraph stays (ticket 0717), and stays SECOND, right under the
+   question it qualifies. It is the same composer the tooltip and the dialog
+   heading read, so a reader cannot be given three different answers to what the
+   sitter covers, and it is dropped when nothing can be read — a prompt naming
+   no scope is degraded, one naming a wrong scope is worse. That is also why the
+   question itself no longer says "every library": the scope is a reading taken
+   from Zotero's own records, not a claim this string can make. */
+function askSDTLaunch(win) {
+  const buttons = Services.prompt.BUTTON_POS_0 * Services.prompt.BUTTON_TITLE_IS_STRING +
+    Services.prompt.BUTTON_POS_1 * Services.prompt.BUTTON_TITLE_IS_STRING;
+  const body = [sdtText('launch-question'), describeSDTScope(),
+    ...['launch-conditions', 'launch-details'].map(id => sdtText(id))]
+    .filter(Boolean).join('\n\n');
+  return Services.prompt.confirmEx(win, sdtText('launch-title'), body,
+    buttons, sdtText('launch-yes'), sdtText('launch-no'), null, null, {}) === 0;
+}
+
+/* Arming and disarming, as the two halves of one switch rather than as
+   initialize()'s tail and shutdown()'s teardown. The dialog can reach both, so
+   both have to be reachable from outside initialize()'s closure — which is why
+   the sweep loop was hoisted (see createSDTSweepLoop) and why `activeToken`
+   exists at all.
+
+   `pulse` is the idempotence guard: a second arm while the loop is running
+   would leave two sweeps per interval and two render intervals, which is the
+   defect a toggle clicked twice would otherwise produce for free. */
+function armSDTSitter() {
+  if (!alive || !sitter || pulse) return;
+  sitter.start();
+  pulse = timers.setInterval(render, 100);
+  heartbeat = timers.setInterval(heartbeatTick, 60000);
+  timer = timers.setTimeout(createSDTSweepLoop(activeToken, sweepGeneration), 0);
+  render();
+}
+
+/* The graceful half, and deliberately the same semantics the 2026-09-05 ruling
+   gave add-on disable: `stop()` ends admissions and breaks the census out of
+   its loop, and an `ensure()` already handed to the native worker settles on
+   its own. Nothing is cancelled; the sitter simply stops asking.
+
+   `alive` stays true, which is the whole difference from shutdown(): the
+   button and the window remain, so "off" is a state the user can see and
+   leave, not the silence a removed UI leaves behind. */
+function disarmSDTSitter() {
+  // Burned FIRST, before anything can await: a sweep suspended inside `ensure()`
+  // resumes into its `finally` with this already moved, so it declines to
+  // reschedule instead of leaving a zombie chain the next arm would double.
+  ++sweepGeneration;
+  if (timers) { timers.clearTimeout(timer); timers.clearInterval(pulse); timers.clearInterval(heartbeat); }
+  timer = pulse = heartbeat = undefined;
+  sitter?.stop();
+  if (sitter) sitter.state.phase = 'switched-off';
+  render();
+}
+
+/* The dialog's control. It writes the pref FIRST, so a toggle that is followed
+   by a crash still holds across the restart — the persistence is the
+   requirement, the arming is the effect. */
+function toggleSDTSwitch() {
+  const turningOn = !!sitter && sitter.state.phase === 'switched-off';
+  writeSDTSwitch(turningOn);
+  if (turningOn) armSDTSitter(); else disarmSDTSitter();
+}
 
 /* One composer for the coverage percentage, so the toolbar strip and the tooltip
    cannot round or space it two different ways — the lesson describeSDTFile
@@ -588,6 +882,131 @@ function describeSDTIndexed(count) {
 function describeSDTFailures(count) {
   if (!count) return '';
   return sdtText('files-failed', { count });
+}
+
+/* The order the account is read in, which is not the order a JavaScript object
+   hands its keys over. It runs from what is done, through what is owed, to what
+   failed, to what was never this add-on's business — so a reader who stops after
+   two rows has stopped at the two that answer "is it working".
+
+   A list, and not `Object.keys(SDT_STATUS_CLASSES).flat()`, because the classes
+   partition by MEANING and this orders by READING; `queued` before `failed` is a
+   choice about the reader, not a fact about the classification. The classes stay
+   the single owner of which statuses exist — `tests/test_sdt_sitter.py` reads
+   them and fails here for any status this list or the label table forgets. */
+var SDT_STATUS_ORDER = ['current', 'missing-pack', 'stale-source', 'stale-processor',
+  'invalid-pack', 'failed-session', 'inspection-error', 'unsupported-pack',
+  'missing-source', 'excluded', 'unsupported'];
+
+/* A status nobody has named renders as its own key rather than as the message id
+   `sdtText` would otherwise hand back. Both are ugly; only one is greppable back
+   to the scheduler that emitted it. */
+function describeSDTStatusLabel(status) {
+  const id = `status-${status}`;
+  return id in SDT_TEXT ? sdtText(id) : status;
+}
+
+/* The census, as an account. Author's ruling of 2026-09-08, taken while he read
+   this block on his own library.
+
+   What it replaces printed the internal key as the label — `unsupported: 2600 /
+   missing-source: 367 / failed-session: 39` — and then, below, a separate
+   `Could not be indexed (last census): 406` that added 367 files merely absent
+   from this disk to 39 real extraction failures. Two unrelated facts under one
+   label, and this session's own analysis went wrong on that figure twice before
+   the breakdown was read. The classes summed exactly, so the arithmetic was
+   honest and only the presentation was not, which is the cheapest kind to
+   repair: name every category in words, and put the total at the bottom, under
+   the rows that make it up.
+
+   The aggregate is not reworded, it is gone: each of its constituents now holds
+   a row of its own, so the account carries strictly more than the line it
+   replaced. The failure total a reader still meets is the layer-1 banner, whose
+   span the account's own rows now explain. Why those files fail is ticket 0740;
+   this owns only how they are shown.
+
+   The total is summed from the rows PRINTED, never read off `state.total`: an
+   account whose bottom line does not equal the column above it is worse than no
+   bottom line, and the two diverge for real during a census, where `counts` is
+   being rebuilt from empty while `total` still holds the last generation's.
+   Zero rows are dropped — an account lists what is there — so the sum is over
+   what a reader can actually add up. */
+/* A real `<table>`, not padded text: a `<pre>` reflows to the dialog's own UI
+   font (`font: inherit`, proportional), where no two space-padded columns of
+   digits line up under each other — a right-aligned cell does, in any font
+   (found live, testing v0.3.17, after the padded-text version had already
+   shipped and still didn't align). Rebuilt whole on every call rather than
+   diffed; the row count changes across a census and this runs far below
+   10 Hz. */
+function fillSDTTable(doc, tbody, entries, { totalRow = false } = {}) {
+  const XHTML = 'http://www.w3.org/1999/xhtml';
+  tbody.replaceChildren(...entries.map(([label, value], index) => {
+    const row = doc.createElementNS(XHTML, 'tr');
+    const labelCell = doc.createElementNS(XHTML, 'td');
+    labelCell.textContent = label;
+    const valueCell = doc.createElementNS(XHTML, 'td');
+    valueCell.textContent = value;
+    valueCell.style.cssText = 'text-align: right; padding-left: 1em; white-space: nowrap;';
+    // A rule above the total, the way a reader expects a sum to be set off
+    // from what it adds up (found live, testing v0.3.18) -- only when there
+    // is more than one row, so a lone total is not drawn under a rule that
+    // separates it from nothing.
+    if (totalRow && index === entries.length - 1 && entries.length > 1) {
+      labelCell.style.cssText = 'border-top: 1px solid GrayText; padding-top: 4px;';
+      valueCell.style.cssText += 'border-top: 1px solid GrayText; padding-top: 4px;';
+    }
+    row.append(labelCell, valueCell);
+    return row;
+  }));
+}
+
+/* A key from Zotero's own statistics object, read as a label rather than a
+   property name: camelCase and snake_case both split into words, and the
+   first word capitalizes. Zotero's exact fields are unverified on this host
+   (ticket 0746's own caveat), so this reads whatever the object holds rather
+   than naming fields in advance. */
+function humanizeSDTKey(key) {
+  return String(key)
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/[_-]+/g, ' ')
+    .replace(/^./, c => c.toUpperCase());
+}
+
+function describeSDTCensusAccount(counts) {
+  const tallied = counts || {};
+  const extra = Object.keys(tallied).filter(status => !SDT_STATUS_ORDER.includes(status));
+  const entries = [];
+  let total = 0;
+  for (const status of [...SDT_STATUS_ORDER, ...extra]) {
+    const count = tallied[status] || 0;
+    if (!count) continue;
+    total += count;
+    entries.push([describeSDTStatusLabel(status), sdtNumber(count)]);
+  }
+  // Before the first census `counts` is empty, and a lone "Attachments counted
+  // in all: 0" there is a measurement where there is none — the same wrong claim
+  // `getSDTCoverage` refuses when it makes the percentage unsayable rather than
+  // zero. An account with no rows is not an account, so it is not printed; the
+  // scan line above already says 0 / 0.
+  if (!entries.length) return [];
+  entries.push([sdtText('census-total-label'), sdtNumber(total)]);
+  return entries;
+}
+
+/* The switch line and the phase both answered in one sentence (found live,
+   testing v0.3.18) rather than the on/off half beside an unrelated raw phase
+   name shown in a different part of the window. "On" carries a
+   phase-specific second half; a resource-blocked phase reuses the label the
+   toolbar tooltip already shows, so the two never say the same fact two
+   different ways. */
+function describeSDTSwitchLine(state) {
+  if (state.phase === 'switched-off') return sdtText('switch-off');
+  const detail = state.phase === 'census' ? sdtText('switch-on-census')
+    : state.phase === 'extracting' ? sdtText('switch-on-extracting')
+    : state.phase === 'error' ? sdtText('switch-on-error')
+    : SDT_PHASE_LABELS[state.phase] ? sdtText(SDT_PHASE_LABELS[state.phase])
+    : sdtText('switch-on-idle');
+  return `${sdtText('switch-on-prefix')} ${detail}`;
 }
 
 /* Four segments joined by one em dash.
@@ -769,6 +1188,30 @@ function copySDTText(text) {
    checkbox carrying a real <label for>, a <button> — so keyboard reach comes
    from the platform instead of from key handling this file would have to get
    right, which is the half of 0686 a source review cannot certify anyway. */
+/* A separate disclosure for what the reader would call "About": the two
+   paragraphs ticket 0742 moved out of the launch modal, and the version and
+   compatibility lines that used to sit inside the debug/log disclosure
+   instead. Found live, testing v0.3.16: both belong together, and neither
+   belongs beside a journal tail and a resource reading, which a reader opens
+   to debug a problem rather than to learn what the add-on does or does not
+   do. Composed once, like the disclosures already were — this text never
+   changes across a render. */
+function buildSDTAbout(doc, element) {
+  const group = element('details', 'sdt-about-details');
+  const summary = element('summary', 'sdt-about-title');
+  summary.textContent = sdtText('about-title');
+  // What the plugin does and why, ahead of its limitations (found live,
+  // testing v0.3.19): a reader who opens "About" reasonably expects to be
+  // told what the thing is before being told what it cannot do.
+  const intro = element('pre', 'sdt-about-intro');
+  intro.textContent = sdtText('about-intro');
+  const disclosures = element('pre', 'sdt-disclosures');
+  disclosures.textContent = ['launch-worker', 'launch-disable']
+    .map(id => sdtText(id)).join('\n\n');
+  group.append(summary, intro, disclosures, element('pre', 'sdt-environment'));
+  return group;
+}
+
 function buildSDTDiagnostics(doc, element) {
   const group = element('details', 'sdt-tech-details');
   const summary = element('summary', 'sdt-tech-title');
@@ -793,9 +1236,45 @@ function buildSDTDiagnostics(doc, element) {
     doc.getElementById('sdt-journal-copy-status').textContent =
       sdtText(copySDTText(composeSDTJournalReport()) ? 'journal-copied' : 'journal-copy-failed');
   });
-  group.append(summary, row, element('pre', 'sdt-environment'), element('pre', 'sdt-admission'),
+  // Author's ruling of 2026-09-08: "Observed durations" is technical diagnostics
+  // and belongs here, not among the primary readings. It leads the layer because
+  // it is the one line that explains a number shown above — the estimate rests on
+  // this count and this covariate — where everything below is about the add-on
+  // rather than about the library.
+  group.append(summary, element('pre', 'sdt-observations'), element('pre', 'sdt-internal-phase'),
+    element('pre', 'sdt-denominator-note'),
+    element('pre', 'sdt-error'), row,
+    element('pre', 'sdt-admission'),
     copy, element('pre', 'sdt-journal-copy-status'), element('pre', 'sdt-journal'));
   return group;
+}
+
+/* Whether the reader has asked the platform for less motion (ticket 0686).
+
+   Three things move in the toolbar strip — the spinner, the census pulse and
+   the completion blink — and none of them carries information the label and the
+   tooltip do not already state in words. `prefers-reduced-motion` is a system
+   preference rather than a taste, and on the platforms that expose it, it is
+   set by people for whom the animation is a symptom, not a nuisance. So all
+   three stop together: suppressing one and leaving the others would honour the
+   preference on paper and not on screen.
+
+   Read per node, because a media query is answered by the window and the
+   plugin puts a button in every main window; read through `ownerDocument`,
+   because inside the render loop that node is the only handle on its window
+   there is. Guarded and defaulting to motion, because this runs ten times a
+   second: a window whose docshell is going away throws from `matchMedia`, and
+   an unguarded throw here would take out the render loop rather than one
+   frame of an animation — the class the render() wrapper below records. The
+   guard is silent, deliberately: it fires during teardown, on every button, at
+   10 Hz, and journalling it would evict the ring the wrapper's own record
+   lives in. A scenario in tests/sdt_sitter_bootstrap.mjs makes matchMedia
+   throw, so this catch has been seen to hold rather than assumed to. */
+function prefersSDTReducedMotion(node) {
+  try {
+    return node?.ownerDocument?.defaultView
+      ?.matchMedia('(prefers-reduced-motion: reduce)')?.matches === true;
+  } catch (_error) { return false; }
 }
 
 /* Ticket 0702. renderState() runs unguarded DOM work over `dialogs`, and it is
@@ -830,7 +1309,13 @@ function renderState() {
     // read as the two call sites of one composer at the sites themselves. The
     // composer now carries the word as well as the figure — before the first
     // census there is no percentage, and the button still has to say what it is.
-    const coverageLabel = describeSDTCoverage(s) || sdtText('index');
+    // Off reads as off, in plain words, at zero clicks. A coverage percentage
+    // beside a sitter that is not indexing states a figure and hides the one
+    // fact the reader needs (ticket 0742); the label table owns the wording so
+    // the button and the tooltip cannot say it two ways.
+    const coverageLabel = s.phase === 'switched-off'
+      ? sdtText(SDT_PHASE_LABELS['switched-off'])
+      : describeSDTCoverage(s) || sdtText('index');
     const working = s.phase === 'census' || s.active !== null;
     // The blink deadline and the two animation phases are all spans, so they
     // read the monotonic clock: a wall-clock step backwards would otherwise
@@ -840,13 +1325,26 @@ function renderState() {
       lastCompleted = s.completed;
       completionBlinkUntil = now + 1400;
     }
-    const spinning = s.active !== null;
-    const blinking = !working && now < completionBlinkUntil;
+    const still = prefersSDTReducedMotion(button);
+    const spinning = s.active !== null && !still;
+    const blinking = !working && !still && now < completionBlinkUntil;
     button.setAttribute('label', spinning
       ? `${['◐', '◓', '◑', '◒'][Math.floor(now / 140) % 4]} ${coverageLabel}` : coverageLabel);
-    const opacity = s.phase === 'census'
-      ? 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(now / 450))
-      : blinking ? ((Math.floor(now / 180) % 2) ? 0.2 : 1) : 1;
+    // The name a screen reader speaks, pinned to the figure alone. In XUL the
+    // `label` IS the accessible name, and the frame advances every 140 ms — so
+    // the spinner rewrites that name a little over seven times a second, and a
+    // reader following the button learns nothing from any of them. Whether
+    // `aria-label` in fact wins the accname computation on a XUL toolbarbutton,
+    // and whether Gecko re-announces on an identical-value write at 10 Hz, are
+    // readings for the Accessibility Inspector in a live window; neither is
+    // established here. `aria-label` overrides that name, and
+    // it changes only when the coverage does, which is the one thing here
+    // worth announcing (ticket 0686).
+    button.setAttribute('aria-label', coverageLabel);
+    const opacity = still ? 1
+      : s.phase === 'census'
+        ? 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(now / 450))
+        : blinking ? ((Math.floor(now / 180) % 2) ? 0.2 : 1) : 1;
     button.style.setProperty('opacity', String(opacity), 'important');
     button.setAttribute('tooltiptext', describeSDTTooltip(s));
   }
@@ -855,6 +1353,13 @@ function renderState() {
     const doc = dialog.document;
     const status = doc.getElementById('sdt-status');
     if (!status) continue;
+    // The switch, reread from the sitter's own phase rather than from the pref:
+    // the two agree, and the phase is what every other line in this window is
+    // drawn from, so a disagreement shows here instead of hiding.
+    const off = s.phase === 'switched-off';
+    doc.getElementById('sdt-switch-state').textContent = describeSDTSwitchLine(s);
+    doc.getElementById('sdt-switch').textContent =
+      sdtText(off ? 'switch-turn-on' : 'switch-turn-off');
     const elapsed = s.active === null ? null : Math.round((monotonic() - s.startedAt) / 1000);
     const silence = s.active === null ? null : Math.round((monotonic() - s.lastProgressAt) / 1000);
     const formatDuration = ms => {
@@ -898,6 +1403,22 @@ function renderState() {
       total.median += unknown * quantile(0.5);
       total.high += unknown * quantile(0.95);
     }
+    // The scope of the figures under it is stated before the reader can
+    // misread them (ticket 0717): the progress bar and the file count below
+    // are the whole census, and "Overall progress" alone invites the reader
+    // of a dialog opened from one collection's toolbar to read them as that
+    // collection's. It moved out of the bold `<legend>` into a plain line of
+    // its own (found live, testing v0.3.18): three long library names joined
+    // into a heading wrapped five lines on a narrow window, where the same
+    // text as an ordinary line wraps like any other sentence in the window.
+    // Composed here rather than at populate time, and through the same
+    // composer the tooltip uses, because a group library loads lazily — text
+    // frozen when the dialog opened would name a set the census no longer
+    // covers.
+    doc.getElementById('sdt-scope').textContent = [describeSDTScope(),
+      s.lastReconciliationAt == null ? sdtText('reconciliation-never')
+        : sdtText('reconciliation-age', { age: formatDocumentDuration(monotonic() - s.lastReconciliationAt) })
+    ].filter(Boolean).join('\n');
     const globalProgress = doc.getElementById('sdt-global-progress');
     globalProgress.max = Math.max(1, coverage.total);
     if (coverage.known) globalProgress.value = coverage.current;
@@ -905,7 +1426,16 @@ function renderState() {
     status.textContent = coverage.known
       ? sdtText('files-indexed-of', { current: coverage.current, total: coverage.total })
       : sdtText('files-indexed-count', { current: coverage.current });
-    const activeMessage = s.active === null ? sdtText('active-none')
+    // Found live, testing v0.3.19: the box still blinked between documents
+    // even with its height reserved, because the text itself flashed to "No
+    // indexing under way" for real, however briefly — scheduler.js awaits
+    // twice (`host.yield()`, `host.blocked()`) between one document settling
+    // and the next being admitted, and `state.active` genuinely reads null
+    // for that span. `state.pending` still names what is queued behind it,
+    // so a reader is not told nothing is happening when something is about
+    // to be.
+    const activeMessage = s.active === null
+      ? (s.pending && s.pending.length > 0 ? sdtText('active-preparing') : sdtText('active-none'))
       : sdtText('active-file', { file: describeSDTActiveFile(s),
         progress: s.progress ?? sdtText('unknown-value'),
         elapsed: formatDocumentDuration(elapsed * 1000) });
@@ -924,33 +1454,61 @@ function renderState() {
     // count — through the composer, so this banner and the toast cannot word
     // one number two ways, and its plural comes from the locale.
     doc.getElementById('sdt-failures').textContent = describeSDTFailures(s.failed);
+    // Order matters, and it is the ruling's: the scan's own progress, then the
+    // session counter — and only then the account (its own table, below this
+    // text). The cache warning is an exception rather than a row, and appears
+    // only when there is one. The raw phase name moved to Technical
+    // diagnostics and the state of the machine into the switch line itself,
+    // in words (found live, testing v0.3.18): "State: extracting" said less
+    // than the window already knew, next to the line that says the same fact
+    // in a sentence. The error moved there too a round earlier (v0.3.17): a
+    // single extraction failure is routine and already carries its own row in
+    // the account below, and reading it as "Error:" at the top overclaimed
+    // what one failed attachment among many means.
+    // Before host.list() has ever resolved, `total` still holds its initial
+    // 0 -- not a measurement of an empty library, but the absence of one,
+    // exactly the distinction `describeSDTCensusAccount` already draws for
+    // its own rows. `censusSnapshot` is null in that state and in no other:
+    // once a census completes, even on a genuinely empty library, publish()
+    // sets a real (if empty) snapshot, so this line becomes true the moment
+    // there is anything to be true about (found live, testing v0.3.20).
+    const totalKnown = s.total > 0 || s.censusSnapshot !== null;
     doc.getElementById('sdt-diagnostics').textContent = [
-      sdtText('diagnostics-phase', { phase: s.phase }),
-      sdtText('diagnostics-census', { scanned: s.scanned, total: s.total }),
-      ...Object.entries(s.counts).map(([key, n]) =>
-        sdtText('diagnostics-count', { status: key, count: n })),
-      // Two clauses, because the two numbers have different spans and one
-      // "this session" governing both would misdescribe the second: `completed`
-      // accumulates over the whole session, `failed` is read off the last census
-      // and includes attachments this session never touched.
+      totalKnown ? sdtText('diagnostics-census', { total: s.total }) : '',
+      // `completed` accumulates over the whole session and says so; it is not a
+      // census class and does not belong among the rows the census total sums.
       sdtText('diagnostics-completed', { count: s.completed }),
-      // Not "not indexed": that would cover the queued statuses too, which are
-      // work still owed rather than work that failed. The banner's own verb.
-      sdtText('diagnostics-failed', { count: s.failed }),
-      s.error ? sdtText('diagnostics-error', { error: s.error }) : '',
       // The cache is derived and disposable, so a failed write changes nothing
       // about what is indexed and belongs in the disclosure rather than beside
       // the totals — but it was set and read nowhere at all, which made an
       // unwritable data directory a silence instead of a line.
       s.cacheWarning || '',
     ].filter(Boolean).join('\n');
+    // Rebuilt only when the account itself changed, not on every 100 ms tick:
+    // `replaceChildren` tears the table down to rebuild it, and doing that
+    // ten times a second whether or not a single number moved is a visible
+    // flicker in the very layer a reader has open to watch a census update
+    // (found live, testing v0.3.18). The signature lives on the dialog, not
+    // in a module-level variable — a second open window's table must still
+    // fill on its own first render even if it happens to match what another
+    // window already shows.
+    const accountEntries = describeSDTCensusAccount(s.counts);
+    const accountSignature = JSON.stringify(accountEntries);
+    if (dialog._censusSignature !== accountSignature) {
+      dialog._censusSignature = accountSignature;
+      fillSDTTable(doc, doc.getElementById('sdt-census-body'), accountEntries, { totalRow: true });
+    }
     const progress = doc.getElementById('sdt-progress');
     progress.hidden = s.active === null;
     if (s.active !== null && Number.isFinite(s.progress)) progress.value = s.progress;
     else progress.removeAttribute('value');
-    // Layer 2. What the estimates above rest on: how many durations were kept,
-    // and which covariate carried the fit. An estimate whose basis is unreadable
-    // is a number the reader has no way to disbelieve.
+    // Layer 3 since the ruling of 2026-09-08. What the estimates above rest on:
+    // how many durations were kept, and which covariate carried the fit. An
+    // estimate whose basis is unreadable is a number the reader has no way to
+    // disbelieve — but it is a reading about the machine, not about the library,
+    // which is what put it below rather than beside the numbers it explains.
+    // Composed unconditionally, unlike the ring: this is one short line, where
+    // rendering the ring whole behind a closed disclosure is the work nobody sees.
     const fit = s.activeInfo ? estimateSDTDuration(s.fittedSamples, s.activeInfo) : null;
     doc.getElementById('sdt-observations').textContent = s.fittedSamples.length < 3
       ? sdtText('observations-waiting', { count: s.fittedSamples.length })
@@ -960,17 +1518,43 @@ function renderState() {
     // Layer 3. The checkbox is reread rather than written once, so a pref changed
     // from Zotero's own advanced settings is not silently contradicted here.
     const technical = doc.getElementById('sdt-tech-details');
+    const about = doc.getElementById('sdt-about-details');
     const toggle = doc.getElementById('sdt-debug');
     try {
       const enabled = !!Zotero.Prefs.get(DEBUG_PREF, true);
       if (toggle.checked !== enabled) toggle.checked = enabled;
     } catch (_error) { /* An unreadable pref must not fight the checkbox. */ }
-    // Only while it is open. This loop runs ten times a second and the ring is
-    // rendered whole; behind a closed disclosure that is work nobody can see.
+    // Only while each is open. This loop runs ten times a second and the ring
+    // is rendered whole; behind a closed disclosure that is work nobody can
+    // see. The environment line moved to its own disclosure (About), open and
+    // closed independently of the debug/log one beside it.
+    if (about.open) doc.getElementById('sdt-environment').textContent = describeSDTEnvironment();
     if (technical.open) {
-      doc.getElementById('sdt-environment').textContent = describeSDTEnvironment();
+      doc.getElementById('sdt-internal-phase').textContent =
+        sdtText('diagnostics-internal-phase', { phase: s.phase });
+      // Ticket 0759: Y is live-tracked by design (the author's ruling, given
+      // the churn this note itself explains), not a bug to hide -- so this is
+      // disclosure, not damage control, and it only exists on demand behind
+      // this closed-by-default panel. The baseline is taken once, at the
+      // closed-to-open transition, and held while the panel stays open -- not
+      // reread every ~100 ms tick, which would make the delta flash for one
+      // frame and vanish the instant it had anything to say. So "since you
+      // opened this panel" means exactly that, including a churn that keeps
+      // growing while the reader watches.
+      if (!dialog._sdtDenominatorOpen) dialog._sdtDenominatorAt = s.total;
+      dialog._sdtDenominatorOpen = true;
+      const delta = s.total - dialog._sdtDenominatorAt;
+      doc.getElementById('sdt-denominator-note').textContent = sdtText('diagnostics-denominator-live') +
+        (delta !== 0 ? sdtText('diagnostics-denominator-churn', { delta: delta > 0 ? `+${delta}` : `${delta}` }) : '');
+      doc.getElementById('sdt-error').textContent =
+        s.error ? sdtText('diagnostics-error', { error: s.error }) : '';
       doc.getElementById('sdt-admission').textContent = describeSDTAdmission();
       doc.getElementById('sdt-journal').textContent = describeSDTJournalTail(50);
+    } else {
+      // Closing the panel forgets the baseline, so the NEXT open takes a fresh
+      // reading rather than comparing against whatever the library looked like
+      // several opens ago.
+      dialog._sdtDenominatorOpen = false;
     }
   }
 }
@@ -989,6 +1573,11 @@ function openDialog(window) {
     'chrome,dialog=no,resizable,width=700,height=650');
   emit('dialog-open', { reused: false });
   dialog.addEventListener('unload', () => { dialogs.delete(dialog); noteDialogClose(dialog); }, { once: true });
+  // A bare `chrome,dialog=no` window carries none of a XUL <dialog>'s built-in
+  // key bindings, so Escape does nothing unless asked to (found live, testing
+  // v0.3.15). `dialog.close()` is the same call the window's own unload path
+  // already goes through, so this adds no second way to tear the window down.
+  dialog.addEventListener('keydown', event => { if (event.key === 'Escape') dialog.close(); });
   const populate = async () => {
     if (!alive || dialog.closed) return;
     const doc = dialog.document;
@@ -1002,6 +1591,8 @@ function openDialog(window) {
       const node = doc.createElementNS('http://www.w3.org/1999/xhtml', tag);
       node.id = id;
       if (tag === 'progress') { node.max = 100; node.style.width = '100%'; }
+      else if (tag === 'table') node.style.cssText = 'border-collapse: collapse; margin: 8px 0;';
+      else if (tag === 'tbody') { /* rows carry their own cell styling */ }
       else node.style.cssText = 'white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; line-height: 1.5;';
       return node;
     };
@@ -1018,34 +1609,92 @@ function openDialog(window) {
       }
       body.append(group);
     };
+    /* Layer 1's first line, above every reading: the one switch (ticket 0742).
+       First because it is the answer to the only question a user opens this
+       window in a hurry to ask — how do I stop this — and because R22's "one
+       obvious way" is not obvious three sections down. A native <button>, so
+       keyboard reach and the accessible name come from the platform, exactly as
+       the diagnostics layer's controls do. */
+    const control = element('div', 'sdt-switch-row');
+    // The salient state leads, in reading order, as everywhere else in this
+    // window — but "on" and "off" describe very different lengths of text, and
+    // a button placed right after that text moves sideways every time the
+    // reader clicks it (found live, testing v0.3.15). `space-between` pins the
+    // button to the row's fixed right edge regardless of how long the state
+    // text runs, rather than to wherever that text happens to end.
+    control.style.cssText = 'display: flex; gap: 12px; align-items: center; ' +
+      'justify-content: space-between; margin: 0 0 16px;';
+    const state = element('span', 'sdt-switch-state');
+    // The state text is prose and may wrap; `min-width: 0` is what lets a flex
+    // child actually shrink to make room instead of forcing the row wider.
+    state.style.cssText += 'flex: 1 1 auto; min-width: 0;';
+    const toggle = element('button', 'sdt-switch');
+    toggle.setAttribute('type', 'button');
+    // `element()`'s default styling is written for the prose blocks and
+    // carries `white-space: pre-wrap`, which let the button's own two words
+    // wrap onto two lines and turn it into a square at some widths, a
+    // rectangle at others (found live, testing v0.3.17). A button is not
+    // prose; it keeps its native single-line sizing.
+    toggle.style.cssText = 'white-space: nowrap; flex-shrink: 0;';
+    toggle.addEventListener('click', () => toggleSDTSwitch());
+    control.append(state, toggle);
+    body.append(control);
     // Layer 1, always visible and always first: progress, what is being worked
     // on, how long it has taken and when it should end. Nothing below is needed
     // to read any of it.
-    section('sdt-global-section', sdtText('section-global'), [
+    section(GLOBAL_SECTION, sdtText('section-global'), [
+      ['pre', 'sdt-scope'],
       ['pre', 'sdt-status'], ['progress', 'sdt-global-progress'], ['pre', 'sdt-global-estimate'],
       ['pre', 'sdt-failures']]);
     section('sdt-document-section', sdtText('section-active'), [
       ['pre', 'sdt-document-status'], ['progress', 'sdt-progress'], ['pre', 'sdt-document-estimate']]);
-    // Layer 2, closed: the counts and the fit behind the estimates. 0686 asked
-    // for exactly this — technical detail kept, moved below primary progress.
+    // The active-file line ordinarily wraps to two lines (a long filename), but
+    // briefly reads shorter — between one document settling and the next being
+    // admitted — and a box sized to its content collapses to one line and back,
+    // a visible blink at every handoff (found live, testing v0.3.15). Two lines
+    // at this element's own line-height, reserved regardless of which message
+    // is showing, so nothing here ever needs to shrink to grow again.
+    doc.getElementById('sdt-document-status').style.minHeight = '3em';
+    // Layer 2, closed: the census account, and the native index's own statistics
+    // below it. 0686 asked for exactly this — technical detail kept, moved below
+    // primary progress. The fit behind the estimates used to sit here too and no
+    // longer does: the ruling of 2026-09-08 put it a layer further down, with the
+    // rest of what is about the machine rather than about the library.
     const details = element('details', 'sdt-details');
     const summary = element('summary', 'sdt-details-title');
     summary.textContent = sdtText('details-title');
-    details.append(summary, element('pre', 'sdt-observations'), element('pre', 'sdt-diagnostics'));
+    const censusTable = element('table', 'sdt-census-table');
+    censusTable.append(element('tbody', 'sdt-census-body'));
+    details.append(summary, element('pre', 'sdt-diagnostics'), censusTable);
     const indexDetails = element('details', 'sdt-index-details');
     const indexSummary = element('summary', 'sdt-index-title');
     indexSummary.textContent = sdtText('fulltext-title');
-    indexDetails.append(indexSummary, element('pre', 'sdt-fulltext'));
+    const fulltextTable = element('table', 'sdt-fulltext-table');
+    fulltextTable.append(element('tbody', 'sdt-fulltext-body'));
+    indexDetails.append(indexSummary, element('pre', 'sdt-fulltext'), fulltextTable);
     details.append(indexDetails);
-    // Layer 3, nested inside layer 2 and closed in its turn. Discoverable
-    // without being in the way, which is the whole of the author's request.
+    // Layer 3, nested inside layer 2 and closed in its turn, each discoverable
+    // without being in the way. About (the two consent-box disclosures ticket
+    // 0742 moved out of the launch modal, plus the version/compatibility
+    // lines) is its own disclosure, apart from the debug/log one below it —
+    // found live, testing v0.3.16: a reader opens one of these to learn what
+    // the add-on does or does not do, and the other to chase a problem, and a
+    // journal tail buried the former inside the latter.
+    details.append(buildSDTAbout(doc, element));
     details.append(buildSDTDiagnostics(doc, element));
     body.append(details);
     dialogs.add(dialog); render();
     try {
       const stats = await Zotero.Fulltext.getIndexStats();
-      if (alive && !dialog.closed) doc.getElementById('sdt-fulltext').textContent =
-        `${sdtText('fulltext-body')}\n${JSON.stringify(stats, null, 2)}`;
+      // A raw JSON dump reads as a debug printout, not as an account (found
+      // live, testing v0.3.15) — the same real table the census uses, over
+      // whatever fields this Zotero build's own statistics carry.
+      const rows = Object.entries(stats || {}).map(([key, value]) =>
+        [humanizeSDTKey(key), typeof value === 'number' ? sdtNumber(value) : String(value)]);
+      if (alive && !dialog.closed) {
+        doc.getElementById('sdt-fulltext').textContent = sdtText('fulltext-body');
+        fillSDTTable(doc, doc.getElementById('sdt-fulltext-body'), rows);
+      }
     } catch (error) {
       if (alive && !dialog.closed) doc.getElementById('sdt-fulltext').textContent =
         sdtText('fulltext-unavailable', { error: String(error) });
@@ -1171,7 +1820,7 @@ async function initialize(rootURI, token) {
   if (!win || typeof Zotero.SDT?.ensure !== 'function') throw new Error('Zotero 10 native SDT unavailable');
   const SDT = win.require('resource://zotero/document-worker/structured-document-text.js');
   const pako = win.require('pako');
-  const versions = JSON.parse(await Zotero.File.getContentsFromURLAsync('resource://zotero/document-worker/metadata.json'));
+  let versions = JSON.parse(await Zotero.File.getContentsFromURLAsync('resource://zotero/document-worker/metadata.json'));
   environment = { ...environment, packVersions: versions };
   if (token !== generation) return;
   const cachePath = PathUtils.join(Zotero.DataDirectory.dir, 'sdt-sitter-cache.jsonl');
@@ -1187,12 +1836,13 @@ async function initialize(rootURI, token) {
       } catch (error) { /* Ignore incomplete/corrupt cache rows. */ }
     }
   } catch (error) { /* Disposable cache. */ }
-  const cache = createSDTCache(raw, JSON.stringify(versions));
+  let cache = createSDTCache(raw, JSON.stringify(versions));
   // In memory, never on disk: the pack cache above carries claims worth keeping
   // across sessions, and a source hash is reconstructible from the file itself.
   const sourceHashes = createSDTSourceHashes();
   emit('cache-load', { records: Object.keys(raw.records).length });
-  let seen = new Set();
+  let seen = null;
+  const children = new Map(), parents = new Map();
   let compact = true;
   // Latched exactly as render()'s guard is, and for the same reason: saveCache
   // runs once at the end of the census and again after every settled duration,
@@ -1253,20 +1903,33 @@ async function initialize(rootURI, token) {
 
   async function inspect(id) {
     const item = await Zotero.Items.getAsync(id);
-    if (!item?.isAttachment() || item.deleted) return { status: 'excluded' };
+    const previousParent = parents.get(id);
+    if (!item) {
+      children.get(previousParent)?.delete(id); parents.delete(id);
+      return { status: 'excluded', absent: true };
+    }
+    if (!item.isAttachment()) return { status: 'excluded' };
+    if (previousParent !== item.parentItemID) children.get(previousParent)?.delete(id);
+    parents.set(id, item.parentItemID);
+    if (item.parentItemID) {
+      if (!children.has(item.parentItemID)) children.set(item.parentItemID, new Set());
+      children.get(item.parentItemID).add(id);
+    }
+    if (item.deleted) return { status: 'excluded' };
     const parent = item.parentItemID ? await Zotero.Items.getAsync(item.parentItemID) : null;
     if (parent?.deleted) return { status: 'excluded' };
     const processor = item.isPDFAttachment() ? 'pdf' : item.isEPUBAttachment() ? 'epub' : item.isSnapshotAttachment() ? 'snapshot' : null;
     if (!processor) return { status: 'unsupported' };
+    const cacheKey = `${item.libraryID}/${item.key}`;
+    const missingSource = () => { sourceHashes.drop(cacheKey); cache.drop(cacheKey); return { status: 'missing-source' }; };
     const sourcePath = await item.getFilePathAsync();
-    if (!sourcePath) return { status: 'missing-source' };
+    if (!sourcePath) return missingSource();
     // One stat where there were an exists() and a stat(): it answers both
     // questions at once, and its (size, lastModified) is what lets the MD5 below
     // be skipped on a file nothing has touched since the last census.
     let source;
     try { source = await IOUtils.stat(sourcePath); }
-    catch (_error) { return { status: 'missing-source' }; }
-    const cacheKey = `${item.libraryID}/${item.key}`;
+    catch (_error) { return missingSource(); }
     // The re-verify window is an age, so it is a span like every other: on the
     // wall clock a backwards step shortens it and a forwards one can expire an
     // entry verified a second ago.
@@ -1280,7 +1943,7 @@ async function initialize(rootURI, token) {
       parentTitle: parentTitle || null,
       identity: `${item.libraryID}/${item.key}/${hash}/${JSON.stringify(versions)}` };
     result.cacheKey = cacheKey;
-    seen.add(result.cacheKey);
+    seen?.add(result.cacheKey);
     result.sourceBytes = source.size;
     result.pages = processor === 'pdf' ? await Zotero.DB.valueQueryAsync(
       'SELECT totalPages FROM fulltextItems WHERE itemID = ?', [id]) : null;
@@ -1291,10 +1954,16 @@ async function initialize(rootURI, token) {
     // read 'invalid-pack'. Both re-extract, so only the diagnostic bucket
     // differs, and 'missing-pack' is the truer of the two for a file the
     // filesystem will not describe.
-    let stat;
+    //
+    // An absent pack falls THROUGH rather than returning, which it did not
+    // before ticket 0740: no pack is the commonest state of the documents the
+    // label check below exists for — a page scan recorded as `text/html` has
+    // never yielded one and never will — so an early return here would skip the
+    // check on precisely the population it was written for.
+    let stat = null;
     try { stat = await IOUtils.stat(path); }
-    catch (_error) { cache.drop(result.cacheKey); return result; }
-    try {
+    catch (_error) { cache.drop(result.cacheKey); }
+    if (stat) try {
       const fingerprint = JSON.stringify([stat.size, stat.lastModified]);
       const cached = cache.check(result.cacheKey, result.identity, fingerprint);
       if (cached) return { ...result, status: 'current', cached: true };
@@ -1317,6 +1986,34 @@ async function initialize(rootURI, token) {
       if (result.status === 'current') cache.remember(result.cacheKey, result.identity, fingerprint, result);
       else cache.drop(result.cacheKey);
     } catch (error) { result.status = 'invalid-pack'; }
+    // The label check, and the last thing before a document becomes a candidate.
+    // Placed here rather than beside the `is*Attachment()` predicates on purpose:
+    // there it would read eight bytes off every attachment in the library on
+    // every 30-second sweep, where here it reads them only for a document that
+    // is otherwise about to be handed to the worker — 4 890 snapshots minus the
+    // 4 729 that already carry a pack, and nothing at all on a library that is
+    // fully indexed.
+    //
+    // Not once each, and the exception is the population this exists for: only
+    // `current` reaches cache.remember(), so a document the sniff rules out has
+    // no cache record and is re-read on every sweep. Eight bytes every thirty
+    // seconds against 39 documents, replacing a native extraction attempt of
+    // 50–90 ms each — cheap enough that memoizing it would buy a second store
+    // to keep consistent for no measurable return.
+    //
+    // A mismatch is `unsupported`, not a failure. The document is fine; our
+    // classification of it was wrong, and the file that Zotero labelled
+    // `text/html` was never something a text extractor could have read.
+    // Read without a guard, unlike the coverage line's `classes ? …`: there an
+    // absent classification must make a figure unsayable rather than wrong,
+    // here it would silently stop checking labels. scheduler.js is loaded
+    // before initialize() builds this closure, so absence is impossible — and
+    // if that ever changed, a throw becoming `inspection-error` is the loud
+    // failure, which is the one to have.
+    if (SDT_STATUS_CLASSES.queued.includes(result.status)) {
+      const sniffed = await sniffSDTSource(sourcePath);
+      if (sniffed && sniffed.processor !== processor) result.status = 'unsupported';
+    }
     return result;
   }
 
@@ -1362,14 +2059,40 @@ async function initialize(rootURI, token) {
   }
 
   sitter = createSDTSitter({
-    list: () => { seen = new Set(); return Zotero.DB.columnQueryAsync('SELECT itemID FROM itemAttachments ORDER BY itemID'); },
-    censusComplete: async () => {
-      cache.prune(seen); sourceHashes.prune(seen); await saveCache(); return cache.samples();
+    reconciliationIntervalMS: RECONCILIATION_INTERVAL_MS,
+    list: async () => {
+      const latest = JSON.parse(await Zotero.File.getContentsFromURLAsync('resource://zotero/document-worker/metadata.json'));
+      if (JSON.stringify(latest) !== JSON.stringify(versions)) {
+        versions = latest; raw.versions = JSON.stringify(versions);
+        cache = createSDTCache(null, raw.versions); compact = true;
+        environment = { ...environment, packVersions: versions };
+      }
+      seen = new Set();
+      return Zotero.DB.columnQueryAsync('SELECT itemID FROM itemAttachments ORDER BY itemID');
     },
+    // Parent erasure may report only the parent; retain previously observed
+    // child IDs as well as the current DB membership. Never await this inside
+    // notify(): item notifications can run within the transaction we query.
+    affected: async id => {
+      const ids = new Set([...(children.get(id) || [])]);
+      const item = await Zotero.Items.getAsync(id);
+      if (!item || item.isAttachment()) ids.add(id);
+      if (!item || !item.isAttachment()) {
+        for (const child of await Zotero.DB.columnQueryAsync(
+          'SELECT itemID FROM itemAttachments WHERE parentItemID = ?', [id])) ids.add(child);
+      }
+      return ids;
+    },
+    censusComplete: async () => {
+      cache.prune(seen); sourceHashes.prune(seen); seen = null;
+      await saveCache(); return cache.samples();
+    },
+    samples: () => cache.samples(),
     observed: async (info, sample) => { cache.observe(info.cacheKey, info.identity, sample); await saveCache(); },
     // Every number the scheduler stamps with this — startedAt, lastProgressAt,
     // serviceMS, and the duration samples the estimator is fitted on — is a span.
     inspect, blocked, now: monotonic, changed: render,
+    beforeSubmit: () => workerBusy() ? 'native-worker-busy' : null,
     // 0691's on-screen wording, this ticket's journal: describeError still shows
     // the author the file and the full error text, locally, and the failure that
     // reaches the journal is what replaced the retired on-disk error ledger.
@@ -1380,19 +2103,41 @@ async function initialize(rootURI, token) {
     yield: () => new Promise(resolve => timers.setTimeout(resolve, 0)),
     ensure: (id, onProgress) => Zotero.SDT.ensure(id, { isPriority: false, onProgress }),
   });
+  /* Ask BEFORE arming, which is the ordering the modal always deserved and
+     never had (ticket 0742). What stood here set `alive = true` and installed
+     the toolbar button first, so the button appeared in the window UNDER a
+     modal that was still asking whether the sitter should run at all — the same
+     class of defect ticket 0696 had to guard against, and a promise made to the
+     user before he had answered.
+
+     The prompt is now reached at most once per profile: an answered pref skips
+     it entirely, which is what makes disable/re-enable (ticket 0727 arm 4) and
+     every later restart silent. */
+  let enabled = readSDTSwitch();
+  if (enabled === null) {
+    enabled = askSDTLaunch(win);
+    if (token !== generation) return;
+    writeSDTSwitch(enabled);
+  }
   alive = true;
+  activeToken = token;
   Zotero.SDTPackSitter = { state: sitter.state, inspect, blocked, journal };
+  const owner = sitter;
+  notifierID = Zotero.Notifier.registerObserver({
+    notify(event, type, ids) {
+      if (!alive || token !== generation || owner !== sitter || !owner.state.enabled) return;
+      if ((type === 'item' && ['add', 'modify', 'trash', 'delete', 'refresh'].includes(event)) ||
+          (type === 'file' && event === 'download')) {
+        owner.invalidate(Array.isArray(ids) ? ids : [ids]);
+        wakeSDTSitter();
+      }
+    },
+  }, ['item', 'file'], 'sdt-pack-sitter');
+  // Off is a state the plugin RUNS in: the button and the window are installed
+  // either way, and they are what make "off" discoverable and reversible
+  // without leaving Zotero's main window.
+  if (enabled) armSDTSitter(); else disarmSDTSitter();
   for (const window of Zotero.getMainWindows()) onMainWindowLoad({ window });
-  // Four paragraphs, one message each: a translator gets sentences to work on
-  // rather than one wall of text whose internal `\n\n` he has to preserve.
-  const launch = Services.prompt.confirm(win, sdtText('launch-title'),
-    ['launch-question', 'launch-conditions', 'launch-worker', 'launch-disable']
-      .map(id => sdtText(id)).join('\n\n'));
-  if (token !== generation) return;
-  if (!launch) { sitter.state.phase = 'launch-declined; disable/re-enable to launch'; render(); return; }
-  pulse = timers.setInterval(render, 100);
-  heartbeat = timers.setInterval(heartbeatTick, 60000);
-  timer = timers.setTimeout(createSDTSweepLoop(token), 0);
 }
 function shutdown(data, reason) {
   // try/finally, because the teardown between here and the seal calls out to the
@@ -1402,7 +2147,16 @@ function shutdown(data, reason) {
   // to recover from a hang. The throw still propagates; the record is not lost.
   try {
     ++generation; alive = false; sitter?.stop();
+    try { if (notifierID !== undefined) Zotero.Notifier.unregisterObserver(notifierID); }
+    catch (error) { Zotero.logError(error); }
+    notifierID = undefined;
     if (timers) { timers.clearTimeout(timer); timers.clearInterval(pulse); timers.clearInterval(heartbeat); }
+    // Cleared, not merely stopped. `pulse` is armSDTSitter()'s idempotence
+    // guard (ticket 0742), and a stale non-null handle left here makes the next
+    // activation's arm a silent no-op: the plugin re-enables, builds a second
+    // sitter, and never sweeps again. Nothing before this ticket read these
+    // three after clearing them, so leaving them set cost nothing then.
+    timer = pulse = heartbeat = undefined;
     for (const button of buttons) button.remove();
     buttons.clear();
     for (const dialog of dialogs) if (!dialog.closed) { noteDialogClose(dialog); dialog.close(); }

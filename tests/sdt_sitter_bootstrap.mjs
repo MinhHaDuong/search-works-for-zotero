@@ -20,9 +20,11 @@
  */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import vm from 'node:vm';
 
-import { CACHE_PATH, ROOT_URI, VERSIONS_JSON, createHarness, deferred }
+import { CACHE_PATH, ROOT_URI, STORAGE, VERSIONS, VERSIONS_JSON, createHarness, deferred }
   from './sdt_sitter_zotero_mock.mjs';
 
 const results = [];
@@ -128,14 +130,29 @@ await test('the sitter recovers on the next sweep once the readings come back', 
   });
   await harness.start();
   assert.equal(harness.context.sitter.state.phase, 'resources-unavailable');
-  // A halted sweep still has work waiting, so the sitter looks again in 30 s
-  // rather than backing off to the idle cadence — and this fires that timer
-  // through bootstrap.js's own wrapper, which is where the reschedule lives.
+  // A resource refusal backs off to the idle cadence (not the 30 s active one)
+  // -- this fires that timer through bootstrap.js's own wrapper, which is where
+  // the reschedule lives, regardless of which cadence it armed.
   readable = true;
   await harness.nextSweep();
   assert.deepEqual(harness.calls.ensure, [1, 2]);
   assert.equal(harness.context.sitter.state.phase, 'waiting');
   assert.equal(harness.context.sitter.state.completed, 2);
+});
+
+await test('a resource refusal backs off to the idle cadence, not the active one', async () => {
+  // Found live, never ticketed: two full censuses eight minutes apart, both
+  // correctly refused cpu-busy, neither one backed off -- the sitter was
+  // busiest exactly when it had just decided the machine was too busy.
+  const harness = createHarness({
+    attachments: [pdf(1, 'AAAA1111')],
+    loadavg: () => '99.00 99.00 99.00 1/200 12345',
+  });
+  await harness.start();
+  assert.equal(harness.context.sitter.state.phase, 'cpu-busy');
+  const [id] = harness.timers.ids('timeout');
+  assert.equal(harness.timers.pending.get(id).ms, 10 * 60 * 1000,
+    'a refused sweep rescheduled on the 30 s active cadence instead of backing off');
 });
 
 /* --------------------------------------------------------------------------
@@ -268,6 +285,163 @@ await test('an unwritable data directory is journalled once per episode, and the
 });
 
 /* --------------------------------------------------------------------------
+   What the sitter refuses to hand the extractor, and what it remembers refusing.
+
+   Ticket 0740. Both halves are about the same 39 documents on the author's
+   library: submitted every session, failing in 50-90 ms every session, counted
+   as failures every session, and unable to succeed in any of them.
+
+   Both scenarios below hold a MIXED population on purpose. A fixture made only
+   of the failing documents cannot tell a fix that stops submitting them from
+   one that has stopped submitting anything, and stopping the sitter altogether
+   would pass every assertion an all-failures fixture can carry. So each
+   scenario asserts the whole census: which documents were handed to the
+   extractor, which were not, and that the classes still sum to what was
+   scanned.
+   -------------------------------------------------------------------------- */
+const JPEG = [0xFF, 0xD8, 0xFF, 0xE0];
+const PNG = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+const ZIP = [0x50, 0x4B, 0x03, 0x04];
+const PDF_MAGIC = [0x25, 0x50, 0x44, 0x46];
+// '<!DOCTYPE ' — a real snapshot's opening bytes, which name no format at all.
+const DOCTYPE = [0x3C, 0x21, 0x44, 0x4F, 0x43, 0x54, 0x59, 0x50, 0x45];
+
+await test('a file whose bytes contradict its declared type is classified, not submitted', async () => {
+  const harness = createHarness({
+    attachments: [
+      // The eleven page scans of the live journal, in one row: Zotero holds it
+      // with `attachmentContentType == 'text/html'` — nothing else could have
+      // satisfied `isSnapshotAttachment()` — and the file is a JPEG.
+      { id: 1, key: 'AAAA1111', kind: 'snapshot', pages: null, sourceBytes: 4096, magic: JPEG },
+      // The genuine snapshot beside it. Ticket 0740 keeps this case explicitly
+      // out of the image story, and here it is what proves the fix did not
+      // simply stop admitting snapshots.
+      { id: 2, key: 'BBBB2222', kind: 'snapshot', pages: null, sourceBytes: 4096, magic: DOCTYPE },
+      { id: 3, key: 'CCCC3333', kind: 'pdf', pages: 12, sourceBytes: 4096, magic: PDF_MAGIC },
+      // No signature at all. HTML has none either, so an unrecognised head must
+      // leave the label standing — the arm that fails if the check is inverted
+      // into "admit only what the table recognises".
+      { id: 4, key: 'DDDD4444', kind: 'pdf', pages: 12, sourceBytes: 4096 },
+      { id: 5, key: 'EEEE5555', kind: 'epub', pages: null, sourceBytes: 4096, magic: ZIP },
+      // The mismatch in the other direction: a known format that a REAL
+      // processor handles, declared as a different one. Without this arm an
+      // implementation that only ever looks for images passes.
+      { id: 6, key: 'FFFF6666', kind: 'pdf', pages: 12, sourceBytes: 4096, magic: PNG },
+    ],
+  });
+  await harness.start();
+  const state = harness.context.sitter.state;
+
+  // The whole population, in one assertion: four documents reached the
+  // extractor and two did not. `deepEqual` rather than a membership test — a
+  // fix that stopped submitting the two mislabelled files by submitting nothing
+  // is the failure this scenario exists to catch.
+  assert.deepEqual(harness.calls.ensure, [2, 3, 4, 5],
+    'the extractor was handed the wrong set of documents');
+  assert.deepEqual(harness.records('submit').map(record => record.id), [2, 3, 4, 5],
+    'a document was submitted that the census had already ruled out');
+
+  assert.equal(state.counts.unsupported, 2, 'a byte/label mismatch was not classified');
+  assert.equal(state.counts.current, 4, 'a document that extracts fine stopped being admitted');
+  assert.equal(state.failed, 0, 'a mismatch was counted as a failure rather than classified');
+  // The census still adds up, which is the property the whole status vocabulary
+  // exists to hold (ticket 0699): every attachment landed in exactly one class.
+  const classes = harness.context.SDT_STATUS_CLASSES;
+  const tally = keys => keys.reduce((n, key) => n + (state.counts[key] || 0), 0);
+  assert.equal(Object.values(classes).reduce((n, keys) => n + tally(keys), 0), state.scanned);
+});
+
+await test('a document that yields no pack is asked once a session, and again after a restart', async () => {
+  const attachments = [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222'), pdf(3, 'CCCC3333')];
+  const hooks = {};
+  const first = createHarness({ attachments, ensure: (id, onProgress) => hooks.ensure(id, onProgress) });
+  // Native SDT's own behaviour on the failing documents: it returns, promptly
+  // and without complaint, having persisted nothing. The plugin's `Native SDT
+  // did not persist a current pack` is its own sentence about that silence.
+  hooks.ensure = async (id, onProgress) => {
+    onProgress(10);
+    first.advance(1000);
+    if (id !== 2) first.persistPack(id);
+    onProgress(100);
+    return true;
+  };
+  await first.start();
+
+  // The positive control for everything below: the later assertions say nothing
+  // unless this sweep really did admit the document and really did fail on it.
+  assert.deepEqual(first.calls.ensure, [1, 2, 3], 'the failing document was never admitted at all');
+  assert.equal(first.context.sitter.state.counts['failed-session'], 1);
+  assert.equal(first.context.sitter.state.counts.current, 2);
+
+  // The second sweep of the SAME session, through the timer the sitter armed for
+  // itself. Nothing new was written to disk and nothing needs to have been: the
+  // failure is held in memory for the life of the activation, which is the span
+  // the author ruled for on 2026-09-08.
+  await first.nextSweep();
+  const held = first.context.sitter.state;
+  // `deepEqual` on the whole call list, not a count of new calls: a sitter that
+  // stopped sweeping altogether also never resubmits anything, and that outcome
+  // must not pass. The two documents that carry packs are `current` and were
+  // never candidates, so a correct second sweep calls `ensure` for nobody.
+  assert.deepEqual(first.calls.ensure, [1, 2, 3],
+    'the failure was resubmitted inside the session that had just recorded it');
+  assert.equal(held.counts['failed-session'], 1);
+  assert.equal(held.counts.current, 2, 'a document that can be indexed stopped being admitted');
+  // Still a failure the author is told about. A suppression that dropped out of
+  // the "could not be indexed" figure would trade a repeated submission for a
+  // silently shrinking count.
+  assert.equal(held.failed, 1);
+  // The census still adds up, which is the property the whole status vocabulary
+  // exists to hold (ticket 0699): every attachment landed in exactly one class.
+  const heldClasses = first.context.SDT_STATUS_CLASSES;
+  const heldTally = keys => keys.reduce((n, key) => n + (held.counts[key] || 0), 0);
+  assert.equal(Object.values(heldClasses).reduce((n, keys) => n + heldTally(keys), 0), held.scanned);
+
+  // Nothing about the failure reached the cache file. Asserted on the bytes
+  // rather than on behaviour, because the behaviour below would look identical
+  // if a refusal were written and then ignored — and a row nobody reads is
+  // exactly the orphaned disk state the author's ruling forbids.
+  assert.equal((first.files.text(CACHE_PATH) || '').includes('refused'), false,
+    'a failure verdict was written to the disposable cache');
+  const persisted = first.files.text(CACHE_PATH);
+
+  // A new session over the same cache file — the plugin restarted, or Zotero
+  // did. The suppression is gone with the memory that held it, and the document
+  // is asked again. This is the accepted cost of the 2026-09-08 ruling, not an
+  // oversight: it is also what native SDT's own service does with a generic
+  // failure, which it retries on every new call
+  // (verification/SDT-PLUGIN-PREREQUISITES.md).
+  const second = createHarness({
+    attachments: [pdf(1, 'AAAA1111', { pack: { lastModified: 950 } }), pdf(2, 'BBBB2222'),
+      pdf(3, 'CCCC3333', { pack: { lastModified: 950 } })],
+    cache: persisted,
+    // Native answers the same way it did last session, so the retry costs a real
+    // failure rather than quietly succeeding: the assertions below are about a
+    // document that is still unextractable, not about one that got better.
+    ensure: (id, onProgress) => hooks.ensure(id, onProgress),
+  });
+  hooks.ensure = async (id, onProgress) => {
+    onProgress(10);
+    second.advance(1000);
+    if (id !== 2) second.persistPack(id);
+    onProgress(100);
+    return true;
+  };
+  await second.start();
+  const state = second.context.sitter.state;
+
+  assert.deepEqual(second.calls.ensure, [2],
+    'a restart did not re-open the question, or it re-opened documents that were current');
+  assert.deepEqual(second.records('submit').map(record => record.id), [2]);
+  assert.equal(state.counts['failed-session'], 1, 'the retried failure was not classified as one');
+  assert.equal(state.counts.current, 2, 'a document that can be indexed stopped being admitted');
+  assert.equal(state.failed, 1);
+  const classes = second.context.SDT_STATUS_CLASSES;
+  const tally = keys => keys.reduce((n, key) => n + (state.counts[key] || 0), 0);
+  assert.equal(Object.values(classes).reduce((n, keys) => n + tally(keys), 0), state.scanned);
+});
+
+/* --------------------------------------------------------------------------
    The dialog, and the two windows the plugin can be started into.
    -------------------------------------------------------------------------- */
 await test('a dialog closed and reopened mid-job is one instance, one listener, and the same state', async () => {
@@ -331,6 +505,24 @@ await test('a dialog closed and reopened mid-job is one instance, one listener, 
   assert.equal(harness.context.dialogs.size, 1);
 });
 
+// A bare `chrome,dialog=no` window carries none of a XUL <dialog>'s built-in
+// key bindings, so Escape did nothing until asked to (found live, testing
+// v0.3.16). The close path is the same `dialog.close()` `unload` already
+// exercises above, so this only has to prove the key is wired to it.
+await test('Escape closes the status dialog', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  await harness.start();
+  const window = harness.windows[0];
+  harness.context.openDialog(window);
+  await harness.turn();
+  const dialog = window.dialogs[0];
+  assert.equal(dialog.closed, false);
+  dialog.fire('keydown', { key: 'Tab' });
+  assert.equal(dialog.closed, false, 'an unrelated key closed the dialog');
+  dialog.fire('keydown', { key: 'Escape' });
+  assert.equal(dialog.closed, true, 'Escape did not close the dialog');
+});
+
 await test('two windows and two startups leave one sitter, one launch prompt and two toolbars', async () => {
   const harness = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')], windows: 2 });
   // Zotero serializes add-on startup, but a second main window opening while
@@ -363,6 +555,124 @@ await test('two windows and two startups leave one sitter, one launch prompt and
     assert.equal(button.getAttribute('label'), 'Index 100 %');
     assert(button.getAttribute('tooltiptext').includes('2 files indexed'));
   }
+});
+
+/* --------------------------------------------------------------------------
+   Ticket 0686: the toolbar under assistive technology.
+
+   `verification/SDT-SITTER-UI-PANEL.md` records the accessibility reviewer's
+   two findings about this button — the spinner rewrites the accessible name,
+   and nothing here reads `prefers-reduced-motion`. Both are behaviour of the
+   render loop, so both are testable against the mock host rather than only in
+   a live window, which is where the sitter harness probe had to leave them.
+   -------------------------------------------------------------------------- */
+await test('the spinner does not rename the button, and reduced motion stops it spinning', async () => {
+  // The frame is `floor(now / 140) % 4`, so pinning the monotonic clock pins
+  // the glyph: both arms are rendered at the same instant and the preference is
+  // the only thing that differs between them.
+  const SPIN = ['◐', '◓', '◑', '◒'];
+  const arm = async reducedMotion => {
+    const entered = deferred(), finish = deferred();
+    const harness = createHarness({
+      attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')],
+      reducedMotion,
+      ensure: async (_id, onProgress) => { onProgress(40); entered.resolve(); await finish.promise; return false; },
+    });
+    await harness.startHanging();
+    await admitted(harness, entered, 'the toolbar spinner');
+    assert.equal(harness.context.sitter.state.active, 1,
+      'no document is being indexed, so there would be nothing to spin either way');
+    harness.clock.mono = 140 * 4 * 1000 + 140;    // frame 1, whatever the run did before
+    harness.context.render();
+    return harness.windows[0].document.getElementById('sdt-pack-sitter-button');
+  };
+
+  // The positive control. Without the preference the glyph really is in the
+  // label, so the arm below measures suppression and not absence.
+  const animated = await arm(false);
+  assert.equal(animated.getAttribute('label'), `${SPIN[1]} Index 0 %`);
+  assert.equal(animated.getAttribute('aria-label'), 'Index 0 %',
+    'the spinner frame reached the accessible name, which then changes every 140 ms');
+
+  const still = await arm(true);
+  assert.equal(still.getAttribute('label'), 'Index 0 %',
+    'the spinner runs under prefers-reduced-motion: reduce');
+  assert.equal(still.getAttribute('aria-label'), 'Index 0 %');
+});
+
+await test('reduced motion stops the completion blink', async () => {
+  const arm = async reducedMotion => {
+    const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')], reducedMotion });
+    await harness.start();
+    // Land inside the 1400 ms blink window, on a frame the animation dims:
+    // `floor(now / 180)` odd. Read from the clock the sweep left, so the window
+    // is the one the plugin actually armed.
+    let target = harness.clock.mono + 200;
+    while (Math.floor(target / 180) % 2 !== 1) target += 180;
+    assert(target < harness.clock.mono + 1400, 'the chosen frame is outside the blink window');
+    harness.clock.mono = target;
+    harness.context.render();
+    return harness.windows[0].document.getElementById('sdt-pack-sitter-button');
+  };
+
+  const animated = await arm(false);
+  assert.equal(animated.style.properties.get('opacity'), '0.2',
+    'the completion blink does not dim, so the arm below would pass against anything');
+
+  const still = await arm(true);
+  assert.equal(still.style.properties.get('opacity'), '1',
+    'the button is blinked under prefers-reduced-motion: reduce');
+});
+
+await test('reduced motion stops the census pulse', async () => {
+  // The third animation, and the one the other two scenarios structurally
+  // cannot see: `spinning` and `blinking` are each gated on the preference
+  // separately, so deleting the census arm of the opacity expression leaves
+  // both of them green. Driven by putting the state in the census phase, which
+  // is what the pulse is keyed on.
+  const arm = async reducedMotion => {
+    const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')], reducedMotion });
+    await harness.start();
+    harness.context.sitter.state.phase = 'census';
+    // sin(now / 450) at a quarter turn: the pulse is at its trough, which is a
+    // value no other branch of the expression can produce.
+    harness.clock.mono = Math.round(450 * (3 * Math.PI / 2));
+    harness.context.render();
+    return harness.windows[0].document.getElementById('sdt-pack-sitter-button');
+  };
+
+  const animated = await arm(false);
+  assert.equal(Number(animated.style.properties.get('opacity')).toFixed(2), '0.55',
+    'the census pulse does not fade, so the arm below would pass against anything');
+
+  const still = await arm(true);
+  assert.equal(still.style.properties.get('opacity'), '1',
+    'the button is pulsed under prefers-reduced-motion: reduce');
+});
+
+await test('a window that throws from matchMedia leaves the render loop running', async () => {
+  // The guard in prefersSDTReducedMotion, held to a throw rather than assumed
+  // to hold against one. A docshell going away throws from matchMedia, and this
+  // is read once per button on every one of the loop's ten passes a second: an
+  // escape here is not a stuttering animation, it is the sitter stopping.
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  await harness.start();
+  const window = harness.windows[0];
+  window.matchMedia = () => { throw new Error('the docshell is going away'); };
+  harness.context.render();
+
+  const button = window.document.getElementById('sdt-pack-sitter-button');
+  assert.equal(button.getAttribute('aria-label'), 'Index 100 %', 'the render pass did not complete');
+  // Defaulting to motion, not to stillness: a reading that could not be taken
+  // is not a preference expressed, and the render() wrapper stays silent
+  // because nothing escaped it. The completion blink is running at this exact
+  // render, so the opacity value is the one thing that actually depends on
+  // which way the guard defaulted -- a build that flipped the fallback to
+  // "reduce" would pass every assertion above this one.
+  assert.equal(button.style.properties.get('opacity'), '0.2',
+    'the guard defaulted to reduced motion instead of to motion');
+  assert.equal(harness.records('render-error').length, 0,
+    'the throw reached the render loop, which then records it and stops re-trying');
 });
 
 /* --------------------------------------------------------------------------
@@ -725,23 +1035,464 @@ await test('a disable, a re-enable, and the suspended sweep announces nothing', 
     'a sweep from a dead generation rescheduled itself');
 });
 
-/* Ticket 0730. Loading bootstrap.js twice into one scope used to throw at parse
- * time -- `SyntaxError: Identifier 'closeJournalled' has already been declared`
- * -- because `var`/`function` tolerate redeclaration and `const`/`let`/`class`
- * do not, and the file mixed both. Whether Zotero ever re-runs bootstrap.js into
- * a scope it has already used stays open (recorded in the ticket log against a
- * real Zotero session); this arm makes the file safe regardless, the same way
- * every other top-level binding in it is already `var` for the sandbox-exposure
- * reason ticket 0695 recorded. A minimal context is deliberate: the ticket's own
- * repro used one, and the failure is a parse-time SyntaxError that a full mock
- * host would only obscure behind its own setup cost.
+/* Ticket 0730, generalised by ticket 0741. Loading a bootstrap.js twice into one
+ * scope used to throw at parse time -- `SyntaxError: Identifier 'closeJournalled'
+ * has already been declared` -- because `var`/`function` tolerate redeclaration
+ * and `const`/`let`/`class` do not, and the file mixed both. Whether Zotero ever
+ * re-runs a bootstrap.js into a scope it has already used stays open on the
+ * upgrade path (0727's arm 3 saw a fresh scope there), but disable/re-enable is a
+ * different Gecko path and nothing has measured it; the guard makes every file
+ * safe regardless, the same way the sitter's top-level bindings are already `var`
+ * for the sandbox-exposure reason ticket 0695 recorded.
+ *
+ * The discovery is the point, and it is why this is no longer one hard-coded
+ * path: a hand-listed guard covers the files someone remembered, and the next
+ * plugin added is exactly the one it will not cover. A minimal context is
+ * deliberate -- the failure is a parse-time SyntaxError, and a full mock host
+ * would only obscure it behind its own setup cost. Nothing here executes plugin
+ * behaviour beyond the two loads.
  */
-await test('bootstrap.js loads twice into one scope without throwing', async () => {
-  const source = fs.readFileSync('plugins/sdt-sitter/bootstrap.js', 'utf8');
-  const context = vm.createContext({ Zotero: {}, Services: {}, ChromeUtils: {} });
-  vm.runInContext(source, context);
-  assert.doesNotThrow(() => vm.runInContext(source, context),
-    'a second load into the same scope threw -- a top-level const/let/class crept back in');
+
+/* Directories the walk refuses to enter, and why each one: they are the
+ * gitignored checkouts and caches this repository does not ship. `fork`,
+ * `fork-*` and `upstream.git` are upstream's own source -- a bootstrap.js
+ * appearing there would redden a gate over code we neither wrote nor may
+ * change, and walking a full Zotero checkout on every test run is not free.
+ * Dot-directories are skipped as a class, which is what keeps the walk out of
+ * `.git` and out of `.claude/worktrees/`, where every parallel session's copy of
+ * this same tree lives. Everything else IS walked, so a plugin added under a
+ * directory nobody has thought of yet is still covered.
+ *
+ * Two shapes, because .gitignore has two. `UNSHIPPED` is matched on the
+ * directory's own name and covers the ignores that sit at the repository root;
+ * `UNSHIPPED_PATHS` is matched on the path relative to the walk root, and is
+ * what reaches a nested ignore like `bench/data/`, whose bare name is far too
+ * common to refuse everywhere. */
+const UNSHIPPED = new Set(['node_modules', 'fork', 'upstream.git', 'corpus-cache', '__pycache__']);
+const UNSHIPPED_PATHS = new Set(['bench/data']);
+
+function discoverBootstraps(root) {
+  const found = [];
+  const walk = dir => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name.startsWith('.') || entry.name.startsWith('fork-')
+          || UNSHIPPED.has(entry.name)
+          || UNSHIPPED_PATHS.has(path.relative(root, full).split(path.sep).join('/'))) continue;
+        walk(full);
+      } else if (entry.isFile() && entry.name === 'bootstrap.js') {
+        found.push(full);
+      }
+    }
+  };
+  walk(root);
+  return found.sort();
+}
+
+/* --------------------------------------------------------------------------
+   Ticket 0742: the launch answer is a persisted switch, not a startup ritual.
+
+   The three arms below are the ticket's own red fixtures, and each one was red
+   against the code this ticket replaced: the prompt fired at every Zotero
+   start, at every disable/re-enable (ticket 0727 arm 4 measured that live), and
+   declining left a sitter with a dead toolbar button whose only recovery was
+   four clicks into Tools -> Add-ons.
+
+   `calls.prompt` is the load-bearing counter. The prompt is synchronous and its
+   only trace is that number, so a test that asserted on the sitter's behaviour
+   alone would pass against a plugin that asked the question every single time
+   and then ignored the answer.
+   -------------------------------------------------------------------------- */
+await test('the launch question is asked once and never again, and the answer persists', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  await harness.start();
+  assert.equal(harness.calls.prompt, 1, 'a fresh profile was not asked');
+  assert.equal(harness.Zotero.Prefs.get('extensions.sdt-pack-sitter.enabled'), true,
+    'the answer reached no pref, so nothing could hold across a restart');
+  // The buttons are labelled to the question. OK/Cancel do not answer "Index
+  // attachments in the background, from now on?", which is defect 4 of the
+  // ticket's list; a `confirm` reverted here would not reach this assertion at
+  // all, since the mock no longer serves one.
+  assert.deepEqual(harness.calls.prompts[0].buttons, ['Start indexing', 'Not now']);
+  assert(!harness.calls.prompts[0].text.includes('tonight'),
+    'the prompt still says "tonight" for a loop that runs for as long as Zotero is open');
+
+  // The disable/re-enable of ticket 0727 arm 4, which re-asked every time.
+  harness.context.shutdown(null, 4);
+  harness.context.startup({ rootURI: ROOT_URI });
+  await harness.quiet();
+  assert.equal(harness.calls.prompt, 1, 'the re-enable asked the question again');
+  assert.equal(harness.context.alive, true, 'the re-enable left the plugin down');
 });
 
+await test('a profile that answered no runs switched off: no census, and a way back', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')], launch: false });
+  await harness.start();
+  const s = harness.context.sitter.state;
+  assert.equal(s.phase, 'switched-off');
+  // The census hashes files, so R22's "all background work" covers it. Nothing
+  // ran: no attachment was inspected, none was submitted.
+  assert.equal(s.total, 0, 'the census walked the library with indexing off');
+  assert.deepEqual(harness.calls.ensure, [], 'a file was submitted with indexing off');
+  assert.equal(harness.timers.ids('timeout').length, 0, 'a sweep is armed with indexing off');
+
+  // Off is DISCOVERABLE, which is the half declining never had: the button is
+  // installed and says so, rather than reading "Index" over a sitter that will
+  // never index anything.
+  const button = harness.windows[0].document.getElementById('sdt-pack-sitter-button');
+  assert(button, 'no toolbar button, so "off" is reachable only from the Add-ons manager');
+  assert.equal(button.getAttribute('label'), 'Indexing off');
+
+  // And it holds. A second session does not ask again and does not start.
+  harness.context.shutdown(null, 4);
+  harness.context.startup({ rootURI: ROOT_URI });
+  await harness.quiet();
+  assert.equal(harness.calls.prompt, 1, 'a declined launch was asked again next session');
+  assert.equal(harness.context.sitter.state.phase, 'switched-off');
+  assert.deepEqual(harness.calls.ensure, []);
+});
+
+await test('an answered profile is never asked, and the toolbar is installed after the question', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+    prefs: { 'extensions.sdt-pack-sitter.enabled': true } });
+  await harness.start();
+  assert.equal(harness.calls.prompt, 0, 'a profile that already answered was asked again');
+  assert.deepEqual(harness.calls.ensure, [1], 'the persisted yes did not start the sitter');
+
+  /* The ordering race, defect 6. `alive = true` and the toolbar button used to
+     be installed BEFORE the confirm, so the button appeared in the window under
+     a modal still asking whether the sitter should run — a promise made to the
+     user before he had answered, and the same class of defect ticket 0696 had
+     to guard against. Observed the only way it can be: a hook that reads the
+     window while the modal is up.
+
+     Both halves are asserted. `underTheModal` proves the hook actually ran —
+     without it a plugin that never asked at all would leave `seen` at its
+     initial value and this arm would pass by never looking. */
+  let seen = null;
+  const staged = createHarness({ attachments: [pdf(2, 'BBBB2222')],
+    onPrompt: windows => {
+      seen = windows.map(window => !!window.document.getElementById('sdt-pack-sitter-button'));
+    } });
+  await staged.start();
+  assert.deepEqual(seen, [false],
+    'the toolbar button was installed under the modal that was still asking');
+  assert.equal(staged.calls.prompt, 1, 'the ordering hook never ran; nothing was observed');
+  // And it arrives once the answer is in.
+  assert(staged.windows[0].document.getElementById('sdt-pack-sitter-button'),
+    'the button never arrived after the question was answered');
+});
+
+/* The half of the switch the three arms above could not see, found by review
+   rather than by them and worth recording as such: each of those drives the
+   switch from a RESTING sitter, and the defect only exists while a sweep is
+   suspended inside `ensure()`.
+
+   `disarmSDTSitter` clears the three timer handles, but the suspended sweep
+   closure holds none of them — it reschedules from its own `finally`, gated on
+   `alive` and `generation`, and the user's switch moves neither. So the zombie
+   rearmed itself, and the next arm added a second loop beside it: two sweeps per
+   interval for the rest of the session, which is precisely what the `pulse`
+   guard exists to prevent and precisely the path that guard cannot see.
+
+   Both assertions are load-bearing and neither implies the other. The first is
+   about the off state honouring what SPEC.md's R22 paragraph claims for it; the
+   second is about the count after a round trip, which a fix that merely stopped
+   the zombie announcing would leave broken. */
+await test('turning indexing off mid-extraction leaves no zombie sweep, and re-enabling arms one', async () => {
+  const entered = deferred(), finish = deferred();
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')],
+    ensure: async (id, onProgress) => {
+      onProgress(10);
+      entered.resolve();
+      await finish.promise;
+      onProgress(100);
+      return true;
+    } });
+  harness.context.startup({ rootURI: ROOT_URI });
+  await admitted(harness, entered, 'the switch fixture');
+
+  harness.context.toggleSDTSwitch();
+  assert.equal(harness.context.sitter.state.phase, 'switched-off');
+  // The file in flight is not cancelled — the graceful semantics the 2026-09-05
+  // ruling gave disable, and unchanged by this switch. It settles, and its
+  // settlement is what carries the suspended closure into its `finally`.
+  finish.resolve();
+  await harness.quiet();
+  assert.equal(harness.timers.ids('timeout').length, 0,
+    'a sweep is still scheduled after indexing was turned off mid-extraction');
+
+  harness.context.toggleSDTSwitch();
+  await harness.quiet();
+  assert.equal(harness.timers.ids('timeout').length, 1,
+    'two independent sweep loops are running after an off/on cycle during an extraction');
+});
+
+// Found live, testing v0.3.17: the author watched the bar freeze mid-job
+// after switching off and never reach completion, contradicting the window's
+// own disclosure ("one already under way still finishes"). The periodic
+// redraw the switch tears down was the only thing repainting the dialog, so
+// a job that kept running in the background never got to show it. Fixed by
+// having the scheduler's own progress/completion notice reach `render()`
+// directly, unconditional on `enabled` -- this test opens the real dialog and
+// watches it happen, which the scheduler-level unit test above cannot.
+await test('an open dialog shows a switched-off job reach completion, not just its own state', async () => {
+  const entered = deferred(), finish = deferred();
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+    ensure: async (id, onProgress) => {
+      onProgress(10);
+      entered.resolve();
+      await finish.promise;
+      harness.persistPack(id);
+      onProgress(100);
+      return true;
+    } });
+  harness.context.startup({ rootURI: ROOT_URI });
+  await admitted(harness, entered, 'the completion-visibility fixture');
+
+  const window = harness.windows[0];
+  harness.context.openDialog(window);
+  await harness.turn();
+  const doc = window.dialogs[0].document;
+  assert(doc.getElementById('sdt-document-status').textContent.includes('10 %'),
+    'the dialog never showed the progress it was opened to watch');
+
+  harness.context.toggleSDTSwitch();
+  finish.resolve();
+  await harness.quiet();
+  assert.equal(harness.context.sitter.state.completed, 1, 'the job never actually finished');
+  assert.equal(doc.getElementById('sdt-document-status').textContent, 'No indexing under way',
+    'the dialog is still showing a stale 10 % after the job it belonged to finished');
+});
+
+// Found live, testing v0.3.19: the active-file box still blinked between
+// documents even with its height reserved, because the text itself flashed to
+// "No indexing under way" for real -- scheduler.js awaits twice between one
+// document settling and the next being admitted, and `state.active` genuinely
+// reads null for that span. `state.pending` still names what is queued behind
+// it, so the box should say so rather than imply nothing is happening.
+await test('the active-file box says "preparing" between documents, not "no indexing"', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')] });
+  await harness.start();
+  const window = harness.windows[0];
+  harness.context.openDialog(window);
+  await harness.turn();
+  const doc = window.dialogs[0].document;
+  const sitter = harness.context.sitter;
+
+  sitter.state.active = null;
+  sitter.state.pending = [{ id: 2, title: null, parentTitle: null }];
+  harness.context.render();
+  assert.equal(doc.getElementById('sdt-document-status').textContent, 'Preparing the next attachment…',
+    'a document queued behind this gap was read as genuine idleness');
+
+  sitter.state.pending = [];
+  harness.context.render();
+  assert.equal(doc.getElementById('sdt-document-status').textContent, 'No indexing under way',
+    'genuine idleness (nothing pending) still reads as "preparing"');
+});
+
+/* PASS / FAIL / NOT-RUN, rather than a boolean. A guard that greens because it
+ * found nothing to check is the failure this repository keeps meeting, so the
+ * empty set gets a verdict of its own and the caller has to say what it does
+ * with it. */
+function doubleLoadReport(root) {
+  const files = discoverBootstraps(root);
+  const failures = [];
+  for (const file of files) {
+    const source = fs.readFileSync(file, 'utf8');
+    const context = vm.createContext({ Zotero: {}, Services: {}, ChromeUtils: {} });
+    vm.runInContext(source, context);
+    try {
+      vm.runInContext(source, context);
+    } catch (error) {
+      failures.push(`${file}: ${error.message}`);
+    }
+  }
+  return { verdict: files.length === 0 ? 'NOT-RUN' : failures.length ? 'FAIL' : 'PASS', files, failures };
+}
+
+await test('every bootstrap.js this tree ships loads twice into one scope without throwing', async () => {
+  const report = doubleLoadReport('.');
+  assert.notEqual(report.verdict, 'NOT-RUN',
+    'the walk found no bootstrap.js at all -- the tree moved, not the plugins');
+  assert.deepEqual(report.failures, [],
+    `a second load threw; a top-level const/let/class is declared in:\n${report.failures.join('\n')}`);
+});
+
+/* The control for the discovery step, and it is two-sided on purpose. A walk
+ * that always returned nothing would satisfy the empty half alone, and the guard
+ * above would then be green over an empty set forever -- which is the exact
+ * shape this file exists to refuse. So: a tree with a decoy file and a nested
+ * directory reports NOT-RUN, and the SAME tree with one real bootstrap.js
+ * reaches a verdict. The planted file is deliberately broken in the way the
+ * guard is about, so the positive half also proves the assertion fires and not
+ * merely that discovery counted to one. */
+await test('an empty discovery set reports NOT-RUN, and a planted file proves the walk can see one', async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sdt-bootstrap-walk-'));
+  try {
+    fs.mkdirSync(path.join(root, 'plugin', 'nested'), { recursive: true });
+    fs.writeFileSync(path.join(root, 'plugin', 'not-bootstrap.js'), 'const x = 1;\n');
+    const empty = doubleLoadReport(root);
+    assert.equal(empty.verdict, 'NOT-RUN', `an empty tree was reported ${empty.verdict}`);
+    assert.deepEqual(empty.files, []);
+
+    fs.writeFileSync(path.join(root, 'plugin', 'nested', 'bootstrap.js'), 'const planted = 1;\n');
+    const planted = doubleLoadReport(root);
+    assert.equal(planted.verdict, 'FAIL',
+      'a planted double-load failure was not seen -- the walk or the assertion is blind');
+    assert.equal(planted.files.length, 1);
+    assert(planted.failures[0].includes('planted'), planted.failures[0]);
+
+    // And the refusals refuse. Both shapes are exercised, since a name match and
+    // a path match are different code: `node_modules` by name, `bench/data` by
+    // its position under the root. Without this the skip list is a branch no run
+    // ever takes, and a typo in either would read as green forever.
+    for (const ignored of ['node_modules', path.join('bench', 'data')]) {
+      fs.mkdirSync(path.join(root, ignored), { recursive: true });
+      fs.writeFileSync(path.join(root, ignored, 'bootstrap.js'), 'const ignored = 1;\n');
+    }
+    const withIgnored = doubleLoadReport(root);
+    assert.deepEqual(withIgnored.files, planted.files,
+      'the walk entered a directory this repository does not ship');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('notifier bursts inspect only affected attachments and quiet time does no census', async () => {
+  let blocked = true;
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')],
+    meminfo: () => blocked ? 'MemAvailable: 1 kB' : 'MemAvailable: 8000000 kB' });
+  await h.start(); const read = h.calls.hash.length;
+  assert.equal(h.observers.size, 1); assert.equal(h.calls.list, 1);
+  h.calls.inspect.length = 0;
+  h.notify('modify', 'item', [1]); h.notify('modify', 'item', [1]); h.notify('download', 'file', 1);
+  await h.quiet();
+  assert.deepEqual(h.calls.inspect, [1, 1, 1001]);
+  assert.equal(h.calls.list, 1); assert.equal(h.calls.hash.length, read);
+  blocked = false; await h.nextSweep(); assert.deepEqual(h.calls.ensure, [1, 2]);
+  assert.equal(h.calls.list, 1);
+  const armed = h.timers.ids('timeout');
+  assert.equal(h.timers.pending.get(armed[0]).ms,
+    h.context.sitter.state.nextReconciliationAt - h.clock.mono);
+  h.advance(30000); h.notify('modify', 'collection', [1]); await h.quiet();
+  assert.equal(h.calls.list, 1);
+});
+await test('unnotified source disappearance and restoration update coverage without deleting its pack', async () => {
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111')] }); await h.start();
+  const source = `${STORAGE}/AAAA1111/file.pdf`, pack = `${STORAGE}/AAAA1111/.zotero-sdt-cache`;
+  const original = h.files.files.get(source); const hashReads = h.calls.hash.length;
+  h.files.files.delete(source); await h.nextSweep();
+  assert.equal(h.context.sitter.state.counts['missing-source'], 1);
+  assert.equal(h.context.sitter.state.counts.current || 0, 0);
+  assert(h.files.files.has(pack)); assert(h.library.has(1));
+  h.files.files.set(source, original); await h.nextSweep();
+  assert.equal(h.context.sitter.state.counts.current, 1);
+  assert.equal(h.calls.hash.length, hashReads + 1);
+  assert.deepEqual(h.calls.ensure, [1]);
+  h.files.files.delete(pack); await h.nextSweep();
+  assert.deepEqual(h.calls.ensure, [1, 1]);
+  assert.equal(h.context.sitter.state.counts.current, 1);
+});
+await test('source replacement and processor upgrades invalidate pack identity and cached durations', async () => {
+  let versions = structuredClone(VERSIONS);
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111')], versions: () => versions });
+  await h.start();
+  const row = h.library.get(1); row.pack.hash = row.hash; row.hash = 'replacement-md5';
+  h.files.put(`${STORAGE}/AAAA1111/file.pdf`, new Uint8Array(8192), 501);
+  await h.nextSweep(); assert.deepEqual(h.calls.ensure, [1, 1]);
+  assert.equal(h.context.sitter.state.samples.length, 1, 'old source duration survived changed identity');
+  assert.equal(h.context.sitter.state.samples[0].sourceBytes, 8192);
+  // Keep native generation blocked so the stale-processor bucket can be inspected.
+  h.Zotero.PDFWorker._processingQueue = true;
+  versions = { ...versions, SDT_PROCESSOR_VERSIONS: { ...versions.SDT_PROCESSOR_VERSIONS, pdf: '8' } };
+  await h.nextSweep();
+  assert.equal(h.context.sitter.state.counts['stale-processor'], 1);
+  assert.equal(h.context.sitter.state.samples.length, 0);
+  assert.equal(h.context.environment.packVersions.SDT_PROCESSOR_VERSIONS.pdf, '8');
+});
+await test('targeted current-pack inspection preserves unrelated cached duration records', async () => {
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')] }); await h.start();
+  const cache = h.files.text(CACHE_PATH);
+  h.notify('modify', 'item', [1]); await h.quiet();
+  assert.equal(h.calls.list, 1); assert.equal(h.context.sitter.state.samples.length, 2);
+  assert.equal(h.files.text(CACHE_PATH), cache);
+});
+await test('parent trash restoration and erase affect children without a library census', async () => {
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')] }); await h.start();
+  h.library.get(1).parentDeleted = true; h.notify('trash', 'item', [1001]); await h.quiet();
+  assert.equal(h.context.sitter.state.counts.excluded, 1);
+  assert.equal(h.context.sitter.state.counts.current, 1);
+  h.library.get(1).parentDeleted = false; h.notify('modify', 'item', [1001]); await h.quiet();
+  assert.equal(h.context.sitter.state.counts.current, 2);
+  h.library.delete(1); h.notify('delete', 'item', [1001]); await h.quiet();
+  assert.equal(h.context.sitter.state.total, 1);
+  assert.equal(h.context.sitter.state.counts.current, 1);
+  assert.equal(h.calls.list, 1);
+});
+await test('download notifications restore missing sources and late observers are inert after shutdown', async () => {
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111', { missingSource: true })] }); await h.start();
+  const old = [...h.observers.values()][0].observer;
+  h.library.get(1).missingSource = false;
+  h.files.put(`${STORAGE}/AAAA1111/file.pdf`, new Uint8Array(4096), 500);
+  h.notify('download', 'file', [1]); await h.quiet();
+  assert.deepEqual(h.calls.ensure, [1]); assert.equal(h.calls.list, 1);
+  h.context.shutdown({}, 4); assert.equal(h.observers.size, 0);
+  old.notify('modify', 'item', [1]); await h.quiet();
+  assert.equal(h.timers.ids('timeout').length, 0);
+  await h.start(); const lists = h.calls.list;
+  old.notify('modify', 'item', [1]); await h.quiet(); assert.equal(h.calls.list, lists);
+  assert.equal(h.observers.size, 1);
+});
+await test('events ignored while off are repaired on re-enable and reconciliation age is visible', async () => {
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111')] }); await h.start();
+  h.context.disarmSDTSitter(); h.files.files.delete(`${STORAGE}/AAAA1111/file.pdf`);
+  h.notify('modify', 'item', [1]); await h.quiet(); assert.equal(h.calls.list, 1);
+  h.context.armSDTSitter(); await h.quiet(); assert.equal(h.calls.list, 2);
+  assert.equal(h.context.sitter.state.counts['missing-source'], 1);
+  h.context.openDialog(h.windows[0]); h.context.render();
+  const dialog = [...h.context.dialogs][0];
+  assert.match(dialog.document.getElementById('sdt-scope').textContent, /Coverage is last observed.*Last full reconciliation/s);
+});
+await test('a worker activated during admission inspection wins the final native guard', async () => {
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  const inspect = h.context.IOUtils.stat; let reads = 0;
+  h.context.IOUtils.stat = async path => {
+    const result = await inspect(path);
+    if (path.endsWith('/file.pdf') && ++reads === 2) h.Zotero.PDFWorker._processingQueue = true;
+    return result;
+  };
+  await h.start(); assert.deepEqual(h.calls.ensure, []);
+  assert.equal(h.context.sitter.state.phase, 'native-worker-busy');
+  h.Zotero.PDFWorker._processingQueue = false; await h.nextSweep();
+  assert.deepEqual(h.calls.ensure, [1]); assert.equal(h.calls.list, 1);
+});
+await test('a targeted replacement removes old-source ETA samples before resource admission', async () => {
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111')] }); await h.start();
+  assert.equal(h.context.sitter.state.samples.length, 1);
+  const row = h.library.get(1); row.pack.hash = row.hash; row.hash = 'changed';
+  h.files.put(`${STORAGE}/AAAA1111/file.pdf`, new Uint8Array(8192), 501);
+  h.Zotero.PDFWorker._processingQueue = true;
+  h.notify('modify', 'item', [1]); await h.quiet();
+  assert.equal(h.calls.list, 1); assert.equal(h.context.sitter.state.samples.length, 0);
+  assert.equal(h.context.sitter.state.fittedSamples.length, 0);
+  assert.deepEqual(h.calls.ensure, [1]);
+});
+await test('targeted observations preserve completion refit cadence while dropping invalidated samples', async () => {
+  const h = createHarness({ attachments: [1, 2, 3, 4, 5, 6].map(id =>
+    pdf(id, `KEY${id}`, { missingSource: id > 3 })) });
+  await h.start(); assert.equal(h.context.sitter.state.fittedSamples.length, 3);
+  for (const id of [4, 5, 6]) {
+    h.library.get(id).missingSource = false;
+    h.files.put(`${STORAGE}/KEY${id}/file.pdf`, new Uint8Array(4096), 500);
+    h.notify('download', 'file', [id]); await h.quiet();
+    assert.equal(h.context.sitter.state.samples.length, id);
+    assert.equal(h.context.sitter.state.fittedSamples.length, id === 6 ? 6 : 3);
+  }
+  h.files.files.delete(`${STORAGE}/KEY1/file.pdf`);
+  h.notify('modify', 'item', [1]); await h.quiet();
+  assert.equal(h.context.sitter.state.fittedSamples.length, 5);
+});
 console.log(JSON.stringify({ tests: results, result: 'pass' }));

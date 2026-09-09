@@ -152,7 +152,11 @@ def test_manifest_version_matches_the_documented_contract():
     manifest = json.loads((PLUGIN / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["version"] == "0.5.0"
     source = (PLUGIN / "bootstrap.js").read_text(encoding="utf-8")
-    assert "const CODE_VERSION = '0.5.0';" in source, "the code version the status reports equals the manifest's"
+    # `var`, not `const`: ticket 0741 converted every top-level binding in this
+    # file so a second load into one scope cannot die at parse time. The keyword
+    # is enforced by tests/sdt_sitter_bootstrap.mjs, not here; what this line
+    # pins is the version.
+    assert "var CODE_VERSION = '0.5.0';" in source, "the code version the status reports equals the manifest's"
     readme = (PLUGIN / "README.md").read_text(encoding="utf-8")
     assert '"complete"' in readme and "lastReindexMode" in readme and "stock" in readme
     source = (PLUGIN / "bootstrap.js").read_text(encoding="utf-8")

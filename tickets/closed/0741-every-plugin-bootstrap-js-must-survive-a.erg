@@ -2,11 +2,16 @@
 Title: Every plugin bootstrap.js must survive a double load, not just the sitter's
 Created: 2026-09-08
 Author: sim
+Closed: Every bootstrap.js in the tree survives a double load, found by walking rather than by a list, and the guard's red state was seen before any conversion. Discovery is controlled two-sided: an empty tree reports NOT-RUN, a planted broken file reaches FAIL, and both skip-list shapes are exercised, so the walk cannot green over nothing.
 
 --- log ---
 2026-09-08T08:27Z sim created
 2026-09-08T08:27Z claude note Filed from the roar sweep of PR #444 (ticket 0730), which converted the sitter's top-level bindings to `var` and added a double-load arm for that ONE file. The sweep asked the obvious next question — how many other plugin bootstraps in this tree have the same shape — and the answer is three, one of which is installed and active in the author's live Zotero right now.
+2026-09-08T09:57Z claude note Guard written and seen RED before any conversion: it named bench/zotero-fulltext-plugin/bootstrap.js (PREFIX), verification/probes/sdt-diagnostic-plugin/bootstrap.js (api) and verification/probes/sdt-sitter-harness/bootstrap.js (observer), and named neither the already-converted plugins/sdt-sitter/bootstrap.js nor the two zero-binding harnesses. Green after the three conversions.
 
+2026-09-08T17:04Z claude note All four verification boxes ticked against origin/main and the exit criteria met: every bootstrap.js in the tree survives a double load, the guard finds them by walking, and its red state was seen (09:57Z entry) before any conversion. The two-sided discovery control is the part worth keeping: an always-empty walk would satisfy the NOT-RUN half alone and leave the guard green over nothing forever, so the same fixture tree also plants a deliberately broken bootstrap.js and requires FAIL, and plants one under each skip-list shape and requires it skipped. `make check` green on this tree.
+
+2026-09-08T17:04Z MinhHaDuong closed — Every bootstrap.js in the tree survives a double load, found by walking rather than by a list, and the guard's red state was seen before any conversion. Discovery is controlled two-sided: an empty tree reports NOT-RUN, a planted broken file reaches FAIL, and both skip-list shapes are exercised, so the walk cannot green over nothing.
 --- body ---
 ## Context
 
@@ -94,12 +99,25 @@ check is the failure this repository keeps meeting.
 
 ## Verification
 
-- [ ] The guard reddens against the current tree, naming all three files
-- [ ] It greens after the conversion
-- [ ] It discovers files by walking the tree, and a newly added plugin is
-      covered without editing the test
-- [ ] An empty discovery set reports NOT-RUN, not a pass
-- [ ] `make check` passes
+- [x] The guard reddens against the current tree, naming all three files
+      — recorded in this log's 2026-09-08T09:57Z entry: red before any
+      conversion, naming exactly the three files and neither the already-
+      converted sitter nor the two zero-binding harnesses.
+- [x] It greens after the conversion — `tests/sdt_sitter_bootstrap.mjs`
+      "every bootstrap.js this tree ships loads twice into one scope without
+      throwing" passes; all four files now carry zero top-level
+      `const`/`let`/`class`, and each converted file names tickets 0730/0741
+      in a comment saying why (action 3).
+- [x] It discovers files by walking the tree, and a newly added plugin is
+      covered without editing the test — `discoverBootstraps` at
+      `tests/sdt_sitter_bootstrap.mjs:1041` recurses from the repository root,
+      refusing only dot-directories and the named unshipped checkouts.
+- [x] An empty discovery set reports NOT-RUN, not a pass —
+      `doubleLoadReport` returns a three-valued verdict (:1077) and the
+      assertion at :1082 refuses NOT-RUN; the control at :1096 is two-sided,
+      proving both that an empty tree reports NOT-RUN and that a planted
+      broken file reaches FAIL, plus that both skip-list shapes actually skip.
+- [x] `make check` passes
 
 ## Invariants
 

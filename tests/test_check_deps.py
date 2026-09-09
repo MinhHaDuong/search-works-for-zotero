@@ -117,6 +117,34 @@ def test_our_own_modules_are_not_dependencies(tmp_path):
     assert cd.run(tmp_path) == 0
 
 
+def test_a_repo_root_tree_is_ours_under_its_own_name_too(tmp_path):
+    """`bench/` has no `__init__.py`, so `import bench.x` from the repo root and
+    `import x` from a bench-on-sys.path caller name the same tree. Only the
+    second was read as ours, and the first was reported as an undeclared
+    dependency — which is what `bench/acceptance/adapters/beaver.py` and
+    `bench/sdt_sitter_install.py` both write to reach the shared reader
+    (ticket 0713).
+
+    The arm below is the fixture the live-repository test cannot be: that one
+    passes on this tree's current import shape, so it would go green again the
+    day the qualified spelling disappears. This one names the behaviour.
+    """
+    build(
+        tmp_path,
+        "pytest\n",
+        files={"bench/shared.py": "",
+               "bench/driver.py": "import bench.shared\n",
+               "tests/test_a.py": "import pytest\n"},
+    )
+    assert cd.run(tmp_path) == 0
+    assert "bench" in cd.local_modules(tmp_path)
+    # And only for a tree at the root: `verification/probes` is reachable under
+    # the names of the files inside it, never as `probes`, so claiming that one
+    # would let a real third-party import of that name through unnoticed.
+    (tmp_path / "verification" / "probes").mkdir(parents=True)
+    assert "probes" not in cd.local_modules(tmp_path)
+
+
 def test_a_binary_is_consumed_by_the_recipe_that_invokes_it(tmp_path):
     """Ruff has no importer. The lint recipe naming it is the consumer."""
     build(tmp_path, "pytest\n", makefile="lint:\n\truff check bench/\n")

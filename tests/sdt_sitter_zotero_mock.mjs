@@ -169,8 +169,14 @@ function createFiles() {
   const encoder = new TextEncoder();
   return {
     files, directories,
-    put(path, text, lastModified = 1000) {
-      files.set(path, { bytes: encoder.encode(text), lastModified });
+    /* `data` is text or raw bytes. The bytes form exists because a fixture has
+       to be able to hold a file whose CONTENT contradicts its declared type —
+       a JPEG recorded as `text/html` (ticket 0740) — and no string can express
+       one: 0xFF is not a valid UTF-8 lead byte, so `encoder.encode` cannot
+       produce a JPEG signature from any source text whatsoever. */
+    put(path, data, lastModified = 1000) {
+      const bytes = typeof data === 'string' ? encoder.encode(data) : Uint8Array.from(data);
+      files.set(path, { bytes, lastModified });
       let dir = path.slice(0, path.lastIndexOf('/')) || '/';
       while (dir && !directories.has(dir)) {
         directories.add(dir);
@@ -204,6 +210,8 @@ function attachment(row) {
  * @param options.attachments  rows for the mock library (see `attachment`)
  * @param options.cache        initial contents of the sitter's cache file, or null
  * @param options.launch       the answer to the launch prompt (default: yes)
+ * @param options.prefs        prefs already set in the profile, `{ name: value }`
+ * @param options.onPrompt     `windows => void`, run while the launch modal is up
  * @param options.windows      how many main windows exist (default: 1)
  * @param options.meminfo      `() => string` for /proc/meminfo, or a thrower
  * @param options.loadavg      `() => string` for /proc/loadavg
@@ -221,15 +229,27 @@ export function createHarness(options = {}) {
   // Counted rather than merely observed: several scenarios turn on HOW MANY
   // times a reading was taken, which is the difference between one check per
   // admission and a poll, and between a cache hit and a native re-inspection.
-  const calls = { meminfo: 0, loadavg: 0, openPack: [], ensure: [], prompt: 0, writes: [], hash: [] };
+  const calls = { meminfo: 0, loadavg: 0, openPack: [], ensure: [], prompt: 0,
+    prompts: [], writes: [], hash: [], list: 0, affected: [], inspect: [] };
+  const observers = new Map(); let observerSequence = 0;
 
   // Two clocks, moving independently. `mono` is what ChromeUtils.now() answers
   // and every span in bootstrap.js is measured on; `wall` is the calendar.
   const clock = { mono: 5_000, wall: 1_700_000_000_000 };
   const advance = ms => { clock.mono += ms; clock.wall += ms; };
 
+  /* The bytes on disk, which are not always what the attachment's declared type
+     claims. `magic` prepends a real file signature, so a row can be a snapshot
+     to `isSnapshotAttachment()` and a JPEG to anything that reads the file —
+     which is the whole of the population ticket 0740 is about. Without it the
+     body is filler, and filler is what every other scenario here wants. */
+  const sourceBody = row => {
+    const body = new Uint8Array(row.sourceBytes).fill(0x78);
+    if (row.magic) body.set(row.magic, 0);
+    return body;
+  };
   for (const row of rows) {
-    if (!row.missingSource) files.put(`${STORAGE}/${row.key}/file.pdf`, 'x'.repeat(row.sourceBytes), 500);
+    if (!row.missingSource) files.put(`${STORAGE}/${row.key}/file.pdf`, sourceBody(row), 500);
     if (row.pack) {
       // The pack's bytes name the pack, so the mock reader can identify the file
       // through the real `read(offset, length)` closure bootstrap.js builds —
@@ -287,9 +307,18 @@ export function createHarness(options = {}) {
     toolbar.id = 'zotero-items-toolbar';
     document.body.append(toolbar);
     const dialogs = [];
-    return {
+    const window = {
       document, toolbar, dialogs,
       navigator: { hardwareConcurrency: 8 },
+      /* A chrome window answers media queries, and ticket 0686's reduced-motion
+         item is a reading taken from one. Only the query the plugin asks is
+         answered; anything else comes back `false` rather than silently
+         matching, so a mistyped query in the plugin fails the test instead of
+         reading as the default. */
+      matchMedia(query) {
+        return { media: query,
+          matches: query === '(prefers-reduced-motion: reduce)' && !!options.reducedMotion };
+      },
       require: spec => (spec === 'pako' ? { inflateRaw: bytes => bytes } : sdt),
       openDialog() {
         const doc = new StubDocument();
@@ -301,16 +330,27 @@ export function createHarness(options = {}) {
             if (!dialog.listeners.has(type)) dialog.listeners.set(type, []);
             dialog.listeners.get(type).push(listener);
           },
-          fire(type) { for (const listener of dialog.listeners.get(type) || []) listener({}); },
+          fire(type, event = {}) {
+            for (const listener of dialog.listeners.get(type) || []) listener(event);
+          },
         };
         dialogs.push(dialog);
         return dialog;
       },
     };
+    // The plugin reaches the window from a node it owns, which is the only
+    // route it has inside the render loop.
+    document.defaultView = window;
+    return window;
   };
   const windows = Array.from({ length: options.windows ?? 1 }, makeWindow);
 
-  const prefs = new Map();
+  /* Seeded, so a profile that has already answered the launch question can be
+     staged (ticket 0742). A `Map` and not an object: `Zotero.Prefs.get` of an
+     unset pref must answer `undefined`, which is the tri-state's "never
+     answered" — an object with inherited keys would answer something else for
+     names like `constructor`. */
+  const prefs = new Map(Object.entries(options.prefs || {}));
   const clipboard = { text: null };
   /* Ticket 0696's end-of-sweep toast. It belongs in the mock rather than in the
      one scenario that asserts on it, because announceSDTSweep is guarded: a
@@ -354,8 +394,13 @@ export function createHarness(options = {}) {
         return (options.ensure || defaultEnsure)(id, onProgress);
       },
     },
+    Notifier: {
+      registerObserver(observer, types) { const id = ++observerSequence; observers.set(id, { observer, types }); return id; },
+      unregisterObserver(id) { observers.delete(id); },
+    },
     Items: {
       getAsync: async id => {
+        calls.inspect.push(id);
         const row = library.get(id);
         if (row) return item(row);
         const owner = library.get(id - 1000);
@@ -363,7 +408,11 @@ export function createHarness(options = {}) {
       },
     },
     DB: {
-      columnQueryAsync: async () => rows.map(row => row.id),
+      columnQueryAsync: async (sql, params) => {
+        if (params) { calls.affected.push(params[0]); return [...library.values()]
+          .filter(row => row.parentTitle && row.id + 1000 === params[0]).map(row => row.id); }
+        calls.list++; return [...library.keys()];
+      },
       valueQueryAsync: async (_sql, [id]) => library.get(id).pages,
     },
     File: {
@@ -380,7 +429,7 @@ export function createHarness(options = {}) {
       },
       getContentsFromURLAsync: async url => {
         if (url === `${ROOT_URI}manifest.json`) return fs.readFileSync(`${SITTER}/manifest.json`, 'utf8');
-        if (url === 'resource://zotero/document-worker/metadata.json') return VERSIONS_JSON;
+        if (url === 'resource://zotero/document-worker/metadata.json') return options.versions ? JSON.stringify(options.versions()) : VERSIONS_JSON;
         // The locale files, served the way the real host serves them — off the
         // packaged tree, one fetch per candidate in the fallback chain, and a
         // throw for a tag this build does not ship (ticket 0692). Reading them
@@ -463,7 +512,29 @@ export function createHarness(options = {}) {
   const context = vm.createContext({
     Zotero, IOUtils, PathUtils, TextEncoder, Cc: {}, Ci: {},
     Services: {
-      prompt: { confirm: () => { calls.prompt++; return options.launch !== false; } },
+      /* `confirmEx`, and deliberately NOT `confirm` beside it (ticket 0742).
+         The launch question now carries labelled buttons, and a mock that still
+         answered the old two-button call would let a bootstrap.js reverted to
+         OK/Cancel stay green. The button titles are captured so a test can
+         assert the question is not asked over generic buttons.
+
+         `BUTTON_POS_*` and `BUTTON_TITLE_IS_STRING` are nsIPromptService's own
+         values, not invented ones: a flag word computed from different numbers
+         would be a mock inventing the platform, which is the failure the
+         `importESModule` assertion below records. */
+      prompt: {
+        BUTTON_POS_0: 1, BUTTON_POS_1: 256, BUTTON_TITLE_IS_STRING: 127,
+        confirmEx: (_parent, title, text, flags, button0, button1) => {
+          calls.prompt++;
+          calls.prompts.push({ title, text, flags, buttons: [button0, button1] });
+          // The one moment the modal is up. A real `confirmEx` blocks here, so
+          // this hook is the only place a test can read the window as the user
+          // sees it while the question is being asked — which is the whole of
+          // ticket 0742's ordering race.
+          if (options.onPrompt) options.onPrompt(windows);
+          return options.launch === false ? 1 : 0;
+        },
+      },
       scriptloader: {
         loadSubScript: url => {
           assert.equal(url, `${ROOT_URI}scheduler.js`, 'the scheduler is not loaded from rootURI');
@@ -523,7 +594,9 @@ export function createHarness(options = {}) {
   }
 
   return {
-    context, Zotero, files, timers, calls, windows,
+    context, Zotero, files, timers, calls, windows, library, observers,
+    notify(event, type, ids) { for (const { observer, types } of observers.values())
+      if (types.includes(type)) observer.notify(event, type, ids, {}); },
     clock, advance, quiet, turn, persistPack, debugged, logged,
     /** Every toast shown, in order, with the lines it carried. */
     toasts,
@@ -542,6 +615,7 @@ export function createHarness(options = {}) {
     async nextSweep() {
       const armed = timers.ids('timeout');
       assert.equal(armed.length, 1, `expected one armed sweep, found ${armed.length}`);
+      advance(timers.pending.get(armed[0]).ms);
       timers.fire(armed[0]);
       await quiet();
     },

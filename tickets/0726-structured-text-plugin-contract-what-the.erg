@@ -8,8 +8,15 @@ Label: needs-human
 2026-09-06T21:26Z claude created
 2026-09-06T21:31Z claude note filed on the author's premise of the same session: he will write a Zotero plugin that serves full text derived from the SDT route and chunks, repackaging PR #6012's chunker. This ticket is the contract zoteus codes against; ticket 0572 is the consumer and is re-cut onto it. Two decisions are the author's and are drafted as an awaiting-ratification entry in DECISIONS.md rather than settled here: whether zoteus consumes the plugin's chunks as final or takes blocks and chunks them itself, and how the token budget crosses the boundary. The `needs-human` label is for those two.
 
+2026-09-08T21:49Z Codex note Linked 0758 initial design vision for contract reconciliation: existing fulltext API plugin, three representations and strategy menu; pending contract rulings remain explicit.
 --- body ---
 ## Context
+
+Initial product vision: ticket 0758 records the author's subsequent three-mode
+interface (Fulltext, Structured-text, Chunks stream) and strategy-menu direction,
+building on the existing full-text API plugin. Reconcile that vision in this
+contract review before implementation; its candidate strategies do not settle
+the pending chunk-consumption or tokenizer-budget decisions below.
 
 The author will write a Zotero plugin that serves, over the local API's own
 HTTP server, the full text Zotero's structured-document route produces and

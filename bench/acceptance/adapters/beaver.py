@@ -154,6 +154,17 @@ from pathlib import Path
 from ..interface import Declaration, UnsupportedVerb
 from ..posture import Posture
 
+# Not a relative import: `run.py` puts `bench/` itself on sys.path and imports
+# this package as `acceptance.…`, where the shared module sits one level ABOVE
+# the package root and `from ...host_addon_record import …` is an ImportError.
+# The suites import it as `bench.acceptance.…` instead, where the package-
+# qualified name is the one that resolves. Both spellings are live, so both are
+# tried.
+try:
+    from bench.host_addon_record import host_addon_record
+except ImportError:  # driven by run.py, with bench/ itself on sys.path
+    from host_addon_record import host_addon_record
+
 #: The release under test and the artifact that carries it. `TAG_OBJECT` is the
 #: annotated tag; `COMMIT` is what it dereferences to. Both are recorded because
 #: a tag can be moved and a commit cannot.
@@ -926,52 +937,14 @@ class Beaver:
         and `uninstall` return, unguarded, so an exception here does not produce
         a bad record: it takes down the assertion that was reading it, with the
         cause nowhere near where it surfaces (ticket 0712).
-        """
-        import json
 
-        path = self.profile / "extensions.json"
-        if not path.is_file():
-            return {"read": False, "why": f"{path} does not exist"}
-        try:
-            document = json.loads(path.read_text(encoding="utf-8"))
-        except (ValueError, OSError, RecursionError, MemoryError) as exc:
-            # RecursionError and MemoryError, not only ValueError: json rejects
-            # deeply nested input by exhausting the stack and a large enough
-            # document by exhausting the heap. Neither descends from ValueError
-            # or OSError — RecursionError is a RuntimeError and MemoryError
-            # inherits Exception directly — so a tuple naming only the two
-            # obvious families lets both straight through the caller. Both were
-            # reproduced against this function rather than reasoned about: 200k
-            # nested arrays for the first, an 81 MB flat document under a 150 MB
-            # address-space cap for the second, each with a small-input control
-            # under the same conditions returning a record normally.
-            return {"read": False, "why": f"{type(exc).__name__}: {exc}"}
-        # Shape, separately from syntax. `[]` and `"text"` are valid JSON, so
-        # nothing above rejects them, and `.get` on the result raised
-        # AttributeError. The document's shape, then the container's, then each
-        # element's: three floors of one trapdoor.
-        if not isinstance(document, dict):
-            return {"read": False,
-                    "why": f"{path}: the document is {type(document).__name__}, not an object"}
-        addons = document.get("addons", [])
-        if not isinstance(addons, list):
-            return {"read": False,
-                    "why": f'{path}: "addons" is {type(addons).__name__}, not a list'}
-        for addon in addons:
-            if isinstance(addon, dict) and addon.get("id") == ADDON_ID:
-                return {"read": True, "present": True,
-                        "version": addon.get("version"),
-                        "active": addon.get("active"),
-                        "location": addon.get("location")}
-        # `isinstance(..., str)` and not a bare truth test, which is the third
-        # floor: the document was checked, then the container, and an ELEMENT
-        # whose id is a number still reached `sorted()` over mixed types, where
-        # `str < int` raises TypeError. An id that is not a string is not one
-        # this adapter could have installed under, so it is not reported back.
-        return {"read": True, "present": False,
-                "ids": sorted(a["id"] for a in addons
-                              if isinstance(a, dict) and isinstance(a.get("id"), str)
-                              and a["id"])}
+        The reading itself lives in `bench/host_addon_record.py`, shared with
+        the sitter's installer, which asks the same question of a real profile
+        rather than a throwaway one. It was written here and hand-ported there,
+        and the second time the same fix had to be copied was the last
+        (ticket 0713).
+        """
+        return host_addon_record(self.profile, ADDON_ID)
 
 
 #: The targets this module builds. The registry walks the package and reads

@@ -12,7 +12,7 @@ vm.runInNewContext(schedulerSource, context);
 // The host half of the journal (emit, heartbeat, shutdown) lives in bootstrap.js;
 // loading it here lets the ring be driven by the real scheduler rather than by hand.
 // Read once for the same reason, and reused by the phase enumeration below.
-const ui = {};
+const ui = { ChromeUtils: { now: () => 10000 } };
 const bootstrapSource = fs.readFileSync('plugins/sdt-sitter/bootstrap.js', 'utf8');
 // The plugin loads scheduler.js into bootstrap's own global before it renders
 // anything (`Services.scriptloader.loadSubScript(..., globalThis)`), so the census
@@ -41,6 +41,20 @@ function fixture() {
 }
 const results = [];
 async function test(name, body) { await body(); results.push(name); }
+await test('events coalesce targeted inspection and resource retries never repeat the census', async () => {
+  const f = fixture(), inspected = []; let lists = 0;
+  f.host.list = async () => { lists++; return [1, 2]; };
+  const inspect = f.host.inspect;
+  f.host.inspect = async id => { inspected.push(id); return inspect(id); };
+  f.host.blocked = async () => 'low-memory';
+  await f.api.sweep(); inspected.length = 0;
+  f.api.invalidate([1]); f.api.invalidate([1]);
+  await f.api.pump();
+  assert.equal(lists, 1); assert.deepEqual(inspected, [1]);
+  f.host.blocked = async () => null;
+  await f.api.pump();
+  assert.equal(lists, 1); assert.deepEqual(f.calls, [1, 2]);
+});
 await test('census precedes generation; cache hit is read-only', async () => {
   const f = fixture();
   const ensure = f.host.ensure;
@@ -63,12 +77,23 @@ await test('unresolved native promise and concurrent sweeps do not multiply admi
   await f.api.sweep(); assert.deepEqual(f.calls, [1]);
   f.api.stop(); finish.resolve(); await running; assert.deepEqual(f.calls, [1]);
 });
-await test('disable during ensure leaves completion but no UI callbacks or next admission', async () => {
+// Found live, testing v0.3.17: the disclosure promises "one already being
+// processed still finishes", and a reader watching the window saw the
+// opposite -- the bar froze mid-job and never reached completion, because
+// `publish()` used to gate `host.changed` on `enabled` and the periodic
+// redraw is what the switch already tears down. The job DID finish (this
+// test's own name was accurate about that half); nothing said so on screen.
+// So a UI callback during the graceful drain is now the correct behaviour,
+// not the leak this test used to guard against -- gating what actually
+// happens on screen is bootstrap.js's `render()`/`alive`, not this flag.
+await test('disable during ensure still notifies on the finishing job, but admits no more', async () => {
   const f = fixture(), entered = deferred(), finish = deferred(); let callback;
   f.host.ensure = async (id, progress) => { f.calls.push(id); callback = progress; entered.resolve(); await finish.promise; f.cached.add(id); return true; };
   const running = f.api.sweep(); await entered.promise;
   f.api.stop(); const count = f.updates.length; callback(100); finish.resolve(); await running;
-  assert.equal(f.updates.length, count); assert.deepEqual(f.calls, [1]); assert(f.cached.has(1));
+  assert(f.updates.length > count, 'the finishing job left no trace of its own completion');
+  assert.deepEqual(f.calls, [1], 'a disabled sitter admitted a second document');
+  assert(f.cached.has(1));
 });
 await test('disable during census or admission resource await prevents submission', async () => {
   for (const name of ['inspect', 'blocked']) {
@@ -353,7 +378,7 @@ await test('after a hang the ring names the active document, its last progress a
   const ring = context.createSDTJournal(50);
   ui.journal = ring; ui.sealed = false; ui.alive = true; ui.sitter = f.api;
   ui.Zotero = { debug: () => {}, Prefs: { get: () => true } };
-  f.host.emit = ui.emit; f.host.now = () => Date.now();
+  f.host.emit = ui.emit; f.host.now = () => ui.monotonic();
   let callback;
   f.host.ensure = async (id, progress) => {
     f.calls.push(id); callback = progress; entered.resolve(); await finish.promise; return true;
@@ -520,7 +545,7 @@ await test('a memoized hash expires, so a silent in-place rewrite is caught with
     assert.equal(hashed, 3, label);
   }
 });
-await test('an idle library backs off; anything left to do keeps the 30 s cadence', async () => {
+await test('quiet libraries wait for reconciliation and resource retries stay independent', async () => {
   const idle = fixture();
   idle.host.inspect = async () => ({ status: 'current' });
   await idle.api.sweep();
@@ -534,11 +559,15 @@ await test('an idle library backs off; anything left to do keeps the 30 s cadenc
   assert.equal(worked.api.state.phase, 'waiting');
   assert.equal(worked.api.state.pending.length, 0);
   assert.equal(worked.api.state.candidates, 2);
-  assert.equal(ui.nextSweepDelayMS(worked.api.state), 30000);
-  // And a sweep halted by a resource gate has work waiting: look again soon.
+  assert(ui.nextSweepDelayMS(worked.api.state) > 30000 * 20);
+  // Ticket 0745. A sweep halted by a resource gate backs off to the idle
+  // cadence, not the 30 s active one: the gate names a resource the machine
+  // does not currently have, not work the sitter is doing, and retrying it
+  // every 30 s made the plugin busiest exactly when it had decided the
+  // machine was too busy.
   const held = fixture(); held.host.blocked = async () => 'low-disk';
   await held.api.sweep();
-  assert.equal(ui.nextSweepDelayMS(held.api.state), 30000);
+  assert.equal(ui.nextSweepDelayMS(held.api.state), 30000 * 20);
   // A census that threw also found no candidate, and it is the case the count
   // alone cannot tell from a finished library. Only the phase separates them,
   // and a broken census must be retried in seconds, not in ten minutes.
@@ -651,7 +680,7 @@ await test('shutdown is the last record even with a submission still in flight',
   const ring = context.createSDTJournal(50);
   ui.journal = ring; ui.sealed = false; ui.alive = true; ui.sitter = f.api;
   ui.Zotero = { debug: () => {}, Prefs: { get: () => true }, SDTPackSitter: { state: f.api.state } };
-  f.host.emit = ui.emit; f.host.now = () => Date.now();
+  f.host.emit = ui.emit; f.host.now = () => ui.monotonic();
   let callback;
   f.host.ensure = async (id, progress) => {
     f.calls.push(id); callback = progress; entered.resolve(); await finish.promise;
@@ -703,7 +732,12 @@ await test('shutdown is the last record even with a submission still in flight',
   // The seal keeps records off the far side of shutdown, so it would also hide a
   // shutdown that never removed the callbacks. These read the sitter, not the ring.
   assert.equal(f.api.state.enabled, false);
-  assert.equal(f.updates.length, updates);
+  // `publish()` no longer gates this on `enabled` (found live, testing
+  // v0.3.17): the finishing job's own completion must reach `host.changed`
+  // so a window watching it sees the promised finish. What actually protects
+  // the torn-down window from repainting is `render()`'s own `alive` check in
+  // bootstrap.js, which this fixture's bare recorder does not model.
+  assert(f.updates.length > updates, 'the finishing job left no trace of its own completion');
   assert.deepEqual(f.calls, [1]);
   const tail = Array.from(ring.tail(50));
   assert.equal(tail.length, closed);
@@ -1062,6 +1096,7 @@ await test('a sweep loop left over from a previous generation announces nothing'
   // misattribution to have anything to misattribute.
   const suspendMidExtraction = (f, entered, finish) => {
     f.host.list = async () => [1, 2, 3];
+    f.api.invalidate([3]);
     f.host.ensure = async (id, progress) => {
       f.calls.push(id); entered.resolve(); await finish.promise;
       progress(90); f.cached.add(id); return true;
@@ -1073,7 +1108,7 @@ await test('a sweep loop left over from a previous generation announces nothing'
   const entered = deferred(), finish = deferred();
   suspendMidExtraction(stale, entered, finish);
   ui.generation = 7; ui.alive = true; ui.sitter = stale.api;
-  const running = ui.createSDTSweepLoop(7)();
+  const running = ui.createSDTSweepLoop(7, ui.sweepGeneration)();
   await entered.promise;
   // Disable, then re-enable. initialize() installs the new sitter and restores
   // `alive` before its modal confirm, so this needs no click to happen.
@@ -1092,7 +1127,7 @@ await test('a sweep loop left over from a previous generation announces nothing'
   const enteredAgain = deferred(), finishAgain = deferred();
   suspendMidExtraction(live, enteredAgain, finishAgain);
   ui.generation = 9; ui.alive = true; ui.sitter = live.api;
-  const alive = ui.createSDTSweepLoop(9)();
+  const alive = ui.createSDTSweepLoop(9, ui.sweepGeneration)();
   await enteredAgain.promise;
   finishAgain.resolve();
   await alive;
@@ -1102,8 +1137,147 @@ await test('a sweep loop left over from a previous generation announces nothing'
   // open the gate.
   assert.deepEqual(shown[0].lines, ['3 files indexed']);
   assert.equal(scheduled.length, 1, 'the live loop stopped rescheduling itself');
-  assert.equal(scheduled[0].ms, 30000);
+  assert(scheduled[0].ms > 30000 * 20);
   ui.timers = undefined;
+});
+await test('events during inspection and native work remain dirty until observed', async () => {
+  const f = fixture(); f.host.blocked = async () => 'low-memory';
+  await f.api.sweep();
+  let inspections = 0;
+  const original = f.host.inspect;
+  f.host.inspect = async id => {
+    if (id === 1 && ++inspections === 1) { f.api.invalidate([1]); return original(id); }
+    return original(id);
+  };
+  f.api.invalidate([1]); await f.api.pump(); assert.equal(inspections, 2);
+  f.host.blocked = async () => null;
+  const ensure = f.host.ensure;
+  f.host.ensure = async (id, progress) => {
+    if (id === 1) { f.api.invalidate([3]); f.api.invalidate([3]); }
+    return ensure(id, progress);
+  };
+  await f.api.pump();
+  assert.deepEqual(f.calls, [1, 2, 3]);
+  assert.equal(f.api.state.total, 3); assert.equal(f.api.state.counts.current, 3);
+});
+await test('an event during parent expansion is retained and no partial update prunes', async () => {
+  const f = fixture(); f.host.blocked = async () => 'low-memory';
+  let prune = 0, expansions = 0;
+  f.host.censusComplete = async () => { prune++; return []; };
+  await f.api.sweep();
+  f.host.affected = async id => {
+    if (++expansions === 1) f.api.invalidate([id]);
+    return [1, 2];
+  };
+  f.api.invalidate([99]); await f.api.pump();
+  assert.equal(expansions, 2); assert.equal(prune, 1);
+  assert.equal(f.api.state.total, 2);
+});
+await test('quiet pump calls and a missed deadline produce only one reconciliation', async () => {
+  const f = fixture(); let now = 0, lists = 0;
+  f.host.now = () => now;
+  f.host.list = async () => { lists++; return [1, 2]; };
+  await f.api.sweep(); const deadline = f.api.state.nextReconciliationAt;
+  now = deadline - 1; await f.api.pump(); await f.api.pump(); assert.equal(lists, 1);
+  now = deadline * 7; await f.api.pump(); await f.api.pump(); assert.equal(lists, 2);
+  assert.equal(f.api.state.lastReconciliationAt, now);
+  assert(f.api.state.nextReconciliationAt > now);
+});
+await test('disappearance before admission or during native work never blacklists a restored source', async () => {
+  for (const when of ['gate', 'native']) {
+    const f = fixture(); f.host.list = async () => [1]; let missing = false;
+    const inspect = f.host.inspect;
+    f.host.inspect = async id => missing ? { status: 'missing-source' } : inspect(id);
+    if (when === 'gate') f.host.blocked = async () => { missing = true; return null; };
+    else f.host.ensure = async id => { f.calls.push(id); missing = true; throw new Error('gone'); };
+    await f.api.sweep();
+    assert.equal(f.api.state.counts['missing-source'], 1);
+    assert.equal(f.api.state.counts['failed-session'] || 0, 0);
+    assert.equal(f.calls.length, when === 'gate' ? 0 : 1);
+    missing = false; f.host.blocked = async () => null;
+    f.host.ensure = async id => { f.calls.push(id); f.cached.add(id); return true; };
+    f.api.invalidate([1]); await f.api.pump();
+    assert.equal(f.api.state.counts.current, 1);
+  }
+});
+await test('real extraction failures survive same-byte restoration, but an external current pack wins', async () => {
+  const f = fixture(); f.host.list = async () => [1]; let missing = false;
+  const inspect = f.host.inspect;
+  f.host.inspect = async id => missing ? { status: 'missing-source' } : inspect(id);
+  f.host.ensure = async id => { f.calls.push(id); return false; };
+  await f.api.sweep(); missing = true; f.api.invalidate([1]); await f.api.pump();
+  missing = false; f.api.invalidate([1]); await f.api.pump();
+  assert.deepEqual(f.calls, [1]); assert.equal(f.api.state.counts['failed-session'], 1);
+  f.cached.add(1); f.api.invalidate([1]); await f.api.pump();
+  assert.equal(f.api.state.counts.current, 1); assert.equal(f.api.state.failed, 0);
+});
+await test('a source changed during native work inherits neither failure nor duration from its predecessor', async () => {
+  const f = fixture(); f.host.list = async () => [1]; let identity = 'A';
+  f.host.inspect = async () => ({ status: f.cached.has(1) ? 'current' : 'missing-pack',
+    identity, sourceBytes: identity === 'A' ? 10 : 20 });
+  f.host.ensure = async (id, progress) => {
+    f.calls.push(identity); progress(10);
+    if (identity === 'A') { identity = 'B'; return true; }
+    f.cached.add(id); return true;
+  };
+  await f.api.sweep();
+  assert.deepEqual(f.calls, ['A', 'B']); assert.equal(f.api.state.completed, 1);
+  assert.equal(f.api.state.samples.length, 1); assert.equal(f.api.state.samples[0].sourceBytes, 20);
+});
+await test('worker becoming busy during final inspection blocks native admission', async () => {
+  const f = fixture(); let workerBusy = false, inspections = 0;
+  const inspect = f.host.inspect;
+  f.host.inspect = async id => { if (++inspections > 2) workerBusy = true; return inspect(id); };
+  f.host.beforeSubmit = () => workerBusy ? 'native-worker-busy' : null;
+  await f.api.sweep(); assert.deepEqual(f.calls, []);
+  assert.equal(f.api.state.phase, 'native-worker-busy');
+});
+await test('off then on during extraction cannot resurrect the old pump or spin an overdue timer', async () => {
+  const f = fixture(), entered = deferred(), release = deferred();
+  let lists = 0; f.host.list = async () => { lists++; return [1, 2]; };
+  f.host.ensure = async id => { f.calls.push(id); entered.resolve(); await release.promise; f.cached.add(id); return true; };
+  const running = f.api.sweep(); await entered.promise;
+  f.api.stop(); f.api.start(); await f.api.pump();
+  assert(ui.nextSweepDelayMS({ ...f.api.state, nextReconciliationAt: 0 }) > 0);
+  release.resolve(); await running;
+  assert.deepEqual(f.calls, [1]);
+  await f.api.pump(); assert.deepEqual(f.calls, [1, 2]); assert.equal(lists, 2);
+});
+await test('partial reconciliation never prunes derived records or advances freshness', async () => {
+  const f = fixture(), entered = deferred(), release = deferred(); let prunes = 0;
+  f.host.censusComplete = async () => { prunes++; return []; };
+  await f.api.sweep(); const stamp = f.api.state.lastReconciliationAt;
+  const inspect = f.host.inspect;
+  f.host.inspect = async id => { if (id === 2) { entered.resolve(); await release.promise; } return inspect(id); };
+  const running = f.api.sweep(); await entered.promise; f.api.stop(); release.resolve(); await running;
+  assert.equal(prunes, 1); assert.equal(f.api.state.lastReconciliationAt, stamp);
+});
+await test('settled aggregate publications retain nonnegative conserved counts and unique queue IDs', async () => {
+  const f = fixture(); f.host.ensure = async id => { f.calls.push(id); return false; };
+  await f.api.sweep(); f.api.invalidate([1, 2, 1]); await f.api.pump();
+  f.cached.add(1); f.api.invalidate([1]); await f.api.pump();
+  for (const raw of f.updates) {
+    const state = JSON.parse(raw);
+    assert(Object.values(state.counts).every(n => n >= 0));
+    assert.equal(new Set(state.pending.map(item => item.id)).size, state.pending.length);
+    if (state.scanned === state.total)
+      assert.equal(Object.values(state.counts).reduce((sum, n) => sum + n, 0), state.total);
+  }
+});
+await test('source moving during admission requires a resource reading for its new directory', async () => {
+  const f = fixture(); f.host.list = async () => [1]; let directory = 'old'; const gated = [];
+  f.host.inspect = async () => ({ status: 'missing-pack', identity: 'same', directory });
+  f.host.blocked = async info => { gated.push(info.directory); directory = 'new'; return gated.length === 2 ? 'low-disk' : null; };
+  await f.api.sweep(); assert.deepEqual(gated, ['old', 'new']); assert.deepEqual(f.calls, []);
+});
+await test('events arriving during a refused resource read update coverage before the pump sleeps', async () => {
+  const f = fixture(); let reads = 0;
+  f.host.blocked = async () => {
+    if (++reads === 1) { f.cached.add(2); f.api.invalidate([2]); }
+    return 'low-memory';
+  };
+  await f.api.sweep(); assert.equal(f.api.state.counts.current, 1);
+  assert.equal(f.api.state.pending.length, 1); assert.deepEqual(f.calls, []);
 });
 console.log(JSON.stringify({ tests: results, result: 'pass' }));
 
@@ -1255,9 +1429,103 @@ assert.equal(ui.describeSDTFile(null, 'unknown file'), 'unknown file');
 let coverage = ui.getSDTCoverage({ total: 10, scanned: 10, phase: 'waiting',
   counts: { current: 4, excluded: 2, unsupported: 1, 'failed-session': 1, 'missing-source': 2 } });
 assert.equal(coverage.current, 4); assert.equal(coverage.total, 7); assert.equal(coverage.known, true);
+// No censusSnapshot: the first-ever census has never once completed. `known`
+// still reads false (still counting, no denominator to trust yet), but the
+// live counts are used rather than zeroed -- switching off mid-first-census
+// used to freeze a real count, and switching back on discarded it for a bare
+// "0" that lasted the whole re-walk, since nothing held the pre-reset state
+// (found live, testing v0.3.19).
 coverage = ui.getSDTCoverage({ total: 10, scanned: 4, phase: 'census', counts: { current: 4 } });
 assert.equal(coverage.known, false);
-assert.equal(coverage.current, 0); assert.equal(coverage.total, 0);
+assert.equal(coverage.current, 4); assert.equal(coverage.total, 10);
+
+// Found live, testing v0.3.19: the author switched off partway through the
+// FIRST-EVER census (before it had once completed), watched the frozen
+// coverage line read "1 515 / 16 606" correctly, switched back on, and
+// watched it regress to "0" for the length of the whole re-walk -- minutes,
+// at library scale, since every activation re-hashes from scratch. Driven
+// through real sweep() calls, not the unit-level state literal above: what
+// matters is that sweep()'s own reset of state.counts happens AFTER a
+// snapshot of what was there, not merely that getSDTCoverage can read one if
+// given it.
+await test('a census interrupted before its first completion still shows the pre-restart count, not zero', async () => {
+  const f = fixture();
+  f.cached.add(1); // classifies 'current' -- a real, nonzero indexed count to lose
+  const entered = deferred(), release = deferred();
+  let hit = 0;
+  f.host.inspect = async id => {
+    if (id === 2 && hit++ === 0) { entered.resolve(); await release.promise; }
+    return { status: f.cached.has(id) ? 'current' : 'missing-pack', identity: String(id) };
+  };
+  const running = f.api.sweep();
+  await entered.promise;
+  // Mid-census, first-ever: id 1 classified 'current', id 2 paused before its
+  // own classification, no completion yet, so nothing has EVER populated
+  // censusSnapshot.
+  assert.equal(f.api.state.censusSnapshot, null, 'a snapshot exists before any census ever completed');
+  const beforeCoverage = ui.getSDTCoverage(f.api.state);
+  assert.equal(beforeCoverage.current, 1, 'the fixture set up differently than this test assumes');
+  f.api.stop();
+  release.resolve();
+  await running;
+
+  // Restart: the second sweep's own reset must not discard what the first
+  // one had classified so far.
+  f.api.start();
+  const running2 = f.api.sweep();
+  assert(f.api.state.censusSnapshot, 'the pre-reset state was not snapshotted before the second census reset it');
+  const midRestart = ui.getSDTCoverage(f.api.state);
+  assert.equal(midRestart.current, 1,
+    'the count regressed to zero on restart instead of holding what the first census had scanned');
+  await running2;
+});
+
+// Found live, testing v0.3.20: after a real completed census, switching off
+// showed a DIFFERENT, plausible-looking wrong number every time -- because
+// the sitter re-censuses from empty on its own ~30 s cadence regardless of
+// the switch, and `state.phase` becomes 'switched-off' the instant the click
+// lands whatever that background walk was doing. Freezing on the live counts
+// unconditionally (ticket 0747) froze a half-rebuilt classification whenever
+// the click happened to land mid-walk, not the last complete one. This is
+// that exact case: a full census already completed once, a SECOND one is
+// under way when the switch is thrown.
+await test('switching off during a periodic re-census shows the last complete count, not the interrupted rebuild', async () => {
+  const f = fixture();
+  f.cached.add(1);
+  const running1 = f.api.sweep();
+  await running1;
+  assert.equal(f.api.state.completed, 1, 'the first sweep did not finish extracting id 2');
+  const complete = ui.getSDTCoverage(f.api.state);
+  assert.equal(complete.current, 2, 'both attachments should read current after the first sweep completes');
+
+  const entered = deferred(), release = deferred();
+  let hit = 0;
+  f.host.inspect = async id => {
+    if (id === 2 && hit++ === 0) { entered.resolve(); await release.promise; }
+    return { status: f.cached.has(id) ? 'current' : 'missing-pack', identity: String(id) };
+  };
+  const running2 = f.api.sweep();
+  await entered.promise;
+  // Mid-rebuild: id 1 reclassified in this walk, id 2 paused before its own,
+  // so the live counts hold only what THIS walk has seen so far -- not what
+  // the library actually contains.
+  assert.equal(f.api.state.scanned, 1);
+  assert.notEqual(f.api.state.scanned, f.api.state.total, 'the fixture completed instead of pausing mid-walk');
+
+  f.api.stop(); // the switch, thrown mid-rebuild
+  // bootstrap.js's disarmSDTSitter() also overwrites phase, unconditionally,
+  // to 'switched-off' -- the exact move that makes `state.phase === 'census'`
+  // useless as a signal here, since it is gone the instant the switch fires
+  // regardless of what the walk under it was doing. Reproduced by hand since
+  // this test drives the scheduler directly.
+  f.api.state.phase = 'switched-off';
+  const duringOff = ui.getSDTCoverage(f.api.state);
+  assert.equal(duringOff.current, 2,
+    `switching off mid-rebuild showed ${duringOff.current}, the interrupted walk's own partial count, not the last complete one`);
+
+  release.resolve();
+  await running2;
+});
 
 const cache = context.createSDTCache(null, 'v');
 cache.remember('1/a', 'source-v', 'pack-stamp', { sourceBytes: 100, pages: 2 });

@@ -10,7 +10,23 @@ Consequently pack coverage is not a claim that Zotero's separate lexical index
 or Zoteus's embedding index is complete. Native SDT does not use the flat-text
 extraction caps.
 
-Install through Zotero's extension manager, then accept the launch dialog.
+Install through Zotero's extension manager. The first activation asks once
+whether to index in the background; the answer is written to
+`extensions.sdt-pack-sitter.enabled` and the question is never asked again, on
+this restart or any later one. That preference is R22's one obvious way for the
+sitter (ratified 2026-09-08, ticket 0742), and the switch that carries it is the
+first control in the add-on's window: off runs no census and admits nothing, and
+says so on the toolbar; on is ordinary operation. Editing the preference away in
+the Config Editor puts the profile back in the unanswered state, and the question
+is asked once more.
+
+Attachment changes and completed file downloads now queue targeted inspections.
+Full reconciliation runs on activation, re-enabling and the cadence owned by
+SPEC.md §5.2.7. Resource retries resume the queue without another library census.
+Coverage reports the last observed state and the age of the last completed
+reconciliation. [Scheduling verification](SDT-SITTER-EVENTS.md) records the host
+notification mapping and tests; live deployment of this change is not measured.
+
 The toolbar button opens session coverage and progress, elapsed time and time
 since the last native signal, empirical processing speed, an indicative ETA
 after census, and a snapshot of native full-text index statistics. ETA is not
@@ -28,7 +44,9 @@ It does not extrapolate an unobserved tail or repair its own selection bias.
 
 The disposable `sdt-sitter-cache.jsonl` in Zotero's data directory retains
 verified census hints and the latest successful duration observation per
-attachment. It contains no text, source paths, active tasks or failure ledger.
+attachment. It contains no text, source paths, active tasks or failure ledger:
+a document whose extraction fails is suppressed in memory for the remainder of
+the session and asked again on the next activation.
 Native source hashes, processor versions and pack filesystem fingerprints
 gate reuse. Missing/corrupt records fall back to inspection. The first completed
 census compacts the cache; later writes append changed derived rows, avoiding
@@ -56,10 +74,17 @@ reactivation with restored observations and no repeated native extraction.
 `verification/SDT-SITTER-UI-PANEL.md` records the requested independent panel
 verdicts and the remaining accessibility/wording recommendations.
 
-Disable the extension to stop further admissions. The already submitted native
-job can finish and persist its pack. Re-enabling asks for confirmation again
-and reconstructs coverage from native caches. Session failures are forgotten,
-so re-enabling can retry them. No unresolved native promise is retried.
+Turn the switch off, in the add-on's own window, to stop further admissions;
+disabling the extension in Zotero's add-ons manager does the same and also
+removes the window and the toolbar entry. Under either, the already submitted
+native job can finish and persist its pack. Re-enabling does not ask for
+confirmation again — the persisted answer stands — and reconstructs coverage
+from native caches. Turning the in-window switch back on retains session
+failures; a fresh extension activation creates a new session and can retry them. No unresolved native promise is retried.
+
+What the sitter does not control (the shared worker's priority and
+interruptibility) and what stopping it does and does not do are readable in the
+window's Details layer at any time, rather than only in the first-run dialog.
 
 ## Experimental limits
 

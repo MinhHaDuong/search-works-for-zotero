@@ -6992,3 +6992,118 @@ title and website metadata, and `5a81cee` adds root Open Plugins manifests.
 They change three registry JSON files and no shipped npm, search, storage or
 requirement mechanism. The reviewed tip is therefore `5a81cee` (v1.15.0+2),
 not the tag `037bba8`; the bounded verdicts and focused executable run stand.
+
+**2026-09-08 — RATIFIED: a refusal IS a cache record, superseding "failures are
+never persisted".** The author, on the 39 documents the sitter resubmitted every
+session: « oui on persiste en cache, jetable c'est un cache ». The 2026-09-05
+ruling above forbade "a durable active-job or failure ledger", and that clause is
+narrowed here rather than withdrawn: what it rules out is a LEDGER — a private,
+durable record of work state that outlives the thing it describes and that the
+author cannot clear. What the sitter may now keep is a single verdict per
+document in the same disposable cache that already holds pack freshness and
+duration observations: native SDT was handed this exact identity and persisted
+no pack.
+
+Three properties are what make it a cache record and not a ledger, and all three
+are load-bearing. It is keyed on the identity that already embeds the source hash
+and the pack versions, so a re-saved file or a native version bump re-opens the
+question with nothing having to remember to. It is disposable, which is the whole
+of the author's argument: a wrong entry costs one re-attempt after a cache reset,
+which is the correct price for being wrong. And it stays inside the census's
+failure class as `failed-remembered`, so the author's "could not be indexed"
+figure does not shrink because the sitter stopped asking.
+
+Active jobs remain unpersisted, unconditionally. That half of the 2026-09-05
+clause is untouched: a job in flight is state about a process, and a process does
+not survive its session.
+
+The same ticket's other half needs no such licence, and the asymmetry is recorded
+because it is easy to read the ruling as covering both. Refusing a document whose
+bytes contradict its declared type is recomputed from the file on every census
+and written nowhere, so the disposability argument has nothing to protect there:
+a wrong verdict corrects itself on the next sweep without anyone resetting
+anything.
+
+The alternative the author rejected implicitly by ruling at all — keep the
+session-only exclusion and make the extraction cheaper — was no alternative: the
+documents at issue cannot succeed, so no reduction in cost makes asking them
+again worth anything. Ticket 0740 carries the measurement.
+
+**2026-09-08 — RATIFIED: the sitter's failure suppression is session-scoped, and
+the entry above is withdrawn.** The author, asked to choose between keeping the
+persisted verdict with a UI to manage it, dropping suppression altogether, or
+holding it in memory for the session only: the cache is session-scoped, gone on
+restart, and nothing is written to disk for this purpose. He accepted the cost
+by name — a failure is retried again after every Zotero restart — in exchange
+for no orphaned or undiscoverable state on disk.
+
+So the narrowing recorded immediately above does not stand, and the 2026-09-05
+ruling is restored whole: the disposable cache carries pack freshness and
+duration observations, and never a durable failure or active-job ledger. The
+distinction that entry drew between a "record" and a "ledger" turned on the
+identity re-opening the question by itself, and that turned out to be too weak a
+guarantee. Two independent review rounds reproduced the same path: a document
+refused once is reported unrecoverable forever, and if a pack for that identity
+later arrives by any route other than this plugin's own `ensure()` — native
+indexing, another plugin, a user retriggering extraction — the verdict short-
+circuits the inspection before the pack is ever stat'ed. Nothing in the UI can
+clear one entry; only deleting a file the user is never told exists.
+
+The repo's own verification of the native contract says the same thing from the
+other side. `verification/SDT-PLUGIN-PREREQUISITES.md` records that native SDT
+retries a generic extraction failure on every new call and suppresses only a
+password failure. A persisted verdict converted every transient cause — a worker
+out of memory, a momentary disk fault — into a permanent one, overriding that
+contract rather than extending it. Session scope matches it exactly.
+
+Suppression itself is not withdrawn: within one activation a document that
+failed is not resubmitted, which is the `failed-session` mechanism the scheduler
+already had before ticket 0740 and which that ticket's measurement was really
+about. What changes is only the span.
+
+Ticket 0740's other half is unaffected and was never persisted: refusing a
+document whose leading bytes contradict its declared type is recomputed from the
+file on every census and written nowhere.
+
+**2026-09-08 — RATIFIED: the sitter's own persisted switch becomes R22's "one
+obvious way", replacing add-on disable.** Ticket 0742 filed a Fable-model UX
+consult recommending that the launch prompt and the plugin's own pause be
+collapsed into one persisted on/off switch inside the dialog, superseding the
+2026-09-05 ruling that named add-on disable as R22's control. Put to the
+author as a named choice — adopt the persisted-switch design, keep add-on
+disable as the sole control, or leave the ticket parked — he chose to adopt
+it.
+
+Add-on disable keeps its graceful-stop semantics as a host-level control, but
+is no longer the R22 control: a user who wants the sitter off should not need
+four clicks into Tools -> Add-ons, and R22's own text requires "one obvious
+way... and it MUST hold across restarts", which disable-plus-launch-prompt
+never satisfied together (disable loses the UI that would show it stopped;
+the launch prompt's decline was never persisted). The new switch is: off, no
+census, no admissions, in-flight `ensure()` work finishes; on, current
+behaviour. This is not a new persisted-failure ledger — it is a user
+preference, not a job or failure record, and the 2026-09-08 session-scoped
+ruling above about failure suppression is untouched by it.
+
+This also settles the launch prompt's own defects, which shared one root
+cause with the missing switch: asking every session with no persisted answer.
+Ticket 0742 carries the full design and the remaining implementation
+actions.
+
+**2026-09-08 — RATIFIED: make the SDT sitter event-driven, with reconciliation
+for changes outside Zotero notifications.** The author asked to ticket the
+event-driven design and rejected frequent full-library sweeping, explicitly
+asking how disappearance of an attachment file from disk is handled. Zotero
+notifications become the ordinary work trigger; startup and occasional
+reconciliation retain coverage of unnotified filesystem changes. The replacement
+reconciliation cadence and its detection bound remain to be settled in SPEC.md;
+this ruling supplies neither a new number nor an immediate-detection promise.
+Ticket 0752 owns implementation and verification. Native admission and graceful
+stop safeguards remain in force.
+
+**2026-09-08 — RATIFIED: settle the sitter reconciliation cadence.** In the
+follow-up to ticket 0752, the author chose startup reconciliation and a fixed
+periodic interval, now owned by SPEC.md §5.2.7. This resolves the open cadence
+in the preceding ruling. Notifications remain the ordinary trigger; the
+periodic check covers unnotified disk changes while enabled and running, not a
+wall-clock guarantee while Zotero is closed, suspended or unable to reconcile.
