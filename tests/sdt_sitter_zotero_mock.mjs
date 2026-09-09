@@ -224,6 +224,9 @@ function attachment(row) {
 export function createHarness(options = {}) {
   const rows = (options.attachments || []).map(attachment);
   const library = new Map(rows.map(row => [row.id, row]));
+  const bibliographic = new Map((options.unattached || []).map(row => [row.id, {
+    libraryID: 1, key: `ITEM${row.id}`, title: null, deleted: false, ...row,
+  }]));
   const files = createFiles();
   const timers = createTimers();
   // Counted rather than merely observed: several scenarios turn on HOW MANY
@@ -280,6 +283,12 @@ export function createHarness(options = {}) {
     deleted: row.parentDeleted, isAttachment: () => false,
     loadData: async () => {}, getField: () => row.parentTitle, getDisplayTitle: () => row.parentTitle,
   });
+  const regularItem = row => ({
+    id: row.id, key: row.key, libraryID: row.libraryID, deleted: row.deleted,
+    isRegularItem: () => true, loadData: async () => {},
+    numFileAttachments: () => 0,
+    getField: () => row.title, getDisplayTitle: () => row.title,
+  });
 
   const sdt = {
     openStructuredDocumentTextPack: async (source, decode) => {
@@ -297,6 +306,12 @@ export function createHarness(options = {}) {
           processor: { type: row.pack.processor ?? row.kind,
             version: row.pack.processorVersion ?? VERSIONS.SDT_PROCESSOR_VERSIONS[row.kind] },
         }),
+        getTopLevelBlockCount: () => Array.isArray(row.pack.blocks) ? row.pack.blocks.length : 1,
+        getBlocks: async (start, end) => {
+          const blocks = Array.isArray(row.pack.blocks) ? row.pack.blocks
+            : [{ content: row.pack.empty ? [] : [{ text: row.pack.text ?? 'indexed text' }] }];
+          return blocks.slice(start, end + 1);
+        },
       };
     },
   };
@@ -382,7 +397,7 @@ export function createHarness(options = {}) {
     Prefs: { get: name => prefs.get(name), set: (name, value) => prefs.set(name, value) },
     getMainWindow: () => windows[0],
     getMainWindows: () => windows,
-    Libraries: { getAll: () => [{ name: 'Ma bibliothèque' }] },
+    Libraries: { getAll: () => [{ name: 'Ma bibliothèque' }], get: id => id === 1 ? { name: 'Ma bibliothèque' } : null },
     Fulltext: { getIndexStats: async () => ({ indexed: 3, partial: 0, unindexed: 1 }) },
     Utilities: { Internal: { copyTextToClipboard: text => { clipboard.text = text; } } },
     DataDirectory: { dir: DATA_DIR },
@@ -403,6 +418,8 @@ export function createHarness(options = {}) {
         calls.inspect.push(id);
         const row = library.get(id);
         if (row) return item(row);
+        const record = bibliographic.get(id);
+        if (record) return regularItem(record);
         const owner = library.get(id - 1000);
         return owner ? parentItem(owner) : null;
       },
@@ -411,6 +428,7 @@ export function createHarness(options = {}) {
       columnQueryAsync: async (sql, params) => {
         if (params) { calls.affected.push(params[0]); return [...library.values()]
           .filter(row => row.parentTitle && row.id + 1000 === params[0]).map(row => row.id); }
+        if (sql.includes('FROM items')) return [...bibliographic.keys()];
         calls.list++; return [...library.keys()];
       },
       valueQueryAsync: async (_sql, [id]) => library.get(id).pages,

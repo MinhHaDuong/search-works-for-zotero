@@ -111,7 +111,7 @@ def test_an_unsearchable_profile_is_unread_rather_than_a_crash(unsearchable_prof
     directory without its search bit re-raised PermissionError past every guard
     below — out of this reader, into the sitter's `main()` (which exits 1, the
     code that tool means by ABSENT) and into the evidence dictionaries beaver's
-    verbs return unguarded. Fixed on the two originals as ticket 0743, and
+    verbs return unguarded. Fixed on the two originals as ticket 0762, and
     carried here with them when 0713 merged the copies.
     """
     # Positive control: the mode really does bite here, so a green below is the

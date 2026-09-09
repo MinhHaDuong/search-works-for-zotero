@@ -186,6 +186,12 @@ test('the three layers exist, in order, with diagnostics nested inside details',
   assert(layer2 && layer3, 'a disclosure layer is missing');
   assert.equal(layer3.parentNode, layer2,
     'diagnostics is a sibling of Details, not nested inside it');
+  assert.equal(doc.getElementById('sdt-details-title').style.properties.get('font-size'), '1.35em',
+    'Details does not lead the disclosure hierarchy');
+  for (const id of ['sdt-not-indexed-title', 'sdt-index-title', 'sdt-about-title', 'sdt-tech-title']) {
+    assert.equal(doc.getElementById(id).style.properties.get('font-size'), '1.1em',
+      `${id} is not styled as a second-level disclosure`);
+  }
   assert.equal(doc.getElementById('sdt-index-details').parentNode, layer2);
   // Nothing sets `open`, which is what makes both closed on first paint.
   assert.equal(layer2.getAttribute('open'), null, 'Details ships expanded');
@@ -210,8 +216,10 @@ test('the three layers exist, in order, with diagnostics nested inside details',
   // Same caveat: this only proves the reservation exists, not that the box
   // stops visibly collapsing between files — the defect this line guards
   // against (found live, testing v0.3.15).
-  assert.equal(doc.getElementById('sdt-document-status').style.minHeight, '3em',
+  assert.equal(doc.getElementById('sdt-document-status').style.minHeight, '6em',
     'the active-file box has no reserved height, so it can still collapse between files');
+  assert.equal(doc.getElementById('sdt-document-estimate').style.minHeight, '3em',
+    'the active estimate can still resize the indexing section');
 });
 
 /* Found live, testing v0.3.18: three long library names joined into the bold
@@ -342,6 +350,8 @@ test('the launch disclosures are readable in their own About disclosure', () => 
   assert.equal(intro.parentNode.id, about.id, 'the intro is not inside About');
   assert(about.childNodes.indexOf(intro) < about.childNodes.indexOf(disclosures),
     'the intro does not lead the disclosures it introduces');
+  assert(about.childNodes.indexOf(doc.getElementById('sdt-environment')) < about.childNodes.indexOf(disclosures),
+    'the disclosure paragraphs appear before the About items');
   assert(intro.textContent.includes('.zotero-sdt-cache'),
     'the intro does not say where the pack it builds is stored');
   // Rewritten in plain language after the author read the jargon version live
@@ -352,6 +362,8 @@ test('the launch disclosures are readable in their own About disclosure', () => 
     'the worker limitation is not readable in the window');
   assert(disclosures.textContent.includes('one already being processed still finishes'),
     'what turning indexing off does is not readable in the window');
+  assert(disclosures.textContent.includes('reconciles the whole library every hour'),
+    'About does not explain incremental updates and periodic reconciliation');
 });
 
 // Author's ruling of 2026-09-08, second half: "Observed durations" is technical
@@ -413,8 +425,8 @@ test('the census reads as an account: words, then a total at the bottom', () => 
     return rowValue(found);
   };
   assert.equal(row('Indexed and up to date'), 13699);
-  assert.equal(row('No extractor for this format'), 2600);
-  assert.equal(row('File missing from this disk'), 367);
+  assert.equal(row('No extractor or format mismatch'), 2600);
+  assert.equal(row('Stored or linked file unavailable'), 367);
   assert.equal(row('Extraction failed this session'), 39);
   assert.equal(row('Waiting to be indexed'), 1);
 

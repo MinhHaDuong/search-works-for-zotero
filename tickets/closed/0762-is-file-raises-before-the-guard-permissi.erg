@@ -9,6 +9,8 @@ Closed: fixed: probe folded inside the OSError guard; merged as PR #467 and carr
 2026-09-08T15:38Z sim note Fixed at both pre-extraction call sites (bench/sdt_sitter_install.py, bench/acceptance/adapters/beaver.py) rather than in the shared bench/host_addon_record.py the body names: that module exists only on PR #465's branch, which is blocked on this defect, so the fix has to be on main for #465's port to carry it. Probe moved inside the existing try; ENOENT wording unchanged; the optional ELOOP cosmetic of action 4 fixed in the same pass via is_symlink(). Both arms proven red against the unfixed bodies before the fix.
 
 2026-09-08T16:03Z MinhHaDuong closed — fixed: probe folded inside the OSError guard; merged as PR #467 and carried into the shared reader by PR #465
+2026-09-09T14:03Z Codex note Renumbered from 0743 after synchronization exposed a parallel collision with the language-conditioned vector-centering ticket. References now use 0762; earlier log text is historical.
+2026-09-09T14:22Z Codex note Corrected a Python pathlib compatibility regression: is_file() folded EACCES into a false missing-file result. The shared reader now uses stat() to preserve permission errors while retaining non-regular symlink and directory handling; the three consumer scenarios pass.
 --- body ---
 
 ## Context

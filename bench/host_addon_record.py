@@ -28,6 +28,7 @@ that was not already a defect.
 """
 
 import json
+import stat
 from pathlib import Path
 
 
@@ -41,28 +42,23 @@ def host_addon_record(profile: Path, addon_id: str) -> dict:
     """
     path = Path(profile) / "extensions.json"
     try:
-        # Inside the guard, and this is where the fourth draft was wrong.
-        # `Path.is_file()` swallows OSError only for ENOENT, ENOTDIR, EBADF and
-        # ELOOP; EACCES is not among them, so a profile directory without its
-        # search bit re-raised PermissionError from ABOVE the try — past every
-        # guard below, out of this reader, into the sitter's main(), which exits
-        # 1 (the code that tool means by ABSENT) and into the evidence
-        # dictionaries beaver's `install` and `uninstall` return unguarded. A
-        # profile nobody could read reported as a plugin that is gone, which is
-        # the collapse the three-valued record exists to prevent (ticket 0743).
-        # `is_file()` and not `exists()`: a directory of that name is not a
-        # record.
-        if not path.is_file():
-            # ENOENT keeps the friendlier sentence: it is the common diagnostic
-            # and an errno dump would be a regression for it. ELOOP is folded in
-            # here too by pathlib, and saying "does not exist" of a path an `ls`
-            # plainly shows is a sentence nobody debugging will believe — so a
-            # path that is there and is not a file says so instead.
-            # `is_symlink()` and not `exists()` alone: `exists()` follows the
-            # link and comes back False on the loop.
-            if path.is_symlink() or path.exists():
+        # Do not use Path.is_file() here. Current pathlib folds EACCES into
+        # False, which turns an unreadable profile into a false claim that its
+        # record is absent. stat() preserves the distinction for the OSError
+        # handler below. A dangling link and a link loop are still a visible
+        # non-file, as are directories.
+        try:
+            mode = path.stat().st_mode
+        except FileNotFoundError:
+            if path.is_symlink():
                 return {"read": False, "why": f"{path} is not a regular file"}
             return {"read": False, "why": f"{path} does not exist"}
+        except OSError:
+            if path.is_symlink():
+                return {"read": False, "why": f"{path} is not a regular file"}
+            raise
+        if not stat.S_ISREG(mode):
+            return {"read": False, "why": f"{path} is not a regular file"}
         document = json.loads(path.read_text(encoding="utf-8"))
     except (ValueError, OSError, RecursionError, MemoryError) as exc:
         # RecursionError and MemoryError, not only ValueError: json rejects

@@ -11,15 +11,16 @@ Closed: Local exploration recorded; upstream issue 75 filed and publicly verifie
 2026-09-08T09:28Z Codex note Initial make check reached tests but loopback fixtures were denied by the sandbox; rerunning with loopback permission.
 2026-09-08T09:30Z Codex note make check passed with loopback permission; standalone probe lint and git diff --check passed.
 2026-09-08T09:30Z sim closed — Local exploration recorded; upstream issue 75 filed and publicly verified; repository gate passed.
+2026-09-09T14:03Z Codex note Renumbered from 0742 after synchronization exposed a parallel collision with the sitter launch-switch ticket. Artifact paths now use 0761; the earlier log records the paths and ID in use when it was written.
 --- body ---
 ## Context
 Author authorized a separate upstream export-routing issue following #64,
 with local exploration to facilitate pickup.
 
 ## Artifacts
-- Probe: verification/local-export-0742/probe.py
-- Sanitized evidence: bench/results/local-export-0742/probe.json
-- Report and upstream body: verification/local-export-0742/issue.md
+- Probe: verification/local-export-0761/probe.py
+- Sanitized evidence: bench/results/local-export-0761/probe.json
+- Report and upstream body: verification/local-export-0761/issue.md
 
 ## Exit criteria
 - [x] Read-only desktop export exploration recorded without library content
@@ -27,4 +28,4 @@ with local exploration to facilitate pickup.
 - [x] make check passes
 
 Public filing: https://github.com/oscardvs/zoteus/issues/75
-Verification receipt: verification/local-export-0742/filed.json
+Verification receipt: verification/local-export-0761/filed.json

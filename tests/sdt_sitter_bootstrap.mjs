@@ -1413,6 +1413,63 @@ await test('source replacement and processor upgrades invalidate pack identity a
   assert.equal(h.context.sitter.state.samples.length, 0);
   assert.equal(h.context.environment.packVersions.SDT_PROCESSOR_VERSIONS.pdf, '8');
 });
+await test('a verified empty native pack is outside indexed coverage and stays non-admissible from cache', async () => {
+  const attachments = [pdf(1, 'AAAA1111', { pack: { empty: true } })];
+  const first = createHarness({ attachments }); await first.start();
+  assert.equal(first.context.sitter.state.counts['empty-pack'], 1);
+  assert.equal(first.context.sitter.state.counts.current || 0, 0);
+  assert.deepEqual(first.calls.ensure, [], 'an empty pack was queued for another extraction');
+  const cache = first.files.text(CACHE_PATH);
+  assert(cache.includes('"empty":true'), 'the verified-empty verdict was not cached');
+
+  const second = createHarness({ attachments, cache }); await second.start();
+  assert.equal(second.context.sitter.state.counts['empty-pack'], 1);
+  assert.deepEqual(second.calls.ensure, [], 'a cached empty pack was re-admitted');
+
+  const lateText = createHarness({ attachments: [pdf(2, 'BBBB2222', { pack: {
+    blocks: [{ content: [] }, { content: [{ text: 'text after an empty first block' }] }],
+  } })] });
+  await lateText.start();
+  assert.equal(lateText.context.sitter.state.counts.current, 1,
+    'a later text block was mistaken for an empty pack');
+});
+await test('unattached records stay outside attachment coverage and source access errors stay inspectable', async () => {
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111')], unattached: [
+    { id: 70, key: 'NOFILE70', title: 'Reference without a file' },
+    { id: 71, key: 'NOFILE71', title: 'A second reference without a file' },
+  ] });
+  const stat = h.context.IOUtils.stat;
+  h.context.IOUtils.stat = async path => {
+    if (path.endsWith('/AAAA1111/file.pdf')) {
+      const error = new Error('permission denied at /private/path'); error.name = 'NotAllowedError'; throw error;
+    }
+    return stat(path);
+  };
+  await h.start();
+  const snapshot = h.context.sitter.state.censusSnapshot;
+  assert.equal(h.context.sitter.state.total, 1, 'a bibliographic record changed attachment coverage');
+  assert.equal(h.context.sitter.state.counts['inspection-error'], 1);
+  assert.equal(snapshot.unattached.map(row => row.key).join(','), 'NOFILE70,NOFILE71');
+  assert.equal(snapshot.members[0].errorClass, 'NotAllowedError');
+  assert(!JSON.stringify(snapshot).includes('/private/path'), 'a raw platform message reached the snapshot');
+  h.context.openDialog(h.windows[0]); h.context.render();
+  const dialog = [...h.context.dialogs][0];
+  const notIndexed = dialog.document.getElementById('sdt-not-indexed');
+  assert.equal(notIndexed.hidden, false, 'observed obstacles did not open the Details disclosure');
+  assert.match(notIndexed.textContent, /Not indexed \(3\).*No attachment \(2\).*Reference without a file.*Could not be examined \(1\).*NotAllowedError/s);
+  const libraryHeading = notIndexed.descendants().find(node => node.tagName === 'h4');
+  assert.equal(libraryHeading.textContent, 'Library: Ma bibliothèque (2)');
+  assert.equal(libraryHeading.style.properties.get('font-size'), '0.95em', 'library rows have no fourth-level hierarchy');
+  const controls = notIndexed.descendants().find(node => node.tagName === 'div' && node.childNodes.some(child => child.tagName === 'button'));
+  assert.equal(controls.style.properties.get('margin-left'), '40px', 'actions do not align with list text');
+  assert.equal(controls.style.properties.get('margin-top'), '4px');
+  assert.equal(controls.style.properties.get('margin-bottom'), '18px');
+  assert(!notIndexed.textContent.includes('A second reference without a file'), 'the title preview was unbounded');
+  const showAll = notIndexed.descendants().find(node => node.tagName === 'button' && node.textContent === 'Show all (1 more)');
+  assert.equal(showAll.parentNode.tagName, 'li', 'Show all is not a visible second list item');
+  showAll.fire('click'); await h.quiet();
+  assert.match(notIndexed.textContent, /A second reference without a file/);
+});
 await test('targeted current-pack inspection preserves unrelated cached duration records', async () => {
   const h = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')] }); await h.start();
   const cache = h.files.text(CACHE_PATH);

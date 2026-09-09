@@ -21,6 +21,16 @@ and successful native extraction.
 
 ## Prepared for the next release
 
+Tickets [0760](../../tickets/0760-text-less-scanned-pdfs-silently-count-as.erg)
+and [0744](../../tickets/0744-group-unsupported-and-refused-documents.erg)
+make the distinction between a native pack that contains verified text and one
+that has been completely inspected but contains none. The latter is not
+admitted again and is not counted as indexed. The Details layer now groups
+observed obstacles, including unavailable files, unsupported formats, session
+failures and bibliographic records without a file attachment. It uses safe
+error classes and identifiers; it does not display filesystem paths or raw host
+errors.
+
 Ticket [0752](../../tickets/closed/0752-make-sdt-sitter-event-driven-with-reconc.erg)
 replaces frequent full-library sweeps with targeted updates from attachment and
 file-download notifications. Reconciliation runs on startup and re-enabling, and

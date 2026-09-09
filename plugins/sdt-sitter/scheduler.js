@@ -12,6 +12,9 @@
    could not reach 100 % with nothing on screen saying why. */
 var SDT_STATUS_CLASSES = {
   indexed: ['current'],
+  // A verified native pack with no non-whitespace text stays in the coverage
+  // denominator but is neither searchable nor an extraction candidate. Ticket 0760.
+  unindexed: ['empty-pack'],
   // Not indexed, and not admissible: nothing this sweep does changes them. Named
   // for `state.failed`, the banner it feeds, and deliberately NOT `blocked` —
   // `host.blocked()` in the same codebase answers a different question (whether
@@ -44,7 +47,7 @@ var createSDTSitter = function (host) {
     lastProgressAt: null, startedAt: null, completed: 0, failed: 0,
     scanned: 0, total: 0, counts: {}, serviceMS: 0, samples: [], activeInfo: null,
     fittedSamples: [], pending: [], candidates: 0, error: null, cacheWarning: null,
-    censusSnapshot: null };
+    censusSnapshot: null, censusBuilding: false, unattached: [] };
   const failed = new Set();
   // Publish one complete census generation at a time. `state.counts` is rebuilt
   // from empty on every sweep and remains useful as live diagnostics, but no UI
@@ -53,9 +56,10 @@ var createSDTSitter = function (host) {
   // admission settlement refreshes it so the next sweep holds the latest complete
   // state rather than the pre-admission census. Ticket 0718.
   const publish = () => {
-    if (state.scanned === state.total) {
+    if (state.scanned === state.total && !state.censusBuilding) {
       const counts = { ...state.counts };
-      state.censusSnapshot = { counts, total: state.total };
+      const members = [...observed].map(([id, info]) => ({ id, ...info }));
+      state.censusSnapshot = { counts, total: state.total, members, unattached: state.unattached.slice() };
       state.failed = SDT_STATUS_CLASSES.failed
         .reduce((n, key) => n + (counts[key] || 0), 0);
     }
@@ -79,7 +83,13 @@ var createSDTSitter = function (host) {
     info.identity && failed.has(info.identity) ? 'failed-session' : info.status;
   const inspect = async id => {
     try { return await host.inspect(id); }
-    catch (error) { return { status: 'inspection-error', error: String(error) }; }
+    catch (error) {
+      let errorClass = 'Error';
+      try {
+        if (typeof error?.name === 'string' && /^[\w.$-]{1,64}$/.test(error.name)) errorClass = error.name;
+      } catch (_error) { errorClass = '<unreadable error>'; }
+      return { status: 'inspection-error', itemID: id, title: null, errorClass };
+    }
   };
   const refreshQueue = () => {
     state.pending = [...observed].filter(([, info]) => SDT_STATUS_CLASSES.queued.includes(info.status))
@@ -130,8 +140,10 @@ var createSDTSitter = function (host) {
             reconciliationPending = false;
             if (state.total > 0 && state.scanned !== state.total)
               state.censusSnapshot ??= { counts: { ...state.counts }, total: state.total };
-            state.phase = 'census'; state.scanned = 0; state.counts = {};
+            state.phase = 'census'; state.scanned = 0; state.counts = {}; state.censusBuilding = true;
             const ids = await host.list();
+            if (!current()) return;
+            const unattached = host.unattached ? await host.unattached() : [];
             if (!current()) return;
             state.total = ids.length; publish();
             const next = new Map();
@@ -152,12 +164,15 @@ var createSDTSitter = function (host) {
               state.fittedSamples = state.samples.slice();
             }
             observed.clear(); for (const entry of next) observed.set(...entry);
+            state.unattached = Array.isArray(unattached) ? unattached.slice() : [];
+            state.censusBuilding = false;
             state.lastReconciliationAt = host.now();
             // A delayed or long scan is one reconciliation, never a catch-up loop.
             state.nextReconciliationAt = state.lastReconciliationAt + interval;
             refreshQueue(); state.candidates = state.pending.length; publish();
           }
           while (dirty.size && current()) {
+            let changed = false;
             const id = dirty.values().next().value;
             dirty.delete(id); // BEFORE awaits: a new event for this ID survives.
             const ids = host.affected ? await host.affected(id) : [id];
@@ -165,8 +180,17 @@ var createSDTSitter = function (host) {
             for (const affected of ids) {
               const info = await inspect(affected);
               if (!current()) { dirty.add(id); return; }
-              record(affected, info); publish();
+              record(affected, info); changed = true;
             }
+            // A bibliographic-record notification can have no attachment IDs at
+            // all. It still changes the separate no-attachment view, which must
+            // publish in the same generation as any attachment updates.
+            if (host.unattached) {
+              state.unattached = await host.unattached();
+              changed = true;
+            }
+            if (!current()) { dirty.add(id); return; }
+            if (changed) publish();
           }
           if (!current()) return;
           const candidate = state.pending.find(item => !attempted.has(item.id) ||
@@ -241,7 +265,7 @@ var createSDTSitter = function (host) {
             // throwing are the same span here on purpose — a worker that ran out
             // of memory and a photograph that holds no text are indistinguishable
             // from this side, and only one of them is permanent.
-            if (!ok || after.status !== 'current' || after.identity !== before.identity) throw new Error('Native SDT did not persist a current pack');
+            if (!ok || !['current', 'empty-pack'].includes(after.status) || after.identity !== before.identity) throw new Error('Native SDT did not persist a verified pack');
             state.completed++; state.serviceMS += host.now() - state.startedAt;
             // No progress tick means no observed start, and the window from
             // submission is not a stand-in for one: it IS ensure()'s hash, pack
@@ -332,6 +356,7 @@ var createSDTCache = function (raw, versions) {
           (r.pages == null || (Number.isFinite(r.pages) && r.pages > 0))) {
         Object.assign(records[key], { fingerprint: r.fingerprint, sourceBytes: r.sourceBytes, pages: r.pages });
       }
+      if (r.empty === true) records[key].empty = true;
       if (validSample(r.sample)) records[key].sample = {
         milliseconds: r.sample.milliseconds, sourceBytes: r.sample.sourceBytes, pages: r.sample.pages ?? null };
     }
@@ -345,7 +370,8 @@ var createSDTCache = function (raw, versions) {
     },
     remember(key, signature, fingerprint, info) {
       const previous = records[key];
-      records[key] = { signature, fingerprint, pages: info.pages, sourceBytes: info.sourceBytes };
+      records[key] = { signature, fingerprint, pages: info.pages, sourceBytes: info.sourceBytes,
+        empty: info.status === 'empty-pack' };
       dirty.add(key);
       if (previous?.signature === signature && previous.sample) records[key].sample = previous.sample;
     },

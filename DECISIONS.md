@@ -7107,3 +7107,18 @@ periodic interval, now owned by SPEC.md §5.2.7. This resolves the open cadence
 in the preceding ruling. Notifications remain the ordinary trigger; the
 periodic check covers unnotified disk changes while enabled and running, not a
 wall-clock guarantee while Zotero is closed, suspended or unable to reconcile.
+
+
+**2026-09-09 — RATIFIED: correct the sitter's unindexed-list design after review.**
+The author accepted the design review of ticket 0744 and asked to fix the design.
+Retain the Details section, repair-oriented grouping, per-library selection and
+clipboard export; neither control changes the library, and no API or collection
+creation is included. Replace causal assertions unsupported by observations with
+conditional explanations: unavailable files do not establish a sync remedy,
+and empty extracted content does not establish an absent text layer. Preserve
+safe error classes and fallback item identity at the inspection boundary.
+Publish groups, membership and counts coherently; define updates and stale-click
+handling. Version direction is a partial order across pack and schema versions,
+with an indeterminate case and no unverified regeneration promise. SPEC.md
+§5.2.7 owns the resulting interface contract; tickets 0744 and 0760 own the work.
+Earlier ticket logs remain historical records, not the corrected design.

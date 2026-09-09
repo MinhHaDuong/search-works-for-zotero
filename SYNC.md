@@ -6,7 +6,7 @@ owns the verified URLs, public evidence and substantive-response follow-through.
 
 Updated 2026-09-08 — export follow-up [#75](https://github.com/oscardvs/zoteus/issues/75)
 filed at the author's request after read-only local exploration, following the
-maintainer's invitation on #64. Ticket 0742 owns the probe, sanitized evidence,
+maintainer's invitation on #64. Ticket 0761 owns the probe, sanitized evidence,
 filed body and verified public URL. Open at filing; no PR submitted.
 
 *Written 2026-08-26 against upstream `edf2748` (v1.7.0); updated 2026-08-27

@@ -150,6 +150,18 @@ async function sniffSDTSource(path) {
     entry.prefix.every((byte, index) => head[index] === byte)) || null;
 }
 
+function compareSDTVersion(left, right) {
+  const parse = value => String(value).split('.').map(part => /^\d+$/.test(part) ? Number(part) : NaN);
+  const a = parse(left), b = parse(right);
+  if (!a.length || !b.length || a.some(value => !Number.isSafeInteger(value)) || b.some(value => !Number.isSafeInteger(value))) return null;
+  const length = Math.max(a.length, b.length);
+  for (let index = 0; index < length; index++) {
+    const delta = (a[index] ?? 0) - (b[index] ?? 0);
+    if (delta) return Math.sign(delta);
+  }
+  return 0;
+}
+
 /* ---- the user-facing text, and the only place any of it lives ----
 
    ENGLISH ONLY, by the author's instruction of 2026-09-07: "REMOVE ALL THE
@@ -242,6 +254,45 @@ var SDT_TEXT = {
     "section-global": "Overall progress",
     "section-active": "Indexing under way",
     "details-title": "Details",
+    "not-indexed-title": "Not indexed",
+    "not-indexed-title-count": "Not indexed ({count})",
+    "not-indexed-none": "No observed obstacles to indexing.",
+    "not-indexed-group-count": "{label} ({count})",
+    "not-indexed-no-attachment": "No attachment",
+    "not-indexed-no-attachment-detail": "No file attachment is recorded. A file may be available from the publisher or another source.",
+    "not-indexed-no-text": "No extracted text",
+    "not-indexed-no-text-detail": "The stored index contains no text. OCR may help if the file consists of scanned images.",
+    "not-indexed-stored-file": "Stored file unavailable",
+    "not-indexed-stored-file-detail": "The file is not available on this device. Zotero file sync may retrieve it if a remote copy is available and file sync is enabled.",
+    "not-indexed-linked-file": "Linked file unavailable",
+    "not-indexed-linked-file-detail": "The linked file is not available at its recorded location. Restoring the file or updating its link may make it accessible.",
+    "not-indexed-mismatched-type": "Recorded format differs",
+    "not-indexed-mismatched-type-detail": "The file contents differ from the recorded format. A matching format record may allow extraction; image-only content may require OCR.",
+    "not-indexed-no-extractor": "No extractor for this format",
+    "not-indexed-no-extractor-detail": "The sitter has no extractor for this format. An alternative supported file may provide text.",
+    "not-indexed-session": "Extraction not completed this session",
+    "not-indexed-session-detail": "The attachment becomes eligible for another attempt in a later session, subject to normal admission checks.",
+    "not-indexed-older-format": "Stored index uses an older format",
+    "not-indexed-older-format-detail": "Whether Zotero can regenerate this format has not been established here.",
+    "not-indexed-newer-format": "Stored index uses a newer format",
+    "not-indexed-newer-format-detail": "A compatible Zotero version may be able to read this format.",
+    "not-indexed-unordered-format": "Stored index format cannot be compared",
+    "not-indexed-unordered-format-detail": "The stored index format cannot be ordered against this Zotero version.",
+    "not-indexed-examined": "Could not be examined",
+    "not-indexed-examined-detail": "Inspection returned {class}.",
+    "not-indexed-show": "Show in Zotero",
+    "not-indexed-export": "Export list to clipboard",
+    "not-indexed-show-tip": "Select every listed record in Zotero. This does not change the library.",
+    "not-indexed-export-tip": "Copy every listed record to the clipboard. This does not change the library.",
+    "not-indexed-selected": "Listed records selected in Zotero.",
+    "not-indexed-selected-omitted": "Listed records selected; {count} were no longer available.",
+    "not-indexed-select-unavailable": "The listed records could not be selected in Zotero.",
+    "not-indexed-copied": "Listed records copied to the clipboard.",
+    "not-indexed-copy-failed": "The list could not be copied to the clipboard.",
+    "not-indexed-show-all": "Show all ({count} more)",
+    "not-indexed-library": "Library: {library}",
+    "not-indexed-library-count": "Library: {library} ({count})",
+    "not-indexed-library-unavailable": "Library unavailable",
     "about-title": "About and limitations",
     "about-intro": "Zotero reads a PDF attachment's structured text — a pack, produced by its own native extractor and stored as .zotero-sdt-cache beside the attachment, in its own storage folder — the first time a feature needs it, which for most attachments is the first time you open them yourself. This assistant builds that pack ahead of time, one attachment at a time, across the whole library, instead of waiting for that moment.",
     "fulltext-title": "Full-text search index",
@@ -272,16 +323,17 @@ var SDT_TEXT = {
     "diagnostics-completed": "Attachments indexed this session: {count}",
     "census-total-label": "Attachments counted in all",
     "status-current": "Indexed and up to date",
+    "status-empty-pack": "No extracted text",
     "status-missing-pack": "Waiting to be indexed",
     "status-stale-source": "Changed since it was indexed",
     "status-stale-processor": "Indexed by an older extractor",
     "status-invalid-pack": "Stored index unreadable",
     "status-failed-session": "Extraction failed this session",
     "status-inspection-error": "Could not be examined",
-    "status-unsupported-pack": "Index format not supported",
-    "status-missing-source": "File missing from this disk",
+    "status-unsupported-pack": "Stored index format requires review",
+    "status-missing-source": "Stored or linked file unavailable",
     "status-excluded": "Trashed, or not an attachment",
-    "status-unsupported": "No extractor for this format",
+    "status-unsupported": "No extractor or format mismatch",
     "diagnostics-error": "Last extraction problem: {error}",
     "cache-not-saved": "Cache not saved: {error}",
     "debug-label": "Log every step to Zotero’s debug output",
@@ -315,8 +367,9 @@ var SDT_TEXT = {
     "launch-details": "This answer is remembered. The assistant's window carries what it does not control, and the switch that turns it off again.",
     "launch-yes": "Start indexing",
     "launch-no": "Not now",
-    "launch-worker": "Extraction runs on a background process Zotero itself also uses, and it cannot be paused once a file has started: a large file can delay a smaller one that arrived just after it. The free-memory and free-disk amounts above only decide whether a new file is started — they do not limit what that process uses once a file is already being processed.",
-    "launch-disable": "Turning indexing off stops the assistant from picking up new attachments; one already being processed still finishes. A failed extraction is only remembered for this session and is tried again the next time Zotero starts. A small file on disk remembers which attachments are already up to date and how long extraction usually takes — never their text, and never an unfinished job."
+    "launch-worker": "Extraction runs on a background process Zotero itself also uses, and it cannot be paused once a file has started: a large file can delay a smaller one that arrived just after it. The assistant starts a new file only when the current free memory and disk space meet its admission thresholds; those checks do not limit a file already being processed.",
+    "launch-disable": "Turning indexing off stops the assistant from picking up new attachments; one already being processed still finishes. A failed extraction is only remembered for this session and is tried again the next time Zotero starts. A small file on disk remembers which attachments are already up to date and how long extraction usually takes — never their text, and never an unfinished job.",
+    "about-updates": "After the first library pass, the assistant listens to Zotero attachment and file-download changes and rechecks only the affected records. It also reconciles the whole library every hour, so changes outside Zotero are eventually noticed."
   };
 
 /* Every string a reader sees passes through here. */
@@ -651,6 +704,7 @@ function getSDTCoverage(state) {
   const classes = SDT_STATUS_CLASSES;
   const tally = keys => keys.reduce((n, key) => n + (counts[key] || 0), 0);
   const current = classes ? tally(classes.indexed) : 0;
+  const unindexed = classes ? tally(classes.unindexed) : 0;
   const failed = classes ? tally(classes.failed) : 0;
   const queued = classes ? tally(classes.queued) : 0;
   const outOfScope = classes ? tally(classes.outOfScope) : 0;
@@ -658,7 +712,7 @@ function getSDTCoverage(state) {
   // a freshly booted sitter has finished no walk at all, and a lone "0
   // attachments" there would be a measurement where there is none.
   return { known: !!classes && (held ? true : complete && state.phase !== 'ready'),
-    current, failed, queued, outOfScope,
+    current, unindexed, failed, queued, outOfScope,
     total: classes ? Math.max(0, censusTotal - outOfScope) : 0 };
 }
 
@@ -894,7 +948,7 @@ function describeSDTFailures(count) {
    choice about the reader, not a fact about the classification. The classes stay
    the single owner of which statuses exist — `tests/test_sdt_sitter.py` reads
    them and fails here for any status this list or the label table forgets. */
-var SDT_STATUS_ORDER = ['current', 'missing-pack', 'stale-source', 'stale-processor',
+var SDT_STATUS_ORDER = ['current', 'empty-pack', 'missing-pack', 'stale-source', 'stale-processor',
   'invalid-pack', 'failed-session', 'inspection-error', 'unsupported-pack',
   'missing-source', 'excluded', 'unsupported'];
 
@@ -991,6 +1045,153 @@ function describeSDTCensusAccount(counts) {
   if (!entries.length) return [];
   entries.push([sdtText('census-total-label'), sdtNumber(total)]);
   return entries;
+}
+
+var SDT_NOT_INDEXED_GROUPS = {
+  'no-attachment': { title: 'not-indexed-no-attachment', detail: 'not-indexed-no-attachment-detail' },
+  'empty-pack': { title: 'not-indexed-no-text', detail: 'not-indexed-no-text-detail' },
+  'missing-source-stored': { title: 'not-indexed-stored-file', detail: 'not-indexed-stored-file-detail' },
+  'missing-source-linked': { title: 'not-indexed-linked-file', detail: 'not-indexed-linked-file-detail' },
+  'mismatched-type': { title: 'not-indexed-mismatched-type', detail: 'not-indexed-mismatched-type-detail' },
+  'no-extractor': { title: 'not-indexed-no-extractor', detail: 'not-indexed-no-extractor-detail' },
+  'failed-session': { title: 'not-indexed-session', detail: 'not-indexed-session-detail' },
+  'older-format': { title: 'not-indexed-older-format', detail: 'not-indexed-older-format-detail' },
+  'newer-format': { title: 'not-indexed-newer-format', detail: 'not-indexed-newer-format-detail' },
+  'unordered-format': { title: 'not-indexed-unordered-format', detail: 'not-indexed-unordered-format-detail' },
+  'inspection-error': { title: 'not-indexed-examined', detail: 'not-indexed-examined-detail' },
+};
+
+function collectSDTNotIndexed(state) {
+  const members = state.censusSnapshot?.members || [];
+  const grouped = new Map();
+  const add = (groupID, member) => {
+    if (!(groupID in SDT_NOT_INDEXED_GROUPS)) return;
+    if (!grouped.has(groupID)) grouped.set(groupID, []);
+    grouped.get(groupID).push(member);
+  };
+  for (const member of state.censusSnapshot?.unattached || []) add('no-attachment', member);
+  for (const member of members) {
+    const groupID = member.status === 'missing-source'
+      ? (member.linked ? 'missing-source-linked' : 'missing-source-stored')
+      : member.status === 'unsupported'
+        ? (member.reason === 'mismatched-type' ? 'mismatched-type' : 'no-extractor')
+        : member.status === 'unsupported-pack'
+          ? (member.reason || 'unordered-format') : member.status;
+    add(groupID, member);
+  }
+  return [...grouped].map(([id, members]) => ({ id, members }));
+}
+
+function fillSDTNotIndexed(doc, container, state) {
+  const groups = collectSDTNotIndexed(state);
+  const total = groups.reduce((count, group) => count + group.members.length, 0);
+  const section = container.parentNode;
+  const sectionSummary = section.querySelector?.('summary') || section.childNodes?.[0];
+  if (sectionSummary) sectionSummary.textContent = sdtText('not-indexed-title-count', { count: sdtNumber(total) });
+  const signature = JSON.stringify(groups.map(group => [group.id, group.members.map(member =>
+    [member.itemID ?? member.id, member.libraryID ?? null, member.title ?? null, member.parentTitle ?? null,
+      member.key ?? null, member.errorClass ?? null]) ]));
+  if (container._sdtSignature === signature) return;
+  container._sdtSignature = signature;
+  container.replaceChildren();
+  if (!groups.length) {
+    section.hidden = false;
+    const empty = doc.createElementNS('http://www.w3.org/1999/xhtml', 'p');
+    empty.textContent = sdtText('not-indexed-none'); container.append(empty);
+    return;
+  }
+  section.hidden = false;
+  const make = tag => doc.createElementNS('http://www.w3.org/1999/xhtml', tag);
+  const line = member => {
+    const label = member.parentTitle ? `${member.parentTitle} — ${member.title || sdtText('file-number', { id: member.itemID ?? member.id })}`
+      : member.title || sdtText('file-number', { id: member.itemID ?? member.id });
+    return String(label).replace(/[\r\n]+/g, ' ');
+  };
+  for (const group of groups) {
+    const definition = SDT_NOT_INDEXED_GROUPS[group.id];
+    const details = make('details');
+    details.style.setProperty('margin-top', '8px'); details.style.setProperty('margin-left', '18px');
+    const summary = make('summary'); summary.textContent = sdtText('not-indexed-group-count', {
+      label: sdtText(definition.title), count: sdtNumber(group.members.length) });
+    summary.style.setProperty('font-size', '1em'); summary.style.setProperty('font-weight', '600');
+    summary.style.setProperty('margin-top', '4px'); summary.style.setProperty('margin-bottom', '4px');
+    const explanation = make('p');
+    explanation.textContent = group.id === 'inspection-error'
+      ? sdtText(definition.detail, { class: group.members[0].errorClass || 'Error' }) : sdtText(definition.detail);
+    details.append(summary, explanation);
+    const libraries = new Map();
+    for (const member of group.members) {
+      const key = member.libraryID ?? null;
+      if (!libraries.has(key)) libraries.set(key, []);
+      libraries.get(key).push(member);
+    }
+    for (const [libraryID, members] of libraries) {
+      let libraryName = null;
+      try { libraryName = libraryID == null ? null : Zotero.Libraries.get(libraryID)?.name; }
+      catch (_error) { /* The displayed generation remains usable without a name. */ }
+      const libraryHeading = make('h4');
+      libraryHeading.textContent = libraryName ? sdtText('not-indexed-library-count', {
+        library: libraryName, count: sdtNumber(members.length) })
+        : `${sdtText('not-indexed-library-unavailable')} (${sdtNumber(members.length)})`;
+      libraryHeading.style.setProperty('font-size', '0.95em'); libraryHeading.style.setProperty('font-weight', '600');
+      libraryHeading.style.setProperty('margin-top', '10px'); libraryHeading.style.setProperty('margin-bottom', '2px');
+      libraryHeading.style.setProperty('margin-left', '18px');
+      const list = make('ul');
+      const appendTitle = member => { const item = make('li'); item.textContent = line(member); list.append(item); };
+      // The controls capture every displayed member below. Only title rendering
+      // is deferred, keeping an initially opened group responsive.
+      const preview = members.slice(0, 1);
+      for (const member of preview) appendTitle(member);
+      const controls = make('div');
+      // Align actions with list text rather than the enclosing disclosure, and
+      // leave the larger gap below to close this library subsection before the
+      // next one begins.
+      controls.style.setProperty('margin-left', '40px');
+      controls.style.setProperty('margin-top', '4px');
+      controls.style.setProperty('margin-bottom', '18px');
+      const feedback = make('span'); feedback.setAttribute('aria-live', 'polite');
+      const ids = members.map(member => member.itemID ?? member.id).filter(Number.isInteger);
+      const exported = members.map(member => `${line(member)}\t${member.libraryID ?? '?'}:${member.key ?? member.itemID ?? member.id}`)
+        .join('\n');
+      const select = make('button'); select.setAttribute('type', 'button');
+      select.textContent = sdtText('not-indexed-show'); select.setAttribute('title', sdtText('not-indexed-show-tip'));
+      select.addEventListener('click', async () => {
+        try {
+          const pane = Zotero.getMainWindow?.()?.ZoteroPane;
+          if (!pane || !ids.length || typeof pane.selectItems !== 'function') throw new Error('unavailable');
+          const records = await Promise.all(ids.map(id => Zotero.Items.getAsync(id)));
+          const surviving = records.filter(record => record && !record.deleted && record.libraryID === libraryID)
+            .map(record => record.id);
+          if (!surviving.length) throw new Error('unavailable');
+          await pane.selectItems(surviving);
+          feedback.textContent = surviving.length === ids.length ? sdtText('not-indexed-selected')
+            : sdtText('not-indexed-selected-omitted', { count: ids.length - surviving.length });
+        } catch (_error) { feedback.textContent = sdtText('not-indexed-select-unavailable'); }
+      });
+      const copy = make('button'); copy.setAttribute('type', 'button');
+      copy.textContent = sdtText('not-indexed-export'); copy.setAttribute('title', sdtText('not-indexed-export-tip'));
+      copy.addEventListener('click', () => { feedback.textContent = copySDTText(exported)
+        ? sdtText('not-indexed-copied') : sdtText('not-indexed-copy-failed'); });
+      controls.append(select, copy, feedback);
+      if (preview.length < members.length) {
+        const showAllItem = make('li');
+        const showAll = make('button'); showAll.setAttribute('type', 'button');
+        showAll.textContent = sdtText('not-indexed-show-all', { count: sdtNumber(members.length - preview.length) });
+        showAll.addEventListener('click', () => {
+          let next = preview.length;
+          showAllItem.remove();
+          const appendNext = () => {
+            if (next >= members.length) return;
+            appendTitle(members[next++]); timers.setTimeout(appendNext, 0);
+          };
+          appendNext();
+        });
+        showAllItem.append(showAll); list.append(showAllItem);
+      }
+      details.append(libraryHeading, list, controls);
+    }
+    container.append(details);
+  }
 }
 
 /* The switch line and the phase both answered in one sentence (found live,
@@ -1198,24 +1399,32 @@ function copySDTText(text) {
    changes across a render. */
 function buildSDTAbout(doc, element) {
   const group = element('details', 'sdt-about-details');
+  group.style.setProperty('margin-top', '14px'); group.style.setProperty('margin-left', '18px');
   const summary = element('summary', 'sdt-about-title');
   summary.textContent = sdtText('about-title');
+  summary.style.setProperty('font-size', '1.1em'); summary.style.setProperty('font-weight', '650');
+  summary.style.setProperty('margin-top', '6px'); summary.style.setProperty('margin-bottom', '6px');
   // What the plugin does and why, ahead of its limitations (found live,
   // testing v0.3.19): a reader who opens "About" reasonably expects to be
   // told what the thing is before being told what it cannot do.
   const intro = element('pre', 'sdt-about-intro');
   intro.textContent = sdtText('about-intro');
   const disclosures = element('pre', 'sdt-disclosures');
-  disclosures.textContent = ['launch-worker', 'launch-disable']
+  disclosures.textContent = ['launch-worker', 'launch-disable', 'about-updates']
     .map(id => sdtText(id)).join('\n\n');
-  group.append(summary, intro, disclosures, element('pre', 'sdt-environment'));
+  // Static About facts precede the explanatory paragraphs: a reader sees the
+  // installed version and compatibility before the qualifications that follow.
+  group.append(summary, intro, element('pre', 'sdt-environment'), disclosures);
   return group;
 }
 
 function buildSDTDiagnostics(doc, element) {
   const group = element('details', 'sdt-tech-details');
+  group.style.setProperty('margin-top', '14px'); group.style.setProperty('margin-left', '18px');
   const summary = element('summary', 'sdt-tech-title');
   summary.textContent = sdtText('tech-title');
+  summary.style.setProperty('font-size', '1.1em'); summary.style.setProperty('font-weight', '650');
+  summary.style.setProperty('margin-top', '6px'); summary.style.setProperty('margin-bottom', '6px');
   const row = element('div', 'sdt-debug-row');
   const toggle = element('input', 'sdt-debug');
   toggle.setAttribute('type', 'checkbox');
@@ -1498,6 +1707,7 @@ function renderState() {
       dialog._censusSignature = accountSignature;
       fillSDTTable(doc, doc.getElementById('sdt-census-body'), accountEntries, { totalRow: true });
     }
+    fillSDTNotIndexed(doc, doc.getElementById('sdt-not-indexed-body'), s);
     const progress = doc.getElementById('sdt-progress');
     progress.hidden = s.active === null;
     if (s.active !== null && Number.isFinite(s.progress)) progress.value = s.progress;
@@ -1648,13 +1858,12 @@ function openDialog(window) {
       ['pre', 'sdt-failures']]);
     section('sdt-document-section', sdtText('section-active'), [
       ['pre', 'sdt-document-status'], ['progress', 'sdt-progress'], ['pre', 'sdt-document-estimate']]);
-    // The active-file line ordinarily wraps to two lines (a long filename), but
-    // briefly reads shorter — between one document settling and the next being
-    // admitted — and a box sized to its content collapses to one line and back,
-    // a visible blink at every handoff (found live, testing v0.3.15). Two lines
-    // at this element's own line-height, reserved regardless of which message
-    // is showing, so nothing here ever needs to shrink to grow again.
-    doc.getElementById('sdt-document-status').style.minHeight = '3em';
+    // A filename can take three lines, followed by the finalising note. Reserve
+    // all four lines rather than the old two-line case so progress updates do
+    // not resize the fieldset. The estimate is independently reserved because
+    // it appears only after enough observations have accumulated.
+    doc.getElementById('sdt-document-status').style.minHeight = '6em';
+    doc.getElementById('sdt-document-estimate').style.minHeight = '3em';
     // Layer 2, closed: the census account, and the native index's own statistics
     // below it. 0686 asked for exactly this — technical detail kept, moved below
     // primary progress. The fit behind the estimates used to sit here too and no
@@ -1663,12 +1872,25 @@ function openDialog(window) {
     const details = element('details', 'sdt-details');
     const summary = element('summary', 'sdt-details-title');
     summary.textContent = sdtText('details-title');
+    summary.style.setProperty('font-size', '1.35em'); summary.style.setProperty('font-weight', '700');
+    summary.style.setProperty('margin-top', '4px'); summary.style.setProperty('margin-bottom', '12px');
     const censusTable = element('table', 'sdt-census-table');
     censusTable.append(element('tbody', 'sdt-census-body'));
     details.append(summary, element('pre', 'sdt-diagnostics'), censusTable);
+    const notIndexed = element('details', 'sdt-not-indexed');
+    notIndexed.style.setProperty('margin-top', '14px'); notIndexed.style.setProperty('margin-left', '18px');
+    const notIndexedSummary = element('summary', 'sdt-not-indexed-title');
+    notIndexedSummary.textContent = sdtText('not-indexed-title');
+    notIndexedSummary.style.setProperty('font-size', '1.1em'); notIndexedSummary.style.setProperty('font-weight', '650');
+    notIndexedSummary.style.setProperty('margin-top', '6px'); notIndexedSummary.style.setProperty('margin-bottom', '6px');
+    notIndexed.append(notIndexedSummary, element('div', 'sdt-not-indexed-body'));
+    details.append(notIndexed);
     const indexDetails = element('details', 'sdt-index-details');
+    indexDetails.style.setProperty('margin-top', '14px'); indexDetails.style.setProperty('margin-left', '18px');
     const indexSummary = element('summary', 'sdt-index-title');
     indexSummary.textContent = sdtText('fulltext-title');
+    indexSummary.style.setProperty('font-size', '1.1em'); indexSummary.style.setProperty('font-weight', '650');
+    indexSummary.style.setProperty('margin-top', '6px'); indexSummary.style.setProperty('margin-bottom', '6px');
     const fulltextTable = element('table', 'sdt-fulltext-table');
     fulltextTable.append(element('tbody', 'sdt-fulltext-body'));
     indexDetails.append(indexSummary, element('pre', 'sdt-fulltext'), fulltextTable);
@@ -1901,6 +2123,64 @@ async function initialize(rootURI, token) {
     }
   };
 
+  // This is deliberately a bibliographic-item view separate from `list()`:
+  // regular records without a file attachment explain a useful absence, but do
+  // not belong in attachment coverage. `numFileAttachments()` excludes notes
+  // and URL-only attachments by Zotero's own file-attachment predicate.
+  const unattached = async () => {
+    const result = [];
+    try {
+      const ids = await Zotero.DB.columnQueryAsync(
+        'SELECT itemID FROM items WHERE itemID NOT IN (SELECT itemID FROM deletedItems) ORDER BY itemID');
+      for (const id of ids) {
+        // This view can walk an entire library before attachment inspection
+        // begins. Yield on every record so the first census never makes the
+        // Zotero window appear frozen while it discovers bibliography-only
+        // records.
+        await new Promise(resolve => timers.setTimeout(resolve, 0));
+        const item = await Zotero.Items.getAsync(id);
+        if (!item || item.deleted || typeof item.isRegularItem !== 'function' || !item.isRegularItem()) continue;
+        try {
+          if (typeof item.loadData === 'function') await item.loadData(['childItems']);
+          if (typeof item.numFileAttachments !== 'function' || item.numFileAttachments() !== 0) continue;
+        } catch (_error) { continue; }
+        const title = await getItemTitle(item);
+        result.push({ itemID: id, libraryID: item.libraryID, key: item.key,
+          title: title || sdtText('file-number', { id }), parentTitle: null });
+      }
+    } catch (error) {
+      // This auxiliary view is never allowed to stop attachment indexing. Its
+      // next reconciliation retries the read, while the journal retains only a
+      // safe error class.
+      emit('unattached-read-error', { error: classifyError(error) }, 'error');
+    }
+    return result;
+  };
+
+  const blockHasSDTText = block => {
+    if (!block || typeof block !== 'object') return false;
+    if (typeof block.text === 'string' && block.text.trim()) return true;
+    return Array.isArray(block.content) && block.content.some(blockHasSDTText);
+  };
+  const packHasSDTText = async reader => {
+    if (typeof reader.getTopLevelBlockCount !== 'function' || typeof reader.getBlocks !== 'function') {
+      // A reader that cannot inspect all blocks cannot establish an empty pack.
+      // Preserve the pre-0760 current classification rather than guessing.
+      return true;
+    }
+    const count = reader.getTopLevelBlockCount();
+    if (!Number.isInteger(count) || count < 0) throw new Error('Invalid native block count');
+    for (let index = 0; index < count; index++) {
+      const blocks = await reader.getBlocks(index, index);
+      if (!Array.isArray(blocks)) throw new Error('Invalid native block range');
+      if (blocks.some(blockHasSDTText)) return true;
+      // One block is bounded by the native reader's chunk format. Yielding between
+      // blocks keeps a long, textless document from monopolising Zotero's UI.
+      await new Promise(resolve => timers.setTimeout(resolve, 0));
+    }
+    return false;
+  };
+
   async function inspect(id) {
     const item = await Zotero.Items.getAsync(id);
     const previousParent = parents.get(id);
@@ -1918,10 +2198,22 @@ async function initialize(rootURI, token) {
     if (item.deleted) return { status: 'excluded' };
     const parent = item.parentItemID ? await Zotero.Items.getAsync(item.parentItemID) : null;
     if (parent?.deleted) return { status: 'excluded' };
+    const [title, parentTitle] = await Promise.all([getItemTitle(item), getItemTitle(parent)]);
+    let filename = null;
+    try { filename = item.attachmentFilename || null; } catch (_error) { /* Optional primary data. */ }
+    let linked = false;
+    try {
+      linked = typeof item.isLinkedFileAttachment === 'function' ? item.isLinkedFileAttachment()
+        : item.attachmentLinkMode === Zotero.Attachments.LINK_MODE_LINKED_FILE;
+    } catch (_error) { /* Treat an unreadable link mode as the storage-neutral case. */ }
+    const label = title || filename || sdtText('file-number', { id });
+    const descriptor = { itemID: id, libraryID: item.libraryID, key: item.key,
+      title: label, parentTitle: parentTitle || null, filename, linked };
     const processor = item.isPDFAttachment() ? 'pdf' : item.isEPUBAttachment() ? 'epub' : item.isSnapshotAttachment() ? 'snapshot' : null;
-    if (!processor) return { status: 'unsupported' };
+    if (!processor) return { status: 'unsupported', ...descriptor, reason: 'no-extractor' };
     const cacheKey = `${item.libraryID}/${item.key}`;
-    const missingSource = () => { sourceHashes.drop(cacheKey); cache.drop(cacheKey); return { status: 'missing-source' }; };
+    const missingSource = () => { sourceHashes.drop(cacheKey); cache.drop(cacheKey); return {
+      status: 'missing-source', ...descriptor }; };
     const sourcePath = await item.getFilePathAsync();
     if (!sourcePath) return missingSource();
     // One stat where there were an exists() and a stat(): it answers both
@@ -1929,7 +2221,12 @@ async function initialize(rootURI, token) {
     // be skipped on a file nothing has touched since the last census.
     let source;
     try { source = await IOUtils.stat(sourcePath); }
-    catch (_error) { return missingSource(); }
+    catch (error) {
+      // A missing path is a fact; an access or platform failure is not. Do not
+      // turn the latter into a promise that file sync can repair.
+      if (error?.name === 'NotFoundError') return missingSource();
+      return { status: 'inspection-error', ...descriptor, errorClass: classifyError(error) };
+    }
     // The re-verify window is an age, so it is a span like every other: on the
     // wall clock a backwards step shortens it and a forwards one can expire an
     // entry verified a second ago.
@@ -1937,10 +2234,8 @@ async function initialize(rootURI, token) {
       () => item.attachmentHash);
     const directory = Zotero.Attachments.getStorageDirectory(item).path;
     const path = PathUtils.join(directory, '.zotero-sdt-cache');
-    const [title, parentTitle] = await Promise.all([getItemTitle(item), getItemTitle(parent)]);
-    const result = { status: 'missing-pack', directory,
-      title: title || sourcePath.split(/[\\/]/).pop(),
-      parentTitle: parentTitle || null,
+    const result = { status: 'missing-pack', directory, ...descriptor,
+      title: title || filename || sourcePath.split(/[\\/]/).pop(),
       identity: `${item.libraryID}/${item.key}/${hash}/${JSON.stringify(versions)}` };
     result.cacheKey = cacheKey;
     seen?.add(result.cacheKey);
@@ -1966,7 +2261,7 @@ async function initialize(rootURI, token) {
     if (stat) try {
       const fingerprint = JSON.stringify([stat.size, stat.lastModified]);
       const cached = cache.check(result.cacheKey, result.identity, fingerprint);
-      if (cached) return { ...result, status: 'current', cached: true };
+      if (cached) return { ...result, status: cached.empty ? 'empty-pack' : 'current', cached: true };
       const reader = await SDT.openStructuredDocumentTextPack({ byteLength: stat.size,
         read: async (offset, length) => {
           const bytes = await IOUtils.read(path, { offset, maxBytes: length });
@@ -1979,11 +2274,20 @@ async function initialize(rootURI, token) {
       const sourceMismatch = metadata.source?.hash !== hash;
       const processorMismatch = metadata.processor?.type !== processor ||
         metadata.processor?.version !== versions.SDT_PROCESSOR_VERSIONS[processor];
-      if (packVersionMismatch) result.status = 'unsupported-pack';
+      if (packVersionMismatch) {
+        result.status = 'unsupported-pack';
+        const packOrder = compareSDTVersion(reader.header.packVersion, versions.SDT_PACK_VERSION);
+        const schemaOrder = compareSDTVersion(reader.header.schemaVersion, versions.SDT_SCHEMA_VERSION);
+        result.packOrder = packOrder; result.schemaOrder = schemaOrder;
+        const directions = [packOrder, schemaOrder].filter(order => order !== 0);
+        result.reason = directions.length && directions.every(order => order < 0) ? 'older-format'
+          : directions.length && directions.every(order => order > 0) ? 'newer-format'
+            : 'unordered-format';
+      }
       else if (sourceMismatch) result.status = 'stale-source';
       else if (processorMismatch) result.status = 'stale-processor';
-      else result.status = 'current';
-      if (result.status === 'current') cache.remember(result.cacheKey, result.identity, fingerprint, result);
+      else result.status = (await packHasSDTText(reader)) ? 'current' : 'empty-pack';
+      if (result.status === 'current' || result.status === 'empty-pack') cache.remember(result.cacheKey, result.identity, fingerprint, result);
       else cache.drop(result.cacheKey);
     } catch (error) { result.status = 'invalid-pack'; }
     // The label check, and the last thing before a document becomes a candidate.
@@ -2012,7 +2316,9 @@ async function initialize(rootURI, token) {
     // failure, which is the one to have.
     if (SDT_STATUS_CLASSES.queued.includes(result.status)) {
       const sniffed = await sniffSDTSource(sourcePath);
-      if (sniffed && sniffed.processor !== processor) result.status = 'unsupported';
+      if (sniffed && sniffed.processor !== processor) {
+        result.status = 'unsupported'; result.reason = 'mismatched-type';
+      }
     }
     return result;
   }
@@ -2070,6 +2376,7 @@ async function initialize(rootURI, token) {
       seen = new Set();
       return Zotero.DB.columnQueryAsync('SELECT itemID FROM itemAttachments ORDER BY itemID');
     },
+    unattached,
     // Parent erasure may report only the parent; retain previously observed
     // child IDs as well as the current DB membership. Never await this inside
     // notify(): item notifications can run within the transaction we query.

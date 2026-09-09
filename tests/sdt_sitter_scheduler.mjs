@@ -923,17 +923,17 @@ await test('the whole coverage snapshot holds one generation throughout the next
   };
   const api = context.createSDTSitter(host);
   await api.sweep();
-  const expected = { known: true, current: 1, failed: 1, queued: 1,
+  const expected = { known: true, current: 1, unindexed: 0, failed: 1, queued: 1,
     outOfScope: 2, total: 3, stateFailed: 1, identityHolds: true,
     populationHolds: true };
   assert.deepEqual({ ...ui.getSDTCoverage(api.state) },
-    { known: true, current: 1, failed: 1, queued: 1, outOfScope: 2, total: 3 });
+    { known: true, current: 1, unindexed: 0, failed: 1, queued: 1, outOfScope: 2, total: 3 });
 
   const samples = [], settled = host.inspect;
   host.inspect = async id => {
     const coverage = ui.getSDTCoverage(api.state);
     samples.push({ ...coverage, stateFailed: api.state.failed,
-      identityHolds: coverage.current + api.state.failed + coverage.queued === coverage.total,
+      identityHolds: coverage.current + coverage.unindexed + api.state.failed + coverage.queued === coverage.total,
       populationHolds: coverage.total + coverage.outOfScope === 5 });
     return settled(id);
   };

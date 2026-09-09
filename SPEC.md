@@ -2,7 +2,7 @@
 
 - **Status:** COMPLETE
 - **Author:** Minh Ha-Duong (CNRS)
-- **Date:** 2026-09-08
+- **Date:** 2026-09-09
 
 ## 1. Introduction
 
@@ -2286,6 +2286,74 @@ Coverage reflects the last observation and discloses reconciliation freshness.
 An unresolved native promise prevents further submissions; lack of progress
 alone does not prove a hang. Failures are suppressed for the session by source
 and processor identity, without a private durable ledger.
+
+The Details layer offers a collapsible "Not indexed" section for observed
+obstacles to structured-text indexing, not an exhaustive list of pending work.
+Groups follow the current obstacle and possible remedy, with factual headings
+and conditional explanations, never an obligation or a backlog. Empty groups
+and an entirely empty section are hidden. The classification is:
+
+| Group heading | Observation and explanation shown |
+|---|---|
+| No attachment | A non-deleted bibliographic item has no non-deleted file attachment. "No file attachment is recorded. A file may be available from the publisher or another source." Notes and URL-only attachments do not count as files. |
+| Stored file unavailable | A stored attachment's file is confirmed absent. "The file is not available on this device. Zotero file sync may retrieve it if a remote copy is available and file sync is enabled." |
+| Linked file unavailable | A linked file is confirmed absent. "The linked file is not available at its recorded location. Restoring the file or updating its link may make it accessible." |
+| Mismatched type | Recognized source bytes contradict the declared type. "The file contents differ from the recorded format. A matching format record may allow extraction; image-only content may require OCR." |
+| No extractor for this format | No supported processor. "The sitter has no extractor for this format. An alternative supported file may provide text." |
+| No extracted text | Complete, successful inspection of the native pack establishes that it contains no text. "The stored index contains no text. OCR may help if the document consists of scanned images." |
+| Extraction failed this session | Session suppression applies. "Extraction did not complete during this session. The attachment becomes eligible for another attempt in a later session, subject to availability and normal admission checks." |
+| Stored index from an older version | Comparable pack and schema versions are no newer, with at least one older. "The stored index uses an older format than this Zotero supports. Whether Zotero can regenerate it has not been established here." |
+| Stored index from a newer version | Comparable versions are no older, with at least one newer. "The stored index uses a newer format than this Zotero supports. A compatible Zotero version may be able to read it." |
+| Stored index version not comparable | Versions are malformed, unknown or move in opposite directions. "The stored index format cannot be ordered against this Zotero's supported format." |
+| Could not be examined | Inspection or file access failed for a reason other than confirmed absence. A composed explanation uses only a validated error class, never the raw exception message. |
+
+Version comparison uses the native compatibility dimensions: pack version and
+schema major version, numerically validated. Reader rejection before those
+fields are available retains the existing invalid-pack behavior; it does not
+justify an older/newer label. These display groups do not alter native retries
+or admission policy. Sparse text, an unreadable pack, and a sample of early
+pages do not establish "No extracted text" or the absence of a source text
+layer. Unknown content remains unknown, never a confident empty classification;
+verified empty packs are outside indexed coverage and are not repeatedly queued
+merely because they contain no text. Cached classifications preserve that result.
+
+Each group lists descriptive titles, using attachment filenames as a fallback,
+then a safe item identifier if descriptive metadata could not be obtained.
+An unavailable library identity is stated as such and cannot enable a library
+selection action. Safe error classification happens before exception objects
+are discarded; metadata lookup failure cannot erase the item identifier or
+cause recursive inspection. No filesystem path or raw platform message reaches
+this section or its clipboard export.
+
+"Show in Zotero" selects the group's complete membership within a library;
+"Export list to clipboard" copies that membership, with a title or fallback
+identifier and a stable library/item reference where available. Line breaks in
+item fields are escaped so each item occupies one export line. Both controls
+operate only on user activation, with explanatory tooltips and visible failure
+feedback. They never change library records. When a group spans libraries,
+lists and controls split by library within the group; its explanation appears
+only once. A one-title preview offers "Show all" without limiting either
+action. Rendering expanded lists is incremental and yields to the host; it does
+not rebuild an unbounded list on every progress tick or discard focus and
+expansion state. No API or collection creation belongs to this interface.
+
+The scheduler publishes immutable group membership and attachment counts from
+the same completed observation generation. During reconciliation the interface
+retains the previous complete generation, labels its freshness, and never mixes
+new counts with old membership. With no completed generation it shows that the
+reading is not yet available. Incremental changes publish membership and counts
+together after inspection. The separate bibliographic-item view does not enter
+attachment coverage arithmetic; it participates in the published generation.
+Adding, removing, reparenting, trashing or restoring an attachment invalidates
+both affected parents as well as the attachment; bibliographic-item changes
+refresh the no-attachment view. Reconciliation covers missed events, and turning
+the sitter off retains the last reading without starting a scan from the dialog.
+
+A click captures the displayed generation and library's full membership. Before
+selection, resolve surviving items in that library; report any omitted items or
+an unavailable library without substituting a different group. Clipboard export
+is explicitly a copy of the displayed observation, not a new live census.
+Updates arriving during an action do not silently change its target set.
 
 The experimental sitter collects successful document durations, byte sizes
 and available page counts in a disposable persistent cache. It begins empirical estimation
