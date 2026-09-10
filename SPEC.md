@@ -2299,20 +2299,27 @@ does not re-learn where to look. Where one census status splits into several
 groups, the split follows the account row that owns it — stored before linked,
 extractor before format mismatch. The one group with no census status behind it,
 the bibliographic records carrying no file at all, is last: it is not an obstacle
-to extraction, since there is nothing to extract. The classification is:
+to extraction, since there is nothing to extract.
+
+Headings and quoted explanations below are the shipped strings verbatim, and
+`tests/test_sdt_sitter.py` holds them to the plugin's own table. Quoting rather
+than paraphrasing is the point: two paraphrases of one sentence drift silently,
+where a quotation can be held to its source. The unquoted column states what the
+observation must establish before a group may claim a reader's attention, which
+is this document's own to say. The classification is:
 
 | Group heading | Observation and explanation shown |
 |---|---|
-| No extracted text | Complete, successful inspection of the native pack establishes that it contains no text. "The stored index contains no text. OCR may help if the document consists of scanned images." |
-| Extraction failed this session | Session suppression applies. "Extraction did not complete during this session. The attachment becomes eligible for another attempt in a later session, subject to availability and normal admission checks." |
+| No extracted text | Complete, successful inspection of the native pack establishes that it contains no text. "The stored index contains no text. OCR may help if the file consists of scanned images." |
+| Extraction not completed this session | Session suppression applies. "The attachment becomes eligible for another attempt in a later session, subject to normal admission checks." |
 | Could not be examined | Inspection or file access failed for a reason other than confirmed absence. A composed explanation uses only a validated error class, never the raw exception message. |
-| Stored index from an older version | Comparable pack and schema versions are no newer, with at least one older. "The stored index uses an older format than this Zotero supports. Whether Zotero can regenerate it has not been established here." |
-| Stored index from a newer version | Comparable versions are no older, with at least one newer. "The stored index uses a newer format than this Zotero supports. A compatible Zotero version may be able to read it." |
-| Stored index version not comparable | Versions are malformed, unknown or move in opposite directions. "The stored index format cannot be ordered against this Zotero's supported format." |
+| Stored index uses an older format | Comparable pack and schema versions are no newer, with at least one older. "Whether Zotero can regenerate this format has not been established here." |
+| Stored index uses a newer format | Comparable versions are no older, with at least one newer. "A compatible Zotero version may be able to read this format." |
+| Stored index format cannot be compared | Versions are malformed, unknown or move in opposite directions. "The stored index format cannot be ordered against this Zotero version." |
 | Stored file unavailable | A stored attachment's file is confirmed absent. "The file is not available on this device. Zotero file sync may retrieve it if a remote copy is available and file sync is enabled." |
 | Linked file unavailable | A linked file is confirmed absent. "The linked file is not available at its recorded location. Restoring the file or updating its link may make it accessible." |
 | No extractor for this format | No supported processor. "The sitter has no extractor for this format. An alternative supported file may provide text." |
-| Mismatched type | Recognized source bytes contradict the declared type. "The file contents differ from the recorded format. A matching format record may allow extraction; image-only content may require OCR." |
+| Recorded format differs | Recognized source bytes contradict the declared type. "The file contents differ from the recorded format. A matching format record may allow extraction; image-only content may require OCR." |
 | Entries without any attached file | A non-deleted bibliographic item has no non-deleted file attachment. "No file attachment is recorded. A file may be available from the publisher or another source." Notes and URL-only attachments do not count as files. |
 
 Version comparison uses the native compatibility dimensions: pack version and
