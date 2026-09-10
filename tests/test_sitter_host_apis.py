@@ -147,7 +147,16 @@ SOURCE_SUFFIXES = (".js", ".mjs", ".json", ".md")
 #: rather than by silence. The scan cannot tell an icon from an `.xhtml` dialog,
 #: so a file type arriving under `plugins/` has to be classified by a person;
 #: this list is where that decision is recorded.
-ASSET_SUFFIXES = (".png", ".jpg", ".jpeg", ".gif", ".ico", ".woff", ".woff2")
+#: `.xpi` is here for a different reason from the icons and is the reason this
+#: list carries the word "readable". The built add-on is a zip of the very
+#: sources beside it, so it does contain `resource://` literals — compressed,
+#: which is to say not literals this scan could read, while the originals it was
+#: built from are already covered by `SOURCE_SUFFIXES`. It is also a build
+#: output rather than something the tree ships, and `.gitignore` says so; the
+#: scan walks the filesystem, so it meets one wherever the author has built the
+#: plugin and nowhere else — which is why this fired for the first time on a
+#: full-suite run in his own checkout and never once in CI (2026-09-10).
+ASSET_SUFFIXES = (".png", ".jpg", ".jpeg", ".gif", ".ico", ".woff", ".woff2", ".xpi")
 
 #: Whole-line comments, dropped before the scan. The quote anchor below rules
 #: out unquoted prose; this rules out the quoted kind, which `bootstrap.js`
