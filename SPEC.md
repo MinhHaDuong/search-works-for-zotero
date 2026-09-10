@@ -2,7 +2,7 @@
 
 - **Status:** COMPLETE
 - **Author:** Minh Ha-Duong (CNRS)
-- **Date:** 2026-09-09
+- **Date:** 2026-09-10
 
 ## 1. Introduction
 
@@ -2346,19 +2346,20 @@ An unavailable library identity is stated as such and cannot enable a library
 selection action. Safe error classification happens before exception objects
 are discarded; metadata lookup failure cannot erase the item identifier or
 cause recursive inspection. No filesystem path or raw platform message reaches
-this section or its clipboard export.
+this section.
 
-"Show in Zotero" selects the group's complete membership within a library;
-"Export list to clipboard" copies that membership, with a title or fallback
-identifier and a stable library/item reference where available. Line breaks in
-item fields are escaped so each item occupies one export line. Both controls
-operate only on user activation, with explanatory tooltips and visible failure
-feedback. They never change library records. When a group spans libraries,
-lists and controls split by library within the group; its explanation appears
-only once. A one-title preview offers "Show all" without limiting either
-action. Rendering expanded lists is incremental and yields to the host; it does
-not rebuild an unbounded list on every progress tick or discard focus and
-expansion state. No API or collection creation belongs to this interface.
+"Show in Zotero" selects the group's complete membership within a library, and
+is this section's only action. It operates only on user activation, with an
+explanatory tooltip and visible failure feedback, and never changes library
+records. It has no clipboard counterpart: the membership leaves this section as
+identifiers alone, through the diagnostic channel's clipboard sink described
+under R22, and never as the titles this section displays. When a group spans
+libraries, lists and controls split by library within the group; its
+explanation appears only once. A one-title preview offers "Show all" without
+limiting the action. Rendering expanded lists is incremental and yields to the
+host; it does not rebuild an unbounded list on every progress tick or discard
+focus and expansion state. No API or collection creation belongs to this
+interface.
 
 The scheduler publishes immutable group membership and attachment counts from
 the same completed observation generation. During reconciliation the interface
@@ -2374,9 +2375,10 @@ the sitter off retains the last reading without starting a scan from the dialog.
 
 A click captures the displayed generation and library's full membership. Before
 selection, resolve surviving items in that library; report any omitted items or
-an unavailable library without substituting a different group. Clipboard export
-is explicitly a copy of the displayed observation, not a new live census.
-Updates arriving during an action do not silently change its target set.
+an unavailable library without substituting a different group. The identifier
+list carried by the diagnostic report is likewise a copy of the displayed
+observation, not a new live census. Updates arriving during an action do not
+silently change its target set.
 
 The experimental sitter collects successful document durations, byte sizes
 and available page counts in a disposable persistent cache. It begins empirical estimation
@@ -2441,7 +2443,14 @@ vendor and so not session-confined; the on-screen failure line still shows the
 author the file and the whole error, locally. The channel's reach is what is
 specified here and not the host's own: an initialization that rejects is handed
 whole to the host error console, the ordinary fate of an unhandled plugin
-failure, which this rule neither widens nor claims to narrow. Neither sink
+failure, which this rule neither widens nor claims to narrow. A third sink is
+the window's own copy action: on user activation it puts the ring tail, the
+build and host versions, and the not-indexed membership on the clipboard. It is
+scrubbed before serialization, and it carries no kind of field the other two may
+not. The membership reaches it as the same library-and-item-key pairs a failure
+record already carries, listed rather than sampled, and never as the titles the
+not-indexed section displays on screen. This sink is the one whose payload a
+reader pastes elsewhere, which is why its payload is the narrow one. No sink
 receives extracted text, attachment or parent titles, or library source paths —
 the cache paragraph's privacy rule, scoped here to library and document content.
 The one path-bearing record is the startup self-check, and the path is the
@@ -2451,8 +2460,9 @@ first initialization it reaches the debug output alone, the
 ring not existing yet. The ring keeps the last 2 000 records, discarding the
 oldest, and is never written to disk: it makes a hang readable within the
 session that suffered it and nothing beyond. This is not an exception to the
-rule above — there is still no private durable ledger, and neither sink outlives
-the session. The channel seals at shutdown, so nothing lands behind the shutdown
+rule above — there is still no private durable ledger, and neither automatic
+sink outlives the session. The clipboard does, which is the reader's own doing
+and under his own hand; that is what makes its payload the narrow one. The channel seals at shutdown, so nothing lands behind the shutdown
 record, and a diagnostic that throws is swallowed rather than raised into the
 sitter's loop.
 
