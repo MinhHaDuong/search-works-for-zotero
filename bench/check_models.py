@@ -76,6 +76,25 @@ SCANNED_ROOTS = ("bench", "plugins")
 #: is load-bearing here too, and the manifest and items.json beside it stay scanned.
 SKIPPED = ("bench/results/", "bench/fixtures/export/fulltext/")
 GENERATED_DIR = "__pycache__"
+#: The built add-on, for the `__pycache__` reason exactly: a zip of the very
+#: `plugins/sdt-sitter/` sources this guard already scans, and binary, so reading
+#: it buys nothing and failing on it is failing on a file whose readable original
+#: is two lines away. `.gitignore` already calls `*.xpi` generated; this makes the
+#: guard agree. A suffix and not a path, because `bench/build_sdt_sitter.py` writes
+#: the artifact wherever it is told and one of the two places is beside the source.
+#:
+#: It fires only where somebody has actually built the plugin — the author's own
+#: checkout — so CI is structurally blind to it and was: `make check` was red on
+#: his machine and green on every runner (found 2026-09-10, at a lair step 9).
+#:
+#: Anchored to `plugins/`, because the two exemptions above are each anchored to
+#: one directory and a bare suffix would be the first that is not. `--output` is
+#: required and takes any path, so an XPI built into `bench/` reddens this gate —
+#: which is the right answer, `bench/` being where the code lives. Review of PR
+#: #513 demonstrated the unanchored hole with a plain-text `bench/anywhere.xpi`
+#: naming a registry model, and it passed; anchored, it does not.
+GENERATED_SUFFIX = ".xpi"
+GENERATED_SUFFIX_ROOT = "plugins/"
 
 #: Exempt, each for its own reason, and there are only two. The registry is the
 #: owner. This file holds the vocabulary by construction — the owner names below
@@ -271,7 +290,9 @@ def scanned_files(root: Path) -> list[Path]:
                 continue
             rel = path.relative_to(root).as_posix()
             if (rel in EXEMPT or rel.startswith(SKIPPED)
-                    or GENERATED_DIR in path.relative_to(root).parts):
+                    or GENERATED_DIR in path.relative_to(root).parts
+                    or (path.suffix == GENERATED_SUFFIX
+                        and rel.startswith(GENERATED_SUFFIX_ROOT))):
                 continue
             files.append(path)
     return files

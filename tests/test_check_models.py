@@ -289,6 +289,8 @@ def test_the_data_exemption_does_not_extend_to_siblings_by_prefix():
     """
     assert cm.SKIPPED == ("bench/results/", "bench/fixtures/export/fulltext/")  # the export's extracted text: data, ticket 0721
     assert cm.GENERATED_DIR == "__pycache__"
+    assert cm.GENERATED_SUFFIX == ".xpi"  # the built add-on: a zip of scanned sources, 2026-09-10
+    assert cm.GENERATED_SUFFIX_ROOT == "plugins/"  # anchored like the two above, PR #513 review
 
 
 def test_a_generated_binary_under_bench_does_not_fail_the_scan(tmp_path):
@@ -304,6 +306,48 @@ def test_a_generated_binary_under_bench_does_not_fail_the_scan(tmp_path):
     cache.mkdir(parents=True, exist_ok=True)
     (cache / "driver.cpython-314.pyc").write_bytes(b"\xda\xfd\x00binary not utf-8\n")
     assert cm.run(repo) == 0
+
+
+def test_a_built_addon_beside_its_sources_does_not_fail_the_scan(tmp_path):
+    """`bench/build_sdt_sitter.py` writes the XPI beside the sources it zips.
+
+    The failure this repairs was invisible to CI by construction: the artifact is
+    gitignored, so it exists only where somebody has actually built the plugin.
+    `make check` was red on the author's checkout and green on every runner, for
+    weeks, and a lair step 9 on main is what finally ran the two in the same place
+    (2026-09-10).
+    """
+    repo = build(tmp_path, {"plugins/sdt-sitter/bootstrap.js": "const x = 1;\n"})
+    (repo / "plugins" / "sdt-sitter" / "sdt-pack-sitter-9.9.9.xpi").write_bytes(
+        b"PK\x03\x04\xf5\x00not utf-8 at all\n")
+    assert cm.run(repo) == 0
+
+
+def test_an_undecodable_file_under_plugins_is_still_a_finding(tmp_path):
+    """The control for the exemption above, and the one that keeps it a suffix.
+
+    Same bytes, same directory, a name the build never writes. A skip written as
+    "anything binary under plugins/" would pass this and exempt the next authored
+    blob nobody looked at.
+    """
+    repo = build(tmp_path, {"plugins/sdt-sitter/bootstrap.js": "const x = 1;\n"})
+    (repo / "plugins" / "sdt-sitter" / "sdt-pack-sitter-9.9.9.zip").write_bytes(
+        b"PK\x03\x04\xf5\x00not utf-8 at all\n")
+    assert cm.run(repo) == 1
+
+
+def test_the_addon_exemption_does_not_extend_to_the_code_tree(tmp_path):
+    """`bench/anywhere.xpi` is not a built add-on, and must not inherit its pass.
+
+    The review of PR #513 built this exact case — plain text under a `.xpi` name,
+    carrying a registry model id — and the unanchored first draft passed it. Both
+    older exemptions are anchored to one directory each; this is the anchor that
+    stops the third from being the one that is not.
+    """
+    repo = build(tmp_path, {"bench/driver.mjs": "const model = opt.model;\n"})
+    (repo / "bench" / "anywhere.xpi").write_text(
+        "Fixture/fixture-embed-v1\n", encoding="utf-8")
+    assert cm.run(repo) == 1
 
 
 def test_the_heuristic_boundary_is_declared():
