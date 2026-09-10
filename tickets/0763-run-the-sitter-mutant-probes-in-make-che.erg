@@ -1,0 +1,102 @@
+%erg 0.1
+Title: Run the sitter mutant probes in make check, and re-anchor the five lost
+Created: 2026-09-10
+Author: claude
+
+--- log ---
+2026-09-10T09:45Z claude created
+2026-09-10T09:52Z claude note Filed from a measurement taken this morning at cf9d7f1, not from a document. Both probes were run; the counts in the body are their own output, and the five lost anchors are the reason this is a release gate rather than a hygiene chore.
+
+--- body ---
+## Context
+
+`verification/probes/sdt_sitter_bootstrap_mutants.py` and its scheduler sibling
+each open by declaring themselves a gate — "a red run recorded once in a merge
+request is a fact nobody can re-derive. This makes it a gate" — and **nothing in
+the tree invokes either one.** `grep -n mutant Makefile` is empty; `make check`
+(Makefile:163) runs neither.
+
+Run by hand on 2026-09-10 at `cf9d7f1`:
+
+| probe | caught | anchor lost | SURVIVES |
+|---|---|---|---|
+| `sdt_sitter_bootstrap_mutants.py` | 28 | 2 (M29, M30) | 0 |
+| `sdt_sitter_scheduler_mutants.py` | 16 | 3 (M12, M15, M16) | 0 |
+
+No mutant the probe could apply went undetected. Every failure is the probe
+losing its anchor, and both probes therefore exit 1 today.
+
+Two things make this a release gate rather than tidying.
+
+**First, the rot is in the region the "not releasable" verdict named.** STATE.md
+line 20 reads "Sitter NOT releasable (0908): 30 of 38 mutations silent in
+`blocked()` and `inspect()`". M29 and M30 are the two mutants that test
+`inspect()`'s content-type guard, and they are exactly the two that can no
+longer be applied. The guard is still in the code (`bootstrap.js:2389`); what
+moved is that commit `9694b2d` (0744's cause reporting) added
+`result.reason = 'mismatched-type'` and re-braced the block, so the probe's
+exact-match anchor stopped matching. Until they are re-anchored, that region has
+**no live regression measurement** — and "the probe could not look" is reported
+in the same tally position as "the suites caught it".
+
+**Second, the artifact behind STATE's 30-of-38 figure is not in the tree.**
+`grep -rn '38 mutants\|30 of 38\|30/38'` over `*.md` and `*.erg` returns that
+STATE line and nothing else. This ticket does not claim the figure was wrong; it
+claims no one can re-derive it, which is the same defect one level up. Wiring
+the probes into `check` is what makes the next such line re-derivable.
+
+## Relevant files
+
+- `verification/probes/sdt_sitter_bootstrap_mutants.py` — 30 mutants against
+  `bootstrap.js`; M29/M30 anchors at lines 229–240
+- `verification/probes/sdt_sitter_scheduler_mutants.py` — 19 mutants against
+  `scheduler.js`; M12, M15, M16 anchors lost
+- `plugins/sdt-sitter/bootstrap.js:2389` — the content-type guard M29/M30 test
+- `Makefile:163` — the `check` target; `Makefile:239` — `sitter-version`, the
+  existing precedent for a sitter-specific gate
+
+## Actions
+
+1. Re-anchor M29 and M30 against the current braced block, keeping each mutant's
+   *meaning* (M29 removes the guard; M30 inverts it to `!sniffed ||`), not its
+   old text.
+2. Re-anchor scheduler M12, M15 and M16 the same way, reading what changed under
+   each rather than pattern-matching the diff.
+3. Add a `sitter-mutants` target that runs both probes, and put it in `check`.
+   Measure and record what it adds to `make check` — 49 mutants each re-running
+   a node suite is not free, and if the cost is unacceptable the fallback is a
+   separate target run by the release gate, not silence.
+4. Replace STATE.md's 30-of-38 line with a figure the tree can re-derive.
+
+## Test
+
+Red step first, and it is already red: both probes exit 1 today while
+`make check` is green. That gap is the defect, and it is the control — record
+both exit codes before touching anything.
+
+After re-anchoring, M29 and M30 must report `caught by N`. If either reports
+`SURVIVES — no test detects it`, that is a real coverage hole in `inspect()`'s
+content-type guard: **file it as its own ticket, do not absorb it here.** This
+ticket restores the instrument; it does not promise what the instrument will
+find.
+
+## Verification
+
+- [ ] Both probes exit 0, with 30/30 and 19/19 caught and no `ANCHOR LOST`.
+- [ ] `make check` runs them.
+- [ ] The new gate is shown red once: perturb one anchor deliberately, watch
+      `make check` fail, restore. A gate no wrong run could fail proves nothing.
+- [ ] `make check`'s added runtime is recorded in the log.
+
+## Invariants
+
+- No behaviour change in `plugins/sdt-sitter/*.js`. This ticket touches probes,
+  the Makefile and STATE.md.
+- The probes copy the whole tree to a temp dir and run node there; nothing may
+  write a mutated `bootstrap.js` into a checkout shared between sessions.
+- `tests/sdt_sitter_bootstrap.mjs` stays green (45 scenarios at `cf9d7f1`).
+
+## Exit criteria
+
+Both probes are green, are run by `make check`, and the new gate has been shown
+red once by a deliberate break. Any mutant that SURVIVES has its own ticket.
