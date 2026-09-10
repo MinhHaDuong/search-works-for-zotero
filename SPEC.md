@@ -2301,6 +2301,12 @@ extractor before format mismatch. The one group with no census status behind it,
 the bibliographic records carrying no file at all, is last: it is not an obstacle
 to extraction, since there is nothing to extract.
 
+The library subsections within a group are ordered too, and by the same reason:
+the personal library first, then group libraries by name, then any library that
+could not be named. This is the order Zotero's own items pane uses, so the panel
+teaches no second one, and a library whose record cannot be read keeps its
+subsection and loses only its name.
+
 This document owns the classes and the observation that admits an attachment to
 each; it does not own the sentences the panel shows. Those are written under the
 constraints stated above — factual, conditional, never an obligation or a

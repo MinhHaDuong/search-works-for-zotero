@@ -213,6 +213,7 @@ function attachment(row) {
  * @param options.prefs        prefs already set in the profile, `{ name: value }`
  * @param options.onPrompt     `windows => void`, run while the launch modal is up
  * @param options.windows      how many main windows exist (default: 1)
+ * @param options.libraries    `[{libraryID, name, libraryType}]` (default: one user library)
  * @param options.meminfo      `() => string` for /proc/meminfo, or a thrower
  * @param options.loadavg      `() => string` for /proc/loadavg
  * @param options.writable     whether the storage directory accepts writes
@@ -222,6 +223,11 @@ function attachment(row) {
  * @param options.ensure       `(id, onProgress) => Promise<boolean>`, the native extractor
  */
 export function createHarness(options = {}) {
+  // The single user library is the default every existing scenario assumes.
+  // `libraryType` is carried because the panel reads it to put the personal
+  // library first, and a mock that omitted it would make every library a group.
+  const libraries = options.libraries
+    || [{ libraryID: 1, name: 'Ma bibliothèque', libraryType: 'user' }];
   const rows = (options.attachments || []).map(attachment);
   const library = new Map(rows.map(row => [row.id, row]));
   const bibliographic = new Map((options.unattached || []).map(row => [row.id, {
@@ -397,7 +403,7 @@ export function createHarness(options = {}) {
     Prefs: { get: name => prefs.get(name), set: (name, value) => prefs.set(name, value) },
     getMainWindow: () => windows[0],
     getMainWindows: () => windows,
-    Libraries: { getAll: () => [{ name: 'Ma bibliothèque' }], get: id => id === 1 ? { name: 'Ma bibliothèque' } : null },
+    Libraries: { getAll: () => libraries, get: id => libraries.find(row => row.libraryID === id) || null },
     Fulltext: { getIndexStats: async () => ({ indexed: 3, partial: 0, unindexed: 1 }) },
     Utilities: { Internal: { copyTextToClipboard: text => { clipboard.text = text; } } },
     DataDirectory: { dir: DATA_DIR },
