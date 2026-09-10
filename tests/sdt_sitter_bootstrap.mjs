@@ -1456,9 +1456,17 @@ await test('unattached records stay outside attachment coverage and source acces
   const dialog = [...h.context.dialogs][0];
   const notIndexed = dialog.document.getElementById('sdt-not-indexed');
   assert.equal(notIndexed.hidden, false, 'observed obstacles did not open the Details disclosure');
-  assert.match(notIndexed.textContent, /Not indexed \(3\).*No attachment \(2\).*Reference without a file.*Could not be examined \(1\).*NotAllowedError/s);
-  const libraryHeading = notIndexed.descendants().find(node => node.tagName === 'h4');
-  assert.equal(libraryHeading.textContent, 'Library: Ma bibliothèque (2)');
+  // The census meets the unattached records first — `collectSDTNotIndexed` adds
+  // them before it walks the members — and they still render last, which is the
+  // whole point: the order is the declaration's, not the walk's. The reading
+  // order itself is held in `tests/test_sdt_sitter.py`; what this fixture proves
+  // is that the renderer obeys it against a walk that disagrees.
+  assert.match(notIndexed.textContent, /Not indexed \(3\).*Could not be examined \(1\).*NotAllowedError.*Entries without any attached file \(2\).*Reference without a file/s);
+  const libraryHeadings = notIndexed.descendants().filter(node => node.tagName === 'h4');
+  assert.deepEqual(libraryHeadings.map(node => node.textContent),
+    ['Library: Ma bibliothèque (1)', 'Library: Ma bibliothèque (2)'],
+    'the library subsections do not follow their groups');
+  const libraryHeading = libraryHeadings[1];
   assert.equal(libraryHeading.style.properties.get('font-size'), '0.95em', 'library rows have no fourth-level hierarchy');
   const controls = notIndexed.descendants().find(node => node.tagName === 'div' && node.childNodes.some(child => child.tagName === 'button'));
   assert.equal(controls.style.properties.get('margin-left'), '40px', 'actions do not align with list text');

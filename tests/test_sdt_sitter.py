@@ -1297,6 +1297,78 @@ def test_every_census_status_is_named_in_words_a_reader_can_read():
         'the total label carries a placeholder; it is composed positionally now'
 
 
+#: Which census status each "Not indexed" group speaks for. Three statuses split
+#: into several groups, because the reader is owed the remedy and the remedy
+#: differs: a stored file and a linked file are both `missing-source`, and only
+#: one of them is Zotero's to fetch. Restated here rather than read out of
+#: `collectSDTNotIndexed`'s nested conditional, so a group added there without a
+#: place in the reading order argues with the set assertion below.
+NOT_INDEXED_OWNER = {
+    'empty-pack': 'empty-pack',
+    'failed-session': 'failed-session',
+    'inspection-error': 'inspection-error',
+    'older-format': 'unsupported-pack',
+    'newer-format': 'unsupported-pack',
+    'unordered-format': 'unsupported-pack',
+    'missing-source-stored': 'missing-source',
+    'missing-source-linked': 'missing-source',
+    'no-extractor': 'unsupported',
+    'mismatched-type': 'unsupported',
+}
+
+
+def test_the_not_indexed_groups_read_in_the_census_account_s_order():
+    """One library, two lists, one reading order.
+
+    The author read them side by side and found no relation between the two
+    sequences, because there was none to find: the groups came out in the order
+    the census walk met them, so the same library reordered its own obstacle list
+    whenever its contents changed. The fix is that declaration order is display
+    order, and that the declaration is a projection of `SDT_STATUS_ORDER`.
+
+    Three things can rot and each has its own assertion. A group can be added
+    with no place in the account (the set), the projection can stop being
+    monotone (the walk), and the two groups a split status owns can swap (the
+    pairs). The red control for the walk is the fix's own before-state: with
+    `no-attachment` first, as the census used to hand it over, the projection has
+    no owner to place and the tail assertion fails.
+    """
+    site = _site('var SDT_NOT_INDEXED_GROUPS = {', '\n};')
+    groups = re.findall(r"^  '([a-z-]+)': \{", site, re.MULTILINE)
+    assert len(groups) == len(set(groups)), f'a group is declared twice: {groups}'
+    assert set(groups) == set(NOT_INDEXED_OWNER) | {'no-attachment'}, \
+        f'the reading order and this map disagree: {sorted(set(groups) ^ (set(NOT_INDEXED_OWNER) | {"no-attachment"}))}'
+
+    # Last, and outside the projection: it comes off `unattached`, which carries
+    # bibliographic records rather than attachments, so no census status places
+    # it -- and it is the one group naming no obstacle, since there is no file to
+    # extract from in the first place.
+    assert groups[-1] == 'no-attachment', \
+        f'the group with no census status behind it is not last: {groups}'
+
+    order = _statuses(_site('var SDT_STATUS_ORDER = [', '];'))
+    positions = [order.index(NOT_INDEXED_OWNER[group]) for group in groups[:-1]]
+    assert positions == sorted(positions), \
+        f'the groups do not read in the account order: {list(zip(groups, positions))}'
+
+    # Where one status splits, the split's order is the account row's own
+    # wording: "Stored or linked file unavailable", "No extractor or format
+    # mismatch". A reader who learned the pair from the account meets it the same
+    # way here.
+    for first, second in (('missing-source-stored', 'missing-source-linked'),
+                          ('no-extractor', 'mismatched-type')):
+        assert groups.index(first) < groups.index(second), \
+            f'{first} reads after {second}, against the account row that names both'
+
+    # And the half a source order cannot state: the renderer has to read this
+    # declaration rather than the Map it fills. `tests/sdt_sitter_bootstrap.mjs`
+    # holds the rendered order; this catches the return to insertion order that
+    # would leave that test green on a two-group fixture.
+    collect = _site('function collectSDTNotIndexed(state) {', '\n}')
+    assert 'Object.keys(SDT_NOT_INDEXED_GROUPS)' in collect, \
+        'the groups are handed back in the order they were met, not the order they are declared'
+
+
 def test_the_coverage_denominator_reads_the_classification():
     """The other half of the same fact, and the one a reader sees as a percentage.
 

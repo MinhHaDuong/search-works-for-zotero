@@ -258,28 +258,28 @@ var SDT_TEXT = {
     "not-indexed-title-count": "Not indexed ({count})",
     "not-indexed-none": "No observed obstacles to indexing.",
     "not-indexed-group-count": "{label} ({count})",
-    "not-indexed-no-attachment": "No attachment",
-    "not-indexed-no-attachment-detail": "No file attachment is recorded. A file may be available from the publisher or another source.",
     "not-indexed-no-text": "No extracted text",
     "not-indexed-no-text-detail": "The stored index contains no text. OCR may help if the file consists of scanned images.",
-    "not-indexed-stored-file": "Stored file unavailable",
-    "not-indexed-stored-file-detail": "The file is not available on this device. Zotero file sync may retrieve it if a remote copy is available and file sync is enabled.",
-    "not-indexed-linked-file": "Linked file unavailable",
-    "not-indexed-linked-file-detail": "The linked file is not available at its recorded location. Restoring the file or updating its link may make it accessible.",
-    "not-indexed-mismatched-type": "Recorded format differs",
-    "not-indexed-mismatched-type-detail": "The file contents differ from the recorded format. A matching format record may allow extraction; image-only content may require OCR.",
-    "not-indexed-no-extractor": "No extractor for this format",
-    "not-indexed-no-extractor-detail": "The sitter has no extractor for this format. An alternative supported file may provide text.",
     "not-indexed-session": "Extraction not completed this session",
     "not-indexed-session-detail": "The attachment becomes eligible for another attempt in a later session, subject to normal admission checks.",
+    "not-indexed-examined": "Could not be examined",
+    "not-indexed-examined-detail": "Inspection returned {class}.",
     "not-indexed-older-format": "Stored index uses an older format",
     "not-indexed-older-format-detail": "Whether Zotero can regenerate this format has not been established here.",
     "not-indexed-newer-format": "Stored index uses a newer format",
     "not-indexed-newer-format-detail": "A compatible Zotero version may be able to read this format.",
     "not-indexed-unordered-format": "Stored index format cannot be compared",
     "not-indexed-unordered-format-detail": "The stored index format cannot be ordered against this Zotero version.",
-    "not-indexed-examined": "Could not be examined",
-    "not-indexed-examined-detail": "Inspection returned {class}.",
+    "not-indexed-stored-file": "Stored file unavailable",
+    "not-indexed-stored-file-detail": "The file is not available on this device. Zotero file sync may retrieve it if a remote copy is available and file sync is enabled.",
+    "not-indexed-linked-file": "Linked file unavailable",
+    "not-indexed-linked-file-detail": "The linked file is not available at its recorded location. Restoring the file or updating its link may make it accessible.",
+    "not-indexed-no-extractor": "No extractor for this format",
+    "not-indexed-no-extractor-detail": "The sitter has no extractor for this format. An alternative supported file may provide text.",
+    "not-indexed-mismatched-type": "Recorded format differs",
+    "not-indexed-mismatched-type-detail": "The file contents differ from the recorded format. A matching format record may allow extraction; image-only content may require OCR.",
+    "not-indexed-no-attachment": "Entries without any attached file",
+    "not-indexed-no-attachment-detail": "No file attachment is recorded. A file may be available from the publisher or another source.",
     "not-indexed-show": "Show in Zotero",
     "not-indexed-export": "Export list to clipboard",
     "not-indexed-show-tip": "Select every listed record in Zotero. This does not change the library.",
@@ -940,8 +940,16 @@ function describeSDTFailures(count) {
 
 /* The order the account is read in, which is not the order a JavaScript object
    hands its keys over. It runs from what is done, through what is owed, to what
-   failed, to what was never this add-on's business — so a reader who stops after
-   two rows has stopped at the two that answer "is it working".
+   failed, to what this add-on cannot index, to what was never its business — so
+   a reader who stops after two rows has stopped at the two that answer "is it
+   working".
+
+   `excluded` is last, after `unsupported`, and that is the one position here
+   chosen for a NEIGHBOURING list rather than for this one: "Not indexed" below
+   ends on the same two obstacles this account does, and it can only do that if
+   the row naming what is not an attachment at all sits past them. Trashed items
+   and non-attachments are also the one row no obstacle group mirrors, so nothing
+   is owed a place above them.
 
    A list, and not `Object.keys(SDT_STATUS_CLASSES).flat()`, because the classes
    partition by MEANING and this orders by READING; `queued` before `failed` is a
@@ -950,7 +958,7 @@ function describeSDTFailures(count) {
    them and fails here for any status this list or the label table forgets. */
 var SDT_STATUS_ORDER = ['current', 'empty-pack', 'missing-pack', 'stale-source', 'stale-processor',
   'invalid-pack', 'failed-session', 'inspection-error', 'unsupported-pack',
-  'missing-source', 'excluded', 'unsupported'];
+  'missing-source', 'unsupported', 'excluded'];
 
 /* A status nobody has named renders as its own key rather than as the message id
    `sdtText` would otherwise hand back. Both are ugly; only one is greppable back
@@ -1047,18 +1055,35 @@ function describeSDTCensusAccount(counts) {
   return entries;
 }
 
+/* Declaration order IS display order. It used to be neither: `collectSDTNotIndexed`
+   filled a `Map` and handed back its insertion order, so the groups came out in
+   the order the census walk happened to meet them — a list whose sequence
+   changed with the library rather than with anything a reader could learn.
+
+   The sequence follows the Details account above (`SDT_STATUS_ORDER`), because
+   the two lists describe one library and a reader moving between them should not
+   have to re-learn where to look. Where one status splits into two groups the
+   split's own order is taken from the account row that owns it: "Stored or
+   linked file unavailable" gives stored before linked, "No extractor or format
+   mismatch" gives extractor before mismatch. `test_sdt_sitter.py` holds both
+   halves — the projection onto the account order, and this sub-order.
+
+   `no-attachment` is the exception and sits last on purpose. It has no census
+   status at all (it comes off `unattached`, bibliographic records rather than
+   attachments), so the account order cannot place it, and it is the one group
+   that is not an obstacle to extraction: there is nothing to extract. */
 var SDT_NOT_INDEXED_GROUPS = {
-  'no-attachment': { title: 'not-indexed-no-attachment', detail: 'not-indexed-no-attachment-detail' },
   'empty-pack': { title: 'not-indexed-no-text', detail: 'not-indexed-no-text-detail' },
-  'missing-source-stored': { title: 'not-indexed-stored-file', detail: 'not-indexed-stored-file-detail' },
-  'missing-source-linked': { title: 'not-indexed-linked-file', detail: 'not-indexed-linked-file-detail' },
-  'mismatched-type': { title: 'not-indexed-mismatched-type', detail: 'not-indexed-mismatched-type-detail' },
-  'no-extractor': { title: 'not-indexed-no-extractor', detail: 'not-indexed-no-extractor-detail' },
   'failed-session': { title: 'not-indexed-session', detail: 'not-indexed-session-detail' },
+  'inspection-error': { title: 'not-indexed-examined', detail: 'not-indexed-examined-detail' },
   'older-format': { title: 'not-indexed-older-format', detail: 'not-indexed-older-format-detail' },
   'newer-format': { title: 'not-indexed-newer-format', detail: 'not-indexed-newer-format-detail' },
   'unordered-format': { title: 'not-indexed-unordered-format', detail: 'not-indexed-unordered-format-detail' },
-  'inspection-error': { title: 'not-indexed-examined', detail: 'not-indexed-examined-detail' },
+  'missing-source-stored': { title: 'not-indexed-stored-file', detail: 'not-indexed-stored-file-detail' },
+  'missing-source-linked': { title: 'not-indexed-linked-file', detail: 'not-indexed-linked-file-detail' },
+  'no-extractor': { title: 'not-indexed-no-extractor', detail: 'not-indexed-no-extractor-detail' },
+  'mismatched-type': { title: 'not-indexed-mismatched-type', detail: 'not-indexed-mismatched-type-detail' },
+  'no-attachment': { title: 'not-indexed-no-attachment', detail: 'not-indexed-no-attachment-detail' },
 };
 
 function collectSDTNotIndexed(state) {
@@ -1079,7 +1104,11 @@ function collectSDTNotIndexed(state) {
           ? (member.reason || 'unordered-format') : member.status;
     add(groupID, member);
   }
-  return [...grouped].map(([id, members]) => ({ id, members }));
+  // Declaration order, not the `Map`'s insertion order: see SDT_NOT_INDEXED_GROUPS.
+  // `add` already refuses an id the table does not name, so nothing is dropped here.
+  return Object.keys(SDT_NOT_INDEXED_GROUPS)
+    .filter(id => grouped.has(id))
+    .map(id => ({ id, members: grouped.get(id) }));
 }
 
 function fillSDTNotIndexed(doc, container, state) {
