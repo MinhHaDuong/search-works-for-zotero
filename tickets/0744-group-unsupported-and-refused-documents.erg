@@ -28,6 +28,8 @@ Blocked-by: 0760
 
 2026-09-09T13:59Z Codex note Applied author-authorized design review: corrected contract now owned by SPEC.md §5.2.7; safe inspection errors, conditional remedies, coherent memberships and stale actions, partial-order versions, and Blocked-by 0760. No implementation or new measurements.
 2026-09-09T14:52Z Implemented the Not indexed Details view with coherent census memberships, per-library controls, safe error classes, source-absence distinction, no-attachment records, version-direction groups and progressive title expansion. make check passed.
+2026-09-10T09:58Z claude note RULED by the author: remove the per-subsection "Export list to clipboard" and fold the identifiers into the journal report. His ground was that a shown-in-library selection is one keystroke from the clipboard. Reading the code first changed the argument without changing the verdict -- the two controls do not produce the same artifact (the export was title+library:key, Zotero's quick copy is a citation) and they act on different sets by design (displayed membership vs. surviving items). What carries the removal is the other reason: the pair rendered once per library subsection per class, and a library:key column is a developer's artifact standing in a layer written under a plain-language constraint. Implemented as identifiers only, never titles, which makes the fold NARROWER than the button it replaces and keeps SPEC.md's R22 rule intact -- that paragraph already admits the key pair as a record field and already refuses titles at every sink. Uncapped: a class with four thousand members serializes four thousand keys, because a truncated membership answers a different question. Ticket 0716 landed in the same change, since the paragraph that had to describe the new payload is the paragraph 0716 asked to be written.
+
 --- body ---
 ## Purpose and authority
 
@@ -90,10 +92,15 @@ history; they do not override the corrected contract.
       parents correctly; notes/URL-only attachments do not hide file absence.
 - [ ] Multi-library rows, deleted items before a click, unavailable libraries
       and updates during an action follow the specified stale-action behavior.
-- [ ] Export contains complete displayed membership with usable identifiers,
-      escaped line breaks and safe text; clipboard failure is visible.
-- [ ] Both controls are inert until activated, include tooltips, act beyond the
-      preview cap and do not write library records or initiate extraction.
+- [x] The diagnostic report carries the complete not-indexed membership as
+      identifiers, grouped by class, and carries no title. Superseded the
+      per-subsection export by the author's ruling of 2026-09-10; the escaped
+      line break and the visible clipboard failure went with the control, since
+      a JSON report escapes its own strings and the journal copy has its own
+      failure line.
+- [ ] The selection control is inert until activated, includes a tooltip, acts
+      beyond the preview cap and does not write library records or initiate
+      extraction.
 - [ ] Empty groups are hidden; expanding a large list preserves responsiveness,
       focus and expansion through progress updates.
 - [ ] Vocabulary checks and author review of rendered tone pass.

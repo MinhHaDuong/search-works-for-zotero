@@ -281,14 +281,10 @@ var SDT_TEXT = {
     "not-indexed-no-attachment": "Entries without any attached file",
     "not-indexed-no-attachment-detail": "No file attachment is recorded. A file may be available from the publisher or another source.",
     "not-indexed-show": "Show in Zotero",
-    "not-indexed-export": "Export list to clipboard",
     "not-indexed-show-tip": "Select every listed record in Zotero. This does not change the library.",
-    "not-indexed-export-tip": "Copy every listed record to the clipboard. This does not change the library.",
     "not-indexed-selected": "Listed records selected in Zotero.",
     "not-indexed-selected-omitted": "Listed records selected; {count} were no longer available.",
     "not-indexed-select-unavailable": "The listed records could not be selected in Zotero.",
-    "not-indexed-copied": "Listed records copied to the clipboard.",
-    "not-indexed-copy-failed": "The list could not be copied to the clipboard.",
     "not-indexed-show-all": "Show all ({count} more)",
     "not-indexed-library": "Library: {library}",
     "not-indexed-library-count": "Library: {library} ({count})",
@@ -1223,8 +1219,6 @@ function fillSDTNotIndexed(doc, container, state) {
       controls.style.setProperty('margin-bottom', '18px');
       const feedback = make('span'); feedback.setAttribute('aria-live', 'polite');
       const ids = members.map(member => member.itemID ?? member.id).filter(Number.isInteger);
-      const exported = members.map(member => `${line(member)}\t${member.libraryID ?? '?'}:${member.key ?? member.itemID ?? member.id}`)
-        .join('\n');
       const select = make('button'); select.setAttribute('type', 'button');
       select.textContent = sdtText('not-indexed-show'); select.setAttribute('title', sdtText('not-indexed-show-tip'));
       select.addEventListener('click', async () => {
@@ -1240,11 +1234,15 @@ function fillSDTNotIndexed(doc, container, state) {
             : sdtText('not-indexed-selected-omitted', { count: ids.length - surviving.length });
         } catch (_error) { feedback.textContent = sdtText('not-indexed-select-unavailable'); }
       });
-      const copy = make('button'); copy.setAttribute('type', 'button');
-      copy.textContent = sdtText('not-indexed-export'); copy.setAttribute('title', sdtText('not-indexed-export-tip'));
-      copy.addEventListener('click', () => { feedback.textContent = copySDTText(exported)
-        ? sdtText('not-indexed-copied') : sdtText('not-indexed-copy-failed'); });
-      controls.append(select, copy, feedback);
+      // One control, not two. The author's ruling of 2026-09-10 on ticket 0744:
+      // "Export list to clipboard" stood beside this button in every library
+      // subsection of every problem class — eighteen pairs on a three-library
+      // library — and what it copied was a title-and-key line, which is a
+      // developer's artifact standing in a layer written under a plain-language
+      // constraint. The identifiers it carried are folded into the diagnostic
+      // journal report instead, once, for the whole list, where their reader
+      // already is. The titles are not folded anywhere: see composeSDTJournalReport.
+      controls.append(select, feedback);
       if (preview.length < members.length) {
         const showAllItem = make('li');
         const showAll = make('button'); showAll.setAttribute('type', 'button');
@@ -1428,6 +1426,38 @@ function scrubSDTRecord(record) {
   return copy;
 }
 
+/* The not-indexed membership, as identifiers and nothing else, for the report
+   below. It replaces the per-subsection "Export list to clipboard" the author
+   removed on 2026-09-10 (ticket 0744), and it is deliberately NARROWER than
+   what that button copied: the old export line was `${title}\t${library}:${key}`,
+   and this one drops the title.
+
+   The narrowing is not taste, it is the channel's existing rule. The diagnostic
+   channel already accepts "the opaque library-and-item-key pair the cache is
+   addressed by" as a record field, and already refuses "extracted text,
+   attachment or parent titles" at both its sinks. A title-bearing fold would
+   have made the clipboard the one sink that carries what the other two may not
+   — and this button is the sink that travels, since a journal report exists to
+   be pasted somewhere else. So: keys travel, titles stay on screen, where the
+   reader looking at his own library can already see them.
+
+   Read from `sitter.state` rather than taking a parameter, because the panel is
+   built once at open and this must answer for whatever generation is current
+   when the button is pressed, not for the one that was current when the dialog
+   was built. Uncounted and uncapped: a class with four thousand members serializes
+   four thousand keys. `journal.tail(50)` caps the ring because a ring is a
+   sample; this is a membership, and a truncated membership answers a different
+   question from the one asked. */
+function composeSDTNotIndexedIdentifiers() {
+  const groups = collectSDTNotIndexed(sitter?.state || {});
+  const identifiers = {};
+  for (const group of groups) {
+    identifiers[group.id] = group.members.map(member =>
+      `${member.libraryID ?? '?'}:${member.key ?? member.itemID ?? member.id}`);
+  }
+  return identifiers;
+}
+
 /* What the copy action puts on the clipboard, and therefore what may be pasted
    into a bug report. The install path stays on screen, two lines above in the
    same panel, where the author is reading his own machine. The versions travel,
@@ -1438,6 +1468,7 @@ function composeSDTJournalReport() {
       version: environment.version ?? null,
       zoteroVersion: environment.zoteroVersion ?? null,
       nativeVersions: environment.packVersions ?? null,
+      notIndexed: composeSDTNotIndexedIdentifiers(),
       records: journal ? Array.from(journal.tail(50), scrubSDTRecord) : [],
     }, null, 2);
   } catch (error) {

@@ -647,6 +647,57 @@ test('the copied journal carries the build and never the install path', () => {
   assert(!state.clipboard.includes('Secret'), state.clipboard);
 });
 
+/* The author's ruling of 2026-09-10 on ticket 0744: the per-subsection "Export
+   list to clipboard" goes, and the identifiers it carried fold into the journal
+   report instead.
+
+   Two-sided on purpose. A fold that carried the whole export line would pass a
+   test that only checked the keys arrived, and it would widen the diagnostic
+   channel by exactly the field SPEC.md's R22 paragraph refuses: "Neither sink
+   receives extracted text, attachment or parent titles". The keys themselves are
+   already an accepted payload there — the same paragraph names "the opaque
+   library-and-item-key pair the cache is addressed by" among what a record may
+   carry — so this fold is narrower than the button it replaces, whose export
+   line began with the rendered title. The titles below are written to be
+   unmistakable in a failure message. */
+test('the copied journal carries the not-indexed identifiers, and never their titles', () => {
+  sitter.state.censusSnapshot = {
+    members: [
+      { itemID: 11, libraryID: 1, key: 'AAAA1111', title: 'Confidential merger memo', status: 'empty-pack' },
+      { itemID: 12, libraryID: 1, key: 'BBBB2222', title: 'Private draft chapter', status: 'missing-source', linked: false },
+      { itemID: 14, libraryID: 7, key: 'DDDD4444', title: 'Group library scan', status: 'empty-pack' },
+    ],
+    unattached: [{ itemID: 13, libraryID: 4, key: 'CCCC3333', title: 'A record with no file' }],
+  };
+  doc.getElementById('sdt-journal-copy').fire('click');
+  const report = JSON.parse(state.clipboard);
+  assert.deepEqual(report.notIndexed, {
+    'empty-pack': ['1:AAAA1111', '7:DDDD4444'],
+    'missing-source-stored': ['1:BBBB2222'],
+    'no-attachment': ['4:CCCC3333'],
+  });
+  for (const title of ['Confidential merger memo', 'Private draft chapter',
+    'Group library scan', 'A record with no file']) {
+    assert(!state.clipboard.includes(title), `${title} reached the clipboard`);
+  }
+});
+
+/* The other half of the same ruling, asserted where a reader would look for it:
+   in the rendered subsection, not in the string table. One member per group per
+   library keeps "Show all" out of the count, so every button here is an action
+   control and the count is exactly the number of actions offered. */
+test('a not-indexed subsection offers selection alone, with no clipboard export', () => {
+  ui.render();
+  const body = doc.getElementById('sdt-not-indexed-body');
+  const buttons = body.descendants().filter(node => node.tagName === 'button');
+  assert(buttons.length > 0, 'the fixture rendered no not-indexed controls at all');
+  for (const button of buttons) {
+    assert.equal(button.textContent, 'Show in Zotero', button.textContent);
+  }
+  assert(!body.textContent.includes('clipboard'), body.textContent);
+  sitter.state.censusSnapshot = null;
+});
+
 test('an unavailable clipboard is reported, not thrown', () => {
   state.copyAvailable = false;
   state.clipboard = null;

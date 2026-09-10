@@ -60,10 +60,13 @@ from Tools → Developer → Run JavaScript. That object exists only while the
 sitter is running, so the command throws before startup completes, on a build
 where native SDT is unavailable, and after the extension is disabled — which is
 exactly when the debug output is the only copy left. The ring dies with the
-session, so the no-private-ledger promise above stands. What a record may and
-may not carry, and what the trace level adds, are owned by SPEC.md's R22 design
-paragraph; the on-screen failure line remains the place the whole error text
-appears. To widen the debug output,
+session, so the no-private-ledger promise above stands. Neither route needs the
+Run JavaScript console: the window's diagnostics layer carries a copy button
+that puts the same ring tail on the clipboard, with the build and host versions
+and the identifiers of what is not indexed, which is the form to paste into a
+report. What a record may and may not carry, at any of the three sinks, and
+what the trace level adds, are owned by SPEC.md's R22 design paragraph; the
+on-screen failure line remains the place the whole error text appears. To widen the debug output,
 create `extensions.sdt-pack-sitter.debug` and set it true in the Config Editor
 (Settings → Advanced → Config Editor); errors and state transitions are logged
 whether or not it is set.
