@@ -2,6 +2,7 @@
 Title: Document the clipboard as a third diagnostic-channel sink in SPEC.md
 Created: 2026-09-06
 Author: sim
+Closed: autoclosed — PR #516
 
 --- log ---
 2026-09-06T15:36Z sim created
@@ -9,6 +10,7 @@ Author: sim
 2026-09-06T18:39Z claude note Body pointer repathed by 0697: the sitter's payload moved from bench/sdt-sitter/ to plugins/sdt-sitter/. No change of scope.
 2026-09-10T10:00Z claude note Landed inside ticket 0744's clipboard change rather than on its own, because that change gave the third sink a payload SPEC.md would otherwise describe nowhere: the author ruled on 2026-09-10 that the per-subsection "Export list to clipboard" goes and its identifiers fold into the journal report. The R22 paragraph had to be rewritten to say so, and that is the paragraph this ticket asked for. Scope grew by exactly the payload sentence -- the sink naming, the privacy cross-reference and the Date bump are as filed. Two corrections the rewrite forced, neither anticipated here: "Neither sink outlives the session" was true of two sinks and false of three, since a clipboard plainly outlives the session, so it now reads "neither automatic sink" with the clipboard named as the reader's own doing; and the third bullet's cross-check of verification/SDT-SITTER-LAUNCH.md found a real gap -- it enumerated the debug output and the Run JavaScript ring read and never the copy button -- now one sentence pointing at SPEC for the payload rule. check_progress.py read 24 requirements against origin/main at 69520cf and 24 after, run from each tree's own bench/ since REPO resolves from __file__, not cwd.
 
+2026-09-10T10:22Z sim closed — autoclosed — PR #516
 --- body ---
 
 ## Context
