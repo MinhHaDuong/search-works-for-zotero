@@ -8,6 +8,7 @@ Author: Codex
 
 2026-09-08T21:30Z Codex note Filed scheduling/resource parity tests; preserve ruled policies and route inference-only guarantees through 0754.
 2026-09-08T22:02Z Codex note Reconciled against current main before publication: 0752 implementation has merged; reuse its notification and reconciliation tests rather than treating it as pending.
+2026-09-10T07:01Z claude note startup pacing row added from the 0754 source read: #6012 waits 5 s past init before indexing; the sitter arms its sweep at setTimeout 0 after uiReadyPromise, and the load-average gate cannot stand in for a boot-window grace. Reporting the difference is this ticket's job; adopting a grace period is a SPEC 5.2.7 change.
 --- body ---
 ## Context
 
@@ -42,6 +43,13 @@ reconciliation races.
 - [ ] Reuse 0752's implemented coalesced notifications and reconciliation
       tests; inspect the merged code and evidence before identifying gaps.
       Existing admission tests can be strengthened independently.
+- [ ] Cover first-sweep pacing after host startup. The sitter awaits
+      `Zotero.initializationPromise`, then `Zotero.uiReadyPromise`, and arms the
+      sweep loop at `setTimeout(..., 0)`; #6012 waits a further 5 s past its own
+      init. The load gate (`load >= cpus` -> `cpu-busy`) is a one-minute average
+      and cannot stand in for a boot-window grace. Report the difference and
+      what it costs the user; a grace period is a SPEC.md 5.2.7 change and goes
+      through DECISIONS.md, not this ticket.
 - [ ] Use behavioral controls or mutation probes that break each newly covered
       safeguard. Record surviving mutations as uncovered guarantees, not passes.
 - [ ] Commit evidence under verification/ and bench/results/ with host and code

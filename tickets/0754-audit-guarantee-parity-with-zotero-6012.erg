@@ -9,6 +9,7 @@ Author: Codex
 2026-09-08T21:30Z Codex note Filed at author request; pinned 6012 native and embedding test suites; children 0755-0757 own extraction, scheduling and readiness evidence. Existing coverage must be mapped before additions.
 2026-09-08T21:32Z Codex note Author reminded us of existing Zoteus work; inspected conductor-integration source and 0028/0554/0565/0566/0568/0575 logs. Added reuse mapping and retained the worker-rewrite hold.
 2026-09-08T21:34Z Codex note Added GPU runtime boundary to parity scope after author reminder; existing BRIDGE-0496 evidence and 0491/0493/0575 own reuse, device validation and service work. Re-read 6012 engine and outbound passage paths at pinned head.
+2026-09-10T07:01Z claude note author asked whether the parity tickets reach feature parity with #6012, naming the startup wait as an example. Verified at the pinned head 19e7962, still the PR head today (draft, open, updated 2026-09-02): embeddings.js init() delays 5 s before startIndexing() so it does not compete with window setup. The sitter has no equivalent -- it awaits initializationPromise and uiReadyPromise, then arms the sweep at setTimeout 0 -- and no ticket, SPEC section or DECISIONS entry names a boot-window grace. The suites do not assert it either, so the suite-driven matrix could not have found it: exit criterion added for a source-read arm, and the sitter row routed to 0756.
 --- body ---
 ## Context
 
@@ -43,6 +44,12 @@ ticket does not re-baseline historical evidence.
       handling, notes/annotations, stale previews, model identity and switching,
       embedding retries, concurrent requests, calibration, deletion and memory
       pressure, as well as extraction and scheduling.
+- [ ] Read the pinned heads at source, not only their test suites. A guarantee
+      no test asserts is invisible to a suite-driven matrix, and startup pacing
+      is the found instance: `embeddings.js`'s `init()` waits 5 s before
+      `startIndexing()` "so we don't compete with window setup", beside a 3 s
+      `KICK_DELAY` debounce, and neither suite asserts either. Mark such rows
+      source-read and say so where the evidence is a reading, not a run.
 - [ ] Route sitter cases to 0755 and 0756; readiness to 0757. Route remaining
       consumer cases to existing tickets where possible, otherwise file bounded
       local test tickets after inspecting current fork/upstream code.
