@@ -1072,6 +1072,52 @@ function describeSDTCensusAccount(counts) {
    status at all (it comes off `unattached`, bibliographic records rather than
    attachments), so the account order cannot place it, and it is the one group
    that is not an obstacle to extraction: there is nothing to extract. */
+/* The library subsections of one group, in reading order: the personal library
+   first, then groups by name, then whatever could not be named.
+
+   This is the same defect the group order above was fixed for, one level down
+   and found by sweeping for it: the subsections came out of a `Map` filled by
+   the census walk, so a reader with a group library met his own library first
+   in one group and second in the next, and the sequence moved whenever the
+   library did. Ruled by the author, 2026-09-10, and it is Zotero's own order in
+   the items pane — the panel should not teach a second one.
+
+   `libraryType === 'user'` is the discriminator rather than an id compared
+   against 1: `describeSDTScope` above already reads that field, a library id is
+   a local number this file has no business predicting, and the same read tells
+   a group from a feed.
+
+   Every read is inside the guard, for the reason `describeSDTScope` carries in
+   full: a group library is loaded lazily and its getter can throw after a
+   restart, and this runs on the render path. A library that throws keeps its
+   subsection and loses its name, which is what the unavailable heading is for.
+
+   The collation is pinned to 'en' for the reason `sdtNumber` is: the host's
+   locale is not this file's to guess, and an unpinned comparator sorts
+   differently on two machines reading one library. Names are compared, so the
+   last tie-break is the id — two libraries that cannot be named are otherwise
+   indistinguishable to the sort and would fall back to the walk order this
+   function exists to leave behind. */
+function orderSDTLibraries(libraries) {
+  const rank = [];
+  for (const [libraryID, members] of libraries) {
+    let libraryName = null;
+    let personal = false;
+    try {
+      const library = libraryID == null ? null : Zotero.Libraries.get(libraryID);
+      const name = library?.name;
+      if (typeof name === 'string' && name.trim()) libraryName = name;
+      personal = library?.libraryType === 'user';
+    } catch (_error) { /* The displayed generation remains usable without a name. */ }
+    rank.push({ libraryID, libraryName, personal, members });
+  }
+  return rank.sort((a, b) =>
+    (Number(b.personal) - Number(a.personal))
+    || (Number(a.libraryName == null) - Number(b.libraryName == null))
+    || (a.libraryName == null ? 0 : a.libraryName.localeCompare(b.libraryName, 'en'))
+    || String(a.libraryID).localeCompare(String(b.libraryID), 'en'));
+}
+
 var SDT_NOT_INDEXED_GROUPS = {
   'empty-pack': { title: 'not-indexed-no-text', detail: 'not-indexed-no-text-detail' },
   'failed-session': { title: 'not-indexed-session', detail: 'not-indexed-session-detail' },
@@ -1154,10 +1200,7 @@ function fillSDTNotIndexed(doc, container, state) {
       if (!libraries.has(key)) libraries.set(key, []);
       libraries.get(key).push(member);
     }
-    for (const [libraryID, members] of libraries) {
-      let libraryName = null;
-      try { libraryName = libraryID == null ? null : Zotero.Libraries.get(libraryID)?.name; }
-      catch (_error) { /* The displayed generation remains usable without a name. */ }
+    for (const { libraryID, libraryName, members } of orderSDTLibraries(libraries)) {
       const libraryHeading = make('h4');
       libraryHeading.textContent = libraryName ? sdtText('not-indexed-library-count', {
         library: libraryName, count: sdtNumber(members.length) })

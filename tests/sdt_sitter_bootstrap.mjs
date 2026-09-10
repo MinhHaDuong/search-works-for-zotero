@@ -1478,6 +1478,66 @@ await test('unattached records stay outside attachment coverage and source acces
   showAll.fire('click'); await h.quiet();
   assert.match(notIndexed.textContent, /A second reference without a file/);
 });
+await test('library subsections read personal first, then groups by name, then the unnamed', async () => {
+  // The census meets them in an order that disagrees with all three rules at
+  // once: a group before the personal library, the later-sorting group before
+  // the earlier one, and the unnamed library in the middle. A fixture the walk
+  // order already satisfies would pass against the defect this replaces.
+  const h = createHarness({
+    libraries: [
+      { libraryID: 1, name: 'Ma bibliothèque', libraryType: 'user' },
+      { libraryID: 7, name: 'Zotero Lab', libraryType: 'group' },
+      { libraryID: 4, name: 'Atelier carbone', libraryType: 'group' },
+    ],
+    unattached: [
+      { id: 80, libraryID: 7, key: 'NOFILE80', title: 'From the lab' },
+      { id: 81, libraryID: 1, key: 'NOFILE81', title: 'From my own library' },
+      { id: 82, libraryID: 9, key: 'NOFILE82', title: 'From a library that cannot be read' },
+      { id: 83, libraryID: 4, key: 'NOFILE83', title: 'From the workshop' },
+    ],
+  });
+  await h.start();
+  h.context.openDialog(h.windows[0]); h.context.render();
+  const dialog = [...h.context.dialogs][0];
+  const notIndexed = dialog.document.getElementById('sdt-not-indexed');
+  const headings = notIndexed.descendants().filter(node => node.tagName === 'h4')
+    .map(node => node.textContent);
+  assert.deepEqual(headings, [
+    'Library: Ma bibliothèque (1)',
+    'Library: Atelier carbone (1)',
+    'Library: Zotero Lab (1)',
+    'Library unavailable (1)',
+  ], 'the library subsections do not read personal, then by name, then unnamed');
+  // Each subsection still carries its own members: an order that renamed the
+  // headings while leaving the lists where they were would pass the assertion
+  // above and be a worse defect than the one it replaces.
+  assert.match(notIndexed.textContent,
+    /Ma bibliothèque \(1\)From my own library.*Atelier carbone \(1\)From the workshop.*Zotero Lab \(1\)From the lab.*Library unavailable \(1\)From a library that cannot be read/s);
+});
+await test('a library whose getter throws keeps its subsection and loses only its name', async () => {
+  const h = createHarness({
+    libraries: [{ libraryID: 1, name: 'Ma bibliothèque', libraryType: 'user' }],
+    unattached: [
+      { id: 90, libraryID: 1, key: 'NOFILE90', title: 'Readable' },
+      { id: 91, libraryID: 5, key: 'NOFILE91', title: 'Behind a lazy group library' },
+    ],
+  });
+  // A group library is loaded lazily and its getter can throw after a restart.
+  // This runs on the render path, so a throw that escaped would take the pulse
+  // with it — the reason every read in orderSDTLibraries sits inside the guard.
+  const libraries = h.context.Zotero.Libraries;
+  const get = libraries.get;
+  libraries.get = id => { if (id === 5) throw new Error('library not loaded'); return get(id); };
+  await h.start();
+  h.context.openDialog(h.windows[0]); h.context.render();
+  const dialog = [...h.context.dialogs][0];
+  const notIndexed = dialog.document.getElementById('sdt-not-indexed');
+  assert.deepEqual(notIndexed.descendants().filter(node => node.tagName === 'h4')
+    .map(node => node.textContent),
+  ['Library: Ma bibliothèque (1)', 'Library unavailable (1)'],
+  'a throwing library lost its subsection instead of only its name');
+  assert.match(notIndexed.textContent, /Behind a lazy group library/);
+});
 await test('targeted current-pack inspection preserves unrelated cached duration records', async () => {
   const h = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')] }); await h.start();
   const cache = h.files.text(CACHE_PATH);
