@@ -1369,45 +1369,44 @@ def test_the_not_indexed_groups_read_in_the_census_account_s_order():
         'the groups are handed back in the order they were met, not the order they are declared'
 
 
-#: The one string SPEC.md §5.2.7 describes instead of quoting, and the only one
-#: it can: it carries a placeholder the document has no value for.
-NOT_INDEXED_UNQUOTABLE = {'not-indexed-examined-detail'}
+def test_spec_names_the_not_indexed_classes_the_plugin_shows():
+    """The class names, and only those, are held across the two documents.
 
+    §5.2.7 and the plugin were written into one commit six hours apart, the
+    contract first, and disagreed on arrival in ten strings across six of the
+    eleven rows -- because the contract restated the panel's own sentences and
+    nothing read both. A copy nobody reads is free to be wrong from the day it
+    is written, which is what it was.
 
-def test_spec_quotes_the_not_indexed_strings_it_owns():
-    """The contract and the plugin say the same words, or this fails.
+    The sentences are gone from §5.2.7 now: their wording is the implementer's,
+    written under constraints the document does state, and a second copy of them
+    bought nothing a reader could rely on. The headings stayed, because they are
+    the class names §5.2.7 refers to elsewhere and a document that cannot name
+    its own classes is not a contract either. What is left to drift is eleven
+    short strings, and this holds them.
 
-    DECISIONS.md ratified §5.2.7 as the owner of this interface, and the two
-    were written into one commit six hours apart -- the contract first, the
-    implementation second. They disagreed on arrival, in ten strings across six
-    of the eleven rows, and stayed that way because nothing read both. A
-    disagreement nobody can observe is not a contract.
-
-    So SPEC quotes rather than paraphrases, and this holds the quotation to its
-    source. Which side moves on a future disagreement is not this test's to say:
-    it reports that one exists. The red control is any of the ten strings this
-    test was written for -- restore SPEC's "Mismatched type" over the shipped
-    "Recorded format differs" and it fires.
+    Red control: change one heading on either side. Restoring the pre-merge
+    "Mismatched type" over the shipped "Recorded format differs" fires it.
     """
-    table = _site('| Group heading | Observation and explanation shown |', '\n\nVersion comparison',
+    table = _site('| Group heading | Observation that admits an attachment |', '\n\nVersion comparison',
                   ROOT / 'SPEC.md')
     rows = [row for row in table.splitlines() if row.startswith('| ') and '---' not in row]
     del rows[0]
 
-    groups = re.findall(r"^  '([a-z-]+)': \{ title: '([a-z-]+)', detail: '([a-z-]+)' \},$",
+    groups = re.findall(r"^  '([a-z-]+)': \{ title: '([a-z-]+)', detail: '[a-z-]+' \},$",
                         _site('var SDT_NOT_INDEXED_GROUPS = {', '\n};'), re.MULTILINE)
     assert len(rows) == len(groups), \
         f'SPEC lists {len(rows)} groups, the plugin declares {len(groups)}'
 
     catalogue = messages()
-    for (group, title_id, detail_id), row in zip(groups, rows):
+    for (group, title_id), row in zip(groups, rows):
         heading, observation = (cell.strip() for cell in row.strip('|').split('|'))
         assert heading == catalogue[title_id], \
             f'{group}: SPEC heads the row {heading!r}, the plugin shows {catalogue[title_id]!r}'
-        if detail_id in NOT_INDEXED_UNQUOTABLE:
-            continue
-        assert f'"{catalogue[detail_id]}"' in observation, \
-            f'{group}: SPEC does not quote the shipped explanation {catalogue[detail_id]!r}'
+        # And the copy that was just removed does not grow back: a quoted
+        # sentence in this column is the shape the drift came in.
+        assert '"' not in observation, \
+            f'{group}: SPEC is restating the panel\'s wording again: {observation!r}'
 
 
 def test_the_coverage_denominator_reads_the_classification():
