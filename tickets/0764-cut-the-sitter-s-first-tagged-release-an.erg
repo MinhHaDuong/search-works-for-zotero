@@ -5,7 +5,9 @@ Author: claude
 
 --- log ---
 2026-09-10T09:45Z claude created
-2026-09-10T09:56Z claude note Filed alongside 0763 as the other half of the sitter release cut line. The gap that motivates it was found by reading update.json against `gh release list` and `git tag`, both of which are empty: the plugin as it stands can be installed and can never be updated.
+2026-09-10T09:46Z claude note Filed alongside 0763 as the other half of the sitter release cut line. The gap that motivates it was found by reading update.json against `gh release list` and `git tag`, both of which are empty: the plugin as it stands can be installed and can never be updated.
+
+2026-09-10T10:23Z claude note Sonnet review of PR #515 found the two log stamps above were invented: both said a time after the commit that wrote them (09:47:08Z), and bench/check_ticket_logs.py fails on that. Corrected to 09:46Z, which is the minute between `erg new` at 09:45Z and the commit, and is what the record can evidence. Worth keeping on the record because this repo has NO CI -- there is no .github/ anywhere in the tree, so the validate-tickets and cross-pr-ticket-collision jobs the harness AGENTS.md describes do not run here, and a hand-run `make check` is the only thing between an invented stamp and main. The same review also noted that the version numbers this ticket quoted go stale on every payload bump, so they are removed rather than updated.
 
 --- body ---
 ## Context
@@ -37,8 +39,10 @@ anything else in the tree.
 ## Relevant files
 
 - `plugins/sdt-sitter/update.json` — the Mozilla update manifest, served raw from
-  `main`; currently one entry, version 0.3.39, no `update_link`
-- `plugins/sdt-sitter/manifest.json` — version 0.3.39, `update_url` at
+  `main`; one entry, no `update_link`. The version moves with every
+  payload change (`check_sitter_version` refuses two builds under one number),
+  so read it rather than trusting a number quoted here
+- `plugins/sdt-sitter/manifest.json` — `update_url` at
   `raw.githubusercontent.com/.../main/plugins/sdt-sitter/update.json`,
   `strict_min_version` 10.0.1, `strict_max_version` 10.*
 - `bench/check_sitter_version.py` — the `sitter-version` gate (Makefile:239);

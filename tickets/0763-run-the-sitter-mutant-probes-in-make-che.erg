@@ -5,7 +5,7 @@ Author: claude
 
 --- log ---
 2026-09-10T09:45Z claude created
-2026-09-10T09:52Z claude note Filed from a measurement taken this morning at cf9d7f1, not from a document. Both probes were run; the counts in the body are their own output, and the five lost anchors are the reason this is a release gate rather than a hygiene chore.
+2026-09-10T09:46Z claude note Filed from a measurement taken this morning at cf9d7f1, not from a document. Both probes were run; the counts in the body are their own output, and the five lost anchors are the reason this is a release gate rather than a hygiene chore.
 
 --- body ---
 ## Context
