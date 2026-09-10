@@ -959,6 +959,23 @@ def test_a_host_declared_twice_with_different_targets_is_not_silent(tmp_path):
         resource_roots(install)
 
 
+def test_the_addon_exemption_rests_on_a_compression_the_builder_still_uses():
+    """`.xpi` sits in `ASSET_SUFFIXES` because a DEFLATE-d literal is unreadable.
+
+    The review of PR #513 measured both halves rather than taking the word for
+    it: a `ZIP_DEFLATED` member's `resource://` literal survives no
+    `errors="replace"` decode, and a `ZIP_STORED` member's survives intact. So
+    the classification is true of what `build_sdt_sitter.py` writes today and
+    would become false, silently, the day it stopped compressing. This is the
+    line that would stop being silent.
+    """
+    builder = (ROOT / "bench" / "build_sdt_sitter.py").read_text(encoding="utf-8")
+    assert "ZIP_STORED" not in builder, \
+        "the builder stores members uncompressed; a .xpi can now carry a readable literal"
+    assert builder.count("ZIP_DEFLATED") >= 1, \
+        "the builder no longer names its compression; re-measure before trusting ASSET_SUFFIXES"
+
+
 def test_a_host_declared_twice_with_the_same_target_is_not_a_conflict(tmp_path):
     """The assertion fires on a disagreement, not on repetition.
 
