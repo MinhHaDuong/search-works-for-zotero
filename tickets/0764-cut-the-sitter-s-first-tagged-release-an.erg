@@ -1,0 +1,103 @@
+%erg 0.1
+Title: Cut the sitter's first tagged release and give it a working update path
+Created: 2026-09-10
+Author: claude
+
+--- log ---
+2026-09-10T09:45Z claude created
+2026-09-10T09:46Z claude note Filed alongside 0763 as the other half of the sitter release cut line. The gap that motivates it was found by reading update.json against `gh release list` and `git tag`, both of which are empty: the plugin as it stands can be installed and can never be updated.
+
+2026-09-10T10:23Z claude note Sonnet review of PR #515 found the two log stamps above were invented: both said a time after the commit that wrote them (09:47:08Z), and bench/check_ticket_logs.py fails on that. Corrected to 09:46Z, which is the minute between `erg new` at 09:45Z and the commit, and is what the record can evidence. Worth keeping on the record because this repo has NO CI -- there is no .github/ anywhere in the tree, so the validate-tickets and cross-pr-ticket-collision jobs the harness AGENTS.md describes do not run here, and a hand-run `make check` is the only thing between an invented stamp and main. The same review also noted that the version numbers this ticket quoted go stale on every payload bump, so they are removed rather than updated.
+
+--- body ---
+## Context
+
+The repository has **no tags and no GitHub releases** (`git tag` and
+`gh release list -R MinhHaDuong/search-works-for-zotero` are both empty), and
+`plugins/sdt-sitter/update.json` carries **no `update_link`**. Its own comment
+says why, and the reasoning was correct at the time: the entry is "absent rather
+than pointed at a release that does not exist".
+
+The consequence is that a user who installs the sitter can never receive an
+update. The host resolves `update_url`, finds one entry equal to the installed
+version, and correctly concludes there is nothing newer — forever, because no
+later entry can carry a link to fetch. Today that costs nothing, since the only
+install path is a hand-delivered `.xpi` from the author. It is a release
+blocker the moment anyone else installs it.
+
+This is also the one change that moves the install path off the mechanism every
+occurrence in ticket 0727 used. 0727 (the sitter disappearing from the installed
+list, cause still open) is **not** a gate on this release — see the release-train
+reasoning — but it is the reason the live check below is a fresh-profile install
+*from the release asset* rather than from a local file.
+
+DECISIONS.md ratified on 2026-09-06 that the sitter's permanent home is this
+repo, as a workshop deliverable. Releasing it from here is consistent with that
+ruling and with README.md's framing; it is not a change of shipping policy for
+anything else in the tree.
+
+## Relevant files
+
+- `plugins/sdt-sitter/update.json` — the Mozilla update manifest, served raw from
+  `main`; one entry, no `update_link`. The version moves with every
+  payload change (`check_sitter_version` refuses two builds under one number),
+  so read it rather than trusting a number quoted here
+- `plugins/sdt-sitter/manifest.json` — `update_url` at
+  `raw.githubusercontent.com/.../main/plugins/sdt-sitter/update.json`,
+  `strict_min_version` 10.0.1, `strict_max_version` 10.*
+- `bench/check_sitter_version.py` — the `sitter-version` gate (Makefile:239);
+  today it asserts no two payloads answer to one manifest version
+- `bench/build_sdt_sitter.py` — builds the `.xpi`
+- `plugins/sdt-sitter/RELEASE-NOTES.md:44` — "This draft does not claim a
+  live-profile deployment or a published release"
+
+## Actions
+
+1. Settle the version. **0.4.0 proposed** — the 0.3.x series is the hand-delivered
+   experimental line, and a first public tag deserves a boundary. Bump
+   `manifest.json` and `update.json` in one commit; they may never disagree.
+2. Build the `.xpi` and attach it to a signed tag (`/release` owns the signing
+   step; it is human-only).
+3. `update.json` gains `update_link` pointing at the release asset URL.
+4. Extend `bench/check_sitter_version.py` to assert the three agree: manifest
+   version == update.json version == the tag it claims, and `update_link` names
+   an asset that exists. Today the gate reads the payload history only.
+5. RELEASE-NOTES.md: drop the "does not claim ... a published release" sentence,
+   and add a plain recovery line for 0727 — if the sitter disappears from
+   Tools → Add-ons, restart Zotero, reinstall, and report it.
+
+## Test
+
+Red step first: point `update_link` at an asset that does not exist and confirm
+the extended `check_sitter_version.py` fails. Then point it at the real one and
+confirm it passes. A gate that cannot fail on a wrong link is not a gate, and
+this one is guarding a URL nobody will read again.
+
+## Verification
+
+- [ ] Fresh Zotero profile, install from the **release asset URL**, restart,
+      still present and active after thirty minutes of ordinary use. This is the
+      released user's arm, and it is the arm 0727 has never had.
+- [ ] An installed copy sees a bumped `update.json` and offers the update — or,
+      if it does not, the log records what was observed rather than what was
+      expected.
+- [ ] `make check` passes, including the extended version gate.
+
+## Invariants
+
+- **Do not remove `update_url`.** 0727 established with a control that a build
+  identical but for its removal is refused at install with "peut-être
+  incompatible avec cette version de Zotero". This corrected 0688's docs-based
+  reading; do not re-derive it the hard way.
+- `strict_min_version` 10.0.1 and `strict_max_version` 10.* stay as declared in
+  both files.
+- The empty `updates` list is never restored: it is 0727's original suspected
+  mechanism, and update.json's comment is the record of why.
+
+## Exit criteria
+
+A tag exists, a release carries the `.xpi`, `update.json` names it, and the
+version gate asserts all three agree and has been shown red once by a deliberate
+break. RELEASE-NOTES.md no longer disclaims a published release. 0727 stays open
+as the recurrence trigger; this ticket does not close it and does not claim its
+cause.
