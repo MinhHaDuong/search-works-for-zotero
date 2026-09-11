@@ -1,0 +1,71 @@
+2026-09-11T15:33:45Z driver starting: profile=/tmp/zotero-0727-volume/run-profile addon_id=sdt-pack-sitter@search-works-for-zotero.invalid burst_cycles=6 spaced_cycles=43 max_minutes=120.0
+2026-09-11T15:33:45Z driver launched zotero pid=393974: /opt/zotero7/zotero-bin -app /opt/zotero7/app/application.ini --headless --start-debugger-server 6000 --profile /tmp/zotero-0727-volume/run-profile
+2026-09-11T15:33:46Z record=unreadable:/tmp/zotero-0727-volume/run-profile/extensions.json does not exist xpi=absent zotero_pid=393974
+2026-09-11T15:33:46Z driver cycle 1 installing version 9.0.0
+2026-09-11T15:33:47Z driver cycle 1 disabling
+2026-09-11T15:33:47Z driver cycle 1 enabling
+2026-09-11T15:33:48Z record=present:9.0.0:active=True xpi=present zotero_pid=393974
+2026-09-11T15:34:47Z driver cycle 2 installing version 9.2.0
+2026-09-11T15:34:47Z driver cycle 2 disabling
+2026-09-11T15:34:47Z driver cycle 2 enabling
+2026-09-11T15:34:48Z record=present:9.2.0:active=True xpi=present zotero_pid=393974
+2026-09-11T15:35:47Z driver cycle 3 installing version 9.3.0
+2026-09-11T15:35:47Z driver cycle 3 disabling
+2026-09-11T15:35:47Z driver cycle 3 enabling
+2026-09-11T15:35:48Z record=present:9.3.0:active=True xpi=present zotero_pid=393974
+2026-09-11T15:36:47Z driver cycle 4 installing version 9.4.0
+2026-09-11T15:36:47Z driver cycle 4 disabling
+2026-09-11T15:36:47Z driver cycle 4 enabling
+2026-09-11T15:36:48Z record=present:9.4.0:active=True xpi=present zotero_pid=393974
+2026-09-11T15:37:47Z driver cycle 5 installing version 9.5.0
+2026-09-11T15:37:47Z driver cycle 5 disabling
+2026-09-11T15:37:47Z driver cycle 5 enabling
+2026-09-11T15:37:48Z record=present:9.5.0:active=True xpi=present zotero_pid=393974
+2026-09-11T15:38:47Z driver cycle 6 installing version 9.6.0
+2026-09-11T15:38:47Z driver cycle 6 disabling
+2026-09-11T15:38:47Z driver cycle 6 enabling
+2026-09-11T15:38:48Z record=present:9.6.0:active=True xpi=present zotero_pid=393974
+2026-09-11T15:39:48Z driver cycle 7 installing version 9.7.0
+2026-09-11T15:39:48Z driver cycle 7 disabling
+2026-09-11T15:39:48Z driver cycle 7 enabling
+2026-09-11T15:39:48Z record=present:9.7.0:active=True xpi=present zotero_pid=393974
+2026-09-11T15:42:18Z driver cycle 8 installing version 9.8.0
+2026-09-11T15:42:18Z driver cycle 8 disabling
+2026-09-11T15:42:18Z driver cycle 8 enabling
+2026-09-11T15:42:18Z record=present:9.8.0:active=True xpi=present zotero_pid=393974
+2026-09-11T15:44:48Z driver cycle 9 installing version 9.9.0
+2026-09-11T15:44:48Z driver cycle 9 disabling
+2026-09-11T15:44:48Z driver cycle 9 enabling
+2026-09-11T15:44:48Z record=present:9.9.0:active=True xpi=present zotero_pid=393974
+2026-09-11T15:47:18Z driver cycle 10 installing version 9.10.0
+2026-09-11T15:47:18Z driver cycle 10 disabling
+2026-09-11T15:47:18Z driver cycle 10 enabling
+2026-09-11T15:47:18Z record=present:9.10.0:active=True xpi=present zotero_pid=393974
+2026-09-11T15:49:48Z driver cycle 11 installing version 9.11.0
+2026-09-11T15:49:48Z driver cycle 11 disabling
+2026-09-11T15:49:48Z driver cycle 11 enabling
+2026-09-11T15:49:50Z record=present:9.11.0:active=True xpi=present zotero_pid=393974
+2026-09-11T15:52:18Z driver cycle 12 installing version 9.12.0
+2026-09-11T15:52:18Z driver cycle 12 disabling
+2026-09-11T15:52:18Z driver cycle 12 enabling
+2026-09-11T15:52:20Z record=present:9.12.0:active=True xpi=present zotero_pid=393974
+2026-09-11T15:54:48Z driver cycle 13 installing version 9.13.0
+2026-09-11T15:54:48Z driver cycle 13 disabling
+2026-09-11T15:54:49Z driver cycle 13 enabling
+2026-09-11T15:54:50Z record=present:9.13.0:active=True xpi=present zotero_pid=393974
+2026-09-11T15:57:19Z driver cycle 14 installing version 9.14.0
+2026-09-11T15:57:19Z driver cycle 14 disabling
+2026-09-11T15:57:19Z driver cycle 14 enabling
+2026-09-11T15:57:20Z record=present:9.14.0:active=True xpi=present zotero_pid=393974
+2026-09-11T15:59:49Z driver cycle 15 installing version 9.15.0
+2026-09-11T15:59:49Z driver cycle 15 disabling
+2026-09-11T15:59:49Z driver cycle 15 enabling
+2026-09-11T15:59:50Z record=present:9.15.0:active=True xpi=present zotero_pid=393974
+2026-09-11T16:02:19Z driver cycle 16 installing version 9.16.0
+2026-09-11T16:02:19Z driver cycle 16 disabling
+2026-09-11T16:02:19Z driver cycle 16 enabling
+2026-09-11T16:02:20Z record=present:9.16.0:active=True xpi=present zotero_pid=393974
+2026-09-11T16:04:49Z driver cycle 17 installing version 9.17.0
+2026-09-11T16:04:49Z driver cycle 17 disabling
+2026-09-11T16:04:49Z driver cycle 17 enabling
+2026-09-11T16:04:50Z record=present:9.17.0:active=True xpi=present zotero_pid=393974
