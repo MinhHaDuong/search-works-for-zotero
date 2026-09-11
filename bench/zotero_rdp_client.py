@@ -55,17 +55,31 @@ on a UI prompt nothing will ever answer -- this was found by running this
 client against a live Zotero, not by reading the startup flag's own code,
 which does not mention it (`devtools/shared/security/{auth,socket}.js`).
 
-A returned live `Promise` (e.g. from wrapping `await`-ing code in an async
-IIFE, since `evaluateJSAsync` on this build does not evaluate bare top-level
-`await`) does NOT come back as its resolved value -- only a promise the
-console's OWN top-level-await handling produces gets unwrapped
-(`webconsole.js`, `_maybeWaitForResponseResult`, gated on
-`response.awaitResult`). An IIFE's promise comes back as an object GRIP
-whose `preview.ownProperties["<value>"].value` holds the resolved value if
-you had it `JSON.stringify` itself before returning -- ugly, but observed
-working end to end against a live Zotero (ticket 0766's log). Prefer eval
-code that resolves synchronously; when it cannot, expect and unwrap the grip
-preview rather than treating a `class: "Promise"` result as a client bug.
+A returned live `Promise` (e.g. from an async IIFE, since `evaluateJSAsync`
+on this build rejects a bare top-level `await` with a SyntaxError -- it is
+NOT auto-transformed the way Firefox's own Web Console front-end transforms
+typed input before sending it) only comes back as its RESOLVED value if the
+request itself asks for that: `evaluateJSAsync`'s `mapped` field, sent as
+`{"await": true}`, makes `evaluateJS` unwrap a Promise-valued completion
+before grip-ing it (`webconsole.js`, `prepareEvaluationResult`: `if
+(mapped?.await && result?.class === "Promise") { awaitResult =
+result.unsafeDereference(); }`, then `_maybeWaitForResponseResult` awaits
+it). Without `mapped: {"await": true}` the same Promise comes back as an
+object GRIP instead -- found the hard way, by first shipping without it and
+getting `{"type": "object", "class": "Promise", ...}` back from a live
+Zotero instead of the answer (ticket 0766's log). `eval_js` below always
+sends `mapped: {"await": true}`, so an async IIFE resolves transparently.
+
+The one gap this does NOT close: a REJECTED promise does not surface its
+rejection reason here at all. `_maybeWaitForResponseResult`'s catch block
+sets `topLevelAwaitRejected: true` and nothing else -- no message, no grip --
+because Firefox's own console handles an unhandled rejection as a separate,
+asynchronous "uncaught exception" resource, out of band from this response.
+`eval_js` raises `RDPEvalError` on `topLevelAwaitRejected`, but with no
+reason string to give you. Write eval code that catches its own errors and
+returns a JSON string describing the outcome (`{"ok": false, "error":
+String(e)}`) rather than letting a promise reject to the top level, if you
+need to know why something failed.
 """
 
 import argparse
@@ -355,22 +369,35 @@ class ZoteroRDPClient:
     def eval_js(self, code: str, timeout: float = 10.0):
         """Evaluate `code` with chrome privilege; return its result.
 
+        Sends `mapped: {"await": true}` on every call, so a `Promise` your
+        code returns (an async IIFE, or a bare async function call) is
+        awaited and unwrapped server-side before being sent back -- see this
+        module's own docstring for why that field is needed at all and what
+        it does NOT cover (a rejected promise's reason is not recoverable
+        here; catch your own errors in the eval code).
+
         Prefer eval code that returns a JSON-primitive (a string, a number,
         a boolean) or a string you built yourself with `JSON.stringify(...)`
-        inside the eval. A returned live object comes back as an RDP "grip"
-        -- an object DESCRIPTOR, not the object's own fields -- because that
-        is what the protocol sends for anything that is not a primitive;
-        `JSON.stringify` inside the evaluated code sidesteps that.
+        inside the eval. A returned live object still comes back as an RDP
+        "grip" -- an object DESCRIPTOR, not the object's own fields --
+        because that is what the protocol sends for anything that is not a
+        primitive; `JSON.stringify` inside the evaluated code sidesteps
+        that.
 
-        Raises `RDPEvalError` if the JavaScript itself raised, using the
-        `hasException` flag the actor sets rather than checking a nullable
-        field, per `webconsole.js`'s own `evaluateJS`:
-        `hasException: errorGrip !== null`.
+        Raises `RDPEvalError` if the JavaScript itself raised (using the
+        `hasException` flag the actor sets, per `webconsole.js`'s own
+        `evaluateJS`: `hasException: errorGrip !== null`) or if an awaited
+        promise rejected (`topLevelAwaitRejected`, with no reason attached
+        -- see this module's docstring).
         """
         if self.console_actor is None:
             self.attach_chrome_target(timeout=timeout)
         ack = self.conn.request(
-            self.console_actor, "evaluateJSAsync", timeout=timeout, text=code
+            self.console_actor,
+            "evaluateJSAsync",
+            timeout=timeout,
+            text=code,
+            mapped={"await": True},
         )
         result_id = ack.get("resultID")
         if not result_id:
@@ -384,6 +411,16 @@ class ZoteroRDPClient:
         if event.get("hasException"):
             message = event.get("exceptionMessage") or event.get("exception")
             raise RDPEvalError(f"eval raised: {message}", event)
+        if event.get("topLevelAwaitRejected"):
+            raise RDPEvalError(
+                "an awaited promise rejected; Firefox's console reports the "
+                "reason out of band (a separate uncaught-exception resource "
+                "this client does not subscribe to) rather than in this "
+                "response -- write eval code that catches its own errors and "
+                "returns a description of the failure if you need to know "
+                "why",
+                event,
+            )
         return event.get("result")
 
 

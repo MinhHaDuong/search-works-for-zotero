@@ -121,6 +121,10 @@ def _happy_path_handle(sock):
     packet, buf = recv_packet(sock, buf)
     assert packet["to"] == "console0" and packet["type"] == "evaluateJSAsync"
     assert packet["text"] == "1+1"
+    # Without `mapped: {"await": true}`, a Promise-valued eval (e.g. an async
+    # IIFE) comes back as an unresolved object grip instead of its value --
+    # found by running against a live Zotero, see this client's docstring.
+    assert packet["mapped"] == {"await": True}
     send_packet(sock, {"from": "console0", "resultID": "1-0"})
     send_packet(sock, {
         "from": "console0", "type": "evaluationResult", "resultID": "1-0",
@@ -183,6 +187,43 @@ def test_eval_raises_on_a_javascript_exception():
         try:
             with pytest.raises(RDPEvalError, match="boom"):
                 client.eval_js("throw new Error('boom')", timeout=5)
+        finally:
+            client.close()
+    finally:
+        server.close()
+
+
+def _rejected_await_handle(sock):
+    """`_maybeWaitForResponseResult`'s own catch block sets only
+    `topLevelAwaitRejected: true` on a rejected awaited promise -- no
+    `hasException`, no message, no grip (`webconsole.js`). A client that
+    checks `hasException` alone treats this as a silent `None` success."""
+    _hello(sock)
+    buf = bytearray()
+    packet, buf = recv_packet(sock, buf)
+    send_packet(sock, {"from": "root", "processDescriptor": {"actor": "process0"}})
+    packet, buf = recv_packet(sock, buf)
+    send_packet(sock, {
+        "from": "process0",
+        "process": {"actor": "target0", "consoleActor": "console0"},
+    })
+    packet, buf = recv_packet(sock, buf)
+    send_packet(sock, {"from": "console0", "resultID": "1-0"})
+    send_packet(sock, {
+        "from": "console0", "type": "evaluationResult", "resultID": "1-0",
+        "hasException": False, "topLevelAwaitRejected": True,
+    })
+
+
+def test_eval_raises_rather_than_returning_none_on_a_rejected_promise():
+    server = MockRDPServer(_rejected_await_handle)
+    try:
+        client = ZoteroRDPClient.connect("127.0.0.1", server.port, timeout=5)
+        try:
+            with pytest.raises(RDPEvalError):
+                client.eval_js(
+                    "(async function(){ throw new Error('x'); })()", timeout=5
+                )
         finally:
             client.close()
     finally:
