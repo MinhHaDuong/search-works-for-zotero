@@ -2,6 +2,7 @@
 Title: Run the sitter mutant probes in make check, and re-anchor the five lost
 Created: 2026-09-10
 Author: claude
+Closed: autoclosed — PR #517
 
 --- log ---
 2026-09-10T09:45Z claude created
@@ -13,6 +14,7 @@ Author: claude
 
 2026-09-11T09:14Z claude note Two things the runner could see and the author's machine cannot, neither of them this ticket's. `make check` is red here at tests/test_fulltext_quality_census.py::test_permission_denied_directory_is_reported_unreadable, on a pristine stash as well as on this branch: the control chmods a directory unreadable and this container runs as uid 0, which ignores the bit. Same class as #513's gitignored `.xpi`, opposite direction -- a gate that cannot go red where it runs. And `check_sitter_version.py` answered NOT-RUN on the shallow clone this session started from; `git fetch --unshallow` was run before any figure above was taken.
 
+2026-09-11T14:27Z sim closed — autoclosed — PR #517
 --- body ---
 ## Context
 
