@@ -112,13 +112,15 @@ is that the cost falls unconditionally, and in proportion to the library rather
 than to what is used.
 
 "Durable" needs a qualifier: durable only until the processor stamps in
-`resource://zotero/document-worker/metadata.json` change, and those stamps do
-not change rarely. Between the 10.0 build read into SYNC.md
-(`SDT_SCHEMA_VERSION` 1.1.0, PDF processor 3, 2026-08-17) and the 10.0.2 build
-installed 2026-09-11, `SDT_SCHEMA_VERSION` moved to 1.2.0 and the PDF
-processor to 14. Eleven bumps accrued across three point releases,
-unannounced: neither `zotero/document-worker` nor
-`zotero/structured-document-text` publishes release notes.
+`resource://zotero/document-worker/metadata.json` change. Between the 10.0
+build read into SYNC.md (`SDT_SCHEMA_VERSION` 1.1.0, PDF processor 3,
+build `20260817151751`, 2026-08-17) and the 10.0.2 build installed
+2026-09-11 (build `20260909184950`), `SDT_SCHEMA_VERSION` moved to 1.2.0 and
+the PDF processor stamp moved from 3 to 14 — a delta of eleven across three
+point releases. Neither `zotero/document-worker` nor
+`zotero/structured-document-text` publishes release notes, so whether that
+delta was one jump or several is not knowable from here; what is knowable is
+that on this host three point releases were enough to move it.
 
 #6012's own suite pins what a processor-stale pack triggers. "Should
 regenerate a stale-processor pack before resolving `ensure()`"
