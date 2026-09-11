@@ -1,0 +1,285 @@
+%erg 0.1
+Title: External RDP client to drive Zotero add-on install without GUI
+Created: 2026-09-11
+Author: claude
+
+--- log ---
+2026-09-11T14:54Z claude created
+
+2026-09-11T15:07Z claude note real-world validation, live Zotero 10.0.2 (headless, --start-debugger-server 6000, PID from /opt/zotero7/zotero -P default, no GUI session existed at the time so nothing was disrupted). Needed a THIRD pref beyond the two named above: devtools.debugger.prompt-connection=false, or every connection hangs forever behind a server-side allow-prompt (devtools/shared/security/auth.js's Prompt authenticator) that headless mode can never answer -- caught empirically, not by reading source, and now folded into bench/zotero_arm_devtools_server.js and this client's own docstring. Two eval transcripts: python3 bench/zotero_rdp_client.py --host 127.0.0.1 --port 6000 --timeout 15 "JSON.stringify(1+1)" -> "2". Then, read-only, against the real profile: (async function(){ const { AddonManager } = ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs'); const addon = await AddonManager.getAddonByID('sdt-pack-sitter@search-works-for-zotero.invalid'); return JSON.stringify({present:!!addon,id:addon&&addon.id,version:addon&&addon.version,isActive:addon&&addon.isActive}); })() -> grip preview's embedded value: {"present":true,"id":"sdt-pack-sitter@search-works-for-zotero.invalid","version":"0.3.37","isActive":true}. No install/replace/disable/enable was driven. prefs.js was diffed byte-identical to a pre-launch backup after Zotero quit (the only observed side effect of the SIGTERM-based quit, a bumped toolkit.startup.recent_crashes counter, was erased by that same restore). make check: 1339 passed, 15 skipped, exit 0.
+2026-09-11T15:50Z REROLL round 1: request() matched a reply on 'from' alone, so a same-actor event or a stale reply from a timed-out call answered the next request -- a call evaluating 222 returned 111. Fixed: a reply must carry no 'type' key, and any timeout poisons the connection (closed, RDPConnectionClosed on reuse).
+--- body ---
+## Context
+
+Ticket 0727 (the sitter's disappearance) is parked: four deliberate transition
+arms (first install, replacement, pre-fix payload, disable/re-enable) across
+two machines all SURVIVED, and the leading unexplored candidate is
+intermittency under VOLUME — nobody has run dozens of install/replace/disable/
+enable cycles back to back, because each cycle needs a human click through
+Tools -> Add-ons -> gear icon -> Install Add-on From File. 0727's own log
+(2026-09-08) already tried and rejected the two obvious shortcuts: a bare
+`.xpi` dropped into `<profile>/extensions/<id>.xpi` never registers, not even
+across a restart (confirmed dead end, do not retry), and `xdotool` cannot see
+Zotero's window on this host (native Wayland client, not enumerable by an X11
+tool) — so GUI scripting is not available either.
+
+This ticket builds a standalone external tool that drives Zotero's real,
+persistent add-on install path over Firefox's Remote Debugging Protocol (RDP),
+from OUTSIDE the Zotero process, so that 0727's next experiment (many
+install/replace/disable/enable cycles, unattended) becomes possible. It is a
+tool, not a fix: it does not itself explain or close 0727's disappearance
+mechanism, and this ticket's exit criteria stop at "the tool works and is
+proven read-only", not at "0727 is explained". The multi-cycle experiment
+itself is out of scope here — scheduling it is the maintainer's call once this
+tool exists.
+
+## Why the two obvious RDP paths are wrong, cited from source
+
+Re-derived independently against the Zotero build actually installed on this
+host (`/opt/zotero7`, application.ini reports Version=10.0.2,
+BuildID=20260909184950 — extract `/opt/zotero7/omni.ja` and
+`/opt/zotero7/app/omni.ja` with `unzip` to get the same sources) rather than
+taken on faith from a prior session:
+
+- **`--remote-debugging-port` (CDP / WebDriver BiDi) is the wrong protocol
+  family entirely.** Its implementation lives under
+  `chrome/remote/content/{cdp,webdriver-bidi}/` in the app omni.ja (Gecko
+  toolkit) and is a distinct subsystem (`RemoteAgent.sys.mjs`) from the RDP
+  server below; it targets web content/tabs, not chrome-privileged eval.
+- **The RDP `AddonsActor` (`chrome/devtools/modules/devtools/server/actors/
+  addon/addons.js`) is the wrong actor.** Read verbatim: it defines exactly
+  two methods, `installTemporaryAddon(addonPath, openDevTools)` (line 28,
+  hardwired to `AddonManager.installTemporaryAddon()`) and `uninstallAddon`
+  (line 78) — nothing else. `installTemporaryAddon` is Firefox's "Load
+  Temporary Add-on" mechanism (about:debugging): it does not persist across
+  restart and does not exercise the `extensions.json` machinery a real
+  install does, so it cannot reproduce or even approach 0727's phenomenon.
+
+## The real install path, cited from source
+
+`chrome/toolkit/content/mozapps/extensions/aboutaddonsCommon.js`,
+`installAddonsFromFilePicker()` (lines 235-285 in the extracted source), is
+what "Install Add-on From File" actually runs once a file is chosen:
+
+```js
+let installTelemetryInfo = { source: "about:addons", method: "install-from-file" };
+let browser = getBrowserElement();
+let install = await AddonManager.getInstallForFile(file, null, installTelemetryInfo);
+AddonManager.installAddonFromAOMWithOptions(browser, document.documentURIObject, install,
+  { preferUpdateOverInstall: PREFER_UPDATE_OVER_INSTALL_FOR_EXISTING_ADDON });
+```
+
+This matches telemetry actually observed in this profile
+(`installTelemetryInfo.method: "install-from-file"`, noted in 0727's
+2026-09-08 log). `installAddonFromAOMWithOptions` -> `AddonManagerInternal.
+installAddonFromAOM` (`modules/AddonManager.sys.mjs:2575`) -> `setupPromptHandler`
+(`:3318`) -> `startInstall` (`:2189` region). Traced independently in this
+session:
+
+- **`browser` is never dereferenced as a live DOM/XUL element on this path
+  with `source: "local"`.** `_verifyThirdPartyInstall` (`:3280`) returns
+  `Promise.resolve()` immediately when `source` is `"AMO"` or `"local"`
+  (`:3283-3288`), before touching `browser`. In `setupPromptHandler`
+  (`:3318-3421`), the three feature-gated branches that would dereference
+  `browser` as a UI target (webextension permission prompt, SitePermission
+  prompt, the custom `web-install-prompt`/`addon-install-confirmation` path)
+  are each compiled to a literal `if (false)` in this build (verified at
+  `:3338`, `:3351`, `:3367` — read directly, not inferred), so control always
+  falls to the final `else { resolve(); }` at `:3409-3410`. `browser` is only
+  ever threaded into `installNotifyObservers(...)` (`:2169-2187`) as an opaque
+  `wrappedJSObject.browser` payload field passed to `Services.obs.
+  notifyObservers`, never read back. **`null` is safe to pass as `browser`.**
+- Net effect: on this Zotero build, driving `getInstallForFile` +
+  `installAddonFromAOMWithOptions` with `source: "local"` installs with ZERO
+  interactive prompts — matching what is actually observed (installs register
+  within seconds of the GUI gesture, nothing to click through).
+
+## The runtime-enable mechanism (no restart required) — the actual finding of this session
+
+0727's own log named `--start-debugger-server` (a CLI flag, needs a restart)
+as the only known way to open an RDP listener, and flagged that as
+disruptive if Zotero is already running live. Re-deriving the flag's own
+implementation shows the restart is not load-bearing:
+
+`modules/DevToolsStartup.sys.mjs`, `handleDevToolsServerFlag()`
+(lines 1083-1160) — this is ALL the CLI flag does:
+
+```js
+Services.prefs.getIntPref("devtools.debugger.remote-port");   // default 6000, greprefs.js:1520
+// ... gated on _isRemoteDebuggingEnabled() (line 993), which requires BOTH:
+//   devtools.debugger.remote-enabled  (default false, greprefs.js:1515)
+//   devtools.chrome.enabled           (default TRUE already in Zotero's own
+//                                      defaults/preferences/zotero.js:1518 —
+//                                      only remote-enabled needs setting)
+const { useDistinctSystemPrincipalLoader } = ChromeUtils.importESModule(
+  "resource://devtools/shared/loader/DistinctSystemPrincipalLoader.sys.mjs", { global: "shared" });
+const serverLoader = useDistinctSystemPrincipalLoader(requester);   // requester: any object, it's a Set key
+const { DevToolsServer } = serverLoader.require("resource://devtools/server/devtools-server.js");
+const { SocketListener } = serverLoader.require("resource://devtools/shared/security/socket.js");
+DevToolsServer.init();
+DevToolsServer.keepAlive = true;
+DevToolsServer.registerAllActors();
+DevToolsServer.allowChromeProcess = true;   // required by root.js's getProcess(), see below
+new SocketListener(DevToolsServer, { portOrPath, webSocket }).open();
+```
+
+None of this is restart-only machinery — it is five ordinary chrome-privileged
+statements. Zotero already ships a privileged eval console that needs no
+plugin and no restart to reach once: **Tools -> Developer -> Run JavaScript**,
+implemented in `chrome/content/zotero/runJS.js` — `run()` (lines 8-52) does
+`var win = Zotero.getMainWindow(); result = win.eval(code);` (or
+`await win.eval(...)` in async mode), i.e. it evaluates arbitrary code with
+the full chrome privilege of the main browser window. Pasting the eight lines
+above into that dialog (after `Services.prefs.setBoolPref("devtools.debugger.
+remote-enabled", true)`, a runtime pref write, no restart) opens a real RDP
+listener in an ALREADY-RUNNING Zotero, with no `--start-debugger-server`
+flag and no restart. The exact snippet is `bench/zotero_arm_devtools_server.js`
+in this ticket's PR, documented for the author to paste in when Zotero is
+already live.
+
+**This session did not use that path for its own validation run**, because
+GUI automation to paste into the Run JavaScript dialog is exactly the
+capability 0727 already established is unavailable here (`xdotool` blindness).
+Instead: at the time of this session, no Zotero process was running on this
+host at all (`ps aux` showed none, no `.parentlock` on the profile) — there
+was no live session to protect — so validation used the CLI-flag path
+(`zotero --headless --start-debugger-server 6000`) directly. Prefs were added
+to `user_pref` in the profile's `prefs.js` before launch and the file was
+fully restored (byte-identical to a pre-launch backup) after Zotero quit. The
+Run-JavaScript route is what a FUTURE session should use when Zotero is
+already live; documented, not yet exercised against a live session, but its
+JS shares the exact same authentication gate the CLI path hit (next
+paragraph), so it needs the same third pref.
+
+**A THIRD pref was required, found only by actually running this, not by
+reading the flag's own code.** `--start-debugger-server`'s own gate
+(`_isRemoteDebuggingEnabled`) says nothing about it. Every socket accept goes
+through `devtools/shared/security/socket.js`'s per-connection `_authenticate()`,
+which by default (`devtools.debugger.prompt-connection`, true by default,
+`greprefs.js:1511`) shows a server-side "allow this connection?" prompt
+(`devtools/shared/security/auth.js`, the `Prompt` authenticator) BEFORE the
+hello packet is ever sent. With nothing to click, the first validation
+attempt hung: the raw TCP connect succeeded but no hello arrived within a
+15 s client timeout, and a raw `socket.recv()` confirmed zero bytes in 10 s.
+Setting `devtools.debugger.prompt-connection` to `false` (also `auth.js`:
+`authenticate()` short-circuits to `AuthenticationResult.ALLOW`) fixed it
+immediately. `bench/zotero_arm_devtools_server.js` and this client's own
+docstring both carry this now; the CLI-flag path needed it added to
+`prefs.js` by hand since the flag itself has no equivalent option.
+
+## The wire protocol, cited from source (not guessed)
+
+Re-derived from the same extracted `omni.ja`, since getting this wrong silently
+produces a client that "connects" but can't attach to anything:
+
+- Packet framing: `chrome/devtools/modules/devtools/shared/transport/packets.js`
+  — `[decimal length]:[UTF-8 JSON payload]`, no other separator (see the
+  class doc at line ~98 and `_outgoing = this.length + ":" + this._data` at
+  line 213).
+- `shared/protocol/Request.js` (`write()`, lines ~62-81) and
+  `shared/protocol/Response.js` (`write()`, lines ~44-59): a spec's
+  `request`/`response` template keys become wire field names VERBATIM — e.g.
+  `getProcess: { request: { id: Arg(0, "number") }, response: { processDescriptor:
+  RetVal("processDescriptor") } }` (`shared/specs/root.js`) means the wire
+  request is `{to: "root", type: "getProcess", id: 0}` and the response is
+  `{from: "root", processDescriptor: {...actor form...}}`. A bare top-level
+  `RetVal(...)` (no wrapping key) spreads its fields directly into the packet
+  instead of nesting them.
+- Attach sequence: `root` actor's `getProcess(id: 0)` (`server/actors/root.js:503`,
+  gated on `DevToolsServer.allowChromeProcess`, which is why the arm sequence
+  above must set it) returns a `processDescriptor` actor; that actor's
+  `getTarget` (`server/actors/descriptors/process.js:169`, spec at
+  `shared/specs/descriptors/process.js`) returns `{process: {...}}` whose
+  `consoleActor` field (added via `_createExtraActors()` in
+  `server/actors/targets/window-global.js:730-733`, confirmed by the explicit
+  `consoleActor: this._consoleActor.actorID` pattern in the sibling
+  `content-process.js:174`) is the actor to eval against.
+- Eval: the console actor's `evaluateJSAsync` (`server/actors/webconsole.js:772`,
+  spec at `shared/specs/webconsole.js:149`) replies IMMEDIATELY with just
+  `{resultID}` and delivers the actual result later as an UNSOLICITED packet
+  `{from: consoleActor, type: "evaluationResult", resultID, ...}` (comment at
+  webconsole.js:763-764). A client that treats the first reply as the answer
+  will read `resultID` as the result.
+
+## Relevant files
+
+- `tickets/0727-the-sitter-uninstalls-itself-update-url.erg` — the ticket this
+  tool serves; its Action 4 named this gap
+- `bench/zotero_rdp_client.py` (new, this ticket) — the client: packet framing,
+  connect/attach/eval, CLI entry point
+- `bench/zotero_arm_devtools_server.js` (new, this ticket) — the snippet to
+  paste into Run JavaScript when Zotero is already live (the no-restart path)
+- `tests/test_zotero_rdp_client.py` (new, this ticket) — tests against a local
+  mock RDP server
+- `bench/sdt_sitter_install.py` — 0727's own three-state verifier
+  (`read_addon_record`/`verify`); the eventual multi-cycle experiment driver
+  will need to call something in this family after each install this tool
+  performs, but building that driver is NOT this ticket's scope
+
+## Actions
+
+1. Implement `bench/zotero_rdp_client.py`: a packet-framing transport
+   (`[len]:[json]`), a thin RDP connection (send/receive, dispatch unsolicited
+   events separately from direct responses), and a `ZoteroRDPClient` with
+   `connect()`, `get_chrome_console_actor()` (root -> getProcess(0) ->
+   getTarget -> consoleActor) and `eval_js(code, timeout)` (evaluateJSAsync +
+   wait for the matching `evaluationResult` event, raising on a JS exception
+   result rather than returning it silently).
+2. Implement `bench/zotero_arm_devtools_server.js`: the documented snippet for
+   Run JavaScript, cited above, for a session that finds Zotero already live.
+3. Write `tests/test_zotero_rdp_client.py` against a small mock RDP server
+   (plain `socket`/`threading`, no real Zotero, no subprocess needed for the
+   server itself) covering: packet round-trip framing, the connect/hello
+   packet, the getProcess/getTarget/eval happy path, a JS-exception result,
+   a connection dropped mid-request, and a read timeout.
+4. Validate the client against the real, live Zotero build on this host with
+   READ-ONLY operations only (connect, attach, `1+1`, `AddonManager.
+   getAddonByID(...)`) and record the actual output. Do NOT drive install,
+   replace, disable, or enable through this client in this ticket.
+
+## Test
+
+Red step: `tests/test_zotero_rdp_client.py::test_eval_returns_result_not_ack`
+— asserts that `eval_js` on a mock server that replies to `evaluateJSAsync`
+with an immediate `{resultID}` ack, then later emits the unsolicited
+`{type: "evaluationResult", resultID, result: ...}` event, returns the
+EVENT's result rather than the ack. A client that reads the first reply is
+the exact defect the wire-protocol note above exists to prevent, so this
+test must fail against that naive implementation before the fix.
+
+## Verification
+
+- [x] `make check` is green with the new files in place (1339 passed, 15
+      skipped, exit 0)
+- [x] `tests/test_zotero_rdp_client.py` passes using only the local mock
+      server — no real Zotero process, no network beyond localhost (10/10)
+- [x] The client, run against the real live build (10.0.2, headless,
+      `--start-debugger-server 6000` + the three prefs above), connects,
+      attaches to the chrome/parent-process target, and returns a correct
+      result for one inert eval and one read-only `AddonManager` query; see
+      this ticket's log for the pasted output
+- [x] No install/replace/disable/enable cycle was driven through this client
+      against the real profile in this ticket — the only add-on-related call
+      made was the read-only `AddonManager.getAddonByID` query above
+
+## Invariants
+
+- `make check` stays green with no dependency on a live Zotero instance
+  (`bench/check_deps.py` must not gain a new required package for this; if
+  the client needs one beyond the standard library, declare it in
+  `requirements-drivers.txt`, not `requirements-check.txt`, and skip its
+  tests gracefully — `@pytest.mark.integration`/`slow`-style — when the
+  Zotero-dependent path isn't exercised by `make check`).
+- Never call `installTemporaryAddon` or any AddonsActor method from this
+  client — that is the wrong path this ticket documents, not an alternative.
+- This ticket does not touch, and its exit does not depend on, 0727's actual
+  disappearance mechanism.
+
+## Exit criteria
+
+The client exists, is tested against a mock RDP server with no live-Zotero
+dependency in `make check`, and has been proven — by a pasted, real,
+read-only eval transcript — to connect to and eval in a real Zotero's
+chrome/parent-process target. The multi-cycle install/replace/disable/enable
+experiment 0727 needs is NOT run here; scheduling it is a decision for the
+author, flagged explicitly in the PR that closes this ticket.
