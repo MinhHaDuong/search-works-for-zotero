@@ -1,0 +1,73 @@
+%erg 0.1
+Title: DECISIONS.md 2026-09-03 entry cites SYNC.md's superseded silently-in-background phrasing
+Created: 2026-09-11
+Author: claude
+Label: needs-human
+
+--- log ---
+2026-09-11T14:47Z claude created
+
+--- body ---
+## Context
+
+Found by the roar sweep after PR #519 (ticket 0754's parity work). 0754
+established, against zotero/zotero#6012's own `sdtTest.js`, that
+`Zotero.SDT.ensure()` blocks and regenerates on a stale-processor pack rather
+than backgrounding the work the way `getPack()` does. SYNC.md's "Zotero
+extraction" drift-signal row said "a bump in the third silently re-extracts
+existing packs in the background" — true of `getPack()`, not of `ensure()` —
+and #519 corrected that row (`SYNC.md:516`) to name the distinction and cite
+the pinned test.
+
+`DECISIONS.md`'s 2026-09-03 entry ("The extraction-contract bound is
+withdrawn: R1 does imply the treadmill") quotes the pre-correction wording
+almost verbatim as its load-bearing premise: "`SYNC.md`'s Zotero extraction
+row records that a `SDT_PROCESSOR_VERSIONS` bump silently re-extracts existing
+packs, so under total supersession an unannounced upstream bump drains
+extraction, chunking and embedding across the library on the user's machine,
+unasked." That entry's actual conclusion — an unannounced upstream bump
+drains the library unasked, so the drift watch is load-bearing — does not
+depend on whether the drain is backgrounded or blocking, and this ticket is
+not asking to reopen it. What needs the author's eye is narrower: the entry's
+own wording now diverges from the source row it cites, and `DECISIONS.md` is
+an append-only ledger (its own text, a few entries later: "this ledger is
+append-only, so making 0590 the census would have falsified a ratified
+sentence with no way to correct it") — a correction there needs a new entry,
+not an edit in place, and a new entry needs the author's ratification the way
+every other entry in that file does.
+
+## Relevant files
+
+- `DECISIONS.md` around the "2026-09-03 — The extraction-contract bound is
+  withdrawn" entry — the citation to correct or annotate.
+- `SYNC.md:516` — the corrected source row (ticket 0754, PR #519, merged
+  2026-09-11), now distinguishing `getPack()`'s background regen from
+  `ensure()`'s blocking one.
+- `tickets/0754-audit-guarantee-parity-with-zotero-6012.erg` — the finding's
+  origin (log entry, 2026-09-11).
+
+## Actions
+
+1. Author reads the 2026-09-03 DECISIONS.md entry against the corrected
+   SYNC.md row and decides whether the citation needs a superseding note
+   appended (ledger stays append-only — no in-place edit), and if so what it
+   should say.
+2. If a correction is warranted, append it in the same style as the file's
+   existing supersession entries (e.g. the "extraction-contract bound is
+   withdrawn" entry itself, which states what is withdrawn and what survives).
+
+## Verification
+
+- [ ] The appended entry (if any) is reviewed by the author before commit,
+      consistent with every other entry in this ledger.
+
+## Invariants
+
+- `DECISIONS.md` stays append-only: no existing entry is edited or deleted.
+- The entry's actual ratified conclusion (drift watch is load-bearing) is not
+  disturbed by this ticket; only the citation's wording is in question.
+
+## Exit criteria
+
+Author has read the discrepancy and either appended a correction entry or
+explicitly decided none is needed.
