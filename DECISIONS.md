@@ -7157,3 +7157,174 @@ sense -- no ticket dependency was added for it -- but the ruling names it
 alongside 0727 as a finding the author is choosing not to ship over, and a
 future re-litigation of this ruling should read both, not only the one with
 the header.
+
+**2026-09-11 — The drift watch fired, one clause of the mechanism it was
+written on was wrong, and the trigger is wider than `SDT_PROCESSOR_VERSIONS`
+(awaiting ratification).** Correction to the 2026-09-03 entry above, which
+stands except in the clause named here. Raised from ticket 0765, after the
+author's Zotero auto-updated mid-session; every measurement below is from that
+machine, the same day.
+
+**What is corrected.** The 2026-09-03 entry rests on `SYNC.md`'s Zotero
+extraction row recording that a `SDT_PROCESSOR_VERSIONS` bump "silently
+re-extracts existing packs in the background". Two senses of *silently* were
+folded together there, and only one of them holds. Upstream announces nothing,
+which is true, and is the sense the entry's argument actually needs. The
+regeneration also runs in the background, which is true of
+`Zotero.SDT.getPack()` and false of `Zotero.SDT.ensure()`. #6012 pins both at
+`19e7962` in `test/tests/sdtTest.js`: "should return a stale-processor pack and
+regenerate it in the background" against "should regenerate a stale-processor
+pack before resolving ensure()", the second commented "unlike `getPack()`,
+`ensure()` doesn't return early with the old pack". `ensure()` is the call the
+sitter's census makes, so an eager scheduler pays a processor bump
+synchronously where a reader-driven consumer does not.
+
+**What is confirmed, and it is the part worth ratifying.** That entry described
+an unannounced upstream bump as a hazard the drift watch exists to catch. One
+arrived eight days later. Zotero auto-updated 10.0.1 to 10.0.2 on 2026-09-11 at
+15:46 local, build `20260817151751` to `20260909184950`, and all three
+constants moved: `SDT_SCHEMA_VERSION` 1.1.0 to 1.2.0, `SDT_PROCESSOR_VERSIONS`
+pdf 3 to 14 and epub 1 to 2, snapshot unchanged at 1. The client changelog for
+10.0.1 and 10.0.2 names reader and Read-Aloud fixes and full-text index
+*statistics*, and says nothing about any of this, exactly as the row predicted.
+The hazard is no longer hypothetical, and "the drift watch is load-bearing, not
+informational" is now evidenced rather than argued.
+
+**What the drain costs, measured rather than inferred.**
+`verification/probes/sdt_schema_census.py census` reads every pack header on
+disk. At 17:06 local, 1 h 20 after the update: 13 709 packs, of which 12 774
+still carry schema 1.1.0 (8 032 pdf, 4 735 snapshot, 7 epub) and 935 carry
+1.2.0 (928 pdf, 4 snapshot, 3 epub). Rewrites ran from 15:56:27 to 16:38:03 and
+then stopped, none in the 28 minutes to the reading. Why they stopped is not
+established here. Pack mtimes and header stamps agree on the same 935, which is
+the control on that count.
+
+**What is wider than the entry allows.** The schema moved too, and the row's
+two-way split does not cover that case. The row reads: a bump in the first two
+constants changes what a reader must handle, a bump in the third re-extracts. A
+schema *minor* does neither, because `sdt.js` validates the major only — #6012's
+suite asserts `schemaMajorVersion` against `parseInt(SDT_SCHEMA_VERSION)` and
+regenerates only on "an incompatible schema major version". So 1.1.0 to 1.2.0
+neither invalidates a stored pack nor announces itself, while still changing
+what gets written.
+
+It changed the outline entry. `verification/probes/sdt_schema_census.py outline`
+reads 400 packs per bucket: in 1.1.0, 105 packs carry `level` on an outline
+entry and none carry `source` or `target`; in 1.2.0, none carry `level`, 153
+carry `source` and 91 carry `target`, the last holding a resolved
+`{position: {pageIndex, rect}}` or a `url`. Neither key crosses buckets, which
+is what makes this structural rather than sampling. A heading path is what C1's
+section unit is cut from, so this is a shape the segmenter work will have to
+read, not a cosmetic rename.
+
+**The mixed cache is permanent, not transitional.** Snapshot's processor version
+did not move, so the validity tuple `(packVersion, schemaMajorVersion,
+source.hash, processor.type, processor.version)` still matches for all 4 735
+snapshot packs and nothing will regenerate them. They keep the 1.1.0 outline
+shape for as long as their sources are unchanged, beside pdf packs draining to
+1.2.0. A consumer reading both meets two outline shapes in one cache with no
+version gate between them, since `verification/probes/sdt_read.py` pins
+`SUPPORTED_PACK_VERSION` and reports the schema string without acting on it.
+
+**What is not broken today.** Nothing in this tree reads `outline` at all, so
+the exposure is latent. It lands on whoever writes the section cutter (tickets
+0028, 0557, 0606), and the 2026-09-06 chunking census cut at heading *blocks*
+rather than at catalog outline entries, so its numbers are not retroactively
+void. The sitter is not shipped either, per the ruling immediately above, so
+the synchronous `ensure()` cost currently falls on this machine rather than on
+an install base.
+
+**What is asked.** Ratify the correction of the mechanism clause, and rule on
+the design question it opens: whether our reader should gate on schema minor as
+well as pack version, refusing a shape it was not written against, or keep
+reading across minors and accept that a silent shape change reaches the
+segmenter. The first is this repo's usual answer and costs a refusal on every
+future minor; the second is cheaper, and is how the population on disk got here
+unnoticed. SPEC.md's C1 link 1 owns the consequence either way.
+
+**What is unmeasured.** Whether anything outside the outline changed between
+1.1.0 and 1.2.0 — a key-union diff across the two buckets is confounded by
+per-document PDF metadata, and only the outline was isolated with a control.
+Whether the new outline shape is better or worse for our purposes. Why the
+drain stopped at 16:38. And `SYNC.md`'s commit-cadence figures for
+`zotero/document-worker`, still the 2026-09-02 reading, are not refreshed
+against this build.
+
+**2026-09-11 — RATIFIED: the correction above. RULED: a version change at any
+depth obliges a repack of what changed, and two pack forms must not coexist.**
+The author, the same day, on reading the entry above.
+
+**What is ratified.** The correction of the mechanism clause, the widened
+trigger, and the measurements behind both.
+
+**What is ruled, and it is wider than the question that was asked.** The entry
+offered two answers to the schema-minor case: gate our reader on the minor, or
+read across minors. The ruling takes neither. A version change at any depth
+obliges a repack of *what changed*, and two pack forms coexisting is an error
+rather than a tolerable transient. Staleness here is therefore not a reading
+posture to choose. It is a convergence obligation: the population on disk must
+end at one form, and the unit of work is the delta rather than the library.
+
+**What it settles in our own chain, immediately.** C1 link 1 keyed extracted
+text on what the pack's metadata names, the source hash and the processor
+version. Under this ruling the key takes the pack and schema versions too, at
+full depth, so a pack written at schema 1.1.0 under a build writing 1.2.0 is
+stale and re-derives that item's text, chunks and vectors. On the population
+measured above that is 12 774 of 13 709 packs. SPEC.md §C1 and §5.2.4 are
+amended in the same change as this entry.
+
+**What the ruling cannot reach on its own, read at the shipped source rather
+than inferred.** `chrome/content/zotero/xpcom/sdt.js` in build
+`20260909184950` validates a cached pack on four conditions, and a schema minor
+is in none of them: `_getSchemaMajorVersion(header.schemaVersion)` against
+`SDT_SCHEMA_VERSION` yielding `unsupported-version`, then `source.hash`
+yielding `stale-source`, then `processor.type` and `processor.version` yielding
+`stale-processor`. The word `force` does not occur in that file. So `ensure()`
+returns a 1.1.0 pack as current under a 1.2.0 build and no call a plugin can
+make regenerates it. The one local lever is removing
+`storage/<KEY>/.zotero-sdt-cache` so the next demand re-extracts, and writing
+into Zotero's data directory was rejected on 2026-09-03 in the 0606 entry
+above, "the store is ours".
+
+**Waiting does not converge, and that is what turns this from an open question
+into a standing breach.** `snapshot`'s processor version did not move, so its
+4 735 packs are regenerated by no upstream event and hold the superseded form
+for as long as their sources are unchanged. R1 already governs this and says
+more than the ruling needed to: when an upgrade anywhere in the chain
+supersedes work already done, "full coverage SHOULD converge to the latest
+chain", the superseded items reprocessed unattended, and "at most two
+generations coexist, so this is a migration promise". Two generations are
+permitted while converging, and the superseded one stays in service the whole
+time: usable during the transition, ruled the same day. A coexistence that
+never resolves is not a migration, and the library is in it now.
+
+That settles a mechanism constraint before the mechanism is designed. An item
+is never taken out of service to be converged: its replacement is written
+first and overtakes it, so there is no window in which the item answers
+nothing. A repack that clears the old pack and then extracts would break R4 on
+that item for the length of the extraction, which on the SDT path is minutes
+per document at the rates in `verification/EXTRACTION-ROUTES.md`.
+
+**The promise decides the mechanism, so the routes are not three.** R1's same
+paragraph forecloses the obvious cheap answer: "until overtaken, the old
+results keep answering, labeled as such — an upgrade never empties the index
+and never demands a rebuild". Refusing the superseded form at the consumption
+boundary and booking the loss through R17's coverage would empty part of the
+index by choice, which is the one thing that clause forbids. The promise is
+complete *and* current, not current at the price of complete. Asking upstream
+to fold the schema version into its validity tuple is right on the merits,
+since a major-only check is where the defect actually lives, and it still
+cannot discharge R1 here: it is not ours to land, and it would not overtake
+4 735 packs whose processor version never moves.
+
+**What remains is the route already ratified for another reason.** Ticket
+0606's shape — produce SDT-compatible packs ourselves, in our own store, under
+our own extractor identity — is what lets a superseded item be overtaken
+without touching Zotero's store, so it satisfies the 2026-09-03 rejection and
+R1's convergence clause at once. Its precedence rule needs the amendment this
+case exposes: "Zotero's pack winning wherever one exists" was written against
+a Zotero pack that is current, and must now read as winning wherever one
+exists *at the current schema*, ours overtaking it where Zotero's is
+superseded and Zotero will never refresh it. Ticket 0767 carries the
+implementation and this evidence; the upstream filing rides with it as a
+separate arm, an outward action that waits for the author.
