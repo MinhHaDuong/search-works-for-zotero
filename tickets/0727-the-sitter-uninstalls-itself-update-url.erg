@@ -29,6 +29,11 @@ Author: sim
 2026-09-08T20:28Z MinhHaDuong reopened — recurrence reported live, 2026-09-08. Distinct from the four deliberate arms this ticket closed on: this session had already installed five consecutive builds (0.3.15 through 0.3.19) as GUI-menu REPLACEMENTS into what is very likely one continuously-running Zotero process, never restarted between installs, over roughly one hour -- arm 2 tested exactly ONE replacement and survived, so cumulative rapid replacement count in one long session is a candidate the accumulated arms never isolated. Diagnostic details (exact version at time of disappearance, disabled-then-removed vs simply gone, whether Tools > Add-ons currently shows anything) requested from the author, not yet in hand.
 2026-09-08T20:30Z MinhHaDuong reported the sitter still gone from Tools > Add-ons as of 20:30Z, no restart yet -- the disable-then-vanish transition itself was not observed (he stopped looking once it was noticed missing, so whether it passed through a disabled/grayed state first is unrecorded for this occurrence, unlike the 2026-09-06 hard evidence which had extensions.json's own mutation). Recommended: restart Zotero fully, then reinstall v0.3.19 via Tools -> Add-ons -> Install Add-on From File -- a first install into a fresh process is the one transition all four prior arms agreed is reliable.
 2026-09-11T14:55Z claude note filed 0766 (external RDP client for Zotero add-on install) to serve this ticket's Action 4 -- a scripted client that drives Zotero's real, persistent install path over Firefox's RDP without GUI automation, so the deferred multi-cycle install/replace/disable/enable experiment becomes runnable unattended. 0766 does not touch or explain this ticket's disappearance mechanism; see 0766 for the API evidence (why AddonsActor/installTemporaryAddon is the wrong path, and the exact call sequence the GUI gesture runs).
+2026-09-11T16:03Z claude note action 4 discharged: the RDP client exists and is merged (ticket 0766, PR #523, bench/zotero_rdp_client.py). Candidate 4b, the author installing by hand each cycle, is retired -- do not ask for it
+2026-09-11T16:03Z claude note the Test section named scratchpad/sitter-watch.sh as the verdict-carrier; git log --all --diff-filter=A finds it added on no branch ever, and scratchpad/ is not in the tree. Nothing is watching. Rebuilding it, committed, with a positive control, is now the blocker for action 1 -- not the install
+2026-09-11T16:03Z claude note added the out-of-band condition: the RDP client may perform the install but must not report the resulting state. Its two pre-merge defects (reply matched by actor name only, eval_js swallowing a rejection) were both silent failures, so a reading taken through it cannot distinguish a true state from a misattributed one
+2026-09-11T16:04Z claude note CORRECTION to my own 16:03 notes and to the body: I read the body and not this log, and recommended running Action 1 to the author. Action 1 is impossible -- update_url is REQUIRED, established with a control 2026-09-06 (0.2.14, identical but for its removal, refused at install). The title's mechanism is refuted too (0.2.15 advertised a compatible version and died on the same schedule; interval is 86400 against a disable at +20s). Added a 'Read the log before this body' section so the next reader meets the supersessions before the filed text
+2026-09-11T16:04Z claude note live candidate restated for whoever runs the next arm: cumulative rapid replacement in one long session, per the 2026-09-08T20:28Z reopening (0.3.15-0.3.19, one process, never restarted, about an hour). Arm 2 tested one replacement and survived, so replacement COUNT is the untested variable, not the replacement gesture. Plain intermittency remains unexcluded by any bounded run
 --- body ---
 ## Context
 
@@ -41,6 +46,38 @@ occurrence would leave evidence.
 
 It occurred twice on the evening of 2026-09-06, during live verification, and
 this time the evidence was collected while it was happening.
+
+## Read the log before this body (corrected 2026-09-11)
+
+Everything below is the ticket **as filed on 2026-09-06**. The log has
+superseded it on three points, and a reader who takes the body at face value
+will re-run refuted work. This section exists because that just happened.
+
+1. **The mechanism in the title and in "The mechanism this points at" is
+   REFUTED.** 0.2.15 shipped with `update.json` advertising a *compatible*
+   version and died on the same schedule as the empty-list build, disabled at
+   +20 s and deleted at +40 s. The timing never fitted either:
+   `extensions.update.interval` is 86400, a daily check, against a disable
+   twenty seconds after install. The title is kept only so the id stays
+   greppable (log, 2026-09-06T22:34Z).
+2. **Action 1 below cannot be run at all.** It asks for a build with
+   `update_url` REMOVED. Settled with a control the same evening: `update_url`
+   is REQUIRED — the identical build without it (0.2.14) is refused at install
+   with "peut-etre incompatible avec cette version de Zotero". This also
+   corrects 0688's docs-based reading that only `applications.zotero` need be
+   present. Actions 2 and 3, which branch off Action 1's outcome, fall with it.
+3. **Four deliberate arms have since been run and all survived** — first
+   install, single replacement, pre-fix payload, disable/re-enable, across two
+   machines. The ticket was closed as parked on 2026-09-08 and **reopened the
+   same evening on a live recurrence**: five consecutive GUI replacements,
+   0.3.15 through 0.3.19, into one process never restarted, over roughly an
+   hour. Arm 2 tested exactly ONE replacement.
+
+**The live candidate is therefore cumulative rapid replacement in a single long
+session, and no bounded experiment has excluded plain intermittency.** That arm
+needs many unattended cycles, which is what Action 4's instrument was built
+for. Do not re-run arms 1 to 3: they were run deliberately, with controls, and
+they answered.
 
 ## What was observed
 
@@ -92,6 +129,12 @@ against Zotero's own fork."
 
 ## Actions
 
+**Actions 1 to 3 are VOID as written — see "Read the log before this body".
+`update_url` cannot be removed (the build is refused at install), and the
+mechanism they isolate is refuted. They are left in place unstruck because the
+reasoning that produced them is still worth reading, and because deleting a
+refuted arm is how it gets proposed again.**
+
 1. Isolate, one variable. Build the current payload with `update_url` REMOVED
    and nothing else changed, install it, and leave Zotero running past the
    window in which the removal has been seen (~40 min). Zotero's own developer
@@ -109,30 +152,56 @@ against Zotero's own fork."
    narrowed it by one: record that, and do not close the ticket with a guess.
    The next candidate to examine is the `.invalid` id under a host that may
    validate ids it never dereferences.
-4. NEW, blocking 1-3 as filed: get a build installed at all, without GUI
-   automation (2026-09-08's log entry -- xdotool cannot see this host's Zotero
-   window, and a bare `extensions/<id>.xpi` drop does not register even after a
-   full restart). Two candidates, neither tried yet:
-   a. `--start-debugger-server` (listed in `zotero -h`) opens a devtools server
-      that speaks Firefox's Remote Debugging Protocol, which -- unlike
-      `--remote-debugging-port`'s CDP, which only reaches web content -- can
-      attach to the chrome/browser process and eval privileged JS, including
-      `AddonManager.installTemporaryAddon()` or a scripted disable/enable. No
-      client for this protocol exists in this repository; building one is real
-      work, not a one-line probe.
-   b. Ask the author to do one GUI install via Tools -> Add-ons -> Install
-      Add-on From File (the path that worked for fulltext-control), then drive
-      only the disable/enable/replace steps by hand at his direction while this
-      session watches `sitter-watch.log`. Cheaper, but needs him at the
-      keyboard for each cycle rather than an unattended run.
+4. ~~NEW, blocking 1-3 as filed: get a build installed at all, without GUI
+   automation.~~ **DISCHARGED 2026-09-11.** Candidate (a) was built and merged:
+   `bench/zotero_rdp_client.py` with `bench/zotero_arm_devtools_server.js`,
+   ticket 0766, PR #523, against `--start-debugger-server`'s Remote Debugging
+   Protocol. Candidate (b), asking the author to install by hand each cycle, is
+   no longer needed and should not be asked for.
+
+   Two defects were found in that client by its own review before it merged,
+   and both are of this ticket's favourite family, the silent failure: replies
+   were matched by actor name alone, so a late reply from a timed-out earlier
+   call could be attributed to the next one (`d67ed60` matches by shape and
+   ends the connection on timeout), and `eval_js` did not unwrap a promise
+   result, swallowing a rejection (`fa9e89e`). Both are fixed on main. They are
+   recorded here because they set the condition under which this client may be
+   used as an instrument, in the Test section below.
 
 ## Test
 
-`scratchpad/sitter-watch.sh` polls the three facts 0688's three-state model
+**The instrument this section names is gone (corrected 2026-09-11).**
+`scratchpad/sitter-watch.sh` ran — the log's 2026-09-06T22:34Z note reads six
+cycles off `scratchpad/sitter-watch.log`, and it is what carried arms 1 to 3.
+But `git log --all --diff-filter=A -- "*sitter-watch*"` finds it added on no
+branch ever, and `scratchpad/` is not in the tree today. The evidence it
+produced survives only as prose quoted in this log. Nothing is watching now, so
+no arm can produce a verdict until it is rebuilt, whoever or whatever performs
+the install.
+
+This is the blocker for the remaining arm. The install is not: Action 4's
+instrument exists and is merged.
+
+Rebuild it, and commit it this time. A file a later workpackage consumes is
+durable state, not scratch (`rules/git.md`, don't gitignore handoff artifacts).
+What it must do is unchanged: poll the three facts 0688's three-state model
 separates -- record present, record active, XPI on disk -- plus Zotero's pid,
-and appends a line ONLY on a change. A quiet log is "nothing moved"; a line is
-the transition, stamped. It was started at 23:42 and is what should carry the
-verdict for action 1 rather than anyone's recollection of when the icon went.
+and append a line ONLY on a change, so a quiet log reads "nothing moved" and a
+line is a stamped transition.
+
+Two conditions this ticket did not previously state:
+
+- **A positive control before any quiet log is believed.** Provoke a transition
+  deliberately -- disable the add-on by hand, or move the XPI -- and watch the
+  watcher emit a line. A silent log and a blind watcher are the same artifact
+  until one of them has been seen to fire.
+- **The observation channel stays out of band from the RDP client.** The client
+  may perform the install; it must not be what reports the resulting state.
+  Both defects found in it before merge were silent failures, so a reading
+  taken through it cannot distinguish a true state from a misattributed reply.
+  `bench/sdt_sitter_install.py verify` reads the host's own record, and the
+  manifest inside the installed `.xpi` on disk says whether `update_url` is
+  really absent. Confirm the payload that way before starting the clock.
 
 ## Verification
 
@@ -150,6 +219,12 @@ verdict for action 1 rather than anyone's recollection of when the icon went.
   make the next occurrence invisible again.
 - `bench/check_sitter_version.py`'s guard stands: any payload change needs its
   own version number, probe builds included.
+- The verdict never travels through the instrument that performs the install.
+  Action 1 is decided by out-of-band observation of the host's own state, which
+  is why it does not inherit the RDP client's failure modes and why it is the
+  cheap arm. The volume arm is the opposite case: many cycles, timeouts, and
+  exactly the conditions under which a reply-matching defect would manufacture
+  or erase the intermittency it is meant to measure.
 
 ## Exit criteria
 
