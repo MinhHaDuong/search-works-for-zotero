@@ -53,8 +53,8 @@ SETUPS = {'M7': ('        while (current()) {',
         '        let gateChecked = false, hoisted;\n        while (current()) {'),
  'M11': ('              if (before.identity) failed.add(before.identity);\n',
          '              if (before.identity) failed.add(before.identity); state.failed++;\n'),
- 'M16': ('              record(affected, info); publish();',
-         '              record(affected, info); publish(); dirty.delete(id);')}
+ 'M16': ('              record(affected, info); changed = true;',
+         '              record(affected, info); changed = true; dirty.delete(id);')}
 
 MUTANTS = [
     ("M1 failure path does not decrement the document's original bucket",
@@ -140,7 +140,7 @@ MUTANTS = [
     # filling, so the banner empties at the top of every sweep and refills as the
     # scan runs. Every assertion taken after `sweep()` resolves is blind to it.
     ('M12 the failure total is recomputed from a half-filled census',
-     '    if (state.scanned === state.total) {',
+     '    if (state.scanned === state.total && !state.censusBuilding) {',
      '    if (true) {'),
     # Ticket 0704's two shapes, and the pair is the point: the duration is the one
     # number in this loop that regresses to a WRONG value rather than a missing
@@ -166,7 +166,8 @@ MUTANTS = [
     # a coverage reader that keeps looking at the half-filled live counts combines
     # two census generations and flickers on every sweep.
     ('M15 the complete census snapshot is never retained for the next sweep',
-     '      state.censusSnapshot = { counts, total: state.total };\n',
+     '      state.censusSnapshot = { counts, total: state.total, members, '
+     'unattached: state.unattached.slice() };\n',
      ''),
     ('M16 dirty event erased after awaited inspection loses new notifications',
      '            dirty.delete(id); // BEFORE awaits: a new event for this ID survives.',

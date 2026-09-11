@@ -7,6 +7,12 @@ Author: claude
 2026-09-10T09:45Z claude created
 2026-09-10T09:46Z claude note Filed from a measurement taken this morning at cf9d7f1, not from a document. Both probes were run; the counts in the body are their own output, and the five lost anchors are the reason this is a release gate rather than a hygiene chore.
 
+2026-09-11T09:14Z claude note Done. Red control first, at 783fb66: bootstrap 28/30 with M29 and M30 ANCHOR LOST, scheduler 16/19 exit 1 with M12, M15 and M16 lost -- the ticket's own table, re-measured, so the five are the same five. Re-anchored on meaning: M29 now removes the braced guard 9694b2d rewrote (the block sets `result.reason = 'mismatched-type'` inside braces, which is what stopped the one-line anchor matching) and M30 inverts its condition to `!sniffed ||`; M12's gate grew `&& !state.censusBuilding` under 0752, M15's retained snapshot grew `members` and `unattached` under 0744/0752 -- and M15 is anchored on publish()'s assignment, not the `??=` pre-census hold a few lines down, which would have been the wrong mutant under the right name -- and M16's SETUP, not M16 itself, broke when 0752 turned the drain loop's per-record `publish()` into a `changed` flag. Both probes now exit 0 at 30/30 and 19/19, no SURVIVES, so the instrument found no coverage hole to file.
+
+2026-09-11T09:14Z claude note `sitter-mutants` added and placed in `check` between `sitter-version` and `check-fast`. Shown red once as required: M12's anchor reverted to its pre-0752 text made `make sitter-mutants` exit 1 on ANCHOR LOST at 18/19, then restored. Cost, one run each on this runner: 45,5 s bootstrap, 2,3 s scheduler standalone; `check` 71 s before and 108 s after. The figures neither add up nor are means, and the Makefile comment says so rather than quoting the tidier arithmetic. The two node suites stay green on their own at 45 and 56 scenarios.
+
+2026-09-11T09:14Z claude note Two things the runner could see and the author's machine cannot, neither of them this ticket's. `make check` is red here at tests/test_fulltext_quality_census.py::test_permission_denied_directory_is_reported_unreadable, on a pristine stash as well as on this branch: the control chmods a directory unreadable and this container runs as uid 0, which ignores the bit. Same class as #513's gitignored `.xpi`, opposite direction -- a gate that cannot go red where it runs. And `check_sitter_version.py` answered NOT-RUN on the shallow clone this session started from; `git fetch --unshallow` was run before any figure above was taken.
+
 --- body ---
 ## Context
 

@@ -16,7 +16,7 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate schema-gate sitter-version sitter-install sitter-verify-install golden golden-run menagerie-ris menagerie-package test-fork
+.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate schema-gate sitter-version sitter-mutants sitter-install sitter-verify-install golden golden-run menagerie-ris menagerie-package test-fork
 
 # Where the acceptance layer's arenas live: outside the repository, because the
 # residue sweep fills them with a target's derived state and bench/ is scanned
@@ -145,6 +145,7 @@ help:
 	@echo "make fold-gate   — R19: every token the query side produces is one the index can produce"
 	@echo "make schema-gate — 0620: the declared index-schema generation IS upstream's at the reviewed SHA (not-run is red here, unlike in check)"
 	@echo "make sitter-version — no two sitter payloads answer to one manifest version"
+	@echo "make sitter-mutants — the mutation gate over the sitter's bootstrap.js and scheduler.js"
 	@echo "make sitter-install        — SITTER_PROFILE=… SITTER_XPI=… persistent profile install"
 	@echo "make sitter-verify-install — SITTER_PROFILE=… what the host's extensions.json records"
 	@echo "make tickets     — erg check over the ticket store"
@@ -160,7 +161,7 @@ help:
 	@echo "make menagerie-package — MENAGERIE_PACKAGE=/path/out.zip: the RIS beside attachments/, each file sha256-checked against the recipe from MENAGERIE_CACHE (never committed)"
 	@echo "make test-fork   — the fork suite with TMPDIR off the /tmp tmpfs (FORK_TEST_TMPDIR, ticket 0714)"
 
-check: deps lint figures models names progress tickets ticket-logs sitter-version check-fast
+check: deps lint figures models names progress tickets ticket-logs sitter-version sitter-mutants check-fast
 
 check-fast:
 	python3 -m pytest tests/ -q
@@ -238,6 +239,27 @@ ticket-logs:
 # Needs real history, and says NOT-RUN rather than green where it has none.
 sitter-version:
 	python3 bench/check_sitter_version.py
+
+# The mutation gate, added by ticket 0763. Both probes opened by declaring
+# themselves a gate and nothing in the tree ran either one, so five anchors had
+# rotted out from under them unnoticed -- two of them over `inspect()`'s
+# content-type guard, which is the region the 2026-09-08 "not releasable"
+# verdict named. An unrun gate does not decay into a weaker gate; it decays into
+# a file that asserts something nobody has checked since it was written.
+#
+# Cost, measured 2026-09-11, one run each on the same runner: 45,5 s for the 30
+# bootstrap mutants and 2,3 s for the 19 scheduler ones standalone, and `check`
+# itself 71 s before, 108 s after. The two figures do not add up to each other
+# and neither is a mean; they are what a single run reported, which is the only
+# thing one run can say. Each mutant re-runs a node suite from a fresh copy of
+# the tree, so the cost is inherent rather than tunable, and it is written down
+# here so that whoever next wonders why `check` got slower reads an answer
+# instead of measuring it again. It stays IN `check`: the fallback ticket 0763
+# allows -- a separate target the release gate runs -- is how both probes came
+# to be unrun in the first place.
+sitter-mutants:
+	python3 verification/probes/sdt_sitter_bootstrap_mutants.py
+	python3 verification/probes/sdt_sitter_scheduler_mutants.py
 
 # The other half of 0688, and deliberately NOT in `check`: both need a real
 # Zotero profile, which no gate may guess. `install` copies the built XPI to

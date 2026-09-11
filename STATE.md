@@ -1,6 +1,6 @@
 # STATE — Search Works for Zotero
 
-*Live handoff, under forty lines. Updated 2026-09-10. Ownership: [AGENTS.md](AGENTS.md).*
+*Live handoff, under forty lines. Updated 2026-09-11. Ownership: [AGENTS.md](AGENTS.md).*
 
 ## North Star
 
@@ -17,12 +17,12 @@ with QA tests for those. Indexer/worker rewrite and segmenter stay held.
 
 ## Recent outcomes
 
-- **Sitter NOT releasable (0908):** 30 of 38 mutations silent in `blocked()` and
-  `inspect()`. Landed 0730, 0731; filed 0737, 0740, 0741. 0727's two hypotheses refuted,
-  still no cause. 0606's residue is 158, not 3 853 (0728).
-- **Not indexed panel ordered end to end (0910, #510/#512).** Groups follow the census
-  account, libraries follow personal-then-groups-by-name; both were the census walk's
-  before. §5.2.7 owns the classes, the admission rule and the order, not the wording (#511).
+- **Sitter mutation gate live in `check` (0911, 0763):** 30/30 and 19/19 mutants caught,
+  none surviving, re-derivable by `make sitter-mutants` in 48 s. Five anchors had rotted
+  unrun, two over the `inspect()` guard the 0908 "NOT releasable" verdict named; that
+  verdict's 30-of-38 figure is retired as un-re-derivable. 0727 still has no cause.
+- **Not indexed panel ordered end to end (0910, #510/#512).** Groups follow the census account,
+  libraries personal-then-groups-by-name; §5.2.7 owns the classes and the order, not the wording (#511).
 - **A gate can be red only on the author's machine (0910, #513):** the built `.xpi` is gitignored, so two filesystem-walking guards met it nowhere a runner could.
 
 ## Handoff
