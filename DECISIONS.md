@@ -7122,3 +7122,38 @@ handling. Version direction is a partial order across pack and schema versions,
 with an indeterminate case and no unverified regeneration promise. SPEC.md
 §5.2.7 owns the resulting interface contract; tickets 0744 and 0760 own the work.
 Earlier ticket logs remain historical records, not the corrected design.
+
+**2026-09-11 — RULED: the sitter's first tagged release (ticket 0764) is
+deferred, not shipped "experimental" over two open findings.** Asked to
+choose between signing the 0.4.0 tag now, labelled experimental, or holding
+it until the two live blockers are addressed, the author chose to hold.
+
+The two findings: ticket 0727, the sitter disappearing from a live Zotero
+profile -- occurred twice with hard evidence (`extensions.json` mutated, the
+`.xpi` deleted from disk, mid-session), and four deliberate reproduction arms
+across two machines (first install, replacement, the pre-fix payload,
+disable/re-enable) have all SURVIVED, leaving intermittency-under-volume as
+the one untested candidate; and ticket 0686, whose most recent panel verdict
+on the supervision UI is "CHANGES REQUESTED pour qualifier l'UI
+d'accessible", with keyboard access, focus restoration and screen-reader
+announcement still unestablished.
+
+The manifest already says "(experimental)", and RELEASE-NOTES.md already
+states plainly that it "does not claim ... a published release" -- ticket
+0764's own Action 5 proposed removing exactly that sentence as part of the
+cut. The ruling is that removing it now, ahead of either finding closing,
+would misrepresent what changed: the sentence is not disclaiming a technical
+formality, it is naming a real, twice-observed, unreproduced-on-demand
+failure mode that a real install base would inherit. "Experimental" as a
+label narrows scope; it does not retract a known defect.
+
+This does not reopen 0764's Action 4 (the release-entry version gate,
+already merged) or ask for it to be undone -- that gate is exactly what the
+eventual tag will need. It gates Actions 1, 2, 3 and 5 (the version bump,
+build+sign, `update_link`, and the RELEASE-NOTES edit) behind 0727 acquiring
+at least a named mechanism, not necessarily a full fix. 0764 carries
+`Blocked-by: 0727` accordingly. 0686 is not formally blocking in the same
+sense -- no ticket dependency was added for it -- but the ruling names it
+alongside 0727 as a finding the author is choosing not to ship over, and a
+future re-litigation of this ruling should read both, not only the one with
+the header.
