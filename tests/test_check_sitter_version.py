@@ -30,6 +30,8 @@ from check_sitter_version import HOMES  # noqa: E402
 
 SITTER = REPO / "plugins" / "sdt-sitter"
 GUARD = REPO / "bench" / "check_sitter_version.py"
+ADDON_ID = json.loads((SITTER / "manifest.json").read_text(encoding="utf-8")
+                     )["applications"]["zotero"]["id"]
 
 
 def guard(root: Path, **environment: str) -> subprocess.CompletedProcess:
@@ -76,6 +78,19 @@ def seed(root: Path, version: str, base: str = HOMES[0]) -> Path:
     subprocess.run(["git", "init", "-q", "-b", "main"], cwd=root, check=True, capture_output=True)
     commit(root, f"seed {version}")
     return sitter
+
+
+def write_update_json(sitter: Path, entry: dict | None) -> None:
+    """The one shipped-version entry ticket 0727 requires, plus 0764's optional pair.
+
+    `entry` is the whole `updates[0]` object for the working tree's own version
+    -- callers pass `tag`/`update_link` only when the arm being built needs
+    them, which is what keeps the "neither present" fixture identical to what
+    ticket 0727 actually ships today.
+    """
+    (sitter / "update.json").write_text(
+        json.dumps({"addons": {ADDON_ID: {"updates": [entry] if entry else []}}}, indent=2)
+        + "\n", encoding="utf-8")
 
 
 @pytest.mark.integration
@@ -357,3 +372,128 @@ def test_guard_reports_not_run_on_a_shallow_clone(tmp_path):
     result = guard(linked)
     assert result.returncode != 0, result.stdout + result.stderr
     assert "NOT-RUN" in result.stdout + result.stderr, result.stdout + result.stderr
+
+
+# ---- ticket 0764: update.json's own release-entry agreement --------------
+#
+# None of the fixtures above write an `update.json` at all — `payload()` copies
+# only `DELIVERED` — and that must stay a clean pass: this guard has never
+# asserted the file's mere existence, and making absence a finding would redden
+# every reuse fixture above over a file none of them were ever asked to carry.
+# `test_guard_is_green_on_the_live_repository` already covers the real steady
+# state (an entry with neither `tag` nor `update_link`) against the live repo;
+# the arm below covers it under a controlled fixture instead of only the one
+# live copy.
+
+@pytest.mark.integration
+def test_guard_is_silent_before_a_release_exists(tmp_path):
+    """Ticket 0727's steady state — no tag, no link — must not need touching."""
+    root = tmp_path / "repo"
+    root.mkdir()
+    sitter = seed(root, "0.4.0")
+    write_update_json(sitter, {"version": "0.4.0", "applications": {
+        "zotero": {"strict_min_version": "10.0.1", "strict_max_version": "10.*"}}})
+    commit(root, "add the steady-state update.json")
+    assert guard(root).returncode == 0, "no release yet must not redden"
+
+
+@pytest.mark.integration
+def test_guard_reddens_on_an_unreadable_update_json(tmp_path):
+    root = tmp_path / "repo"
+    root.mkdir()
+    sitter = seed(root, "0.4.0")
+    (sitter / "update.json").write_text("{not json", encoding="utf-8")
+    commit(root, "a corrupt update.json")
+    result = guard(root)
+    assert result.returncode != 0, result.stdout + result.stderr
+
+
+@pytest.mark.integration
+def test_guard_reddens_when_update_json_names_no_entry_for_the_shipped_version(tmp_path):
+    root = tmp_path / "repo"
+    root.mkdir()
+    sitter = seed(root, "0.4.0")
+    write_update_json(sitter, {"version": "0.3.40"})  # still the previous release
+    commit(root, "bump the manifest, forget update.json")
+    result = guard(root)
+    assert result.returncode != 0, result.stdout + result.stderr
+
+
+@pytest.mark.integration
+def test_guard_reddens_when_update_json_lists_the_shipped_version_twice(tmp_path):
+    """Two entries claiming one version is exactly as much a collision as zero."""
+    root = tmp_path / "repo"
+    root.mkdir()
+    sitter = seed(root, "0.4.0")
+    (sitter / "update.json").write_text(json.dumps(
+        {"addons": {ADDON_ID: {"updates": [{"version": "0.4.0"}, {"version": "0.4.0"}]}}}),
+        encoding="utf-8")
+    commit(root, "update.json lists the shipped version twice")
+    result = guard(root)
+    assert result.returncode != 0, result.stdout + result.stderr
+
+
+@pytest.mark.integration
+def test_guard_reddens_on_a_half_filled_release_entry(tmp_path):
+    """A tag with nowhere to fetch it, or a link anchored to no commit — neither is the shape a shipped release takes."""
+    root = tmp_path / "repo"
+    root.mkdir()
+    sitter = seed(root, "0.4.0")
+    write_update_json(sitter, {"version": "0.4.0", "tag": "sitter-v0.4.0"})
+    commit(root, "a tag with nowhere to fetch it")
+    result = guard(root)
+    assert result.returncode != 0, result.stdout + result.stderr
+    assert "update_link" in result.stdout + result.stderr
+
+
+@pytest.mark.integration
+def test_guard_reddens_when_the_tag_ships_a_different_version(tmp_path):
+    """The tag is cut on ONE commit; update.json is edited on a LATER one.
+
+    That is the real ordering (tag first, then point update.json at it), and
+    it is exactly the window in which the tag can point at the wrong commit —
+    the link resolves to a real local file so this arm isolates the tag/version
+    mismatch alone rather than compounding it with an unreachable asset.
+    """
+    root = tmp_path / "repo"
+    root.mkdir()
+    sitter = seed(root, "0.3.40")
+    subprocess.run(["git", "tag", "sitter-v0.4.0"], cwd=root, check=True, capture_output=True)
+    set_version(sitter, "0.4.0")
+    write_update_json(sitter, {"version": "0.4.0", "tag": "sitter-v0.4.0",
+                                "update_link": f"file://{sitter / 'manifest.json'}"})
+    commit(root, "bump to 0.4.0; the tag still names the previous commit")
+    result = guard(root)
+    assert result.returncode != 0, result.stdout + result.stderr
+    assert "0.3.40" in result.stdout + result.stderr
+
+
+@pytest.mark.integration
+def test_guard_reddens_when_the_release_link_does_not_resolve(tmp_path):
+    """The ticket's own red step: a release entry naming an asset nobody built."""
+    root = tmp_path / "repo"
+    root.mkdir()
+    sitter = seed(root, "0.4.0")
+    subprocess.run(["git", "tag", "sitter-v0.4.0"], cwd=root, check=True, capture_output=True)
+    write_update_json(sitter, {"version": "0.4.0", "tag": "sitter-v0.4.0",
+                                "update_link": f"file://{tmp_path / 'no-such-asset.xpi'}"})
+    commit(root, "a release entry pointing at an asset that was never built")
+    result = guard(root)
+    assert result.returncode != 0, result.stdout + result.stderr
+    assert "update_link" in result.stdout + result.stderr
+
+
+@pytest.mark.integration
+def test_guard_is_green_when_tag_and_link_both_agree(tmp_path):
+    """The ticket's own green step: point the link at the real asset and it clears."""
+    root = tmp_path / "repo"
+    root.mkdir()
+    sitter = seed(root, "0.4.0")
+    asset = tmp_path / "sdt-pack-sitter-0.4.0.xpi"
+    asset.write_bytes(b"a stand-in for the real built XPI")
+    subprocess.run(["git", "tag", "sitter-v0.4.0"], cwd=root, check=True, capture_output=True)
+    write_update_json(sitter, {"version": "0.4.0", "tag": "sitter-v0.4.0",
+                                "update_link": f"file://{asset}"})
+    commit(root, "a fully agreeing release entry")
+    result = guard(root)
+    assert result.returncode == 0, result.stdout + result.stderr
