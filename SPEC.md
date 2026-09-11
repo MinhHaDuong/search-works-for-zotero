@@ -748,7 +748,12 @@ The index stores derived data only, in a chain of three links:
 1. extracted text derives from (attachment file, extractor), where the
    extractor is one of two identities: Zotero's flat extraction, or its
    structured-text pack, which names its own processor version and source
-   hash in its metadata (§5.2.4);
+   hash in its metadata (§5.2.4). For a pack the key takes the pack version
+   and the schema version too, at full depth and minor included: the host
+   validates the schema *major* only, so a minor bump changes the shape
+   written while leaving every stored pack valid and saying nothing, and a
+   key that cannot see it lets two forms answer out of one cache (ruled
+   2026-09-11, ticket 0765);
 2. chunks derive from (extracted text *or* item metadata, chunker identity
    and geometry), where the heuristic segmenter's identity folds into the
    chunker key, per the boundary ruling (§3's third foundational rule);
@@ -1643,8 +1648,8 @@ version the shim knows, carrying an identity it can key on, is the source:
 its blocks are the text, excluded flows (running heads, page numbers)
 dropped, joined so a passage's extent maps back to its blocks; its block
 types and page anchors go to the segmenter as the first structure signal; the
-source hash and processor version it reports are the C1 key, so a processor
-bump is a visible staleness event. Where the response also carries chunks,
+source hash, processor version and full schema version it reports are the C1
+key, so a bump in any of them is a visible staleness event. Where the response also carries chunks,
 the chunker identity and geometry it names feed the chunk key: a chunker
 outside this tree that moves a boundary MUST arrive as a key bump and not as
 drift, and a response that serves chunks without naming its chunker is a
