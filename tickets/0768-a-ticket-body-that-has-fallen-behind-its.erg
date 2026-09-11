@@ -1,0 +1,76 @@
+%erg 0.1
+Title: A ticket body that has fallen behind its own log
+Created: 2026-09-11
+Author: claude
+
+--- log ---
+2026-09-11T16:07Z claude created
+
+--- body ---
+## Context
+
+Filed from the roar sweep after PR #524, which corrected ticket 0727. The
+defect there was not in the work: it was that 0727's **body** still asserted a
+mechanism its **log** had refuted five days earlier, and still carried an
+Action that a control had shown to be impossible to run. A reader who trusted
+the body would re-run refuted work.
+
+That is exactly what happened, to this session, in front of the author. I read
+0727's body, recommended running its Action 1 as the cheap way to unblock the
+sitter release, and was wrong twice over: `update_url` is REQUIRED (the build
+Action 1 asks for is refused at install, control run 2026-09-06), and the
+mechanism Action 1 isolates was refuted the same evening.
+
+An `.erg` file has an append-only log and a mutable body. The log is therefore
+always the newer of the two, and nothing makes the body follow it. The longer
+and more valuable a ticket's investigation, the further apart they drift.
+
+## The sweep
+
+Heuristic over the 128 open tickets: log matches
+`REFUTED|NOT SUPPORTED BY|is wrong as stated|superseded|does not hold`, while
+the body matches none of `refuted|superseded|void|read the log|corrected|no
+longer`. Four candidates: **0025, 0491, 0606, 0722**.
+
+Positive control: 0727 matches the log half and, since #524, also the body half,
+so it correctly drops out of the list. The sweep is not blind.
+
+These four are **candidates, not confirmed defects**. The words can appear in a
+log for reasons unrelated to that ticket's own claims, so each needs reading
+before anything is changed. 0606 is worth reading first: it is `needs-human`,
+it now blocks 0767, and a stale body there misdirects a decision waiting on the
+author.
+
+## Actions
+
+1. Read each of 0025, 0491, 0606, 0722 and decide, per ticket, whether the body
+   contradicts its log. Correct only those that do.
+2. Where one does, use 0727's shape rather than inventing another: a short
+   section ahead of the filed text naming the supersessions, and refuted
+   actions marked void and left unstruck. Deleting a refuted arm is how it gets
+   proposed again.
+3. Decide whether a standing check is worth its cost. A candidate shape: an
+   adherence test carrying the sweep above, failing when an open ticket's log
+   records a refutation and its body carries no marker. Weigh it against
+   `rules/workflow.md`'s guard budget — a guard whose false-positive rate is
+   high is a tax on every future ticket, and the heuristic above is textual, so
+   it will mis-hit.
+
+## Test
+
+If step 3 produces a guard, its red step is 0727 **as it stood before #524** —
+a real body that really had fallen behind, available at `origin/main~1`. A
+guard that has never failed against a known-bad fixture is not a check.
+
+## Invariants
+
+- The log stays append-only. Corrections go in the body, or as a new log entry,
+  never by editing a past one.
+- Do not mass-edit the four candidates on the strength of the grep. The sweep
+  ranks reading order; it does not decide.
+
+## Exit criteria
+
+Each of the four candidates has been read and either corrected or recorded as a
+false hit, and the standing-guard question of Action 3 is answered either way —
+built, or declined with its reason.
