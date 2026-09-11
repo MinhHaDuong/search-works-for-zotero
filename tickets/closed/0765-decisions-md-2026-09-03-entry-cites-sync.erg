@@ -3,10 +3,14 @@ Title: DECISIONS.md 2026-09-03 entry cites SYNC.md's superseded silently-in-back
 Created: 2026-09-11
 Author: claude
 Label: needs-human
+Closed: correction entry drafted and appended to DECISIONS.md awaiting ratification; ratification is tracked by the ledger, not by this ticket
 
 --- log ---
 2026-09-11T14:47Z claude created
 
+2026-09-11T15:11Z claude note author's ruling: this ticket was drafting work handed to him that should have been done here. The ledger accepts entries marked (awaiting ratification) — drafting the correction was the agent's job, ratifying it is his. Body's framing above stands as the historical record of that misjudgment. Work done: DECISIONS.md entry appended (2026-09-11, awaiting ratification), SYNC.md row corrected a second time (the major/minor split its first correction missed), verification/probes/sdt_schema_census.py added
+2026-09-11T15:11Z claude note measurements behind the entry, all doudou 2026-09-11: metadata.json schema 1.1.0->1.2.0, pdf 3->14, epub 1->2, snapshot 1->1, build 20260817151751->20260909184950; 13709 packs on disk, 12774 at schema 1.1.0 and 935 at 1.2.0; rewrites 15:56:27-16:38:03 then stopped; outline shape level->source/target with zero key crossing over 400 packs per bucket. Re-derive with verification/probes/sdt_schema_census.py census|outline
+2026-09-11T15:11Z sim closed — correction entry drafted and appended to DECISIONS.md awaiting ratification; ratification is tracked by the ledger, not by this ticket
 --- body ---
 ## Context
 
