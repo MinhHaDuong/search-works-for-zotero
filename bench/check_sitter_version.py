@@ -16,6 +16,19 @@ whole history:
    hashed together. Change one byte of `bootstrap.js` without bumping and this
    fires; bump and it clears.
 
+2. **Release agreement, once a release exists (ticket 0764).** `update.json`
+   ships exactly one entry for the working tree's version. Before a tag is cut
+   that entry carries neither `tag` nor `update_link` — the steady state
+   ticket 0727 put in place, and this guard is silent on it, same as before
+   this ticket. Once a release IS cut, the entry gains both, and from then on
+   they must agree with each other and with reality: `tag` must resolve to a
+   revision whose OWN `manifest.json` carries this same version, and
+   `update_link` must resolve to something. A HALF-FILLED entry — one key
+   present, not the other — is always a finding: a release that names a tag
+   but not where to fetch it, or a link with nothing anchoring which commit it
+   came from, is not the two-key state this repository ships once a release
+   exists, it is one someone left mid-edit.
+
 THE NO-REGRESSION CHECK WAS REMOVED 2026-09-06 (author's ruling, this ticket's
 DECISIONS.md entry): the sitter has never been released — no auto-update
 channel, no user-facing install outside the author's own hand-delivered
@@ -86,6 +99,8 @@ import logging
 import os
 import subprocess
 import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 from build_sdt_sitter import DELIVERED, SOURCE
@@ -173,6 +188,92 @@ def version_of(read) -> str | None:
     return value if isinstance(value, str) else None
 
 
+def addon_id_of(read) -> str | None:
+    """`applications.zotero.id`, read rather than restated, so one place names it."""
+    manifest = read("manifest.json")
+    if manifest is None:
+        return None
+    try:
+        return json.loads(manifest.decode("utf-8"))["applications"]["zotero"]["id"]
+    except (ValueError, UnicodeDecodeError, KeyError, TypeError):
+        return None
+
+
+def update_entry(update_json: dict, addon_id: str, version: str) -> dict | None:
+    """The `update.json` entry for `version`, or None if it names no such entry
+    exactly once. Two entries claiming the same shipped version is exactly as
+    much a collision as zero: either way there is no single answer to "what
+    does update.json say about this version".
+    """
+    updates = update_json.get("addons", {}).get(addon_id, {}).get("updates", [])
+    matches = [entry for entry in updates
+              if isinstance(entry, dict) and entry.get("version") == version]
+    return matches[0] if len(matches) == 1 else None
+
+
+def asset_exists(url: str, timeout: float = 10.0) -> bool:
+    """Whether `url` resolves to something, without downloading it when the scheme allows a HEAD.
+
+    A `file://` URL — what this guard's own tests use, to check the logic
+    without a live network dependency — has no HEAD verb and raises
+    `URLError` for one, so a plain open is the fallback; it is what both a
+    real GitHub release asset and a local test fixture answer. Any failure —
+    a 404, a refused connection, an unresolvable host, a missing file — reads
+    as "does not exist"; nothing here needs to distinguish why.
+    """
+    try:
+        with urllib.request.urlopen(urllib.request.Request(url, method="HEAD"),
+                                    timeout=timeout):
+            return True
+    except (urllib.error.URLError, ValueError):
+        pass
+    try:
+        with urllib.request.urlopen(url, timeout=timeout):
+            return True
+    except (urllib.error.URLError, ValueError, OSError):
+        return False
+
+
+def check_release(root: Path, version: str, addon_id: str) -> list[str]:
+    """`update.json`'s own release-entry agreement — see the module docstring's item 2.
+
+    Silent when `update.json` is absent: that is a different guard's concern
+    (this one has never asserted the file's mere existence, before or after
+    this ticket), and every payload-reuse fixture in this repository's test
+    suite is a bare `manifest.json`/`bootstrap.js`/`scheduler.js` triple with
+    no `update.json` beside it — making absence a finding here would redden
+    every one of them over a file this function was never asked to require.
+    """
+    path = root / SITTER / "update.json"
+    if not path.is_file():
+        return []
+    try:
+        update_json = json.loads(path.read_text(encoding="utf-8"))
+    except (ValueError, UnicodeDecodeError, OSError) as error:
+        return [f"{path} is present but unreadable as JSON: {error}"]
+    entry = update_entry(update_json, addon_id, version)
+    if entry is None:
+        return [f"{path} names no single update entry for version {version} under {addon_id} "
+                "(zero, or more than one)"]
+    tag, link = entry.get("tag"), entry.get("update_link")
+    if tag is None and link is None:
+        return []  # the pre-release steady state ticket 0727 put in place
+    if tag is None or link is None:
+        missing = "tag" if link is not None else "update_link"
+        return [f"{path}'s {version} entry carries {'update_link' if link else 'tag'} but no "
+                f"{missing} — a release entry needs both or neither"]
+    findings = []
+    tagged_version = version_of(commit_reader(root, tag))
+    if tagged_version != version:
+        findings.append(f"{path}'s tag {tag!r} " +
+                         (f"ships manifest version {tagged_version!r}, not {version!r} as "
+                          "update.json claims" if tagged_version is not None
+                          else "does not resolve, or carries no readable manifest.json"))
+    if not asset_exists(link):
+        findings.append(f"{path}'s update_link {link!r} does not resolve to anything")
+    return findings
+
+
 def git(root: Path, *arguments: str) -> subprocess.CompletedProcess:
     environment = {name: value for name, value in os.environ.items()
                    if name not in REDIRECTING}
@@ -233,7 +334,10 @@ def run(root: Path) -> tuple[list[str], str, int]:
                 "", 0)
     current = parse(current_version)
     current_payload = payload(worktree_reader(root))
-    findings, read = [], 0
+    addon_id = addon_id_of(worktree_reader(root))
+    findings = [f"{root / SITTER}/manifest.json carries no readable applications.zotero.id"] \
+        if addon_id is None else check_release(root, current_version, addon_id)
+    read = 0
     for sha in history(root):
         reader = commit_reader(root, sha)
         was = version_of(reader)
