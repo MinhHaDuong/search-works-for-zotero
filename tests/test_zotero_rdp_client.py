@@ -25,6 +25,7 @@ import socket
 import sys
 import threading
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
@@ -103,7 +104,14 @@ def _hello(sock, **fields):
     send_packet(sock, {"from": "root", "applicationType": "zotero", **fields})
 
 
-def _happy_path_handle(sock):
+def _handshake(sock) -> bytearray:
+    """The hello/getProcess/getTarget prelude every eval scenario shares.
+
+    Returns the read buffer, since `recv_packet` carries bytes that arrived
+    past the end of one packet across calls -- a scenario that started its
+    own empty buffer afterwards could drop a request the client had already
+    pipelined.
+    """
     _hello(sock)
     buf = bytearray()
 
@@ -117,7 +125,26 @@ def _happy_path_handle(sock):
         "from": "process0",
         "process": {"actor": "target0", "consoleActor": "console0"},
     })
+    return buf
 
+
+@contextmanager
+def _client_against(handle, timeout: float = 5):
+    """A connected client against a one-shot mock running `handle`, with both
+    ends closed on the way out whatever the test did."""
+    server = MockRDPServer(handle)
+    try:
+        client = ZoteroRDPClient.connect("127.0.0.1", server.port, timeout=timeout)
+        try:
+            yield client
+        finally:
+            client.close()
+    finally:
+        server.close()
+
+
+def _happy_path_handle(sock):
+    buf = _handshake(sock)
     packet, buf = recv_packet(sock, buf)
     assert packet["to"] == "console0" and packet["type"] == "evaluateJSAsync"
     assert packet["text"] == "1+1"
@@ -133,15 +160,8 @@ def _happy_path_handle(sock):
 
 
 def test_attach_and_eval_happy_path():
-    server = MockRDPServer(_happy_path_handle)
-    try:
-        client = ZoteroRDPClient.connect("127.0.0.1", server.port, timeout=5)
-        try:
-            assert client.eval_js("1+1", timeout=5) == 2
-        finally:
-            client.close()
-    finally:
-        server.close()
+    with _client_against(_happy_path_handle) as client:
+        assert client.eval_js("1+1", timeout=5) == 2
 
 
 def test_eval_returns_result_not_ack():
@@ -149,29 +169,14 @@ def test_eval_returns_result_not_ack():
     return the `evaluationResult` event's `result` (2), not the immediate
     `{resultID: "1-0"}` acknowledgement `evaluateJSAsync` replies with
     first."""
-    server = MockRDPServer(_happy_path_handle)
-    try:
-        client = ZoteroRDPClient.connect("127.0.0.1", server.port, timeout=5)
-        try:
-            result = client.eval_js("1+1", timeout=5)
-            assert result != {"resultID": "1-0"}
-            assert result == 2
-        finally:
-            client.close()
-    finally:
-        server.close()
+    with _client_against(_happy_path_handle) as client:
+        result = client.eval_js("1+1", timeout=5)
+        assert result != {"resultID": "1-0"}
+        assert result == 2
 
 
 def _exception_handle(sock):
-    _hello(sock)
-    buf = bytearray()
-    packet, buf = recv_packet(sock, buf)
-    send_packet(sock, {"from": "root", "processDescriptor": {"actor": "process0"}})
-    packet, buf = recv_packet(sock, buf)
-    send_packet(sock, {
-        "from": "process0",
-        "process": {"actor": "target0", "consoleActor": "console0"},
-    })
+    buf = _handshake(sock)
     packet, buf = recv_packet(sock, buf)
     send_packet(sock, {"from": "console0", "resultID": "1-0"})
     send_packet(sock, {
@@ -181,16 +186,9 @@ def _exception_handle(sock):
 
 
 def test_eval_raises_on_a_javascript_exception():
-    server = MockRDPServer(_exception_handle)
-    try:
-        client = ZoteroRDPClient.connect("127.0.0.1", server.port, timeout=5)
-        try:
-            with pytest.raises(RDPEvalError, match="boom"):
-                client.eval_js("throw new Error('boom')", timeout=5)
-        finally:
-            client.close()
-    finally:
-        server.close()
+    with _client_against(_exception_handle) as client:
+        with pytest.raises(RDPEvalError, match="boom"):
+            client.eval_js("throw new Error('boom')", timeout=5)
 
 
 def _rejected_await_handle(sock):
@@ -198,15 +196,7 @@ def _rejected_await_handle(sock):
     `topLevelAwaitRejected: true` on a rejected awaited promise -- no
     `hasException`, no message, no grip (`webconsole.js`). A client that
     checks `hasException` alone treats this as a silent `None` success."""
-    _hello(sock)
-    buf = bytearray()
-    packet, buf = recv_packet(sock, buf)
-    send_packet(sock, {"from": "root", "processDescriptor": {"actor": "process0"}})
-    packet, buf = recv_packet(sock, buf)
-    send_packet(sock, {
-        "from": "process0",
-        "process": {"actor": "target0", "consoleActor": "console0"},
-    })
+    buf = _handshake(sock)
     packet, buf = recv_packet(sock, buf)
     send_packet(sock, {"from": "console0", "resultID": "1-0"})
     send_packet(sock, {
@@ -216,18 +206,11 @@ def _rejected_await_handle(sock):
 
 
 def test_eval_raises_rather_than_returning_none_on_a_rejected_promise():
-    server = MockRDPServer(_rejected_await_handle)
-    try:
-        client = ZoteroRDPClient.connect("127.0.0.1", server.port, timeout=5)
-        try:
-            with pytest.raises(RDPEvalError):
-                client.eval_js(
-                    "(async function(){ throw new Error('x'); })()", timeout=5
-                )
-        finally:
-            client.close()
-    finally:
-        server.close()
+    with _client_against(_rejected_await_handle) as client:
+        with pytest.raises(RDPEvalError):
+            client.eval_js(
+                "(async function(){ throw new Error('x'); })()", timeout=5
+            )
 
 
 def _forbidden_handle(sock):
@@ -243,16 +226,9 @@ def _forbidden_handle(sock):
 
 
 def test_attach_surfaces_the_forbidden_error_by_name():
-    server = MockRDPServer(_forbidden_handle)
-    try:
-        client = ZoteroRDPClient.connect("127.0.0.1", server.port, timeout=5)
-        try:
-            with pytest.raises(RDPError, match="forbidden"):
-                client.attach_chrome_target(timeout=5)
-        finally:
-            client.close()
-    finally:
-        server.close()
+    with _client_against(_forbidden_handle) as client:
+        with pytest.raises(RDPError, match="forbidden"):
+            client.attach_chrome_target(timeout=5)
 
 
 def _drop_after_getprocess_handle(sock):
@@ -267,16 +243,9 @@ def test_dropped_connection_raises_connection_closed_not_timeout():
     """A closed socket and a slow server are different failures for a caller
     deciding whether to reconnect or wait longer -- distinguished here by
     exception type, not just by message text."""
-    server = MockRDPServer(_drop_after_getprocess_handle)
-    try:
-        client = ZoteroRDPClient.connect("127.0.0.1", server.port, timeout=5)
-        try:
-            with pytest.raises(RDPConnectionClosed):
-                client.attach_chrome_target(timeout=5)
-        finally:
-            client.close()
-    finally:
-        server.close()
+    with _client_against(_drop_after_getprocess_handle) as client:
+        with pytest.raises(RDPConnectionClosed):
+            client.attach_chrome_target(timeout=5)
 
 
 def _never_respond_handle(sock, stop_event):
@@ -289,19 +258,106 @@ def _never_respond_handle(sock, stop_event):
 @pytest.mark.integration
 def test_request_times_out_rather_than_blocking_forever():
     stop_event = threading.Event()
-    server = MockRDPServer(lambda sock: _never_respond_handle(sock, stop_event))
-    try:
-        client = ZoteroRDPClient.connect("127.0.0.1", server.port, timeout=5)
+    with _client_against(
+        lambda sock: _never_respond_handle(sock, stop_event)
+    ) as client:
         try:
             started = time.monotonic()
             with pytest.raises(RDPTimeout):
                 client.attach_chrome_target(timeout=0.3)
             assert time.monotonic() - started < 5, "timeout did not bound the wait"
         finally:
-            client.close()
-    finally:
-        stop_event.set()
-        server.close()
+            # Release the handler before the context manager joins its thread.
+            stop_event.set()
+
+
+# --- reply/event confusion on a reused connection ---------------------------
+
+def _chatty_console_handle(sock):
+    """The console actor emits UNSOLICITED events whenever it likes, including
+    between a request and that request's own reply: a `console.log` anywhere
+    in the Zotero process produces a `consoleAPICall` from the very actor
+    `evaluateJSAsync` was sent to. A client that takes the next packet whose
+    `from` matches as its reply reads that event as the ack."""
+    buf = _handshake(sock)
+    packet, buf = recv_packet(sock, buf)
+    assert packet["type"] == "evaluateJSAsync"
+    send_packet(sock, {
+        "from": "console0", "type": "consoleAPICall",
+        "message": {"level": "log", "arguments": ["something else entirely"]},
+    })
+    send_packet(sock, {"from": "console0", "resultID": "1-0"})
+    send_packet(sock, {
+        "from": "console0", "type": "evaluationResult", "resultID": "1-0",
+        "hasException": False, "result": 2,
+    })
+
+
+def test_an_unsolicited_event_is_not_mistaken_for_the_reply():
+    """Direct responses carry no `type` key; events do (this module's and the
+    client's docstrings both say so, from `Response.js` and `webconsole.js`).
+    Matching a reply on `from` alone makes any same-actor event answer the
+    request that happens to be in flight."""
+    with _client_against(_chatty_console_handle) as client:
+        assert client.eval_js("1+1", timeout=5) == 2
+
+
+def _stale_after_timeout_handle(sock, released):
+    """Call 1 is answered too late: the client has already given up
+    (`RDPTimeout`) when call 1's ack and its `evaluationResult` finally land
+    on the wire, unread, because a timeout does not close the connection --
+    this client is built to be REUSED across an install/replace/disable/enable
+    cycle. Call 2 is then answered correctly and promptly.
+
+    A client that trusts the next same-actor packet reads call 1's stale ack
+    as call 2's, matches call 1's stale `evaluationResult` on the stale
+    `resultID`, and returns 111 to a caller that asked for 222 -- with no
+    exception raised anywhere.
+    """
+    buf = _handshake(sock)
+    packet, buf = recv_packet(sock, buf)
+    assert packet["type"] == "evaluateJSAsync" and packet["text"] == "111"
+    released.wait(10)
+    send_packet(sock, {"from": "console0", "resultID": "1-0"})
+    send_packet(sock, {
+        "from": "console0", "type": "evaluationResult", "resultID": "1-0",
+        "hasException": False, "result": 111,
+    })
+    packet, buf = recv_packet(sock, buf)
+    if packet is None:          # the fix closed the connection; nothing to answer
+        return
+    assert packet["type"] == "evaluateJSAsync" and packet["text"] == "222"
+    send_packet(sock, {"from": "console0", "resultID": "2-0"})
+    send_packet(sock, {
+        "from": "console0", "type": "evaluationResult", "resultID": "2-0",
+        "hasException": False, "result": 222,
+    })
+
+
+def test_a_timed_out_call_does_not_hand_its_stale_result_to_the_next_one():
+    """The blocking defect this round fixes. A timeout leaves the wire state
+    for that actor ambiguous -- an unknown number of replies for the abandoned
+    request may still be in flight, and the protocol carries no
+    request-correlation id to tell them apart from the next request's own.
+    So the connection is poisoned: the next call must raise, not silently
+    answer with the abandoned call's result."""
+    released = threading.Event()
+    with _client_against(
+        lambda sock: _stale_after_timeout_handle(sock, released)
+    ) as client:
+        client.attach_chrome_target(timeout=5)
+        with pytest.raises(RDPTimeout):
+            client.eval_js("111", timeout=0.3)
+        released.set()
+        try:
+            result = client.eval_js("222", timeout=5)
+        except RDPConnectionClosed:
+            pass
+        else:
+            pytest.fail(
+                f"call 2 returned {result!r} after call 1 timed out; "
+                "a stale reply was accepted as this call's own"
+            )
 
 
 def _wrong_hello_handle(sock):

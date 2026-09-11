@@ -29,6 +29,28 @@ Zotero 10.0.2's own shipped source (`/opt/zotero7/omni.ja` and
   wrong in a way that looks right until the caller reads `resultID` as an
   answer.
 
+There is no request-correlation id anywhere in this protocol: a reply is
+matched to its request by the actor it came `from` and by arrival order,
+nothing else. Two consequences shape `RDPConnection`, and they are why a
+timeout here is fatal to the connection and not merely to the call:
+
+- A same-actor packet carrying a `type` key is an EVENT, never a direct
+  reply -- response templates do not set `type` (`Response.js`), event
+  packets always do (`webconsole.js`). The console actor emits
+  `consoleAPICall` for any `console.log` anywhere in the process, at any
+  moment, including between a request and its own reply, so `from` alone
+  does not identify a reply.
+- After a timeout, an unknown number of replies for the ABANDONED request
+  may still be in flight -- the server was never told the client stopped
+  listening -- and none of them is distinguishable from the next request's
+  reply. `RDPConnection` therefore poisons itself on any timeout: it closes
+  the socket and raises `RDPConnectionClosed` on any later use. The cost is
+  that a caller reusing one connection across an
+  install/replace/disable/enable cycle must reconnect after a timeout; the
+  alternative -- guessing how many stale packets to drain -- hands one
+  call's result to another call silently, with no exception anywhere, which
+  is how this was found (a call that evaluated `222` returned `111`).
+
 Nothing here calls `AddonsActor.installTemporaryAddon` or any add-on
 install/uninstall method. That actor's only two methods
 (`installTemporaryAddon`, `uninstallAddon`,
@@ -233,10 +255,10 @@ class RDPConnection:
     interleaved with (the server is free to deliver another actor's event
     between a request and its reply)."""
 
-    def __init__(self, transport: RDPTransport, hello: dict):
+    def __init__(self, transport: RDPTransport):
         self.transport = transport
-        self.hello = hello
         self._pending: list[dict] = []
+        self._poisoned: str | None = None
 
     @classmethod
     def connect(
@@ -253,18 +275,58 @@ class RDPConnection:
             raise RDPError(
                 f"greeting packet did not come from the root actor: {hello!r}"
             )
-        return cls(transport, hello)
+        return cls(transport)
 
     def close(self) -> None:
+        self.transport.close()
+
+    def _check_usable(self) -> None:
+        if self._poisoned is not None:
+            raise RDPConnectionClosed(self._poisoned)
+
+    def _poison(self, reason: str) -> None:
+        """Give up on this connection for good and close the socket.
+
+        Called on every timeout. Once a request is abandoned, an unknown
+        number of replies for it may still be in flight -- the server does
+        not know the client stopped listening -- and the protocol carries no
+        request-correlation id, so nothing in a later packet distinguishes
+        "the reply to the request you are waiting for" from "the reply to
+        the one you gave up on". Draining a fixed number of stale packets
+        would be a guess: a timed-out `eval_js` can leave behind an ack, an
+        `evaluationResult`, both, or neither. Closing is the only answer that
+        cannot silently misattribute one call's result to another; the cost
+        is that a caller reusing one connection across an
+        install/replace/disable/enable cycle must reconnect after a timeout.
+        """
+        self._poisoned = (
+            f"connection abandoned after {reason}; replies to the abandoned "
+            "request may still be in flight and the protocol has no "
+            "request id to tell them from the next request's own -- "
+            "reconnect rather than reuse this connection"
+        )
         self.transport.close()
 
     def request(self, to: str, type_: str, timeout: float = 10.0, **fields) -> dict:
         """Send `{to, type, **fields}` and return actor `to`'s direct reply.
 
+        A direct reply is recognised by TWO things, not one: it comes `from`
+        the actor addressed AND it carries no `type` key. The second half
+        matters because the same actor also emits unsolicited events at any
+        moment -- a `console.log` anywhere in Zotero makes the console actor
+        send `consoleAPICall` -- and those, per `Response.js` vs. the event
+        packets in `webconsole.js`, are exactly the same-actor packets that
+        DO carry `type`. Matching on `from` alone lets any such event answer
+        whichever request happens to be in flight.
+
         Any packet read meanwhile that is not that direct reply is queued
         for `wait_for_event` rather than discarded -- it may be the very
         event a subsequent call is waiting for.
+
+        Raises `RDPConnectionClosed` immediately if an earlier call on this
+        connection timed out (see `_poison`).
         """
+        self._check_usable()
         packet = {"to": to, "type": type_}
         packet.update(fields)
         self.transport.send(packet)
@@ -272,11 +334,16 @@ class RDPConnection:
         while True:
             remaining = deadline - time.monotonic()
             if remaining <= 0:
+                self._poison(f"{type_!r} to {to!r} went unanswered for {timeout}s")
                 raise RDPTimeout(
                     f"no response from {to!r} to {type_!r} within {timeout}s"
                 )
-            reply = self.transport.recv(timeout=remaining)
-            if reply.get("from") != to:
+            try:
+                reply = self.transport.recv(timeout=remaining)
+            except RDPTimeout:
+                self._poison(f"{type_!r} to {to!r} went unanswered for {timeout}s")
+                raise
+            if reply.get("from") != to or "type" in reply:
                 self._pending.append(reply)
                 continue
             if "error" in reply:
@@ -293,8 +360,10 @@ class RDPConnection:
 
         Checks packets already queued by `request` first, since a fast
         server can deliver the event before the caller starts waiting for
-        it.
+        it. Raises `RDPConnectionClosed` immediately if an earlier call on
+        this connection timed out (see `_poison`).
         """
+        self._check_usable()
 
         def matches(packet: dict) -> bool:
             return (
@@ -311,10 +380,19 @@ class RDPConnection:
         while True:
             remaining = deadline - time.monotonic()
             if remaining <= 0:
+                self._poison(
+                    f"no {event_type!r} from {actor!r} within {timeout}s"
+                )
                 raise RDPTimeout(
                     f"no {event_type!r} from {actor!r} within {timeout}s"
                 )
-            packet = self.transport.recv(timeout=remaining)
+            try:
+                packet = self.transport.recv(timeout=remaining)
+            except RDPTimeout:
+                self._poison(
+                    f"no {event_type!r} from {actor!r} within {timeout}s"
+                )
+                raise
             if matches(packet):
                 return packet
             self._pending.append(packet)
@@ -428,7 +506,16 @@ def _main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--host", default="localhost")
     parser.add_argument("--port", type=int, default=6000)
-    parser.add_argument("--timeout", type=float, default=10.0)
+    parser.add_argument(
+        "--timeout",
+        type=float,
+        default=10.0,
+        help="seconds to wait for each reply and for the evaluation result. "
+        "A timeout is terminal for the connection, not just for the call: "
+        "the socket is closed and a reconnect is required, because replies "
+        "to the abandoned request may still be in flight and this protocol "
+        "has no request id to tell them apart from the next request's own.",
+    )
     parser.add_argument(
         "code",
         help="JavaScript to eval in the attached chrome target "
