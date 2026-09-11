@@ -127,6 +127,28 @@ Raw log: `bench/results/sdt-sitter-2026-09-11/run-watch.txt`.
 (Trimmed to one state line per cycle for readability; the install/disable/enable
 action lines between each are in the committed raw log.)
 
+**A gap this arm did NOT close, found reading it back rather than while
+running it: the positive control the ticket's Test section requires
+("provoke a transition deliberately... and watch the watcher emit a line")
+was never satisfied for the DISABLED state specifically.** `run-watch.txt`
+contains zero `active=False` lines, despite 17 deliberate `disable()` calls.
+Cause: `run_cycle` calls `disable()` then `enable()` back to back with no
+pause, and `extensions.json`'s own on-disk write is debounced (confirmed
+separately, before this run, in ticket 0766: `AddonManager` already reports
+`isActive: true` immediately after `enable()` resolves, while the on-disk
+`active` field still read `false` moments later) — a disable this brief may
+simply never reach disk before the enable overwrites it. This does NOT weaken
+the disappearance claim itself: what the watcher polls to detect a
+disappearance is `present` (is the id in `extensions.json`'s `addons` list at
+all) and the `.xpi`'s bare filesystem existence, neither of which is
+debounced, and one direction of that exact transition (absent -> present) was
+watched working correctly at cycle 1's install. It DOES mean this arm cannot
+claim to have shown the watcher can see a transient disabled state, only that
+it can see appearance and (by the same mechanism) would see disappearance.
+Whoever runs the fuller volume arm should add a deliberate pause between
+disable and enable (long enough to read a settled `active=False`) as its own
+positive control before trusting the rest of the log.
+
 **What remains.** Re-run this same driver for the full ~50-cycle/~2-hour
 budget when there is time to let it finish or to watch it live. If it
 reproduces at any point, that settles the volume candidate as real and the
