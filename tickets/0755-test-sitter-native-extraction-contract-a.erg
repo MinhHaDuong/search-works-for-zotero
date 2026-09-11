@@ -7,6 +7,7 @@ Author: Codex
 2026-09-08T21:29Z Codex created
 
 2026-09-08T21:30Z Codex note Filed native-boundary parity tests; reuse 0740 and 0752, require real-service evidence for inherited native guarantees.
+2026-09-11T14:40Z claude note added exit criterion for the stale-processor ensure()-blocks case per 0754's 2026-09-11 finding: sitter census pays a recurring blocking regeneration on every upstream processor-version bump, not a one-time cost. Existing classification-correctness bullet doesn't exercise this path
 --- body ---
 ## Context
 
@@ -40,6 +41,20 @@ reconciliation. Reuse their tests and logs instead of reopening completed work.
 - [ ] Exercise incompatible schema/processor cases without weakening the
       sitter's conservative unsupported-pack policy. Report policy differences
       rather than treating native regeneration as permission to overwrite.
+- [ ] Assert that the sitter's own `ensure()` call sites block on a
+      stale-processor pack rather than returning early the way `getPack()`
+      does, per 6012's "should regenerate a stale-processor pack before
+      resolving ensure()". A synthetic processor-version bump in the census's
+      path, not only a missing/stale-source pack, must drive this test --
+      existing coverage of classification correctness does not exercise it.
+      Cite the observed cadence as the frequency this recurs at: reading
+      `document-worker/metadata.json` off the installed build showed
+      SDT_SCHEMA_VERSION 1.1.0 -> 1.2.0 and the PDF processor 3 -> 14 between
+      the 10.0 build (2026-08-17) and 10.0.2 (2026-09-11), three point
+      releases, with no changelog line from either upstream repo. This closes
+      RELEASE-NOTES.md's correction that eager preparation is a one-time cost
+      only between processor bumps, not a one-time cost overall (0754 log,
+      2026-09-11).
 - [ ] Run the production plugin against the real native service in a disposable
       marked profile with synthetic attachments. Record host version, source
       digests, fixtures and outcomes in bench/results/ and a report under

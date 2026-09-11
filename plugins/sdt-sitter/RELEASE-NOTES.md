@@ -111,6 +111,31 @@ machine overnight, instead of the moment someone first searches. What it costs
 is that the cost falls unconditionally, and in proportion to the library rather
 than to what is used.
 
+"Durable" needs a qualifier: durable only until the processor stamps in
+`resource://zotero/document-worker/metadata.json` change. Between the 10.0
+build read into SYNC.md (`SDT_SCHEMA_VERSION` 1.1.0, PDF processor 3,
+build `20260817151751`, 2026-08-17) and the 10.0.2 build installed
+2026-09-11 (build `20260909184950`), `SDT_SCHEMA_VERSION` moved to 1.2.0 and
+the PDF processor stamp moved from 3 to 14 — a delta of eleven across three
+point releases. Neither `zotero/document-worker` nor
+`zotero/structured-document-text` publishes release notes, so whether that
+delta was one jump or several is not knowable from here; what is knowable is
+that on this host three point releases were enough to move it.
+
+#6012's own suite pins what a processor-stale pack triggers. "Should
+regenerate a stale-processor pack before resolving `ensure()`"
+(`test/tests/sdtTest.js` at `19e7962`): unlike `getPack()`, which can hand
+back the stale pack immediately and regenerate in the background, `ensure()`
+blocks until the fresh pack exists. That is the call the sitter's census
+makes.
+
+"Work done early is never wrong, only unused" is therefore half the claim.
+Work done early can also be redone, on the sitter's own initiative, at a
+cadence set by an upstream repository that gives no warning of it. Each
+recurrence is a blocking, library-wide pass, not a background one. Eager
+preparation is a one-time cost only between processor bumps, and on this
+host three point releases already used up that interval once.
+
 An eager scheduler is tolerable only if it yields, so the admission policy is
 the substance of the experiment. The sitter submits at most one attachment at a
 time; only while Zotero's own worker is idle; only above 4 GiB available memory
