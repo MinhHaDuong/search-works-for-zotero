@@ -247,7 +247,7 @@ MUTANTS = [
      "  if (dialog._sdtAnnounced === undefined) dialog._sdtAnnounced = '';\n"),
     # No settle: a sweep boundary passing through a resource wait is spoken twice.
     ("M32 a state change is announced before it holds, so a flip that undoes itself is spoken",
-     "  if (now - dialog._sdtCandidateAt < SDT_ANNOUNCE_SETTLE_MS) return;\n",
+     "  if (now - dialog._sdtLeftAt < SDT_ANNOUNCE_SETTLE_MS) return;\n",
      ""),
     # The region fed the 10 Hz material: the defect that kept this item open.
     ("M33 the progress line reaches the live region",
@@ -257,6 +257,25 @@ MUTANTS = [
     ("M34 the status region loses its role",
      "    announcer.setAttribute('role', 'status');\n",
      ""),
+    # The form that shipped first and was reviewed out: timing the replacement's
+    # contiguity instead of the announced state's absence, so a machine
+    # alternating between two states restarts the clock on every flip and is
+    # never spoken at all.
+    ("M35 the settle times the replacement, not the absence, so an alternation is never announced",
+     "  if (dialog._sdtLeftAt === null || dialog._sdtLeftAt === undefined) {\n"
+     "    dialog._sdtLeftAt = now; return;\n"
+     "  }\n",
+     "  if (dialog._sdtLine !== line) {\n"
+     "    dialog._sdtLine = line; dialog._sdtLeftAt = now; return;\n"
+     "  }\n"),
+    # The settle expires and the region speaks the sentence it was already on:
+    # a live region that fires with nothing new to say.
+    ("M36 the announcement writes the state it is leaving, not the one it arrived at",
+     "  dialog._sdtAnnounced = line; dialog._sdtLeftAt = null;\n"
+     "  region.textContent = line;\n",
+     "  const leaving = dialog._sdtAnnounced;\n"
+     "  dialog._sdtAnnounced = line; dialog._sdtLeftAt = null;\n"
+     "  region.textContent = leaving;\n"),
 ]
 
 

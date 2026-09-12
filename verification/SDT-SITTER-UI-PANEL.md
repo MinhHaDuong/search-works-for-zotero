@@ -38,14 +38,18 @@ bars, system foreground/background colors and separate native fulltext stats.
   screen reader in fact speaks that name is a live-session reading no unit test
   takes.
 - Accessibility: announce meaningful state transitions through a small status
-  region, not all second-by-second text. Built in ticket 0686 (0.3.41): one
+  region, not all second-by-second text. Built in ticket 0686 (0.3.42): one
   visually hidden `role="status"` node, `aria-live="polite"`,
   `aria-atomic="true"`, written only when the switch line -- the window's one
-  sentence about the machine's state -- changes and holds for two seconds.
-  Opening the window announces nothing; progress, file names and estimates
-  never reach it. Three scenarios in `tests/sdt_sitter_bootstrap.mjs`, each
-  the others' positive control, and four mutants (M31-M34) in the bootstrap
-  mutation gate. Whether Orca in fact speaks it is ticket 0769's reading.
+  sentence about the machine's state -- has been gone for two seconds. Timing
+  the absence and not the replacement is what keeps a machine alternating
+  between two states from going unannounced altogether; the first form shipped
+  timed contiguity and was reviewed out. Opening the window announces nothing;
+  progress, file names and estimates never reach it. Five scenarios in
+  `tests/sdt_sitter_bootstrap.mjs` -- the speaking scenario is the positive
+  control for the two silence scenarios -- and six mutants (M31-M36) in the
+  bootstrap mutation gate. What no headless lane establishes: whether Orca in
+  fact speaks any of it, which is ticket 0769's reading.
 - Accessibility: verify keyboard access, initial focus, Escape/close and focus
   restoration. Current smoke uses programmatic command dispatch and cannot
   establish those behaviors. Follow-up.

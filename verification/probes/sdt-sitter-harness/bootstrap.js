@@ -110,7 +110,12 @@ async function run() {
     assert(layer2 && layer3, 'a disclosure layer is absent');
     assert(layer3.parentNode === layer2, 'diagnostics is not nested inside the details layer');
     assert(!layer2.open && !layer3.open, 'a disclosure layer opens expanded');
-    assert(layerDoc.body.firstElementChild.id === 'sdt-global-section' &&
+    // The switch row has been the first child since 0693's rendering moved it
+    // there; this read `firstElementChild === 'sdt-global-section'` and would
+    // have failed in a real window before reading anything it is here for.
+    // Order pinned headless by tests/sdt_sitter_dialog.mjs.
+    assert(layerDoc.body.firstElementChild.id === 'sdt-switch-row' &&
+      layerDoc.body.firstElementChild.nextElementSibling.id === 'sdt-global-section' &&
       layerDoc.body.lastElementChild.id === 'sdt-details',
       'technical detail does not sit below primary progress');
     const debugToggle = layerDoc.getElementById('sdt-debug');

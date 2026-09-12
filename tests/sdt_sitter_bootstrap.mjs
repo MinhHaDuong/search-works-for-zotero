@@ -550,15 +550,17 @@ await test('the status region is a polite, atomic live region that opens silent'
   assert.equal(region.getAttribute('role'), 'status');
   assert.equal(region.getAttribute('aria-live'), 'polite');
   assert.equal(region.getAttribute('aria-atomic'), 'true');
-  // Visually hidden, never `hidden`: a node out of the accessibility tree is mute.
-  assert.equal(region.hidden, undefined, 'the region was removed from the accessibility tree');
+  // Visually hidden, never `hidden`: a node out of the accessibility tree is
+  // mute. Asserted as falsy rather than `undefined`, which is this stub DOM's
+  // answer for an unset property and not a real one's (`false`).
+  assert(!region.hidden, 'the region was removed from the accessibility tree');
   assert.equal(region.getAttribute('hidden'), null, 'the region was removed from the accessibility tree');
   settle(harness, 5000);
   assert.equal(region.textContent, '', 'opening the window was announced as a transition');
   assert.equal(harness.records('announce').length, 0);
 });
 
-await test('10 Hz progress rewrites never reach the status region', async () => {
+await test('progress reaches the visible lines and never the status region, held past the settle or not', async () => {
   const { harness, doc, region, sitter } = await announcerFixture();
   sitter.state.phase = 'extracting';
   settle(harness, 3000);
@@ -570,7 +572,9 @@ await test('10 Hz progress rewrites never reach the status region', async () => 
   // Each value is HELD past the settle window, as a real extractor's sparse
   // progress callbacks hold it: a region fed the visible line would otherwise
   // be saved by the settle alone, and this test would prove nothing about
-  // which sentence reaches the region.
+  // which sentence reaches the region. The 10 Hz case is the easy half and is
+  // covered by construction -- anything changing faster than the settle is
+  // masked by it -- so the held case is the one worth a scenario.
   for (let n = 1; n <= 5; n++) {
     sitter.state.progress = n * 20; sitter.state.lastProgressAt = harness.clock.mono;
     settle(harness, 2500);
@@ -613,6 +617,59 @@ await test('a state change is announced once, after it holds, and a flip that un
   assert.equal(region.textContent, harness.context.describeSDTSwitchLine(sitter.state));
   assert.equal(sitter.state.phase, 'switched-off');
   assert.equal(harness.records('announce').length, 2);
+});
+
+await test('a machine alternating between two states is announced, not left on the sentence it abandoned', async () => {
+  const { harness, region, sitter } = await announcerFixture();
+  const opening = harness.context.describeSDTSwitchLine(sitter.state);
+  // The defect a contiguity timer has and an absence timer does not: neither
+  // phase below is the one the reader was told, and neither holds for the
+  // settle window on its own, so a timer restarted on every flip never expires
+  // and the region keeps a sentence that stopped being true 15 s ago.
+  for (let n = 0; n < 10; n++) {
+    sitter.state.phase = n % 2 ? 'extracting' : 'cpu-busy';
+    settle(harness, 1500);
+  }
+  assert.notEqual(region.textContent, '', 'a state the window left for 15 s was never announced');
+  assert.notEqual(region.textContent, opening, 'the region kept the sentence the window had abandoned');
+  assert.equal(region.textContent, harness.context.describeSDTSwitchLine(sitter.state));
+  // Once, not on every flip: the alternation returns to the announced state
+  // from then on, and a return inside the window is still silence.
+  const records = harness.records('announce');
+  assert.equal(records.length, 1, `an alternation was announced ${records.length} times`);
+  assert.equal(records[0].phase, 'extracting');
+});
+
+await test('a wall clock stepped backwards delays an announcement, and neither loses nor invents one', async () => {
+  // The third clock tier, where monotonic() ratchets the wall clock: every
+  // duration in this window freezes through a backwards step, the elapsed
+  // figure and the estimate included. The announcement is late by the step and
+  // no more -- the state is read when it is written, so what the reader hears
+  // is true when they hear it.
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  delete harness.context.ChromeUtils.now;
+  assert.equal(typeof harness.context.performance, 'undefined',
+    'the sandbox has a second monotonic source, so this arm proves nothing');
+  await harness.start();
+  harness.context.openDialog(harness.windows[0]);
+  await harness.turn();
+  const doc = harness.windows[0].dialogs[0].document;
+  const region = doc.getElementById('sdt-announcer');
+  const sitter = harness.context.sitter;
+
+  sitter.state.phase = 'cpu-busy';
+  harness.context.render();
+  harness.clock.wall -= 60 * 60 * 1000;
+  settle(harness, 10000);
+  assert.equal(region.textContent, '', 'the frozen ratchet expired a settle it cannot measure');
+  assert.equal(harness.records('announce').length, 0);
+
+  // The calendar catches up. Nothing was lost: the transition is still pending
+  // and is spoken once, in the words the window is showing now.
+  harness.clock.wall += 60 * 60 * 1000 + 3000;
+  harness.context.render();
+  assert.equal(region.textContent, harness.context.describeSDTSwitchLine(sitter.state));
+  assert.equal(harness.records('announce').length, 1);
 });
 
 await test('two windows and two startups leave one sitter, one launch prompt and two toolbars', async () => {

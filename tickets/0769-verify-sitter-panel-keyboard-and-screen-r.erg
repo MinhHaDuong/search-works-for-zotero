@@ -6,6 +6,7 @@ Author: claude
 --- log ---
 2026-09-11T20:10Z claude created
 2026-09-11T20:10Z claude note Split from 0686 per the author's ruling of 2026-09-11 (DECISIONS.md, option B): this item no longer gates the sitter's first tagged release (0764); it ships as a declared known limitation in RELEASE-NOTES.md instead.
+2026-09-12T06:06Z claude note Review round on the 0686 item (1) patch. Two things land here. (1) The body gained the Relevant files, Test and Verification sections the handoff template asks for -- this ticket is a cold handoff and was missing three of them. (2) verification/probes/sdt-sitter-harness/bootstrap.js asserted `body.firstElementChild.id === 'sdt-global-section'`, stale since 0693's rendering put the switch row first (tests/sdt_sitter_dialog.mjs pins the order); Action 1 would have failed on it in a real window before reading anything it is there for. Corrected in the same commit, headless-unverifiable by construction -- the probe runs only in a real window -- so the order it now asserts is the one the dialog test pins.
 
 --- body ---
 ## Context
@@ -27,6 +28,35 @@ does. Ruled out of 0764's release gate on 2026-09-11 — see DECISIONS.md.
    focus returns to the toolbar button. Against 0693's CURRENT layout.
 2. Screen reader, manual: one Orca pass on Linux confirming the toolbar's
    accessible name and the transition announcements of 0686 item (1).
+
+## Relevant files
+
+- `verification/probes/sdt-sitter-harness/bootstrap.js` — the assertions to run;
+  they exist and are unrun in a real window, which is this ticket's whole work
+- `bench/zotero_rdp_client.py` — ticket 0766's client, the gesture driver
+- `plugins/sdt-sitter/bootstrap.js` — `openDialog`, the focus order under test,
+  and `announceSDTTransition`, whose utterances Orca must be heard to speak
+- `tests/sdt_sitter_dialog.mjs` — the headless layout pin the probe must agree
+  with; check it before trusting a probe assertion about layer order
+- `verification/SDT-SITTER-UI-PANEL.md` — where the reading is recorded
+- `plugins/sdt-sitter/RELEASE-NOTES.md` — carries the known-limitation line this
+  ticket removes
+
+## Test
+
+Red step first, in a real window: run the harness probe unchanged and watch a
+deliberate break go red — comment out the `keydown` listener that closes on
+Escape, confirm the probe reports it, restore it. A probe that has never been
+seen red in a real window has not been shown to be running there at all, which
+is the failure mode this ticket exists to close (the stale layer-order anchor
+corrected on 2026-09-12 is the same trap, caught by reading rather than running).
+
+## Verification
+
+- [ ] The probe runs in a real Zotero window and reports pass/fail per assertion.
+- [ ] Each assertion has been seen red once, from a deliberate break, then green.
+- [ ] The Orca pass names the Zotero and Orca versions and the announcements
+      actually heard, quoted.
 
 ## Invariants
 

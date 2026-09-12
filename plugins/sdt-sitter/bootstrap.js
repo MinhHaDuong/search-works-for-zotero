@@ -61,12 +61,14 @@ var RECONCILIATION_INTERVAL_MS = 60 * 60 * 1000;
 // two short lines without looking up quickly, and comfortably shorter than the
 // 30 s floor above, so two toasts can never be on screen at once.
 var SWEEP_TOAST_MS = 8000;
-/* How long a new state must hold before the status region speaks it (ticket
-   0686 item 1). The scheduler can pass through a phase for one sweep boundary
-   -- `extracting` to `cpu-busy` and back -- and a reader told both halves of a
-   flip that undid itself has been told nothing. Two seconds is twenty render
-   ticks: long enough to absorb that, short enough that "Indexing is off" is
-   heard while the hand is still on the button that caused it. */
+/* How long the announced state must be GONE before the status region speaks
+   what replaced it (ticket 0686 item 1). The scheduler can pass through a phase
+   for one sweep boundary -- `extracting` to `cpu-busy` and back -- and a reader
+   told both halves of a flip that undid itself has been told nothing. Two
+   seconds is twenty render ticks: long enough to absorb that, short enough that
+   "Indexing is off" is heard while the hand is still on the button that caused
+   it. See `announceSDTTransition` for why this times the absence and not the
+   replacement's contiguity. */
 var SDT_ANNOUNCE_SETTLE_MS = 2000;
 var DEBUG_PREF = 'extensions.sdt-pack-sitter.debug';
 /* R22's one obvious way, ratified 2026-09-08 (ticket 0742). Tri-state: unset
@@ -1622,18 +1624,39 @@ function prefersSDTReducedMotion(node) {
    Opening the window is not a transition: the first render records the state
    without writing, so the region starts empty and a reader who opens the
    window hears the window, not a stale announcement. The bookkeeping lives on
-   the dialog, as `_censusSignature` does, so a second window keeps its own. */
+   the dialog, as `_censusSignature` does, so a second window keeps its own.
+
+   The settle measures how long the announced sentence has been GONE, not how
+   long any one replacement has been contiguous. The difference is the whole
+   behaviour: a machine alternating between two states, neither of them the one
+   the reader was told, restarts a contiguity timer on every flip and is
+   therefore never spoken -- the region sits on a sentence that stopped being
+   true minutes ago, which is worse than saying nothing. Timing the absence
+   instead, a state that returns within the window is still silent (the flip
+   undid itself, and `_sdtLeftAt` is cleared on the return), while a window that
+   has genuinely left the announced state speaks whatever is true when the
+   settle expires. Reviewed 2026-09-12: the contiguity form shipped first and
+   went silent for 30 s under a 1.5 s/1.5 s alternation, 95 % of it in one state.
+
+   `monotonic()` can freeze: on the third tier it ratchets the wall clock to a
+   high-water mark, so a backwards step stops all durations in this window --
+   the elapsed figure and the estimate included -- until the calendar catches
+   up. An announcement is then late by the step, never lost (`_sdtLeftAt` holds)
+   and never invented (the line written is read at the moment it is written).
+   The reader is no worse served than the sighted user reading the same window,
+   which is the bar; a private clock here would only disagree with the lines
+   around it. */
 function announceSDTTransition(dialog, doc, line, phase) {
   const region = doc.getElementById('sdt-announcer');
   if (!region) return;
   if (dialog._sdtAnnounced === undefined) { dialog._sdtAnnounced = line; return; }
-  if (line === dialog._sdtAnnounced) { dialog._sdtCandidate = null; return; }
+  if (line === dialog._sdtAnnounced) { dialog._sdtLeftAt = null; return; }
   const now = monotonic();
-  if (dialog._sdtCandidate !== line) {
-    dialog._sdtCandidate = line; dialog._sdtCandidateAt = now; return;
+  if (dialog._sdtLeftAt === null || dialog._sdtLeftAt === undefined) {
+    dialog._sdtLeftAt = now; return;
   }
-  if (now - dialog._sdtCandidateAt < SDT_ANNOUNCE_SETTLE_MS) return;
-  dialog._sdtAnnounced = line; dialog._sdtCandidate = null;
+  if (now - dialog._sdtLeftAt < SDT_ANNOUNCE_SETTLE_MS) return;
+  dialog._sdtAnnounced = line; dialog._sdtLeftAt = null;
   region.textContent = line;
   // The one record a live-window check can read without a screen reader
   // attached: what was spoken, and when. Rare by construction, so it costs
