@@ -35,6 +35,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import pytest
 
@@ -656,6 +657,54 @@ def test_update_json_advertises_the_version_the_manifest_ships():
     advertised = entries[0]["applications"]["zotero"]
     assert advertised["strict_min_version"] == zotero["strict_min_version"]
     assert advertised["strict_max_version"] == zotero["strict_max_version"]
+
+
+def test_the_hosts_update_check_is_disclosed_where_an_installer_reads():
+    """The one outbound request the add-on's presence causes, and who is told about it.
+
+    Ticket 0775, from the lifecycle audit's F4. `update_url` is REQUIRED —
+    ticket 0727 established with a control that a build identical but for its
+    removal is refused at install — so the host's periodic fetch of
+    `update.json` is not a setting anyone who installs this plugin can turn
+    off. It is also the only network traffic the add-on's existence causes, and
+    it was disclosed in neither of the two places a reader who is not reading
+    the source would meet it.
+
+    What is held here is the disclosure's premise together with its two sites:
+    while the manifest declares an `update_url`, the installer-facing half of
+    the release notes names the host that URL points at, says the check is not
+    the plugin's own, says what it does not carry, and points at the section
+    that owns the disclosure; and §6 carries it in the surfaces list and in the
+    answers table.
+
+    Red control: delete either paragraph, or the table row, and this fires.
+    Drop `update_url` from the manifest and the guard stands down of its own
+    accord — there is then nothing to disclose, which is the one change that
+    makes the prose false rather than missing.
+    """
+    manifest = json.loads((SITTER / 'manifest.json').read_text(encoding='utf-8'))
+    update_url = manifest['applications']['zotero'].get('update_url')
+    if update_url is None:
+        pytest.skip('no update_url is declared, so there is no update check to disclose')
+    host = urlsplit(update_url).netloc
+    assert host, update_url
+
+    notes = (SITTER / 'RELEASE-NOTES.md').read_text(encoding='utf-8')
+    installer_part, break_marker, developer_part = notes.partition('\n---\n')
+    assert break_marker and developer_part, \
+        "the installer/developer break is gone from the release notes"
+    for expected in (host, 'once a day', 'nothing about the library is sent',
+                     '#6-security-considerations'):
+        assert expected in installer_part, \
+            f'the installer-facing notes do not disclose the update check: {expected!r} absent'
+
+    surfaces = _site("**The add-on's update manifest.**", '\n\n**', ROOT / 'SPEC.md')
+    assert host in surfaces, f'§6 discloses the update check without naming {host}'
+    table = _site('| Surface | Current answer |', '\n\nThree of the', ROOT / 'SPEC.md')
+    rows = [row for row in table.splitlines()
+            if row.startswith('| ') and 'update manifest' in row]
+    assert len(rows) == 1, \
+        f'§6 answers table carries {len(rows)} rows for the add-on update check'
 
 
 @pytest.mark.integration
