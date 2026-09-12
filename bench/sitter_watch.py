@@ -168,6 +168,11 @@ class Watcher:
         self._last_line = None
         self._was_present = False
         self._expected = None
+        # The expectation is set on the driver thread and read on the poller's.
+        # A lock rather than trusting the GIL to make an attribute write atomic:
+        # what is being protected is a decision about evidence, and "it happens
+        # to work on this interpreter" is not a property to rest that on.
+        self._lock = threading.Lock()
         self._thread = threading.Thread(target=self._run, daemon=True)
 
     def start(self) -> None:
@@ -193,12 +198,32 @@ class Watcher:
         logged at both ends so a reader can see exactly what was excused.
         """
         self.log.write(f"watcher absence EXPECTED from here on: {reason}")
-        self._expected = reason
+        with self._lock:
+            self._expected = reason
         try:
             yield
         finally:
-            self._expected = None
+            with self._lock:
+                self._expected = None
             self.log.write(f"watcher absence no longer expected: {reason}")
+            # The window closes on a gesture that ALWAYS ends with the add-on
+            # back: uninstall-then-install reinstalls. So a record still absent
+            # here is not the gesture -- it is a removal that outlived the thing
+            # that was supposed to explain it, and the evidence is taken. Without
+            # this, a genuine occurrence whose timing landed inside one of these
+            # windows would be filed as expected and lost: the false-NEGATIVE
+            # that mirrors the false positive the window exists to prevent, and
+            # the more expensive of the two, since the event is what six days of
+            # deliberate arms could not produce.
+            state = host_addon_record(self.profile, self.addon_id)
+            if state.get("read") and not state.get("present"):
+                self.log.write(
+                    f"watcher ALERT the expected absence ({reason}) did not come back: "
+                    f"the record is still gone after the gesture that was supposed to "
+                    f"restore it"
+                )
+                self.preserve()
+                self.disappearance.set()
 
     def preserve(self) -> None:
         """Take everything that is about to stop existing. Never raises.
@@ -276,13 +301,19 @@ class Watcher:
             # -> absent sequence still fires on the third reading.
             return
         now_present = bool(state.get("present"))
-        if self._was_present and not now_present and self._expected:
+        with self._lock:
+            expected = self._expected
+        if self._was_present and not now_present and expected:
             # Asked for, and said so before it happened. Recorded rather than
             # swallowed: a log that hides what it excused cannot be audited.
+            # Evidence taken anyway. It costs one directory, and the
+            # alternative is discovering later that the one occurrence in six
+            # days landed inside a 6-second window and left nothing.
             self.log.write(
-                f"watcher absence observed and EXPECTED ({self._expected}); "
-                f"not the signature, no evidence taken"
+                f"watcher absence observed and EXPECTED ({expected}); not filed as the "
+                f"signature, but the evidence is kept in case it was not the gesture"
             )
+            self.preserve()
         elif self._was_present and not now_present:
             self.log.write(
                 "watcher ALERT disappearance signature: record went "

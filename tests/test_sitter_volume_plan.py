@@ -76,6 +76,16 @@ def test_the_draw_reaches_every_action_and_both_ends_of_the_clock():
     assert 20 < median < 80, median
 
 
+def test_no_action_promises_concurrency_it_does_not_test():
+    """`double-install` was renamed to `replace-twice` because the install eval
+    awaits `onInstallEnded` before returning, so the two are strictly
+    sequential. A name promising a race would have a log reader believe an
+    untested mechanism had been covered."""
+    names = {name for name, _weight in ACTIONS}
+    assert "replace-twice" in names
+    assert "double-install" not in names
+
+
 @pytest.mark.parametrize("weight", [weight for _name, weight in ACTIONS])
 def test_every_action_carries_a_positive_weight(weight):
     """A zero-weighted action is an action nobody will ever see drawn, and a

@@ -41,6 +41,11 @@ stays ARMED across the restart: an add-on that is gone once Zotero is back is
 the phenomenon in the shape originally reported, and the unreadable window a
 restart opens is exactly what `poll_once` refuses to read as an absence.
 
+Not ticket 0700. That one runs the sitter against the LIVE Menagerie -- the
+zotero.org group whose file bytes need a member key -- and none of its
+group-membership concerns are exercised here: this imports the RIS package into
+a throwaway profile's personal library. Neither supersedes the other.
+
 **Randomisation.** `--seed` draws each cycle's action from `ACTIONS` and its
 interval log-uniformly from 2 s to 10 min, instead of the fixed burst/spaced
 script -- which is kept, and is what runs without a seed, as the control. The
@@ -162,6 +167,16 @@ user_pref("extensions.zotero.debug.store", true);
 // The add-on's own switch, which gates its death certificate. On here, off in a
 // released build, per the author's ruling of 2026-09-12.
 user_pref("extensions.sdt-pack-sitter.debug", true);
+// The launch question, ANSWERED BEFORE IT IS ASKED. `readSDTSwitch` reads this
+// pref as the persisted answer and only asks when it is unset -- through
+// `Services.prompt.confirmEx`, a synchronous native modal. Headless there is no
+// one to answer it, and this repo has the precedent in writing: the RDP client's
+// own docstring records an unanswered native prompt hanging forever, which is why
+// `devtools.debugger.prompt-connection` is seeded three lines up. An unanswered
+// or defaulted question disarms the sitter for the WHOLE run -- it is asked once
+// and never again -- so every cycle after it would replace an add-on that does
+// nothing, which is the defect this rig was just widened to escape.
+user_pref("extensions.sdt-pack-sitter.enabled", true);
 user_pref("app.update.auto", false);
 user_pref("datareporting.policy.dataSubmissionEnabled", false);
 user_pref("toolkit.telemetry.reportingpolicy.firstRun", false);
@@ -293,6 +308,14 @@ def import_menagerie_code(ris_path: Path) -> str:
     return f"""
 (async function() {{
   try {{
+    // The debugger port accepts a connection long before Zotero's data layer is
+    // up. Every probe in this tree that touches Zotero rather than the
+    // AddonManager awaits these two first (verification/probes/
+    // sdt-diagnostic-harness/bootstrap.js), and this is the first call in the
+    // run that needs the schema and the translators rather than Firefox's own
+    // add-on machinery -- on a profile whose schema has never been created, it
+    // is exactly where the race would fire.
+    await Zotero.initializationPromise;
     const libraryID = Zotero.Libraries.userLibraryID;
     const translation = new Zotero.Translate.Import();
     translation.setLocation(Zotero.File.pathToFile({path_literal}));
@@ -308,8 +331,14 @@ def import_menagerie_code(ris_path: Path) -> str:
       for (const id of (item.getAttachments ? item.getAttachments() : [])) {{
         attachments += 1;
         const attachment = Zotero.Items.get(id);
-        const path = await attachment.getFilePathAsync();
-        if (!path) missing += 1;
+        // `fileExists()`, as the /import endpoint this copies uses, and NOT
+        // `getFilePathAsync()`: a resolved path is not bytes on disk. The
+        // sitter's own production code proves the difference -- after
+        // `getFilePathAsync()` it still has to `IOUtils.stat` and catch
+        // NotFoundError to decide `missing-source`. Counting resolved paths
+        // would let a package with no files through the gate below, which is
+        // the exact state that gate exists to refuse.
+        if (!(await attachment.fileExists())) missing += 1;
       }}
     }}
     return JSON.stringify({{ok: true, items: imported.length, attachments, missing}});
@@ -317,6 +346,54 @@ def import_menagerie_code(ris_path: Path) -> str:
     return JSON.stringify({{ok: false, reason: "threw", error: String(e)}});
   }}
 }})()
+"""
+
+
+def liveness_code() -> str:
+    """Did the sitter actually BECOME ALIVE, and where is the data directory?
+
+    Ticket 0778 (audit finding F10) is the reason this exists. `initialize()`
+    awaits `Zotero.uiReadyPromise` and then requires a main window -- headless,
+    `getMainWindow()` has none to return, so either the promise never settles or
+    the line throws into `startup()`'s bare `.catch`. In both branches `alive`
+    never becomes true: no census, no cache write, no timers, no prompt, no
+    toolbar. Arm 5's seventeen clean cycles are therefore evidence about
+    Zotero's add-on bookkeeping and not about the sitter running under it, and
+    arms 1-4 had a liveness reading (the cache file's compact write) that arm 5
+    dropped and replaced with nothing.
+
+    So this rig stops counting cycles it cannot interpret. A run over a sitter
+    that never armed produces the same clean log as a run that proved something,
+    and a check whose all-clear cannot be told from its could-not-look is not a
+    check.
+
+    The data directory is read here too because it is NOT the profile directory:
+    a fresh profile's data directory defaults to ~/Zotero, and the death
+    certificate is written there. A watcher looking for it beside `prefs.js`
+    would report it absent on every real occurrence.
+    """
+    return """
+(async function() {
+  try {
+    await Zotero.initializationPromise;
+    const sitter = Zotero.SDTPackSitter;
+    const state = sitter && sitter.state;
+    const dataDir = Zotero.DataDirectory.dir;
+    const cachePath = PathUtils.join(dataDir, 'sdt-sitter-cache.jsonl');
+    let cache = false;
+    try { cache = await IOUtils.exists(cachePath); } catch (_e) { cache = false; }
+    let windows = 0;
+    try { windows = Zotero.getMainWindows().length; } catch (_e) { windows = -1; }
+    return JSON.stringify({
+      ok: true, dataDir, mainWindows: windows, handle: !!sitter,
+      phase: state ? state.phase : null,
+      scanned: state ? state.scanned : null, total: state ? state.total : null,
+      cacheWritten: cache,
+    });
+  } catch (e) {
+    return JSON.stringify({ok: false, reason: "threw", error: String(e)});
+  }
+})()
 """
 
 
@@ -388,7 +465,7 @@ ACTIONS = [
     ("replace-disable-enable", 20),
     ("replace-disable-immediately", 10),
     ("uninstall-then-install", 10),
-    ("double-install", 10),
+    ("replace-twice", 10),
 ]
 
 
@@ -460,7 +537,12 @@ def run_action(action: str, client: ZoteroRDPClient, cycle: int, version: str,
     if not result.get("ok"):
         return
 
-    if action == "double-install":
+    if action == "replace-twice":
+        # Named for what it is. The install eval awaits `onInstallEnded` before
+        # returning, so the two are strictly sequential: this is back-to-back
+        # replacement, not a race between two overlapping install requests. A
+        # name promising concurrency would have a log reader believe an
+        # untested mechanism had been covered.
         second = build_payload(f"{version}1", args.payload_dir / f"sdt-sitter-{version}1.xpi")
         eval_action(client, install_or_replace_code(second), timeout, log,
                     f"cycle {cycle} second install")
@@ -515,6 +597,11 @@ def main(argv=None) -> int:
                              "attachments/, as `make menagerie-package` assembles it), "
                              "imported into the throwaway profile before the cycles so the "
                              "sitter is doing real work while it is replaced")
+    parser.add_argument("--allow-dead-sitter", action="store_true",
+                        help="cycle even when the sitter never armed. Refused by default: "
+                             "ticket 0778 established that --headless gives initialize() no "
+                             "main window, so arm 5 cycled over an add-on that was never "
+                             "running and its clean log says nothing about the sitter")
     parser.add_argument("--allow-empty-library", action="store_true",
                         help="run without --menagerie. Refused by default: arm 5's negative "
                              "result was weaker than it read, because 17 replacements of an "
@@ -684,7 +771,6 @@ def main(argv=None) -> int:
         watcher.start()
         client = connect_resilient("127.0.0.1", args.port, args.eval_timeout, log)
 
-        deadline = time.monotonic() + args.max_minutes * 60
         cycle = 0
 
         # The library, before anything is installed into the profile: the sitter
@@ -716,6 +802,36 @@ def main(argv=None) -> int:
             log.write(f"driver warming up {args.warmup_seconds:g}s so the sitter is working")
             time.sleep(args.warmup_seconds)
 
+        # And then CHECK, rather than assume (ticket 0778). Everything after
+        # this point is uninterpretable if the sitter never armed.
+        live = eval_action(client, liveness_code(), args.eval_timeout, log, "liveness")
+        log.write(f"driver liveness: {live}")
+        if live.get("dataDir"):
+            # Not the profile directory. The certificate is written here, and a
+            # watcher looking beside prefs.js would report it absent every time.
+            watcher.data_dir = Path(live["dataDir"])
+            log.write(f"driver watching for the certificate in {watcher.data_dir}")
+        armed = bool(live.get("handle")) and (live.get("cacheWritten")
+                                              or (live.get("scanned") or 0) > 0)
+        if not armed and not args.allow_dead_sitter:
+            raise RuntimeError(
+                "the sitter never became alive: handle="
+                f"{live.get('handle')} phase={live.get('phase')} "
+                f"scanned={live.get('scanned')} cacheWritten={live.get('cacheWritten')} "
+                f"mainWindows={live.get('mainWindows')}. Ticket 0778: initialize() needs a "
+                "main window, and --headless has none, so no census, no cache write, no "
+                "timers. Cycling now would repeat arm 5 -- a clean log about Zotero's "
+                "add-on bookkeeping and nothing about the sitter. Run under a real "
+                "session or an X server (Xvfb), or pass --allow-dead-sitter to say you "
+                "mean to test the bookkeeping alone."
+            )
+        if not armed:
+            log.write("driver WARNING: the sitter is NOT alive and --allow-dead-sitter was "
+                      "given; this run says nothing about a running sitter (ticket 0778)")
+
+        # Started after the import, the first install and the warmup, so
+        # `--max-minutes` is the CYCLING budget and not the setup's.
+        deadline = time.monotonic() + args.max_minutes * 60
         rng = random.Random(args.seed) if args.seed is not None else None
         planned = plan_cycles(args, rng)
         # Written down before the first one runs. A run that reproduces has to
@@ -733,7 +849,19 @@ def main(argv=None) -> int:
             try:
                 run_action(step.action, client, cycle, f"9.{cycle}.0", args, log, watcher)
                 if args.restart_every and cycle % args.restart_every == 0:
-                    client = restart_zotero(client)
+                    # One retry of the whole stop/start/attach. `connect_resilient`
+                    # exists because this host's RDP connect was found unreliable,
+                    # and neither its RuntimeError nor `wait_for_port`'s TimeoutError
+                    # is an RDP exception, so without this a single flaky relaunch
+                    # falls through to the FATAL handler and costs the whole
+                    # multi-hour budget -- while an ordinary mid-cycle hiccup is
+                    # recovered from automatically two lines below.
+                    try:
+                        client = restart_zotero(client)
+                    except (RuntimeError, TimeoutError) as exc:
+                        log.write(f"driver warn restart after cycle {cycle} failed: {exc}; "
+                                  f"one more attempt")
+                        client = restart_zotero(None)
             except (RDPConnectionClosed, RDPTimeout) as exc:
                 log.write(f"driver warn cycle {cycle} RDP call failed: {exc}; reconnecting")
                 client.close()

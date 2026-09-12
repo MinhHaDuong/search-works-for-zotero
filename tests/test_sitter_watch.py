@@ -295,3 +295,40 @@ def test_a_deliberate_uninstall_is_not_filed_as_the_signature(profile, log):
     write_extensions(profile, [OTHER])
     poll(watcher)
     assert watcher.disappearance.is_set(), "the expectation outlived the gesture"
+
+
+def test_an_expected_absence_that_never_comes_back_is_the_signature_after_all(profile, log, tmp_path):
+    """The false NEGATIVE that mirrors the false positive.
+
+    `uninstall-then-install` always ends with the add-on back, so a record still
+    gone when the window closes is not the gesture that was supposed to explain
+    it. Without this, a genuine occurrence whose timing landed inside a
+    six-second window would be filed as expected and lost -- and the event is
+    what six days of deliberate arms could not produce once.
+    """
+    evidence = tmp_path / "evidence"
+    watcher = watcher_for(profile, log, evidence_dir=evidence)
+    poll(watcher)
+
+    with watcher.expect_absence("cycle 3 uninstall-then-install"):
+        write_extensions(profile, [OTHER])
+        poll(watcher)
+        assert not watcher.disappearance.is_set()
+        # and the reinstall never happens
+
+    assert watcher.disappearance.is_set(), "an absence that outlived its excuse was excused"
+    text = log.path.read_text(encoding="utf-8")
+    assert "did not come back" in text
+    assert list(evidence.glob("disappearance-*")), "no evidence was taken"
+
+
+def test_the_gesture_that_does_come_back_stays_excused(profile, log, tmp_path):
+    """The positive control for the arm above: the ordinary case still does not
+    fire, or the randomised arm would redden on one cycle in ten."""
+    watcher = watcher_for(profile, log, evidence_dir=tmp_path / "evidence")
+    poll(watcher)
+    with watcher.expect_absence("cycle 4 uninstall-then-install"):
+        write_extensions(profile, [OTHER])
+        poll(watcher)
+        write_extensions(profile, [ADDON, OTHER])  # the reinstall
+    assert not watcher.disappearance.is_set()
