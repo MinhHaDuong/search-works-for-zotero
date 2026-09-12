@@ -243,7 +243,8 @@ export function createHarness(options = {}) {
   // times a reading was taken, which is the difference between one check per
   // admission and a poll, and between a cache hit and a native re-inspection.
   const calls = { meminfo: 0, loadavg: 0, openPack: [], ensure: [], prompt: 0,
-    prompts: [], writes: [], hash: [], list: 0, affected: [], inspect: [] };
+    prompts: [], writes: [], hash: [], list: 0, affected: [], inspect: [],
+    putContents: [] };
   const observers = new Map(); let observerSequence = 0;
 
   // Two clocks, moving independently. `mono` is what ChromeUtils.now() answers
@@ -453,6 +454,12 @@ export function createHarness(options = {}) {
           calls.loadavg++;
           return options.loadavg ? options.loadavg() : '0.42 0.30 0.25 1/500 1234';
         }
+        // Anything this profile has actually written, read back synchronously
+        // as Zotero's own does -- the death certificate verifies its write this
+        // way (ticket 0727), and a mock that could not answer would make that
+        // check untestable. A missing file throws, as the real one does.
+        const written = files.text(path);
+        if (written !== null) return written;
         throw new Error(`unexpected sync read of ${path}`);
       },
       getContentsFromURLAsync: async url => {
@@ -469,9 +476,26 @@ export function createHarness(options = {}) {
         throw new Error(`unexpected URL read of ${url}`);
       },
       pathToFile: path => (options.pathToFile ? options.pathToFile(path) : {
+        // `path` is carried because the real nsIFile carries it, and because
+        // `putContents` below is given the file and has to know where it goes.
+        path,
         isWritable: () => options.writable !== false,
         diskSpaceAvailable: options.diskAvailable ?? 500 * 1024 ** 3,
       }),
+      /* Synchronous, as Zotero's own is: the death certificate (ticket 0727) is
+         written from a teardown whose sandbox does not outlive it, so an async
+         write would be the one thing that function exists to rule out. */
+      putContents: (file, text) => {
+        if (options.putContentsThrows) throw new Error('write failed');
+        calls.putContents.push({ path: file && file.path, text });
+        // `putContentsDrops` is the file system that accepts a write and keeps
+        // nothing -- a full volume, or a writer that turns out not to be
+        // synchronous. It returns without throwing, which is what makes it a
+        // different arm from `putContentsThrows` and the reason the certificate
+        // reads itself back.
+        if (options.putContentsDrops) return;
+        files.put(file.path, text);
+      },
     },
   };
 

@@ -24,7 +24,8 @@ import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
 
-import { CACHE_FORMAT, CACHE_PATH, ROOT_URI, STORAGE, VERSIONS, VERSIONS_JSON, createHarness, deferred }
+import { CACHE_FORMAT, CACHE_PATH, DATA_DIR, ROOT_URI, STORAGE, VERSIONS, VERSIONS_JSON,
+  createHarness, deferred }
   from './sdt_sitter_zotero_mock.mjs';
 
 const results = [];
@@ -749,6 +750,147 @@ await test('a wall clock stepped backwards delays an announcement, and neither l
   harness.context.render();
   assert.equal(region.textContent, harness.context.describeSDTSwitchLine(sitter.state));
   assert.equal(harness.records('announce').length, 1);
+});
+
+/* Ticket 0727's death certificate. The sitter has twice been disabled and then
+   removed from a live profile with no user action, and every arm run since has
+   survived; what the ticket has never had is an artefact naming WHICH event it
+   was that survived the event itself. The ring knows -- `shutdown` reads Gecko's
+   reason -- and the ring dies with the process, which the recovery a user
+   performs is exactly. These four scenarios are the file that outlives it, and
+   the three limits the author's ruling of 2026-09-12 put on it.
+
+   The certificate is the positive control for the three silence arms below, and
+   they are its: a writer that never fires and a writer that fires on everything
+   both pass half of this set and neither passes it whole. */
+const CERTIFICATE = `${DATA_DIR}/sdt-sitter-last-shutdown.json`;
+
+await test('a disable writes a death certificate naming the reason, with the debug switch on', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+    prefs: { 'extensions.sdt-pack-sitter.debug': true } });
+  await harness.start();
+  harness.context.shutdown(null, 4);
+
+  const written = harness.files.text(CERTIFICATE);
+  assert(written, 'a disable left no certificate');
+  const certificate = JSON.parse(written);
+  assert.equal(certificate.reason, 'disable');
+  assert(Date.parse(certificate.at) > 0, 'the certificate carries no readable time');
+  // The last record in the report is the shutdown itself: the certificate is
+  // written after it, which is what makes the reason readable twice -- as the
+  // envelope's own field, and inside the ring that the envelope carries.
+  const report = JSON.parse(certificate.report);
+  const last = report.records.at(-1);
+  assert.equal(last.kind, 'shutdown');
+  assert.equal(last.reason, 'disable');
+  assert.equal(report.version, harness.context.environment.version);
+});
+
+await test('an uninstall writes one too, and an ordinary quit does not', async () => {
+  const prefs = { 'extensions.sdt-pack-sitter.debug': true };
+  const uninstalled = createHarness({ attachments: [pdf(1, 'AAAA1111')], prefs });
+  await uninstalled.start();
+  uninstalled.context.shutdown(null, 6);
+  assert.equal(JSON.parse(uninstalled.files.text(CERTIFICATE)).reason, 'uninstall');
+
+  // APP_SHUTDOWN is the ordinary end of a session and is not this defect. A
+  // certificate per quit would bury the two that matter under a year of them.
+  const quit = createHarness({ attachments: [pdf(1, 'AAAA1111')], prefs });
+  await quit.start();
+  quit.context.shutdown(null, 2);
+  assert.equal(quit.files.text(CERTIFICATE), null, 'an ordinary quit wrote a certificate');
+  assert.deepEqual(quit.calls.putContents, []);
+});
+
+await test('the debug switch off writes nothing to disk, on any reason', async () => {
+  // SPEC.md's sitter section suppresses failures for the session "without a
+  // private durable ledger". The switch is what keeps this a certificate the
+  // author opts into and not a ledger a release ships.
+  for (const reason of [4, 6]) {
+    const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+    await harness.start();
+    assert.equal(harness.context.Zotero.Prefs.get('extensions.sdt-pack-sitter.debug', true), undefined,
+      'the arm needs the pref unset to mean anything');
+    harness.context.shutdown(null, reason);
+    assert.equal(harness.files.text(CERTIFICATE), null, `reason ${reason} wrote a certificate with the switch off`);
+    assert.deepEqual(harness.calls.putContents, []);
+  }
+});
+
+await test('a write that keeps nothing is journalled, and an unreadable report is flagged not buried', async () => {
+  // Two arms the first round asserted in a comment and never checked. Both are
+  // silent failures by construction: one is a file system that accepts a write
+  // and keeps nothing (a full volume, or a writer that is not as synchronous as
+  // its documentation), the other a ring that cannot be scrubbed, whose
+  // composer answers prose rather than JSON.
+  const dropped = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+    prefs: { 'extensions.sdt-pack-sitter.debug': true }, putContentsDrops: true });
+  await dropped.start();
+  dropped.context.shutdown(null, 4);
+  assert.equal(dropped.files.text(CERTIFICATE), null);
+  assert.equal(dropped.calls.putContents.length, 1, 'the write was never attempted');
+  assert(dropped.debugged.some(line => line.startsWith('SDT sitter certificate-failed')),
+    'a certificate that did not land was believed');
+
+  // The composer's own error path. A prose sentence under `report` would give a
+  // body that does not parse at exactly the shutdown that matters, and nothing
+  // in the envelope saying so.
+  const unscrubbable = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+    prefs: { 'extensions.sdt-pack-sitter.debug': true } });
+  await unscrubbable.start();
+  unscrubbable.context.journal.tail = () => { throw new Error('the ring is torn down'); };
+  unscrubbable.context.shutdown(null, 6);
+  const certificate = JSON.parse(unscrubbable.files.text(CERTIFICATE));
+  assert.equal(certificate.reason, 'uninstall', 'the reason was lost with the report');
+  assert.equal(certificate.report, undefined, 'prose was filed as a report');
+  assert(certificate.reportUnreadable, 'an unreadable report left no trace in the envelope');
+});
+
+await test('the certificate carries opaque keys and no title, and a failed write never throws into teardown', async () => {
+  const harness = createHarness({
+    attachments: [pdf(1, 'AAAA1111', { title: 'Secret Title', parentTitle: 'Secret Parent' })],
+    prefs: { 'extensions.sdt-pack-sitter.debug': true },
+  });
+  await harness.start();
+  // The contamination, and it is load-bearing: on the FIRST startup the ring is
+  // not up yet, so the record carrying `rootURI` reaches the debug log alone and
+  // an uncontaminated ring would pass the path assertion below whether the
+  // scrub exists or not. A second startup is how the real ring acquires one.
+  harness.context.startup({ rootURI: ROOT_URI });
+  await harness.quiet();
+  const raw = harness.context.journal.tail(50).filter(record => record.kind === 'startup');
+  assert.equal(raw.length, 1, 'the ring was not contaminated, so this arm would prove nothing');
+  assert.equal(raw[0].rootURI, ROOT_URI);
+
+  harness.context.shutdown(null, 4);
+  const written = harness.files.text(CERTIFICATE);
+  assert(!written.includes('Secret Title') && !written.includes('Secret Parent'),
+    'a title reached the certificate');
+  assert(!written.includes(ROOT_URI), 'the install path reached the certificate');
+  assert(!written.includes('/home/tester'), 'a home directory reached the certificate');
+  // Surgical, as the clipboard's own scrub is: the record survives with its
+  // build identity, and loses the field.
+  const certified = JSON.parse(JSON.parse(written).report).records
+    .filter(record => record.kind === 'startup');
+  assert.equal(certified.length, 1, 'the scrub dropped the record instead of the field');
+  assert.equal(certified[0].rootURI, undefined);
+
+  // A read-only data directory is the case where the evidence cannot be kept.
+  // Losing it is acceptable; losing the teardown with it is not -- a throw here
+  // would leave the channel open and the plugin half torn down.
+  const unwritable = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+    prefs: { 'extensions.sdt-pack-sitter.debug': true }, putContentsThrows: true });
+  await unwritable.start();
+  assert.doesNotThrow(() => unwritable.context.shutdown(null, 4),
+    'a failed certificate write threw out of shutdown');
+  assert.equal(unwritable.files.text(CERTIFICATE), null);
+  // The teardown's own post-conditions, checked after the diagnostics failed:
+  // the host handle is gone and the ring is parked where a live-window read
+  // would look for it. The certificate is the copy that outlives the process,
+  // not the only one.
+  assert.equal(unwritable.context.Zotero.SDTPackSitter, undefined,
+    'the teardown did not finish after its diagnostics failed');
+  assert(unwritable.context.Zotero.SDTPackSitterJournal, 'the ring was not parked');
 });
 
 await test('two windows and two startups leave one sitter, one launch prompt and two toolbars', async () => {

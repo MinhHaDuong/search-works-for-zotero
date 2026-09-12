@@ -105,6 +105,18 @@ one click to start, and it does not ask the first-run question a second time
 (ticket [0772](../../tickets/0772-does-an-uninstall-withdraw-the-sitter-in.erg),
 decided 2026-09-12).
 
+With technical diagnostics switched on, ticket
+[0727](../../tickets/0727-the-sitter-uninstalls-itself-update-url.erg) adds one
+more file: if Zotero disables or removes the sitter, it writes what it was told
+— the host's own reason for the removal, and its last few state changes — to
+`sdt-sitter-last-shutdown.json` in the Zotero data directory. The sitter has
+twice vanished from a live profile with no explanation surviving the event. The
+file carries the same redaction as the diagnostics clipboard: opaque record
+keys, no document titles, no install path. With the switch off, which is how it
+ships, nothing is written — and since removing the add-on now also takes its
+session handles off Zotero (above), an uninstall with the switch off leaves no
+record of itself at all. Switch it on before reporting a disappearance.
+
 Implementation and host-mock verification are recorded in
 [the scheduling report](../../verification/SDT-SITTER-EVENTS.md). This draft does
 not claim a live-profile deployment or a published release.

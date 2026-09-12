@@ -1559,6 +1559,79 @@ function composeSDTNotIndexedIdentifiers() {
    into a bug report. The install path stays on screen, two lines above in the
    same panel, where the author is reading his own machine. The versions travel,
    because a ring with no build attached answers nothing. */
+/* The death certificate, ticket 0727 ("is it instrumented if it recurs?", the
+   author's question of 2026-09-12, and his ruling the same day).
+
+   The sitter has twice vanished from a live profile -- disabled, then removed,
+   file and record, mid-session, with no user action -- and the ticket still has
+   no mechanism because nothing that survives the event ever said WHICH event it
+   was. `shutdown(data, reason)` knows: Gecko passes ADDON_DISABLE, ADDON_UNINSTALL
+   or APP_SHUTDOWN, and BOOTSTRAP_REASONS names it (renamed by ticket 0771, which
+   made the same table answer for startup). That reading reaches the ring,
+   and the ring is parked on the Zotero global -- but only for the life of the
+   process. The recovery a user actually performs, restarting Zotero, destroys
+   the one artefact that would name the mechanism.
+
+   So on the two reasons that are the phenomenon, and on no other, the last 50
+   records go to a file in the data directory. Not the app-shutdown path: the
+   ordinary end of a session is not this defect, and writing there would bury the
+   evidence under one certificate per quit.
+
+   THE PRIVACY RULE THIS SITS UNDER. SPEC.md's sitter section suppresses failures
+   for the session "without a private durable ledger", which is why
+   `createSDTJournal`'s ring is volatile and why the failure half of settle goes
+   to the debug log and never to a file. Three things keep this inside that rule.
+   It is written only when `DEBUG_PREF` is on -- the same switch, the same
+   checkbox in the diagnostics layer, off in a released build, which the author
+   turns on knowingly for exactly this. It carries `composeSDTJournalReport`'s
+   output, the clipboard boundary's own redaction: opaque cache keys, never
+   titles, and no `rootURI`. And it is a certificate of death, not a ledger: one
+   file, overwritten, written only when the plugin is being taken away.
+
+   Synchronous on purpose. `IOUtils` is async, and the sandbox this code runs in
+   is torn down when shutdown returns on the uninstall path, so an in-flight
+   promise is a certificate that may never land -- the one failure this whole
+   function exists to prevent. `Zotero.File.putContents` is Zotero's own
+   synchronous writer, and this file does NOT take that on faith: it reads the
+   path back through `Zotero.File.getContents` before returning, so a write that
+   did not land is journalled as a failure instead of believed. Reviewed
+   2026-09-12: the synchronicity was asserted in a comment and nowhere checked,
+   which is a weaker standard than ticket 0766 held its own host claims to, and
+   a read-back is the check that can be made from inside the plugin.
+
+   The report is JSON, EXCEPT on its own error path: `composeSDTJournalReport`
+   answers a localized prose sentence when the ring cannot be scrubbed. Embedded
+   under `report` that would give a certificate whose body does not parse, at
+   exactly the shutdown that matters, with nothing saying so. It goes under
+   `reportUnreadable` instead, which is a field a reader trips over rather than
+   a string that looks like a report and is not. */
+function writeSDTDeathCertificate(reason) {
+  if (reason !== 'disable' && reason !== 'uninstall') return;
+  try {
+    // Fully qualified, as every other read of this pref is: `true` stops Zotero
+    // prepending `extensions.zotero.`.
+    if (!Zotero.Prefs.get(DEBUG_PREF, true)) return;
+    const report = composeSDTJournalReport();
+    const certificate = { reason, at: new Date().toISOString() };
+    try { JSON.parse(report); certificate.report = report; }
+    catch (_error) { certificate.reportUnreadable = report; }
+    const path = PathUtils.join(Zotero.DataDirectory.dir, 'sdt-sitter-last-shutdown.json');
+    const text = JSON.stringify(certificate, null, 2);
+    Zotero.File.putContents(Zotero.File.pathToFile(path), text);
+    // The read-back. A full or read-only data directory is a case this repo has
+    // met before, and one that throws is already handled below; one that
+    // silently keeps nothing is not, and neither is a writer that turns out not
+    // to be synchronous after all.
+    if (Zotero.File.getContents(path) !== text) {
+      throw new Error('the certificate did not read back as written');
+    }
+  } catch (error) {
+    // A teardown must not acquire a throw from its own diagnostics. The debug
+    // log is the fallback channel and is already open at this point.
+    try { Zotero.debug(`SDT sitter certificate-failed ${classifyError(error)}`); } catch (_ignored) { /* Nothing. */ }
+  }
+}
+
 function composeSDTJournalReport() {
   try {
     return JSON.stringify({
@@ -2824,6 +2897,25 @@ function shutdown(data, reason) {
         delete Zotero.SDTPackSitterCacheWrite;
       } else if (journal) Zotero.SDTPackSitterJournal = journal;
     } catch (_error) { /* Nothing. */ }
+    // AFTER 0771's handle removal, and unharmed by it: the certificate reads the
+    // local `journal` binding rather than the global one the line above may have
+    // just deleted. The order is 0771's own resolution plan for this conflict.
+    //
+    // The two tickets disagree about the uninstall, and the disagreement is
+    // load-bearing rather than cosmetic. 0771 removes the parked ring because
+    // an uninstall has no next activation to read it; 0727 parks it because the
+    // reader is OUT OF BAND -- a human in Run JavaScript, or
+    // bench/sitter_watch.py over RDP, both reading a process that is still
+    // alive. Both are true, and the consequence of taking 0771's half alone is
+    // stated where it can be acted on: with the debug switch OFF, which is how
+    // a release ships, an uninstall now leaves NOTHING -- no certificate,
+    // because the switch gates it, and no parked ring, because the line above
+    // deleted it. Before 0771 the ring at least outlived the removal for the
+    // rest of the session. That gap is ticket 0727's to close and is recorded
+    // in its log of 2026-09-12; it is not closed here, because closing it means
+    // either keeping the ring on uninstall or writing the certificate
+    // unconditionally, and both are the author's to rule on.
+    writeSDTDeathCertificate(named);
   }
 }
 function install() {}

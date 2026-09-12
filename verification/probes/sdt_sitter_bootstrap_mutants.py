@@ -341,6 +341,48 @@ MUTANTS = [
     ("M46 the shutdown does not move the era, so the guard above can never fire",
      "    ++generation; ++shutdowns; alive = false; sitter?.stop();",
      "    ++generation; alive = false; sitter?.stop();"),
+    # ---- ticket 0727: the death certificate --------------------------------
+    # Renumbered from M40-M46 at the 0771 merge: that ticket had taken the same
+    # seven numbers for the lifecycle interface. The numbers are addresses and
+    # nothing else -- what a reader needs is that two mutants never share one.
+    # Every quit writes one, so the two events that matter are buried under a
+    # year of ordinary session ends.
+    ("M47 an ordinary quit writes a certificate too",
+     "  if (reason !== 'disable' && reason !== 'uninstall') return;\n",
+     ""),
+    # The switch stops gating it: a released build keeps a durable record of a
+    # library nobody asked it to keep one of.
+    ("M48 the certificate is written with the debug switch off",
+     "    if (!Zotero.Prefs.get(DEBUG_PREF, true)) return;\n",
+     ""),
+    # The uninstall path loses it, which is the half of the phenomenon that
+    # takes the whole add-on with it.
+    ("M49 only a disable is certified, so an uninstall leaves nothing",
+     "  if (reason !== 'disable' && reason !== 'uninstall') return;\n",
+     "  if (reason !== 'disable') return;\n"),
+    # The envelope names a reason the ring does not, so the certificate and the
+    # records inside it can disagree about what happened.
+    ("M50 the certificate reports a reason of its own rather than the one Gecko gave",
+     "    const certificate = { reason, at: new Date().toISOString() };\n",
+     "    const certificate = { reason: 'disable', at: new Date().toISOString() };\n"),
+    # The write is believed rather than checked, so a full volume or a writer
+    # that is not synchronous after all leaves nothing and says nothing.
+    ("M52 the certificate is not read back, so a write that kept nothing is believed",
+     "    if (Zotero.File.getContents(path) !== text) {\n"
+     "      throw new Error('the certificate did not read back as written');\n"
+     "    }\n",
+     ""),
+    # The composer's prose error path filed as though it were a report: a
+    # certificate whose body does not parse, with nothing saying so.
+    ("M53 an unreadable report is filed under `report` as though it parsed",
+     "    try { JSON.parse(report); certificate.report = report; }\n"
+     "    catch (_error) { certificate.reportUnreadable = report; }\n",
+     "    certificate.report = report;\n"),
+    # The raw ring instead of the clipboard boundary's redaction: titles and the
+    # install path reach a file.
+    ("M51 the certificate carries the unredacted ring",
+     "    const report = composeSDTJournalReport();\n",
+     "    const report = JSON.stringify({ records: journal ? journal.tail(50) : [] });\n"),
 ]
 
 
