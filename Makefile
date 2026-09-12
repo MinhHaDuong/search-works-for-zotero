@@ -237,6 +237,14 @@ ticket-logs:
 # add-on record on that number. Ticket 0688. Also run by the test suite; kept as
 # its own target because it is the one to run after touching plugins/sdt-sitter/.
 # Needs real history, and says NOT-RUN rather than green where it has none.
+#
+# Since ticket 0779 it also reads the OPEN pull requests, because a version a
+# parallel lane has already claimed is invisible to a check anchored in this
+# checkout, and this repository has no `.github/workflows/` — a lane running
+# this target is the only thing that runs it at all. That leg needs the forge
+# (`bench/forge_open_prs.py`, replaceable via SITTER_FORGE_COMMAND) and prints
+# NOT-RUN on its own line, beside a green exit, when it cannot be reached: `make
+# check` must stay runnable offline, and the two local rules are unaffected.
 sitter-version:
 	python3 bench/check_sitter_version.py
 
