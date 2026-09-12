@@ -1,6 +1,6 @@
 # STATE — Search Works for Zotero
 
-*Live handoff, under forty lines. Updated 2026-09-11. Ownership: [AGENTS.md](AGENTS.md).*
+*Live handoff, under forty lines. Updated 2026-09-12. Ownership: [AGENTS.md](AGENTS.md).*
 
 ## North Star
 
@@ -13,23 +13,23 @@ current, bounded and honest about coverage. [README.md](README.md) owns the prop
 - Sitter 0.4.0 tag **deferred** (DECISIONS.md, 2026-09-11; 0764 `Blocked-by: 0727, 0686`):
   0727 needs a named mechanism; 0686 is closed (items (1) and (3) built in 0.3.43);
   its item (2) → 0769, to be declared in RELEASE-NOTES.md by 0764 Action 5.
+- **Zotero 11 incompatible, `10.*` ceiling stands; an uninstall writes the switch off** (DECISIONS.md, 2026-09-12; 0777 closed, 0772 ruled).
+  Live decision: **0776** — an update entry an 11 host finds in range separates a disable from a disappearance.
 - Release the Multilingual test library and questions + grader as public Challenge
 - Zoteus feature freeze for the September 21 release: correctness, packaging and privacy,
 with QA tests for those. Indexer/worker rewrite and segmenter stay held.
 
 ## Recent outcomes
 
-- **Sitter mutation gate live in `check` (0763, #517):** 30/30 and 19/19 mutants caught.
-  Five anchors had rotted unrun; 0908's "NOT releasable" figure is retired, un-re-derivable.
-- **0727 arm 5, volume experiment (#526): bounded negative, not conclusive.** New tool
-  (0766, #523) scripts Zotero's real install path externally — 17 cycles, one process,
-  cut short at ~31 min of a planned ~2h/~50-cycle run: zero disappearances. More volume
-  than any prior arm, but short of budget; intermittency under full volume still untested.
+- **0727 arm 5 (#526): bounded negative, narrower than recorded.** 17 of ~50 cycles, zero disappearances —
+  but the rig runs Zotero headless, where `initialize()` cannot pass its main-window check (0778).
+- **Sitter host-lifecycle audit** (`verification/SITTER-LIFECYCLE-AUDIT-2026-09-12.md`): ten findings over
+  install/remove/update/host upgrade. #531/#532/#533 open, each APPROVED on its page, none merged.
 
 ## Handoff
 
-**Next on 0727**: re-run `bench/sitter_volume_experiment.py` (0766) to the full
-~50-cycle/~2h budget — arm 5 stopped at 17. Otherwise correctness/privacy gaps: R10
+**Next on 0727**: give the volume rig a liveness verdict-carrier (0778) BEFORE spending the
+rest of the ~2h budget — as driven, those cycles measure host bookkeeping alone. Otherwise correctness/privacy gaps: R10
 (0660–0664), R13 (0650–0652), R15 (0654–0657), R22 (0643, 0665), fixtures 0602, 0623,
 0658. #6012 parity train (0754, 0755–0757) filed, unstarted; DECISIONS.md owns open questions.
 
@@ -37,5 +37,5 @@ with QA tests for those. Indexer/worker rewrite and segmenter stay held.
 
 Reviewed upstream: **v1.16.0+1** at `4467663` (ticket 0738).
 Requirements: **24 ratified** ([SPEC.md](SPEC.md)).
-Tickets: **81 ready, 129 open total** (`erg ready tickets/`); 8 await the author.
-In flight: **none** — no open PRs at `3bb14fd`.
+Tickets: **82 ready, 138 open total** (`erg ready tickets/`); 11 await the author.
+In flight: #529 (adapter controls), #530 (0727 instrumentation), lifecycle lanes 0771/0775/0779.

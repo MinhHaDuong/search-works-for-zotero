@@ -57,7 +57,21 @@ assert.deepEqual(record, {
   zoteroVersion: '10.0.5-stub',
   strictMinVersion: manifest.applications.zotero.strict_min_version,
   strictMaxVersion: manifest.applications.zotero.strict_max_version,
+  // Ticket 0771: what the host said this activation was. `initialize` is entered
+  // directly here, so the binding `startup()` would have set is at its default,
+  // and the default is a reading rather than a blank -- nothing told us.
+  reason: 'unknown',
 });
+
+/* The same field, carrying a real reason. `startup()` is not called here (it
+   wants `ChromeUtils` this stub does not have), so the two halves are asserted
+   where each can be: the host's number reaching the binding is driven end to
+   end in tests/sdt_sitter_bootstrap.mjs, and the binding reaching THIS record
+   is driven here, through the same mapping the shutdown record uses. */
+assert.equal(context.nameBootstrapReason(7), 'upgrade');
+context.startupReason = context.nameBootstrapReason(7);
+assert.equal((await startupRecord()).reason, 'upgrade');
+context.startupReason = 'unknown';
 
 // An unreadable manifest must not be what stops startup: the record still goes
 // out, saying so, because a disappearance with NO record is the case this exists

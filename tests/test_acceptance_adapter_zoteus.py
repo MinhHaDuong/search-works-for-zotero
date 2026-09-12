@@ -296,3 +296,72 @@ def test_r23_decides_when_the_concrete_adapter_reset_has_stale_sidecars(tmp_path
     assert check.detail["arms"][durability.RESTAMP_OLDER]["serving"] is True
     assert check.detail["arms"][durability.RESTAMP_NEWER]["hits_before_restamp"] == 1
     assert check.detail["arms"][durability.RESTAMP_NEWER]["serving"] is False
+
+
+@pytest.mark.parametrize("verb", ["pause", "resume"])
+def test_background_control_calls_the_named_action(tmp_path, verb):
+    target = build(tmp_path)
+    calls = []
+
+    class Server:
+        def call(self, method, params):
+            calls.append((method, params))
+            return {"result": {"structuredContent": {"paused": verb == "pause"}}}
+
+    target.server = Server()
+    assert target.declaration.offers(verb)
+    assert getattr(target, verb)() == {"paused": verb == "pause"}
+    assert calls == [("tools/call", {"name": "zotero_index", "arguments": {"action": verb}})]
+
+
+@pytest.mark.parametrize("body", [
+    {"structuredContent": {"message": "Index is paused", "hits": []}},
+    {"content": [{"type": "text", "text": '{"message":"Index is paused","hits":[]}'}]},
+    {"content": [{"type": "text", "text": "Index is paused"}]},
+])
+@pytest.mark.parametrize("wrapped", [False, True])
+def test_payload_retains_tool_error_and_body(body, wrapped):
+    result = {**body, "isError": True}
+    response = {"result": result} if wrapped else result
+    payload = adapter._payload(response)
+    assert payload["isError"] is True
+    assert "Index is paused" in str(payload)
+    assert "isError" not in body.get("structuredContent", {})
+
+
+@pytest.mark.parametrize("verb", ["query", "status", "pause", "resume"])
+def test_tool_refusal_cannot_be_reported_as_a_success(tmp_path, verb):
+    target = build(tmp_path)
+
+    class Server:
+        def call(self, method, params):
+            return {"result": {"isError": True, "structuredContent": {
+                "message": "synthetic refusal", "hits": []}}}
+
+    target.server = Server()
+    with pytest.raises(adapter.ToolError, match="synthetic refusal") as error:
+        if verb == "query":
+            target.query("test", "exact", 1)
+        else:
+            getattr(target, verb)()
+    assert error.value.payload["isError"] is True
+    assert error.value.payload["hits"] == []
+
+
+def test_paused_embedding_perturbation_retains_expected_refusal(tmp_path):
+    target = build(tmp_path, seed_index=str(tmp_path / "seed.sqlite"))
+    calls = []
+
+    class Server:
+        def call(self, method, params):
+            calls.append(params["arguments"])
+            return {"result": {"isError": True, "structuredContent": {"message": "Index is paused"}}}
+
+    target.server = Server()
+    event = target.perturb(durability.RESUME_EMBEDDING)
+    assert event["build_started"]["isError"] is True
+    assert calls == [{"action": "build", "own_words": False, "fulltext": False}]
+
+
+def test_successful_empty_search_remains_an_empty_search():
+    assert adapter._payload({"result": {"structuredContent": {"hits": []}}}) == {"hits": []}

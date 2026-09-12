@@ -1,0 +1,35 @@
+%erg 0.1
+Title: Repair Zoteus adapter durable controls and MCP refusals
+Created: 2026-09-12
+Author: Codex
+Closed: Adapter repair and regression coverage implemented; review in the accompanying PR.
+
+--- log ---
+2026-09-12T06:18Z Codex created
+
+2026-09-12T06:18Z Codex note Regression tests reproduced the defects before the repair; focused adapter and acceptance checks pass.
+2026-09-12T06:18Z Codex closed — Adapter repair and regression coverage implemented; review in the accompanying PR.
+--- body ---
+Repair `bench/acceptance/adapters/zoteus.py` after the upstream audit found
+that pause sent stop, resume was declared absent, and MCP isError was lost
+when structuredContent or a text body was extracted.
+
+Pause and resume now forward the matching zotero_index actions. The adapter
+returns the target reply instead of manufacturing checkpoint/durability claims.
+MCP refusals retain their body and marker; ordinary verbs raise ToolError.
+The embedding perturbation retains a refused build as evidence, allowing the
+R22 work-counter checks to measure the expected hold without clearing it.
+
+Regression coverage: tests/test_acceptance_adapter_zoteus.py. It exercises
+both control actions and declarations, wrapped and bare MCP error replies,
+structured and text bodies, refused query/status/control calls, expected
+paused-build refusal, and a successful empty search.
+
+Validation commands: python3 -m pytest tests/test_acceptance_adapter_zoteus.py
+ tests/test_acceptance_adapter_zoteus_work_counters.py
+ tests/test_acceptance_goal1_control.py tests/test_acceptance_durability.py -q;
+ make check.
+
+These are adapter and harness tests with synthetic MCP replies. No live Zotero
+acceptance result or R22 grade is claimed. Historical results and UPSTREAM
+remain their original observations.

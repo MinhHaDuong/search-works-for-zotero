@@ -14,6 +14,7 @@ back green over a single revision.
 """
 import json
 import os
+import shlex
 import shutil
 import subprocess
 import sys
@@ -25,8 +26,9 @@ REPO = Path(__file__).resolve().parents[1]
 if str(REPO / "bench") not in sys.path:
     sys.path.insert(0, str(REPO / "bench"))
 
+import forge_open_prs  # noqa: E402
 from build_sdt_sitter import DELIVERED  # noqa: E402
-from check_sitter_version import HOMES  # noqa: E402
+from check_sitter_version import FORGE_COMMAND, HOMES  # noqa: E402
 
 SITTER = REPO / "plugins" / "sdt-sitter"
 GUARD = REPO / "bench" / "check_sitter_version.py"
@@ -242,7 +244,12 @@ def test_guard_reads_the_payload_history_across_the_promotion_rename(tmp_path):
     result = guard(root)
     output = result.stdout + result.stderr
     assert result.returncode != 0, output
-    assert "NOT-RUN" not in output, output
+    # Rule 3 prints its own NOT-RUN line here, because a fixture repository has
+    # no forge remote; that is not what this arm is about. What it is about is
+    # that the guard COMPARED history and reddened, rather than declining to
+    # read history at all — so the rule-1 finding itself is what is asserted.
+    assert "already shipped a DIFFERENT payload" in output, output
+    assert "no commit under" not in output, output
     assert "2.3.0" in output, output
 
     # And the green arm reports what it actually read. Five commits touch the
@@ -497,3 +504,282 @@ def test_guard_is_green_when_tag_and_link_both_agree(tmp_path):
     commit(root, "a fully agreeing release entry")
     result = guard(root)
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+# ---- ticket 0779: a version an OPEN pull request has already claimed --------
+#
+# The blind spot is the same one `tickets/AGENTS.md` records for ticket IDs, and
+# it has the same two halves. The enumeration must be per-pull-request, because
+# a one-shot list-plus-filter answers empty whatever the pull requests contain;
+# and a forge that cannot be reached must read NOT-RUN, because an all-clear
+# indistinguishable from "I could not look" is not a check. Every arm below
+# drives the guard through a stand-in for `bench/forge_open_prs.py` speaking the
+# documented three-form protocol, so none of them touches a network — the one
+# arm that reads the real forge is the live-repository arm at the top of this
+# file, which is green either way and says which it was.
+
+FORGE_STUB = '''\
+import json, sys
+TABLE = json.loads({table!r})
+argv = sys.argv[1:]
+if not argv:
+    print("\\n".join(TABLE))
+    raise SystemExit(0)
+pull = TABLE.get(argv[0])
+if pull is None:
+    print("no such pull request", file=sys.stderr)
+    raise SystemExit(1)
+if pull.get("unreadable"):
+    print("this pull request cannot be read from here", file=sys.stderr)
+    raise SystemExit(1)
+if len(argv) == 1:
+    print(pull["sha"])
+    raise SystemExit(0)
+if argv[1] not in pull["files"]:
+    raise SystemExit(3)
+sys.stdout.write(pull["files"][argv[1]])
+raise SystemExit(0)
+'''
+
+
+def forge_stub(tmp_path: Path, table: dict, name: str = "forge_stub.py") -> str:
+    """A stand-in forge command, as `SITTER_FORGE_COMMAND` would name it.
+
+    `table` maps a pull-request number (as a string, since it crosses JSON) to
+    `{"sha": ..., "files": {repo-relative path: text}}`, or to
+    `{"unreadable": True}` for a pull request the forge refuses to answer about.
+    A path the table omits exits 3 — a real absence — which is the distinction
+    the guard's NOT-RUN discipline rests on.
+    """
+    script = tmp_path / name
+    script.write_text(FORGE_STUB.format(table=json.dumps(table)), encoding="utf-8")
+    return f"{shlex.quote(sys.executable)} {shlex.quote(str(script))}"
+
+
+def broken_forge(tmp_path: Path, name: str = "broken_forge.py") -> str:
+    """A forge command that can never look — no credentials, no network, no remote."""
+    script = tmp_path / name
+    script.write_text("import sys\n"
+                      "print('the forge is not reachable from here', file=sys.stderr)\n"
+                      "raise SystemExit(1)\n", encoding="utf-8")
+    return f"{shlex.quote(sys.executable)} {shlex.quote(str(script))}"
+
+
+def head_of(sitter: Path, version: str, bootstrap: str | None = None) -> dict:
+    """The delivered files a pull-request head would carry, keyed as the guard asks.
+
+    Copied out of a real seeded payload rather than written fresh, so the
+    identical-payload arm below is byte-identical where it claims to be: the
+    guard hashes bytes, and a re-serialized manifest is a different payload.
+    """
+    files = {f"{HOMES[0]}/{name}": (sitter / name).read_text(encoding="utf-8")
+             for name in DELIVERED}
+    manifest = json.loads(files[f"{HOMES[0]}/manifest.json"])
+    manifest["version"] = version
+    files[f"{HOMES[0]}/manifest.json"] = json.dumps(manifest, indent=2) + "\n"
+    if bootstrap is not None:
+        files[f"{HOMES[0]}/bootstrap.js"] = bootstrap
+    return files
+
+
+@pytest.mark.integration
+def test_guard_reddens_when_an_open_pull_request_claims_the_working_tree_version(tmp_path):
+    """The defect: a version that is free in this checkout and taken on another branch.
+
+    Rule 1 is anchored at this branch's tip, so a number an open pull request
+    has already spent is invisible to it — and the collision only comes into
+    existence at the second merge, by which time both payloads are in history,
+    which is the one state the guard's own docstring calls unfixable. Ticket
+    0771 dodged this by hand, by reading #530's diff; that is not a guard.
+
+    A SECOND pull request holds the version the naive suggestion would name, so
+    the suggested one has to step over every claim read rather than only the
+    colliding one — and it must stay inside the version scheme in force, which
+    is why it steps up from the working tree's number rather than down from the
+    highest anywhere.
+    """
+    root = tmp_path / "repo"
+    root.mkdir()
+    sitter = seed(root, "2.3.0")
+    command = forge_stub(tmp_path, {
+        "42": {"sha": "a" * 40, "files": head_of(sitter, "2.3.0", "// another lane's payload\n")},
+        "43": {"sha": "b" * 40, "files": head_of(sitter, "2.3.1")},
+    })
+    result = guard(root, SITTER_FORGE_COMMAND=command)
+    output = result.stdout + result.stderr
+    assert result.returncode != 0, output
+    assert "NOT-RUN" not in output, output
+    assert "OK (rule 3)" not in output, f"an all-clear beside its own findings: {output}"
+    assert "42" in output, output
+    assert "2.3.2" in output, f"the suggestion must step over every claim: {output}"
+
+    # And a bump clear of both claims makes it green, or nobody can clear it.
+    set_version(sitter, "2.3.2")
+    commit(root, "bump clear of every claimed version")
+    result = guard(root, SITTER_FORGE_COMMAND=command)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.integration
+def test_guard_is_silent_when_an_open_pull_request_carries_an_identical_payload(tmp_path):
+    """Two lanes that never touched the plugin both carry main's version.
+
+    This is the ordinary state of every pair of open pull requests in this
+    repository, and a rule that fired on it would redden every lane at once —
+    which is the guard nobody can make green that this file's own docstring
+    says gets deleted. One number over one payload is not a collision; the
+    condition is the same DIFFERENT-payload one rule 1 uses.
+    """
+    root = tmp_path / "repo"
+    root.mkdir()
+    sitter = seed(root, "2.3.0")
+    command = forge_stub(tmp_path, {"42": {"sha": "a" * 40, "files": head_of(sitter, "2.3.0")}})
+    result = guard(root, SITTER_FORGE_COMMAND=command)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.integration
+def test_guard_leaves_a_head_already_in_this_history_to_rule_1(tmp_path):
+    """A merged pull request, and a lane's own pull request, are both this shape.
+
+    Whatever is already an ancestor of HEAD is what rule 1 reads directly, so
+    reporting it here would double-report a merged pull request's version — and
+    would redden every lane against its OWN open pull request, whose head is
+    its tip. The stub head below declares a colliding payload, so the arm fails
+    if the ancestry check is dropped.
+    """
+    root = tmp_path / "repo"
+    root.mkdir()
+    sitter = seed(root, "2.3.0")
+    sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, check=True,
+                         capture_output=True, text=True).stdout.strip()
+    command = forge_stub(tmp_path, {
+        "42": {"sha": sha, "files": head_of(sitter, "2.3.0", "// a payload in our own past\n")}})
+    result = guard(root, SITTER_FORGE_COMMAND=command)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.integration
+def test_the_cross_branch_rule_reads_not_run_when_the_forge_cannot_be_reached(tmp_path):
+    """A fifth NOT-RUN, and the only one that does not redden the gate.
+
+    The four above it are ways of having no history at all, which leaves rule 1
+    with nothing to say; this one leaves rules 1 and 2 fully evaluated, so a
+    lane offline still gets both and must not be blocked from committing. What
+    it must never get is an unqualified all-clear: the line has to say the rule
+    did not run.
+    """
+    root = tmp_path / "repo"
+    root.mkdir()
+    seed(root, "2.3.0")
+    result = guard(root, SITTER_FORGE_COMMAND=broken_forge(tmp_path))
+    output = result.stdout + result.stderr
+    assert result.returncode == 0, output
+    assert "NOT-RUN" in output, output
+    assert "open pull request" in output, output
+
+
+@pytest.mark.integration
+def test_the_cross_branch_rule_reads_not_run_with_no_forge_remote(tmp_path):
+    """A checkout that names no forge repository at all — `origin` is absent.
+
+    Run against the real `bench/forge_open_prs.py` rather than a stand-in,
+    because the thing being checked is that the shipped command refuses before
+    it reaches a network: a seeded fixture has no `origin`, so this arm makes
+    no request and would be a different test if it did.
+    """
+    root = tmp_path / "repo"
+    root.mkdir()
+    seed(root, "2.3.0")
+    result = guard(root)
+    output = result.stdout + result.stderr
+    assert result.returncode == 0, output
+    assert "NOT-RUN" in output, output
+    assert "origin" in output, output
+
+
+@pytest.mark.integration
+def test_a_partial_enumeration_reports_its_findings_and_still_reads_not_run(tmp_path):
+    """One pull request answered, one refused: both halves are true at once.
+
+    The finding is positive evidence and stands on its own. The absence of
+    further findings is not claimed, because the scan did not finish — a
+    partial sweep reporting a clean tail is the same false green as never
+    having looked.
+    """
+    root = tmp_path / "repo"
+    root.mkdir()
+    sitter = seed(root, "2.3.0")
+    command = forge_stub(tmp_path, {
+        "42": {"sha": "a" * 40, "files": head_of(sitter, "2.3.0", "// another payload\n")},
+        "43": {"unreadable": True},
+    })
+    result = guard(root, SITTER_FORGE_COMMAND=command)
+    output = result.stdout + result.stderr
+    assert result.returncode != 0, output
+    assert "42" in output, output
+    assert "NOT-RUN" in output, output
+
+
+@pytest.mark.integration
+def test_a_pull_request_head_without_the_payload_is_an_absence_not_a_refusal(tmp_path):
+    """Exit 3 from the forge command is a fact about the head, not about the observer.
+
+    A pull request predating the plugin, or one on a branch that removed it,
+    carries no manifest and no version — nothing to collide with. Conflating
+    that with a refusal would spend the gate's one NOT-RUN line on a
+    non-event, and conflating it the other way would call a refusal an absence.
+    """
+    root = tmp_path / "repo"
+    root.mkdir()
+    seed(root, "2.3.0")
+    command = forge_stub(tmp_path, {"42": {"sha": "a" * 40, "files": {}}})
+    result = guard(root, SITTER_FORGE_COMMAND=command)
+    output = result.stdout + result.stderr
+    assert result.returncode == 0, output
+    assert "NOT-RUN" not in output, output
+
+
+def test_the_guard_names_a_forge_command_that_exists():
+    """The default extension point is a file, not a hope."""
+    assert (REPO / FORGE_COMMAND).is_file(), FORGE_COMMAND
+
+
+def test_an_empty_enumeration_is_a_claim_and_a_malformed_one_is_not(monkeypatch):
+    """`gh pr list --json files`'s trap, in the shipped reader's own terms.
+
+    An empty list of open pull requests is a legitimate all-clear and must be
+    reported as one; an answer that is not a list of numbered objects is the
+    content-free response whose emptiness means nothing, and it must refuse.
+    Checked here rather than trusted, because these two outcomes are exactly
+    the pair that a one-shot list-plus-filter cannot tell apart.
+    """
+    monkeypatch.setattr(forge_open_prs, "slug", lambda: "owner/repo")
+
+    monkeypatch.setattr(forge_open_prs, "readable", lambda path: b"[]")
+    assert forge_open_prs.numbers() == []
+
+    monkeypatch.setattr(forge_open_prs, "readable", lambda path: b'[{"number": 7}]')
+    assert forge_open_prs.numbers() == [7]
+
+    for answer in (b'{"message": "Not Found"}', b'[{"title": "no number here"}]', b"not json"):
+        monkeypatch.setattr(forge_open_prs, "readable", lambda path, a=answer: a)
+        with pytest.raises(forge_open_prs.CannotLook):
+            forge_open_prs.numbers()
+
+
+def test_a_repository_with_no_forge_remote_refuses_before_any_request(monkeypatch, tmp_path):
+    """`slug()` is where "this is not a forge-hosted checkout" is decided."""
+    monkeypatch.delenv("GITHUB_REPOSITORY", raising=False)
+    forge_open_prs.slug.cache_clear()
+    monkeypatch.chdir(tmp_path)
+    subprocess.run(["git", "init", "-q", "-b", "main"], cwd=tmp_path, check=True,
+                   capture_output=True)
+    with pytest.raises(forge_open_prs.CannotLook, match="origin"):
+        forge_open_prs.slug()
+
+    forge_open_prs.slug.cache_clear()
+    monkeypatch.setenv("GITHUB_REPOSITORY", "owner/repo/extra")
+    with pytest.raises(forge_open_prs.CannotLook):
+        forge_open_prs.slug()
+    forge_open_prs.slug.cache_clear()

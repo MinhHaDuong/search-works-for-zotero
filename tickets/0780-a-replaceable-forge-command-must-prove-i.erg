@@ -1,0 +1,149 @@
+%erg 0.1
+Title: A replaceable forge command must prove it looked before its silence is an empty enumeration
+Created: 2026-09-12
+Author: claude
+Blocked-by: 0779
+
+--- log ---
+2026-09-12T10:00Z claude created
+
+2026-09-12T10:02Z claude note Filed as the verification seat's residual on PR #533 (0779), APPROVED round 1 with zero blockers; the seat recorded this as non-blocking and the raid convention bundles the TICKET onto the spawning PR, never the fix, so nothing here is implemented on that branch. Reproduced independently before filing rather than taken on the seat's word: SITTER_FORGE_COMMAND pointed at a script that exits 0 and prints nothing, and the guard answered 'OK (rule 3): 0 open pull-request head(s) read' and exited 0 -- byte for byte the seat's own observation. Boundary as it stands: the shipped bench/forge_open_prs.py keeps its guarantee (an empty enumeration only after a 200 whose body parsed as a JSON array of integer-numbered objects, which the seat verified for that file specifically); the override does not, because the guard cannot see inside an executable another workshop wrote. Blocked-by 0779: rule 3 and the extension point it hangs on are unmerged, and this ticket edits both. Five options named in the body and none chosen, accepting-and-documenting among them; the decision is the work.
+--- body ---
+
+## Context
+
+Found by the verification seat on PR #533 (ticket 0779), at round 1, and
+recorded there as a non-blocking residual rather than a bounce:
+
+> The one gap I could reproduce: a *custom* `SITTER_FORGE_COMMAND` that exits 0
+> and prints nothing is trusted as "zero open PRs" — I built exactly this stub
+> and ran it; the guard printed "OK (rule 3): 0 open pull-request head(s) read"
+> and exited 0. This is a real instance of the trap this ticket exists to
+> close, but it lives at the override boundary the harness-extension-point
+> deliberately delegates to another workshop's own command, not in the shipped
+> default (whose own docstring's guarantee — "empty only after a 200 that parsed
+> as a JSON array of numbered objects" — I verified holds for
+> `forge_open_prs.py` specifically).
+>
+> — <https://github.com/MinhHaDuong/search-works-for-zotero/pull/533#issuecomment-5645195629>
+
+The reproduction is the seat's own stub, not a reading of the code. That
+matters: 0779's whole premise is that a check whose all-clear cannot be told
+from "I could not look" is not a check, and this is that conflation, sitting
+one layer out from where 0779 fixed it.
+
+**Be precise about which guarantee holds and which does not.** 0779 put the
+remedy in the protocol rather than in the caller's discipline: every form of
+`bench/forge_open_prs.py`'s protocol answers about at most one pull request, so
+no caller can express the one-shot list-plus-filter, and an empty enumeration is
+printed only after a 200 whose body parsed as a JSON array of objects each
+carrying an integer `number`. The seat verified that guarantee holds **for the
+shipped default**. What it does not cover is the substitute: `forge()` is marked
+`# harness-extension-point` precisely so another workshop can drop in its own
+executable, and the guard reads that executable's exit 0 plus empty stdout as
+"this forge has no open pull requests." A stub that never looked, a command that
+is a no-op on a forge it does not understand, a wrapper whose credentials
+expired quietly, and a genuinely empty repository are one output today.
+
+So the question this ticket exists to answer is not "how do we validate GitHub
+JSON" — that is done — but: **what must a replaceable command prove about
+itself before its silence may be read as an empty enumeration?** The boundary
+is a contract between the guard and an executable nobody in this repository
+wrote, and a contract whose compliant and non-compliant answers are identical is
+not one.
+
+Worth keeping in view while answering: the override is also how 0779's own test
+suite stays offline and how its positive control was driven against real forge
+data, so whatever is required must be cheap enough that a stand-in in a test
+fixture can satisfy it honestly. A requirement that makes the test stubs lie is
+a worse outcome than the gap.
+
+## Relevant files
+
+- `bench/check_sitter_version.py` — `forge()` (the `# harness-extension-point`),
+  `answered()`, `open_pull_requests()`, and rule 3's `check_open_branches()`;
+  also the module docstring's account of the protocol's shape and of the
+  NOT-RUN discipline, which is where any new requirement has to be written down
+- `bench/forge_open_prs.py` — the shipped default, and the reference for what a
+  compliant command does; its docstring owns the protocol
+- `tests/test_check_sitter_version.py` — `forge_stub()` and `broken_forge()`,
+  the stand-ins every rule-3 fixture runs through, and the arms that pin the
+  empty/malformed distinction for the default reader
+- `tickets/0779-the-sitter-version-guard-cannot-see-a-ve.erg` — the parent, and
+  its record of why the protocol rather than the caller carries the fix
+- `tickets/AGENTS.md` — the enumeration trap in its original ticket-ID form, and
+  the `# harness-extension-point` convention
+
+## Actions
+
+1. Decide what a command must do to distinguish "I enumerated, there are none"
+   from "I did not look", and write the decision into the protocol's owning
+   docstring so a future implementer meets it before writing an executable.
+   Options visible from here, none pre-chosen and none exclusive:
+   - **a distinct exit code for an empty-but-real enumeration** (as
+     `FORGE_ABSENT` = 3 already distinguishes an absent path from an unreadable
+     one), so exit 0 with empty stdout becomes an unrecognised answer and reads
+     NOT-RUN;
+   - **a required non-empty token on an empty answer** — the command prints
+     something meaning "none", so silence is never an answer at all;
+   - **a self-describing handshake**: an extra protocol form the guard calls
+     first, which a command that cannot look fails;
+   - **a conformance probe the guard ships**, run against any command it is
+     pointed at, refusing the override rather than the answer — closest in
+     spirit to `tickets/AGENTS.md`'s "before trusting a scan that returns
+     nothing, run it against a case known to be positive";
+   - **accept the boundary and document it**, if the honest answer is that a
+     replaceable command cannot be made to prove anything and the guard should
+     say so where a workshop porting it will read it. This is a real option and
+     must be weighed, not used as a fallback for not deciding.
+2. Apply the decision to `bench/forge_open_prs.py` so the shipped default is
+   the worked example of a compliant command, not an exception to the rule.
+3. Keep the test stand-ins honest under the new requirement: whatever a
+   compliant command must prove, `forge_stub()` proves it and `broken_forge()`
+   does not.
+4. Do not widen the change into rule 3's semantics. The payload-difference
+   condition, the ancestry exemption, the suggestion, and the exit-0-beside-a-
+   NOT-RUN-line decision were all reviewed and approved at #533 round 1 and are
+   not in scope.
+
+## Test
+
+- **Red first, and it is the seat's own reproduction:** a `SITTER_FORGE_COMMAND`
+  that exits 0 and prints nothing. Today the guard answers
+  `OK (rule 3): 0 open pull-request head(s) read` and exits 0; the arm must
+  require NOT-RUN. Build the stub before the fix and see the green, so the
+  fixture is known to discriminate rather than assumed to.
+- A command that is genuinely looking at a forge with no open pull requests must
+  still be able to report that, and be believed. Whatever mechanism is chosen,
+  one arm holds this apart from the arm above — if the two cannot be told apart
+  by the fixtures, the fix has moved the conflation rather than closed it.
+- The existing rule-3 arms keep their verdicts, the five NOT-RUN arms included.
+
+## Verification
+
+- [ ] `python3 -m pytest tests/test_check_sitter_version.py -q`
+- [ ] `python3 bench/check_sitter_version.py --root .` against the live forge,
+      which must still read the real open pull requests rather than NOT-RUN on
+      its own default command
+- [ ] `make check`
+- [ ] The seat's stub reproduced green BEFORE the fix and NOT-RUN after, quoted
+      as observed
+
+## Invariants
+
+- Rule 3's approved semantics are untouched: the DIFFERENT-payload condition,
+  the ancestry exemption that leaves a merged or own-lane head to rule 1, the
+  step-up suggestion, and NOT-RUN on its own line beside a green exit.
+- The four pre-0779 NOT-RUN cases keep answering NOT-RUN and keep reddening the
+  gate.
+- No network call is required for the local rules, and `make check` stays
+  runnable offline.
+- The override stays usable for what it is for: driving the suite offline and
+  running a positive control against real forge data. A requirement that can
+  only be satisfied by a stub that lies has failed.
+
+## Exit criteria
+
+- A command pointed at by `SITTER_FORGE_COMMAND` that has not looked cannot be
+  read as a forge with no open pull requests — and a command that has looked at
+  an empty forge can still say so and be believed.

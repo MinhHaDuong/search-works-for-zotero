@@ -1,0 +1,71 @@
+%erg 0.1
+Title: Record what strict_max_version 10.star costs on a host upgrade
+Created: 2026-09-12
+Author: claude
+Closed: ruled and recorded 2026-09-12 — ceiling stands; the disable-versus-disappearance question is 0776's
+
+--- log ---
+2026-09-12T09:02Z claude created
+
+2026-09-12T09:07Z claude note filed from the lifecycle audit (F8). Needs a ruling on what the plugin claims about an unreleased host
+2026-09-12T10:37Z MinhHaDuong ruled — Zotero 11 is incompatible, the 10.* ceiling stands, option 3 dead. Consequence written in RELEASE-NOTES and SPEC 5.2.7; the disable-versus-disappearance half is 0776's
+2026-09-12T10:37Z Claude closed — ruled and recorded 2026-09-12 — ceiling stands; the disable-versus-disappearance question is 0776's
+--- body ---
+
+## Context
+
+Audit finding F8 (`verification/SITTER-LIFECYCLE-AUDIT-2026-09-12.md`).
+
+`manifest.json` and `update.json`'s single entry both cap at
+`strict_max_version: "10.*"`. On a host upgrade to Zotero 11 the installed build
+is out of range **and** the update manifest offers no in-range version — the two
+conditions together, which is precisely the configuration `update.json`'s own
+`_comment` describes as the suspected cause of the add-on being disabled and
+then deleted mid-session. A downgrade below 10.0.1 reads the same from the other
+side.
+
+What Zotero 11 would actually do is untestable until an 11 exists; that is
+stated, not guessed.
+
+The cap is defensible: the payload reaches into `Zotero.SDT.ensure`,
+`resource://zotero/document-worker/*` and `win.require`, none of it public API,
+so silently claiming compatibility with an unread host is worse than being
+disabled by it. What is missing is that the choice is recorded nowhere a reader
+meets it, and that the *disable* risk and the *deletion* risk are different
+questions.
+
+## Why this needs the author
+
+Choosing what the plugin claims about an unreleased host is a design decision
+with a `DECISIONS.md` entry, not a factual correction.
+
+## Options, ranked
+
+1. **Keep the cap; record the consequence.** RELEASE-NOTES and the ticket trail
+   say what a major host upgrade does to an installed sitter, and the first 11
+   build is a re-test occasion. Recommended.
+2. **Keep the manifest cap, widen the update manifest.** A second entry with a
+   wider range so the host always finds *some* listed version in range. Depends
+   on 0776's shape.
+3. **Drop `strict_max_version`.** Cheapest to write, and it ships an
+   unread-API build to a host nobody has tested.
+
+## Ruled 2026-09-12: option 1 — the ceiling stands
+
+Zotero 11 is incompatible, on the merits rather than on a measurement: the
+payload reaches into `Zotero.SDT.ensure`, `resource://zotero/document-worker/*`
+and `win.require`, none of it public API, so a build claiming 11 would claim
+what nobody has read. Option 3 is dead. `DECISIONS.md` carries the ruling,
+SPEC §5.2.7 states the ceiling and what a host outside the range leaves behind,
+and `RELEASE-NOTES.md` says it where an installer meets it.
+
+The half this ruling hands on: "incompatible" names a DISABLE, and F8's second
+condition — out of range and absent from its own update manifest at once — is
+what turns a disable into a disappearance. That is 0776, now promoted to the
+live decision.
+
+## Exit criteria
+
+- ~~A ruling in `DECISIONS.md` and the consequence readable by an installer~~ —
+  both done 2026-09-12, in the same change as this note. Closed; the remaining
+  question is 0776's, not this ticket's.

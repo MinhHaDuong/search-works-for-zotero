@@ -29,6 +29,26 @@ whole history:
    came from, is not the two-key state this repository ships once a release
    exists, it is one someone left mid-edit.
 
+3. **No two OPEN branches, either (ticket 0779).** No other open pull request's
+   head carries the working tree's version over a different payload. Rules 1
+   and 2 are anchored in this checkout, so a number a parallel lane has already
+   spent is invisible to them: two lanes both take it, both pass on their own
+   branch, and the collision comes into existence at the second merge — by
+   which time both payloads are in history, which is the one state this
+   docstring calls unfixable below. Ticket 0771 avoided it by hand, by reading
+   an open pull request's diff before choosing a number. That is not a guard.
+   The condition is the same DIFFERENT-payload one rule 1 uses, and it has to
+   be: the ordinary state of two open pull requests here is that neither
+   touched the plugin, so both carry main's version over main's payload, and a
+   rule firing on that would redden every lane at once. A head that is already
+   an ancestor of HEAD — a merged pull request, or the lane's own — is left to
+   rule 1, which reads it directly, rather than reported twice. A finding
+   carries a suggested version: the first one above the working tree's that no
+   claim read has taken, history and open pull requests alike. Deliberately not
+   one past the highest number anywhere — that would climb back into the
+   abandoned `2.x` scheme this payload's history still carries and undo the
+   2026-09-06 reset, which is what the positive control caught it doing.
+
 THE NO-REGRESSION CHECK WAS REMOVED 2026-09-06 (author's ruling, this ticket's
 DECISIONS.md entry): the sitter has never been released — no auto-update
 channel, no user-facing install outside the author's own hand-delivered
@@ -85,9 +105,53 @@ control rather than by reading the code:
   detected. There is no case where this guard wants one tree's files read
   against another tree's log.
 
+Rule 3 adds a FIFTH way of being unable to look, and it is the only one that
+does not redden the gate, which is a deliberate asymmetry rather than a
+softening. The four above are ways of having no history, and history is what
+rules 1 and 2 read, so a gate that cannot read it has nothing to say and says
+nothing by exiting non-zero. An unreachable forge leaves rules 1 and 2 fully
+evaluated: a lane offline still gets both, and blocking its commit over a
+network it does not have is how this rule would get waived out of `make check`
+and stop running at all. So the forge leg reports on its own line — NOT-RUN
+with the reason, at error level, beside a green exit — and the closing OK
+sentence never claims anything about open pull requests. The all-clear and the
+could-not-look are different sentences, which is the whole of what "never
+green" can mean for a rule the gate does not exit on. A PARTIAL enumeration
+reads NOT-RUN too, while still reporting whatever it did find: a finding is
+positive evidence and stands alone, but the absence of further findings is not
+claimed by a sweep that did not finish.
+
+WHERE THE FORGE IS TALKED TO, and it is one place on purpose. Rule 3's every
+forge-specific act is a `subprocess` call to ONE replaceable command, named by
+`FORGE_COMMAND` and overridable with `SITTER_FORGE_COMMAND` — a command, not an
+imported client, so a workshop on another forge drops in its own executable and
+edits nothing in this file, and so the guard's own tests can substitute a
+stand-in and stay offline. The default is `bench/forge_open_prs.py`, which is
+the only file in the repository that knows the forge is GitHub. That command's
+docstring owns the protocol; what matters here is its shape, because the shape
+is the fix: it answers about ONE pull request per invocation, so a caller cannot
+express the one-shot list-plus-filter that `tickets/AGENTS.md` records as the
+trap (`gh pr list --json files` does not populate `files`, so its empty answer
+is the same output whatever the pull requests contain). A check whose all-clear
+cannot be told from "I could not look" is not a check, and the remedy lives in
+the protocol rather than in the discipline of whoever calls it.
+
+NOTHING RUNS THIS ON A PUSH. This repository has no `.github/workflows/`, so
+there is no continuous integration here and no gate between a branch and
+`main` except a lane running `make check` and a coordinator reading what it
+quoted (`AGENTS.md` § Merge authority says so explicitly: "The review this
+repository has instead of continuous integration is the merge itself"). Rule 3
+is therefore worth exactly what that habit is worth, and this comment is here
+instead of a reassuring one about CI coverage that does not exist.
+
 What it still cannot see: a rewritten history that keeps the same shape (a
 filter-branch that edited an old manifest in place), and a payload delivered
 outside this repository. Both are outside what a path's own log can evidence.
+Rule 3 adds two of its own: a payload on a branch nobody has opened a pull
+request for, and one on a pull request opened between this run and the merge.
+The second is why the check belongs at the merge gate and not only at the
+moment a version is chosen — the same reason `tickets/AGENTS.md` gives for
+re-running its ticket-ID seat check before merging.
 
     python3 bench/check_sitter_version.py [--root .]
 """
@@ -97,6 +161,7 @@ import hashlib
 import json
 import logging
 import os
+import shlex
 import subprocess
 import sys
 import urllib.error
@@ -130,6 +195,19 @@ REDIRECTING = ("GIT_DIR", "GIT_WORK_TREE", "GIT_COMMON_DIR", "GIT_INDEX_FILE",
                "GIT_OBJECT_DIRECTORY", "GIT_ALTERNATE_OBJECT_DIRECTORIES",
                "GIT_CEILING_DIRECTORIES", "GIT_NAMESPACE")
 
+#: The command rule 3 asks about open pull requests, relative to `--root`, and
+#: the only forge-specific thing this file names. Its own docstring owns the
+#: protocol. Overridable with the environment variable below, which is how the
+#: test suite drives rule 3 without a network and how a workshop on another
+#: forge points the rule at its own reader.
+FORGE_COMMAND = "bench/forge_open_prs.py"
+FORGE_ENV = "SITTER_FORGE_COMMAND"
+
+#: The forge command's exit code for "that head does not carry this path" — an
+#: absence, as against any other non-zero exit, which means it could not look.
+#: Two nothings, and conflating them is the defect ticket 0779 exists for.
+FORGE_ABSENT = 3
+
 log = logging.getLogger("check_sitter_version")
 
 
@@ -140,6 +218,17 @@ class Unreadable(Exception):
     show` fails on both that and a path which never existed, and only one of
     those is a payload that was never there — conflating them turned a history
     the guard could not read into a history with nothing in it.
+    """
+
+
+class ForgeUnreadable(Exception):
+    """Rule 3 could not look, which is never rule 1's or rule 2's problem.
+
+    Kept apart from `Unreadable` precisely because the two answer differently:
+    a history this checkout cannot read leaves the whole guard with nothing to
+    say, while a forge it cannot reach leaves rules 1 and 2 untouched and only
+    rule 3 unrun. One exception type for both would have made an offline lane's
+    `make check` red over a rule that is not the reason it runs.
     """
 
 
@@ -274,13 +363,204 @@ def check_release(root: Path, version: str, addon_id: str) -> list[str]:
     return findings
 
 
+def environment() -> dict[str, str]:
+    """This process's environment with the git redirections stripped.
+
+    Shared by the git calls and the forge command, for one reason in both
+    cases: each is asked a question about the repository `--root` names, and an
+    inherited `GIT_DIR` answers it about a different one. The forge command
+    resolves the repository's own remote, so it is redirectable exactly as the
+    log reads were.
+    """
+    return {name: value for name, value in os.environ.items() if name not in REDIRECTING}
+
+
 def git(root: Path, *arguments: str) -> subprocess.CompletedProcess:
-    environment = {name: value for name, value in os.environ.items()
-                   if name not in REDIRECTING}
+    cleaned = environment()
     # A promisor remote would otherwise fetch a missing blob mid-gate, turning
     # the partial-clone case into a network call instead of the NOT-RUN below.
-    environment["GIT_NO_LAZY_FETCH"] = "1"
-    return subprocess.run(["git", *arguments], cwd=root, capture_output=True, env=environment)
+    cleaned["GIT_NO_LAZY_FETCH"] = "1"
+    return subprocess.run(["git", *arguments], cwd=root, capture_output=True, env=cleaned)
+
+
+def forge(root: Path, *arguments: str) -> subprocess.CompletedProcess:
+    """Ask the forge one question. # harness-extension-point
+
+    THE ONLY forge-specific call in this file, and the whole of what another
+    workshop replaces: point `SITTER_FORGE_COMMAND` at an executable of your
+    own, or ship a different `bench/forge_open_prs.py`, and rule 3 works on any
+    forge without a line of this guard changing. A command rather than an
+    imported client for three reasons, and each would be enough: an MCP or REST
+    client would put a forge's vocabulary inside the guard, which is what makes
+    a port a rewrite; a command can be swapped by environment variable, which
+    is how the test suite exercises rule 3 offline and how the positive control
+    for it is run against real forge data; and a command's exit code is a
+    contract narrow enough to be got right, where an exception hierarchy
+    crossing a library boundary is not.
+
+    The protocol is the command's own docstring. Its shape is load-bearing and
+    is repeated here because a future edit could quietly break it: every form
+    answers about at most ONE pull request, so no caller can ask a question
+    whose empty answer might mean either "nothing matched" or "I could not
+    look". `tickets/AGENTS.md` names that trap in its GitHub-CLI spelling; this
+    is the same trap and the protocol is the fix.
+    """
+    command = shlex.split(os.environ.get(FORGE_ENV, "")) or \
+        [sys.executable, str(Path(__file__).resolve().parents[1] / FORGE_COMMAND)]
+    try:
+        return subprocess.run([*command, *arguments], cwd=root, capture_output=True,
+                              env=environment(), timeout=120)
+    except (OSError, subprocess.SubprocessError) as error:
+        raise ForgeUnreadable(f"the forge command {command[0]!r} could not be run: {error}") \
+            from error
+
+
+def answered(root: Path, *arguments: str) -> bytes:
+    """One forge answer, with every non-zero exit turned into `ForgeUnreadable`.
+
+    `FORGE_ABSENT` is not handled here: only the caller reading a payload path
+    knows that "this head has no such file" is a fact about the payload rather
+    than about the reader, so that caller checks the code itself.
+    """
+    answer = forge(root, *arguments)
+    if answer.returncode != 0:
+        reason = answer.stderr.decode("utf-8", "replace").strip() or \
+            f"it exited {answer.returncode} without saying why"
+        raise ForgeUnreadable(reason)
+    return answer.stdout
+
+
+def open_pull_requests(root: Path) -> list[str]:
+    """Every open pull request's number. Empty only as a positive claim.
+
+    The command exits non-zero rather than printing nothing when it could not
+    look, so an empty list here really does mean a forge with no open pull
+    requests — which is the one distinction this rule stands or falls on.
+    """
+    return answered(root).decode("utf-8", "replace").split()
+
+
+def pull_request_reader(root: Path, number: str):
+    """Read a delivered file at one open pull request's head.
+
+    Only `SITTER` is tried, not every entry in `HOMES`: a pull request open
+    today is not older than the last rename, and a head that genuinely carries
+    no manifest is an absence rule 3 has nothing to say about either way.
+    Answers are memoised because `payload()` and `version_of()` each read the
+    manifest and every read is a request.
+    """
+    cache: dict[str, bytes | None] = {}
+
+    def read(name: str) -> bytes | None:
+        if name not in cache:
+            answer = forge(root, number, f"{SITTER}/{name}")
+            if answer.returncode == FORGE_ABSENT:
+                cache[name] = None
+            elif answer.returncode != 0:
+                raise ForgeUnreadable(
+                    answer.stderr.decode("utf-8", "replace").strip() or
+                    f"pull request {number} exited {answer.returncode} without saying why")
+            else:
+                cache[name] = answer.stdout
+        return cache[name]
+    return read
+
+
+def in_our_history(root: Path, sha: str) -> bool:
+    """Whether `sha` is already an ancestor of HEAD, so rule 1 reads it directly.
+
+    True for a merged pull request and for the running lane's own, which are
+    the two heads rule 3 must stay quiet about — the first because reporting it
+    would double-report what rule 1 already says, the second because every lane
+    would otherwise redden against itself. `--is-ancestor` answers 1 for "no"
+    and 128 for an object this clone does not have, and only 0 is a yes; a sha
+    that is not here is a head on a branch we have not fetched, which is
+    exactly the case rule 3 is for.
+    """
+    return git(root, "merge-base", "--is-ancestor", sha, "HEAD").returncode == 0
+
+
+def next_free(version: str, claimed: list[str]) -> str:
+    """The first version above the working tree's that nobody has claimed yet.
+
+    Stepping up from the CURRENT version rather than to one past the highest
+    number anywhere, which the first draft of this did and which the positive
+    control caught: this payload's history still carries the abandoned `2.x`
+    scheme the author reset away from on 2026-09-06, so "one past the maximum"
+    suggested `2.11.2` and would have quietly undone the reset. A suggestion
+    has to stay inside the scheme in force and merely step over what is taken —
+    which is also exactly what ticket 0771 did by hand when it read an open
+    pull request's diff and took the number after it.
+
+    It steps over every claim read, this checkout's history and the open pull
+    requests alike, so the lane is not handed a second collision. Versions this
+    guard cannot order are dropped rather than guessed at. Terminates: each
+    turn of the loop either answers or consumes one of a finite set of claims.
+    """
+    taken = set()
+    for other in claimed:
+        try:
+            taken.add(parse(other))
+        except ValueError:
+            continue
+    candidate = list(parse(version))
+    while True:
+        candidate[-1] += 1
+        if tuple(candidate) not in taken:
+            return ".".join(str(part) for part in candidate)
+
+
+def check_open_branches(root: Path, version: str, digest: str | None,
+                        seen: list[str]) -> tuple[list[str], int, str | None]:
+    """Rule 3: findings, how many pull-request heads were read, and why not more.
+
+    The third element is None when the enumeration finished, and a NOT-RUN
+    reason otherwise. Findings and a reason can both be non-empty: a collision
+    found is a fact, and a sweep cut short simply does not claim the rest was
+    clean.
+    """
+    try:
+        numbers = open_pull_requests(root)
+    except ForgeUnreadable as error:
+        return [], 0, str(error)
+    findings, claims, read = [], list(seen), 0
+    # `done` counts pull requests the loop got through, which is what the
+    # NOT-RUN reason below has to report: `read` counts heads whose payload was
+    # actually fetched, and the two differ by the ones left to rule 1, so
+    # quoting `read` there would overstate how much of the sweep was missing.
+    for done, number in enumerate(numbers):
+        try:
+            head = answered(root, number).decode("utf-8", "replace").strip()
+            if not head:
+                raise ForgeUnreadable(f"pull request {number} named no head commit")
+            if in_our_history(root, head):
+                continue
+            reader = pull_request_reader(root, number)
+            claimed = version_of(reader)
+            read += 1
+            if claimed is None:
+                continue
+            claims.append(claimed)
+            if parse(claimed) == parse(version) and payload(reader) != digest:
+                findings.append(
+                    f"open pull request {number} (head {head[:12]}) already claims version "
+                    f"{version} for a DIFFERENT payload. Whichever of the two merges second "
+                    "puts a second payload under one number, and history cannot be "
+                    "un-shipped: bump the manifest version clear of every claim.")
+        except ValueError:
+            # A version at that head this guard cannot order. Not this tree's
+            # defect and not rule 3's business — rule 1 says it about our own
+            # manifest, where it is actionable.
+            continue
+        except ForgeUnreadable as error:
+            return findings, read, (
+                f"{error} — the open pull requests were enumerated and then "
+                f"{len(numbers) - done} of {len(numbers)} were left unread, so whatever is "
+                "reported below stands and nothing at all is claimed about the rest")
+    if findings:
+        findings.append("the first version above this one that no claim read has taken: "
+                        f"{next_free(version, claims)}")
+    return findings, read, None
 
 
 def worktree_reader(root: Path):
@@ -326,24 +606,27 @@ def history(root: Path) -> list[str]:
     return listed.stdout.decode("utf-8", "replace").split()
 
 
-def run(root: Path) -> tuple[list[str], str, int]:
-    """Findings, the working tree's version, and how many revisions were read."""
+def run(root: Path) -> tuple[list[str], str, int, tuple[list[str], int, str | None]]:
+    """Findings, the working tree's version, how many revisions were read, and
+    rule 3's own verdict — kept separate because it is the one leg whose
+    inability to look does not redden the gate."""
     current_version = version_of(worktree_reader(root))
     if current_version is None:
         return ([f"{root / SITTER}/manifest.json is absent or carries no string version"],
-                "", 0)
+                "", 0, ([], 0, "the working tree carries no version to compare against"))
     current = parse(current_version)
     current_payload = payload(worktree_reader(root))
     addon_id = addon_id_of(worktree_reader(root))
     findings = [f"{root / SITTER}/manifest.json carries no readable applications.zotero.id"] \
         if addon_id is None else check_release(root, current_version, addon_id)
-    read = 0
+    read, seen = 0, []
     for sha in history(root):
         reader = commit_reader(root, sha)
         was = version_of(reader)
         if was is None:
             continue
         read += 1
+        seen.append(was)
         # Numerically, not as text: `"2.03.0"` and `"2.3.0"` are one version to
         # any dotted-number comparator, Zotero's included; string equality
         # calls them two, so a leading zero would otherwise slip a changed
@@ -353,7 +636,8 @@ def run(root: Path) -> tuple[list[str], str, int]:
                 f"{sha[:12]} already shipped a DIFFERENT payload under version "
                 f"{current_version}. Bump the manifest version: two builds sharing "
                 "one number are indistinguishable in the author's extensions.json.")
-    return findings, current_version, read
+    cross = check_open_branches(root, current_version, current_payload, seen)
+    return findings, current_version, read, cross
 
 
 def main() -> int:
@@ -394,7 +678,7 @@ def main() -> int:
         return 1
 
     try:
-        findings, version, read = run(root)
+        findings, version, read, (cross, heads, unrun) = run(root)
     except Unreadable as exc:
         log.error("NOT-RUN: %s. This checkout has the commits and not their contents — a "
                   "partial or filtered clone — so an earlier payload cannot be hashed and a "
@@ -404,7 +688,26 @@ def main() -> int:
     except ValueError as exc:
         log.error("FAIL: a manifest version this guard cannot order: %s", exc)
         return 1
-    if not findings and read == 0:
+    # Rule 3 on its own line, always, and before anything else is reported: the
+    # sentence that says it could not look and the sentence that says it looked
+    # and found nothing must never be the same sentence, and neither may be
+    # folded into the closing OK, which speaks only of this checkout's history.
+    # The leg is named in both sentences because this gate now has two kinds of
+    # NOT-RUN — the four that redden it and this one that does not — and a
+    # reader who cannot tell them apart has the false-green problem back.
+    if unrun is not None:
+        log.error("NOT-RUN (rule 3): the open pull requests of this repository could not be "
+                  "read (%s), so a version another open branch has already claimed would "
+                  "read as unclaimed here. Rules 1 and 2 are unaffected and still ran.", unrun)
+    elif not cross:
+        log.info("OK (rule 3): %d open pull-request head(s) read, and none claims version %s "
+                 "over a different payload", heads, version)
+    # And no third line when the rule ran and DID find something: the findings
+    # below say it. Printing the all-clear beside them is what the first draft
+    # did, and the positive control read `OK (rule 3)` directly above two FAILs
+    # naming the very pull requests it had just cleared.
+
+    if not findings and not cross and read == 0:
         # The last way to be blind and look green: a checkout that is neither
         # shallow nor grafted and simply has no commit touching the payload —
         # a fresh `git init`, or the payload moved to a new path whose history
@@ -417,9 +720,9 @@ def main() -> int:
                   "previous path to HOMES in this file; if the checkout is fresh, this "
                   "guard has nothing to say yet.", root, ", ".join(HOMES))
         return 1
-    for finding in findings:
+    for finding in findings + cross:
         log.error("FAIL: %s", finding)
-    if findings:
+    if findings or cross:
         return 1
     log.info("OK: version %s, checked across %d revisions of %s, and no earlier "
              "revision shipped a different payload under it", version, read, SITTER)

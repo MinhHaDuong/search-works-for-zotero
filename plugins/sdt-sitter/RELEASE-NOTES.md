@@ -19,6 +19,22 @@ build a search index or isolate a stuck native worker. Coverage describes the
 last observed state; preparation depends on local files, available resources
 and successful native extraction.
 
+Installing the sitter causes one outbound request, and the plugin is not what
+makes it. `manifest.json` declares an update manifest served from this
+repository's `main` branch on `raw.githubusercontent.com`, and Zotero's own
+add-on update check fetches it about once a day for as long as the add-on stays
+installed, at the host cadence owned by
+[SPEC.md §6](../../SPEC.md#6-security-considerations) — where the interval, its
+provenance and the rest of this surface are recorded. That check is not
+optional: ticket 0727 established with a control that a build identical but for
+the removal of `update_url` is refused at install ("peut-etre incompatible avec
+cette version de Zotero"), so an add-on that declares none cannot be installed
+at all. The request is for a fixed URL: nothing about the library is sent, and
+the sitter opens no network connection of its own, here or anywhere else. What
+the fetch necessarily discloses to the other end is the requesting address and
+that this add-on's manifest is being checked; whether the host adds the
+installed version to the check has not been read here.
+
 ## Prepared for the next release
 
 Tickets [0760](../../tickets/0760-text-less-scanned-pdfs-silently-count-as.erg)
@@ -57,6 +73,38 @@ for the next pass, and a pass that finished with attachments it could not index
 — the last pointing at the "Not indexed" list, where each obstacle already
 carries its own explanation.
 
+Ticket [0771](../../tickets/0771-the-sitter-lifecycle-record-the-reason-i.erg)
+records what the host says when it starts the add-on, as the log has recorded
+what it says when it stops it since ticket 0689: an install, an enable, an
+upgrade or a downgrade is now named on the way in as well as on the way out, so
+the trace reads as a sequence of transitions. Removing the add-on now also takes
+its two session handles off the host rather than leaving them there for the rest
+of the session. Cached observations gain a schema number, which the reader of
+the file checks: one consequence is visible, once, on first use of this build —
+observations written by an earlier build carry no such number and are re-measured
+rather than believed. The audit behind all three, including the findings not
+addressed in this release, is
+[the lifecycle audit](../../verification/SITTER-LIFECYCLE-AUDIT-2026-09-12.md).
+
+The add-on declares the Zotero versions it runs in, and that declaration is a
+ceiling as well as a floor: it does not claim to work on a future major Zotero.
+On such an upgrade the expected outcome is that Zotero leaves it installed and
+**disabled** — visible in Tools → Add-ons, indexing stopped, nothing lost from
+the library, nothing removed from Zotero's own text index. That is deliberate
+(ticket [0777](../../tickets/closed/0777-record-what-strict-max-version-10-star-c.erg),
+decided 2026-09-12): the add-on works through parts of Zotero that carry no
+compatibility promise, so claiming a version nobody has tested would be worse
+than being set aside by it. What such an upgrade must not do is make the add-on
+vanish on its own; that failure has been seen once, has no established cause,
+and is tracked in ticket
+[0727](../../tickets/0727-the-sitter-uninstalls-itself-update-url.erg).
+
+Removing the add-on leaves the indexing switch off rather than unset: install
+it again and it starts stopped, with its toolbar entry and window present and
+one click to start, and it does not ask the first-run question a second time
+(ticket [0772](../../tickets/0772-does-an-uninstall-withdraw-the-sitter-in.erg),
+decided 2026-09-12).
+
 With technical diagnostics switched on, ticket
 [0727](../../tickets/0727-the-sitter-uninstalls-itself-update-url.erg) adds one
 more file: if Zotero disables or removes the sitter, it writes what it was told
@@ -65,7 +113,9 @@ more file: if Zotero disables or removes the sitter, it writes what it was told
 twice vanished from a live profile with no explanation surviving the event. The
 file carries the same redaction as the diagnostics clipboard: opaque record
 keys, no document titles, no install path. With the switch off, which is how it
-ships, nothing is written.
+ships, nothing is written — and since removing the add-on now also takes its
+session handles off Zotero (above), an uninstall with the switch off leaves no
+record of itself at all. Switch it on before reporting a disappearance.
 
 Implementation and host-mock verification are recorded in
 [the scheduling report](../../verification/SDT-SITTER-EVENTS.md). This draft does
