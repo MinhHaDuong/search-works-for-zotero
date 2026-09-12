@@ -9,6 +9,7 @@ Blocked-by: 0771
 
 2026-09-12T09:07Z claude note filed from the lifecycle audit (F2). Blocked-by 0771: the removal belongs in the same shutdown finally that 0771 edits
 2026-09-12T10:37Z claude note Action 2 no longer waits on 0772: write enabled false via writeSDTSwitch, do not clear it
+2026-09-12T14:27Z claude note ONE EXCEPTION THIS TICKET MUST CARRY, from the author's ruling of 2026-09-12 (DECISIONS.md, "in a live install a clean uninstall is the way"). Sweeping the sitter's durable state on uninstall is exactly right and this ruling strengthens it -- with one carve-out. `<dataDir>/sdt-sitter-last-shutdown.json`, the death certificate of ticket 0727, is written ONLY on the disable and uninstall reasons and ONLY when the diagnostics switch is on, which means it exists only because the operator asked for it BEFORE the event. Since the same ruling removed the parked ring, that file is the only durable record of a removal there will ever be. A clean uninstall must not delete it: it is the operator's own request, not state the plugin kept for itself. The table in the body should gain it as a row with that disposition rather than leave it to be rediscovered by whoever implements this.
 --- body ---
 
 ## Context

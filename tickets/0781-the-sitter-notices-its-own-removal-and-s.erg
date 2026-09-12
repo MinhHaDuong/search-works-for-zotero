@@ -1,0 +1,125 @@
+%erg 0.1
+Title: The sitter notices its own removal and says so while it still can
+Created: 2026-09-12
+Author: claude
+
+--- log ---
+2026-09-12T14:32Z claude created
+
+--- body ---
+## Context
+
+The author's observation of 2026-09-12, and it reframes ticket 0727: **when the
+sitter evaporates from the Extensions window, it is still resident.** That is
+already on 0727's record from the night of 2026-09-06 — "the running instance
+kept working from memory throughout; the author could still open and close the
+dialog, and the toolbar spinner still animated" — but its consequence was never
+drawn.
+
+**The consequence, and it is a hole in this repository's own instrumentation.**
+`shutdown()` clears the pulse, removes every toolbar button and closes every
+dialog. The author saw the spinner still turning and the dialog still working
+AFTER the record and the `.xpi` were gone. So `shutdown()` did not run. The
+removal happened without the add-on being told.
+
+Everything ticket 0727 built on 2026-09-12 hangs off that teardown: the death
+certificate is written from `shutdown()`'s `finally`, and the ring is parked
+there too. **Neither fires in the phenomenon.** The instrumentation has a blind
+spot shaped exactly like the defect it was built for, and the only reason it was
+not obvious is that no arm has ever reproduced the phenomenon to expose it.
+
+**What can witness it.** Only the still-running scope. An external watcher
+(`bench/sitter_watch.py`) sees the record vanish but cannot say what the plugin
+was doing; the host does not tell the plugin; and the plugin's own teardown is
+never invoked. But the plugin is alive, has a heartbeat, and can ask the host
+whether it is still installed. It is the victim and the only available witness.
+
+## What to build
+
+A self-check on the existing heartbeat (`heartbeatTick`, 60 s), which asks
+`AddonManager.getAddonByID(ADDON_ID)` — or reads the host's record — and
+compares the answer against being alive. If this scope is running and the host
+says the add-on is not installed, or not active, that IS the phenomenon, caught
+live, from inside.
+
+On detecting it, in this order:
+
+1. **Journal it**, at `error` level, with whatever the host answered. This is
+   the record the certificate cannot make, and it reaches Zotero's debug output
+   as well as the ring.
+2. **Write the certificate**, on the same terms the ruling of 2026-09-12 set:
+   only when the diagnostics switch is on. The reason field says so — something
+   like `vanished-without-teardown`, distinct from every `BOOTSTRAP_REASONS`
+   value, because it is not a reason the host gave.
+3. **Tell the user, in the window and once.** Plainly: Zotero has removed the
+   indexing assistant, indexing has stopped, the work already done is not lost,
+   and it will have to be installed again. An apology is appropriate — the user
+   did nothing and lost a tool.
+4. **Offer the trace.** The diagnostics layer already composes a redacted
+   report and copies it to the clipboard (`composeSDTJournalReport`, the
+   journal-copy button). Reuse that, do not invent a second path.
+5. **Stop pretending to work.** The spinner still turning is itself a small
+   lie: the add-on is gone and nothing it starts now will survive. Disarm the
+   sweep, leave the window and its message readable.
+
+## Design notes, and one boundary that needs a ruling
+
+- **"Send a trace" must mean copy, not upload.** SPEC.md R10 counts exactly two
+  opt-in egress paths and §6 now discloses a third thing the host does on its
+  own. A network send from the plugin would be a new egress path and is NOT in
+  scope here without the author's ruling. What is in scope is making the trace
+  one click to copy and telling the user where to paste it.
+- **This must not fire on an ordinary uninstall.** A user who removes the add-on
+  on purpose gets `shutdown('uninstall')` first, and the ruling of 2026-09-12
+  says that path leaves cleanly and silently. The self-check has to be disarmed
+  by the teardown it is meant to detect the absence of — the `sealed` flag and
+  the generation token are the existing machinery for that.
+- **Nor on a disable.** `shutdown('disable')` runs, so the same guard covers it.
+- The check costs one `AddonManager` call a minute. The heartbeat already runs
+  at that cadence and already journals.
+
+## Relevant files
+
+- `plugins/sdt-sitter/bootstrap.js` — `heartbeatTick` (the cadence),
+  `writeSDTDeathCertificate` (the file and its gate), `shutdown` (what must
+  disarm this), `composeSDTJournalReport` and the journal-copy button (the
+  trace), the dialog's switch line (where the message goes)
+- `tests/sdt_sitter_bootstrap.mjs` — the mock host; the arms below live here
+- `verification/probes/sdt_sitter_bootstrap_mutants.py` — one mutant per half
+- `plugins/sdt-sitter/RELEASE-NOTES.md` — what the user is being promised
+- `tickets/0727-…erg` — the parent; this closes its blind spot, not its cause
+
+## Test
+
+Red first, and the pairing matters more than the count:
+
+- A scope that is alive while the host says the add-on is gone journals it,
+  writes the certificate with the switch on, shows the message once, and
+  disarms the sweep.
+- **The control:** an ordinary `shutdown('uninstall')` followed by the host
+  saying the add-on is gone journals NOTHING and shows no message. Without this
+  arm the feature would fire on every deliberate removal, which is both wrong
+  and the loudest possible way to be wrong.
+- A `shutdown('disable')` likewise.
+- The message appears once, not once a minute.
+- With the switch off, the message still appears and no file is written.
+- A host whose `getAddonByID` throws leaves the render loop and the sweep
+  running, journalling the failure — the guard every host read in this file has.
+
+## Invariants
+
+- Nothing here adds an egress path. The trace is copied, never sent.
+- The ruling of 2026-09-12 stands: a deliberate uninstall stays clean and
+  silent, and this feature must be invisible on that path.
+- The heartbeat must not acquire a throw from this check.
+
+## Exit criteria
+
+- [ ] The self-check exists, on the heartbeat, with every arm above green and
+      each seen red once.
+- [ ] The user-facing message and the copy-the-trace offer are in the window.
+- [ ] `writeSDTDeathCertificate` accepts the `vanished-without-teardown` reason
+      and the gate still holds.
+- [ ] Mutants added; the gate catches each.
+- [ ] 0727's log records that its teardown-based instrumentation had this blind
+      spot and that this ticket closes it.

@@ -7394,3 +7394,30 @@ life a disable a user can see, rather than a disappearance, is therefore
 ticket 0776's question — whether the update manifest carries an entry an 11
 host finds in range — and 0776 is now the live decision of the three, ahead of
 the two settled here.
+
+**2026-09-12 — RULED: in a live install, a clean uninstall is the way.** Asked
+whether the parked diagnostics ring should survive an uninstall — ticket 0727
+wanted it to, because its reader is out of band; ticket 0771 removed it,
+because an uninstall has no next activation — the author ruled for 0771's
+behaviour, and not as a compromise between the two.
+
+**What it settles.** `shutdown()` on the `uninstall` reason takes both session
+handles off the host, as 0771 built it. A plugin that has been removed is not
+still reachable from the host it was removed from. Neither of the two ways of
+keeping the evidence instead is taken: the ring is not kept on uninstall, and
+the death certificate is not written unconditionally.
+
+**What it costs, accepted rather than owed.** With the diagnostics switch off,
+which is how a release ships, an uninstall now leaves nothing — no certificate,
+because the switch gates it, and no parked ring, because 0771 deleted it. Before
+0771 the ring outlived the removal for the rest of the session. So 0727's
+evidence path for an uninstall is deliberately OPT-IN: the operator turns
+diagnostics on before reporting a disappearance, which is what RELEASE-NOTES.md
+asks of a reader. 0727's own evidence is not worth a handle left behind on every
+machine that ever uninstalled this add-on.
+
+**The one thing a clean uninstall must not sweep away.** The certificate itself,
+when the switch was on. It is the operator's own request, made before the event,
+and it is the only durable record of a removal there will ever be. Ticket 0773,
+which removes the sitter's durable state on uninstall, carries that exception —
+noted in its log rather than left to be rediscovered.

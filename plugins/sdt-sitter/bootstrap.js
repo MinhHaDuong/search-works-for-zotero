@@ -2901,20 +2901,28 @@ function shutdown(data, reason) {
     // local `journal` binding rather than the global one the line above may have
     // just deleted. The order is 0771's own resolution plan for this conflict.
     //
-    // The two tickets disagree about the uninstall, and the disagreement is
-    // load-bearing rather than cosmetic. 0771 removes the parked ring because
-    // an uninstall has no next activation to read it; 0727 parks it because the
-    // reader is OUT OF BAND -- a human in Run JavaScript, or
-    // bench/sitter_watch.py over RDP, both reading a process that is still
-    // alive. Both are true, and the consequence of taking 0771's half alone is
-    // stated where it can be acted on: with the debug switch OFF, which is how
-    // a release ships, an uninstall now leaves NOTHING -- no certificate,
-    // because the switch gates it, and no parked ring, because the line above
-    // deleted it. Before 0771 the ring at least outlived the removal for the
-    // rest of the session. That gap is ticket 0727's to close and is recorded
-    // in its log of 2026-09-12; it is not closed here, because closing it means
-    // either keeping the ring on uninstall or writing the certificate
-    // unconditionally, and both are the author's to rule on.
+    // The two tickets read the uninstall differently, and the author RULED on
+    // 2026-09-12: in a live install a CLEAN UNINSTALL is the way. 0771's
+    // removal above is therefore the behaviour, not a compromise, and what
+    // follows from it is accepted rather than owed.
+    //
+    // What follows from it. With the debug switch off, which is how a release
+    // ships, an uninstall leaves NOTHING -- no certificate, because the switch
+    // gates it, and no parked ring, because the line above deleted it. Before
+    // 0771 the ring outlived the removal for the rest of the session. That is
+    // the price of the ruling and it is the right price: a plugin that has been
+    // removed should not still be reachable from the host it was removed from,
+    // and 0727's own evidence is not worth a handle left behind on every
+    // machine that ever uninstalled this add-on. Neither of the two ways of
+    // closing it is taken -- not keeping the ring on uninstall, not writing the
+    // certificate unconditionally.
+    //
+    // So the evidence path for an uninstall is DELIBERATE and OPT-IN: the
+    // operator turns diagnostics on before reporting a disappearance, which is
+    // what RELEASE-NOTES.md now asks of a reader, and the certificate below is
+    // the one artefact a clean uninstall must leave behind -- it is the
+    // operator's own request, made before the event, and ticket 0773 (which
+    // removes the sitter's durable state on uninstall) must not sweep it away.
     writeSDTDeathCertificate(named);
   }
 }
