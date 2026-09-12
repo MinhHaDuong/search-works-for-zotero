@@ -156,8 +156,39 @@ default, 0 to switch the control off), so every cycle of the next run must leave
 an `active=False` line in the watch log, and a run whose log has none is a run
 whose disabled-state reads prove nothing.
 
+**What arm 5 held fixed (2026-09-12).** Asked whether the experiment explores
+anything or only waits and watches, the honest answer was that it waited. Every
+cycle built a byte-identical payload, version string apart; two fixed cadences;
+one continuous process; and an EMPTY library, so the add-on being replaced was
+idle throughout. Both organic occurrences happened in the author's real library
+while the sitter was extracting. So arm 5's negative result does not say "17
+rapid replacements do not kill the sitter"; it says "17 rapid replacements do
+not kill an IDLE sitter over an EMPTY library in a process that is never
+restarted". Three axes now open, in the order they matter:
+
+- **The library.** `--menagerie <package dir>` imports the Multilingual
+  Menagerie (ticket 0721) into the throwaway profile before the first install,
+  through `Zotero.Translate.Import` with `linkFiles: true` -- the same sequence
+  the control plugin's `/import` endpoint runs, lifted rather than reached
+  through, since installing a second add-on into the profile under test is
+  installing into the experiment. The RIS names 114 attachments by relative
+  path; their BYTES come from the recipe's fetch cache, which is on the
+  author's machine, so `make menagerie-package MENAGERIE_PACKAGE=...` has to be
+  run there. A package whose files are not on disk is refused: a library of
+  records without attachments leaves the sitter as idle as an empty one.
+  Running with no library at all now takes `--allow-empty-library`.
+- **Restarts.** `--restart-every N`. The one axis both occurrences had and no
+  arm ever exercised. The watcher stays armed across it.
+- **Randomisation.** `--seed` draws the action and the interval; the fixed
+  script is kept as the control and is what runs without a seed. The seed and
+  the entire plan are logged before the first cycle, so a run that reproduces is
+  replayable from its log. The `uninstall-then-install` action runs inside
+  `Watcher.expect_absence`, so the instrument cannot manufacture the signature
+  it is watching for.
+
 **What remains.** Re-run this same driver for the full ~50-cycle/~2-hour
-budget when there is time to let it finish or to watch it live. If it
+budget when there is time to let it finish or to watch it live, now with the
+Menagerie under it. If it
 reproduces at any point, that settles the volume candidate as real and the
 next question becomes which count or elapsed time it takes; if it completes
 the full budget clean, that is real (though still not conclusive) evidence

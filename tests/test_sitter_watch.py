@@ -268,3 +268,30 @@ def test_a_log_that_cannot_be_committed_is_refused(tmp_path):
 
     assert sitter_watch.main(["--profile", str(tmp_path), "--log",
                               str(tmp_path / "run-watch.log")]) == 2
+
+
+def test_a_deliberate_uninstall_is_not_filed_as_the_signature(profile, log):
+    """The randomised arms of the volume driver uninstall on purpose, and a
+    deliberate removal produces the exact on-disk signature the watcher is armed
+    for. A reproduction manufactured by the instrument would be investigated as
+    though it were the defect -- worse than no reproduction, because it would
+    end in the driver's own log."""
+    watcher = watcher_for(profile, log)
+    poll(watcher)
+
+    with watcher.expect_absence("cycle 7 uninstall-then-install"):
+        write_extensions(profile, [OTHER])
+        poll(watcher)
+        assert not watcher.disappearance.is_set(), "an asked-for removal was filed as the bug"
+    text = log.path.read_text(encoding="utf-8")
+    assert "EXPECTED" in text, "the log hides what it excused"
+    assert "cycle 7 uninstall-then-install" in text
+
+    # And the window is the gesture, not the run: the same watcher fires on the
+    # next unexplained removal. Without this the excuse would be permanent, and
+    # the arm that uses it would be blind for the rest of its cycles.
+    write_extensions(profile, [ADDON, OTHER])
+    poll(watcher)
+    write_extensions(profile, [OTHER])
+    poll(watcher)
+    assert watcher.disappearance.is_set(), "the expectation outlived the gesture"

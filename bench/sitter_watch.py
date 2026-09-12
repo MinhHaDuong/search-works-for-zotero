@@ -52,6 +52,7 @@ as evidence when it finally fires.
 """
 
 import argparse
+import contextlib
 import json
 import shutil
 import sys
@@ -166,6 +167,7 @@ class Watcher:
         self._stop = threading.Event()
         self._last_line = None
         self._was_present = False
+        self._expected = None
         self._thread = threading.Thread(target=self._run, daemon=True)
 
     def start(self) -> None:
@@ -174,6 +176,29 @@ class Watcher:
     def stop(self) -> None:
         self._stop.set()
         self._thread.join(timeout=10)
+
+    @contextlib.contextmanager
+    def expect_absence(self, reason: str):
+        """Hold the alert while the caller removes the add-on ON PURPOSE.
+
+        Without this the randomised arms of the volume driver -- which uninstall
+        and reinstall deliberately -- would manufacture a reproduction of the
+        very defect the watcher exists to catch, and a false reproduction is
+        worse than none: it would be investigated, and the investigation would
+        end in the driver's own log. The alert line says "with no uninstall
+        issued here" and cannot check that claim by itself, so the caller that
+        knows says so.
+
+        Narrow on purpose. The window is the gesture, not the cycle, and it is
+        logged at both ends so a reader can see exactly what was excused.
+        """
+        self.log.write(f"watcher absence EXPECTED from here on: {reason}")
+        self._expected = reason
+        try:
+            yield
+        finally:
+            self._expected = None
+            self.log.write(f"watcher absence no longer expected: {reason}")
 
     def preserve(self) -> None:
         """Take everything that is about to stop existing. Never raises.
@@ -251,7 +276,14 @@ class Watcher:
             # -> absent sequence still fires on the third reading.
             return
         now_present = bool(state.get("present"))
-        if self._was_present and not now_present:
+        if self._was_present and not now_present and self._expected:
+            # Asked for, and said so before it happened. Recorded rather than
+            # swallowed: a log that hides what it excused cannot be audited.
+            self.log.write(
+                f"watcher absence observed and EXPECTED ({self._expected}); "
+                f"not the signature, no evidence taken"
+            )
+        elif self._was_present and not now_present:
             self.log.write(
                 "watcher ALERT disappearance signature: record went "
                 "from present to absent with no uninstall issued here"
