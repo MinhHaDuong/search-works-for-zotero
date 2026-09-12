@@ -113,9 +113,12 @@ more file: if Zotero disables or removes the sitter, it writes what it was told
 twice vanished from a live profile with no explanation surviving the event. The
 file carries the same redaction as the diagnostics clipboard: opaque record
 keys, no document titles, no install path. With the switch off, which is how it
-ships, nothing is written — and since removing the add-on now also takes its
-session handles off Zotero (above), an uninstall with the switch off leaves no
-record of itself at all. Switch it on before reporting a disappearance.
+ships, nothing is written — and since removing the add-on also takes its session
+handles off Zotero (above), an uninstall with the switch off leaves no record of
+itself at all. That is deliberate: a removed add-on should leave nothing behind,
+and this file is the one exception, kept only because you asked for it first. So
+if the add-on has been disappearing on you, switch diagnostics on and leave it
+on; the record you would want afterwards can only be made beforehand.
 
 Implementation and host-mock verification are recorded in
 [the scheduling report](../../verification/SDT-SITTER-EVENTS.md). This draft does
