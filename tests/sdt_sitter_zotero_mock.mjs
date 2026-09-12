@@ -450,6 +450,12 @@ export function createHarness(options = {}) {
           calls.loadavg++;
           return options.loadavg ? options.loadavg() : '0.42 0.30 0.25 1/500 1234';
         }
+        // Anything this profile has actually written, read back synchronously
+        // as Zotero's own does -- the death certificate verifies its write this
+        // way (ticket 0727), and a mock that could not answer would make that
+        // check untestable. A missing file throws, as the real one does.
+        const written = files.text(path);
+        if (written !== null) return written;
         throw new Error(`unexpected sync read of ${path}`);
       },
       getContentsFromURLAsync: async url => {
@@ -478,6 +484,12 @@ export function createHarness(options = {}) {
       putContents: (file, text) => {
         if (options.putContentsThrows) throw new Error('write failed');
         calls.putContents.push({ path: file && file.path, text });
+        // `putContentsDrops` is the file system that accepts a write and keeps
+        // nothing -- a full volume, or a writer that turns out not to be
+        // synchronous. It returns without throwing, which is what makes it a
+        // different arm from `putContentsThrows` and the reason the certificate
+        // reads itself back.
+        if (options.putContentsDrops) return;
         files.put(file.path, text);
       },
     },

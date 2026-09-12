@@ -25,7 +25,10 @@ from sitter_watch import (  # noqa: E402
     CERTIFICATE_NAME,
     Log,
     Watcher,
+    connect_resilient,
     format_state,
+    make_ring_reader,
+    refuse_dot_log,
 )
 
 ADDON = "sdt-pack-sitter@search-works-for-zotero.invalid"
@@ -181,3 +184,87 @@ def test_no_evidence_directory_says_so_rather_than_failing_silently(profile, log
     poll(watcher)
     assert watcher.disappearance.is_set()
     assert "evidence NOT taken: no --evidence-dir given" in log.path.read_text(encoding="utf-8")
+
+
+def test_an_unreadable_record_is_not_a_disappearance_and_does_not_spend_the_alert(profile, log):
+    """The trap this repo names generically and fell into once here: a check
+    whose all-clear is indistinguishable from its could-not-look.
+
+    `host_addon_record` is three-valued on purpose, and the watcher has to stay
+    three-valued at the DECISION, not only in the line it prints. The case is
+    not hypothetical for a watcher meant to run for days: the author restarts
+    Zotero himself, and a partial `extensions.json` read during one of those is
+    an unreadable, not an absence.
+    """
+    watcher = watcher_for(profile, log)
+    poll(watcher)
+    assert watcher._was_present
+
+    (profile / "extensions.json").write_text("{ not json", encoding="utf-8")
+    poll(watcher)
+    assert not watcher.disappearance.is_set(), "an unreadable record fired the alert"
+    assert "unreadable" in log.path.read_text(encoding="utf-8"), "the reading was not even logged"
+
+    # And the positive control, which is what makes the silence above mean
+    # something: the SAME watcher still fires when the record is readable and
+    # the add-on is genuinely gone. `_was_present` survived the unreadable.
+    write_extensions(profile, [OTHER])
+    poll(watcher)
+    assert watcher.disappearance.is_set(), "the unreadable reading disarmed the watcher"
+
+
+def test_the_ring_read_retries_because_it_cannot_be_repeated(log):
+    """The one RDP call in this system that gets no second chance.
+
+    Every routine call in the volume driver goes through `connect_resilient`
+    because a bare connect was found unreliable against this host (ticket 0766).
+    The parked-ring read happens once, at an event seen twice in six days across
+    two machines, and losing it to a hiccup loses the only statement of Gecko's
+    own reason.
+    """
+    attempts = []
+
+    class Client:
+        def attach_chrome_target(self, timeout=None):
+            pass
+
+        def eval_js(self, code, timeout=None):
+            return '{"parked": true}'
+
+        def close(self):
+            pass
+
+    def flaky(host, port, timeout=None):
+        attempts.append(port)
+        if len(attempts) < 3:
+            raise OSError("connection refused")
+        return Client()
+
+    read = make_ring_reader(6000, log, connect=flaky, sleep=lambda _seconds: None)
+    assert json.loads(read())["parked"] is True
+    assert len(attempts) == 3, attempts
+    assert "rdp connect attempt 1/5 failed" in log.path.read_text(encoding="utf-8")
+
+
+def test_a_connect_that_never_comes_back_raises_after_its_attempts(log):
+    """The failure is still a failure -- it is reported once, not retried
+    forever, and `preserve()` catches it and keeps the other two artefacts."""
+    def refused(host, port, timeout=None):
+        raise OSError("connection refused")
+
+    with pytest.raises(RuntimeError, match="after 3 attempts"):
+        connect_resilient("127.0.0.1", 6000, 1.0, log, attempts=3, connect=refused,
+                          sleep=lambda _seconds: None)
+
+
+def test_a_log_that_cannot_be_committed_is_refused(tmp_path):
+    """`.gitignore:20` ignores `*.log`, and this file exists to be committed as
+    evidence. The trap already fired once (ticket 0727, 2026-09-11T16:08Z) and
+    cost a post-hoc rename; documenting it was not enough."""
+    message = refuse_dot_log(tmp_path / "run-watch.log")
+    assert "run-watch.txt" in message and ".gitignore:20" in message
+
+    import sitter_watch
+
+    assert sitter_watch.main(["--profile", str(tmp_path), "--log",
+                              str(tmp_path / "run-watch.log")]) == 2

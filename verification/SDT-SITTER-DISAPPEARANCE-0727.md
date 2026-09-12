@@ -67,11 +67,14 @@ cycle; `bench/sitter_volume_experiment.py` (ticket 0727) is the driver.
 **This is a BOUNDED negative result, not a completed one.** The run was
 planned for ~50 cycles or ~2 hours, whichever came first. The author asked
 for it to stop after roughly half an hour, with no time to let it finish. It
-was stopped cleanly (current cycle allowed to finish; the driver process does
-not install a `SIGTERM` handler, so it exits immediately rather than running
+was stopped cleanly (current cycle allowed to finish; the driver process did
+not install a `SIGTERM` handler, so it exited immediately rather than running
 its own cleanup — the headless Zotero subprocess was then terminated by hand,
 confirmed gone by PID, and the profile removed) rather than left running or
-killed mid-eval. What follows is what 17 cycles said, not what 50 would have.
+killed mid-eval. **Fixed 2026-09-12**: the driver now handles `SIGTERM` and
+`SIGINT` by raising `SystemExit`, so an interruption goes through the same
+teardown as a clean end and stops the Zotero it started. An unattended run is a
+run that will be interrupted. What follows is what 17 cycles said, not what 50 would have.
 
 **Setup.** A dedicated, throwaway profile (never the author's real profile or
 library), Zotero 10.0.2, headless, `--start-debugger-server`. One continuous
@@ -192,7 +195,12 @@ path at all.
 `<profile>/extensions.json` before the host rewrites it, and
 `<data directory>/sdt-sitter-last-shutdown.json` if it exists -- the death
 certificate, written on the `disable` and `uninstall` reasons only, when the
-add-on's debug switch is on. It carries the same ring, redacted at the clipboard
+add-on's debug switch is on. If it is absent there are three causes and they
+are not equally interesting: the switch was off, the write failed (an
+unwritable or full data directory -- the add-on catches that and journals
+`certificate-failed` to the debug log, and it verifies its own write by reading
+it back), or the add-on never reached its own `shutdown()` at all. The third is
+the sharpest, and the debug log is what tells them apart. It carries the same ring, redacted at the clipboard
 boundary (opaque cache keys, no titles, no install path), and unlike the parked
 ring it survives the restart.
 

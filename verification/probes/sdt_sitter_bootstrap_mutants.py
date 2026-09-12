@@ -314,14 +314,26 @@ MUTANTS = [
     # The envelope names a reason the ring does not, so the certificate and the
     # records inside it can disagree about what happened.
     ("M43 the certificate reports a reason of its own rather than the one Gecko gave",
-     "      reason, at: new Date().toISOString(), report: composeSDTJournalReport(),\n",
-     "      reason: 'disable', at: new Date().toISOString(), report: composeSDTJournalReport(),\n"),
+     "    const certificate = { reason, at: new Date().toISOString() };\n",
+     "    const certificate = { reason: 'disable', at: new Date().toISOString() };\n"),
+    # The write is believed rather than checked, so a full volume or a writer
+    # that is not synchronous after all leaves nothing and says nothing.
+    ("M45 the certificate is not read back, so a write that kept nothing is believed",
+     "    if (Zotero.File.getContents(path) !== text) {\n"
+     "      throw new Error('the certificate did not read back as written');\n"
+     "    }\n",
+     ""),
+    # The composer's prose error path filed as though it were a report: a
+    # certificate whose body does not parse, with nothing saying so.
+    ("M46 an unreadable report is filed under `report` as though it parsed",
+     "    try { JSON.parse(report); certificate.report = report; }\n"
+     "    catch (_error) { certificate.reportUnreadable = report; }\n",
+     "    certificate.report = report;\n"),
     # The raw ring instead of the clipboard boundary's redaction: titles and the
     # install path reach a file.
     ("M44 the certificate carries the unredacted ring",
-     "      reason, at: new Date().toISOString(), report: composeSDTJournalReport(),\n",
-     "      reason, at: new Date().toISOString(),\n"
-     "      report: JSON.stringify({ records: journal ? journal.tail(50) : [] }),\n"),
+     "    const report = composeSDTJournalReport();\n",
+     "    const report = JSON.stringify({ records: journal ? journal.tail(50) : [] });\n"),
 ]
 
 

@@ -65,6 +65,7 @@ import argparse
 import json
 import os
 import socket
+import signal
 import subprocess
 import sys
 import time
@@ -74,10 +75,15 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "bench"))
 
-from sitter_watch import Log, Watcher, make_ring_reader  # noqa: E402
+from sitter_watch import (  # noqa: E402
+    Log,
+    Watcher,
+    connect_resilient,
+    make_ring_reader,
+    refuse_dot_log,
+)
 from zotero_rdp_client import (  # noqa: E402
     RDPConnectionClosed,
-    RDPError,
     RDPEvalError,
     RDPTimeout,
     ZoteroRDPClient,
@@ -143,25 +149,6 @@ def wait_for_port(host: str, port: int, deadline: float) -> None:
         except OSError:
             time.sleep(1)
     raise TimeoutError(f"{host}:{port} never accepted a connection")
-
-
-def connect_resilient(host: str, port: int, timeout: float, log: Log,
-                       attempts: int = 5) -> ZoteroRDPClient:
-    """Connect with bounded retries. Every attempt carries its own timeout,
-    so a hung handshake (the `prompt-connection` trap this ticket's history
-    already hit once) costs at most `timeout` seconds per try, never the rest
-    of the run."""
-    last_error = None
-    for attempt in range(1, attempts + 1):
-        try:
-            client = ZoteroRDPClient.connect(host, port, timeout=timeout)
-            client.attach_chrome_target(timeout=timeout)
-            return client
-        except (RDPError, OSError) as exc:
-            last_error = exc
-            log.write(f"driver warn connect attempt {attempt}/{attempts} failed: {exc}")
-            time.sleep(min(2 * attempt, 10))
-    raise RuntimeError(f"could not connect after {attempts} attempts: {last_error}")
 
 
 def eval_action(client: ZoteroRDPClient, code: str, timeout: float, log: Log,
@@ -315,6 +302,10 @@ def main(argv=None) -> int:
                              "the death certificate if the signature fires")
     args = parser.parse_args(argv)
 
+    if args.log.suffix == ".log":
+        print(refuse_dot_log(args.log), file=sys.stderr)
+        return 2
+
     args.profile.mkdir(parents=True, exist_ok=True)
     args.payload_dir.mkdir(parents=True, exist_ok=True)
     prefs_path = args.profile / "prefs.js"
@@ -366,6 +357,19 @@ def main(argv=None) -> int:
     watcher = Watcher(args.profile, ADDON_ID, log, get_pid,
                       evidence_dir=evidence_dir, data_dir=args.profile,
                       read_ring=make_ring_reader(args.port, log))
+    # Arm 5 was stopped by the author mid-run, and its driver had no handler:
+    # a bare SIGTERM killed the process outright, the `finally` below never ran,
+    # and the headless Zotero it had spawned was left orphaned for the author to
+    # find and kill by hand (ticket 0727, 2026-09-11T16:07Z). An unattended run
+    # is a run that will be interrupted; raising SystemExit from the handler is
+    # what lets the interruption go through the same teardown as a clean end.
+    def terminate(signum, _frame):
+        log.write(f"driver received signal {signum}; running its own cleanup")
+        raise SystemExit(130)
+
+    signal.signal(signal.SIGTERM, terminate)
+    signal.signal(signal.SIGINT, terminate)
+
     exit_code = 0
     try:
         wait_for_port("127.0.0.1", args.port, time.monotonic() + 60)
@@ -418,6 +422,12 @@ def main(argv=None) -> int:
         else:
             log.write(f"driver completed {cycle} cycles with no disappearance observed")
         client.close()
+    except SystemExit as exc:
+        # The signal path, and it must not be swallowed by the handler below:
+        # the point of catching it at all is to reach the `finally` that stops
+        # the Zotero this driver started.
+        log.write("driver stopping on a signal; the current cycle is abandoned")
+        exit_code = exc.code if isinstance(exc.code, int) else 130
     except Exception as exc:  # noqa: BLE001 -- an unattended run must log its own crash
         log.write(f"driver FATAL {type(exc).__name__}: {exc}")
         exit_code = 1

@@ -1556,17 +1556,40 @@ function composeSDTNotIndexedIdentifiers() {
    Synchronous on purpose. `IOUtils` is async, and the sandbox this code runs in
    is torn down when shutdown returns on the uninstall path, so an in-flight
    promise is a certificate that may never land -- the one failure this whole
-   function exists to prevent. `Zotero.File.putContents` writes before returning. */
+   function exists to prevent. `Zotero.File.putContents` is Zotero's own
+   synchronous writer, and this file does NOT take that on faith: it reads the
+   path back through `Zotero.File.getContents` before returning, so a write that
+   did not land is journalled as a failure instead of believed. Reviewed
+   2026-09-12: the synchronicity was asserted in a comment and nowhere checked,
+   which is a weaker standard than ticket 0766 held its own host claims to, and
+   a read-back is the check that can be made from inside the plugin.
+
+   The report is JSON, EXCEPT on its own error path: `composeSDTJournalReport`
+   answers a localized prose sentence when the ring cannot be scrubbed. Embedded
+   under `report` that would give a certificate whose body does not parse, at
+   exactly the shutdown that matters, with nothing saying so. It goes under
+   `reportUnreadable` instead, which is a field a reader trips over rather than
+   a string that looks like a report and is not. */
 function writeSDTDeathCertificate(reason) {
   if (reason !== 'disable' && reason !== 'uninstall') return;
   try {
     // Fully qualified, as every other read of this pref is: `true` stops Zotero
     // prepending `extensions.zotero.`.
     if (!Zotero.Prefs.get(DEBUG_PREF, true)) return;
+    const report = composeSDTJournalReport();
+    const certificate = { reason, at: new Date().toISOString() };
+    try { JSON.parse(report); certificate.report = report; }
+    catch (_error) { certificate.reportUnreadable = report; }
     const path = PathUtils.join(Zotero.DataDirectory.dir, 'sdt-sitter-last-shutdown.json');
-    Zotero.File.putContents(Zotero.File.pathToFile(path), JSON.stringify({
-      reason, at: new Date().toISOString(), report: composeSDTJournalReport(),
-    }, null, 2));
+    const text = JSON.stringify(certificate, null, 2);
+    Zotero.File.putContents(Zotero.File.pathToFile(path), text);
+    // The read-back. A full or read-only data directory is a case this repo has
+    // met before, and one that throws is already handled below; one that
+    // silently keeps nothing is not, and neither is a writer that turns out not
+    // to be synchronous after all.
+    if (Zotero.File.getContents(path) !== text) {
+      throw new Error('the certificate did not read back as written');
+    }
   } catch (error) {
     // A teardown must not acquire a throw from its own diagnostics. The debug
     // log is the fallback channel and is already open at this point.

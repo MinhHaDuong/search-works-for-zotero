@@ -812,6 +812,35 @@ await test('the debug switch off writes nothing to disk, on any reason', async (
   }
 });
 
+await test('a write that keeps nothing is journalled, and an unreadable report is flagged not buried', async () => {
+  // Two arms the first round asserted in a comment and never checked. Both are
+  // silent failures by construction: one is a file system that accepts a write
+  // and keeps nothing (a full volume, or a writer that is not as synchronous as
+  // its documentation), the other a ring that cannot be scrubbed, whose
+  // composer answers prose rather than JSON.
+  const dropped = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+    prefs: { 'extensions.sdt-pack-sitter.debug': true }, putContentsDrops: true });
+  await dropped.start();
+  dropped.context.shutdown(null, 4);
+  assert.equal(dropped.files.text(CERTIFICATE), null);
+  assert.equal(dropped.calls.putContents.length, 1, 'the write was never attempted');
+  assert(dropped.debugged.some(line => line.startsWith('SDT sitter certificate-failed')),
+    'a certificate that did not land was believed');
+
+  // The composer's own error path. A prose sentence under `report` would give a
+  // body that does not parse at exactly the shutdown that matters, and nothing
+  // in the envelope saying so.
+  const unscrubbable = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+    prefs: { 'extensions.sdt-pack-sitter.debug': true } });
+  await unscrubbable.start();
+  unscrubbable.context.journal.tail = () => { throw new Error('the ring is torn down'); };
+  unscrubbable.context.shutdown(null, 6);
+  const certificate = JSON.parse(unscrubbable.files.text(CERTIFICATE));
+  assert.equal(certificate.reason, 'uninstall', 'the reason was lost with the report');
+  assert.equal(certificate.report, undefined, 'prose was filed as a report');
+  assert(certificate.reportUnreadable, 'an unreadable report left no trace in the envelope');
+});
+
 await test('the certificate carries opaque keys and no title, and a failed write never throws into teardown', async () => {
   const harness = createHarness({
     attachments: [pdf(1, 'AAAA1111', { title: 'Secret Title', parentTitle: 'Secret Parent' })],

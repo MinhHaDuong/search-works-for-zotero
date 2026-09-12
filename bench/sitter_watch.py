@@ -82,6 +82,19 @@ READ_PARKED_RING_JS = """
 """
 
 
+def refuse_dot_log(path: Path) -> str:
+    """The `.gitignore` trap, refused rather than documented.
+
+    Ticket 0727's log records it firing once already (2026-09-11T16:08Z): the
+    arm-5 raw log was written as `run-watch.log`, `.gitignore:20` ignores
+    `*.log`, and the file had to be renamed before it could be committed. This
+    watcher exists to produce a file worth committing, so the name that cannot
+    be committed is refused at the door.
+    """
+    return (f"{path} ends in .log, which .gitignore:20 ignores -- this log is evidence "
+            f"and has to be committable. Use {path.with_suffix('.txt')}.")
+
+
 def utc_stamp() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -195,7 +208,10 @@ class Watcher:
             except OSError as exc:
                 self.log.write(
                     f"watcher evidence NO {CERTIFICATE_NAME}: {exc} -- the add-on's debug "
-                    f"pref was off, or it never reached its own shutdown")
+                    f"pref was off, or its own write failed (an unwritable or full data "
+                    f"directory: it catches that and journals `certificate-failed` to the "
+                    f"debug log), or it never reached its own shutdown at all. The third "
+                    f"is the sharpest of the three and the debug log tells them apart.")
         else:
             self.log.write("watcher evidence NO certificate: no --data-dir given")
 
@@ -222,7 +238,19 @@ class Watcher:
             return
         self.log.write(line)
         self._last_line = line
-        now_present = bool(state.get("read") and state.get("present"))
+        if not state.get("read"):
+            # "Could not look" is NOT "looked, and it is gone", and collapsing
+            # the two here would undo the whole reason `host_addon_record` is
+            # three-valued. It matters in this watcher more than anywhere else:
+            # it is meant to run for days across restarts the author performs
+            # himself, and a partial `extensions.json` read during one of those
+            # is an unreadable, not an absence. Firing on it would spend the
+            # alert -- and the evidence taking -- on a non-event, and a watcher
+            # that has cried wolf once is a watcher whose next line is doubted.
+            # `_was_present` is deliberately NOT updated: a present -> unreadable
+            # -> absent sequence still fires on the third reading.
+            return
+        now_present = bool(state.get("present"))
         if self._was_present and not now_present:
             self.log.write(
                 "watcher ALERT disappearance signature: record went "
@@ -238,21 +266,54 @@ class Watcher:
             self._stop.wait(self.poll_seconds)
 
 
-def make_ring_reader(port: int, log: Log):
-    """A callable that attaches over RDP and reads the parked ring, or None.
+def connect_resilient(host: str, port: int, timeout: float, log: Log,
+                      attempts: int = 5, connect=None, sleep=time.sleep):
+    """Attach to a live Zotero over RDP, retrying with backoff.
+
+    A bare `.connect()` was found unreliable against this host in ticket 0766's
+    own runs, which is why every routine call in the volume driver goes through
+    this. It lives here rather than there so the ONE call that cannot be
+    repeated -- the parked-ring read at a real alert -- gets the same treatment
+    as the routine ones rather than a fresh single-shot connect.
+
+    `connect` is injectable so a test can drive the retry without a Zotero.
+    """
+    if connect is None:
+        from zotero_rdp_client import ZoteroRDPClient  # noqa: PLC0415 -- optional
+
+        connect = ZoteroRDPClient.connect
+    last = None
+    for attempt in range(1, attempts + 1):
+        try:
+            client = connect(host, port, timeout=timeout)
+            client.attach_chrome_target(timeout=timeout)
+            return client
+        except Exception as exc:  # noqa: BLE001 -- every failure here is retryable
+            last = exc
+            log.write(f"rdp connect attempt {attempt}/{attempts} failed: {exc}")
+            if attempt < attempts:
+                # `sleep` is injectable for the same reason `connect` is: a
+                # suite that really waited the backoff would be a suite nobody
+                # runs, and the backoff is not what these arms are about.
+                sleep(min(2 * attempt, 10))
+    raise RuntimeError(f"could not attach over RDP after {attempts} attempts: {last}")
+
+
+def make_ring_reader(port: int, log: Log, connect=None, sleep=time.sleep):
+    """A callable that attaches over RDP and reads the parked ring.
 
     Connected at alert time and not before: this watcher is meant to run for
     days against a profile whose Zotero is restarted whenever its owner feels
     like it, and a connection held across that is a connection that is not there
-    when it matters.
+    when it matters. The cost of connecting late is that the connect itself can
+    fail at the one moment it must not, which is what `connect_resilient` is for
+    -- a single-shot connect here would throw away the only reading of Gecko's
+    own reason over a hiccup, on an event that took six days and two machines to
+    see twice.
     """
     def read() -> str:
-        from zotero_rdp_client import ZoteroRDPClient  # noqa: PLC0415 -- optional
-        client = ZoteroRDPClient.connect("127.0.0.1", port, timeout=20.0)
+        client = connect_resilient("127.0.0.1", port, 20.0, log, connect=connect, sleep=sleep)
         try:
-            # The chrome target has to be attached before anything can be
-            # evaluated with privilege; the driver does the same two steps.
-            client.attach_chrome_target(timeout=20.0)
             return client.eval_js(READ_PARKED_RING_JS, timeout=20.0)
         finally:
             client.close()
@@ -277,6 +338,9 @@ def main(argv=None) -> int:
                         help="stop after this long; 0 means run until interrupted")
     args = parser.parse_args(argv)
 
+    if args.log.suffix == ".log":
+        print(refuse_dot_log(args.log), file=sys.stderr)
+        return 2
     if not (args.profile / "extensions.json").exists():
         print(f"no extensions.json under {args.profile}: is that a Zotero profile?",
               file=sys.stderr)
