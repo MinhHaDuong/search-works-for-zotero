@@ -129,8 +129,18 @@ narrowing, not a redesign.
 **required**: the identical build without it is refused at install. So a plugin
 whose proposition is "local by default" cannot be installed without the host
 contacting GitHub about it on the host's own update cadence
-(`extensions.update.interval`, 86400 s per 0727's log), carrying the installed
-version and the user's address.
+(`extensions.update.interval`, 86400 s per 0727's log), carrying the requesting
+address.
+
+**Corrected 2026-09-12, by the lane that implemented the disclosure (0775).** This
+paragraph first said the check carries "the installed version and the user's
+address". The address stands. The version does not: neither cited source —
+`update.json`'s `_comment`, 0727's log of 2026-09-06T22:34Z — establishes it, the
+declared URL is fixed with no substitution parameter in it, and no Zotero source
+in this checkout says what the request carries. It is unread, not negative, and
+the disclosure 0775 wrote says so rather than repeating the claim. Recorded here
+because a privacy claim overstated in an audit is worth more as a correction than
+as a quiet edit.
 
 Nothing is wrong with the code. What is missing is the disclosure: neither
 `RELEASE-NOTES.md` nor SPEC §5.2.7's privacy paragraph mentions it, and it is
