@@ -61,6 +61,13 @@ var RECONCILIATION_INTERVAL_MS = 60 * 60 * 1000;
 // two short lines without looking up quickly, and comfortably shorter than the
 // 30 s floor above, so two toasts can never be on screen at once.
 var SWEEP_TOAST_MS = 8000;
+/* How long a new state must hold before the status region speaks it (ticket
+   0686 item 1). The scheduler can pass through a phase for one sweep boundary
+   -- `extracting` to `cpu-busy` and back -- and a reader told both halves of a
+   flip that undid itself has been told nothing. Two seconds is twenty render
+   ticks: long enough to absorb that, short enough that "Indexing is off" is
+   heard while the hand is still on the button that caused it. */
+var SDT_ANNOUNCE_SETTLE_MS = 2000;
 var DEBUG_PREF = 'extensions.sdt-pack-sitter.debug';
 /* R22's one obvious way, ratified 2026-09-08 (ticket 0742). Tri-state: unset
    means the question has never been answered, and is the ONLY state in which
@@ -1601,6 +1608,39 @@ function prefersSDTReducedMotion(node) {
    the whole 2000-record ring in under four minutes — destroying exactly the
    evidence ticket 0703 keeps. The layer above widens what runs under it, which
    is the reason this guard is worth more now than when it was written. */
+/* Transition-only announcements, the first of 0686's three open items.
+
+   The dialog's visible lines are rewritten at 10 Hz, and marking any of them
+   live would have a screen reader read every tick: the reason this item was
+   open. So the region is a separate, visually hidden node that is written ONLY
+   when the one sentence describing the machine's state -- the switch line at
+   the top of the window, `describeSDTSwitchLine` -- changes and then holds for
+   `SDT_ANNOUNCE_SETTLE_MS`. That sentence moves with the phase and with nothing
+   else, so a census, a pause for resources, an error or the switch itself is
+   spoken once, and progress, file names and estimates never are.
+
+   Opening the window is not a transition: the first render records the state
+   without writing, so the region starts empty and a reader who opens the
+   window hears the window, not a stale announcement. The bookkeeping lives on
+   the dialog, as `_censusSignature` does, so a second window keeps its own. */
+function announceSDTTransition(dialog, doc, line, phase) {
+  const region = doc.getElementById('sdt-announcer');
+  if (!region) return;
+  if (dialog._sdtAnnounced === undefined) { dialog._sdtAnnounced = line; return; }
+  if (line === dialog._sdtAnnounced) { dialog._sdtCandidate = null; return; }
+  const now = monotonic();
+  if (dialog._sdtCandidate !== line) {
+    dialog._sdtCandidate = line; dialog._sdtCandidateAt = now; return;
+  }
+  if (now - dialog._sdtCandidateAt < SDT_ANNOUNCE_SETTLE_MS) return;
+  dialog._sdtAnnounced = line; dialog._sdtCandidate = null;
+  region.textContent = line;
+  // The one record a live-window check can read without a screen reader
+  // attached: what was spoken, and when. Rare by construction, so it costs
+  // the ring nothing.
+  emit('announce', { phase }, 'trace');
+}
+
 function render() {
   try {
     renderState();
@@ -1669,7 +1709,9 @@ function renderState() {
     // the two agree, and the phase is what every other line in this window is
     // drawn from, so a disagreement shows here instead of hiding.
     const off = s.phase === 'switched-off';
-    doc.getElementById('sdt-switch-state').textContent = describeSDTSwitchLine(s);
+    const switchLine = describeSDTSwitchLine(s);
+    doc.getElementById('sdt-switch-state').textContent = switchLine;
+    announceSDTTransition(dialog, doc, switchLine, s.phase);
     doc.getElementById('sdt-switch').textContent =
       sdtText(off ? 'switch-turn-on' : 'switch-turn-off');
     const elapsed = s.active === null ? null : Math.round((monotonic() - s.startedAt) / 1000);
@@ -1951,6 +1993,21 @@ function openDialog(window) {
     toggle.style.cssText = 'white-space: nowrap; flex-shrink: 0;';
     toggle.addEventListener('click', () => toggleSDTSwitch());
     control.append(state, toggle);
+    // The status region, and the only live node in the window (0686 item 1).
+    // In the switch row because it speaks the row's own sentence, and so the
+    // window's layer order -- which tests/sdt_sitter_dialog.mjs pins -- is
+    // unchanged; absolutely positioned, it takes no place in the flex line.
+    // Visually hidden rather than `hidden`: a node removed from the
+    // accessibility tree announces nothing. `polite` waits for the reader to
+    // finish; `atomic` reads the whole sentence, not the words that changed.
+    const announcer = element('div', 'sdt-announcer');
+    announcer.setAttribute('role', 'status');
+    announcer.setAttribute('aria-live', 'polite');
+    announcer.setAttribute('aria-atomic', 'true');
+    announcer.style.cssText = 'position: absolute; width: 1px; height: 1px; ' +
+      'margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); ' +
+      'white-space: nowrap; border: 0;';
+    control.append(announcer);
     body.append(control);
     // Layer 1, always visible and always first: progress, what is being worked
     // on, how long it has taken and when it should end. Nothing below is needed

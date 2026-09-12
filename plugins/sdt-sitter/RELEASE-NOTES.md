@@ -40,6 +40,13 @@ Resource retries resume queued work without rescanning the library. The window
 shows how recently reconciliation completed; disk availability remains a last
 observation. Missing files stay in Zotero and their native packs are preserved.
 
+Ticket [0686](../../tickets/0686-follow-up-sdt-sitter-panel-accessibility.erg)
+adds a status region to the window for screen-reader users. It announces a
+change of state — scanning, waiting for resources, an error, indexing turned
+on or off — once the change has held for two seconds, and never the progress
+figures that update several times a second. Opening the window announces
+nothing. Behaviour with an actual screen reader has not yet been verified.
+
 Implementation and host-mock verification are recorded in
 [the scheduling report](../../verification/SDT-SITTER-EVENTS.md). This draft does
 not claim a live-profile deployment or a published release.

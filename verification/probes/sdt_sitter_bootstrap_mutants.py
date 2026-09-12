@@ -240,6 +240,23 @@ MUTANTS = [
     ("M30 an unrecognised head is read as a mismatch, so real snapshots stop being admitted",
      "      if (sniffed && sniffed.processor !== processor) {",
      "      if (!sniffed || sniffed.processor !== processor) {"),
+    # ---- ticket 0686 item (1): the status region speaks transitions only ----
+    # Opening the window is read as a change of state, so every open is spoken.
+    ("M31 opening the window is announced as a transition",
+     "  if (dialog._sdtAnnounced === undefined) { dialog._sdtAnnounced = line; return; }\n",
+     "  if (dialog._sdtAnnounced === undefined) dialog._sdtAnnounced = '';\n"),
+    # No settle: a sweep boundary passing through a resource wait is spoken twice.
+    ("M32 a state change is announced before it holds, so a flip that undoes itself is spoken",
+     "  if (now - dialog._sdtCandidateAt < SDT_ANNOUNCE_SETTLE_MS) return;\n",
+     ""),
+    # The region fed the 10 Hz material: the defect that kept this item open.
+    ("M33 the progress line reaches the live region",
+     "    announceSDTTransition(dialog, doc, switchLine, s.phase);\n",
+     "    announceSDTTransition(dialog, doc, `${switchLine} ${s.progress ?? ''}`, s.phase);\n"),
+    # A live region without its role is a hidden div a screen reader never reads.
+    ("M34 the status region loses its role",
+     "    announcer.setAttribute('role', 'status');\n",
+     ""),
 ]
 
 

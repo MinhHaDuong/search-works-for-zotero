@@ -523,6 +523,98 @@ await test('Escape closes the status dialog', async () => {
   assert.equal(dialog.closed, true, 'Escape did not close the dialog');
 });
 
+/* Ticket 0686 item (1): transition-only announcements.
+
+   The status region is the only live node in the window, and it must speak
+   state changes and nothing else. Each scenario below is the other's positive
+   control: the silence tests would pass against a region nothing ever writes,
+   and the settled-transition test is what shows the channel can speak at all. */
+const announcerFixture = async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  await harness.start();
+  const window = harness.windows[0];
+  harness.context.openDialog(window);
+  await harness.turn();
+  const doc = window.dialogs[0].document;
+  return { harness, doc, region: doc.getElementById('sdt-announcer'), sitter: harness.context.sitter };
+};
+const settle = (harness, ms) => {
+  // Render at the pulse's own cadence, so the settle window is crossed the way
+  // it is in a live window: by ticks, not by one jump.
+  for (let t = 0; t < ms; t += 100) { harness.advance(100); harness.context.render(); }
+};
+
+await test('the status region is a polite, atomic live region that opens silent', async () => {
+  const { harness, region } = await announcerFixture();
+  assert(region, 'the dialog has no status region');
+  assert.equal(region.getAttribute('role'), 'status');
+  assert.equal(region.getAttribute('aria-live'), 'polite');
+  assert.equal(region.getAttribute('aria-atomic'), 'true');
+  // Visually hidden, never `hidden`: a node out of the accessibility tree is mute.
+  assert.equal(region.hidden, undefined, 'the region was removed from the accessibility tree');
+  assert.equal(region.getAttribute('hidden'), null, 'the region was removed from the accessibility tree');
+  settle(harness, 5000);
+  assert.equal(region.textContent, '', 'opening the window was announced as a transition');
+  assert.equal(harness.records('announce').length, 0);
+});
+
+await test('10 Hz progress rewrites never reach the status region', async () => {
+  const { harness, doc, region, sitter } = await announcerFixture();
+  sitter.state.phase = 'extracting';
+  settle(harness, 3000);
+  const spoken = harness.records('announce').length;
+  const before = region.textContent;
+  // Everything the visible lines redraw on every tick, moving on every tick.
+  sitter.state.active = 1; sitter.state.startedAt = harness.clock.mono;
+  sitter.state.activeInfo = { title: null, parentTitle: null, sourceBytes: 4096, pages: 12 };
+  // Each value is HELD past the settle window, as a real extractor's sparse
+  // progress callbacks hold it: a region fed the visible line would otherwise
+  // be saved by the settle alone, and this test would prove nothing about
+  // which sentence reaches the region.
+  for (let n = 1; n <= 5; n++) {
+    sitter.state.progress = n * 20; sitter.state.lastProgressAt = harness.clock.mono;
+    settle(harness, 2500);
+  }
+  assert(doc.getElementById('sdt-document-status').textContent.includes('100 %'),
+    'the fixture never moved the visible progress it claims to be moving');
+  assert.equal(region.textContent, before, 'a progress tick was written to the live region');
+  assert.equal(harness.records('announce').length, spoken, 'a progress tick was announced');
+});
+
+await test('a state change is announced once, after it holds, and a flip that undoes itself is not', async () => {
+  const { harness, region, sitter } = await announcerFixture();
+  const original = sitter.state.phase;
+  // A flip shorter than the settle window: a sweep boundary passing through a
+  // resource wait and straight back out of it.
+  sitter.state.phase = 'cpu-busy';
+  settle(harness, 1000);
+  sitter.state.phase = original;
+  settle(harness, 5000);
+  assert.equal(region.textContent, '', 'a flip that undid itself was announced');
+  assert.equal(harness.records('announce').length, 0);
+
+  // The same change, held.
+  sitter.state.phase = 'cpu-busy';
+  settle(harness, 1000);
+  assert.equal(region.textContent, '', 'a change was announced before it had held');
+  settle(harness, 1500);
+  const expected = harness.context.describeSDTSwitchLine(sitter.state);
+  assert.equal(region.textContent, expected, 'a settled state change was never announced');
+  settle(harness, 5000);
+  const records = harness.records('announce');
+  assert.equal(records.length, 1, `one change was announced ${records.length} times`);
+  assert.equal(records[0].phase, 'cpu-busy');
+  assert.equal(records[0].level, 'trace');
+
+  // The switch is a transition like any other, and the one a keyboard user
+  // most needs confirmed.
+  harness.context.toggleSDTSwitch();
+  settle(harness, 2500);
+  assert.equal(region.textContent, harness.context.describeSDTSwitchLine(sitter.state));
+  assert.equal(sitter.state.phase, 'switched-off');
+  assert.equal(harness.records('announce').length, 2);
+});
+
 await test('two windows and two startups leave one sitter, one launch prompt and two toolbars', async () => {
   const harness = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')], windows: 2 });
   // Zotero serializes add-on startup, but a second main window opening while
