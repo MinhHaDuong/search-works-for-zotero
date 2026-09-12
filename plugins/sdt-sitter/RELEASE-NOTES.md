@@ -22,18 +22,18 @@ and successful native extraction.
 Installing the sitter causes one outbound request, and the plugin is not what
 makes it. `manifest.json` declares an update manifest served from this
 repository's `main` branch on `raw.githubusercontent.com`, and Zotero's own
-add-on update check fetches it on the host's cadence — `extensions.update.interval`,
-86 400 seconds, or once a day, as read on the author's profile — for as long as
-the add-on stays installed. That check is not optional: ticket 0727 established
-with a control that a build identical but for the removal of `update_url` is
-refused at install ("peut-etre incompatible avec cette version de Zotero"), so
-an add-on that declares none cannot be installed at all. The request is for a
-fixed URL: nothing about the library is sent, and the sitter opens no network
-connection of its own, here or anywhere else. What the fetch necessarily
-discloses to the other end is the requesting address and that this add-on's
-manifest is being checked; whether the host adds the installed version to the
-check has not been read here. The surface is recorded with the others in
-[SPEC.md §6](../../SPEC.md#6-security-considerations).
+add-on update check fetches it about once a day for as long as the add-on stays
+installed, at the host cadence owned by
+[SPEC.md §6](../../SPEC.md#6-security-considerations) — where the interval, its
+provenance and the rest of this surface are recorded. That check is not
+optional: ticket 0727 established with a control that a build identical but for
+the removal of `update_url` is refused at install ("peut-etre incompatible avec
+cette version de Zotero"), so an add-on that declares none cannot be installed
+at all. The request is for a fixed URL: nothing about the library is sent, and
+the sitter opens no network connection of its own, here or anywhere else. What
+the fetch necessarily discloses to the other end is the requesting address and
+that this add-on's manifest is being checked; whether the host adds the
+installed version to the check has not been read here.
 
 ## Prepared for the next release
 

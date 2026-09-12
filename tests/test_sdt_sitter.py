@@ -659,28 +659,74 @@ def test_update_json_advertises_the_version_the_manifest_ships():
     assert advertised["strict_max_version"] == zotero["strict_max_version"]
 
 
+def _markdown_anchors(text: str) -> dict[str, str]:
+    """The forge's own heading slug -> heading text, for every ATX heading in `text`.
+
+    A prose pointer is a pointer only if it resolves, and slugging the headings
+    the way GitHub does is what lets an assertion check that instead of trusting
+    it. First heading wins on a duplicate slug, as the forge does.
+    """
+    anchors: dict[str, str] = {}
+    for line in text.splitlines():
+        if line.startswith('#'):
+            heading = line.lstrip('#').strip()
+            anchors.setdefault(_slug(heading), heading)
+    return anchors
+
+
+def _slug(heading: str) -> str:
+    return re.sub(r'\s+', '-', re.sub(r'[^\w\s-]', '', heading.lower()))
+
+
+def _markdown_section(text: str, slug: str) -> str:
+    """The body under the heading `slug` names, down to the next heading of the
+    same or a higher level -- the span a link to that anchor actually lands in."""
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if not line.startswith('#') or _slug(line.lstrip('#').strip()) != slug:
+            continue
+        level = len(line) - len(line.lstrip('#'))
+        for offset, after in enumerate(lines[index + 1:]):
+            if after.startswith('#') and len(after) - len(after.lstrip('#')) <= level:
+                return '\n'.join(lines[index:index + 1 + offset])
+        return '\n'.join(lines[index:])
+    raise AssertionError(f'no heading in the document slugs to {slug!r}')
+
+
 def test_the_hosts_update_check_is_disclosed_where_an_installer_reads():
     """The one outbound request the add-on's presence causes, and who is told about it.
 
-    Ticket 0775, from the lifecycle audit's F4. `update_url` is REQUIRED —
+    Ticket 0775, from the lifecycle audit's F4. `update_url` is REQUIRED --
     ticket 0727 established with a control that a build identical but for its
-    removal is refused at install — so the host's periodic fetch of
+    removal is refused at install -- so the host's periodic fetch of
     `update.json` is not a setting anyone who installs this plugin can turn
     off. It is also the only network traffic the add-on's existence causes, and
     it was disclosed in neither of the two places a reader who is not reading
     the source would meet it.
 
-    What is held here is the disclosure's premise together with its two sites:
-    while the manifest declares an `update_url`, the installer-facing half of
-    the release notes names the host that URL points at, says the check is not
-    the plugin's own, says what it does not carry, and points at the section
-    that owns the disclosure; and §6 carries it in the surfaces list and in the
-    answers table.
+    Every assertion below is computed from something outside the prose it
+    checks -- the manifest's own `update_url`, SPEC's heading structure, and the
+    interval as ticket 0727's log states it. The first version of this test
+    grepped the installer notes for phrases the same lane had just written, and
+    the review seat showed by mutation that rewording "once a day" to "roughly
+    every 24 hours" -- the same disclosure -- failed it: it pinned the sentence
+    rather than the fact. What is held now is that the notes name the host the
+    manifest really points at, that their pointer resolves to the SPEC section
+    that really carries the surface entry, and that the interval is stated in
+    that section and NOT restated in the notes, which is AGENTS.md's one
+    statement per fact in the direction a test can check it.
 
-    Red control: delete either paragraph, or the table row, and this fires.
-    Drop `update_url` from the manifest and the guard stands down of its own
-    accord — there is then nothing to disclose, which is the one change that
-    makes the prose false rather than missing.
+    Red controls, every one run against this checkout rather than reasoned
+    about. These fail: deleting the notes paragraph; leaving it in the file but
+    below the developer break, where an installer does not read; duplicating it
+    in the same half; deleting the §6 entry or its table row; moving the
+    manifest to another host without touching the prose; breaking the SPEC
+    anchor; pointing at §5.2.7 instead of the section that carries the entry;
+    and copying the interval back into the notes. These do not: rewording
+    "about once a day" to "roughly every 24 hours", which is the mutation that
+    exposed the first version of this test. Dropping `update_url` from the
+    manifest stands the guard down of its own accord, since there is then
+    nothing to disclose.
     """
     manifest = json.loads((SITTER / 'manifest.json').read_text(encoding='utf-8'))
     update_url = manifest['applications']['zotero'].get('update_url')
@@ -689,17 +735,63 @@ def test_the_hosts_update_check_is_disclosed_where_an_installer_reads():
     host = urlsplit(update_url).netloc
     assert host, update_url
 
+    # The installer-facing half -- everything above the break that hands the
+    # notes over to a Zotero developer -- carries one paragraph about that host.
     notes = (SITTER / 'RELEASE-NOTES.md').read_text(encoding='utf-8')
     installer_part, break_marker, developer_part = notes.partition('\n---\n')
     assert break_marker and developer_part, \
-        "the installer/developer break is gone from the release notes"
-    for expected in (host, 'once a day', 'nothing about the library is sent',
-                     '#6-security-considerations'):
-        assert expected in installer_part, \
-            f'the installer-facing notes do not disclose the update check: {expected!r} absent'
+        'the installer/developer break is gone from the release notes'
+    disclosures = [par for par in installer_part.split('\n\n') if host in par]
+    assert len(disclosures) == 1, (
+        f'the installer-facing notes carry {len(disclosures)} paragraphs naming '
+        f'{host}, the host manifest.json points at')
+    disclosure = disclosures[0]
 
-    surfaces = _site("**The add-on's update manifest.**", '\n\n**', ROOT / 'SPEC.md')
-    assert host in surfaces, f'§6 discloses the update check without naming {host}'
+    # Its pointer resolves, and resolves to the section that carries the entry
+    # rather than merely to SPEC.
+    spec = (ROOT / 'SPEC.md').read_text(encoding='utf-8')
+    slugs = re.findall(r'\]\(\.\./\.\./SPEC\.md#([\w-]+)\)', disclosure)
+    assert slugs, \
+        'the disclosure states the fact without pointing at the section that owns it'
+    anchors = _markdown_anchors(spec)
+    for slug in slugs:
+        assert slug in anchors, \
+            f'the disclosure points at SPEC.md#{slug}, which no heading slugs to'
+    surface = "**The add-on's update manifest.**"
+    owning = [_markdown_section(spec, slug) for slug in slugs
+              if surface in _markdown_section(spec, slug)]
+    assert len(owning) == 1, (
+        'the disclosure links to SPEC but not to the one section carrying the '
+        f'surface entry {surface!r}')
+    section = owning[0]
+    assert host in section, \
+        f'the SPEC surface entry discloses the check without naming {host}'
+
+    # The interval is one fact and its source is 0727's log, which is
+    # append-only: the owning section states it, the installer notes point
+    # instead of restating it.
+    ticket = next(ROOT.glob('tickets/**/0727-*.erg')).read_text(encoding='utf-8')
+    stated = re.search(r'`extensions\.update\.interval` is (\d+)', ticket)
+    assert stated, "0727's log no longer states the interval this disclosure rests on"
+    seconds = stated.group(1)
+    spaced = f'{int(seconds):,}'.replace(',', ' ')
+    assert spaced in section or seconds in section, (
+        f'the SPEC surface entry owns the interval and does not state it: {seconds} s')
+    assert seconds not in disclosure and spaced not in disclosure, (
+        'one statement per fact: the installer notes restate the interval instead '
+        'of pointing at the section that owns it')
+
+    # The one assertion here that cannot be made behavioural, kept knowingly.
+    # No check inside this repository can establish that a sentence of prose is
+    # TRUE; this holds only that the paragraph still speaks to what the request
+    # carries from the library, which is the half of F4 that was missing. A
+    # rewrite satisfies it differently, a silent deletion does not, and the
+    # deletion is the regression worth a guard.
+    assert re.search(r'\blibrar(?:y|ies)\b', disclosure, re.IGNORECASE), (
+        'the disclosure no longer says anything about what the request carries '
+        'from the library')
+
+    # And §6 answers for it in the table, as it does for every other surface.
     table = _site('| Surface | Current answer |', '\n\nThree of the', ROOT / 'SPEC.md')
     rows = [row for row in table.splitlines()
             if row.startswith('| ') and 'update manifest' in row]
