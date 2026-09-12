@@ -57,7 +57,7 @@ assert.deepEqual(record, {
   zoteroVersion: '10.0.5-stub',
   strictMinVersion: manifest.applications.zotero.strict_min_version,
   strictMaxVersion: manifest.applications.zotero.strict_max_version,
-  // Ticket 0780: what the host said this activation was. `initialize` is entered
+  // Ticket 0771: what the host said this activation was. `initialize` is entered
   // directly here, so the binding `startup()` would have set is at its default,
   // and the default is a reading rather than a blank -- nothing told us.
   reason: 'unknown',

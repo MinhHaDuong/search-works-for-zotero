@@ -119,9 +119,12 @@ MUTANTS = [
     # Clearing the handles is not enough on its own: the sweep wrapper re-arms
     # `timer` from inside its own finally, so a sweep already in flight schedules
     # the next one after shutdown has cleared it.
+    # Anchor moved when shutdown gained the era counter beside the token
+    # (ticket 0771); the mutant is unchanged -- burn neither and the next
+    # activation's guards read a token that never moved.
     ("M12 shutdown clears the timers but does not burn the generation token",
-     "    ++generation; alive = false; sitter?.stop();",
-     "    alive = false; sitter?.stop();"),
+     "    ++generation; ++shutdowns; alive = false; sitter?.stop();",
+     "    ++shutdowns; alive = false; sitter?.stop();"),
 
     # ---- the two clocks -------------------------------------------------------
     ("M13 the finish-time projection ignores the empirical upper bound",
@@ -296,7 +299,7 @@ MUTANTS = [
     ("M39 the status region compares the sentence, so a count moving is announced",
      "    announceSDTTransition(dialog, doc, switchLine, s.phase, describeSDTSwitchKind(s));\n",
      "    announceSDTTransition(dialog, doc, switchLine, s.phase, switchLine);\n"),
-    # ---- ticket 0780: the host lifecycle interface --------------------------
+    # ---- ticket 0771: the host lifecycle interface --------------------------
     # The defect as it stood: the host hands startup() a reason and the plugin
     # took no second argument, so the ring named every transition out and none in.
     # The assignment and not the signature: dropping the parameter leaves the
@@ -329,6 +332,15 @@ MUTANTS = [
      "        if (row.format !== raw.format || row.versions !== raw.versions ||\n"
      "            typeof row.key !== 'string') continue;",
      "        if (row.versions !== raw.versions || typeof row.key !== 'string') continue;"),
+    # The round-1 verify-gate bounce on 0771, in its two halves: the guard, and
+    # the counter that feeds it. Either one alone lets a startup arm orphaned by a
+    # second startup write a startup record behind a shutdown record.
+    ("M45 an orphaned startup arm is not told its scope was shut down",
+     "  if (era !== shutdowns) return;\n",
+     ""),
+    ("M46 the shutdown does not move the era, so the guard above can never fire",
+     "    ++generation; ++shutdowns; alive = false; sitter?.stop();",
+     "    ++generation; alive = false; sitter?.stop();"),
 ]
 
 

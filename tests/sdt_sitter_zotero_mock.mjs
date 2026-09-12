@@ -46,7 +46,7 @@ export const ROOT_URI = 'file:///home/tester/.zotero/profile/extensions/sdt-pack
     reading "unreadable" in production for the life of ticket 0688. */
 export const INSTALLED_VERSION = '9.9.9-test';
 export const DATA_DIR = '/home/tester/Zotero';
-/* The cache row schema bootstrap.js stamps every row with (ticket 0780). Here
+/* The cache row schema bootstrap.js stamps every row with (ticket 0771). Here
    rather than spelled out per scenario, so a fixture cannot disagree with the
    plugin about what a well-formed row looks like. */
 export const CACHE_FORMAT = 1;

@@ -8,6 +8,7 @@ Author: claude
 
 2026-09-12T09:07Z claude note filed from verification/SITTER-LIFECYCLE-AUDIT-2026-09-12.md: the three findings that cost a few lines each (F9, F3, F7). Implemented in the same pass, with a fourth defect the F9 test found -- the seal was lifted after the startup emit, so the ring never held a startup record at all
 2026-09-12T09:07Z claude note version 0.3.45, not 0.3.44: open PR #530 claims 0.3.44 on its own branch and the version guard cannot see it. That blind spot is filed as 0779
+2026-09-12T09:30Z claude bump verify-reroll — round 1: a startup timer orphaned by a second startup unseals the ring behind a shutdown record, and twelve comments cite ticket 0780, which does not exist
 --- body ---
 
 ## Context

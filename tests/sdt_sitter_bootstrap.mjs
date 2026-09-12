@@ -176,7 +176,7 @@ await test('a corrupt cache row is dropped and its attachment re-inspected nativ
   const truncated = shape.cacheLine('BBBB2222', record('BBBB2222')).slice(0, -18);
   // Stamped with the current row format on purpose: this row is here to be
   // skipped for its PACK VERSIONS, and a row that is also malformed for a second
-  // reason cannot prove which check dropped it (ticket 0780).
+  // reason cannot prove which check dropped it (ticket 0771).
   const wrongVersions = JSON.stringify({ format: CACHE_FORMAT,
     versions: '{"SDT_PACK_VERSION":"0"}',
     key: '1/DDDD4444', record: record('DDDD4444') });
@@ -1849,7 +1849,7 @@ await test('targeted observations preserve completion refit cadence while droppi
   assert.equal(h.context.sitter.state.fittedSamples.length, 5);
 });
 /* --------------------------------------------------------------------------
-   Ticket 0780. The host lifecycle interface: which transition an activation
+   Ticket 0771. The host lifecycle interface: which transition an activation
    was, what an uninstall takes with it, and the cache row's schema stamp.
 
    All three are things the plugin could not say before, and the first two are
@@ -1937,6 +1937,53 @@ await test('an uninstall takes the parked ring and the write chain with it; a di
     .pop().includes('"uninstall"'), true);
 });
 
+/* The round-1 verify-gate bounce on ticket 0771, kept as a scenario because the
+   seat reproduced it against the real bootstrap.js and no test in this file
+   covered the combination.
+
+   `startup()` overwrites the module-level `timer` binding, so a second startup
+   arriving before the first's zero-millisecond arm has fired leaves that first
+   arm orphaned: `shutdown()` clears only the handle it can see. The orphan then
+   fires into a scope that has been torn down. Lifting the seal at the top of
+   `initialize()` — which is what lets a superseded activation record its own
+   standing down — gave that orphan a channel to write into, and what it wrote
+   was a `startup` record behind a `shutdown` record: a re-enable that never
+   happened, in the one artefact ticket 0727 reads to count transitions.
+
+   The generation token cannot tell the two cases apart (both are
+   `token !== generation`), which is why `shutdowns` exists. Both halves are
+   asserted below, because a fix that silenced the superseded activation too
+   would pass a test that only checked the orphan. */
+await test('a startup arm orphaned by a second startup writes nothing behind the shutdown record', async () => {
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  await h.start();
+  const before = h.records().length;
+
+  // Two activations in flight, neither's arm fired yet: the second overwrites
+  // the binding that holds the first's handle.
+  h.context.startup({ rootURI: ROOT_URI }, 3);
+  h.context.startup({ rootURI: ROOT_URI }, 3);
+  // ... and the shutdown lands before either runs, clearing only the second.
+  h.context.shutdown(null, 4);
+  assert.equal(h.records().pop().kind, 'shutdown');
+  assert.equal(h.context.sealed, true);
+
+  // The orphan fires here.
+  await h.turn(8);
+  assert.equal(h.context.sealed, true, 'an orphaned arm reopened the sealed channel');
+  const tail = h.records().slice(before).map(record => `${record.kind}:${record.reason ?? ''}`);
+  assert.deepEqual(tail, ['shutdown:disable'],
+    'a record landed behind the shutdown record');
+  // And the other half: a superseded activation still records, so the fix above
+  // cannot have been "stop recording when the token is stale".
+  const h2 = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  h2.context.startup({ rootURI: ROOT_URI }, 5);
+  h2.context.startup({ rootURI: ROOT_URI }, 5);
+  await h2.quiet();
+  assert.equal(h2.debugged.filter(line => line.startsWith('SDT sitter startup ')).length, 2,
+    'a superseded activation stopped recording its own standing down');
+});
+
 await test('a cache row carries the schema stamp, and a row stamped otherwise is skipped', async () => {
   const attachments = [pdf(1, 'AAAA1111', { pack: { lastModified: 900 } }),
     pdf(2, 'BBBB2222', { pack: { lastModified: 900 } })];
@@ -1944,7 +1991,7 @@ await test('a cache row carries the schema stamp, and a row stamped otherwise is
   const record = key => ({ signature: shape.identity(key), fingerprint: shape.fingerprint(key),
     sourceBytes: 4096, pages: 12 });
   // One well-formed row, one identical but for a schema number this build does
-  // not write. Before ticket 0780 no row carried the number at all: the format
+  // not write. Before ticket 0771 no row carried the number at all: the format
   // was compared in memory against the literal the loader had just handed over,
   // so a record shape written by another build was read as this build's own.
   const foreign = JSON.stringify({ format: CACHE_FORMAT + 1, versions: VERSIONS_JSON,

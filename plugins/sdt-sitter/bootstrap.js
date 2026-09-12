@@ -94,7 +94,7 @@ var sweepGeneration = 0;
 // moved in the gate cannot leave a stale figure on screen beside the reading.
 var MIN_FREE_MEMORY = 4 * 1024 ** 3, MIN_FREE_DISK = 8 * 1024 ** 3;
 // Bootstrap reason constants are numeric here and named elsewhere; accept both.
-// Read from BOTH directions since ticket 0780, and the way IN is the half that
+// Read from BOTH directions since ticket 0771, and the way IN is the half that
 // was missing: shutdown() has recorded its reason since 0689, while startup()
 // took no second argument at all. So the ring could say the plugin had been
 // disabled, uninstalled or upgraded, and never that THIS activation was the
@@ -113,7 +113,7 @@ var BOOTSTRAP_REASONS = { 1: 'app-startup', 2: 'app-shutdown', 3: 'enable',
    unrecognised NUMBER keeps its number -- `reason-9` names a host constant this
    build has not met, which is worth more than 'unknown' -- and a named reason is
    normalised exactly as the shutdown record has always normalised it.
-   Ticket 0780. */
+   Ticket 0771. */
 function nameBootstrapReason(reason) {
   if (typeof reason === 'number') return BOOTSTRAP_REASONS[reason] || `reason-${reason}`;
   return reason ? String(reason).toLowerCase().replace(/^addon[_-]/, '').replace(/_/g, '-') : 'unknown';
@@ -123,6 +123,18 @@ function nameBootstrapReason(reason) {
 // number cannot stage the defect, and the guard against it would be asserted by
 // reading the source — which is how the defect got in.
 var generation = 0;
+/* How many times this scope has been shut down. The generation token cannot
+   answer the question this counter answers, and a round-1 verify-gate bounce on
+   ticket 0771 is what established that: `startup()` overwrites the module-level
+   `timer` binding, so two overlapping startups leave the first one's arm
+   orphaned -- `shutdown()` clears only the second, and the orphan fires later,
+   into a scope that has since been torn down. Both that orphan and an ordinary
+   superseded activation satisfy `token !== generation`, so the token cannot tell
+   them apart, and they must be treated differently: the superseded one RECORDS
+   its standing down (that is what the emit ahead of the guard is for), while the
+   orphan must not, because a `startup` record landing behind a `shutdown` record
+   reads as a re-enable that never happened. */
+var shutdowns = 0;
 var lastCompleted = 0;
 var completionBlinkUntil = 0;
 
@@ -2225,16 +2237,20 @@ var installedVersion = null;
 /* The reason the host gave for THIS activation, named. Module-level for the
    same reason `installedVersion` is: startup() must not hold the serialized
    addon-startup path, so it hands both to the initialize() it arms and returns.
-   Ticket 0780. */
+   Ticket 0771. */
 var startupReason = 'unknown';
 
 function startup({ rootURI, version }, reason) {
   const token = ++generation;
+  // The era this activation was armed in, carried rather than read: by the time
+  // the callback below runs `shutdowns` may have moved, and that difference is
+  // the whole discriminator (see the counter's own comment).
+  const era = shutdowns;
   installedVersion = typeof version === 'string' ? version : null;
   startupReason = nameBootstrapReason(reason);
   timers = ChromeUtils.importESModule('resource://gre/modules/Timer.sys.mjs');
   // Addon startup is serialized. Never hold it on UI readiness or a modal prompt.
-  timer = timers.setTimeout(() => initialize(rootURI, token).catch(error => Zotero.logError(error)), 0);
+  timer = timers.setTimeout(() => initialize(rootURI, token, era).catch(error => Zotero.logError(error)), 0);
 }
 /* Ticket 0688. The plugin "tends to disappear on its own from the installed-plugins
    list" and left nothing behind saying which build was running when it did. Raw
@@ -2266,9 +2282,16 @@ async function sitterStartupSelfCheck(rootURI) {
     strictMinVersion: application.strict_min_version,
     strictMaxVersion: application.strict_max_version };
 }
-async function initialize(rootURI, token) {
+async function initialize(rootURI, token, era = shutdowns) {
   await Zotero.initializationPromise;
-  /* THE SEAL IS LIFTED HERE, and until ticket 0780 it was lifted forty lines
+  /* An activation whose scope has been shut down since it was armed stands down
+     here, silently, before the seal below: it is the orphaned timer, not a
+     superseded one, and the difference is `shutdowns` rather than `generation`
+     (see that counter). Defaulted, because tests/sdt_sitter_startup.mjs enters
+     `initialize` directly to drive the self-check, and a caller that names no
+     era is not in a stale one. */
+  if (era !== shutdowns) return;
+  /* THE SEAL IS LIFTED HERE, and until ticket 0771 it was lifted forty lines
      below, after the startup record had already been emitted into it.
 
      The seal is shutdown()'s: nothing may land behind the shutdown record. That
@@ -2343,7 +2366,7 @@ async function initialize(rootURI, token) {
   if (token !== generation) return;
   const cachePath = PathUtils.join(Zotero.DataDirectory.dir, 'sdt-sitter-cache.jsonl');
   await Zotero.SDTPackSitterCacheWrite?.catch(() => {});
-  // `format` is the row schema, and since ticket 0780 it is written into every
+  // `format` is the row schema, and since ticket 0771 it is written into every
   // row and read back off it. It used to exist only here, in memory, where
   // scheduler.js's `raw?.format === 1` compares it against the literal this line
   // hands over -- a guard satisfied by construction, which could never fire, and
@@ -2760,7 +2783,7 @@ function shutdown(data, reason) {
   // no record — losing the evidence at exactly the moment disable is being used
   // to recover from a hang. The throw still propagates; the record is not lost.
   try {
-    ++generation; alive = false; sitter?.stop();
+    ++generation; ++shutdowns; alive = false; sitter?.stop();
     try { if (notifierID !== undefined) Zotero.Notifier.unregisterObserver(notifierID); }
     catch (error) { Zotero.logError(error); }
     notifierID = undefined;
@@ -2794,7 +2817,7 @@ function shutdown(data, reason) {
     // installed. So on that reason alone both go, the cache-write chain
     // included: it is shared across scopes so a REPLACEMENT's first write cannot
     // interleave with the outgoing build's last, and an uninstall has no
-    // successor to serialize against. Ticket 0780.
+    // successor to serialize against. Ticket 0771.
     try {
       if (named === 'uninstall') {
         delete Zotero.SDTPackSitterJournal;
