@@ -1,0 +1,76 @@
+%erg 0.1
+Title: Say why the cache emptied after a host processor change
+Created: 2026-09-12
+Author: claude
+Blocked-by: 0771
+
+--- log ---
+2026-09-12T09:02Z claude created
+
+2026-09-12T09:07Z claude note filed from the lifecycle audit (F5). Blocked-by 0771: the skipped-row count is read in the cache loop 0771 edits, and 0771 adds a second occasion for the same silence
+--- body ---
+
+## Context
+
+Audit finding F5 (`verification/SITTER-LIFECYCLE-AUDIT-2026-09-12.md`).
+
+The on-disk cache is keyed on the host's processor stamps
+(`resource://zotero/document-worker/metadata.json`), and every row whose
+`versions` differ is dropped on load. Those stamps move on point releases: this
+repository's own reading is `SDT_SCHEMA_VERSION` 1.1.0 -> 1.2.0 and the PDF
+processor stamp 3 -> 14 between the 10.0 build and 10.0.2 — eleven stamps across
+three point releases (`plugins/sdt-sitter/RELEASE-NOTES.md`).
+
+So the ordinary consequence of a Zotero update is a total cache invalidation and
+a full re-census. The plugin survives that correctly. What it does not do is
+explain it: `emit('cache-load', …)` reports the rows *kept* and never the rows
+dropped, so a post-upgrade session is indistinguishable from a broken one from
+the user's side — everything done again, no reason given. 0771 adds a second
+occasion for the same silence: a cache written before its row stamp existed is
+dropped once, wholesale.
+
+## Relevant files
+
+- `plugins/sdt-sitter/bootstrap.js` — the cache read loop and `cache-load`
+- `tests/sdt_sitter_bootstrap.mjs` — the existing cache-load scenarios
+- `SPEC.md` §5.2.7 — the sitter's surfaces; check whether a new line needs
+  declaring there, as the census classes already are
+
+## Actions
+
+1. Count the rows skipped, by reason (foreign pack versions, foreign row
+   format, malformed), and carry the counts in the `cache-load` record beside
+   the rows kept.
+2. When rows were dropped for a version or format mismatch, say so once in the
+   window: the host's text processors changed, so earlier observations no longer
+   apply and the pass is being re-measured. One sentence, composed once, in the
+   voice the panel already uses.
+3. Respect the string rules: `tests/test_sdt_sitter.py` bans "document", "pack"
+   and the rest from user-facing text and requires each UI site to read from one
+   composer. Read those tests before writing the sentence.
+
+## Test
+
+- Red first: a cache whose every row carries foreign versions loads zero rows
+  and the window says nothing about why.
+- The counts reach the `cache-load` record, by reason.
+- The sentence appears after a version-mismatch drop and NOT after an ordinary
+  empty-cache first run — a first install has nothing to explain.
+- The sentence is gone on the next activation, which has a current cache.
+
+## Verification
+
+- [ ] `node tests/sdt_sitter_bootstrap.mjs`
+- [ ] `python3 -m pytest tests/test_sdt_sitter.py -q` — the string guards
+- [ ] `python3 verification/probes/sdt_sitter_bootstrap_mutants.py`
+- [ ] `make check`
+
+## Invariants
+
+- No new durable state, no new pref.
+- The census verdicts do not move: this is a reading about the cache, not about
+  the library.
+
+## Exit criteria
+
+- A session that dropped its cache says why, once, in words a reader can read.

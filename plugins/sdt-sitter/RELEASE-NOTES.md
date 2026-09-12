@@ -57,6 +57,19 @@ for the next pass, and a pass that finished with attachments it could not index
 — the last pointing at the "Not indexed" list, where each obstacle already
 carries its own explanation.
 
+Ticket [0771](../../tickets/0771-the-sitter-lifecycle-record-the-reason-i.erg)
+records what the host says when it starts the add-on, as the log has recorded
+what it says when it stops it since ticket 0689: an install, an enable, an
+upgrade or a downgrade is now named on the way in as well as on the way out, so
+the trace reads as a sequence of transitions. Removing the add-on now also takes
+its two session handles off the host rather than leaving them there for the rest
+of the session. Cached observations gain a schema number, which the reader of
+the file checks: one consequence is visible, once, on first use of this build —
+observations written by an earlier build carry no such number and are re-measured
+rather than believed. The audit behind all three, including the findings not
+addressed in this release, is
+[the lifecycle audit](../../verification/SITTER-LIFECYCLE-AUDIT-2026-09-12.md).
+
 Implementation and host-mock verification are recorded in
 [the scheduling report](../../verification/SDT-SITTER-EVENTS.md). This draft does
 not claim a live-profile deployment or a published release.

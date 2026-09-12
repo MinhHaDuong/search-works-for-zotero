@@ -1,0 +1,89 @@
+%erg 0.1
+Title: An uninstall removes the sitter own durable state
+Created: 2026-09-12
+Author: claude
+Blocked-by: 0771
+
+--- log ---
+2026-09-12T09:02Z claude created
+
+2026-09-12T09:07Z claude note filed from the lifecycle audit (F2). Blocked-by 0771: the removal belongs in the same shutdown finally that 0771 edits
+--- body ---
+
+## Context
+
+Audit finding F2 (`verification/SITTER-LIFECYCLE-AUDIT-2026-09-12.md`).
+
+`install()` and `uninstall()` are both `{}`. What a removal leaves behind:
+
+| State | Written at | Declared in SPEC |
+|---|---|---|
+| `<dataDir>/sdt-sitter-cache.jsonl` | `bootstrap.js` cache write | no |
+| `…jsonl.tmp` (on a quit mid-write) | the same `IOUtils.write` | no |
+| `extensions.sdt-pack-sitter.debug` | the diagnostics checkbox | yes, SPEC.md §5.2.7 |
+| `extensions.sdt-pack-sitter.enabled` | the launch answer | no — and 0772 owns it |
+
+R15's uninstall clause (SPEC.md, R15) binds *targets*, and the sitter is not
+one, so this is not a requirement violation. It is the same obligation this
+repository holds targets to, unmet by its own add-on — and the declaration gap
+is the larger half: a reader cannot find out from SPEC where the sitter's
+durable state lives.
+
+If PR #530 lands first, its death certificate (`sdt-sitter-last-shutdown.json`)
+is a fifth file and belongs in the same sweep and the same declaration.
+
+## Relevant files
+
+- `plugins/sdt-sitter/bootstrap.js` — `shutdown()`'s `finally`, and `uninstall()`
+- `SPEC.md` §5.2.7 — the sitter's own section, where the debug pref is declared
+- `tests/sdt_sitter_bootstrap.mjs` — the uninstall scenario 0771 added
+
+## Actions
+
+1. On reason `uninstall`, remove the cache file and its `.tmp` beside the two
+   globals 0771 already drops there. **In `shutdown()`, not in `uninstall()`**:
+   the sandbox is torn down when shutdown returns on that path, which is PR
+   #530's own reason for writing its certificate synchronously — a hook that may
+   never run cannot be the cleanup site. Keep `uninstall()` empty with a comment
+   saying so.
+2. Clear `extensions.sdt-pack-sitter.debug`. Leave `…enabled` to 0772's ruling.
+3. Declare every location in SPEC §5.2.7, beside the debug pref that is already
+   there, and state that an uninstall removes them.
+4. Removal is best-effort and silent-on-failure: an unwritable or already-gone
+   file must not throw into a teardown, and there is no next session to tell.
+
+## Test
+
+- Red first: an uninstall over a written cache leaves the file in place.
+- A disable leaves the cache file *and* both prefs alone (positive control —
+  this is the recovery path, and 0771's uninstall scenario is its sibling).
+- An uninstall removes the cache file, the `.tmp` if one exists, and the debug
+  pref, and the shutdown record is still written.
+- A removal that throws (unwritable directory) does not escape `shutdown()`.
+
+## Verification
+
+- [ ] `node tests/sdt_sitter_bootstrap.mjs`
+- [ ] `python3 verification/probes/sdt_sitter_bootstrap_mutants.py` — one mutant
+      per half: the removal skipped, and the removal fired on a disable
+- [ ] `make check`
+
+## Invariants
+
+- The disable path is untouched. 0703 and SPEC §5.2.7's disable semantics hold.
+- Nothing durable is added, and the cache stays disposable.
+
+## Notes for the author, not taken here
+
+The cache sits at the top of the data directory rather than under a
+plugin-owned subdirectory, so "complete removal" is a filename list that will
+drift as files are added (the certificate is the first). A directory
+(`<dataDir>/sdt-pack-sitter/`) would make removal one recursive delete and the
+SPEC declaration one path. That is a design choice with a migration, so it is
+raised rather than taken.
+
+## Exit criteria
+
+- An uninstall leaves no sitter-created file or pref behind, except any the
+  author's ruling on 0772 deliberately keeps.
+- SPEC §5.2.7 declares every location.

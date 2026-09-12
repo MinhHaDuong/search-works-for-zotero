@@ -1,0 +1,58 @@
+%erg 0.1
+Title: The one-entry update manifest leaves every hand-delivered build unlisted
+Created: 2026-09-12
+Author: claude
+Label: needs-human
+
+--- log ---
+2026-09-12T09:02Z claude created
+
+2026-09-12T09:07Z claude note filed from the lifecycle audit (F6). Needs a ruling among three options; the state, not 0727's refuted mechanism
+--- body ---
+
+## Context
+
+Audit finding F6 (`verification/SITTER-LIFECYCLE-AUDIT-2026-09-12.md`).
+
+`bench/check_sitter_version.py` rule 2 requires `update.json` to carry
+**exactly one** entry, for the working tree's version. So `main`'s manifest
+lists the tip and nothing else — while the delivery practice is a hand-carried
+XPI built from a *branch* (ticket 0680 carried one to the author's home
+directory; `bench/sitter_volume_experiment.py` installed 9.0.0 … 9.17.0 during
+0727 arm 5).
+
+Every such build is an add-on whose update manifest does not list its installed
+version. That is the same family as the state 0727's fix was written to
+eliminate — "an add-on whose update manifest lists it with zero versions has no
+version the host can find compatible" (`update.json`'s `_comment`) — re-created
+on every branch delivery, and on every tip bump for anyone still running the
+previous build.
+
+**What this does and does not claim.** The *mechanism* in 0727's title is
+refuted: 0.2.15 advertised a compatible version and died on the same schedule,
+and `extensions.update.interval` is a daily check against a disable twenty
+seconds after install. This is about the state, not the cause. The state is
+cheap to avoid and the cause is unknown, which is the whole argument for
+avoiding it.
+
+## Why this needs the author
+
+All three options change a ratified-by-practice shape: the one-entry steady
+state 0727 put in place and 0764 wrote a guard for.
+
+## Options, ranked
+
+1. **Cumulative list.** Append rather than replace: every shipped version keeps
+   an entry with its own bounds; the tip gains `tag`/`update_link` once a release
+   exists. Guard rule 2 becomes "contains the tip, versions unique". Cost: the
+   guard and its fixtures (`tests/test_check_sitter_version.py`).
+2. **Keep single-entry, state it.** Add to `update.json`'s `_comment` and the
+   guard's docstring that only the tip is listed and hand-delivered branch
+   builds are deliberately unlisted. Cost: two sentences. Leaves the state.
+3. **Serve `update.json` from a tag rather than from `main`.** Removes the
+   in-development window and keeps one entry per release. Needs a release
+   first, which is 0764, currently deferred.
+
+## Exit criteria
+
+- A ruling, and the guard and `update.json` matching it.

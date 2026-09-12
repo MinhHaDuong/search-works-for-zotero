@@ -1,0 +1,109 @@
+%erg 0.1
+Title: The sitter lifecycle record: the reason in, the uninstall out, the cache row stamp
+Created: 2026-09-12
+Author: claude
+
+--- log ---
+2026-09-12T09:02Z claude created
+
+2026-09-12T09:07Z claude note filed from verification/SITTER-LIFECYCLE-AUDIT-2026-09-12.md: the three findings that cost a few lines each (F9, F3, F7). Implemented in the same pass, with a fourth defect the F9 test found -- the seal was lifted after the startup emit, so the ring never held a startup record at all
+2026-09-12T09:07Z claude note version 0.3.45, not 0.3.44: open PR #530 claims 0.3.44 on its own branch and the version guard cannot see it. That blind spot is filed as 0779
+--- body ---
+
+## Context
+
+`verification/SITTER-LIFECYCLE-AUDIT-2026-09-12.md` audits the sitter against
+its four contracts with the host: install, remove, update, and surviving a
+Zotero upgrade or downgrade. Three of its ten findings cost a few lines each and
+are implemented here; the rest are filed as 0772-0779.
+
+**F9 — the journal records why the plugin stopped and never why it started.**
+`shutdown(data, reason)` has named its reason since 0689. `startup()` took no
+second argument at all, so the ring could say the add-on had been disabled,
+uninstalled or upgraded, and never that *this* activation was the install, the
+enable or the upgrade. That count — how many replacements one session has
+taken — is exactly what 0727's one surviving live candidate is about.
+
+**A fourth defect, found by the test written for F9 and fixed with it.** The
+seal was lifted forty lines below the startup emit, so a seal still standing
+from the previous `shutdown()` swallowed the startup record on every activation
+after the first — in both channels. The first activation is not sealed and has
+no ring yet, so its record reached the debug log alone; every later one reached
+nothing. bootstrap.js's own comment at that call site asserted the opposite.
+The ring therefore never held a startup record at all, which is the same defect
+family as 0688's unreadable version: instrumentation built to say which
+transition happened, not saying it.
+
+**F3 — two session globals outlive an uninstall.** `Zotero.SDTPackSitterJournal`
+was republished unconditionally and `Zotero.SDTPackSitterCacheWrite` was never
+deleted. Both are right for the reason they were built (0703: a disable must not
+destroy the evidence of what it is recovering from; the write chain is shared
+across scopes so a replacement's first write cannot interleave with the outgoing
+build's last). Neither reason survives an uninstall, which has no next
+activation to read the ring, no window left to copy it from, and no successor to
+serialize against.
+
+**F7 — the cache's format guard could not fire.** `scheduler.js`'s
+`raw?.format === 1` compares against the literal `bootstrap.js` had just handed
+it: satisfied by construction, unable ever to fire, and reading as protection
+the cache did not have. No row on disk carried a stamp, so an older build
+installed over a newer one — ordinary for a plugin delivered by hand — read the
+newer build's records as its own.
+
+## Relevant files
+
+- `plugins/sdt-sitter/bootstrap.js` — all three changes
+- `tests/sdt_sitter_bootstrap.mjs` — five new scenarios, over the real `startup()`
+- `tests/sdt_sitter_zotero_mock.mjs` — `CACHE_FORMAT`, and `cacheLine` stamps it
+- `verification/probes/sdt_sitter_bootstrap_mutants.py` — M40-M44; M4's anchor moved
+- `plugins/sdt-sitter/manifest.json`, `update.json` — 0.3.45
+
+## Actions
+
+1. `BOOTSTRAP_REASONS` (was `SHUTDOWN_REASONS`, plus `1: 'app-startup'`) and one
+   `nameBootstrapReason()` read by both directions.
+2. `startup({ rootURI, version }, reason)`; the named reason rides the `startup`
+   record, not `environment` — the environment is which build is running, the
+   reason is what this activation was.
+3. Lift the seal at the top of `initialize()`, ahead of the startup emit and
+   deliberately NOT behind the generation token: a startup that never reaches
+   the guard is exactly what the record exists to capture.
+4. On reason `uninstall` alone, delete both session globals instead of
+   republishing the ring.
+5. Stamp every cache row with `raw.format` and require it on the way in. The
+   number stays on the one line that already held it.
+
+## Test
+
+Five scenarios in `tests/sdt_sitter_bootstrap.mjs`, each red before its change:
+
+- the startup record names the host's reason, and the ring reads as a sequence
+  of transitions (`shutdown:disable`, `startup:enable`, `shutdown:upgrade`)
+- a named reason (`ADDON_INSTALL`), an unknown number (`reason-9`) and no reason
+  at all (`unknown`) are all readable
+- an uninstall takes both globals; a disable keeps both (0703's positive control)
+- a row stamped with another schema number is skipped and its pack re-opened
+- the rows this build writes are the rows the next session reads (round trip)
+
+## Verification
+
+- [x] `node tests/sdt_sitter_bootstrap.mjs` — 59 scenarios pass
+- [x] `node tests/sdt_sitter_scheduler.mjs`, `node tests/sdt_sitter_dialog.mjs`
+- [x] `python3 verification/probes/sdt_sitter_bootstrap_mutants.py` — M40-M44 caught
+- [x] `python3 bench/check_sitter_version.py` — 0.3.45 over 106 revisions
+- [x] `make check`
+
+## Invariants
+
+- 0703's rule holds on every reason but `uninstall`.
+- The ring stays volatile: nothing durable is added here.
+- No new user-facing string, so the UI-string guards are untouched.
+- An existing on-disk cache written by 0.3.43 carries no stamp and is dropped
+  once, on the first activation of this build. The cache is disposable by
+  ratification; 0774 is the ticket that makes such a drop legible on screen.
+
+## Exit criteria
+
+- The ring can be read as a sequence of transitions in both directions.
+- An uninstalled add-on leaves neither global behind.
+- A cache row's schema number is written and read, so a foreign row is skipped.

@@ -74,8 +74,9 @@ MUTANTS = [
      "      } catch (error) { /* Ignore incomplete/corrupt cache rows. */ }\n",
      "      } catch (error) { throw error; }\n"),
     ("M4 a row stamped with another pack version is loaded anyway",
-     "        if (row.versions !== raw.versions || typeof row.key !== 'string') continue;",
-     "        if (typeof row.key !== 'string') continue;"),
+     "        if (row.format !== raw.format || row.versions !== raw.versions ||\n"
+     "            typeof row.key !== 'string') continue;",
+     "        if (row.format !== raw.format || typeof row.key !== 'string') continue;"),
     ("M5 a failed cache write is silent again",
      "        if (!cacheFailing) {\n"
      "          cacheFailing = true;\n"
@@ -110,8 +111,8 @@ MUTANTS = [
     # single `token !== generation` guard: there are five of them along
     # initialize(), so removing one only moves the stand-down to the next.
     ("M10 startup() does not supersede the initialize() already in flight",
-     "function startup({ rootURI, version }) {\n  const token = ++generation;",
-     "function startup({ rootURI, version }) {\n  const token = generation;"),
+     "function startup({ rootURI, version }, reason) {\n  const token = ++generation;",
+     "function startup({ rootURI, version }, reason) {\n  const token = generation;"),
     ("M11 shutdown leaves the sweep, pulse and heartbeat timers armed",
      "    if (timers) { timers.clearTimeout(timer); timers.clearInterval(pulse); timers.clearInterval(heartbeat); }\n",
      ""),
@@ -295,6 +296,39 @@ MUTANTS = [
     ("M39 the status region compares the sentence, so a count moving is announced",
      "    announceSDTTransition(dialog, doc, switchLine, s.phase, describeSDTSwitchKind(s));\n",
      "    announceSDTTransition(dialog, doc, switchLine, s.phase, switchLine);\n"),
+    # ---- ticket 0780: the host lifecycle interface --------------------------
+    # The defect as it stood: the host hands startup() a reason and the plugin
+    # took no second argument, so the ring named every transition out and none in.
+    # The assignment and not the signature: dropping the parameter leaves the
+    # body referencing an undeclared name, and a mutant that throws out of
+    # startup() is caught by every test in the file for the wrong reason. This
+    # one changes the RECORD and nothing else, which is the regression class.
+    ("M40 startup() drops the host's reason, so no record says which transition this activation was",
+     "  startupReason = nameBootstrapReason(reason);\n",
+     ""),
+    # The seal belongs to the activation that set it. Left standing, it swallows
+    # the next activation's startup record in both channels -- which is what it
+    # did until this ticket, and why the ring held no startup record at all.
+    ("M41 the seal is never lifted, so every record after the first shutdown is swallowed",
+     "  sealed = false;\n",
+     ""),
+    # Ticket 0703's rule applied to the one reason it does not fit: an uninstall
+    # has no next activation to read the ring and no window left to copy it from.
+    ("M42 an uninstall republishes the ring and keeps the write chain parked on the host",
+     "      if (named === 'uninstall') {\n"
+     "        delete Zotero.SDTPackSitterJournal;\n"
+     "        delete Zotero.SDTPackSitterCacheWrite;\n"
+     "      } else if (journal) Zotero.SDTPackSitterJournal = journal;\n",
+     "      if (journal) Zotero.SDTPackSitterJournal = journal;\n"),
+    # The two halves of the row stamp, each fatal on its own: written and not
+    # read loses every row at the next load, read and not written the same.
+    ("M43 the row reaches the file without its schema stamp, so the next session drops it",
+     "        JSON.stringify({ format: raw.format, versions: raw.versions, ...change })",
+     "        JSON.stringify({ versions: raw.versions, ...change })"),
+    ("M44 the schema stamp is not read back, so another build's record shape is believed",
+     "        if (row.format !== raw.format || row.versions !== raw.versions ||\n"
+     "            typeof row.key !== 'string') continue;",
+     "        if (row.versions !== raw.versions || typeof row.key !== 'string') continue;"),
 ]
 
 

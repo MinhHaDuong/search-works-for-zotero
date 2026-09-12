@@ -1,0 +1,103 @@
+%erg 0.1
+Title: The volume rig proves nothing about a sitter that never became alive
+Created: 2026-09-12
+Author: claude
+Blocked-by: 0727
+
+--- log ---
+2026-09-12T09:02Z claude created
+
+2026-09-12T09:07Z claude note filed from the lifecycle audit (F10). Bears on STATE.md's handoff: the remaining volume budget would measure host bookkeeping alone unless the rig gains a liveness reading
+--- body ---
+
+## Context
+
+Audit finding F10 (`verification/SITTER-LIFECYCLE-AUDIT-2026-09-12.md`), and the
+one finding that changes what happens next on 0727.
+
+`bench/sitter_volume_experiment.py` runs Zotero with `--headless` (its
+`--headless` argument defaults to true), and its watcher samples
+`extensions.json` and the `.xpi`'s presence on disk only —
+`verification/SDT-SITTER-DISAPPEARANCE-0727.md` states that plainly, and neither
+it nor the ticket log claims the installed builds were *running*.
+
+Read against the payload, they almost certainly were not. `initialize()` awaits
+`Zotero.uiReadyPromise` and then requires a main window —
+`const win = Zotero.getMainWindow(); if (!win || …) throw` — and `win.require`
+needs that window too. Headless, `getMainWindow()` has no `navigator:browser`
+window to return. Either `uiReadyPromise` never settles and `initialize()`
+stalls before that line, or it settles and the line throws into `startup()`'s
+bare `.catch(error => Zotero.logError(error))`. In both branches `alive` never
+becomes true: no census, no cache write, no timers, no prompt, no toolbar button.
+
+Arms 1-4 judged liveness by the cache file's compact write (0727's log,
+2026-09-08T07:31Z). Arm 5 dropped that reading and replaced it with nothing.
+
+**What it means.** 17 clean cycles are evidence about Zotero's add-on
+bookkeeping under repeated install/disable/enable, not about the sitter running
+under it. Every candidate mechanism involving anything the plugin *does* — its
+timers, the modal first-run prompt, writes into the data directory, a throw
+inside `initialize()`, a re-used scope — is outside what that rig can observe.
+Both organic occurrences were on a GUI Zotero with the plugin demonstrably
+running (the author saw a frozen, message-id-labelled toolbar button).
+
+It also bounds PR #530's instrumentation: the parked ring and the death
+certificate are written from state `initialize()` builds, so in a rig where the
+plugin never initializes, the evidence chain that PR adds is near-empty by
+construction — a certificate holding a startup record and nothing else.
+
+## Blocked by
+
+PR #530 (ticket 0727) rewrites this driver (+53/-94) and splits the watcher into
+`bench/sitter_watch.py`. Do not open a competing PR on the same file: wait for
+#530 to merge, then rebase this onto it.
+
+## Relevant files
+
+- `bench/sitter_volume_experiment.py` — the driver and its `--headless` default
+- `bench/sitter_watch.py` (after #530) — the watcher and its evidence capture
+- `bench/zotero_rdp_client.py` — how a reading is taken over RDP
+- `verification/SDT-SITTER-DISAPPEARANCE-0727.md` — the arm record to extend
+
+## Actions
+
+1. Add a liveness verdict-carrier to each cycle: an RDP `eval` of
+   `!!Zotero.SDTPackSitter` (the handle `initialize()` publishes only once
+   `alive` is true), or the cache file's existence and mtime. Log it per cycle in
+   the watcher's own grammar.
+2. **Positive-control it.** A cycle that installs a deliberately inert payload
+   must read as not-live. An assertion whose all-clear is indistinguishable from
+   its could-not-look is not an assertion — `tickets/AGENTS.md` says so, and
+   0727's own 16:15Z log entry is the same trap caught once already.
+3. Report the reading, do not act on it: per 0727's out-of-band condition, the
+   client may perform the install but must not be the only witness to the
+   resulting state.
+4. If headless cannot produce a live plugin — the reading above says it cannot —
+   say so in the report and either run the remaining budget under `Xvfb` or
+   re-scope the arm to host bookkeeping alone, explicitly.
+
+## Test
+
+- `tests/test_sitter_watch.py` (added by #530) is the place: a fake RDP client
+  whose eval returns live / not-live / raises, and the assertion that each is
+  reported as itself rather than folded into one verdict.
+- No live Zotero is driven by the test suite, and none is claimed.
+
+## Verification
+
+- [ ] `make check`
+- [ ] The liveness reading is shown failing against an inert payload before it
+      is trusted against a real one.
+
+## Invariants
+
+- No claim about the disappearance mechanism is added or retracted here. This is
+  the instrumentation of the next arm.
+- The refuted arms stay refuted: do not re-run arms 2 or 3.
+
+## Exit criteria
+
+- A cycle of the volume rig says whether the plugin it installed was alive, and
+  that reading has been shown to be capable of saying no.
+- `STATE.md`'s "re-run to the full budget" handoff either has a live rig or a
+  re-scoped question.

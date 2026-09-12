@@ -1,0 +1,77 @@
+%erg 0.1
+Title: Disclose the sitter mandatory daily update fetch
+Created: 2026-09-12
+Author: claude
+
+--- log ---
+2026-09-12T09:02Z claude created
+
+2026-09-12T09:07Z claude note filed from the lifecycle audit (F4). Disclosure only, no design decision: update_url is required (0727's control) so the daily fetch cannot be turned off
+--- body ---
+
+## Context
+
+Audit finding F4 (`verification/SITTER-LIFECYCLE-AUDIT-2026-09-12.md`).
+
+`manifest.json`'s `update_url` points at
+`raw.githubusercontent.com/.../main/plugins/sdt-sitter/update.json`, and ticket
+0727 established **with a control** that it is required: the identical build
+without it is refused at install ("peut-etre incompatible avec cette version de
+Zotero", 0.2.14, 2026-09-06).
+
+So a plugin whose proposition is "local by default" cannot be installed without
+the host contacting GitHub about it on the host's own update cadence
+(`extensions.update.interval`, 86400 s as read on the author's profile),
+carrying the installed version and the user's address. Nothing is wrong with the
+code. The disclosure is missing: it is the only network traffic the add-on's
+existence causes, and neither `RELEASE-NOTES.md` nor SPEC §5.2.7's privacy
+paragraph mentions it.
+
+This matters for the September 21 release, which STATE.md scopes to
+correctness, packaging and privacy.
+
+## Relevant files
+
+- `plugins/sdt-sitter/RELEASE-NOTES.md` — what an installer is told
+- `SPEC.md` §5.2.7 — the sitter's privacy paragraph (the one that says the ring
+  is volatile and that there is no private durable ledger)
+- `SPEC.md` §6 — discloses rather than decides, per AGENTS.md
+- `plugins/sdt-sitter/update.json` — its `_comment` already records why
+  `update_url` is required; the privacy consequence is not stated there
+
+## Actions
+
+1. State the fact where an installer meets it: the host checks an update
+   manifest on GitHub roughly daily for as long as the add-on is installed, the
+   check carries the add-on's version and the requesting address, it cannot be
+   turned off without making the add-on uninstallable, and nothing about the
+   library is sent.
+2. Put the same fact once in the owning SPEC section rather than twice in prose
+   — AGENTS.md's "one statement per fact", with the other site pointing at it.
+3. Do not overstate: the request is Zotero's, not the plugin's; the plugin makes
+   no network call of its own. Say that too, since it is the part a reader would
+   otherwise assume wrongly.
+
+## Test
+
+- `python3 -m pytest tests/test_sdt_sitter.py -q` stays green — in particular
+  `test_manifest_names_no_unresolvable_host` and the UI-string guards, which
+  this must not trip.
+- If a prose guard (`bench/check_names.py`, `bench/check_figures.py`) has
+  anything to say about the new text, satisfy it rather than working around it.
+
+## Verification
+
+- [ ] `make check`
+- [ ] The claim reads as true against `update.json`'s own `_comment` and against
+      0727's log entry of 2026-09-06T22:34Z. Quote neither loosely.
+
+## Invariants
+
+- No code change. No design decision: this is disclosure of an existing fact,
+  which is what SPEC §6 is for.
+
+## Exit criteria
+
+- An installer can find out, without reading the source, that installing the
+  add-on means a daily request to GitHub, and what it carries.
