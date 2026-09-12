@@ -94,13 +94,47 @@ var sweepGeneration = 0;
 // moved in the gate cannot leave a stale figure on screen beside the reading.
 var MIN_FREE_MEMORY = 4 * 1024 ** 3, MIN_FREE_DISK = 8 * 1024 ** 3;
 // Bootstrap reason constants are numeric here and named elsewhere; accept both.
-var SHUTDOWN_REASONS = { 2: 'app-shutdown', 3: 'enable', 4: 'disable',
-  5: 'install', 6: 'uninstall', 7: 'upgrade', 8: 'downgrade' };
+// Read from BOTH directions since ticket 0771, and the way IN is the half that
+// was missing: shutdown() has recorded its reason since 0689, while startup()
+// took no second argument at all. So the ring could say the plugin had been
+// disabled, uninstalled or upgraded, and never that THIS activation was the
+// install, the enable or the upgrade -- which is the quantity ticket 0727's one
+// live candidate, cumulative rapid replacement inside a single session, is
+// about. 1 is reached only on the way in and 2 only on the way out; 3-8 are
+// reached from both, so one table carries every reason the host has rather than
+// the four a shutdown can see.
+var BOOTSTRAP_REASONS = { 1: 'app-startup', 2: 'app-shutdown', 3: 'enable',
+  4: 'disable', 5: 'install', 6: 'uninstall', 7: 'upgrade', 8: 'downgrade' };
+/* One mapping for two call sites, because a reason named one way on the way in
+   and another on the way out is a ring nobody can count transitions in.
+
+   Guarded by construction rather than by a try: it runs as an ARGUMENT to
+   emit(), outside emit()'s own guard, so it reads nothing that can throw. An
+   unrecognised NUMBER keeps its number -- `reason-9` names a host constant this
+   build has not met, which is worth more than 'unknown' -- and a named reason is
+   normalised exactly as the shutdown record has always normalised it.
+   Ticket 0771. */
+function nameBootstrapReason(reason) {
+  if (typeof reason === 'number') return BOOTSTRAP_REASONS[reason] || `reason-${reason}`;
+  return reason ? String(reason).toLowerCase().replace(/^addon[_-]/, '').replace(/_/g, '-') : 'unknown';
+}
 // Also `var`, and 0696 needs it writable rather than merely readable: the
 // disable/re-enable race IS a generation change, so a test that cannot move this
 // number cannot stage the defect, and the guard against it would be asserted by
 // reading the source — which is how the defect got in.
 var generation = 0;
+/* How many times this scope has been shut down. The generation token cannot
+   answer the question this counter answers, and a round-1 verify-gate bounce on
+   ticket 0771 is what established that: `startup()` overwrites the module-level
+   `timer` binding, so two overlapping startups leave the first one's arm
+   orphaned -- `shutdown()` clears only the second, and the orphan fires later,
+   into a scope that has since been torn down. Both that orphan and an ordinary
+   superseded activation satisfy `token !== generation`, so the token cannot tell
+   them apart, and they must be treated differently: the superseded one RECORDS
+   its standing down (that is what the emit ahead of the guard is for), while the
+   orphan must not, because a `startup` record landing behind a `shutdown` record
+   reads as a re-enable that never happened. */
+var shutdowns = 0;
 var lastCompleted = 0;
 var completionBlinkUntil = 0;
 
@@ -2200,13 +2234,23 @@ function onMainWindowUnload({ window }) {
    once said it — the same defect that made every UI string render as its own
    id, in the one place whose whole job was to leave evidence (ticket 0727). */
 var installedVersion = null;
+/* The reason the host gave for THIS activation, named. Module-level for the
+   same reason `installedVersion` is: startup() must not hold the serialized
+   addon-startup path, so it hands both to the initialize() it arms and returns.
+   Ticket 0771. */
+var startupReason = 'unknown';
 
-function startup({ rootURI, version }) {
+function startup({ rootURI, version }, reason) {
   const token = ++generation;
+  // The era this activation was armed in, carried rather than read: by the time
+  // the callback below runs `shutdowns` may have moved, and that difference is
+  // the whole discriminator (see the counter's own comment).
+  const era = shutdowns;
   installedVersion = typeof version === 'string' ? version : null;
+  startupReason = nameBootstrapReason(reason);
   timers = ChromeUtils.importESModule('resource://gre/modules/Timer.sys.mjs');
   // Addon startup is serialized. Never hold it on UI readiness or a modal prompt.
-  timer = timers.setTimeout(() => initialize(rootURI, token).catch(error => Zotero.logError(error)), 0);
+  timer = timers.setTimeout(() => initialize(rootURI, token, era).catch(error => Zotero.logError(error)), 0);
 }
 /* Ticket 0688. The plugin "tends to disappear on its own from the installed-plugins
    list" and left nothing behind saying which build was running when it did. Raw
@@ -2238,12 +2282,42 @@ async function sitterStartupSelfCheck(rootURI) {
     strictMinVersion: application.strict_min_version,
     strictMaxVersion: application.strict_max_version };
 }
-async function initialize(rootURI, token) {
+async function initialize(rootURI, token, era = shutdowns) {
   await Zotero.initializationPromise;
+  /* An activation whose scope has been shut down since it was armed stands down
+     here, silently, before the seal below: it is the orphaned timer, not a
+     superseded one, and the difference is `shutdowns` rather than `generation`
+     (see that counter). Defaulted, because tests/sdt_sitter_startup.mjs enters
+     `initialize` directly to drive the self-check, and a caller that names no
+     era is not in a stale one. */
+  if (era !== shutdowns) return;
+  /* THE SEAL IS LIFTED HERE, and until ticket 0771 it was lifted forty lines
+     below, after the startup record had already been emitted into it.
+
+     The seal is shutdown()'s: nothing may land behind the shutdown record. That
+     is an invariant about one activation's tail, and the record below opens the
+     NEXT activation -- so a seal still standing from the previous shutdown
+     swallowed it, in both channels, on every activation after the first. The
+     first one is not sealed (the flag starts false) and has no ring yet, so its
+     record reached the debug log alone; every later one reached nothing at all.
+     The comment below used to assert the opposite, and the test that found it is
+     `the startup record names the reason the host gave` -- the ring could not be
+     read as a sequence of transitions because half the transitions were not in
+     it. Same defect family as 0688's unreadable version: the instrumentation
+     built to say which transition happened, not saying it.
+
+     NOT guarded by the generation token, and that is the same deliberate choice
+     the record below is: the emit sits ahead of the token check because a
+     startup that never gets as far as the guard is exactly what it exists to
+     record (two in flight leave two records, one of which builds nothing --
+     `two windows and two startups leave one sitter`). A superseded activation
+     that unsealed and then recorded its own standing down has said something
+     true; one that found the channel shut said nothing at all. */
+  sealed = false;
   // First thing after the host is up, and before any of the work below can throw:
   // a disappearance that leaves no `startup` record happened earlier than this
   // point. It goes through 0689's channel rather than a Zotero.debug() of its own
-  // — one diagnostic channel, already guarded, already sealed at shutdown.
+  // — one diagnostic channel, already guarded.
   //
   // On the FIRST startup the ring is not up yet (scheduler.js loads below), so
   // this record reaches the debug log alone. On every later one it does not: the
@@ -2256,7 +2330,12 @@ async function initialize(rootURI, token) {
     // screen, and a second read of the manifest could disagree with the one the
     // log carries. One read, two readers.
     environment = await sitterStartupSelfCheck(rootURI);
-    emit('startup', environment);
+    // The reason rides the RECORD and not `environment`: the environment is
+    // which build is running, which the panel renders and which does not change
+    // between activations, and the reason is what this one activation was --
+    // true of the record alone. It reaches the clipboard report with it, since
+    // scrubSDTRecord drops `rootURI` and nothing else.
+    emit('startup', { ...environment, reason: startupReason });
   } catch (_error) { /* Diagnostics must never throw into startup. */ }
   await Zotero.uiReadyPromise;
   if (token !== generation) return;
@@ -2272,7 +2351,6 @@ async function initialize(rootURI, token) {
   // shutdown()'s finally as well, so the guarantee holds for a session whose
   // initialize() never got this far.
   Zotero.SDTPackSitterJournal = journal;
-  sealed = false;
   // Kept although the locale load that used to sit above it is gone: nothing
   // between here and the window read awaits today, so this is redundant TODAY,
   // and re-earning it costs a disable/re-enable race of exactly the kind
@@ -2288,12 +2366,22 @@ async function initialize(rootURI, token) {
   if (token !== generation) return;
   const cachePath = PathUtils.join(Zotero.DataDirectory.dir, 'sdt-sitter-cache.jsonl');
   await Zotero.SDTPackSitterCacheWrite?.catch(() => {});
+  // `format` is the row schema, and since ticket 0771 it is written into every
+  // row and read back off it. It used to exist only here, in memory, where
+  // scheduler.js's `raw?.format === 1` compares it against the literal this line
+  // hands over -- a guard satisfied by construction, which could never fire, and
+  // which read as protection the cache did not have. The rows on disk carried no
+  // stamp at all, so an older build installed over a newer one -- an ordinary
+  // event for a plugin delivered by hand -- read the newer build's records as
+  // its own. The number lives on this line alone; the write and the read below
+  // both take it from here.
   const raw = { format: 1, versions: JSON.stringify(versions), records: Object.create(null) };
   try {
     for (const line of (await IOUtils.readUTF8(cachePath)).split('\n')) {
       try {
         const row = JSON.parse(line);
-        if (row.versions !== raw.versions || typeof row.key !== 'string') continue;
+        if (row.format !== raw.format || row.versions !== raw.versions ||
+            typeof row.key !== 'string') continue;
         if (row.record) raw.records[row.key] = row.record;
         else delete raw.records[row.key];
       } catch (error) { /* Ignore incomplete/corrupt cache rows. */ }
@@ -2320,7 +2408,8 @@ async function initialize(rootURI, token) {
       if (!alive || token !== generation) return;
       const changes = cache.changes(compact);
       if (!compact && !changes.length) return;
-      const bytes = new TextEncoder().encode(changes.map(change => JSON.stringify({ versions: raw.versions, ...change })).join('\n') + '\n');
+      const bytes = new TextEncoder().encode(changes.map(change =>
+        JSON.stringify({ format: raw.format, versions: raw.versions, ...change })).join('\n') + '\n');
       try {
         // Compact once per activation; subsequent writes contain changed rows only.
         await IOUtils.write(cachePath, bytes, compact ? { tmpPath: `${cachePath}.tmp` } : { mode: 'append' });
@@ -2694,7 +2783,7 @@ function shutdown(data, reason) {
   // no record — losing the evidence at exactly the moment disable is being used
   // to recover from a hang. The throw still propagates; the record is not lost.
   try {
-    ++generation; alive = false; sitter?.stop();
+    ++generation; ++shutdowns; alive = false; sitter?.stop();
     try { if (notifierID !== undefined) Zotero.Notifier.unregisterObserver(notifierID); }
     catch (error) { Zotero.logError(error); }
     notifierID = undefined;
@@ -2711,13 +2800,30 @@ function shutdown(data, reason) {
     dialogs.clear();
     delete Zotero.SDTPackSitter;
   } finally {
-    emit('shutdown', { reason: typeof reason === 'number' ? SHUTDOWN_REASONS[reason] || `reason-${reason}`
-      : reason ? String(reason).toLowerCase().replace(/^addon[_-]/, '').replace(/_/g, '-') : 'unknown' });
+    const named = nameBootstrapReason(reason);
+    emit('shutdown', { reason: named });
     sealed = true;
     // The shutdown record is the last thing written, and this is what keeps the
     // ring holding it reachable afterwards. Guarded for the same reason emit()
     // is: a teardown already halfway through a throw must not acquire a second.
-    try { if (journal) Zotero.SDTPackSitterJournal = journal; } catch (_error) { /* Nothing. */ }
+    //
+    // Except on the one reason that is not a recovery. Republishing the ring is
+    // ticket 0703's rule: disable is what a user reaches for to recover from a
+    // hang, and it removed the only way in to the evidence of what was being
+    // recovered from. An UNINSTALL is the opposite -- there is no next
+    // activation to read the ring, no window left to copy it from, and the two
+    // handles would keep this sandbox reachable for the rest of the session
+    // while the diagnostics payload stayed copyable for an add-on no longer
+    // installed. So on that reason alone both go, the cache-write chain
+    // included: it is shared across scopes so a REPLACEMENT's first write cannot
+    // interleave with the outgoing build's last, and an uninstall has no
+    // successor to serialize against. Ticket 0771.
+    try {
+      if (named === 'uninstall') {
+        delete Zotero.SDTPackSitterJournal;
+        delete Zotero.SDTPackSitterCacheWrite;
+      } else if (journal) Zotero.SDTPackSitterJournal = journal;
+    } catch (_error) { /* Nothing. */ }
   }
 }
 function install() {}

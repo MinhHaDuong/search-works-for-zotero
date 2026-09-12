@@ -24,7 +24,7 @@ import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
 
-import { CACHE_PATH, ROOT_URI, STORAGE, VERSIONS, VERSIONS_JSON, createHarness, deferred }
+import { CACHE_FORMAT, CACHE_PATH, ROOT_URI, STORAGE, VERSIONS, VERSIONS_JSON, createHarness, deferred }
   from './sdt_sitter_zotero_mock.mjs';
 
 const results = [];
@@ -174,7 +174,11 @@ await test('a corrupt cache row is dropped and its attachment re-inspected nativ
   // measurement, and the store must not fit an estimate on it.
   const unusable = { ...record('CCCC3333'), sample: { milliseconds: 0, sourceBytes: 4096, pages: 12 } };
   const truncated = shape.cacheLine('BBBB2222', record('BBBB2222')).slice(0, -18);
-  const wrongVersions = JSON.stringify({ versions: '{"SDT_PACK_VERSION":"0"}',
+  // Stamped with the current row format on purpose: this row is here to be
+  // skipped for its PACK VERSIONS, and a row that is also malformed for a second
+  // reason cannot prove which check dropped it (ticket 0771).
+  const wrongVersions = JSON.stringify({ format: CACHE_FORMAT,
+    versions: '{"SDT_PACK_VERSION":"0"}',
     key: '1/DDDD4444', record: record('DDDD4444') });
   // The truncated row sits in the MIDDLE, not at the end: a loader that stopped
   // at the first bad line instead of skipping it would lose the two below.
@@ -1844,4 +1848,185 @@ await test('targeted observations preserve completion refit cadence while droppi
   h.notify('modify', 'item', [1]); await h.quiet();
   assert.equal(h.context.sitter.state.fittedSamples.length, 5);
 });
+/* --------------------------------------------------------------------------
+   Ticket 0771. The host lifecycle interface: which transition an activation
+   was, what an uninstall takes with it, and the cache row's schema stamp.
+
+   All three are things the plugin could not say before, and the first two are
+   the same defect from opposite ends: `shutdown()` has named its reason since
+   0689 and `startup()` accepted none, so the ring could say the add-on had been
+   disabled, uninstalled or upgraded and never that this activation WAS the
+   install or the upgrade -- the count ticket 0727's live candidate is about.
+   -------------------------------------------------------------------------- */
+await test('the startup record names the reason the host gave, in the same words the shutdown record uses', async () => {
+  // 5 is ADDON_INSTALL, 4 ADDON_DISABLE, 3 ADDON_ENABLE, 7 ADDON_UPGRADE: the
+  // host's own constants, which is why the plugin maps rather than re-derives.
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  h.context.startup({ rootURI: ROOT_URI }, 5);
+  await h.quiet();
+  assert.deepEqual(h.logged, [], 'initialize() threw; nothing below is testing what it means to');
+
+  /* The FIRST activation's startup record predates the ring by construction --
+     scheduler.js, and therefore createSDTJournal, load after it -- so it is read
+     off the debug channel here and out of the ring below. That asymmetry is
+     bootstrap.js's own, documented at the emit call site; asserting only on the
+     ring would have left the install case untested. */
+  const startups = h.debugged.filter(line => line.startsWith('SDT sitter startup '));
+  assert.equal(startups.length, 1);
+  assert.equal(JSON.parse(startups[0].slice('SDT sitter startup '.length)).reason, 'install');
+
+  h.context.shutdown(null, 4);
+  assert.equal(h.records('shutdown').pop().reason, 'disable');
+
+  // The re-enable, where the ring is already up and carries both directions.
+  h.context.startup({ rootURI: ROOT_URI }, 3);
+  await h.quiet();
+  assert.equal(h.records('startup').pop().reason, 'enable');
+  h.context.shutdown(null, 7);
+  assert.deepEqual(h.records().filter(r => r.kind === 'startup' || r.kind === 'shutdown')
+    .map(r => `${r.kind}:${r.reason}`), ['shutdown:disable', 'startup:enable', 'shutdown:upgrade'],
+  'the ring cannot be read as a sequence of transitions');
+});
+
+await test('a reason the host names in words, and one this build has never met, are both readable', async () => {
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  // Gecko's named form, which Zotero may pass instead of the constant.
+  h.context.startup({ rootURI: ROOT_URI }, 'ADDON_INSTALL');
+  await h.quiet();
+  h.context.shutdown(null, 4);
+  h.context.startup({ rootURI: ROOT_URI }, 9);
+  await h.quiet();
+  // A number is kept as a number rather than flattened to 'unknown': it names a
+  // host constant this build has not met, which is worth reading.
+  assert.equal(h.records('startup').pop().reason, 'reason-9');
+  h.context.shutdown(null, 4);
+  h.context.startup({ rootURI: ROOT_URI });
+  await h.quiet();
+  assert.equal(h.records('startup').pop().reason, 'unknown');
+  const named = h.debugged.filter(line => line.startsWith('SDT sitter startup '))
+    .map(line => JSON.parse(line.slice('SDT sitter startup '.length)).reason);
+  assert.deepEqual(named, ['install', 'reason-9', 'unknown']);
+});
+
+await test('an uninstall takes the parked ring and the write chain with it; a disable keeps both', async () => {
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  await h.start();
+  assert.equal(typeof h.Zotero.SDTPackSitterJournal, 'object');
+  assert.equal(typeof h.Zotero.SDTPackSitterCacheWrite?.then, 'function',
+    'no cache write was ever queued, so the handle below proves nothing');
+
+  // The recovery case, ticket 0703: disable is what a user reaches for when the
+  // plugin hangs, and it must not destroy the evidence of what it is recovering
+  // from. This is the positive control for the uninstall assertions below.
+  h.context.shutdown(null, 4);
+  assert.equal(typeof h.Zotero.SDTPackSitterJournal, 'object',
+    'a disable dropped the ring, which is the defect 0703 fixed');
+  assert.equal(typeof h.Zotero.SDTPackSitterCacheWrite?.then, 'function');
+
+  h.context.startup({ rootURI: ROOT_URI }, 3);
+  await h.quiet();
+  h.context.shutdown(null, 6);
+  assert.equal('SDTPackSitterJournal' in h.Zotero, false,
+    'an uninstalled add-on left its ring parked on the host');
+  assert.equal('SDTPackSitterCacheWrite' in h.Zotero, false,
+    'an uninstalled add-on left its write chain parked on the host');
+  // The record itself still lands: the seal, the shutdown record and the debug
+  // line are what say WHY the add-on went away, and they are written before the
+  // handles go.
+  assert.equal(h.debugged.filter(line => line.startsWith('SDT sitter shutdown '))
+    .pop().includes('"uninstall"'), true);
+});
+
+/* The round-1 verify-gate bounce on ticket 0771, kept as a scenario because the
+   seat reproduced it against the real bootstrap.js and no test in this file
+   covered the combination.
+
+   `startup()` overwrites the module-level `timer` binding, so a second startup
+   arriving before the first's zero-millisecond arm has fired leaves that first
+   arm orphaned: `shutdown()` clears only the handle it can see. The orphan then
+   fires into a scope that has been torn down. Lifting the seal at the top of
+   `initialize()` — which is what lets a superseded activation record its own
+   standing down — gave that orphan a channel to write into, and what it wrote
+   was a `startup` record behind a `shutdown` record: a re-enable that never
+   happened, in the one artefact ticket 0727 reads to count transitions.
+
+   The generation token cannot tell the two cases apart (both are
+   `token !== generation`), which is why `shutdowns` exists. Both halves are
+   asserted below, because a fix that silenced the superseded activation too
+   would pass a test that only checked the orphan. */
+await test('a startup arm orphaned by a second startup writes nothing behind the shutdown record', async () => {
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  await h.start();
+  const before = h.records().length;
+
+  // Two activations in flight, neither's arm fired yet: the second overwrites
+  // the binding that holds the first's handle.
+  h.context.startup({ rootURI: ROOT_URI }, 3);
+  h.context.startup({ rootURI: ROOT_URI }, 3);
+  // ... and the shutdown lands before either runs, clearing only the second.
+  h.context.shutdown(null, 4);
+  assert.equal(h.records().pop().kind, 'shutdown');
+  assert.equal(h.context.sealed, true);
+
+  // The orphan fires here.
+  await h.turn(8);
+  assert.equal(h.context.sealed, true, 'an orphaned arm reopened the sealed channel');
+  const tail = h.records().slice(before).map(record => `${record.kind}:${record.reason ?? ''}`);
+  assert.deepEqual(tail, ['shutdown:disable'],
+    'a record landed behind the shutdown record');
+  // And the other half: a superseded activation still records, so the fix above
+  // cannot have been "stop recording when the token is stale".
+  const h2 = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  h2.context.startup({ rootURI: ROOT_URI }, 5);
+  h2.context.startup({ rootURI: ROOT_URI }, 5);
+  await h2.quiet();
+  assert.equal(h2.debugged.filter(line => line.startsWith('SDT sitter startup ')).length, 2,
+    'a superseded activation stopped recording its own standing down');
+});
+
+await test('a cache row carries the schema stamp, and a row stamped otherwise is skipped', async () => {
+  const attachments = [pdf(1, 'AAAA1111', { pack: { lastModified: 900 } }),
+    pdf(2, 'BBBB2222', { pack: { lastModified: 900 } })];
+  const shape = createHarness({ attachments });
+  const record = key => ({ signature: shape.identity(key), fingerprint: shape.fingerprint(key),
+    sourceBytes: 4096, pages: 12 });
+  // One well-formed row, one identical but for a schema number this build does
+  // not write. Before ticket 0771 no row carried the number at all: the format
+  // was compared in memory against the literal the loader had just handed over,
+  // so a record shape written by another build was read as this build's own.
+  const foreign = JSON.stringify({ format: CACHE_FORMAT + 1, versions: VERSIONS_JSON,
+    key: '1/BBBB2222', record: record('BBBB2222') });
+  const harness = createHarness({ attachments,
+    cache: `${shape.cacheLine('AAAA1111', record('AAAA1111'))}\n${foreign}\n` });
+  await harness.start();
+  assert.equal(harness.records('cache-load')[0].records, 1);
+  // What "skipped" means: the pack is opened and re-read rather than answered
+  // from a row this build cannot vouch for.
+  assert.deepEqual(harness.calls.openPack, ['BBBB2222']);
+  assert.equal(harness.context.sitter.state.counts.current, 2, 'a skipped row changed a verdict');
+});
+
+await test('the rows this build writes are the rows the next session can read', async () => {
+  const first = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')] });
+  await first.start();
+  const persisted = first.files.text(CACHE_PATH);
+  const lines = persisted.split('\n').filter(Boolean);
+  assert(lines.length >= 2, 'the session wrote nothing, so the round trip below is vacuous');
+  for (const line of lines) assert.equal(JSON.parse(line).format, CACHE_FORMAT,
+    'a row reached the file without the stamp the loader now requires');
+
+  // The round trip is the assertion that matters: a stamp written and not read,
+  // or read and not written, both leave the cache silently unusable -- every
+  // session re-inspecting a library it had already measured, which is exactly
+  // what the on-disk cache exists to prevent.
+  const second = createHarness({
+    attachments: [pdf(1, 'AAAA1111', { pack: { lastModified: 950 } }),
+      pdf(2, 'BBBB2222', { pack: { lastModified: 950 } })],
+    cache: persisted,
+  });
+  await second.start();
+  assert.equal(second.records('cache-load')[0].records, 2);
+  assert.deepEqual(second.calls.openPack, [], 'a row this build wrote was not believed');
+});
+
 console.log(JSON.stringify({ tests: results, result: 'pass' }));
