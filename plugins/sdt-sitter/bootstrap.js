@@ -61,6 +61,15 @@ var RECONCILIATION_INTERVAL_MS = 60 * 60 * 1000;
 // two short lines without looking up quickly, and comfortably shorter than the
 // 30 s floor above, so two toasts can never be on screen at once.
 var SWEEP_TOAST_MS = 8000;
+/* How long the announced state must be GONE before the status region speaks
+   what replaced it (ticket 0686 item 1). The scheduler can pass through a phase
+   for one sweep boundary -- `extracting` to `cpu-busy` and back -- and a reader
+   told both halves of a flip that undid itself has been told nothing. Two
+   seconds is twenty render ticks: long enough to absorb that, short enough that
+   "Indexing is off" is heard while the hand is still on the button that caused
+   it. See `announceSDTTransition` for why this times the absence and not the
+   replacement's contiguity. */
+var SDT_ANNOUNCE_SETTLE_MS = 2000;
 var DEBUG_PREF = 'extensions.sdt-pack-sitter.debug';
 /* R22's one obvious way, ratified 2026-09-08 (ticket 0742). Tri-state: unset
    means the question has never been answered, and is the ONLY state in which
@@ -243,6 +252,11 @@ var SDT_TEXT = {
     "switch-on-prefix": "Indexing is on.",
     "switch-off": "Indexing is off. Zotero will still index PDFs as you view them.",
     "switch-on-idle": "Nothing to index right now.",
+    "switch-on-complete": "Everything in view is indexed. New and changed attachments are picked up as they appear.",
+    "switch-on-queued": ["One attachment is waiting for the next pass.",
+      "{count} attachments are waiting for the next pass."],
+    "switch-on-exceptions": ["This pass is finished. One attachment is not indexed \u2014 see \u201cNot indexed\u201d below.",
+      "This pass is finished. {count} attachments are not indexed \u2014 see \u201cNot indexed\u201d below."],
     "switch-on-census": "Scanning the library for new or modified attachments.",
     "switch-on-extracting": "Extracting structured text from attachments.",
     "switch-on-error": "An unexpected problem stopped the last scan — see Technical diagnostics.",
@@ -1270,14 +1284,63 @@ function fillSDTNotIndexed(doc, container, state) {
    phase-specific second half; a resource-blocked phase reuses the label the
    toolbar tooltip already shows, so the two never say the same fact two
    different ways. */
+/* 0686 item (3), the panel's "final `waiting` does not distinguish fully current
+   from incomplete coverage; raw English states do not explain what happens
+   next". At rest the window said "Nothing to index right now" over a library it
+   had fully indexed AND over one it had given up on, and a reader could tell the
+   two apart only by reading the percentage and doing the subtraction.
+
+   The three states the accounting can be in, and they are the accounting's own,
+   not a fourth opinion about the library: work admissible for the next pass
+   (`queued`), attachments this pass finished without indexing (`unindexed` +
+   `failed`), and neither, which is `current === total` by the partition and so
+   says "everything" as an arithmetic identity rather than as a claim. Both
+   exceptional states can hold at once and the sentence then carries both.
+
+   It points where it does not explain: every obstacle already has its own
+   sentence and its own remedy, per class, in the Not indexed layer -- a
+   shortened copy here would be a second place to maintain and a second thing to
+   disagree with. What the reader needs at this altitude is which of the three
+   states the machine is in, and that the detail exists below. */
+function describeSDTIdleLine(state) {
+  const coverage = getSDTCoverage(state);
+  // No walk has finished, or nothing is in scope to have walked: there is no
+  // measurement here, and the sentence that claims none is the honest one.
+  if (!coverage.known || coverage.total === 0) return sdtText('switch-on-idle');
+  const outstanding = coverage.unindexed + coverage.failed;
+  const parts = [];
+  if (coverage.queued > 0) parts.push(sdtText('switch-on-queued', { count: coverage.queued }));
+  if (outstanding > 0) parts.push(sdtText('switch-on-exceptions', { count: outstanding }));
+  return parts.length ? parts.join(' ') : sdtText('switch-on-complete');
+}
+
 function describeSDTSwitchLine(state) {
   if (state.phase === 'switched-off') return sdtText('switch-off');
   const detail = state.phase === 'census' ? sdtText('switch-on-census')
     : state.phase === 'extracting' ? sdtText('switch-on-extracting')
     : state.phase === 'error' ? sdtText('switch-on-error')
     : SDT_PHASE_LABELS[state.phase] ? sdtText(SDT_PHASE_LABELS[state.phase])
-    : sdtText('switch-on-idle');
+    : describeSDTIdleLine(state);
   return `${sdtText('switch-on-prefix')} ${detail}`;
+}
+
+/* What the status region compares, once the idle sentence above carries counts.
+
+   Those counts move with ordinary library churn -- the denominator is live by
+   the author's ruling of 2026-09-09 (ticket 0759) -- so comparing the rendered
+   sentence would put "4 attachments are waiting" on the announcement channel
+   the moment a fourth appeared: the 10 Hz defect item (1) exists to prevent,
+   in slower clothes. The kind is that sentence's identity with its digits
+   removed. A reader is told that the machine changed state, and hears the
+   figures that are true at the moment they are told. */
+function describeSDTSwitchKind(state) {
+  if (state.phase === 'switched-off') return 'off';
+  if (SDT_PHASE_LABELS[state.phase]) return `phase:${state.phase}`;
+  const coverage = getSDTCoverage(state);
+  if (!coverage.known || coverage.total === 0) return 'idle';
+  const outstanding = coverage.unindexed + coverage.failed;
+  if (coverage.queued > 0) return outstanding > 0 ? 'idle:queued-and-exceptions' : 'idle:queued';
+  return outstanding > 0 ? 'idle:exceptions' : 'idle:complete';
 }
 
 /* Four segments joined by one em dash.
@@ -1601,6 +1664,64 @@ function prefersSDTReducedMotion(node) {
    the whole 2000-record ring in under four minutes — destroying exactly the
    evidence ticket 0703 keeps. The layer above widens what runs under it, which
    is the reason this guard is worth more now than when it was written. */
+/* Transition-only announcements, the first of 0686's three open items.
+
+   The dialog's visible lines are rewritten at 10 Hz, and marking any of them
+   live would have a screen reader read every tick: the reason this item was
+   open. So the region is a separate, visually hidden node that is written ONLY
+   when the KIND of the one sentence describing the machine's state -- the switch
+   line at the top of the window, identified by `describeSDTSwitchKind` -- changes
+   and the previous kind then stays gone for `SDT_ANNOUNCE_SETTLE_MS`. The kind
+   moves with the phase and with the shape of the coverage accounting, and with
+   nothing else, so a census, a pause for resources, an error, the switch itself
+   or a pass that ends with exceptions is spoken once, and progress, file names,
+   estimates and the counts inside the sentence never are. What is WRITTEN is the
+   sentence, counts and all: the reader is told the state changed, and hears the
+   figures that are true at the moment they are told.
+
+   Opening the window is not a transition: the first render records the state
+   without writing, so the region starts empty and a reader who opens the
+   window hears the window, not a stale announcement. The bookkeeping lives on
+   the dialog, as `_censusSignature` does, so a second window keeps its own.
+
+   The settle measures how long the announced sentence has been GONE, not how
+   long any one replacement has been contiguous. The difference is the whole
+   behaviour: a machine alternating between two states, neither of them the one
+   the reader was told, restarts a contiguity timer on every flip and is
+   therefore never spoken -- the region sits on a sentence that stopped being
+   true minutes ago, which is worse than saying nothing. Timing the absence
+   instead, a state that returns within the window is still silent (the flip
+   undid itself, and `_sdtLeftAt` is cleared on the return), while a window that
+   has genuinely left the announced state speaks whatever is true when the
+   settle expires. Reviewed 2026-09-12: the contiguity form shipped first and
+   went silent for 30 s under a 1.5 s/1.5 s alternation, 95 % of it in one state.
+
+   `monotonic()` can freeze: on the third tier it ratchets the wall clock to a
+   high-water mark, so a backwards step stops all durations in this window --
+   the elapsed figure and the estimate included -- until the calendar catches
+   up. An announcement is then late by the step, never lost (`_sdtLeftAt` holds)
+   and never invented (the line written is read at the moment it is written).
+   The reader is no worse served than the sighted user reading the same window,
+   which is the bar; a private clock here would only disagree with the lines
+   around it. */
+function announceSDTTransition(dialog, doc, line, phase, kind) {
+  const region = doc.getElementById('sdt-announcer');
+  if (!region) return;
+  if (dialog._sdtAnnounced === undefined) { dialog._sdtAnnounced = kind; return; }
+  if (kind === dialog._sdtAnnounced) { dialog._sdtLeftAt = null; return; }
+  const now = monotonic();
+  if (dialog._sdtLeftAt === null || dialog._sdtLeftAt === undefined) {
+    dialog._sdtLeftAt = now; return;
+  }
+  if (now - dialog._sdtLeftAt < SDT_ANNOUNCE_SETTLE_MS) return;
+  dialog._sdtAnnounced = kind; dialog._sdtLeftAt = null;
+  region.textContent = line;
+  // The one record a live-window check can read without a screen reader
+  // attached: what was spoken, and when. Rare by construction, so it costs
+  // the ring nothing.
+  emit('announce', { phase }, 'trace');
+}
+
 function render() {
   try {
     renderState();
@@ -1669,7 +1790,9 @@ function renderState() {
     // the two agree, and the phase is what every other line in this window is
     // drawn from, so a disagreement shows here instead of hiding.
     const off = s.phase === 'switched-off';
-    doc.getElementById('sdt-switch-state').textContent = describeSDTSwitchLine(s);
+    const switchLine = describeSDTSwitchLine(s);
+    doc.getElementById('sdt-switch-state').textContent = switchLine;
+    announceSDTTransition(dialog, doc, switchLine, s.phase, describeSDTSwitchKind(s));
     doc.getElementById('sdt-switch').textContent =
       sdtText(off ? 'switch-turn-on' : 'switch-turn-off');
     const elapsed = s.active === null ? null : Math.round((monotonic() - s.startedAt) / 1000);
@@ -1951,6 +2074,21 @@ function openDialog(window) {
     toggle.style.cssText = 'white-space: nowrap; flex-shrink: 0;';
     toggle.addEventListener('click', () => toggleSDTSwitch());
     control.append(state, toggle);
+    // The status region, and the only live node in the window (0686 item 1).
+    // In the switch row because it speaks the row's own sentence, and so the
+    // window's layer order -- which tests/sdt_sitter_dialog.mjs pins -- is
+    // unchanged; absolutely positioned, it takes no place in the flex line.
+    // Visually hidden rather than `hidden`: a node removed from the
+    // accessibility tree announces nothing. `polite` waits for the reader to
+    // finish; `atomic` reads the whole sentence, not the words that changed.
+    const announcer = element('div', 'sdt-announcer');
+    announcer.setAttribute('role', 'status');
+    announcer.setAttribute('aria-live', 'polite');
+    announcer.setAttribute('aria-atomic', 'true');
+    announcer.style.cssText = 'position: absolute; width: 1px; height: 1px; ' +
+      'margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); ' +
+      'white-space: nowrap; border: 0;';
+    control.append(announcer);
     body.append(control);
     // Layer 1, always visible and always first: progress, what is being worked
     // on, how long it has taken and when it should end. Nothing below is needed
