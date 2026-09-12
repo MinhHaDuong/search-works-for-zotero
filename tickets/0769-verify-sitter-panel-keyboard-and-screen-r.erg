@@ -1,0 +1,41 @@
+%erg 0.1
+Title: Verify sitter panel keyboard and screen-reader behaviour in a real window
+Created: 2026-09-11
+Author: claude
+
+--- log ---
+2026-09-11T20:10Z claude created
+2026-09-11T20:10Z claude note Split from 0686 per the author's ruling of 2026-09-11 (DECISIONS.md, option B): this item no longer gates the sitter's first tagged release (0764); it ships as a declared known limitation in RELEASE-NOTES.md instead.
+
+--- body ---
+## Context
+
+Parent: ticket 0686, item (2) of its 2026-09-08 entries. The supervision-panel
+review's verdict was "CHANGES REQUESTED pour qualifier l'UI d'accessible". The
+DOM/style smoke and the headless scenarios in `tests/sdt_sitter_bootstrap.mjs`
+do not establish keyboard or screen-reader behaviour; only a real Zotero window
+does. Ruled out of 0764's release gate on 2026-09-11 — see DECISIONS.md.
+
+## Actions
+
+1. Keyboard and focus, automatable: drive a real Zotero window through the RDP
+   client of ticket 0766 (`bench/zotero_rdp_client.py`), synthesize key events
+   in chrome context (`windowUtils`, as Mozilla's own `synthesizeKey` does),
+   and run the assertions already carried by
+   `verification/probes/sdt-sitter-harness/`: open the dialog from the
+   keyboard, initial focus, each disclosure summary reachable, Escape closes,
+   focus returns to the toolbar button. Against 0693's CURRENT layout.
+2. Screen reader, manual: one Orca pass on Linux confirming the toolbar's
+   accessible name and the transition announcements of 0686 item (1).
+
+## Invariants
+
+- The RDP client may perform the gestures but, per 0727's out-of-band
+  condition, its own readings are not the verdict: the harness assertions are.
+
+## Exit criteria
+
+- [ ] Harness assertions green in a real window, each with a deliberate
+      break shown red once.
+- [ ] Orca pass recorded in `verification/SDT-SITTER-UI-PANEL.md`.
+- [ ] RELEASE-NOTES.md's known-limitation line for this item removed.

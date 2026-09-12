@@ -10,8 +10,8 @@ current, bounded and honest about coverage. [README.md](README.md) owns the prop
 
 ## Current Goals
 
-- Sitter release **deferred** (2026-09-11 ruling, DECISIONS.md; 0764 `Blocked-by: 0727`):
-  hold the 0.4.0 tag until 0727 has a named mechanism and 0686 is addressed.
+- Sitter 0.4.0 tag **deferred** (DECISIONS.md, 2026-09-11; 0764 `Blocked-by: 0727, 0686`):
+  0727 needs a named mechanism; 0686 (1),(3) must land; (2) → 0769, a declared limit.
 - Release the Multilingual test library and questions + grader as public Challenge
 - Zoteus feature freeze for the September 21 release: correctness, packaging and privacy,
 with QA tests for those. Indexer/worker rewrite and segmenter stay held.

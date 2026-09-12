@@ -7328,3 +7328,27 @@ exists *at the current schema*, ours overtaking it where Zotero's is
 superseded and Zotero will never refresh it. Ticket 0767 carries the
 implementation and this evidence; the upstream filing rides with it as a
 separate arm, an outward action that waits for the author.
+
+**2026-09-11 — RULED: 0686 gates the sitter's first tagged release on two of
+its three items; the real-window keyboard and screen-reader verification ships
+as a declared known limitation.** The author, the same evening, choosing option
+B of three put to him: (A) all of 0686 gates the tag; (B) items (1) and (3)
+gate it and item (2) is declared in RELEASE-NOTES.md; or leave 0686 cited but
+formally unlinked, as the entry on 0764 above had it.
+
+**What gates.** Item (1), transition-only announcements through a status
+region, and item (3), distinguishing complete coverage from a finished pass
+with exceptions. Both are in-tree changes testable without a real window.
+0764 now carries `Blocked-by: 0686`, closing the gap the 0764 entry named: a
+finding cited in a ruling but invisible to `erg ready`.
+
+**What does not, and why that is not a retreat from the panel.** Item (2),
+keyboard open, initial focus, Escape and focus return in a real Zotero window,
+plus a screen-reader pass, is split to 0769. The panel's verdict conditioned
+*qualifying the UI as accessible*, not publishing it. Shipping with that
+qualification explicitly withheld, in one plain RELEASE-NOTES.md line (0764
+Action 5), states the verdict rather than overriding it. This differs in kind
+from 0727: a disappearance is a defect a user discovers by losing the tool; an
+unverified keyboard path is a limit the notes can name before anyone installs.
+
+**Unchanged.** 0727 still gates the tag on at least a named mechanism.
