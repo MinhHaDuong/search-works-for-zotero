@@ -20,7 +20,13 @@ whole history:
    ships exactly one entry for the working tree's version. Before a tag is cut
    that entry carries neither `tag` nor `update_link` — the steady state
    ticket 0727 put in place, and this guard is silent on it, same as before
-   this ticket. Once a release IS cut, the entry gains both, and from then on
+   this ticket. One entry means the TIP and nothing else: builds carried by
+   hand from a branch (ticket 0680's, and every payload
+   `bench/sitter_volume_experiment.py` installs) are deliberately unlisted,
+   because with no release there is no URL an entry for them could name —
+   a cumulative list would enumerate an unreachable history. Ruled 2026-09-12
+   on ticket 0776, and it is a statement about today rather than for ever: the
+   question becomes real when a release does. Once a release IS cut, the entry gains both, and from then on
    they must agree with each other and with reality: `tag` must resolve to a
    revision whose OWN `manifest.json` carries this same version, and
    `update_link` must resolve to something. A HALF-FILLED entry — one key
