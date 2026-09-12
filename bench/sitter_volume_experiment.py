@@ -152,6 +152,13 @@ ADDON_ID = json.loads((SITTER_SOURCE / "manifest.json").read_text(
 #: that could be in use).
 SEED_PREFS = """\
 // Pre-seeded before first launch, ticket 0727's volume experiment.
+// THE DATA DIRECTORY, pinned. Without this line a "throwaway profile" opens
+// Zotero's DEFAULT data directory, which on either of the author's machines is
+// his real library -- and this rig would import the Menagerie into it and let
+// the sitter extract over it. The profile was throwaway; the data directory
+// never was, and the docstring above has claimed otherwise since arm 5.
+// `{data_dir}` is substituted before the file is written.
+user_pref("extensions.zotero.dataDir", "{data_dir}");
 user_pref("devtools.debugger.remote-enabled", true);
 user_pref("devtools.debugger.prompt-connection", false);
 user_pref("devtools.chrome.enabled", true);
@@ -597,6 +604,12 @@ def main(argv=None) -> int:
                              "attachments/, as `make menagerie-package` assembles it), "
                              "imported into the throwaway profile before the cycles so the "
                              "sitter is doing real work while it is replaced")
+    parser.add_argument("--data-dir", type=Path,
+                        help="Zotero's DATA directory for this run, pinned into the profile's "
+                             "prefs. Defaults to <profile>-data. Without it Zotero opens its "
+                             "default data directory, which on the author's machines is his "
+                             "real library -- the profile was throwaway, the data directory "
+                             "never was")
     parser.add_argument("--allow-dead-sitter", action="store_true",
                         help="cycle even when the sitter never armed. Refused by default: "
                              "ticket 0778 established that --headless gives initialize() no "
@@ -657,9 +670,17 @@ def main(argv=None) -> int:
               f"exists -- this must be a fresh profile, not one that could "
               f"be in use", file=sys.stderr)
         return 2
-    prefs_path.write_text(SEED_PREFS, encoding="utf-8")
+    data_dir = args.data_dir or args.profile.parent / f"{args.profile.name}-data"
+    if (data_dir / "zotero.sqlite").exists():
+        print(f"refusing to run against {data_dir}: it already holds a zotero.sqlite, so it "
+              f"is somebody's library. Name an empty --data-dir.", file=sys.stderr)
+        return 2
+    data_dir.mkdir(parents=True, exist_ok=True)
+    args.resolved_data_dir = data_dir
+    prefs_path.write_text(SEED_PREFS.replace("{data_dir}", str(data_dir)), encoding="utf-8")
 
     log = Log(args.log)
+    log.write(f"driver data directory: {args.resolved_data_dir} (pinned, not Zotero's default)")
     log.write(f"driver starting: profile={args.profile} addon_id={ADDON_ID} "
               f"burst_cycles={args.burst_cycles} spaced_cycles={args.spaced_cycles} "
               f"max_minutes={args.max_minutes} restart_every={args.restart_every}")
@@ -750,7 +771,7 @@ def main(argv=None) -> int:
     # exactly where the two organic occurrences did.
     evidence_dir = args.evidence_dir or args.log.parent / "evidence"
     watcher = Watcher(args.profile, ADDON_ID, log, get_pid,
-                      evidence_dir=evidence_dir, data_dir=args.profile,
+                      evidence_dir=evidence_dir, data_dir=args.resolved_data_dir,
                       read_ring=make_ring_reader(args.port, log))
     # Arm 5 was stopped by the author mid-run, and its driver had no handler:
     # a bare SIGTERM killed the process outright, the `finally` below never ran,
