@@ -20,38 +20,12 @@ uninstall clause reports `not-offered`. That is the honest answer in both
 directions: it is not scored as a failure at a surface the target does not
 claim to have, and it is not scored as a pass either.
 
-**`resume` is declared absent, and this is the judgement call worth arguing.**
-The ratified interface defines pause and resume as the two transitions of one
-durable background-work control, with resume idempotent and never forcing a
-rebuild, refresh, repair or sync.
-
-The background-work surface here is five actions — build, refresh, update,
-status, stop — and `pause` maps cleanly onto `stop`: it cancels a running job,
-the partial data stays searchable, and the interrupted work leaves a checkpoint
-on disk. That checkpoint is what makes the pause durable in the sense R22 cares
-about: the progress survives a restart, and nothing auto-resumes behind the
-user's back.
-
-Nothing maps onto `resume`. The only action that continues an interrupted build
-is `build`, and `build` is three things at once by its own documentation: it
-resumes from the checkpoint, it rebuilds the whole index, and it is *also* the
-repair — when the index cannot be read, `build` deletes the unreadable file
-before rebuilding. Mapping `resume` onto it would smuggle a destructive rebuild
-into the one verb the ruling says never rebuilds, and it would do so invisibly,
-because on a healthy checkpointed index `build` really does just resume. The
-over-claim would only show itself on the damaged index, which is exactly the
-case a green must not cover. So `resume` is declared absent.
-
-**The question that leaves open, which is raised here and not settled.** The
-ruling calls pause and resume "the two transitions of one durable
-background-work control". This adapter declares one transition present and the
-other absent, which the interface permits mechanically — `unsupported` is
-per-verb — but which sits awkwardly with a control described as a single thing.
-Either the two verbs are independently declarable, or a target missing one of
-them has no such control at all and both should be absent. That is a question
-about the ratified interface rather than about this target, and it is the more
-interesting for surfacing on the target the interface was drawn from. It is
-flagged rather than decided.
+**Pause and resume use the target's durable background-work control.**
+`zotero_index action:"pause"` cancels active work and persists a hold across
+restarts. `action:"resume"` clears that hold and starts no job. Both are
+forwarded directly; a checkpoint alone does not establish a durable pause.
+The separate embedding perturbation still requests `build` to challenge the
+hold, retaining an expected MCP refusal as evidence for the work-counter check.
 
 **Goal 2 needs an index, and an empty data directory cannot express its clauses.**
 R3, R13 and R23 are all about a library already in service — what staying current
@@ -130,22 +104,12 @@ NAMES = ("zoteus",)
 #: this target uses for them. The layer never sees the right-hand side.
 MODES = {"exact": "keyword", "meaning": "semantic", "combined": "auto"}
 
-#: The verbs this target does not offer, each with the reason it is absent. The
-#: docstring argues both at length; these are the one-line forms that reach the
-#: artifact, and they are different reasons — one surface does not exist, the
-#: other exists and would over-claim if it were mapped.
+#: The absent surface and its reason, recorded in the declaration.
 UNSUPPORTED = {
     "uninstall": (
         "this target has no uninstall surface. SPEC.md §5.2.7 says in as many words "
         "that its maintenance purge is not a stand-in the harness may call to "
         "manufacture a clean result, so nothing is substituted for it"
-    ),
-    "resume": (
-        "nothing maps onto it. The only action that continues an interrupted build is "
-        "also the full rebuild and the repair — on a damaged index it deletes the "
-        "unreadable file first — so mapping resume onto it would smuggle a destructive "
-        "rebuild into the one verb the ruling says never rebuilds, invisibly, because "
-        "on a healthy checkpointed index it really does just resume"
     ),
 }
 
@@ -259,19 +223,31 @@ def _work_counters(*payloads: dict) -> dict[str, int] | None:
     return None
 
 
-def _payload(response: dict) -> dict:
-    """The structured body of a tool reply, whichever way this transport carries it."""
+class ToolError(RuntimeError):
+    """A refused MCP tool call, retaining the normalized reply for inspection."""
 
+    def __init__(self, tool: str, payload: dict):
+        self.payload = payload
+        super().__init__(f"{tool} refused: {json.dumps(payload, ensure_ascii=False)}")
+
+
+def _payload(response: dict) -> dict:
+    """Unwrap the body without discarding the MCP tool-error marker."""
     result = response.get("result", response)
+    payload = result
     if "structuredContent" in result:
-        return result["structuredContent"]
-    for block in result.get("content", []):
-        if block.get("type") == "text":
-            try:
-                return json.loads(block["text"])
-            except json.JSONDecodeError:
-                return {"text": block["text"][:4000]}
-    return result
+        payload = result["structuredContent"]
+    else:
+        for block in result.get("content", []):
+            if block.get("type") == "text":
+                try:
+                    payload = json.loads(block["text"])
+                except json.JSONDecodeError:
+                    payload = {"text": block["text"][:4000]}
+                break
+    if result.get("isError") is True:
+        return {**(payload if isinstance(payload, dict) else {"body": payload}), "isError": True}
+    return payload
 
 
 class Zoteus:
@@ -460,10 +436,13 @@ class Zoteus:
             self.server.p.terminate()
             self.server = None
 
-    def _call(self, tool: str, arguments: dict) -> dict:
+    def _call(self, tool: str, arguments: dict, *, allow_error: bool = False) -> dict:
         if self.server is None:
             raise RuntimeError("the target's process is not running; use running()")
-        return _payload(self.server.call("tools/call", {"name": tool, "arguments": arguments}))
+        payload = _payload(self.server.call("tools/call", {"name": tool, "arguments": arguments}))
+        if isinstance(payload, dict) and payload.get("isError") is True and not allow_error:
+            raise ToolError(tool, payload)
+        return payload
 
     # -- the seven verbs ------------------------------------------------------
 
@@ -529,17 +508,12 @@ class Zoteus:
         }
 
     def pause(self) -> dict:
-        """Halt background work. Durable in the sense R22 asks for: the cancel
-        flag itself is in memory, but the interrupted work leaves a checkpoint on
-        disk, the partial data stays searchable, and nothing auto-resumes."""
-        return {
-            "stopped": self._call("zotero_index", {"action": "stop"}),
-            "work_checkpointed": True,
-            "auto_resumes": False,
-        }
+        """Set the durable hold, reporting only what the target actually returns."""
+        return self._call("zotero_index", {"action": "pause"})
 
     def resume(self) -> dict:
-        raise UnsupportedVerb(self.declaration.name, "resume")
+        """Clear the hold without starting a build, refresh, repair or sync."""
+        return self._call("zotero_index", {"action": "resume"})
 
     # -- perturbation: adapter-declared harness setup, not an eighth verb -----
 
@@ -611,7 +585,9 @@ class Zoteus:
             args["limit"] = max_items
         return {
             "perturbation": RESUME_EMBEDDING,
-            "build_started": self._call("zotero_index", args),
+            # A held index should refuse this challenge. Keep that observation
+            # in the event while the caller measures whether any work advanced.
+            "build_started": self._call("zotero_index", args, allow_error=True),
         }
 
     def _checkpoint_max_items(self) -> int | None:
