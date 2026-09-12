@@ -7421,3 +7421,35 @@ when the switch was on. It is the operator's own request, made before the event,
 and it is the only durable record of a removal there will ever be. Ticket 0773,
 which removes the sitter's durable state on uninstall, carries that exception —
 noted in its log rather than left to be rediscovered.
+
+**2026-09-12 — RULED, and it is a standing rule rather than one ticket's
+disposal: we promise what we have tested, and nothing else.**
+
+Ticket 0776 was promoted on the reasoning that a host upgrade to 11 leaves every
+installed build out of range AND absent from its own update manifest at once,
+and it offered as one answer an `update.json` entry deliberately wider than the
+manifest's own ceiling — an entry whose job is to be findable by a host that has
+moved past `10.*`. Put to the author, the answer was immediate: that is
+promising compatibility with a Zotero nobody has tested.
+
+**Why it is not a close call.** It contradicts the ruling of the same day on
+0777, which keeps the `10.*` ceiling precisely because the sitter works through
+parts of Zotero that carry no compatibility promise, so claiming a version
+nobody has tested would be worse than being set aside by it. An advertised
+entry saying "compatible with 11" over a payload whose manifest says `10.*` is
+that same claim, made in a second place and disagreeing with the first.
+
+**What the rule covers.** Any future temptation to widen a declared range ahead
+of the testing that would justify it — on Zotero 12 as on 11. The declaration
+is a statement about what has been run, not a lever for changing how the host
+behaves.
+
+**What it leaves standing.** The correct outcome on an incompatible host is
+already ruled (0777): installed and **disabled**, visible, indexing stopped,
+nothing lost. That is not the failure. The failure is being *removed*, and no
+update-manifest entry can promise against it — the removal without teardown is
+ticket 0727's unknown cause, and ticket 0781 is what will make a user learn of
+it rather than discover it. 0776 therefore reduces to its original and much
+smaller question — whether the manifest lists every shipped version or only the
+tip, which is about hand-carried branch builds and touches no promise either
+way — and that question stays open.
