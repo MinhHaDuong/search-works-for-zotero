@@ -22,7 +22,19 @@ bars, system foreground/background colors and separate native fulltext stats.
   zero while the active job is still running. Addressed in the combined cache
   and finish-clock implementation: overrun makes the finish estimate unknown.
 - UX: final `waiting` does not distinguish fully current from incomplete
-  coverage; raw English states do not explain what happens next. Follow-up.
+  coverage; raw English states do not explain what happens next. Built in
+  ticket 0686 (0.3.43): at rest the sentence reads the coverage accounting and
+  names which of its three states holds -- everything in view indexed, work
+  admissible for the next pass, or a pass finished with attachments it cannot
+  index -- and both exceptional states can be named at once. "Everything" is
+  the identity `current === total` over the scheduler's own classes, not a
+  fourth opinion about the library; out-of-scope records are out of the
+  denominator and cannot hold a current library short of it. It points rather
+  than explains: each obstacle's own reason and remedy already sit, per class,
+  in the Not indexed layer. `ready` keeps the bare sentence -- no walk has
+  finished, so there is no measurement to report. Eight wordings in
+  `tests/sdt_sitter_dialog.mjs`, two scenarios in
+  `tests/sdt_sitter_bootstrap.mjs` and three mutants (M37-M39).
 - Both: internal item ID alone does not identify a document for the user.
   Follow-up: display title or filename, keep ID as a diagnostic detail.
 - Both: detailed global diagnostics precede the active document and increase

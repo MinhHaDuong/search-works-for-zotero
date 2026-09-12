@@ -274,7 +274,10 @@ test('the switch turns indexing off and on again, persisting each answer', () =>
   assert.equal(control.textContent, 'Turn indexing off');
   // The switch line and the raw "State: {phase}" line merged into one
   // (found live, testing v0.3.18): the phase now speaks in a sentence, here.
-  assert.equal(label.textContent, 'Indexing is on. Nothing to index right now.');
+  // The fixture's sweep indexed all three attachments, so at rest this is the
+  // complete-coverage sentence and not the bare idle one (0686 item 3).
+  assert.equal(label.textContent,
+    'Indexing is on. Everything in view is indexed. New and changed attachments are picked up as they appear.');
 
   control.fire('click');
   assert.equal(sitter.state.enabled, false, 'the sitter kept admitting after the switch');
@@ -506,8 +509,12 @@ test('the switch line names the phase, in a sentence, for every phase a reader c
     ui.render();
     return label.textContent;
   };
+  // `ready` has finished no walk, so it has no measurement to report and keeps
+  // the bare sentence; `waiting` has one, and over this fixture's fully indexed
+  // library it says so. The pair is the whole of 0686 item (3) in two lines.
   assert.equal(on('ready'), 'Indexing is on. Nothing to index right now.');
-  assert.equal(on('waiting'), 'Indexing is on. Nothing to index right now.');
+  assert.equal(on('waiting'),
+    'Indexing is on. Everything in view is indexed. New and changed attachments are picked up as they appear.');
   assert.equal(on('census'), 'Indexing is on. Scanning the library for new or modified attachments.');
   assert.equal(on('extracting'), 'Indexing is on. Extracting structured text from attachments.');
   assert.equal(on('error'), 'Indexing is on. An unexpected problem stopped the last scan — see Technical diagnostics.');
@@ -516,6 +523,62 @@ test('the switch line names the phase, in a sentence, for every phase a reader c
   // the two never word the same fact two different ways.
   assert.equal(on('cpu-busy'), 'Indexing is on. Waiting: processor busy');
   sitter.state.phase = 'ready';
+  ui.render();
+});
+
+/* 0686 item (3). The panel's finding was that final `waiting` reads the same
+   over a library that is fully current and over one the sitter has given up on.
+   Driven through the coverage accounting rather than through the sentence, so a
+   class that moves between `queued` and `failed` in scheduler.js reaches this
+   test rather than passing under it. */
+test('the idle sentence tells a current library from a pass that left work or exceptions', () => {
+  const label = doc.getElementById('sdt-switch-state');
+  const counts = sitter.state.counts;
+  const saved = { ...counts };
+  const savedTotals = { total: sitter.state.total, scanned: sitter.state.scanned,
+    phase: sitter.state.phase, snapshot: sitter.state.censusSnapshot };
+  const at = (next, total) => {
+    for (const key of Object.keys(counts)) delete counts[key];
+    Object.assign(counts, next);
+    sitter.state.phase = 'waiting';
+    sitter.state.total = total;
+    sitter.state.scanned = total;
+    sitter.state.censusSnapshot = null;
+    ui.render();
+    return label.textContent;
+  };
+
+  assert.equal(at({ current: 3 }, 3),
+    'Indexing is on. Everything in view is indexed. New and changed attachments are picked up as they appear.');
+  // Trashed and unsupported records are out of the denominator, so they cannot
+  // hold a current library short of "everything".
+  assert.equal(at({ current: 3, excluded: 4, unsupported: 1 }, 8),
+    'Indexing is on. Everything in view is indexed. New and changed attachments are picked up as they appear.');
+  assert.equal(at({ current: 2, 'missing-pack': 1 }, 3),
+    'Indexing is on. One attachment is waiting for the next pass.');
+  assert.equal(at({ current: 1, 'missing-pack': 2 }, 3),
+    'Indexing is on. 2 attachments are waiting for the next pass.');
+  // Not admissible: this pass finished without them, and the Not indexed layer
+  // is where each one's own reason and remedy already live.
+  assert.equal(at({ current: 2, 'failed-session': 1 }, 3),
+    'Indexing is on. This pass is finished. One attachment is not indexed — see “Not indexed” below.');
+  // A verified empty pack is an exception too: in the denominator, never
+  // searchable, and nothing further to attempt (ticket 0760).
+  assert.equal(at({ current: 1, 'empty-pack': 1, 'missing-source': 1 }, 3),
+    'Indexing is on. This pass is finished. 2 attachments are not indexed — see “Not indexed” below.');
+  // Both at once, in one sentence each, because both are true.
+  assert.equal(at({ current: 1, 'missing-pack': 1, 'failed-session': 1 }, 3),
+    'Indexing is on. One attachment is waiting for the next pass. '
+    + 'This pass is finished. One attachment is not indexed — see “Not indexed” below.');
+  // Nothing in scope is not a claim about coverage.
+  assert.equal(at({}, 0), 'Indexing is on. Nothing to index right now.');
+
+  for (const key of Object.keys(counts)) delete counts[key];
+  Object.assign(counts, saved);
+  sitter.state.total = savedTotals.total;
+  sitter.state.scanned = savedTotals.scanned;
+  sitter.state.phase = savedTotals.phase;
+  sitter.state.censusSnapshot = savedTotals.snapshot;
   ui.render();
 });
 

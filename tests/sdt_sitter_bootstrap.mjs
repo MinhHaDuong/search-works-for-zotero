@@ -640,6 +640,81 @@ await test('a machine alternating between two states is announced, not left on t
   assert.equal(records[0].phase, 'extracting');
 });
 
+/* Ticket 0686 item (3), and the announcement channel it has to share.
+
+   The idle sentence carries counts now, and counts move with ordinary library
+   churn: the first scenario is the distinction the panel asked for, the second
+   is the guarantee that making it did not put the denominator on a screen
+   reader's channel. Each is the other's control -- the first would pass against
+   a region nothing writes, the second against a sentence that never changes. */
+await test('at rest the window tells a current library from a pass that left work or exceptions', async () => {
+  const { harness, doc, sitter } = await announcerFixture();
+  const line = () => doc.getElementById('sdt-switch-state').textContent;
+  const at = (counts, total) => {
+    sitter.state.phase = 'waiting';
+    sitter.state.counts = counts;
+    sitter.state.total = total;
+    sitter.state.scanned = total;
+    sitter.state.censusSnapshot = null;
+    harness.context.render();
+    return line();
+  };
+
+  assert(at({ current: 4 }, 4).includes('Everything in view is indexed'), line());
+  assert(at({ current: 3, 'missing-pack': 1 }, 4).includes('waiting for the next pass'), line());
+  assert(!at({ current: 3, 'missing-pack': 1 }, 4).includes('Everything in view is indexed'),
+    'a pass that left admissible work read as a finished library');
+  // Held for the session and no longer, but not admissible now: the pass is
+  // over and this attachment is not in it.
+  assert(at({ current: 3, 'failed-session': 1 }, 4).includes('is not indexed'), line());
+  // A verified empty pack is an exception of its own (ticket 0760): in the
+  // denominator, never searchable, nothing further to attempt.
+  assert(at({ current: 3, 'empty-pack': 1 }, 4).includes('is not indexed'),
+    'an empty pack read as complete coverage');
+  assert(!at({ current: 3, 'empty-pack': 1 }, 4).includes('Everything in view is indexed'), line());
+  // Out of scope is out of the denominator, so it cannot hold a current
+  // library short of "everything".
+  assert(at({ current: 4, excluded: 9 }, 13).includes('Everything in view is indexed'), line());
+  // No completed walk and nothing in scope are both "no measurement", and the
+  // sentence that claims none is the one they get.
+  assert(at({}, 0).includes('Nothing to index right now'), line());
+});
+
+await test('a count moving inside the idle sentence is not a transition, and the change of state still is', async () => {
+  const { harness, doc, region, sitter } = await announcerFixture();
+  const at = (counts, total) => {
+    sitter.state.phase = 'waiting';
+    sitter.state.counts = counts;
+    sitter.state.total = total;
+    sitter.state.scanned = total;
+    sitter.state.censusSnapshot = null;
+  };
+
+  // A pass that ends with one exception is a change of state, and is spoken.
+  at({ current: 3, 'failed-session': 1 }, 4);
+  settle(harness, 2500);
+  const spoken = region.textContent;
+  assert(spoken.includes('One attachment is not indexed'), spoken);
+  assert.equal(harness.records('announce').length, 1);
+
+  // A second attachment failing moves the figure in the visible line. It is the
+  // same state, and the live denominator moves under ordinary churn: a reader
+  // is not told a number twice for the same news.
+  at({ current: 2, 'failed-session': 2 }, 4);
+  settle(harness, 5000);
+  assert(doc.getElementById('sdt-switch-state').textContent.includes('2 attachments are not indexed'),
+    'the fixture never moved the count it claims to be moving');
+  assert.equal(region.textContent, spoken, 'a count moving under the same state was announced');
+  assert.equal(harness.records('announce').length, 1);
+
+  // Clearing them is a different state, and is spoken, with the figures that
+  // are true when it is.
+  at({ current: 4 }, 4);
+  settle(harness, 2500);
+  assert(region.textContent.includes('Everything in view is indexed'), region.textContent);
+  assert.equal(harness.records('announce').length, 2);
+});
+
 await test('a wall clock stepped backwards delays an announcement, and neither loses nor invents one', async () => {
   // The third clock tier, where monotonic() ratchets the wall clock: every
   // duration in this window freezes through a backwards step, the elapsed

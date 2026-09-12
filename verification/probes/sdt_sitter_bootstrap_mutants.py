@@ -243,7 +243,7 @@ MUTANTS = [
     # ---- ticket 0686 item (1): the status region speaks transitions only ----
     # Opening the window is read as a change of state, so every open is spoken.
     ("M31 opening the window is announced as a transition",
-     "  if (dialog._sdtAnnounced === undefined) { dialog._sdtAnnounced = line; return; }\n",
+     "  if (dialog._sdtAnnounced === undefined) { dialog._sdtAnnounced = kind; return; }\n",
      "  if (dialog._sdtAnnounced === undefined) dialog._sdtAnnounced = '';\n"),
     # No settle: a sweep boundary passing through a resource wait is spoken twice.
     ("M32 a state change is announced before it holds, so a flip that undoes itself is spoken",
@@ -251,8 +251,9 @@ MUTANTS = [
      ""),
     # The region fed the 10 Hz material: the defect that kept this item open.
     ("M33 the progress line reaches the live region",
-     "    announceSDTTransition(dialog, doc, switchLine, s.phase);\n",
-     "    announceSDTTransition(dialog, doc, `${switchLine} ${s.progress ?? ''}`, s.phase);\n"),
+     "    announceSDTTransition(dialog, doc, switchLine, s.phase, describeSDTSwitchKind(s));\n",
+     "    announceSDTTransition(dialog, doc, `${switchLine} ${s.progress ?? ''}`, s.phase,\n"
+     "      describeSDTSwitchKind(s));\n"),
     # A live region without its role is a hidden div a screen reader never reads.
     ("M34 the status region loses its role",
      "    announcer.setAttribute('role', 'status');\n",
@@ -270,12 +271,30 @@ MUTANTS = [
      "  }\n"),
     # The settle expires and the region speaks the sentence it was already on:
     # a live region that fires with nothing new to say.
-    ("M36 the announcement writes the state it is leaving, not the one it arrived at",
-     "  dialog._sdtAnnounced = line; dialog._sdtLeftAt = null;\n"
+    ("M36 the announcement writes a state it is not in, so the region speaks stale news",
+     "  dialog._sdtAnnounced = kind; dialog._sdtLeftAt = null;\n"
      "  region.textContent = line;\n",
-     "  const leaving = dialog._sdtAnnounced;\n"
-     "  dialog._sdtAnnounced = line; dialog._sdtLeftAt = null;\n"
-     "  region.textContent = leaving;\n"),
+     "  dialog._sdtAnnounced = kind; dialog._sdtLeftAt = null;\n"
+     "  region.textContent = sdtText('switch-on-idle');\n"),
+    # ---- ticket 0686 item (3): a finished pass is not a finished library ----
+    # The idle sentence stops distinguishing, which is the panel finding itself.
+    ("M37 the idle sentence reads the same over a current library and a pass with exceptions",
+     "  const outstanding = coverage.unindexed + coverage.failed;\n"
+     "  const parts = [];\n",
+     "  const outstanding = 0;\n"
+     "  const parts = [];\n"),
+    # An empty pack falls out of the exception tally: a library of scanned images
+    # with no text in them reads as fully indexed.
+    ("M38 a verified empty pack is counted as coverage rather than as an exception",
+     "  if (!coverage.known || coverage.total === 0) return sdtText('switch-on-idle');\n"
+     "  const outstanding = coverage.unindexed + coverage.failed;\n",
+     "  if (!coverage.known || coverage.total === 0) return sdtText('switch-on-idle');\n"
+     "  const outstanding = coverage.failed;\n"),
+    # The region compares the rendered sentence again, so the live denominator
+    # moving under ordinary churn is spoken as though it were a change of state.
+    ("M39 the status region compares the sentence, so a count moving is announced",
+     "    announceSDTTransition(dialog, doc, switchLine, s.phase, describeSDTSwitchKind(s));\n",
+     "    announceSDTTransition(dialog, doc, switchLine, s.phase, switchLine);\n"),
 ]
 
 

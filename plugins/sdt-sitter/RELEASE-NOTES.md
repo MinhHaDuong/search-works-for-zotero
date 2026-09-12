@@ -49,6 +49,14 @@ back inside those two seconds is not announced; one that does not is, even if
 the window has moved on again since. Opening the window announces nothing.
 Behaviour with an actual screen reader has not yet been verified.
 
+The same ticket makes the window's resting sentence say which kind of rest it
+is in. It used to read "Nothing to index right now" over a library that was
+fully indexed and over one where every remaining attachment had been given up
+on. It now distinguishes everything in view being indexed, attachments waiting
+for the next pass, and a pass that finished with attachments it could not index
+— the last pointing at the "Not indexed" list, where each obstacle already
+carries its own explanation.
+
 Implementation and host-mock verification are recorded in
 [the scheduling report](../../verification/SDT-SITTER-EVENTS.md). This draft does
 not claim a live-profile deployment or a published release.
