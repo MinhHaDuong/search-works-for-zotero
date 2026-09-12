@@ -2,12 +2,12 @@
 Title: Does an uninstall withdraw the sitter indexing consent
 Created: 2026-09-12
 Author: claude
-Label: needs-human
 
 --- log ---
 2026-09-12T09:02Z claude created
 
 2026-09-12T09:07Z claude note filed from the lifecycle audit (F1). Needs a ruling: 'asked once per profile' is ratified and conflicts with 'an uninstall withdraws consent'
+2026-09-12T10:37Z MinhHaDuong ruled — an uninstall writes the indexing switch off rather than clearing it: consent withdrawn, and the first-run question not re-asked. Neither option as put; recorded in DECISIONS.md and SPEC 5.2.7, implementation handed to 0773 Action 2
 --- body ---
 
 ## Context
@@ -43,8 +43,19 @@ conflict. Changing it is a ruling in `DECISIONS.md` first and SPEC second.
    audit's own reading of that dialog is that it is the modal least likely to
    be read, and 0717 already moved two paragraphs out of it.
 
+## Ruled 2026-09-12: neither option — write it OFF
+
+The author chose a third answer, and it is better than the recommendation this
+ticket carried. Clearing the preference (1) re-opens a question already
+answered; keeping it (2) resumes indexing silently. Writing it `false` does
+what (1) wanted — the consent is withdrawn — without doing what (1) cost: a
+reinstall starts in the state the plugin already treats as one it RUNS in, with
+the toolbar entry and the window present, "off" in plain words, reversible at
+one click. `DECISIONS.md` carries the ruling and SPEC §5.2.7 is edited to match.
+
 ## Exit criteria
 
-- A ruling in `DECISIONS.md`, SPEC §5.2.7 edited to match, and — if the ruling
-  is (1) — the clearing implemented where 0773 puts the rest of the uninstall
-  cleanup.
+- ~~A ruling in `DECISIONS.md`, SPEC §5.2.7 edited to match~~ — done
+  2026-09-12, in the same change as this note.
+- The write implemented: `false` on the uninstall reason, in 0773's Action 2,
+  which no longer waits on this ticket. That is all that remains here.

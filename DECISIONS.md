@@ -7352,3 +7352,45 @@ from 0727: a disappearance is a defect a user discovers by losing the tool; an
 unverified keyboard path is a limit the notes can name before anyone installs.
 
 **Unchanged.** 0727 still gates the tag on at least a named mechanism.
+
+**2026-09-12 — RULED: an uninstall leaves the sitter's indexing switch OFF, not
+unanswered.** The author, on ticket 0772, choosing neither option put to him.
+Both were wrong in the same way: (1) clear the preference, so a reinstall meets
+the first-run question again, and (2) keep the answer, so a reinstall resumes
+indexing silently. The ruling is a third: **write it off.**
+
+**What that buys.** A profile that removes the add-on and installs it again
+starts in the state the plugin already treats as one it runs in — the toolbar
+entry and the window present, "off" in plain words, reversible at one click
+without leaving Zotero's main window (§5.2.7). So the consent is withdrawn, as
+option (1) wanted, and the modal least likely to be read is not asked again, as
+option (2) wanted. The audit's own recommendation was (1) and this is better
+than it: re-asking a question already answered is the nuisance the once-per-
+profile rule exists to prevent, and the answer that matters after a removal is
+not "yes" but "not until you say so".
+
+**Where it lands.** The preference is written `false` on the uninstall reason,
+in the same teardown that removes the rest of the sitter's durable state —
+ticket 0773's Action 2, which no longer waits on this ruling. 0772 keeps the
+implementation as its remaining exit criterion.
+
+**2026-09-12 — RULED: Zotero 11 is incompatible; the `10.*` ceiling stands and
+the plugin's end of life on a major host upgrade is a DISABLE, never a
+disappearance.** The author, on ticket 0777, on the merits rather than on a
+measurement: the payload reaches into `Zotero.SDT.ensure`,
+`resource://zotero/document-worker/*` and `win.require`, none of it public API,
+so a build claiming compatibility with 11 would claim what nobody has read.
+Option (3), dropping `strict_max_version`, is dead.
+
+**What the ruling settles, and the half it hands on.** It settles the ceiling.
+It does not settle what an out-of-range add-on *becomes*: "incompatible" names
+a disable, and the lifecycle audit's F8 shows that a host upgrade to 11 leaves
+the add-on out of range **and** absent from its own update manifest at once —
+which is the configuration `update.json`'s comment holds responsible for the
+add-on being disabled and then deleted mid-session on 2026-09-06. If 11 is
+incompatible and profiles upgrade, that configuration stops being hypothetical
+and becomes the expected end state of every installation. Making the end of
+life a disable a user can see, rather than a disappearance, is therefore
+ticket 0776's question — whether the update manifest carries an entry an 11
+host finds in range — and 0776 is now the live decision of the three, ahead of
+the two settled here.

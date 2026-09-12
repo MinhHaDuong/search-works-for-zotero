@@ -13,18 +13,18 @@ current, bounded and honest about coverage. [README.md](README.md) owns the prop
 - Sitter 0.4.0 tag **deferred** (DECISIONS.md, 2026-09-11; 0764 `Blocked-by: 0727, 0686`):
   0727 needs a named mechanism; 0686 is closed (items (1) and (3) built in 0.3.43);
   its item (2) → 0769, to be declared in RELEASE-NOTES.md by 0764 Action 5.
+- **Zotero 11 incompatible, `10.*` ceiling stands; an uninstall writes the switch off** (DECISIONS.md, 2026-09-12; 0777 closed, 0772 ruled).
+  Live decision: **0776** — an update entry an 11 host finds in range separates a disable from a disappearance.
 - Release the Multilingual test library and questions + grader as public Challenge
 - Zoteus feature freeze for the September 21 release: correctness, packaging and privacy,
 with QA tests for those. Indexer/worker rewrite and segmenter stay held.
 
 ## Recent outcomes
 
-- **0727 arm 5 (#526): bounded negative, and narrower than recorded.** 17 of ~50 cycles,
-  zero disappearances — but the rig runs Zotero headless, where `initialize()` cannot pass
-  its main-window requirement, so the sitter it installed very likely never ran (0778).
-- **Sitter host-lifecycle audit** (`verification/SITTER-LIFECYCLE-AUDIT-2026-09-12.md`):
-  install, remove, update, host upgrade/downgrade. Ten findings; 0771 implements three,
-  0772–0779 carry the rest, three of them awaiting a ruling.
+- **0727 arm 5 (#526): bounded negative, narrower than recorded.** 17 of ~50 cycles, zero disappearances —
+  but the rig runs Zotero headless, where `initialize()` cannot pass its main-window check (0778).
+- **Sitter host-lifecycle audit** (`verification/SITTER-LIFECYCLE-AUDIT-2026-09-12.md`): ten findings over
+  install/remove/update/host upgrade. #531/#532/#533 open, each APPROVED on its page, none merged.
 
 ## Handoff
 

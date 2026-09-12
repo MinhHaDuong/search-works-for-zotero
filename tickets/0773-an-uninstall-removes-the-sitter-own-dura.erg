@@ -8,6 +8,7 @@ Blocked-by: 0771
 2026-09-12T09:02Z claude created
 
 2026-09-12T09:07Z claude note filed from the lifecycle audit (F2). Blocked-by 0771: the removal belongs in the same shutdown finally that 0771 edits
+2026-09-12T10:37Z claude note Action 2 no longer waits on 0772: write enabled false via writeSDTSwitch, do not clear it
 --- body ---
 
 ## Context
@@ -46,7 +47,13 @@ is a fifth file and belongs in the same sweep and the same declaration.
    #530's own reason for writing its certificate synchronously — a hook that may
    never run cannot be the cleanup site. Keep `uninstall()` empty with a comment
    saying so.
-2. Clear `extensions.sdt-pack-sitter.debug`. Leave `…enabled` to 0772's ruling.
+2. Clear `extensions.sdt-pack-sitter.debug`. **Write `extensions.sdt-pack-sitter.enabled`
+   `false`** — ruled 2026-09-12 on 0772, and not the same thing as clearing it:
+   cleared reads as unanswered and re-asks the first-run question on a
+   reinstall, where `false` starts the next installation in the state the
+   plugin runs in, entry and window present, reversible at one click. Use
+   `writeSDTSwitch(false)` rather than a bare `Prefs.set`, so the switch record
+   goes to the journal the way every other switch change does.
 3. Declare every location in SPEC §5.2.7, beside the debug pref that is already
    there, and state that an uninstall removes them.
 4. Removal is best-effort and silent-on-failure: an unwritable or already-gone

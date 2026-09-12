@@ -78,6 +78,15 @@ clear the pref in `uninstall()` and keep "once per *installation*". The cost is
 one extra prompt for a user who removes and reinstalls, which is exactly the
 user who should see it.
 
+**Ruled 2026-09-12, and against this recommendation.** Neither the clearing
+above nor keeping the answer: the switch is written **off**. A reinstall then
+starts in the state the plugin already treats as one it runs in — entry and
+window present, indexing stopped, one click to start — so the consent is
+withdrawn without re-asking the modal least likely to be read. Better than what
+this paragraph proposed, and for a reason it had in front of it: the audit's own
+F1 notes that the prompt is where 0717 already moved two paragraphs *out* of.
+`DECISIONS.md`, SPEC §5.2.7 and ticket 0772 carry it; 0773 implements it.
+
 ### F2. `uninstall()` leaves three pieces of durable state, and SPEC declares one *(severity: medium-high; cost: low)*
 
 `install()` and `uninstall()` are both empty (`:2723`, `:2724`). What remains
@@ -256,6 +265,17 @@ build; (2) keep the manifest cap but let update.json carry a second, wider
 entry so the host always finds *some* in-range version; (3) drop
 `strict_max_version` — cheapest to write, and it ships an unread-API build to a
 host nobody has tested.
+
+**Ruled 2026-09-12: option 1, and Zotero 11 is incompatible as a matter of
+fact rather than of measurement.** The ceiling stands and option 3 is dead. The
+ruling settles the ceiling and hands on the half this paragraph separated:
+"incompatible" names a *disable*, and the two conditions above — out of range
+**and** unlisted in its own update manifest — are what turn a disable into a
+disappearance. With 11 incompatible and profiles upgrading, that configuration
+is no longer hypothetical; it is the expected end state of every installation,
+which promotes F6 (ticket 0776) from the cheapest of the three decisions to the
+one that decides whether the end of life is visible. `DECISIONS.md`, SPEC
+§5.2.7, `RELEASE-NOTES.md` and ticket 0777 carry the ruling.
 
 ### F9. The journal records why the plugin stopped and never why it started *(severity: high, forensic; cost: one line)*
 

@@ -2,7 +2,7 @@
 
 - **Status:** COMPLETE
 - **Author:** Minh Ha-Duong (CNRS)
-- **Date:** 2026-09-10
+- **Date:** 2026-09-12
 
 ## 1. Introduction
 
@@ -2262,6 +2262,21 @@ admissions and keeps them. Under either, the attachment already handed to
 Zotero may finish and persist its native pack; neither cancels that work or
 authorizes a queued library-wide drain. This graceful stop does not relax the
 separate obligation to avoid interfering with native work.
+
+Removing the add-on leaves that switch OFF rather than unanswered (ruled
+2026-09-12). A profile that reinstalls therefore starts in the state above —
+entry and window present, indexing stopped, reversible at one click — and is
+not asked the first-run question a second time. Withdrawing the add-on
+withdraws the consent to index; it does not re-open a question already answered.
+
+The add-on declares the host versions it runs in, and the declaration is a
+ceiling as well as a floor. A host outside that range leaves the add-on
+installed and disabled, which is the intended end of life for a build whose
+reach into the host is not public API: a major host upgrade is not something
+this plugin claims to survive (ruled 2026-09-12). What such an upgrade must
+not produce is a disappearance — the add-on removing itself, file and record,
+the way it was seen to on 2026-09-06 — and the manifest surface that decides
+between those two outcomes is open at the time of writing.
 
 The first-run question states what it asks and no more. It carries labelled
 buttons naming the two answers, promises no end time the loop does not have,
