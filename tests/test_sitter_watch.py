@@ -332,3 +332,41 @@ def test_the_gesture_that_does_come_back_stays_excused(profile, log, tmp_path):
         poll(watcher)
         write_extensions(profile, [ADDON, OTHER])  # the reinstall
     assert not watcher.disappearance.is_set()
+
+
+def test_a_zotero_upgrade_is_its_own_transition(profile, log):
+    """Tickets 0776/0777. `strict_max_version` is `10.*`, and an add-on out of
+    range and absent from its update manifest is the configuration
+    `update.json`'s own comment accuses of the disable-then-delete this ticket
+    is about. Once hosts reach 11 that is the DESIGNED end of life, and the
+    signature becomes indistinguishable from it.
+
+    So the host version is part of the line: an upgrade is logged, stamped, and
+    sitting immediately above the removal it would explain. A disappearance read
+    six months from now can then be told from an ordinary end of life.
+    """
+    (profile / "compatibility.ini").write_text(
+        "[Compatibility]\nLastVersion=10.0.2_20260824184709/20260824184709\n", encoding="utf-8")
+    watcher = watcher_for(profile, log)
+    poll(watcher)
+    assert "zotero=10.0.2" in log.path.read_text(encoding="utf-8")
+
+    # The upgrade, with nothing else moving: it is a transition on its own.
+    (profile / "compatibility.ini").write_text(
+        "[Compatibility]\nLastVersion=11.0.0_20270101000000/20270101000000\n", encoding="utf-8")
+    poll(watcher)
+    lines = [line for line in log.path.read_text(encoding="utf-8").splitlines() if line]
+    assert len(lines) == 2, lines
+    assert "zotero=11.0.0" in lines[-1]
+    assert not watcher.disappearance.is_set(), "an upgrade is not a disappearance"
+
+
+def test_an_unreadable_host_version_leaves_the_column_empty_not_the_line(profile, log):
+    """A missing compatibility.ini is not a finding. The positive control is the
+    arm above: without it, "no version in the line" and "no version to read"
+    would be the same output."""
+    watcher = watcher_for(profile, log)
+    poll(watcher)
+    text = log.path.read_text(encoding="utf-8")
+    assert "zotero=" not in text
+    assert "present version=0.3.43" in text, "the rest of the line was lost with it"

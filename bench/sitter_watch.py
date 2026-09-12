@@ -96,6 +96,54 @@ def refuse_dot_log(path: Path) -> str:
             f"and has to be committable. Use {path.with_suffix('.txt')}.")
 
 
+def read_host_version(profile: Path):
+    """The Zotero version this profile last ran, from the host's own file.
+
+    Read from `compatibility.ini`, which Gecko writes on every launch, and NOT
+    over RDP: this watcher is meant to run for days against a profile whose
+    Zotero comes and goes, and the reading has to survive the process being
+    down. Returns None when it cannot be read -- an unreadable version is not a
+    finding, it is a column that stays empty.
+
+    Why the column exists at all (tickets 0776/0777). `strict_max_version` is
+    `10.*`, and an add-on outside its range AND absent from its update manifest
+    is exactly the configuration `update.json`'s own comment accuses of having
+    disabled and then removed this plugin mid-session. When hosts reach 11, that
+    stops being a hypothesis and becomes the designed end of life -- and the
+    signature this watcher hunts becomes indistinguishable from it. A host
+    version in the transition line means a Zotero UPGRADE is itself a logged
+    line, immediately before the removal it explains. Without it, a
+    disappearance read six months from now cannot be told from an ordinary end
+    of life.
+    """
+    try:
+        for line in (profile / "compatibility.ini").read_text(encoding="utf-8").splitlines():
+            if line.startswith("LastVersion="):
+                return line.split("=", 1)[1].split("_", 1)[0].strip() or None
+    except OSError:
+        return None
+    return None
+
+
+def read_declared_max(profile: Path, addon_id: str):
+    """The `strict_max_version` the host recorded for this add-on, if any.
+
+    Best-effort and read here rather than through `host_addon_record`, which is
+    shared with callers that have no use for it and whose three-valued contract
+    is not worth widening for a diagnostic column.
+    """
+    try:
+        document = json.loads((profile / "extensions.json").read_text(encoding="utf-8"))
+        for addon in document.get("addons") or []:
+            if isinstance(addon, dict) and addon.get("id") == addon_id:
+                for target in addon.get("targetApplications") or []:
+                    if isinstance(target, dict) and target.get("maxVersion"):
+                        return str(target["maxVersion"])
+    except (OSError, ValueError, TypeError):
+        return None
+    return None
+
+
 def utc_stamp() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -122,7 +170,7 @@ class Log:
         self.handle.close()
 
 
-def format_state(state: dict, xpi_present: bool, pid=None) -> str:
+def format_state(state: dict, xpi_present: bool, pid=None, host=None, declared_max=None) -> str:
     """One line describing what the host says right now.
 
     Kept as a formatted STRING and compared as one: the watcher logs on change,
@@ -136,6 +184,13 @@ def format_state(state: dict, xpi_present: bool, pid=None) -> str:
         body = (f"present version={state.get('version')} active={state.get('active')} "
                 f"location={state.get('location')}")
     suffix = "" if pid is None else f" pid={pid}"
+    # The host version is part of the LINE and not of the alert, so a Zotero
+    # upgrade is its own transition -- logged, stamped, and sitting immediately
+    # above whatever follows it.
+    if host:
+        suffix += f" zotero={host}"
+    if declared_max:
+        suffix += f" max={declared_max}"
     return f"watcher {body} xpi={'present' if xpi_present else 'ABSENT'}{suffix}"
 
 
@@ -283,7 +338,9 @@ class Watcher:
         passes, and this watcher gets one chance at the real event."""
         state = host_addon_record(self.profile, self.addon_id)
         xpi_present = self.xpi_path.exists()
-        line = format_state(state, xpi_present, self.get_pid())
+        line = format_state(state, xpi_present, self.get_pid(),
+                            read_host_version(self.profile),
+                            read_declared_max(self.profile, self.addon_id))
         if line == self._last_line:
             return
         self.log.write(line)

@@ -356,6 +356,32 @@ def import_menagerie_code(ris_path: Path) -> str:
 """
 
 
+def rearm_code() -> str:
+    """Write the launch answer back, as the seeded pref does before first launch.
+
+    Ticket 0772's ruling (2026-09-12): an UNINSTALL writes `enabled = false`, so
+    a reinstall starts in Off -- no modal, button and window installed,
+    discoverable and reversible. Right for a user, and a trap for this rig: the
+    randomised arm draws `uninstall-then-install` about one cycle in ten, and
+    after 0773 lands every such draw would leave the sitter Off for the REST of
+    the run. No error, no prompt, nothing in the log -- which is ticket 0778's
+    defect exactly, reopened by an unrelated and correct decision.
+
+    So the rig re-answers after any action that could have withdrawn the answer,
+    and then reads liveness again rather than assuming the write took.
+    """
+    return """
+(async function() {
+  try {
+    Zotero.Prefs.set("extensions.sdt-pack-sitter.enabled", true, true);
+    return JSON.stringify({ok: true});
+  } catch (e) {
+    return JSON.stringify({ok: false, reason: "threw", error: String(e)});
+  }
+})()
+"""
+
+
 def liveness_code() -> str:
     """Did the sitter actually BECOME ALIVE, and where is the data directory?
 
@@ -537,6 +563,9 @@ def run_action(action: str, client: ZoteroRDPClient, cycle: int, version: str,
             time.sleep(max(args.disable_hold_seconds, 2.0))
         eval_action(client, install_or_replace_code(xpi), timeout, log,
                     f"cycle {cycle} install after uninstall")
+        # The answer the uninstall withdrew (ticket 0772's ruling), written back
+        # before the next cycle replaces an add-on that would otherwise be Off.
+        eval_action(client, rearm_code(), timeout, log, f"cycle {cycle} re-arm")
         return
 
     result = eval_action(client, install_or_replace_code(xpi), timeout, log,
@@ -869,6 +898,20 @@ def main(argv=None) -> int:
                       f"after {step.wait_seconds:g}s")
             try:
                 run_action(step.action, client, cycle, f"9.{cycle}.0", args, log, watcher)
+                # Read again, rather than assume the re-arm took. The liveness
+                # check after the warmup was a one-shot, and a sitter that goes
+                # Off at cycle 7 makes every cycle after it uninterpretable in
+                # exactly the way arm 5 was uninterpretable throughout.
+                if step.action != "replace" and not args.allow_dead_sitter:
+                    again = eval_action(client, liveness_code(), args.eval_timeout, log,
+                                        f"cycle {cycle} liveness")
+                    if not (again.get("handle") and (again.get("cacheWritten")
+                                                     or (again.get("scanned") or 0) > 0)):
+                        raise RuntimeError(
+                            f"the sitter stopped being alive at cycle {cycle} after "
+                            f"{step.action}: {again}. Every cycle after this one would say "
+                            f"nothing about a running sitter (tickets 0778, 0772)."
+                        )
                 if args.restart_every and cycle % args.restart_every == 0:
                     # One retry of the whole stop/start/attach. `connect_resilient`
                     # exists because this host's RDP connect was found unreliable,
