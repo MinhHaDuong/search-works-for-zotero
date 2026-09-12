@@ -2,7 +2,7 @@
 
 - **Status:** COMPLETE
 - **Author:** Minh Ha-Duong (CNRS)
-- **Date:** 2026-09-10
+- **Date:** 2026-09-12
 
 ## 1. Introduction
 
@@ -2477,6 +2477,11 @@ It is declared nowhere and reads as unset, which the sitter treats as off, so
 debug output stays quiet until the author creates it; error and state records go
 out regardless. The ring takes every level whatever the preference says.
 
+The add-on's presence also causes traffic that is none of the sitter's doing:
+the host's own check of the update manifest `update_url` names, which an add-on
+cannot omit and remain installable. §6 discloses that surface among the others,
+with what the request does and does not carry.
+
 **D3 — serve-stale.** The verified violation (`dropStaleVectors` →
 `clearVectors()` at open) dies. Vectors carry per-row embedder keys: on a
 model switch nothing drops, re-embedding drains newest-first, and during
@@ -3542,6 +3547,24 @@ none of it counts against R10's two paths. It crosses the process boundary
 between zoteus and the Zotero application. Whatever access control exists on
 Zotero's own local API belongs to Zotero, not to this design.
 
+**The add-on's update manifest.** The sitter ships as a Zotero add-on
+(§5.2.7), and an add-on whose manifest declares no `update_url` is refused at
+install: ticket 0727 measured that with a control, a build identical but for
+its removal rejected as "peut-etre incompatible avec cette version de Zotero".
+So the manifest declares one, naming `update.json` on
+`raw.githubusercontent.com`, and the host fetches it on its own cadence —
+`extensions.update.interval`, 86 400 seconds, or once a day, as read on the
+author's profile — for as long as the add-on is installed. This is the only
+network traffic the add-on's existence causes, and the sitter makes none of it:
+the request is the host's, for a fixed URL, and carries no library content.
+That is why R10's count of two opt-in egress paths (§5.2.7) stays exactly as
+stated — it counts this design's own egress, and this is the host's, which is
+also why no consent gate of ours governs it. What the fetch necessarily tells
+the other end is the requesting address and that this add-on's manifest is
+being checked; whether the host adds the installed version to that check is not
+read here, and is reported as unread rather than as a negative. Nothing available to a user or to this
+repository turns it off, because the add-on without it does not install.
+
 **This repository.** The one surface that is not the system's. Measuring a real
 library produces artifacts about real documents, and this repository is public,
 so a measurement record is an egress path with no opt-in and no delete. It ran
@@ -3566,9 +3589,10 @@ sets are the author's own research questions.
 | Logs (queries, passage text, errors) | None yet |
 | Local Zotero API traffic | Crosses a process boundary, stays on the machine; Zotero's own surface |
 | This repository's committed artifacts | Item keys only; passage text and query sets still open |
+| The add-on's update manifest | The host fetches it from GitHub once a day while the sitter is installed; required at install (0727's control), no library content, requesting address disclosed |
 | Inter-process transport and authorization | Conductor/worker stdio pipe; embedding service on a Unix socket in the data directory with the file's permissions, no further authentication; Windows unanswered (§5.2.5) |
 
-Three of the nine rows answer "None yet" outright, and three more state an
+Three of the ten rows answer "None yet" outright, and three more state an
 answer carrying a named gap inside it: the unverified absence of a network
 listener, the still-open question of passage text and query sets in this
 repository, and the missing authentication and Windows answers for the
