@@ -239,7 +239,8 @@ export function createHarness(options = {}) {
   // times a reading was taken, which is the difference between one check per
   // admission and a poll, and between a cache hit and a native re-inspection.
   const calls = { meminfo: 0, loadavg: 0, openPack: [], ensure: [], prompt: 0,
-    prompts: [], writes: [], hash: [], list: 0, affected: [], inspect: [] };
+    prompts: [], writes: [], hash: [], list: 0, affected: [], inspect: [],
+    putContents: [] };
   const observers = new Map(); let observerSequence = 0;
 
   // Two clocks, moving independently. `mono` is what ChromeUtils.now() answers
@@ -465,9 +466,20 @@ export function createHarness(options = {}) {
         throw new Error(`unexpected URL read of ${url}`);
       },
       pathToFile: path => (options.pathToFile ? options.pathToFile(path) : {
+        // `path` is carried because the real nsIFile carries it, and because
+        // `putContents` below is given the file and has to know where it goes.
+        path,
         isWritable: () => options.writable !== false,
         diskSpaceAvailable: options.diskAvailable ?? 500 * 1024 ** 3,
       }),
+      /* Synchronous, as Zotero's own is: the death certificate (ticket 0727) is
+         written from a teardown whose sandbox does not outlive it, so an async
+         write would be the one thing that function exists to rule out. */
+      putContents: (file, text) => {
+        if (options.putContentsThrows) throw new Error('write failed');
+        calls.putContents.push({ path: file && file.path, text });
+        files.put(file.path, text);
+      },
     },
   };
 

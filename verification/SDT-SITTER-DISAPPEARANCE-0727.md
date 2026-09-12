@@ -147,7 +147,11 @@ claim to have shown the watcher can see a transient disabled state, only that
 it can see appearance and (by the same mechanism) would see disappearance.
 Whoever runs the fuller volume arm should add a deliberate pause between
 disable and enable (long enough to read a settled `active=False`) as its own
-positive control before trusting the rest of the log.
+positive control before trusting the rest of the log. **Done 2026-09-12**:
+`run_cycle` now holds the disabled state for `--disable-hold-seconds` (6 s by
+default, 0 to switch the control off), so every cycle of the next run must leave
+an `active=False` line in the watch log, and a run whose log has none is a run
+whose disabled-state reads prove nothing.
 
 **What remains.** Re-run this same driver for the full ~50-cycle/~2-hour
 budget when there is time to let it finish or to watch it live. If it
@@ -157,3 +161,65 @@ the full budget clean, that is real (though still not conclusive) evidence
 against volume alone being sufficient, and the remaining candidate from the
 2026-09-08 reopening note — build-specific payload differences across the
 organic session's five installs — would move to the front.
+
+
+## If it happens again: what to do, in this order (2026-09-12)
+
+Written because the author asked the question this section answers -- "is it
+instrumented if it recurs?" -- and the honest answer at the time was half.
+The in-process reading was good and nothing outside the process kept it.
+
+**1. Do not restart Zotero yet.** `shutdown(data, reason)` reads the reason
+Gecko itself gives for the teardown -- `disable`, `uninstall`, `upgrade`,
+`app-shutdown` -- and `SHUTDOWN_REASONS` names it. That record goes into the
+ring, and the ring is parked at `Zotero.SDTPackSitterJournal` as the last act of
+the teardown. It lives as long as the Zotero PROCESS and no longer. Restarting
+is what a user reaches for first and it destroys the one artefact that names the
+mechanism this ticket has been missing since 2026-09-06.
+
+**2. Read it.** Tools -> Developer -> Run JavaScript:
+
+```js
+JSON.stringify(Zotero.SDTPackSitterJournal.tail(200))
+```
+
+Copy the result somewhere outside the profile. If it answers `undefined`, that
+is a finding in itself and a sharp one: the add-on never reached its own
+`shutdown()`, so whatever removed it did not go through the ordinary teardown
+path at all.
+
+**3. Take `extensions.json` and the certificate.** Copy
+`<profile>/extensions.json` before the host rewrites it, and
+`<data directory>/sdt-sitter-last-shutdown.json` if it exists -- the death
+certificate, written on the `disable` and `uninstall` reasons only, when the
+add-on's debug switch is on. It carries the same ring, redacted at the clipboard
+boundary (opaque cache keys, no titles, no install path), and unlike the parked
+ring it survives the restart.
+
+**4. Then restart and reinstall.**
+
+## Standing instrumentation
+
+Running `bench/sitter_watch.py` against the live profile does steps 1 to 3
+unattended, and is the only thing that can: both organic occurrences were
+noticed minutes to hours late.
+
+```bash
+python3 bench/sitter_watch.py --profile ~/.zotero/zotero/<profile> \
+    --data-dir ~/Zotero --log ~/sitter-watch.txt --evidence-dir ~/sitter-evidence
+```
+
+Add `--rdp-port 6000` if Zotero was started with `--start-debugger-server` and
+the parked ring should be read automatically on the alert. Set the add-on's
+debug switch (Details -> Technical diagnostics, or
+`extensions.sdt-pack-sitter.debug`) for the certificate: it is off in a released
+build by the author's ruling of 2026-09-12, because the certificate is the one
+thing this plugin writes durably about a library, and it is written only when
+the plugin is being taken away.
+
+What none of this covers is the host's own reasoning. `extensions.logging.enabled`
+makes AddonManager say why it disables or removes an add-on; the volume rig now
+seeds it, along with Zotero's own `debug.log`/`debug.store`, into every throwaway
+profile it builds. A live profile has to have it set by hand, and it is worth
+setting: it is the one account of the event that neither the add-on nor an
+external watcher can reconstruct.

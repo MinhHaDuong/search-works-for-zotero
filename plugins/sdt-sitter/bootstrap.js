@@ -1525,6 +1525,55 @@ function composeSDTNotIndexedIdentifiers() {
    into a bug report. The install path stays on screen, two lines above in the
    same panel, where the author is reading his own machine. The versions travel,
    because a ring with no build attached answers nothing. */
+/* The death certificate, ticket 0727 ("is it instrumented if it recurs?", the
+   author's question of 2026-09-12, and his ruling the same day).
+
+   The sitter has twice vanished from a live profile -- disabled, then removed,
+   file and record, mid-session, with no user action -- and the ticket still has
+   no mechanism because nothing that survives the event ever said WHICH event it
+   was. `shutdown(data, reason)` knows: Gecko passes ADDON_DISABLE, ADDON_UNINSTALL
+   or APP_SHUTDOWN, and SHUTDOWN_REASONS names it. That reading reaches the ring,
+   and the ring is parked on the Zotero global -- but only for the life of the
+   process. The recovery a user actually performs, restarting Zotero, destroys
+   the one artefact that would name the mechanism.
+
+   So on the two reasons that are the phenomenon, and on no other, the last 50
+   records go to a file in the data directory. Not the app-shutdown path: the
+   ordinary end of a session is not this defect, and writing there would bury the
+   evidence under one certificate per quit.
+
+   THE PRIVACY RULE THIS SITS UNDER. SPEC.md's sitter section suppresses failures
+   for the session "without a private durable ledger", which is why
+   `createSDTJournal`'s ring is volatile and why the failure half of settle goes
+   to the debug log and never to a file. Three things keep this inside that rule.
+   It is written only when `DEBUG_PREF` is on -- the same switch, the same
+   checkbox in the diagnostics layer, off in a released build, which the author
+   turns on knowingly for exactly this. It carries `composeSDTJournalReport`'s
+   output, the clipboard boundary's own redaction: opaque cache keys, never
+   titles, and no `rootURI`. And it is a certificate of death, not a ledger: one
+   file, overwritten, written only when the plugin is being taken away.
+
+   Synchronous on purpose. `IOUtils` is async, and the sandbox this code runs in
+   is torn down when shutdown returns on the uninstall path, so an in-flight
+   promise is a certificate that may never land -- the one failure this whole
+   function exists to prevent. `Zotero.File.putContents` writes before returning. */
+function writeSDTDeathCertificate(reason) {
+  if (reason !== 'disable' && reason !== 'uninstall') return;
+  try {
+    // Fully qualified, as every other read of this pref is: `true` stops Zotero
+    // prepending `extensions.zotero.`.
+    if (!Zotero.Prefs.get(DEBUG_PREF, true)) return;
+    const path = PathUtils.join(Zotero.DataDirectory.dir, 'sdt-sitter-last-shutdown.json');
+    Zotero.File.putContents(Zotero.File.pathToFile(path), JSON.stringify({
+      reason, at: new Date().toISOString(), report: composeSDTJournalReport(),
+    }, null, 2));
+  } catch (error) {
+    // A teardown must not acquire a throw from its own diagnostics. The debug
+    // log is the fallback channel and is already open at this point.
+    try { Zotero.debug(`SDT sitter certificate-failed ${classifyError(error)}`); } catch (_ignored) { /* Nothing. */ }
+  }
+}
+
 function composeSDTJournalReport() {
   try {
     return JSON.stringify({
@@ -2711,13 +2760,15 @@ function shutdown(data, reason) {
     dialogs.clear();
     delete Zotero.SDTPackSitter;
   } finally {
-    emit('shutdown', { reason: typeof reason === 'number' ? SHUTDOWN_REASONS[reason] || `reason-${reason}`
-      : reason ? String(reason).toLowerCase().replace(/^addon[_-]/, '').replace(/_/g, '-') : 'unknown' });
+    const named = typeof reason === 'number' ? SHUTDOWN_REASONS[reason] || `reason-${reason}`
+      : reason ? String(reason).toLowerCase().replace(/^addon[_-]/, '').replace(/_/g, '-') : 'unknown';
+    emit('shutdown', { reason: named });
     sealed = true;
     // The shutdown record is the last thing written, and this is what keeps the
     // ring holding it reachable afterwards. Guarded for the same reason emit()
     // is: a teardown already halfway through a throw must not acquire a second.
     try { if (journal) Zotero.SDTPackSitterJournal = journal; } catch (_error) { /* Nothing. */ }
+    writeSDTDeathCertificate(named);
   }
 }
 function install() {}

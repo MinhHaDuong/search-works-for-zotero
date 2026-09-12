@@ -67,16 +67,14 @@ import os
 import socket
 import subprocess
 import sys
-import threading
 import time
 import zipfile
-from datetime import datetime, timezone
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "bench"))
 
-from host_addon_record import host_addon_record  # noqa: E402
+from sitter_watch import Log, Watcher, make_ring_reader  # noqa: E402
 from zotero_rdp_client import (  # noqa: E402
     RDPConnectionClosed,
     RDPError,
@@ -103,33 +101,22 @@ SEED_PREFS = """\
 user_pref("devtools.debugger.remote-enabled", true);
 user_pref("devtools.debugger.prompt-connection", false);
 user_pref("devtools.chrome.enabled", true);
+// AddonManager's own reasoning about add-ons. Without it a reproduction says
+// THAT the sitter was disabled and removed and never why, and the host's
+// decision is the one account nothing else in this rig can reconstruct.
+user_pref("extensions.logging.enabled", true);
+// Zotero's debug output, where every non-trace record the add-on emits already
+// goes -- the shutdown reason included. Stored rather than merely produced: by
+// default it is discarded, which is why the two organic occurrences left none.
+user_pref("extensions.zotero.debug.log", true);
+user_pref("extensions.zotero.debug.store", true);
+// The add-on's own switch, which gates its death certificate. On here, off in a
+// released build, per the author's ruling of 2026-09-12.
+user_pref("extensions.sdt-pack-sitter.debug", true);
 user_pref("app.update.auto", false);
 user_pref("datareporting.policy.dataSubmissionEnabled", false);
 user_pref("toolkit.telemetry.reportingpolicy.firstRun", false);
 """
-
-
-def utc_stamp() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
-class Log:
-    """Appends timestamped lines to a file and echoes them to stdout, flushing
-    every write -- a run that dies at hour 1 must not lose hour 1's lines to
-    a buffer."""
-
-    def __init__(self, path: Path):
-        self.path = path
-        self._fh = open(path, "a", encoding="utf-8")  # noqa: SIM115
-
-    def write(self, line: str) -> None:
-        stamped = f"{utc_stamp()} {line}"
-        print(stamped)
-        self._fh.write(stamped + "\n")
-        self._fh.flush()
-
-    def close(self) -> None:
-        self._fh.close()
 
 
 def build_payload(version: str, out_path: Path) -> Path:
@@ -257,72 +244,17 @@ def disable_enable_code(addon_id: str, want_disabled: bool) -> str:
 """
 
 
-def format_state(state: dict, xpi_present: bool, zotero_pid: int) -> str:
-    """The exact grammar `verification/SDT-SITTER-DISAPPEARANCE-0727.md`'s
-    prior arms used, so this run's log reads as one more arm of the same
-    record rather than a format nobody else's tooling recognizes."""
-    xpi = "present" if xpi_present else "absent"
-    if not state.get("read"):
-        return f"record=unreadable:{state.get('why')} xpi={xpi} zotero_pid={zotero_pid}"
-    if not state.get("present"):
-        return f"record=absent xpi={xpi} zotero_pid={zotero_pid}"
-    return (f"record=present:{state.get('version')}:active={state.get('active')} "
-            f"xpi={xpi} zotero_pid={zotero_pid}")
-
-
-class Watcher:
-    """Polls `extensions.json` + the `.xpi`'s presence on disk on a fixed
-    cadence and logs a line ONLY on change -- `scratchpad/sitter-watch.sh`'s
-    own discipline (ticket 0727's history): a quiet log is "nothing moved", a
-    line is a transition, stamped. Runs independently of the action loop's
-    cadence, because the two clocks this module's docstring describes mean an
-    action-adjacent sample would describe the write debounce, not a real
-    transition.
-    """
-
-    def __init__(self, profile: Path, addon_id: str, log: Log,
-                 get_pid, poll_seconds: float = 1.5):
-        self.profile = profile
-        self.addon_id = addon_id
-        self.log = log
-        self.get_pid = get_pid
-        self.poll_seconds = poll_seconds
-        self.xpi_path = profile / "extensions" / f"{addon_id}.xpi"
-        self.disappearance = threading.Event()
-        self._stop = threading.Event()
-        self._last_line = None
-        self._was_present = False
-        self._thread = threading.Thread(target=self._run, daemon=True)
-
-    def start(self) -> None:
-        self._thread.start()
-
-    def stop(self) -> None:
-        self._stop.set()
-        self._thread.join(timeout=10)
-
-    def _run(self) -> None:
-        while not self._stop.is_set():
-            state = host_addon_record(self.profile, self.addon_id)
-            xpi_present = self.xpi_path.exists()
-            line = format_state(state, xpi_present, self.get_pid())
-            if line != self._last_line:
-                self.log.write(line)
-                self._last_line = line
-                now_present = bool(state.get("read") and state.get("present"))
-                if self._was_present and not now_present:
-                    self.log.write(
-                        "watcher ALERT disappearance signature: record went "
-                        "from present to absent with no uninstall issued by "
-                        "this driver"
-                    )
-                    self.disappearance.set()
-                self._was_present = now_present
-            self._stop.wait(self.poll_seconds)
+# `Log`, `Watcher`, `format_state` and `utc_stamp` come from
+# `bench/sitter_watch.py`. This driver held the only versioned copy of them,
+# which is exactly why nothing could watch the author's OWN profile while he
+# worked -- where both organic occurrences happened (ticket 0727, the
+# 2026-09-12 instrumentation round). The watcher there is this one, plus the
+# evidence it takes when the signature fires.
 
 
 def run_cycle(client: ZoteroRDPClient, cycle: int, version: str,
-              payload_dir: Path, log: Log, timeout: float) -> None:
+              payload_dir: Path, log: Log, timeout: float,
+              disable_hold_seconds: float = 6.0) -> None:
     xpi = build_payload(version, payload_dir / f"sdt-sitter-{version}.xpi")
     log.write(f"driver cycle {cycle} installing version {version}")
     result = eval_action(client, install_or_replace_code(xpi), timeout, log,
@@ -332,7 +264,20 @@ def run_cycle(client: ZoteroRDPClient, cycle: int, version: str,
     log.write(f"driver cycle {cycle} disabling")
     eval_action(client, disable_enable_code(ADDON_ID, True), timeout, log,
                 f"cycle {cycle} disable")
-    log.write(f"driver cycle {cycle} enabling")
+    # HELD, deliberately, and this pause is a positive control rather than
+    # politeness. Arm 5 ran 17 disable() calls and its log carries zero
+    # `active=False` lines, because this function disabled and re-enabled with no
+    # pause while `extensions.json`'s `active` field is written late (ticket
+    # 0766: `isActive: true` live immediately after enable(), the on-disk field
+    # still false moments later). The disabled-state READ was therefore never
+    # controlled, and a run that saw no disable could not tell "it never
+    # happened" from "we never looked in time" -- the same shape of defect as a
+    # scan whose all-clear is indistinguishable from its could-not-look. One
+    # pause past the debounce is the whole control: the watcher must emit an
+    # active=False line in every cycle, and a run whose log has none is a run
+    # whose disabled-state reads prove nothing.
+    time.sleep(disable_hold_seconds)
+    log.write(f"driver cycle {cycle} enabling after a {disable_hold_seconds:g}s disabled hold")
     eval_action(client, disable_enable_code(ADDON_ID, False), timeout, log,
                 f"cycle {cycle} enable")
 
@@ -361,6 +306,13 @@ def main(argv=None) -> int:
     parser.add_argument("--spaced-interval-seconds", type=float, default=120.0)
     parser.add_argument("--max-minutes", type=float, default=120.0)
     parser.add_argument("--eval-timeout", type=float, default=20.0)
+    parser.add_argument("--disable-hold-seconds", type=float, default=6.0,
+                        help="how long to leave the add-on disabled in each cycle; the "
+                             "positive control for the watcher's disabled-state read, and "
+                             "0 disables that control (ticket 0727)")
+    parser.add_argument("--evidence-dir", type=Path,
+                        help="where the watcher copies extensions.json, the parked ring and "
+                             "the death certificate if the signature fires")
     args = parser.parse_args(argv)
 
     args.profile.mkdir(parents=True, exist_ok=True)
@@ -407,7 +359,13 @@ def main(argv=None) -> int:
     def get_pid() -> int:
         return proc.pid
 
-    watcher = Watcher(args.profile, ADDON_ID, log, get_pid)
+    # The evidence side of the watcher, ticket 0727's 2026-09-12 round: a
+    # reproduction that keeps only its own alert line leaves the next reader
+    # exactly where the two organic occurrences did.
+    evidence_dir = args.evidence_dir or args.log.parent / "evidence"
+    watcher = Watcher(args.profile, ADDON_ID, log, get_pid,
+                      evidence_dir=evidence_dir, data_dir=args.profile,
+                      read_ring=make_ring_reader(args.port, log))
     exit_code = 0
     try:
         wait_for_port("127.0.0.1", args.port, time.monotonic() + 60)
@@ -420,7 +378,8 @@ def main(argv=None) -> int:
         # Cycle 0: the one genuine FIRST install into a never-before-used
         # process -- everything after this is a REPLACE.
         cycle += 1
-        run_cycle(client, cycle, "9.0.0", args.payload_dir, log, args.eval_timeout)
+        run_cycle(client, cycle, "9.0.0", args.payload_dir, log, args.eval_timeout,
+                  args.disable_hold_seconds)
 
         # Burst phase: rapid replacements, mimicking the organic recurrence
         # shape (several GUI-menu replacements in one continuously-running
@@ -432,7 +391,7 @@ def main(argv=None) -> int:
             time.sleep(args.burst_interval_seconds)
             try:
                 run_cycle(client, cycle, f"9.{cycle}.0", args.payload_dir, log,
-                          args.eval_timeout)
+                          args.eval_timeout, args.disable_hold_seconds)
             except (RDPConnectionClosed, RDPTimeout) as exc:
                 log.write(f"driver warn cycle {cycle} RDP call failed: {exc}; reconnecting")
                 client.close()
@@ -446,7 +405,7 @@ def main(argv=None) -> int:
             time.sleep(args.spaced_interval_seconds)
             try:
                 run_cycle(client, cycle, f"9.{cycle}.0", args.payload_dir, log,
-                          args.eval_timeout)
+                          args.eval_timeout, args.disable_hold_seconds)
             except (RDPConnectionClosed, RDPTimeout) as exc:
                 log.write(f"driver warn cycle {cycle} RDP call failed: {exc}; reconnecting")
                 client.close()

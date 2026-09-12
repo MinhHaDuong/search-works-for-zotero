@@ -16,6 +16,7 @@ Blocked-by: 0727
 
 2026-09-11T20:10Z claude note Blocked-by: 0686 added per the author's 2026-09-11 ruling (option B, DECISIONS.md): 0686 now carries only items (1) and (3), which gate this release; its item (2) moved to 0769, which does not, and Action 5 gains the matching known-limitation line.
 2026-09-12T06:28Z claude note blocker 0686 closed — Blocked-by removed.
+2026-09-12T07:20Z claude note Action 5's recovery line reordered before it ships: it said "restart Zotero, reinstall, and report it", and the restart destroys `Zotero.SDTPackSitterJournal` -- the parked ring carrying Gecko's own shutdown reason, which is exactly what ticket 0727 has never had. Report and read first, restart second. See 0727's entry of the same date for the instrumentation round this came out of.
 --- body ---
 ## Context
 
@@ -71,7 +72,18 @@ anything else in the tree.
    an asset that exists. Today the gate reads the payload history only.
 5. RELEASE-NOTES.md: drop the "does not claim ... a published release" sentence,
    and add a plain recovery line for 0727 — if the sitter disappears from
-   Tools → Add-ons, restart Zotero, reinstall, and report it.
+   Tools → Add-ons, report it, and then restart Zotero and reinstall.
+   IN THAT ORDER, and the order is the whole point (corrected 2026-09-12):
+   `shutdown()` reads Gecko's own reason for the removal and parks the ring
+   holding it at `Zotero.SDTPackSitterJournal`, which lives only as long as the
+   Zotero PROCESS. The restart this line used to recommend first is what
+   destroys the one artefact that would name the mechanism 0727 has been
+   missing since 2026-09-06. So the line must ask for the reading before the
+   restart: Tools → Developer → Run JavaScript, evaluate
+   `JSON.stringify(Zotero.SDTPackSitterJournal.tail(200))`, copy the result.
+   With the add-on's debug switch on, the same records are already in
+   `sdt-sitter-last-shutdown.json` in the Zotero data directory, which survives
+   the restart; with it off, the live read is the only copy.
    Also add a known-limitation line for 0769 — the supervision panel is not
    qualified accessible: keyboard operation and screen-reader behaviour have
    not been verified in a real window (ruling of 2026-09-11).
