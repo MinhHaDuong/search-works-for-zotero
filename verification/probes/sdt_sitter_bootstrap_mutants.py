@@ -564,7 +564,7 @@ MUTANTS = [
     # module that has already been shut down, and the walk is the one loop in
     # this file long enough for that to matter.
     ("M70 the block walk runs on after the plugin is shut down",
-     "      if (!alive) return 'unknown';\n"
+     "      if (!alive || token !== generation) return 'unknown';\n"
      "      const blocks = await reader.getBlocks(index, index);\n",
      "      const blocks = await reader.getBlocks(index, index);\n"),
     # The split that carries the remedy. One census status, two groups, because
@@ -583,6 +583,31 @@ MUTANTS = [
      "      ? (member.linked ? 'missing-source-linked' : 'missing-source-stored')\n",
      "    const groupID = member.status === 'missing-source'\n"
      "      ? (member.linked ? 'missing-source-stored' : 'missing-source-linked')\n"),
+    # The two halves of the same checkpoint, separately, because they fail on
+    # separate events and M70 above (the whole guard removed) cannot tell them
+    # apart: it is killed by a plain shutdown, which is exactly the case both
+    # spellings already survive.
+    #
+    # `alive` is module-level and shared across activations, so the generation
+    # half is what distinguishes "some activation is running" from "mine is".
+    # Dropped, a disable/re-enable — the ordinary recovery from a hang — puts
+    # `alive` back to true under a continuation parked in `setTimeout` that
+    # still holds the superseded activation's reader, and the walk resumes.
+    ("M72 the block walk's checkpoint drops its generation half, so a superseded"
+     " continuation resumes once the module is alive again",
+     "      if (!alive || token !== generation) return 'unknown';\n",
+     "      if (!alive) return 'unknown';\n"),
+    # The catalogue read is a second await, past the loop the checkpoint above
+    # guards, and a teardown landing between the last block and it leaves the
+    # walk complete and the module gone. Removed, a torn-down activation vouches
+    # from a reader it no longer owns that the pack is verifiably empty — the
+    # one verdict SPEC.md §5.2.7 forbids being made on anything but a complete
+    # reading.
+    ("M73 the catalogue read is reached with no liveness check, so a torn-down"
+     " activation still vouches for an empty pack",
+     "    if (!alive || token !== generation) return 'unknown';\n"
+     "    return (await packSDTExtractionComplete(reader)) ? 'empty' : 'unknown';\n",
+     "    return (await packSDTExtractionComplete(reader)) ? 'empty' : 'unknown';\n"),
 ]
 
 

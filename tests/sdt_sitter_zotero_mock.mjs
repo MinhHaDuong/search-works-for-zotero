@@ -260,7 +260,14 @@ export function createHarness(options = {}) {
   // admission and a poll, and between a cache hit and a native re-inspection.
   const calls = { meminfo: 0, loadavg: 0, openPack: [], ensure: [], prompt: 0,
     prompts: [], writes: [], hash: [], list: 0, affected: [], inspect: [],
-    putContents: [], getAddonByID: 0, selected: [], blockReads: [] };
+    putContents: [], getAddonByID: 0, selected: [], blockReads: [],
+    // Counted for the same reason `blockReads` is, and for one scenario the
+    // block count cannot reach: the catalogue read sits AFTER the walk, so a
+    // teardown landing between the last block and it is invisible in
+    // `blockReads` — the walk finished either way. Whether the catalogue was
+    // consulted at all is the only observable that separates a verdict the
+    // module stopped short of from one it went on to compute.
+    catalogReads: [] };
   const observers = new Map(); let observerSequence = 0;
 
   // Two clocks, moving independently. `mono` is what ChromeUtils.now() answers
@@ -372,6 +379,7 @@ export function createHarness(options = {}) {
            survive, and each is unreachable from a fixture that does not ask
            for it by name. */
         getCatalog: async () => {
+          calls.catalogReads.push(row.key);
           if (row.pack.catalogUnreadable) throw new Error('the catalog is unreadable');
           if ('catalog' in row.pack) return row.pack.catalog;
           return { pages: (Array.isArray(row.pack.blocks) ? row.pack.blocks : [null])

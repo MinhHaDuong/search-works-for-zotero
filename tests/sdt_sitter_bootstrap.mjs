@@ -3145,6 +3145,94 @@ await test('a shutdown mid-scan stops the block walk instead of running it out o
     'an interrupted scan still produced a verified-empty verdict');
 });
 
+await test('a teardown after the last block leaves the pack catalogue unread', async () => {
+  /* The walk is only half of this verdict. `empty` is returned when the block
+     scan found no text AND the pack's own page catalogue vouches that every
+     page received full analysis — and that catalogue read is an await of its
+     own, sitting AFTER the loop the teardown check lives inside.
+
+     So a teardown landing between the last block and the catalogue is
+     invisible in `blockReads`: the walk finished either way, and the test
+     above, which fires at block 5 of 60, cannot see this window at all. Two
+     paths reached that read having performed no liveness check whatsoever —
+     this one, and a pack declaring zero top-level blocks, whose loop body
+     never runs. The second has no read to fire an interruption from inside of,
+     so this one stands for the guard both need.
+
+     What is observable is whether the catalogue was consulted, which is why
+     the mock counts it. */
+  const blocks = Array.from({ length: 8 }, () => ({ content: [] }));
+
+  // The control, and it carries the whole discrimination: uninterrupted, this
+  // exact pack is walked out and its catalogue IS read. Without it, "the
+  // catalogue was never read" is equally satisfied by a plugin that reads no
+  // catalogue at all.
+  const control = createHarness({ attachments: [pdf(1, 'AAAA1111', { pack: { blocks } })] });
+  await control.start();
+  assert.equal(control.calls.blockReads.length, blocks.length);
+  assert.deepEqual(control.calls.catalogReads, ['AAAA1111'],
+    'the uninterrupted walk never reached the catalogue, so the count below means nothing');
+  assert.equal(control.context.sitter.state.counts['empty-pack'], 1);
+
+  // Fired from inside the LAST read rather than timed from outside. The window
+  // aimed at here is one await wide, and an interruption timed from the test
+  // landed late once in seven runs while the test above was being written.
+  const h = createHarness({
+    attachments: [pdf(1, 'AAAA1111', { pack: { blocks } })],
+    onBlockRead: () => { if (h.calls.blockReads.length === blocks.length) h.context.shutdown(null, 4); },
+  });
+  await h.startHanging(2);
+  await h.turn(400);
+  assert.equal(h.calls.blockReads.length, blocks.length,
+    'the teardown did not fire from inside the last block read; nothing below is aimed at the right window');
+  assert.deepEqual(h.calls.catalogReads, [],
+    'a shut-down module went on to read the pack catalogue');
+  assert.equal(h.context.sitter.state.counts['empty-pack'] || 0, 0,
+    'an interrupted scan still produced a verified-empty verdict');
+});
+
+await test('a continuation from a superseded activation stops although the module is alive again', async () => {
+  /* `alive` is a MODULE-LEVEL var shared by every activation of this scope, so
+     it answers "is some activation running", never "is MINE running". A
+     disable followed promptly by an enable — the ordinary recovery from a
+     hang, and the race ticket 0696 shipped — puts it back to true while a
+     continuation from the superseded activation is still parked in
+     `timers.setTimeout` holding the old reader. Gated on `alive` alone, that
+     continuation wakes up, reads true, and walks a pack on behalf of a
+     generation that no longer exists.
+
+     `token !== generation` is the half that tells the two apart, and it is
+     this same closure's own established idiom: initialize() reads both at
+     every other await it owns. The defect class is ticket 0786's, filed the
+     same evening against a sibling function in this file.
+
+     The second activation is reproduced by restoring the shared flag rather
+     than by running a second startup out: what the guard has to survive is the
+     STATE — `alive` true, `token` stale — and a real second sweep would mix
+     its own block reads into the very counts this asserts on, which is the
+     ambiguity the test exists to remove. */
+  const blocks = Array.from({ length: 60 }, () => ({ content: [] }));
+  const h = createHarness({
+    attachments: [pdf(1, 'AAAA1111', { pack: { blocks } })],
+    onBlockRead: () => {
+      if (h.calls.blockReads.length !== 5) return;
+      h.context.shutdown(null, 4);
+      // The next activation as the walking closure sees it: the shared flag is
+      // true again, and the generation it was armed under is the only thing
+      // left that is stale.
+      h.context.alive = true;
+    },
+  });
+  await h.startHanging(2);
+  await h.turn(400);
+  assert.equal(h.context.alive, true,
+    'the re-activation never took, so nothing stale was under test');
+  assert.equal(h.calls.blockReads.length, 5,
+    'a continuation from a superseded activation kept walking the old reader');
+  assert.deepEqual(h.calls.catalogReads, [],
+    'a superseded activation went on to vouch for a pack it no longer owns');
+});
+
 await test('a stored file and a linked file that are both gone are told apart, and read in that order', async () => {
   /* SPEC.md §5.2.7 splits one census status, `missing-source`, into two groups
      because only one of them has a remedy Zotero can perform: file sync may

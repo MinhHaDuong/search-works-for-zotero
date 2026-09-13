@@ -2803,8 +2803,18 @@ async function initialize(rootURI, token, era = shutdowns) {
          shut down. `unknown` rather than a throw, because nothing was learned
          and a throw would read as `invalid-pack` and queue a re-extraction —
          the scheduler discards this record anyway, its own `current()` gate
-         having gone false with the same switch. */
-      if (!alive) return 'unknown';
+         having gone false with the same switch.
+
+         BOTH halves, which is this closure's idiom at every other await it
+         owns (`if (!alive || token !== generation) return;`), and the second
+         is not decoration: `alive` is a module-level var shared across
+         activations, so it answers "is some activation running" and never "is
+         mine". A disable followed promptly by an enable — the ordinary
+         recovery from a hang — puts it back to true while this continuation is
+         still parked in `timers.setTimeout` holding the superseded
+         activation's reader, and off `alive` alone it wakes up and keeps
+         walking. Same defect class as ticket 0786, on a sibling function here. */
+      if (!alive || token !== generation) return 'unknown';
       const blocks = await reader.getBlocks(index, index);
       if (!Array.isArray(blocks)) throw new Error('Invalid native block range');
       if (blocks.some(blockHasSDTText)) return 'text';
@@ -2812,6 +2822,15 @@ async function initialize(rootURI, token, era = shutdowns) {
       // blocks keeps a long, textless document from monopolising Zotero's UI.
       await new Promise(resolve => timers.setTimeout(resolve, 0));
     }
+    /* The catalogue read is a second await, and the loop's checkpoint does not
+       cover it: a teardown landing after the last `getBlocks` and before this
+       line leaves the walk complete and the module gone. Two paths reach here
+       having performed no liveness check at all — that one, and a pack whose
+       `getTopLevelBlockCount()` is 0, whose loop body never runs — and both
+       would otherwise make a torn-down or superseded activation vouch, from
+       the catalogue of a reader it no longer owns, that a pack is verifiably
+       empty. `unknown` for the same reason as above. */
+    if (!alive || token !== generation) return 'unknown';
     return (await packSDTExtractionComplete(reader)) ? 'empty' : 'unknown';
   };
 
