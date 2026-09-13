@@ -7648,3 +7648,32 @@ not widen any declared range — the `10.*` host ceiling and the standing rule o
 untouched. A platform key would be a statement about what has been RUN, and
 nothing has been run there; its absence is the honest state, with the
 disclosure carrying what a reader needs.
+
+
+**2026-09-13 — RULED: a textless native pack is verified empty only where its
+own page catalogue vouches for every page.** Closing tickets 0760 and 0744
+required checking the implementation against SPEC.md §5.2.7 rather than against
+its own log, and the check found the completeness question unanswered. The pack
+format offers no positive text indicator — the shipped reader exposes no field
+that says whether a document holds text — so absence can only be established by
+enumeration. What makes an enumeration trustworthy is the reader's refusal to
+open a pack whose declared content extent does not land on the file's own
+length, demonstrated against four corruptions of a real pack in
+verification/empty-pack-0760/. The one completeness indicator the format does
+carry is negative: a page the native worker had to process by a fallback path
+is stamped `extractionDegraded` in the catalogue, and
+verification/SDT-PALGRAVE-AUDIT.md already recorded that such a pack is not
+evidence that every page received full analysis. A textless pack carrying one
+is therefore unknown, not empty, as is one whose catalogue cannot be read or
+carries no page records. Unknown keeps the pre-0760 `current` classification,
+which changes neither admission nor retries. Measured before it was ruled, on
+46 packs and 11 909 pages of the author's library: every pack carries a page
+catalogue, PDF and EPUB alike, so the requirement costs no real document its
+empty verdict; the defect it closes is latent there rather than observed, since
+no pack is both textless and degraded today. Two display defects found in the
+same pass are corrected to the specification as written: an entirely empty
+"Not indexed" section is hidden rather than rendering an all-clear paragraph,
+and before any completed census the section says the reading is not finished
+rather than reporting zero obstacles. A subsection whose members name no
+library keeps its heading and loses its selection control, which could only
+ever have failed.

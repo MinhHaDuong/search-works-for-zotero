@@ -1,0 +1,67 @@
+{
+  "readerSource": "<zotero-app>/resource/document-worker/structured-document-text.js",
+  "storageRoot": "<profile>/Zotero/storage",
+  "readerSurface": [
+    "_catalogPromise",
+    "_frontMatterBytes",
+    "_getChunkBlockCount",
+    "_getTopLevelBlock",
+    "_inflate",
+    "_metadataPromise",
+    "_readInflatedChunk",
+    "_readJsonRange",
+    "_readRange",
+    "getBlock",
+    "getBlocks",
+    "getCatalog",
+    "getMetadata",
+    "getPageBlocks",
+    "getTopLevelBlockCount",
+    "header",
+    "index",
+    "materialize",
+    "source"
+  ],
+  "census": {
+    "packs": 46,
+    "text": 43,
+    "empty": 3,
+    "unknown": 0,
+    "unreadable": 0,
+    "pages": 11909,
+    "degradedPages": 29,
+    "packsWithDegradedPages": 1,
+    "emptyBlockCounts": [
+      265,
+      340,
+      347
+    ],
+    "errors": {}
+  },
+  "widestPackScanned": {
+    "declaredBlocks": 39526,
+    "verdict": "text",
+    "blocksScannedBeforeVerdict": 3,
+    "packBytes": 31041300
+  },
+  "controls": {
+    "flipped magic byte": {
+      "threw": true,
+      "error": "Invalid SDTPack magic"
+    },
+    "truncated by one byte": {
+      "threw": true,
+      "error": "Invalid SDTPack layout outside file"
+    },
+    "content extent understated": {
+      "threw": true,
+      "error": "Invalid SDTPack chunkByteOffsets"
+    },
+    "block index zeroed": {
+      "threw": true,
+      "error": "Invalid SDTPack chunkBlockStarts"
+    }
+  },
+  "verdict": "every corruption refused; emptiness is enumeration plus a validated layout",
+  "readerSourceSha256": "340f44fea8d616eaac04b83ef6329eaad2753916b1d50342a8edc7a0b717bed4"
+}

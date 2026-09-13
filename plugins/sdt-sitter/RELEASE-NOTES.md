@@ -52,11 +52,15 @@ installed version to the check has not been read here.
 
 ## Prepared for the next release
 
-Tickets [0760](../../tickets/0760-text-less-scanned-pdfs-silently-count-as.erg)
-and [0744](../../tickets/0744-group-unsupported-and-refused-documents.erg)
+Tickets [0760](../../tickets/closed/0760-text-less-scanned-pdfs-silently-count-as.erg)
+and [0744](../../tickets/closed/0744-group-unsupported-and-refused-documents.erg)
 make the distinction between a native pack that contains verified text and one
 that has been completely inspected but contains none. The latter is not
-admitted again and is not counted as indexed. The Details layer now groups
+admitted again and is not counted as indexed. A pack is only called empty when
+its own page catalogue reports that every page was fully analysed: where any
+page fell back to degraded extraction, or the catalogue cannot be read, the
+reading stays unknown rather than becoming a claim that there is no text.
+The Details layer now groups
 observed obstacles, including unavailable files, unsupported formats, session
 failures and bibliographic records without a file attachment. It uses safe
 error classes and identifiers; it does not display filesystem paths or raw host

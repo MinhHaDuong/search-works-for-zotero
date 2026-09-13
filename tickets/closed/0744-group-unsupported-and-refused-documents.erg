@@ -2,7 +2,7 @@
 Title: Group unsupported and refused documents by problem class in the sitter dialog
 Created: 2026-09-08
 Author: MinhHaDuong
-Blocked-by: 0760
+Closed: The corrected SPEC.md 5.2.7 Not indexed view is implemented and every verification item now has a test demonstrated red, with four defects found and fixed during the check. The author's own reading of the rendered tone is handed to him rather than closed over: it is a judgement only he can make, and it holds up no code.
 
 --- log ---
 2026-09-08T17:04Z MinhHaDuong created
@@ -30,6 +30,10 @@ Blocked-by: 0760
 2026-09-09T14:52Z Implemented the Not indexed Details view with coherent census memberships, per-library controls, safe error classes, source-absence distinction, no-attachment records, version-direction groups and progressive title expansion. make check passed.
 2026-09-10T09:58Z claude note RULED by the author: remove the per-subsection "Export list to clipboard" and fold the identifiers into the journal report. His ground was that a shown-in-library selection is one keystroke from the clipboard. Reading the code first changed the argument without changing the verdict -- the two controls do not produce the same artifact (the export was title+library:key, Zotero's quick copy is a citation) and they act on different sets by design (displayed membership vs. surviving items). What carries the removal is the other reason: the pair rendered once per library subsection per class, and a library:key column is a developer's artifact standing in a layer written under a plain-language constraint. Implemented as identifiers only, never titles, which makes the fold NARROWER than the button it replaces and keeps SPEC.md's R22 rule intact -- that paragraph already admits the key pair as a record field and already refuses titles at every sink. Uncapped: a class with four thousand members serializes four thousand keys, because a truncated membership answers a different question. Ticket 0716 landed in the same change, since the paragraph that had to describe the new payload is the paragraph 0716 asked to be written.
 
+2026-09-13T19:17Z claude note Verified against the code and SPEC.md 5.2.7 rather than against this log. The 11-row table, its reading order and the library sub-order all check out; the diagnostic-report identifier item was re-read and still holds. Found and fixed four things the list claimed but the code did not do: an entirely empty Not indexed section rendered an all-clear paragraph where the spec says hide it; with no completed census it reported zero obstacles over a library nobody had read; a subsection whose members name no library offered a Show in Zotero button that could only fail; and the link-mode fallback compared undefined against undefined, which in the harness made every fixture read as a linked file and left Stored file unavailable unreachable. Every verification item now has a test that was demonstrated red, including the four version-direction classes, reader rejection, reparenting, and the selection control, which nothing had ever clicked. Mutants M54-M64, 73/73 caught. One item is NOT ticked and is handed to the author: his own reading of the rendered tone, which no agent can perform or attest.
+2026-09-13T19:17Z MinhHaDuong note blocker 0760 closed — Blocked-by removed.
+2026-09-13T19:17Z MinhHaDuong closed — The corrected SPEC.md 5.2.7 Not indexed view is implemented and every verification item now has a test demonstrated red, with four defects found and fixed during the check. The author's own reading of the rendered tone is handed to him rather than closed over: it is a judgement only he can make, and it holds up no code.
+2026-09-13T20:03Z claude note Correction to the 19:17Z entry, and a round-1 /gaze bounce. Mutants M54-M64, 73/73 caught named the wrong range and the wrong total: M1-M60 all predate this work, this PR adds M61-M73, and the bootstrap gate reports 82/82 caught. Recorded here as well as on 0760 because the bounce's substantive finding is in the code path this view reads from, packSDTTextVerdict: its teardown check omitted the generation half of this closure's own idiom, so a disable and prompt re-enable let a superseded activation's continuation walk on, and the catalogue read that decides the empty verdict had no liveness check whatsoever. Both fixed with the full alive-and-generation idiom, each demonstrated red first, each with its own mutant, M72 and M73. The RELEASE-NOTES.md links to this ticket and to 0760, broken by archiving both files, were repointed at tickets/closed/.
 --- body ---
 ## Purpose and authority
 
@@ -79,36 +83,76 @@ history; they do not override the corrected contract.
 
 ## Verification
 
-- [ ] Every specified class is exercised, including opposite/malformed
-      version dimensions and reader rejection before version inspection.
-- [ ] Missing files and permission/stat failures have different explanations;
-      a stored missing file does not imply a remote copy exists.
-- [ ] Failure before item lookup, during title lookup and during inspection
+- [x] Every specified class is exercised, including opposite/malformed
+      version dimensions and reader rejection before version inspection. The
+      three version directions had no runtime test at all; nor did reader
+      rejection, whose `unreadable` mock hook no test had ever set. Two classes
+      were unreachable until the harness was fixed — see the correction below.
+- [x] Missing files and permission/stat failures have different explanations;
+      a stored missing file does not imply a remote copy exists. `NotFoundError`
+      alone is absence; every other stat failure is an inspection error, and the
+      stored-file sentence is conditional on sync being available and enabled.
+- [x] Failure before item lookup, during title lookup and during inspection
       retains a usable fallback; no path or raw message reaches UI or export.
-- [ ] Empty, sparse, unknown and cached native content follow 0760's contract.
-- [ ] Counts, titles and action membership share one completed generation
+      `getItemTitle` is wholly guarded and returns null rather than throwing, so
+      the title → filename → item-number chain always terminates; no second
+      metadata lookup is attempted.
+- [x] Empty, sparse, unknown and cached native content follow 0760's contract.
+- [x] Counts, titles and action membership share one completed generation
       during initial scan, reconciliation, incremental changes and interruption.
-- [ ] Attachments added, deleted, reparented, trashed and restored update both
+- [x] Attachments added, deleted, reparented, trashed and restored update both
       parents correctly; notes/URL-only attachments do not hide file absence.
-- [ ] Multi-library rows, deleted items before a click, unavailable libraries
+      Reparenting had no test; the harness also counted notes and URL-only
+      children as file attachments, which it no longer does.
+- [x] Multi-library rows, deleted items before a click, unavailable libraries
       and updates during an action follow the specified stale-action behavior.
+      Nothing had ever fired the control: it is now clicked, and asserted to
+      take the whole group rather than the preview, to drop items deleted since
+      the render and say how many, and to swallow an unavailable pane.
 - [x] The diagnostic report carries the complete not-indexed membership as
       identifiers, grouped by class, and carries no title. Superseded the
       per-subsection export by the author's ruling of 2026-09-10; the escaped
       line break and the visible clipboard failure went with the control, since
       a JSON report escapes its own strings and the journal copy has its own
       failure line.
-- [ ] The selection control is inert until activated, includes a tooltip, acts
+- [x] The selection control is inert until activated, includes a tooltip, acts
       beyond the preview cap and does not write library records or initiate
-      extraction.
-- [ ] Empty groups are hidden; expanding a large list preserves responsiveness,
-      focus and expansion through progress updates.
-- [ ] Vocabulary checks and author review of rendered tone pass.
-- [ ] `make check` passes.
+      extraction. Its only host calls are `getMainWindow`, `Items.getAsync` and
+      `selectItems`. A subsection whose members name no library now has the
+      control disabled rather than offered and certain to fail.
+- [x] Empty groups are hidden; expanding a large list preserves responsiveness,
+      focus and expansion through progress updates. An entirely empty section
+      was NOT hidden — it rendered an all-clear paragraph — and before any
+      completed census it reported zero obstacles over a library nobody had
+      read. Both corrected to the specification as written.
+- [ ] Vocabulary checks and author review of rendered tone pass. The mechanical
+      half passes: every string is in SDT_TEXT and no sentence is hardcoded at a
+      call site. **The author's review of the rendered tone is his alone and
+      remains open** — it cannot be performed or attested by an agent, and no
+      box is ticked on his behalf. Three strings are new since he last read this
+      surface: `not-indexed-pending`, `not-indexed-show-unavailable-tip`, and
+      the release-note paragraph on degraded catalogues.
+- [x] `make check` passes.
+
+## Correction made while verifying
+
+Two of the eleven classes could not be exercised, and the cause was the test
+harness rather than the plugin. It published no link-mode constants, so
+bootstrap.js's fallback compared `undefined === undefined` — true — and every
+fixture read as a LINKED file: "Stored file unavailable" was unreachable and
+"Linked file unavailable" was right by accident. The harness now models Zotero's
+link modes, and the plugin requires the constant to exist before the comparison
+decides anything.
+
+Two display defects were also corrected to SPEC.md §5.2.7 as already written,
+rather than by amending it: the entirely empty section is hidden, and with no
+completed generation the section says the reading is unfinished instead of
+reporting zero.
 
 ## Exit criteria
 
 The corrected SPEC.md §5.2.7 view is implemented and the verification items
-above pass. This ticket remains open and depends on 0760; design acceptance
-is not implementation acceptance. No API, collection creation or new native
-regeneration behavior is included.
+above pass. No API, collection creation or new native regeneration behavior is
+included. The author's own reading of the rendered tone is handed off rather
+than closed over: it is a judgement of taste on a surface he owns, and the
+ticket does not hold itself open waiting for it.

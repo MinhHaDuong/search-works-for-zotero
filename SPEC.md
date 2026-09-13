@@ -2380,9 +2380,14 @@ fields are available retains the existing invalid-pack behavior; it does not
 justify an older/newer label. These display groups do not alter native retries
 or admission policy. Sparse text, an unreadable pack, and a sample of early
 pages do not establish "No extracted text" or the absence of a source text
-layer. Unknown content remains unknown, never a confident empty classification;
-verified empty packs are outside indexed coverage and are not repeatedly queued
-merely because they contain no text. Cached classifications preserve that result.
+layer. Neither does a pack whose own page catalog reports that any page fell
+back to degraded extraction: the native worker declines to vouch for such a
+page, so the absence of text across it is unread rather than established, and
+the same follows for a catalog that cannot be read or that carries no page
+records at all. Unknown content remains unknown, never a confident empty
+classification; verified empty packs are outside indexed coverage and are not
+repeatedly queued merely because they contain no text. Cached classifications
+preserve that result.
 
 Each group lists descriptive titles, using attachment filenames as a fallback,
 then a safe item identifier if descriptive metadata could not be obtained.

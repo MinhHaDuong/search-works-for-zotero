@@ -260,7 +260,14 @@ export function createHarness(options = {}) {
   // admission and a poll, and between a cache hit and a native re-inspection.
   const calls = { meminfo: 0, loadavg: 0, openPack: [], ensure: [], prompt: 0,
     prompts: [], writes: [], hash: [], list: 0, affected: [], inspect: [],
-    putContents: [], getAddonByID: 0 };
+    putContents: [], getAddonByID: 0, selected: [], blockReads: [],
+    // Counted for the same reason `blockReads` is, and for one scenario the
+    // block count cannot reach: the catalogue read sits AFTER the walk, so a
+    // teardown landing between the last block and it is invisible in
+    // `blockReads` — the walk finished either way. Whether the catalogue was
+    // consulted at all is the only observable that separates a verdict the
+    // module stopped short of from one it went on to compute.
+    catalogReads: [] };
   const observers = new Map(); let observerSequence = 0;
 
   // Two clocks, moving independently. `mono` is what ChromeUtils.now() answers
@@ -290,9 +297,18 @@ export function createHarness(options = {}) {
   }
   if (options.cache !== undefined && options.cache !== null) files.put(CACHE_PATH, options.cache);
 
+  /* Which record owns this attachment. The synthetic `id + 1000` is the shape
+     every scenario before ticket 0744's reparenting arm used: a parent that
+     exists only as a title, resolved by `parentItem` below and never a member of
+     the bibliographic view. A row may instead NAME its parent, and then the
+     parent is an ordinary record from `options.unattached` — which is the only
+     way a fixture can move one attachment between two records the no-attachment
+     view actually walks. */
+  const parentOf = row => ('parentItemID' in row ? row.parentItemID
+    : row.parentTitle ? row.id + 1000 : null);
   const item = row => ({
     id: row.id, key: row.key, libraryID: row.libraryID, deleted: row.deleted,
-    parentItemID: row.parentTitle ? row.id + 1000 : null,
+    parentItemID: parentOf(row),
     // A getter, because the whole point of the memoized hash is that it is NOT
     // read: in Zotero this property computes an MD5 over the file, so a test
     // about the re-verify window has to count reads rather than compare values.
@@ -301,6 +317,15 @@ export function createHarness(options = {}) {
     isPDFAttachment: () => row.kind === 'pdf',
     isEPUBAttachment: () => row.kind === 'epub',
     isSnapshotAttachment: () => row.kind === 'snapshot',
+    /* Stored unless the fixture says otherwise, which is the ordinary case in a
+       Zotero library and the one the old harness could not represent. A fixture
+       asking for `linkModeUnreadable` gets the throwing getter bootstrap.js
+       guards against: a group library's record can fail to load after a restart,
+       and an unreadable link mode must not decide the class. */
+    get attachmentLinkMode() {
+      if (row.linkModeUnreadable) throw new Error('the link mode is unreadable');
+      return row.linked ? 2 : row.urlOnly ? 3 : 0;
+    },
     getFilePathAsync: async () => (row.missingSource ? null : `${STORAGE}/${row.key}/file.pdf`),
     loadData: async () => {},
     getField: () => row.title,
@@ -313,7 +338,18 @@ export function createHarness(options = {}) {
   const regularItem = row => ({
     id: row.id, key: row.key, libraryID: row.libraryID, deleted: row.deleted,
     isRegularItem: () => true, loadData: async () => {},
-    numFileAttachments: () => 0,
+    /* Derived, where it used to be a constant `0`. A constant answers "this
+       record has no file" for every record in the fixture, so the whole
+       no-attachment view was a list the fixture declared rather than one the
+       host computed — and a reparenting that emptied a record could not be seen.
+       `notAnAttachment` (a note) and `urlOnly` (a link with no file) are
+       excluded because Zotero's own `numFileAttachments()` excludes them; a
+       trashed child likewise. Every pre-existing fixture keeps its old answer:
+       nothing in them names a bibliographic record as a parent, so no child is
+       ever counted. */
+    numFileAttachments: () => [...library.values()].filter(child =>
+      parentOf(child) === row.id && !child.deleted
+      && !child.notAnAttachment && !child.urlOnly).length,
     getField: () => row.title, getDisplayTitle: () => row.title,
   });
 
@@ -333,12 +369,51 @@ export function createHarness(options = {}) {
           processor: { type: row.pack.processor ?? row.kind,
             version: row.pack.processorVersion ?? VERSIONS.SDT_PROCESSOR_VERSIONS[row.kind] },
         }),
-        getTopLevelBlockCount: () => Array.isArray(row.pack.blocks) ? row.pack.blocks.length : 1,
-        getBlocks: async (start, end) => {
-          const blocks = Array.isArray(row.pack.blocks) ? row.pack.blocks
-            : [{ content: row.pack.empty ? [] : [{ text: row.pack.text ?? 'indexed text' }] }];
-          return blocks.slice(start, end + 1);
+        /* The page catalog, which is what lets a textless pack be called
+           VERIFIED empty rather than merely unread: a page the native worker
+           had to fall back on is stamped `extractionDegraded`, and a pack
+           carrying one cannot vouch for its own emptiness (ticket 0760). The
+           default is a single undegraded page, so every fixture that says
+           nothing about the catalog gets the ordinary complete reading; the
+           three escapes below are the abnormal contracts the plugin has to
+           survive, and each is unreachable from a fixture that does not ask
+           for it by name. */
+        getCatalog: async () => {
+          calls.catalogReads.push(row.key);
+          if (row.pack.catalogUnreadable) throw new Error('the catalog is unreadable');
+          if ('catalog' in row.pack) return row.pack.catalog;
+          return { pages: (Array.isArray(row.pack.blocks) ? row.pack.blocks : [null])
+            .map((_block, index) => ({ extractionDegraded: (row.pack.degradedPages ?? []).includes(index) })) };
         },
+        /* A reader that answers neither question is not a hypothetical: the
+           plugin reads this object out of Zotero's own omni.ja, so a host
+           whose module predates the block API hands back exactly this shape.
+           Omitted rather than stubbed, so `typeof ... !== 'function'` sees
+           what it is written to see. */
+        ...(row.pack.readerWithoutBlockAccess ? {} : {
+          getTopLevelBlockCount: () => ('blockCount' in row.pack ? row.pack.blockCount
+            : Array.isArray(row.pack.blocks) ? row.pack.blocks.length : 1),
+          getBlocks: async (start, end) => {
+            /* Counted, because the assertion a teardown scenario needs is that
+               the walk STOPPED — and a walk that stopped and a walk that never
+               started look the same in the resulting status, which the scheduler
+               discards either way.
+
+               `onBlockRead` is the seam that makes such a scenario decided
+               rather than raced: a test that tears the plugin down from outside
+               can only aim at "somewhere around the fifth block", and a run that
+               lands after the walk finished reads exactly like a walk that
+               refused to stop. Called after the count is recorded, so the hook
+               sees the read it is being told about. */
+            calls.blockReads.push([row.key, start]);
+            if (options.onBlockRead) options.onBlockRead(row.key, start);
+            if (row.pack.blockRangeNotArray) return null;
+            if (row.pack.blockRangeThrows) throw new Error('the content chunk is unreadable');
+            const blocks = Array.isArray(row.pack.blocks) ? row.pack.blocks
+              : [{ content: row.pack.empty ? [] : [{ text: row.pack.text ?? 'indexed text' }] }];
+            return blocks.slice(start, end + 1);
+          },
+        }),
       };
     },
   };
@@ -352,6 +427,15 @@ export function createHarness(options = {}) {
     const window = {
       document, toolbar, dialogs,
       navigator: { hardwareConcurrency: 8 },
+      /* The item pane the "Not indexed" section's one action drives. Present on
+         every window rather than opted into, because the plugin reaches it
+         through `Zotero.getMainWindow()?.ZoteroPane` and a mock that omitted it
+         would make every such click take the "unavailable" branch — the arm
+         that reads as a pass and proves nothing. A test that WANTS that branch
+         deletes this property, or replaces `selectItems`, on its own window.
+         The ids are recorded rather than acted on: what a click hands the pane
+         is the assertion, and nothing here changes a library. */
+      ZoteroPane: { selectItems: async ids => { calls.selected.push([...ids]); } },
       /* A chrome window answers media queries, and ticket 0686's reduced-motion
          item is a reading taken from one. Only the query the plugin asks is
          answered; anything else comes back `false` rather than silently
@@ -446,7 +530,21 @@ export function createHarness(options = {}) {
     Utilities: { Internal: { copyTextToClipboard: text => { clipboard.text = text; } } },
     DataDirectory: { dir: DATA_DIR },
     PDFWorker: { _processingQueue: false, _queue: [] },
-    Attachments: { getStorageDirectory: target => ({ path: `${STORAGE}/${target.key}` }) },
+    /* The link-mode constants are Zotero's own, and their ABSENCE was a defect
+       of this harness rather than a simplification. bootstrap.js falls back to
+       `item.attachmentLinkMode === Zotero.Attachments.LINK_MODE_LINKED_FILE`
+       when the host offers no `isLinkedFileAttachment()`, and with neither side
+       defined that comparison is `undefined === undefined` — true. Every
+       attachment in every fixture therefore read as a LINKED file, so
+       "Stored file unavailable" was unreachable here and "Linked file
+       unavailable" was reached by accident, which is a host nobody runs. */
+    Attachments: {
+      getStorageDirectory: target => ({ path: `${STORAGE}/${target.key}` }),
+      LINK_MODE_IMPORTED_FILE: 0,
+      LINK_MODE_IMPORTED_URL: 1,
+      LINK_MODE_LINKED_FILE: 2,
+      LINK_MODE_LINKED_URL: 3,
+    },
     SDT: {
       ensure: (id, { onProgress }) => {
         calls.ensure.push(id);
@@ -471,7 +569,7 @@ export function createHarness(options = {}) {
     DB: {
       columnQueryAsync: async (sql, params) => {
         if (params) { calls.affected.push(params[0]); return [...library.values()]
-          .filter(row => row.parentTitle && row.id + 1000 === params[0]).map(row => row.id); }
+          .filter(row => parentOf(row) === params[0]).map(row => row.id); }
         if (sql.includes('FROM items')) return [...bibliographic.keys()];
         calls.list++; return [...library.keys()];
       },
