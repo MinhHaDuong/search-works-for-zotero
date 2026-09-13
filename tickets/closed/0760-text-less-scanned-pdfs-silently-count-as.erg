@@ -1,0 +1,95 @@
+%erg 0.1
+Title: Distinguish verified empty native packs from indexed text
+Created: 2026-09-09
+Author: MinhHaDuong
+Closed: Verified empty native content is distinguished from searchable text through inspection, caching, scheduling and reporting, and the empty verdict now requires the pack's own catalogue to vouch for every page. Reader-contract evidence at verification/empty-pack-0760/.
+
+--- log ---
+2026-09-09T13:25Z MinhHaDuong created
+
+2026-09-09T13:59Z Codex note Narrowed evidence claim and defined complete native-content verification, unknown/sparse cases, cache preservation and non-repeating scheduling for the 0744 dependency; no source-layer diagnosis or extrapolation from early-page samples.
+2026-09-09T14:52Z Implemented complete native block inspection: empty packs are classified separately, cached as empty, excluded from indexed coverage and never re-admitted; later text and cache persistence covered by bootstrap tests. make check passed.
+2026-09-13T19:15Z claude note Verified against the code rather than against this log. The reader exposes no positive text indicator, so emptiness can only be enumerated; what makes an enumeration trustworthy is the reader's own refusal to open a pack whose declared content extent misses the file length, shown by four corruptions of a real pack that each throw. Evidence committed at verification/empty-pack-0760/ (probe.mjs, reading.json, reader-contract.md), run against Zotero's shipped reader sha256 340f44fe and 46 real packs. Found a real gap: the empty verdict rested on enumeration alone, and catalog.pages[].extractionDegraded — recorded in verification/SDT-PALGRAVE-AUDIT.md as proof that a pack cannot vouch for every page — was never read, so a textless degraded pack would have been reported as No extracted text. Fixed. Measured 29 degraded pages across 11909, all in one text-bearing pack, so the defect was latent, not observed. Also made the block walk cancellable: it consulted nothing and ran on past teardown. Six of the eight items had no automated test; they do now, with mutants M54-M58 and M63.
+2026-09-13T19:17Z MinhHaDuong closed — Verified empty native content is distinguished from searchable text through inspection, caching, scheduling and reporting, and the empty verdict now requires the pack's own catalogue to vouch for every page. Reader-contract evidence at verification/empty-pack-0760/.
+--- body ---
+## Context
+
+The current `inspect()` path verifies native pack identity and versions but
+never checks its text content. A well-formed empty pack therefore follows the
+same `current` path as a pack containing text. Ticket 0744 consumes the
+corrected classification; SPEC.md §5.2.7 owns its meaning and display.
+
+The earlier external pdftotext sample concerned only initial pages and was
+not a complete native-pack content inspection. It motivates investigation,
+but does not prove a document has no text layer, diagnose a scan, or justify
+extrapolating an empty-pack population. No new measurement was made in the
+design correction. Prior reported figures are not acceptance evidence.
+
+## Actions
+
+- Inspect the native format and reader for an authoritative complete-content
+  indicator. If unavailable, use bounded streaming inspection of all relevant
+  text content, with yielding/cancellation; do not read whole packs into RAM.
+- Define and document which native text fields establish presence, and test
+  complete-content semantics. Empty means verified absence of text, not a
+  sparse-content threshold. A partial sample or read failure is unknown.
+- Introduce the verified-empty classification outside indexed coverage, with
+  a non-repeating scheduling treatment. Preserve freshness/identity checks:
+  source or processor changes must invalidate an earlier empty observation.
+- Propagate the classification through the cache-hit path, coverage counters,
+  census snapshots and 0744's view. A generic cache hit must not restore
+  `current` for a previously verified empty pack.
+- Commit the probe and evidence in verification/ before claiming the reader
+  mechanism has been established. Reference them here. No source-layer or OCR
+  diagnosis follows from empty native content alone.
+
+## Reader-contract evidence
+
+`verification/empty-pack-0760/` — `probe.mjs` run against Zotero's own shipped
+reader (sha256 `340f44fe…`) and the author's 46 packs, `reading.json` the
+output, `reader-contract.md` the finding. In short: the format carries NO
+positive text indicator, so absence can only be enumerated; what makes an
+enumeration trustworthy is the reader's refusal to open a pack whose declared
+content extent misses the file's own length, demonstrated by four corruptions of
+a real pack that each throw; and the one completeness indicator that does exist
+is negative, the catalogue's per-page `extractionDegraded` stamp.
+
+## Verification
+
+- [x] A well-formed empty native pack differs from indexed text.
+- [x] Sparse nonempty text and text appearing only late in a document remain
+      nonempty; partial reads and corrupt/unreadable content are not empty.
+      Whitespace-only runs, text on a block's own property, text two levels down
+      inside `listitem` children, an invalid block count, a range that is not an
+      array, a chunk that throws, and a reader without the block API at all.
+- [x] A cache hit preserves the verified-empty result; source and processor
+      changes invalidate it and permit normal reinspection/re-extraction.
+- [x] Empty packs do not create a repeated extraction loop. Asserted across
+      three sweeps in one session, not only the first.
+- [x] Coverage counts and 0744's data view agree after incremental updates
+      and completed reconciliation. They come from `state.counts` and from
+      `censusSnapshot.members`, two places that agree only because `publish()`
+      writes them together; that is now asserted rather than assumed.
+- [x] Content inspection remains bounded, yielding and cancellable. Bounded and
+      yielding were already true; cancellable was not — the block walk consulted
+      nothing and ran on after teardown. It now stops on `alive`.
+- [x] Reader-contract evidence is committed and referenced here (above).
+- [x] `make check` passes.
+
+## Correction made while verifying
+
+The empty verdict was being given on enumeration alone. Zotero's worker marks a
+page `extractionDegraded` when it has to fall back, and
+`verification/SDT-PALGRAVE-AUDIT.md` had already recorded that such a pack is no
+evidence that every page was fully analysed — but `inspect()` never read the
+catalogue. A textless degraded pack would therefore have been reported as "No
+extracted text", a confident claim SPEC.md §5.2.7 forbids. Measured on the
+author's library: 29 of 11 909 pages are degraded, all inside one text-bearing
+pack, and no pack is both textless and degraded, so the defect was latent rather
+than observed. Fixed anyway, since the combination is reachable by construction.
+
+## Exit criteria
+
+Verified empty native content is distinguished from searchable text throughout
+inspection, caching, scheduling and reporting under SPEC.md §5.2.7. No native
+extraction settings, source files or extraction implementation are changed.
