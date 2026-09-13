@@ -138,8 +138,8 @@ MUTANTS = [
     # single `token !== generation` guard: there are five of them along
     # initialize(), so removing one only moves the stand-down to the next.
     ("M10 startup() does not supersede the initialize() already in flight",
-     "function startup({ rootURI, version }, reason) {\n  const token = ++generation;",
-     "function startup({ rootURI, version }, reason) {\n  const token = generation;"),
+     "function startup({ rootURI, version, id }, reason) {\n  const token = ++generation;",
+     "function startup({ rootURI, version, id }, reason) {\n  const token = generation;"),
     ("M11 shutdown leaves the sweep, pulse and heartbeat timers armed",
      "    if (timers) { timers.clearTimeout(timer); timers.clearInterval(pulse); timers.clearInterval(heartbeat); }\n",
      ""),
@@ -375,7 +375,7 @@ MUTANTS = [
     # Every quit writes one, so the two events that matter are buried under a
     # year of ordinary session ends.
     ("M47 an ordinary quit writes a certificate too",
-     "  if (reason !== 'disable' && reason !== 'uninstall') return;\n",
+     "  if (reason !== 'disable' && reason !== 'uninstall' && reason !== 'vanished-without-teardown') return;\n",
      ""),
     # The switch stops gating it: a released build keeps a durable record of a
     # library nobody asked it to keep one of.
@@ -385,7 +385,7 @@ MUTANTS = [
     # The uninstall path loses it, which is the half of the phenomenon that
     # takes the whole add-on with it.
     ("M49 only a disable is certified, so an uninstall leaves nothing",
-     "  if (reason !== 'disable' && reason !== 'uninstall') return;\n",
+     "  if (reason !== 'disable' && reason !== 'uninstall' && reason !== 'vanished-without-teardown') return;\n",
      "  if (reason !== 'disable') return;\n"),
     # ---- consent withdrawal, ticket 0773 Action 2 ----------------------------
     # One mutant per half, as the ticket asks. M49a is the pre-change state: the
@@ -456,6 +456,26 @@ MUTANTS = [
     ("M55 a disable removes the cache file, its .tmp sibling and the debug pref too",
      "    if (named === 'uninstall') removeSDTDurableState();\n",
      "    if (named === 'uninstall' || named === 'disable') removeSDTDurableState();\n"),
+    # ---- ticket 0781: the self-check the heartbeat runs on itself ------------
+    # Five mutants over the whole feature: the once-only latch, the asymmetric
+    # "only a definite false fires" read, the post-await recheck that is the
+    # control's own safety net, the certificate's reason gate, and the
+    # journal record's independence from the debug switch.
+    ("M56 the removal check re-fires on every tick instead of once per activation",
+     "  if (removalNoticed || !addonID) return;\n",
+     "  if (!addonID) return;\n"),
+    ("M57 an ambiguous AddonManager answer (no isActive) is read as gone",
+     "    const gone = !addon || addon.isActive === false;\n",
+     "    const gone = !addon || addon.isActive !== true;\n"),
+    ("M58 a disable or uninstall racing the check is certified as a removal anyway",
+     "    if (!alive || sealed || removalNoticed) return;\n",
+     ""),
+    ("M59 the certificate keeps its pre-0781 two-reason gate, so a real removal is never certified",
+     "  if (reason !== 'disable' && reason !== 'uninstall' && reason !== 'vanished-without-teardown') return;\n",
+     "  if (reason !== 'disable' && reason !== 'uninstall') return;\n"),
+    ("M60 the removal record is filed at trace level, so the debug switch silently gates it too",
+     "  emit('vanished', { installed: !!addon, active: addon ? addon.isActive : null }, 'error');\n",
+     "  emit('vanished', { installed: !!addon, active: addon ? addon.isActive : null }, 'trace');\n"),
 ]
 
 

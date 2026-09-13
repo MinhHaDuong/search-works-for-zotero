@@ -146,18 +146,28 @@ Zotero (above), an uninstall with the switch off leaves no record of itself at
 all. That is deliberate: a removed add-on should leave nothing behind, and this
 file is the one exception, kept only because you asked for it first.
 
-Be exact about what that file covers, because the gap is the unknown itself. In
-the disappearance above the add-on was **not** told: it was still running, its
-window usable and its indicator still moving, after its record and its file had
-already gone. None of the sitter's teardown runs on that path, so no such file
-is written for it, and ticket
-[0781](../../tickets/0781-the-sitter-notices-its-own-removal-and-s.erg) is open
-for the self-check that would witness it from inside. What does survive, until
-Zotero is closed, is the record the sitter keeps in memory for the session —
-which is why the note below asks for that to be read before anything is
-restarted. Switching diagnostics on is still worth doing: it covers an ordinary
-disable or removal, and it makes the in-session record fuller. It is not a trap
-set for the disappearance, and this release does not claim it is.
+Be exact about what that file covers, because the gap was the unknown itself.
+In the disappearance above the add-on was **not** told: it was still running,
+its window usable and its indicator still moving, after its record and its
+file had already gone, so none of the sitter's own teardown ran. Ticket
+[0781](../../tickets/0781-the-sitter-notices-its-own-removal-and-s.erg) closes
+that gap from the inside: on its existing once-a-minute heartbeat the sitter
+now asks Zotero whether it is still installed and enabled, whether or not
+anything is being indexed. If it is still running and the host says otherwise,
+that is the disappearance, caught live. With diagnostics on, it writes
+`sdt-sitter-last-shutdown.json` under a reason of its own
+(`vanished-without-teardown`) naming what the host answered — the one file a
+teardown that never runs cannot write any other way. Regardless of the switch,
+it tells you once, in its own window: Zotero has removed it, indexing has
+stopped, nothing already indexed is lost, and reinstalling is how to resume.
+It does not try to reinstall itself, and it does not send anything anywhere —
+copying the log from Technical diagnostics is still how you would share it.
+An ordinary disable or uninstall — Zotero telling the add-on it is being taken
+away — is unaffected by any of this and stays exactly as clean and silent as
+described above. What survives an unwitnessed disappearance until Zotero is
+closed, in addition to the certificate, is the record the sitter keeps in
+memory for the session — which is why the note below asks for that to be read
+before anything is restarted.
 
 **If the sitter disappears from Tools → Add-ons, do these two things in this
 order.** First, before restarting anything, open Tools → Developer → Run

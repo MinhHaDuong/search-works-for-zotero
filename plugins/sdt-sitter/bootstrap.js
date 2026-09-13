@@ -13,6 +13,12 @@ var SDT_STATUS_CLASSES;
 // drives this file's emit/heartbeat/shutdown against, and only `var` reaches the
 // script global a sandboxed load exposes.
 var sitter, journal, alive = false, sealed = false;
+// Ticket 0781: latched the first time this activation notices, from inside,
+// that the host has taken the add-on away without ever calling shutdown().
+// Not `sealed` -- `sealed` is shutdown()'s own latch and this scope keeps
+// running for as long as the host lets it, which is the whole premise of
+// the ticket. Reset per activation in initialize(), beside `sealed`.
+var removalNoticed = false;
 // Same reason: the render guard's test drives a torn-down dialog through this
 // set and resets the latch between cases, and neither a `const` nor a `let` at
 // script top level reaches the sandbox global — the assignment silently lands on
@@ -317,6 +323,7 @@ var SDT_TEXT = {
     "dialog-title": "Indexing assistant",
     "switch-on-prefix": "Indexing is on.",
     "switch-off": "Indexing is off. Zotero will still index PDFs as you view them.",
+    "vanished-message": "Zotero has removed the indexing assistant without telling it \u2014 indexing has stopped, but the work already done is not lost. Sorry: this was not something you did. You will need to install the assistant again to resume. To help find out why, open Technical diagnostics below and copy the log.",
     "switch-on-idle": "Nothing to index right now.",
     "switch-on-complete": "Everything in view is indexed. New and changed attachments are picked up as they appear.",
     "switch-on-queued": ["One attachment is waiting for the next pass.",
@@ -564,12 +571,85 @@ function classifyError(error) {
    the age of a document, and during census there is none. */
 function heartbeatTick() {
   if (!alive || !sitter) return;
+  // Ticket 0781, ahead of the busy/active gate below and unconditional on it:
+  // a removal is exactly as real while the sitter sits idle between sweeps as
+  // it is mid-file, and gating this on `busy` would leave the plugin blind for
+  // most of a quiet library's session.
+  checkSDTStillInstalled();
   const s = sitter.state;
   if (!s.busy && s.active === null) return;
   const age = since => (since == null ? null : monotonic() - since);
   emit('heartbeat', { id: s.active, phase: s.phase, progress: s.progress,
     elapsedMS: age(s.startedAt), sinceProgressMS: age(s.lastProgressAt),
     pending: s.pending.length }, 'trace');
+}
+
+/* Ticket 0781. Everything ticket 0727 built on 2026-09-12 -- the death
+   certificate, the parked ring -- reads from `shutdown()`, and the author's
+   own observation of 2026-09-12 is that the phenomenon never reaches it: the
+   sitter has been seen disabled and deleted from a live profile while its own
+   toolbar spinner kept turning and its own dialog kept answering clicks, which
+   is only possible if `shutdown()` never ran. Only this still-running scope
+   can notice a removal shaped like that, because the host does not tell it
+   and its own teardown is never invoked.
+
+   Fire-and-forget from heartbeatTick(), deliberately: `AddonManager.getAddonByID`
+   is a promise, the heartbeat is a synchronous 60 s tick shared with the sweep
+   loop, and the one invariant this ticket adds is that the heartbeat must not
+   acquire a throw -- or an await -- from this check. Every path below is
+   guarded for that reason alone.
+
+   `removalNoticed` makes this fire once per activation, not once a minute
+   for the rest of the session: without it the certificate would be
+   rewritten and the render forced on every later tick, which is both wrong
+   and the loudest possible way to be wrong (the ticket's own words for the
+   sibling defect the certificate-gate control guards against). It is read a
+   second time AFTER the await, together with `alive` and `sealed`: a real
+   disable or uninstall -- the clean path this whole ticket must stay
+   invisible on -- can run to completion while this promise is in flight, and
+   the scope it leaves behind must not certify a phenomenon that is not what
+   just happened. */
+async function checkSDTStillInstalled() {
+  if (removalNoticed || !addonID) return;
+  let addon;
+  try {
+    const { AddonManager } = ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs');
+    addon = await AddonManager.getAddonByID(addonID);
+  } catch (error) {
+    emit('removal-check-error', { error: classifyError(error) }, 'error');
+    return;
+  }
+  try {
+    if (!alive || sealed || removalNoticed) return;
+    // Only a definite negative fires. `addon` present with `isActive` anything
+    // but `false` is read as healthy, deliberately asymmetric with the guard
+    // this mirrors elsewhere in this file (`readsProcfs`): there the unsafe
+    // direction is granting admission on a bad reading, here it is certifying
+    // a removal that did not happen, and an ambiguous answer must not do that.
+    const gone = !addon || addon.isActive === false;
+    if (!gone) return;
+    noticeSDTRemoval(addon);
+  } catch (_error) { /* A diagnostic must never be the thing that stops the sitter. */ }
+}
+
+/* What ticket 0781 asks for, in the order it asks for it. Journalling is NOT
+   gated on DEBUG_PREF, unlike the certificate two lines below it: `emit`'s own
+   gate only holds back `trace`-level records, this is filed at `error`, and
+   the switch cannot be turned on after the fact for a record that can only be
+   made live, from inside, at the one moment it is still possible to make it. */
+function noticeSDTRemoval(addon) {
+  removalNoticed = true;
+  emit('vanished', { installed: !!addon, active: addon ? addon.isActive : null }, 'error');
+  writeSDTDeathCertificate('vanished-without-teardown');
+  // Disarm, the same way disarmSDTSitter() does -- but without its phase write:
+  // that phase means the user turned the switch off, and this is a removal the
+  // user did not ask for. `alive` and `sitter` are left standing so the window
+  // this fired in stays open and readable, exactly as the observed phenomenon
+  // found it.
+  if (timers) { timers.clearTimeout(timer); timers.clearInterval(pulse); timers.clearInterval(heartbeat); }
+  timer = pulse = heartbeat = undefined;
+  sitter?.stop();
+  render();
 }
 
 /* Queue retries do no discovery. Quiet libraries wait for reconciliation;
@@ -889,7 +969,10 @@ function askSDTLaunch(win) {
    would leave two sweeps per interval and two render intervals, which is the
    defect a toggle clicked twice would otherwise produce for free. */
 function armSDTSitter() {
-  if (!alive || !sitter || pulse) return;
+  // Ticket 0781: once removal is noticed there is no host left to index for,
+  // and re-arming would be exactly the self-healing the ticket rules out --
+  // reachable from the toggle as much as from a stray re-enable.
+  if (!alive || !sitter || pulse || removalNoticed) return;
   sitter.start();
   pulse = timers.setInterval(render, 100);
   heartbeat = timers.setInterval(heartbeatTick, 60000);
@@ -921,6 +1004,9 @@ function disarmSDTSitter() {
    by a crash still holds across the restart — the persistence is the
    requirement, the arming is the effect. */
 function toggleSDTSwitch() {
+  // Ticket 0781: the switch is a question about indexing a library that is
+  // still there to index. Once removal is noticed it stops being live.
+  if (removalNoticed) return;
   const turningOn = !!sitter && sitter.state.phase === 'switched-off';
   writeSDTSwitch(turningOn);
   if (turningOn) armSDTSitter(); else disarmSDTSitter();
@@ -1643,7 +1729,10 @@ function composeSDTNotIndexedIdentifiers() {
    `reportUnreadable` instead, which is a field a reader trips over rather than
    a string that looks like a report and is not. */
 function writeSDTDeathCertificate(reason) {
-  if (reason !== 'disable' && reason !== 'uninstall') return;
+  // A third reason since ticket 0781: the host never gave it, `noticeSDTRemoval`
+  // invents it, and it belongs on this gate for the reason the other two do --
+  // it is the phenomenon, caught live, and not an ordinary teardown.
+  if (reason !== 'disable' && reason !== 'uninstall' && reason !== 'vanished-without-teardown') return;
   try {
     // Fully qualified, as every other read of this pref is: `true` stops Zotero
     // prepending `extensions.zotero.`.
@@ -1934,7 +2023,10 @@ function renderState() {
     // the two agree, and the phase is what every other line in this window is
     // drawn from, so a disagreement shows here instead of hiding.
     const off = s.phase === 'switched-off';
-    const switchLine = describeSDTSwitchLine(s);
+    // Ticket 0781: once this scope has noticed its own removal, every other
+    // reading in this line is stale -- the switch and the phase both describe
+    // a sitter that is being asked to keep working, and this one no longer is.
+    const switchLine = removalNoticed ? sdtText('vanished-message') : describeSDTSwitchLine(s);
     doc.getElementById('sdt-switch-state').textContent = switchLine;
     announceSDTTransition(dialog, doc, switchLine, s.phase, describeSDTSwitchKind(s));
     doc.getElementById('sdt-switch').textContent =
@@ -2349,9 +2441,18 @@ var installedVersion = null;
    addon-startup path, so it hands both to the initialize() it arms and returns.
    Ticket 0771. */
 var startupReason = 'unknown';
+// The id Gecko itself hands startup() (ticket 0781). Read from the host
+// rather than kept as a literal beside manifest.json's own copy -- the same
+// choice `installedVersion` makes, and for the same reason: a second literal
+// here is the drift this file's review discipline calls the most expensive
+// kind. `null` on a host or a call site that gives none, which is every
+// second startup in tests/sdt_sitter_bootstrap.mjs -- the self-check below
+// simply cannot run without it, exactly as it cannot without an AddonManager.
+var addonID = null;
 
-function startup({ rootURI, version }, reason) {
+function startup({ rootURI, version, id }, reason) {
   const token = ++generation;
+  addonID = typeof id === 'string' ? id : null;
   // The era this activation was armed in, carried rather than read: by the time
   // the callback below runs `shutdowns` may have moved, and that difference is
   // the whole discriminator (see the counter's own comment).
@@ -2424,6 +2525,10 @@ async function initialize(rootURI, token, era = shutdowns) {
      that unsealed and then recorded its own standing down has said something
      true; one that found the channel shut said nothing at all. */
   sealed = false;
+  // A fresh activation, so a removal notice belongs to a scope this one is
+  // not: reset here rather than in shutdown(), which the phenomenon this
+  // ticket is about never runs.
+  removalNoticed = false;
   // First thing after the host is up, and before any of the work below can throw:
   // a disappearance that leaves no `startup` record happened earlier than this
   // point. It goes through 0689's channel rather than a Zotero.debug() of its own
