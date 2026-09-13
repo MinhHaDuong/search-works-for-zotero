@@ -476,6 +476,113 @@ MUTANTS = [
     ("M60 the removal record is filed at trace level, so the debug switch silently gates it too",
      "  emit('vanished', { installed: !!addon, active: addon ? addon.isActive : null }, 'error');\n",
      "  emit('vanished', { installed: !!addon, active: addon ? addon.isActive : null }, 'trace');\n"),
+
+    # ---- ticket 0760: which textless packs may be called EMPTY ---------------
+    # The empty-pack logic had no mutant at all until this pass, which is the
+    # regression class this file exists to close: "No extracted text" is a
+    # confident claim printed over a document, and every way of reaching it
+    # wrongly is a way of lying about a file the author can see.
+    #
+    # The degraded-page guard defeated. `packSDTExtractionComplete` is the whole
+    # of ticket 0760's substantive fix, and a version that always vouches leaves
+    # the pre-0760 behaviour standing with a comment claiming otherwise.
+    ("M61 the page catalog always vouches, so a degraded pack is called verifiably empty",
+     "  const packSDTExtractionComplete = async reader => {\n"
+     "    if (typeof reader.getCatalog !== 'function') return false;\n"
+     "    let catalog = null;\n"
+     "    try { catalog = await reader.getCatalog(); }\n"
+     "    catch (_error) { return false; }\n"
+     "    const pages = catalog?.pages;\n"
+     "    if (!Array.isArray(pages) || !pages.length) return false;\n"
+     "    return !pages.some(page => page?.extractionDegraded);\n"
+     "  };\n",
+     "  const packSDTExtractionComplete = async _reader => true;\n"),
+    # Whitespace read as text. The inverse of the others in this block and the
+    # only one that over-reports coverage: a scanned page whose analyser found
+    # ruled lines and no glyphs is counted as indexed and never listed.
+    ("M62 a run of whitespace is read as extracted text",
+     "    if (typeof block.text === 'string' && block.text.trim()) return true;\n",
+     "    if (typeof block.text === 'string' && block.text) return true;\n"),
+    # The verdict is durable across sessions by design, so the branch that reads
+    # it back is the one place the whole classification can be lost silently:
+    # every later sweep resubmits a document the first sweep measured as empty.
+    ("M63 the cache hit ignores the empty verdict it stored",
+     "      if (cached) return { ...result, status: cached.empty ? 'empty-pack' : 'current', cached: true };\n",
+     "      if (cached) return { ...result, status: 'current', cached: true };\n"),
+    # The `unknown` verdict collapsed into `empty`. A host whose SDT module
+    # predates the block API answers metadata and nothing else, and calling that
+    # silence an empty document is the reading the third verdict exists to refuse.
+    ("M64 a reader that cannot enumerate blocks is called verifiably empty",
+     "      // A reader that cannot inspect all blocks cannot establish an empty pack.\n"
+     "      return 'unknown';\n",
+     "      // A reader that cannot inspect all blocks cannot establish an empty pack.\n"
+     "      return 'empty';\n"),
+    # The same collapse one level down, where an unreadable chunk becomes a
+    # document with nothing in it rather than a pack this build cannot read.
+    ("M65 a block range that is not an array is read as an empty document",
+     "      if (!Array.isArray(blocks)) throw new Error('Invalid native block range');\n",
+     "      if (!Array.isArray(blocks)) return 'empty';\n"),
+
+    # ---- ticket 0744: the not-indexed section -------------------------------
+    # The direction read off the pack version alone. Two of the four classes
+    # survive it, which is what makes it the plausible wrong implementation:
+    # only a pack and schema disagreeing, and a version that cannot be ordered
+    # at all, tell it apart from the real one.
+    ("M66 the format direction is read off the pack version alone",
+     "        result.reason = directions.length && directions.every(order => order < 0) ? 'older-format'\n"
+     "          : directions.length && directions.every(order => order > 0) ? 'newer-format'\n"
+     "            : 'unordered-format';\n",
+     "        result.reason = packOrder < 0 ? 'older-format' : 'newer-format';\n"),
+    # A disclosure that invites a reader to open it and find nothing, in a layer
+    # whose whole premise is that it shows only what is there.
+    ("M67 a not-indexed section with nothing to show is displayed rather than hidden",
+     "  if (!groups.length) { section.hidden = true; return; }\n",
+     "  if (!groups.length) { section.hidden = false; return; }\n"),
+    # `known` out of the render signature. The members do not change when the
+    # first census closes over a fully indexed library, so the signature is
+    # identical across that transition and the early return leaves the pending
+    # sentence on screen for the rest of the session.
+    ("M68 the render signature omits `known`, so the first completed census cannot repaint",
+     "  const signature = JSON.stringify([known, groups.map(group => [group.id, group.members.map(member =>\n"
+     "    [member.itemID ?? member.id, member.libraryID ?? null, member.title ?? null, member.parentTitle ?? null,\n"
+     "      member.key ?? null, member.errorClass ?? null]) ])]);\n",
+     "  const signature = JSON.stringify([groups.map(group => [group.id, group.members.map(member =>\n"
+     "    [member.itemID ?? member.id, member.libraryID ?? null, member.title ?? null, member.parentTitle ?? null,\n"
+     "      member.key ?? null, member.errorClass ?? null]) ])]);\n"),
+    # An action offered and guaranteed to fail. The members carry no libraryID at
+    # all, so `selectItems` has nothing to select within and the button could only
+    # ever land in the feedback line.
+    ("M69 a record naming no library is offered a selection that must fail",
+     "      if (libraryID == null) {\n"
+     "        select.disabled = true;\n"
+     "        select.setAttribute('title', sdtText('not-indexed-show-unavailable-tip'));\n"
+     "      }\n"
+     "      else select.addEventListener('click', async () => {\n",
+     "      select.addEventListener('click', async () => {\n"),
+    # The teardown check inside the block walk. A pack of tens of thousands of
+    # top-level blocks keeps handing `timers.setTimeout` continuations to a
+    # module that has already been shut down, and the walk is the one loop in
+    # this file long enough for that to matter.
+    ("M70 the block walk runs on after the plugin is shut down",
+     "      if (!alive) return 'unknown';\n"
+     "      const blocks = await reader.getBlocks(index, index);\n",
+     "      const blocks = await reader.getBlocks(index, index);\n"),
+    # The split that carries the remedy. One census status, two groups, because
+    # file sync may fetch a stored file back and nothing Zotero does restores a
+    # linked file someone moved on their own disk. Inverted, every reader is
+    # offered the remedy that cannot work for him.
+    #
+    # Deliberately NOT a mutant on the `linkedMode !== undefined` guard beside
+    # it: with the constant published, as every real host and now the harness
+    # publishes it, the guarded and unguarded comparisons behave identically, so
+    # such a mutant would survive. It is a guard against a host contract, not
+    # against an observable this suite can reach, and a mutant nothing can kill
+    # is a gate entry that fails forever or a test written to flatter it.
+    ("M71 the source-absence split is inverted, so each remedy names the wrong storage",
+     "    const groupID = member.status === 'missing-source'\n"
+     "      ? (member.linked ? 'missing-source-linked' : 'missing-source-stored')\n",
+     "    const groupID = member.status === 'missing-source'\n"
+     "      ? (member.linked ? 'missing-source-stored' : 'missing-source-linked')\n"),
 ]
 
 

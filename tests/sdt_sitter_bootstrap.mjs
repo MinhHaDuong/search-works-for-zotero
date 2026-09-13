@@ -2614,4 +2614,619 @@ await test('a host whose AddonManager read throws leaves the sweep running and j
   assert.equal(harness.context.removalNoticed, false);
 });
 
+/* --------------------------------------------------------------------------
+   Ticket 0760: which textless packs may be called EMPTY, and which only unread.
+
+   `packSDTTextVerdict` answers three ways — `text`, `empty`, `unknown` — and only
+   the middle one reaches the author as "No extracted text", a confident claim
+   printed over a document. Every arm below is written with its own control,
+   because the failure these scenarios are exposed to is the one this repository
+   keeps meeting: an assertion that a pack is NOT empty passes just as well
+   against a plugin that never classifies anything as empty at all.
+   -------------------------------------------------------------------------- */
+
+await test('a whitespace-only text run is an empty pack, not extracted text', async () => {
+  // `.trim()` is the whole of the branch under test, and a pack whose only run is
+  // three spaces is what a scanned page yields through a layout analyser that
+  // found ruled lines and no glyphs.
+  const blank = createHarness({ attachments: [pdf(1, 'AAAA1111', { pack: { text: '   ' } })] });
+  await blank.start();
+  assert.equal(blank.context.sitter.state.counts['empty-pack'], 1,
+    'a run of whitespace was read as extracted text');
+  assert.deepEqual(blank.calls.ensure, [], 'an empty pack was queued for another extraction');
+  // The control, and the reason this test is about trimming rather than about
+  // emptiness: the same fixture with one printable character between the spaces
+  // must land on the other side.
+  const printed = createHarness({ attachments: [pdf(2, 'BBBB2222', { pack: { text: ' a ' } })] });
+  await printed.start();
+  assert.equal(printed.context.sitter.state.counts.current, 1,
+    'a padded run of real text was read as an empty pack');
+});
+
+await test('text on a block itself and text two levels down both count as extracted text', async () => {
+  // Two shapes the native pack really carries and no fixture reached before: a
+  // run on the block's own `text` property, and the `list` → `listitem` → run
+  // nesting recorded in verification/probes/sdt_read.py. The default fixture
+  // block puts its run one level down, so neither branch had a test.
+  const arms = [
+    { label: 'a run on the block itself',
+      text: [{ text: 'a run carried by the block' }],
+      blank: [{ text: '  ' }] },
+    { label: 'a run two levels down, under a list item',
+      text: [{ type: 'list', content: [{ type: 'listitem', content: [{ text: 'a nested run' }] }] }],
+      blank: [{ type: 'list', content: [{ type: 'listitem', content: [{ text: '  ' }] }] }] },
+  ];
+  for (const arm of arms) {
+    const reading = createHarness({ attachments: [pdf(1, 'AAAA1111', { pack: { blocks: arm.text } })] });
+    await reading.start();
+    assert.equal(reading.context.sitter.state.counts.current, 1, `${arm.label}: was not read as text`);
+    // The control that makes the arm above about the WALK rather than about a
+    // verdict that never says empty: the same shape holding only whitespace has
+    // to be reached, trimmed, and called empty.
+    const empty = createHarness({ attachments: [pdf(1, 'AAAA1111', { pack: { blocks: arm.blank } })] });
+    await empty.start();
+    assert.equal(empty.context.sitter.state.counts['empty-pack'], 1,
+      `${arm.label}: the walk never reached the run, so the arm above proves nothing`);
+  }
+});
+
+await test('a reader that cannot enumerate blocks is never called empty', async () => {
+  // A host whose SDT module predates the block API answers metadata and nothing
+  // else. Pre-0760 that read as `current` by a comment's promise and no test;
+  // the verdict is now `unknown`, which maps to the same classification.
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111', { pack: { readerWithoutBlockAccess: true } })] });
+  await h.start();
+  assert.deepEqual(h.calls.openPack, ['AAAA1111'],
+    'the pack was never opened, so nothing below is testing the reader');
+  assert.equal(h.context.sitter.state.counts.current, 1);
+  assert.equal(h.context.sitter.state.counts['empty-pack'] || 0, 0,
+    'a pack nothing could read was called verifiably empty');
+});
+
+await test('an unreadable block count, range or chunk is an invalid pack and never an empty one', async () => {
+  const arms = [
+    { label: 'a negative block count', pack: { blockCount: -1 } },
+    { label: 'a non-numeric block count', pack: { blockCount: 'x' } },
+    { label: 'a block range that is not an array', pack: { blockRangeNotArray: true } },
+    { label: 'a block range that throws', pack: { blockRangeThrows: true } },
+  ];
+  for (const arm of arms) {
+    const h = createHarness({ attachments: [pdf(1, 'AAAA1111', { pack: arm.pack })] });
+    // `invalid-pack` is a queued status, so admission would re-extract it and
+    // overwrite the census verdict this arm is reading. Blocked, not avoided.
+    h.Zotero.PDFWorker._processingQueue = true;
+    await h.start();
+    assert.equal(h.context.sitter.state.counts['invalid-pack'], 1, `${arm.label}: not an invalid pack`);
+    assert.equal(h.context.sitter.state.counts['empty-pack'] || 0, 0,
+      `${arm.label}: an unreadable pack was called verifiably empty`);
+  }
+});
+
+await test('a degraded or unverifiable page catalog withholds the empty verdict', async () => {
+  // The substantive guard. A page the native worker had to fall back on is
+  // stamped `extractionDegraded`, and a textless pack carrying one cannot vouch
+  // for its own emptiness — nor can a pack whose catalog will not read, or whose
+  // catalog names no pages at all.
+  const arms = [
+    { label: 'a degraded single page', pack: { empty: true, degradedPages: [0] } },
+    { label: 'a catalog that will not read', pack: { empty: true, catalogUnreadable: true } },
+    { label: 'a catalog naming no pages', pack: { empty: true, catalog: { pages: [] } } },
+    { label: 'a catalog with no pages array', pack: { empty: true, catalog: {} } },
+    // Any page, not merely the first: a two-page document degraded on its second.
+    { label: 'a degraded second page',
+      pack: { blocks: [{ content: [] }, { content: [] }], degradedPages: [1] } },
+  ];
+  for (const arm of arms) {
+    const h = createHarness({ attachments: [pdf(1, 'AAAA1111', { pack: arm.pack })] });
+    await h.start();
+    assert.equal(h.context.sitter.state.counts['empty-pack'] || 0, 0,
+      `${arm.label}: a pack the extractor declines to vouch for was called empty`);
+    assert.equal(h.context.sitter.state.counts.current, 1, `${arm.label}: not the conservative reading`);
+  }
+  // The controls, one per catalog shape above, and the reason this test measures
+  // the guard rather than a fixture that stopped producing empty packs at all.
+  for (const [label, pack] of [
+    ['one undegraded page', { empty: true }],
+    ['two undegraded pages', { blocks: [{ content: [] }, { content: [] }] }],
+  ]) {
+    const h = createHarness({ attachments: [pdf(1, 'AAAA1111', { pack })] });
+    await h.start();
+    assert.equal(h.context.sitter.state.counts['empty-pack'], 1,
+      `${label}: the same fixture without the degraded stamp is not empty either, so the arms above prove nothing`);
+  }
+});
+
+await test('a cached empty verdict does not survive a source replacement or a processor upgrade', async () => {
+  // The verdict is durable across sessions by design, which is exactly why its
+  // invalidation needs a test: a stale "No extracted text" is a confident claim
+  // about a file that is no longer the file it was measured on.
+  const replaced = createHarness({ attachments: [pdf(1, 'AAAA1111', { pack: { empty: true } })] });
+  await replaced.start();
+  assert.equal(replaced.context.sitter.state.counts['empty-pack'], 1);
+  assert(replaced.files.text(CACHE_PATH).includes('"empty":true'),
+    'nothing cached the empty verdict, so there is nothing below to invalidate');
+  const row = replaced.library.get(1); row.pack.hash = row.hash; row.hash = 'replacement-md5';
+  replaced.files.put(`${STORAGE}/AAAA1111/file.pdf`, new Uint8Array(8192), 501);
+  // Blocked so the re-inspection's own verdict can be read before admission
+  // overwrites it with the result of a fresh extraction.
+  replaced.Zotero.PDFWorker._processingQueue = true;
+  await replaced.nextSweep();
+  assert.equal(replaced.context.sitter.state.counts['stale-source'], 1,
+    'a replaced source was answered from the empty-pack cache');
+  assert.equal(replaced.context.sitter.state.counts['empty-pack'] || 0, 0);
+
+  let versions = structuredClone(VERSIONS);
+  const upgraded = createHarness({ attachments: [pdf(2, 'BBBB2222', { pack: { empty: true } })],
+    versions: () => versions });
+  await upgraded.start();
+  assert.equal(upgraded.context.sitter.state.counts['empty-pack'], 1);
+  upgraded.Zotero.PDFWorker._processingQueue = true;
+  versions = { ...versions,
+    SDT_PROCESSOR_VERSIONS: { ...versions.SDT_PROCESSOR_VERSIONS, pdf: '8' } };
+  await upgraded.nextSweep();
+  assert.equal(upgraded.context.sitter.state.counts['stale-processor'], 1,
+    'a processor upgrade was answered from the empty-pack cache');
+  assert.equal(upgraded.context.sitter.state.counts['empty-pack'] || 0, 0);
+});
+
+await test('an empty pack stays out of admission across repeated sweeps, not only the first', async () => {
+  // The first sweep reads the pack; every later one reads the cache row it left.
+  // A cache hit that dropped `empty` would pass the first-sweep assertion and
+  // resubmit the document every thirty seconds for the life of the session.
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111', { pack: { empty: true } })] });
+  await h.start();
+  assert.deepEqual(h.calls.ensure, []);
+  await h.nextSweep();
+  await h.nextSweep();
+  await h.nextSweep();
+  assert.deepEqual(h.calls.ensure, [], 'an empty pack was re-admitted by a later sweep');
+  assert.equal(h.context.sitter.state.counts['empty-pack'], 1);
+});
+
+/* --------------------------------------------------------------------------
+   Ticket 0744: the classifications the "Not indexed" section is built on, and
+   what it renders when it has nothing to say.
+   -------------------------------------------------------------------------- */
+
+await test('a pack that cannot be opened is invalid, with no version direction attached', async () => {
+  // The rejection happens before `reader.header` is ever read, so an
+  // implementation that reached for a direction here would be reading a version
+  // nothing supplied. `invalid-pack` is queued, so the queue is blocked.
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111', { pack: { unreadable: true } })] });
+  h.Zotero.PDFWorker._processingQueue = true;
+  await h.start();
+  assert.deepEqual(h.calls.openPack, ['AAAA1111'], 'the pack was never opened');
+  assert.equal(h.context.sitter.state.counts['invalid-pack'], 1);
+  assert.equal(h.context.sitter.state.counts['unsupported-pack'] || 0, 0);
+  const member = h.context.sitter.state.censusSnapshot.members.find(row => row.itemID === 1);
+  assert.equal(member.status, 'invalid-pack');
+  assert.equal(member.reason, undefined, 'a pack that never opened acquired a format direction');
+  assert.equal(member.packOrder, undefined);
+  assert.equal(member.schemaOrder, undefined);
+});
+
+await test('the three pack-version directions are classified and rendered under their own headings', async () => {
+  // Against the mock's baseline of SDT_PACK_VERSION '1' / SDT_SCHEMA_VERSION
+  // '2.0'. The fourth row is the one a direction cannot be computed for at all,
+  // and it must land with the disagreeing pair rather than with either ordered
+  // class — a version this build cannot order is not a version it can call old.
+  const h = createHarness({ attachments: [
+    pdf(1, 'AAAA1111', { pack: { versions: { SDT_PACK_VERSION: '0' } } }),
+    pdf(2, 'BBBB2222', { pack: { versions: { SDT_PACK_VERSION: '2' } } }),
+    pdf(3, 'CCCC3333', { pack: { versions: { SDT_PACK_VERSION: '0', SDT_SCHEMA_VERSION: '3.0' } } }),
+    pdf(4, 'DDDD4444', { pack: { versions: { SDT_PACK_VERSION: 'not-a-number' } } }),
+  ] });
+  await h.start();
+  assert.equal(h.context.sitter.state.counts['unsupported-pack'], 4,
+    'a version mismatch was not classified as an unsupported pack');
+  const reason = id => h.context.sitter.state.censusSnapshot.members.find(row => row.itemID === id)?.reason;
+  assert.equal(reason(1), 'older-format');
+  assert.equal(reason(2), 'newer-format');
+  assert.equal(reason(3), 'unordered-format', 'opposite directions were collapsed into one');
+  assert.equal(reason(4), 'unordered-format', 'an uncomparable version acquired a direction');
+  // And what a reader sees: three headings, in the declaration order of
+  // SDT_NOT_INDEXED_GROUPS, carrying the counts above.
+  h.context.openDialog(h.windows[0]); h.context.render();
+  const dialog = [...h.context.dialogs][0];
+  const notIndexed = dialog.document.getElementById('sdt-not-indexed');
+  const headings = notIndexed.descendants().filter(node => node.tagName === 'summary')
+    .map(node => node.textContent);
+  assert.deepEqual(headings, [
+    'Not indexed (4)',
+    'Stored index uses an older format (1)',
+    'Stored index uses a newer format (1)',
+    'Stored index format cannot be compared (2)',
+  ], 'the version directions do not render under their own headings');
+});
+
+await test('the not-indexed section is pending before the first census and hidden after one with nothing to show', async () => {
+  // Both halves of one transition, and the members never change across it: an
+  // entirely indexed library has no obstacles to list before the census closes
+  // and none after. That is what makes `known` part of the render signature —
+  // built from the members alone, the signature is identical on both sides and
+  // the second render is skipped, leaving the pending sentence on screen for the
+  // rest of the session.
+  const h = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  await h.start();
+  const snapshot = h.context.sitter.state.censusSnapshot;
+  assert(snapshot, 'the fixture never completed a census');
+  assert.equal(h.context.sitter.state.counts.current, 1, 'the fixture library has obstacles to list');
+
+  h.context.sitter.state.censusSnapshot = null;
+  h.context.openDialog(h.windows[0]); h.context.render();
+  const dialog = [...h.context.dialogs][0];
+  const notIndexed = dialog.document.getElementById('sdt-not-indexed');
+  assert.equal(notIndexed.hidden, false, 'the section was hidden before anything had been read');
+  assert.match(notIndexed.textContent, /The first reading of the library is not finished yet\./);
+  assert.equal(notIndexed.childNodes[0].textContent, 'Not indexed',
+    'a count was stated over a library nothing has finished counting');
+  assert(!/No observed obstacles/.test(notIndexed.textContent),
+    'an all-clear was rendered where no reading exists');
+
+  h.context.sitter.state.censusSnapshot = snapshot;
+  h.context.render();
+  assert.equal(notIndexed.hidden, true,
+    'a section with nothing to show stayed on screen');
+  assert(!notIndexed.textContent.includes('The first reading'),
+    'the pending sentence survived the first completed census');
+  assert.equal(notIndexed.childNodes[0].textContent, 'Not indexed (0)');
+});
+
+await test('a member with no library identity is listed but cannot be selected in Zotero', async () => {
+  // Two members that both render under "Library unavailable", for two different
+  // reasons, which is the whole discrimination: a library whose record will not
+  // load keeps a working button, because its members still carry the ids
+  // `selectItems` needs; a member with no libraryID at all — the scheduler's own
+  // inspection-error fallback shape — has no library to select within.
+  const h = createHarness({
+    attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')],
+    unattached: [{ id: 60, libraryID: 5, key: 'NOFILE60', title: 'Behind a lazy group library' }],
+  });
+  const libraries = h.context.Zotero.Libraries; const get = libraries.get;
+  libraries.get = id => { if (id === 5) throw new Error('library not loaded'); return get(id); };
+  // `inspect` itself throwing is what produces a member with no libraryID: the
+  // scheduler's catch records `{ status, itemID, title, errorClass }` and nothing
+  // else. An IOUtils failure would not do — that one returns a full descriptor.
+  const getAsync = h.Zotero.Items.getAsync;
+  h.Zotero.Items.getAsync = async id => {
+    if (id === 2) throw new Error('the item row is unreadable');
+    return getAsync(id);
+  };
+  await h.start();
+  const member = h.context.sitter.state.censusSnapshot.members.find(row => row.id === 2);
+  assert.equal(member.status, 'inspection-error');
+  assert.equal(member.libraryID, undefined, 'the fixture never produced a member without a library');
+
+  h.context.openDialog(h.windows[0]); h.context.render();
+  const dialog = [...h.context.dialogs][0];
+  const notIndexed = dialog.document.getElementById('sdt-not-indexed');
+  assert.deepEqual(notIndexed.descendants().filter(node => node.tagName === 'h4')
+    .map(node => node.textContent),
+  ['Library unavailable (1)', 'Library unavailable (1)'],
+  'a member with no library lost its subsection instead of being stated as unavailable');
+  const buttons = notIndexed.descendants()
+    .filter(node => node.tagName === 'button' && node.textContent === 'Show in Zotero');
+  assert.equal(buttons.length, 2, 'the fixture rendered the wrong number of selection controls');
+  // Declaration order of SDT_NOT_INDEXED_GROUPS: inspection-error, then
+  // no-attachment.
+  assert.equal(buttons[0].disabled, true, 'a record naming no library offered a selection that must fail');
+  assert.equal(buttons[0].getAttribute('title'),
+    'These records name no library, so they cannot be selected in Zotero.');
+  assert.equal(buttons[0].listeners.get('click'), undefined,
+    'the control is disabled but still wired, so a keyboard activation still fails');
+  // The control: same heading, working button.
+  assert(!buttons[1].disabled, 'a library that merely lost its name lost its selection too');
+  assert.equal(buttons[1].getAttribute('title'),
+    'Select every listed record in Zotero. This does not change the library.');
+});
+
+await test('the coverage tally and the not-indexed list agree about an empty pack, scan and update alike', async () => {
+  // Two views of one census taken from two different places: `getSDTCoverage`
+  // adds up `state.counts`, `collectSDTNotIndexed` walks
+  // `state.censusSnapshot.members`. They are coherent only because `publish()`
+  // writes both together, and nothing asserted that they say the same thing
+  // about the same document.
+  const h = createHarness({ attachments: [
+    pdf(1, 'AAAA1111', { pack: {} }),                 // current
+    pdf(2, 'BBBB2222', { pack: { empty: true } }),    // empty-pack   → unindexed
+    pdf(3, 'CCCC3333', { missingSource: true }),      // missing-source → failed
+    pdf(4, 'DDDD4444'),                               // missing-pack → queued
+    pdf(5, 'EEEE5555', { deleted: true }),            // excluded     → out of scope
+  ] });
+  // Blocked, so the queued row stays queued and the tally can be read as the
+  // census left it rather than after an extraction has moved it.
+  h.Zotero.PDFWorker._processingQueue = true;
+  await h.start();
+
+  const read = () => {
+    const state = h.context.sitter.state;
+    const coverage = h.context.getSDTCoverage(state);
+    // Spread before mapping: `collectSDTNotIndexed` builds its arrays inside the
+    // plugin's vm realm, and `deepEqual` compares prototypes.
+    const groups = new Map([...h.context.collectSDTNotIndexed(state)]
+      .map(group => [group.id, [...group.members].map(member => member.itemID ?? member.id)]));
+    return { coverage, groups };
+  };
+  let { coverage, groups } = read();
+  assert.equal(coverage.known, true, 'the census never completed, so neither view means anything');
+  assert.deepEqual({ ...coverage }, { known: true, current: 1, unindexed: 1, failed: 1,
+    queued: 1, outOfScope: 1, total: 4 });
+  // The conservation identity, asserted here with a NON-ZERO `unindexed`: every
+  // other place it is checked has none, so the one class ticket 0760 added has
+  // never been inside it.
+  assert.equal(coverage.current + coverage.unindexed + coverage.failed + coverage.queued,
+    coverage.total, 'the classes do not add up to the in-scope denominator');
+  assert.deepEqual(groups.get('empty-pack'), [2],
+    'the textless attachment counted as unindexed is not the one the list shows');
+  assert(!groups.has('missing-pack'), 'a queued document was listed as an obstacle');
+
+  // The same agreement after an INCREMENTAL update: one notification, drained
+  // through the dirty path, with no second census. A view refreshed on the
+  // census alone would hold the old answer here and look right until the hour
+  // was up.
+  h.library.get(1).pack = { empty: true };
+  h.files.put(`${STORAGE}/AAAA1111/.zotero-sdt-cache`, JSON.stringify({ key: 'AAAA1111' }), 999);
+  h.notify('modify', 'item', [1]);
+  await h.quiet();
+  assert.equal(h.calls.list, 1, 'the update ran a full census, so nothing here tests the dirty path');
+  ({ coverage, groups } = read());
+  assert.deepEqual({ ...coverage }, { known: true, current: 0, unindexed: 2, failed: 1,
+    queued: 1, outOfScope: 1, total: 4 });
+  assert.equal(coverage.current + coverage.unindexed + coverage.failed + coverage.queued,
+    coverage.total, 'the classes stopped adding up after an incremental update');
+  assert.deepEqual(groups.get('empty-pack'), [1, 2],
+    'the tally moved a document to unindexed and the list did not');
+});
+
+await test('an attachment moved between parents leaves one record in the no-attachment view and takes the other out', async () => {
+  // Ticket 0744's verification list claims reparenting updates BOTH parents.
+  // The two halves fail differently — the old parent never appearing is a
+  // missing obstacle, the new parent never leaving is a false one — so both are
+  // asserted, in the generation the attachment's own update publishes in.
+  const h = createHarness({
+    attachments: [
+      pdf(1, 'AAAA1111', { pack: {}, parentItemID: 500 }),
+      // Zotero's `numFileAttachments()` counts neither a note nor a link with no
+      // file, so their owner has no file attachment however many children it has.
+      { id: 2, key: 'NOTE2222', kind: 'note', notAnAttachment: true, missingSource: true,
+        parentItemID: 502, title: 'A note', sourceBytes: 0, pages: null },
+      { id: 3, key: 'LINK3333', kind: 'url', urlOnly: true, missingSource: true,
+        parentItemID: 502, title: 'A link with no file', sourceBytes: 0, pages: null },
+    ],
+    unattached: [
+      { id: 500, key: 'PARENTA', title: 'Parent A' },
+      { id: 501, key: 'PARENTB', title: 'Parent B' },
+      { id: 502, key: 'PARENTC', title: 'Parent C' },
+    ],
+  });
+  await h.start();
+  // Spread before mapping: the snapshot's arrays are built in the plugin's vm
+  // realm, and `deepEqual` compares prototypes.
+  const listed = () => [...h.context.sitter.state.censusSnapshot.unattached].map(row => row.title);
+  const parentOfOne = () => h.context.sitter.state.censusSnapshot.members
+    .find(member => member.itemID === 1)?.parentTitle;
+  assert.deepEqual(listed(), ['Parent B', 'Parent C'],
+    'the record holding the only file attachment was listed as having none');
+  assert.equal(parentOfOne(), 'Parent A');
+
+  h.library.get(1).parentItemID = 501;
+  h.notify('modify', 'item', [1]);
+  await h.quiet();
+  assert.equal(h.calls.list, 1, 'the move ran a full census, so nothing here tests the dirty path');
+  assert.deepEqual(listed(), ['Parent A', 'Parent C'],
+    'a reparenting updated one side only');
+  assert.equal(parentOfOne(), 'Parent B',
+    'the attachment and the no-attachment view published in different generations');
+  // The note-and-link half, standing through both readings above: Parent C has
+  // two children and no file, and is listed exactly as a record with none.
+  h.context.openDialog(h.windows[0]); h.context.render();
+  const dialog = [...h.context.dialogs][0];
+  const notIndexed = dialog.document.getElementById('sdt-not-indexed');
+  assert.match(notIndexed.textContent, /Entries without any attached file \(2\)/);
+});
+
+await test('the Show in Zotero control selects the whole group, drops what is gone, and never throws', async () => {
+  // Nothing in this repository had ever fired this handler. Every arm below is
+  // read off `Zotero.getMainWindow().ZoteroPane.selectItems`, which the mock
+  // records rather than acts on.
+  const h = createHarness({ attachments: [
+    pdf(1, 'AAAA1111', { pack: { empty: true } }),
+    pdf(2, 'BBBB2222', { pack: { empty: true } }),
+    pdf(3, 'CCCC3333', { pack: { empty: true } }),
+  ] });
+  await h.start();
+  h.context.openDialog(h.windows[0]); h.context.render();
+  const dialog = [...h.context.dialogs][0];
+  const notIndexed = dialog.document.getElementById('sdt-not-indexed');
+  const button = notIndexed.descendants()
+    .find(node => node.tagName === 'button' && node.textContent === 'Show in Zotero');
+  const feedback = button.parentNode.childNodes[1];
+  // The preview renders ONE title and a "Show all (2 more)" button, which is what
+  // makes the first arm worth asserting: the control's membership is the group's,
+  // not the list's.
+  assert(notIndexed.textContent.includes('Show all (2 more)'),
+    'the fixture rendered every title, so the arm below cannot tell the two apart');
+
+  button.fire('click'); await h.quiet();
+  assert.deepEqual(h.calls.selected, [[1, 2, 3]], 'the click selected the preview, not the group');
+  assert.equal(feedback.textContent, 'Listed records selected in Zotero.');
+
+  // Deleted between render and click. The handler re-reads each record, so the
+  // rendered list is a claim about the past and the selection is not.
+  h.library.get(2).deleted = true;
+  button.fire('click'); await h.quiet();
+  assert.deepEqual(h.calls.selected[1], [1, 3]);
+  assert.equal(feedback.textContent, 'Listed records selected; 1 were no longer available.');
+
+  // Moved to another library between render and click: the same omission, by the
+  // other discriminator the handler applies.
+  h.library.get(3).libraryID = 7;
+  button.fire('click'); await h.quiet();
+  assert.deepEqual(h.calls.selected[2], [1]);
+  assert.equal(feedback.textContent, 'Listed records selected; 2 were no longer available.');
+
+  // Nothing survives: the pane is not asked to select an empty set.
+  h.library.get(1).deleted = true;
+  button.fire('click'); await h.quiet();
+  assert.equal(h.calls.selected.length, 3, 'selectItems was called with nothing to select');
+  assert.equal(feedback.textContent, 'The listed records could not be selected in Zotero.');
+
+  // No item pane at all, and a pane that does not offer the method: both are the
+  // same sentence and neither throws out of the handler.
+  h.library.get(1).deleted = false; h.library.get(2).deleted = false; h.library.get(3).libraryID = 1;
+  const pane = h.windows[0].ZoteroPane;
+  delete h.windows[0].ZoteroPane;
+  feedback.textContent = '';
+  button.fire('click'); await h.quiet();
+  assert.equal(h.calls.selected.length, 3, 'a window with no item pane still reached selectItems');
+  assert.equal(feedback.textContent, 'The listed records could not be selected in Zotero.');
+  h.windows[0].ZoteroPane = {};
+  feedback.textContent = '';
+  button.fire('click'); await h.quiet();
+  assert.equal(h.calls.selected.length, 3);
+  assert.equal(feedback.textContent, 'The listed records could not be selected in Zotero.');
+  h.windows[0].ZoteroPane = pane;
+
+  // The target set belongs to the render that drew the button. A membership
+  // change arriving while the click is in flight must not reach into it — the
+  // ids are a closure over what the reader was looking at when they clicked.
+  //
+  // The change is made from INSIDE the first record lookup rather than after
+  // `fire()` returns, so it is provably mid-flight: a handler that re-read the
+  // membership at any point after its first await would see the empty list.
+  // Timed from the test instead, the window is one microtask wide and an
+  // implementation that read late could still pass by accident.
+  const getAsync = h.Zotero.Items.getAsync;
+  let swapped = false;
+  h.Zotero.Items.getAsync = async id => {
+    if (!swapped) {
+      swapped = true;
+      h.context.sitter.state.censusSnapshot = { members: [], unattached: [] };
+      h.context.render();
+    }
+    return getAsync(id);
+  };
+  button.fire('click'); await h.quiet();
+  assert.equal(swapped, true, 'the click never reached a record lookup, so nothing was raced');
+  assert.deepEqual(h.calls.selected.at(-1), [1, 2, 3],
+    'a membership change mid-click altered what that click selected');
+  h.Zotero.Items.getAsync = getAsync;
+});
+
+await test('a shutdown mid-scan stops the block walk instead of running it out on a torn-down module', async () => {
+  // A real library holds packs of tens of thousands of top-level blocks, and the
+  // walk hands `timers.setTimeout` a continuation between every one of them. Off
+  // the switch, the scheduler's own gate has already gone false, so the verdict
+  // is discarded whatever it is: what is observable, and what matters, is
+  // whether the walk kept reading.
+  const blocks = Array.from({ length: 60 }, () => ({ content: [] }));
+  // The control first, and it carries the whole discrimination: uninterrupted,
+  // this exact pack is walked to its last block and classified empty. Without
+  // it, a plugin that never walked at all would satisfy the arm below.
+  const control = createHarness({ attachments: [pdf(1, 'AAAA1111', { pack: { blocks } })] });
+  await control.start();
+  assert.equal(control.calls.blockReads.length, blocks.length,
+    'the uninterrupted walk did not read every block, so the count below means nothing');
+  assert.equal(control.context.sitter.state.counts['empty-pack'], 1);
+
+  // The shutdown is fired from inside the fifth read rather than timed from
+  // outside: a test that tears the plugin down "somewhere around the fifth
+  // block" reads the same whether it lands mid-walk or after the walk finished,
+  // and it did land late once in seven runs while this test was being written.
+  const h = createHarness({
+    attachments: [pdf(1, 'AAAA1111', { pack: { blocks } })],
+    onBlockRead: () => { if (h.calls.blockReads.length === 5) h.context.shutdown(null, 4); },
+  });
+  await h.startHanging(2);
+  await h.turn(400);
+  assert.equal(h.calls.blockReads.length, 5,
+    'the block walk ran on after the plugin was shut down');
+  assert.equal(h.context.sitter.state.counts['empty-pack'] || 0, 0,
+    'an interrupted scan still produced a verified-empty verdict');
+});
+
+await test('a stored file and a linked file that are both gone are told apart, and read in that order', async () => {
+  /* SPEC.md §5.2.7 splits one census status, `missing-source`, into two groups
+     because only one of them has a remedy Zotero can perform: file sync may
+     fetch a stored file back, and nothing Zotero does restores a linked file
+     someone moved on their own disk. Until this test the split was unexercised,
+     and worse than unexercised — the harness published no link-mode constants,
+     so bootstrap.js's fallback compared `undefined === undefined` and EVERY
+     fixture in this file read as a linked file. "Stored file unavailable" was
+     unreachable, and the group that did render was right by accident.
+
+     Hence the two arms below and, just as much, the order assertion: the split
+     order is the account row's own wording, "Stored or linked file
+     unavailable", and a harness that cannot tell the two apart cannot hold it. */
+  const h = createHarness({ attachments: [
+    pdf(1, 'AAAA1111', { missingSource: true }),
+    pdf(2, 'BBBB2222', { missingSource: true, linked: true }),
+  ] });
+  await h.start();
+  const member = id => h.context.sitter.state.censusSnapshot.members.find(row => row.id === id);
+  assert.equal(member(1).status, 'missing-source');
+  assert.equal(member(1).linked, false, 'a stored attachment read as a linked one');
+  assert.equal(member(2).linked, true, 'a linked attachment read as a stored one');
+
+  h.context.openDialog(h.windows[0]); h.context.render();
+  const notIndexed = [...h.context.dialogs][0].document.getElementById('sdt-not-indexed');
+  const headings = notIndexed.descendants()
+    .filter(node => node.tagName === 'summary').map(node => node.textContent);
+  assert.deepEqual(headings.slice(1),
+    ['Stored file unavailable (1)', 'Linked file unavailable (1)'],
+    'the two source-absence groups did not read stored before linked');
+  // The remedies differ, which is the reason the classes do. Sync is offered
+  // for the stored file alone.
+  assert.match(notIndexed.textContent, /Zotero file sync may retrieve it/);
+  assert.match(notIndexed.textContent, /not available at its recorded location/);
+});
+
+await test('an unreadable link mode does not turn a known absence into an inspection error', async () => {
+  // A group library's attachment record can fail to load after a restart, and
+  // the getter throws rather than answering. The verdict must still be a
+  // classification, not an inspection error: nothing about the FILE is unknown,
+  // only how it is attached, so the storage-neutral reading is the honest one.
+  // Where that row LANDS is the next test's claim; this one is about the status
+  // it keeps, which is the half a group assertion cannot see.
+  const h = createHarness({ attachments: [
+    pdf(1, 'AAAA1111', { missingSource: true, linkModeUnreadable: true }),
+  ] });
+  await h.start();
+  const member = h.context.sitter.state.censusSnapshot.members[0];
+  assert.equal(member.status, 'missing-source',
+    'an unreadable link mode turned a known absence into an inspection error');
+  assert.equal(member.linked, false);
+  assert.equal(h.context.sitter.state.counts['inspection-error'] || 0, 0);
+});
+
+await test('an unreadable link mode is listed with the stored files, not in a group of its own', async () => {
+  /* The complement of the two tests above rather than a third copy of them: they
+     pin `member.linked` and the two headings, and neither renders a row whose
+     link mode threw. The `linked` flag is only half the claim — the group
+     mapping reads it (`member.linked ? 'missing-source-linked' :
+     'missing-source-stored'`) and a reader meets the answer as a heading, not as
+     a boolean, so the storage-neutral reading has to be shown to LAND
+     somewhere. Three members, one of each kind, so the walk has to place all
+     three rather than default the whole census to one group. */
+  const h = createHarness({ attachments: [
+    pdf(1, 'AAAA1111', { missingSource: true, title: 'A stored file' }),
+    pdf(2, 'BBBB2222', { missingSource: true, linked: true, title: 'A linked file' }),
+    pdf(3, 'CCCC3333', { missingSource: true, linkModeUnreadable: true,
+      title: 'A file whose link mode will not read' }),
+  ] });
+  await h.start();
+  const groups = new Map([...h.context.collectSDTNotIndexed(h.context.sitter.state)]
+    .map(group => [group.id, [...group.members].map(member => member.itemID)]));
+  assert.deepEqual(groups.get('missing-source-stored'), [1, 3],
+    'the row whose link mode threw was not listed with the stored files');
+  assert.deepEqual(groups.get('missing-source-linked'), [2]);
+
+  h.context.openDialog(h.windows[0]); h.context.render();
+  const notIndexed = [...h.context.dialogs][0].document.getElementById('sdt-not-indexed');
+  assert.deepEqual(notIndexed.descendants().filter(node => node.tagName === 'summary')
+    .map(node => node.textContent),
+  ['Not indexed (3)', 'Stored file unavailable (2)', 'Linked file unavailable (1)'],
+  'an unreadable link mode produced a heading of its own, or moved one of the other two');
+});
+
 console.log(JSON.stringify({ tests: results, result: 'pass' }));
