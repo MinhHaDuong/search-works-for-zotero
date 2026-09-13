@@ -1,0 +1,105 @@
+%erg 0.1
+Title: Skip the resource guards off Linux, and declare the dependency
+Created: 2026-09-13
+Author: claude
+
+--- log ---
+2026-09-13T10:48Z claude created
+2026-09-13T10:48Z claude note Ruled by the author on 2026-09-13, during the 0.4.0 release pass: "Disclose and skip resource guards on unsupported platform." Filed as the implementing ticket; the ruling itself belongs in DECISIONS.md.
+
+--- body ---
+## Context
+
+The sitter's admission policy reads Linux procfs directly:
+
+    bootstrap.js:2736  Zotero.File.getContents('/proc/meminfo')
+    bootstrap.js:2745  Zotero.File.getContents('/proc/loadavg')
+
+Any throw lands in the catch at `:2760-2762` and returns
+`'resources-unavailable'`, which refuses admission. On macOS and Windows those
+paths do not exist, so the add-on installs cleanly and then indexes nothing,
+forever, showing a permanent waiting-for-resources state.
+
+`manifest.json` declares no platform restriction, and `RELEASE-NOTES.md`
+contains no occurrence of "Linux". Neither the user nor the installer is told.
+No macOS or Windows run exists anywhere in this repository's record, so the
+behaviour above is a source reading, not a measured outcome.
+
+Ruled by the author 2026-09-13, during the 0.4.0 release pass: disclose the
+dependency, and skip the resource guards on an unsupported platform rather than
+letting them refuse.
+
+## What the ruling changes, and what it must not
+
+The current fail-closed behaviour is deliberate and is stated in
+`RELEASE-NOTES.md`: "An unreadable resource figure refuses admission rather than
+assuming it." The ruling does not retract that. The distinction is the axis the
+decision turns on, and the implementation must keep them apart:
+
+- **On Linux, an unreadable figure still REFUSES.** A missing or unparseable
+  `/proc/meminfo` on a platform that is supposed to have one is a fault, and
+  assuming room on a fault is how an eager scheduler takes a machine down.
+- **Off Linux, the guards are SKIPPED by design** — not read, not failed, not
+  treated as unavailable. The platform has no procfs and never will, and
+  refusing forever is a worse answer than proceeding without the check.
+
+Keying the behaviour on the platform rather than on the read failure is what
+preserves the first property while granting the second. Do not implement this as
+"treat unavailable as room to proceed": that spelling silently changes the Linux
+path too, which is the opposite of the ruling.
+
+Note for the record, since it is the nearest prior art: Zotero's own #6012 reads
+its memory figure through `Zotero.Embeddings.Diagnostics.getAvailableMemory()`,
+returns 0 when the platform cannot say, and treats 0 as room to proceed — the
+fail-open default on every platform. We are adopting that posture only where the
+platform genuinely cannot answer.
+
+## Relevant files
+
+- `plugins/sdt-sitter/bootstrap.js` — the procfs reads (`:2736`, `:2745`), the
+  catch that returns `'resources-unavailable'` (`:2760-2762`), and the
+  thresholds at `:95`, `:2744`, `:2749`, `:2759`
+- `SPEC.md` — R22's design paragraph owns the admission policy and its
+  thresholds; the platform split is a change to it
+- `DECISIONS.md` — the ruling of 2026-09-13 belongs here
+- `plugins/sdt-sitter/RELEASE-NOTES.md` — the disclosure
+
+## Test
+
+Red step first. A test that asserts the off-Linux path admits work FAILS against
+today's code, because today every platform refuses. Then a second test, in the
+other direction and equally load-bearing: on Linux, an unreadable `/proc/meminfo`
+must still refuse. That second one guards the property this change is most
+likely to break by accident, so it is not optional.
+
+## Actions
+
+1. Record the ruling in DECISIONS.md, with the Linux/off-Linux split stated as
+   above and the reason the two cases differ.
+2. Amend SPEC.md R22 so the declared policy matches what the code will do.
+3. Implement the platform split in `bootstrap.js`.
+4. Disclose in RELEASE-NOTES.md, in the installer-facing half rather than the
+   developer appendix: the resource checks are Linux-only; on macOS and Windows
+   the sitter runs without them, so it will not hold back for memory, load or
+   disk. Say plainly that neither platform has been tested.
+5. Consider whether `manifest.json` should still carry no platform restriction.
+   Left as a question rather than an action: with the guards skipped the add-on
+   is expected to FUNCTION off Linux, which is an argument against restricting
+   it, and nobody has run it there, which is an argument for. The author owns
+   this one.
+
+## Invariants
+
+- Linux behaviour is unchanged in every respect, including the unreadable case.
+- The thresholds themselves (4 GiB memory, 8 GiB disk, load below core count) do
+  not move in this ticket.
+- The disclosure does not claim macOS or Windows works. It says the checks are
+  absent there and that neither has been tested.
+
+## Exit criteria
+
+On a non-Linux platform the sitter admits work instead of refusing forever; on
+Linux an unreadable resource figure still refuses, proved by a test that fails
+if that path is touched; SPEC.md and DECISIONS.md say what the code does; and
+the Linux dependency is disclosed where someone installing the add-on will read
+it.

@@ -1,0 +1,87 @@
+%erg 0.1
+Title: The volume rig's pinned data directory silently does not take
+Created: 2026-09-13
+Author: claude
+
+--- log ---
+2026-09-13T10:47Z claude created
+
+--- body ---
+## Context
+
+Arm 6 (2026-09-13, padme, the first volume run with a real main window) was
+launched with `--data-dir /home/haduong/data/arm6/data`. The driver logged
+
+    driver data directory: /home/haduong/data/arm6/data (pinned, not Zotero's default)
+
+and the running Zotero reported, in the rig's OWN liveness read one minute later,
+
+    {'ok': True, 'dataDir': '/home/haduong/Zotero', 'mainWindows': 1, ...}
+
+`/home/haduong/data/arm6/data` was still empty at the end of the run. The
+114-attachment Menagerie was imported into `/home/haduong/Zotero` instead, which
+is Zotero's DEFAULT data directory, and the sitter extracted against it: that
+directory now holds a 222-item library, `sdt-sitter-cache.jsonl` and
+`sdt-sitter-last-shutdown.json`, all written during the run.
+
+No damage occurred, and the reason is luck rather than a guard. The author's
+real library lives at `/home/haduong/data/Zotero-fresh` (89 MB, untouched since
+2026-09-09), so the default path happened to be empty. Had it been where most
+installations put it, this run would have imported a fixture corpus into it and
+run extraction over it.
+
+This is the hazard ticket 0727 already recorded on 2026-09-12 — "the PROFILE was
+throwaway; the DATA DIRECTORY never was" — and `--data-dir` is the option that
+was added to close it. The option does not close it.
+
+## The defect, stated as an observation
+
+The pin is written into the profile's prefs and never read back. Zotero opened a
+different data directory than the one requested, and nothing in the run compared
+the two. The mechanism by which the pin fails to take is NOT established here:
+candidates include the pref name, the moment it is written relative to first
+launch, and a first-run data-directory prompt answering itself. Establish it
+before fixing it.
+
+The general form is the one this repository keeps meeting: the driver's log line
+is a claim about an intention, and it reads exactly like a measurement. The
+actual measurement was already being taken, one minute later, by the liveness
+read — and no code compares them.
+
+## Relevant files
+
+- `bench/sitter_volume_experiment.py` — `--data-dir` (argparse ~:637), the
+  "pinned, not Zotero's default" log line, and `liveness_code()` (~:385), which
+  already returns `dataDir` and is where the contradiction was visible
+- `tickets/0727-the-sitter-uninstalls-itself-update-url.erg` — the 2026-09-12
+  entry that motivated `--data-dir`
+- `/home/haduong/data/arm6/run-watch.txt` — the run this was found in
+
+## Test
+
+Red step first, and it is cheap: run the rig with `--data-dir` pointed at a
+fresh directory and assert the liveness read's `dataDir` equals it. Against
+today's code that assertion FAILS. It must fail before the fix lands, or the
+fix is not shown to do anything.
+
+## Actions
+
+1. Establish why the pin does not take. Do not skip to a fix.
+2. Make the run REFUSE, before importing anything, when the data directory
+   Zotero actually opened is not the one requested. Refusing is the correct
+   response rather than a warning: an import into the wrong library cannot be
+   taken back, and the rig's whole purpose is to run unattended.
+3. Replace the "pinned, not Zotero's default" log line with one that reports the
+   directory actually in use, read from the host.
+
+## Invariants
+
+- The refusal is on the ACTUAL directory, never on the intended one.
+- Do not weaken the existing guard that refuses a data directory already holding
+  a `zotero.sqlite`; it is orthogonal and it did its job.
+
+## Exit criteria
+
+The rig cannot import into a data directory other than the one named on the
+command line, a deliberate mismatch has been shown to stop a run, and the
+mechanism behind the original failure is written down rather than worked around.
