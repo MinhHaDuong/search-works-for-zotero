@@ -606,7 +606,12 @@ def main(argv=None) -> int:
     parser.add_argument("--log", type=Path, required=True)
     parser.add_argument("--zotero-bin", default="/opt/zotero7/zotero")
     parser.add_argument("--port", type=int, default=6000)
-    parser.add_argument("--headless", action="store_true", default=True)
+    # store_true with default=True made this flag unreachable: --headless was
+    # always on and no spelling turned it off, while the run's own refusal for a
+    # dead sitter tells the operator to use a real session or Xvfb. Ticket 0778
+    # is about arm 5 cycling over an add-on that never armed, so the arm that
+    # answers it is the one this flag could not express.
+    parser.add_argument("--headless", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--burst-cycles", type=int, default=8,
                          help="Rapid REPLACEMENTS right after the first "
                               "install, mimicking the organic 2026-09-08 "
