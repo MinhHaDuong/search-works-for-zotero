@@ -2,11 +2,13 @@
 Title: A repeatable smoke test for the sitter against a real Zotero
 Created: 2026-09-13
 Author: claude
+Closed: autoclosed — PR #546
 
 --- log ---
 2026-09-13T13:15Z claude created
 
 2026-09-13T13:19Z note Implemented bench/sitter_smoke_test.py, bench/fixtures/smoke_library.py, tests/test_sitter_smoke.py, and the make sitter-smoke target. Proved red (deliberate scratch-copy break, initialize() forced to throw) and green (real payload) against the real Zotero at ~/.local/Zotero_linux-x86_64/zotero under DISPLAY=:1; NOT-RUN (exit 3) confirmed against a missing Zotero binary. make check: 1397 passed, 15 skipped, green. Full transcript in this ticket's body.
+2026-09-13T14:23Z MinhHaDuong closed — autoclosed — PR #546
 --- body ---
 ## Context
 
