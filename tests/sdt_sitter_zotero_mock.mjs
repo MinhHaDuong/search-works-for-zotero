@@ -40,6 +40,11 @@ const SITTER = 'plugins/sdt-sitter';
 const decoder = new TextDecoder();
 
 export const ROOT_URI = 'file:///home/tester/.zotero/profile/extensions/sdt-pack-sitter/';
+/** The id Gecko hands `startup()` (ticket 0781), read off the real manifest
+    rather than typed a second time -- the same file bootstrap.js's own
+    `getContentsFromURLAsync('manifest.json')` route reads at startup. */
+export const ADDON_ID = JSON.parse(fs.readFileSync(`${SITTER}/manifest.json`, 'utf8'))
+  .applications.zotero.id;
 /** What the host hands `startup()`. A real installed add-on is given its
     version from the record Zotero already holds; a harness that omitted it
     modelled a host nobody runs, which is how the version field went unnoticed
@@ -255,7 +260,7 @@ export function createHarness(options = {}) {
   // admission and a poll, and between a cache hit and a native re-inspection.
   const calls = { meminfo: 0, loadavg: 0, openPack: [], ensure: [], prompt: 0,
     prompts: [], writes: [], hash: [], list: 0, affected: [], inspect: [],
-    putContents: [] };
+    putContents: [], getAddonByID: 0 };
   const observers = new Map(); let observerSequence = 0;
 
   // Two clocks, moving independently. `mono` is what ChromeUtils.now() answers
@@ -598,6 +603,18 @@ export function createHarness(options = {}) {
     },
   };
 
+  /* Ticket 0781's self-check, answered here rather than assumed: the default
+     is the healthy host every pre-existing scenario runs against, so nothing
+     above this line has to know this mock exists. `options.addon` stages a
+     removal (return `null`, or `{ isActive: false }`); `options.addonManagerThrows`
+     stages a host whose read itself fails. */
+  const AddonManagerMock = {
+    getAddonByID: async id => {
+      calls.getAddonByID++;
+      if (options.addonManagerThrows) throw new Error('AddonManager is unavailable (mock)');
+      return typeof options.addon === 'function' ? options.addon(id) : { id, isActive: true };
+    },
+  };
   const debugged = [];
   const logged = [];
   const context = vm.createContext({
@@ -642,6 +659,7 @@ export function createHarness(options = {}) {
       // catch while forty tests stayed green against a module only this file
       // provided. An unexpected spec must be loud, never answered.
       importESModule: spec => {
+        if (spec === 'resource://gre/modules/AddonManager.sys.mjs') return { AddonManager: AddonManagerMock };
         assert.equal(spec, 'resource://gre/modules/Timer.sys.mjs',
           'the real host serves no other module through importESModule');
         return timers.module;
@@ -692,10 +710,10 @@ export function createHarness(options = {}) {
     /** Every toast shown, in order, with the lines it carried. */
     toasts,
     /** Run the real `startup()` and let `initialize()` reach its first sweep. */
-    async start() { context.startup({ rootURI: ROOT_URI, version: INSTALLED_VERSION }); await quiet(); assertStarted(); },
+    async start() { context.startup({ rootURI: ROOT_URI, version: INSTALLED_VERSION, id: ADDON_ID }); await quiet(); assertStarted(); },
     /** The same, for a fixture whose `ensure` never settles. */
     async startHanging(times = 12) {
-      context.startup({ rootURI: ROOT_URI, version: INSTALLED_VERSION });
+      context.startup({ rootURI: ROOT_URI, version: INSTALLED_VERSION, id: ADDON_ID });
       await turn(times);
       assertStarted();
     },

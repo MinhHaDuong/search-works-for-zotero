@@ -2525,10 +2525,20 @@ profile's data directory and neither in a plugin-owned subdirectory: the pack
 cache described above (`sdt-sitter-cache.jsonl`) and, on a quit that lands mid
 write, its `.jsonl.tmp` sibling. A fifth location is the death certificate
 (`sdt-sitter-last-shutdown.json`, ticket 0727): a single overwritten file, also
-under the data directory, written on the disable and uninstall reasons alone
-and only when the debug preference is already on -- the operator's own
+under the data directory, written on the disable and uninstall reasons Gecko
+gives, and only when the debug preference is already on -- the operator's own
 request, carrying the scrubbed ring's tail so a disappearance leaves one
-artefact behind naming which event it was. Removing the add-on removes the cache file,
+artefact behind naming which event it was. Ticket 0781 adds a third reason no
+host gives, `vanished-without-teardown`: the sitter's own heartbeat asks, about
+once a minute, whether the host still lists it installed and enabled, and
+certifies under that reason when the still-running scope finds out it does
+not, on the same debug-preference gate as the other two. Unlike the
+certificate, the journal record this produces and the one-time message in the
+sitter's own window are NOT gated on the preference -- ruled deliberately,
+because the record and the warning are the two things only the live scope can
+ever make, and the switch cannot be turned on after the fact for either.
+Neither adds an egress path: the message points at the existing copy-the-log
+control, and nothing here is sent anywhere. Removing the add-on removes the cache file,
 its `.tmp` sibling if a quit left one, and clears the debug preference; the
 switch is left `false` rather than removed, per its own disposition above, and
 the certificate is the one file a clean uninstall does not take, since it is

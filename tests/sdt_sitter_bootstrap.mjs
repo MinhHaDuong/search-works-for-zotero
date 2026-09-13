@@ -2452,4 +2452,166 @@ await test('the rows this build writes are the rows the next session can read', 
   assert.deepEqual(second.calls.openPack, [], 'a row this build wrote was not believed');
 });
 
+
+/* --------------------------------------------------------------------------
+   Ticket 0781. Ticket 0727 built its whole instrumentation -- the death
+   certificate, the parked ring -- from `shutdown()`'s own `finally`, and the
+   author's live observation of 2026-09-12 is that the phenomenon never
+   reaches it: Zotero has disabled and deleted this add-on mid-session while
+   its own toolbar spinner kept turning and its own dialog kept answering
+   clicks, which is only possible if `shutdown()` never ran. Only the
+   still-running scope can notice that, because the host never tells it.
+
+   The control matters more than the feature (the ticket's own words): a
+   deliberate disable or uninstall runs shutdown() and must stay exactly as
+   clean and silent as it already is, and the loudest possible way for this
+   ticket to be wrong is to certify a removal that was actually a recovery.
+   -------------------------------------------------------------------------- */
+
+await test('a still-running scope that the host says is gone journals it, certifies it, and tells the window once', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+    prefs: { 'extensions.sdt-pack-sitter.debug': true },
+    addon: () => null });
+  await harness.start();
+  harness.context.openDialog(harness.windows[0]);
+  await harness.turn();
+
+  harness.context.heartbeatTick();
+  await harness.turn(1);
+
+  const vanished = harness.records('vanished');
+  assert.equal(vanished.length, 1, 'no removal was journalled');
+  assert.equal(vanished[0].level, 'error', 'the removal was not filed at error level');
+  assert.equal(vanished[0].installed, false);
+
+  const certificate = JSON.parse(harness.files.text(CERTIFICATE));
+  assert.equal(certificate.reason, 'vanished-without-teardown');
+
+  const doc = harness.windows[0].dialogs[0].document;
+  harness.context.render();
+  assert.equal(doc.getElementById('sdt-switch-state').textContent,
+    harness.context.sdtText('vanished-message'), 'the window did not tell the user');
+
+  // Disarmed: the sweep loop and the pulse are stopped, the same way
+  // disarmSDTSitter() stops them, but `alive` and the window stand.
+  assert.equal(harness.context.pulse, undefined, 'the render pulse is still armed');
+  assert.equal(harness.context.heartbeat, undefined, 'the heartbeat is still armed');
+  assert.equal(harness.context.alive, true, 'the window was torn down; it should stay readable');
+
+  // Once, not once a minute: a second tick (and a stray toggle click, which
+  // would otherwise re-arm through the switch) changes nothing further, and
+  // does not even ask the host again -- the latch is checked before the
+  // question is asked, not only after the answer comes back.
+  const writesBefore = harness.calls.putContents.length;
+  const asksBefore = harness.calls.getAddonByID;
+  harness.context.heartbeatTick();
+  harness.context.toggleSDTSwitch();
+  await harness.turn(1);
+  assert.equal(harness.records('vanished').length, 1, 'the notice fired more than once');
+  assert.equal(harness.calls.putContents.length, writesBefore, 'the certificate was rewritten on a second tick');
+  assert.equal(harness.calls.getAddonByID, asksBefore, 'a second tick asked the host again after already noticing');
+});
+
+await test('an add-on reported present but inactive is the same phenomenon as one entirely gone', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+    prefs: { 'extensions.sdt-pack-sitter.debug': true },
+    addon: id => ({ id, isActive: false }) });
+  await harness.start();
+  harness.context.heartbeatTick();
+  await harness.turn(1);
+  const vanished = harness.records('vanished');
+  assert.equal(vanished.length, 1);
+  assert.equal(vanished[0].installed, true);
+  assert.equal(vanished[0].active, false);
+  assert.equal(JSON.parse(harness.files.text(CERTIFICATE)).reason, 'vanished-without-teardown');
+});
+
+await test('THE CONTROL: a disable or an uninstall racing the removal check stays clean and silent', async () => {
+  for (const [label, reason, named] of [['a disable', 4, 'disable'], ['an uninstall', 6, 'uninstall']]) {
+    const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+      prefs: { 'extensions.sdt-pack-sitter.debug': true },
+      // The host already answers "gone" -- the exact ambiguous state a real
+      // disable/uninstall leaves AddonManager in mid-teardown -- so the only
+      // thing standing between this arm and a false certificate is the
+      // `alive`/`sealed` recheck after the await.
+      addon: () => null });
+    await harness.start();
+    harness.context.heartbeatTick(); // the promise is now in flight, unresolved
+    harness.context.shutdown(null, reason); // the real teardown completes first
+    await harness.turn(1);
+    assert.deepEqual(harness.records('vanished'), [],
+      `${label}: a removal was certified after ${label} had already torn the scope down`);
+    const certificate = JSON.parse(harness.files.text(CERTIFICATE));
+    assert.equal(certificate.reason, named,
+      `${label}: the certificate on disk was not the teardown's own`);
+  }
+});
+
+await test('a shutdown that runs before any heartbeat leaves nothing to notice, on every ordinary reason', async () => {
+  // The ordinary case, without the race: shutdown() clears the heartbeat
+  // interval, so no later tick ever runs checkSDTStillInstalled() at all.
+  for (const reason of [2, 4, 6, 7, 8]) {
+    const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+      prefs: { 'extensions.sdt-pack-sitter.debug': true }, addon: () => null });
+    await harness.start();
+    harness.context.shutdown(null, reason);
+    harness.context.heartbeatTick(); // a stray tick after teardown, if one ever fired
+    await harness.turn(1);
+    assert.deepEqual(harness.records('vanished'), [], `reason ${reason} produced a removal record`);
+  }
+});
+
+await test('with the debug switch off the window still tells the user, and nothing is written to disk', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')], addon: () => null });
+  await harness.start();
+  harness.context.openDialog(harness.windows[0]);
+  await harness.turn();
+  harness.context.heartbeatTick();
+  await harness.turn(1);
+  assert.equal(harness.records('vanished').length, 1, 'the journal record is gated on the switch, and must not be');
+  assert.equal(harness.files.text(CERTIFICATE), null, 'a certificate was written with the switch off');
+  assert.deepEqual(harness.calls.putContents, []);
+  const doc = harness.windows[0].dialogs[0].document;
+  harness.context.render();
+  assert.equal(doc.getElementById('sdt-switch-state').textContent,
+    harness.context.sdtText('vanished-message'), 'the window message is gated on the switch, and must not be');
+});
+
+await test('a present, active add-on never trips the removal check', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')] }); // the mock's default host: installed and active
+  await harness.start();
+  harness.context.heartbeatTick();
+  await harness.turn(1);
+  assert.deepEqual(harness.records('vanished'), []);
+  assert.equal(harness.files.text(CERTIFICATE), null);
+});
+
+await test('an ambiguous reading -- an addon object with no isActive -- is read as healthy, not as gone', async () => {
+  // Only a definite `false` (or no addon at all) fires. An unclear answer must
+  // not certify a removal that may not have happened -- the asymmetry
+  // deliberately runs the other way from this file's procfs guard, because
+  // there the safe default is caution and here it is silence.
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')], addon: id => ({ id }) });
+  await harness.start();
+  harness.context.heartbeatTick();
+  await harness.turn(1);
+  assert.deepEqual(harness.records('vanished'), [], 'an ambiguous reading fired the removal check');
+});
+
+await test('a host whose AddonManager read throws leaves the sweep running and journals the failure', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')], addonManagerThrows: true });
+  await harness.start();
+  assert.notEqual(harness.context.heartbeat, undefined, 'the arm needs the sweep armed to prove anything');
+  harness.context.heartbeatTick();
+  await harness.turn(1);
+  assert.deepEqual(harness.records('vanished'), []);
+  const errors = harness.records('removal-check-error');
+  assert.equal(errors.length, 1, 'an unreadable host was not journalled');
+  assert.equal(errors[0].level, 'error');
+  // The guard every host read in this file has: the loop that is watching for
+  // the real thing keeps running past a read that merely failed.
+  assert.notEqual(harness.context.heartbeat, undefined, 'the sweep stopped over a read failure, not a removal');
+  assert.equal(harness.context.removalNoticed, false);
+});
+
 console.log(JSON.stringify({ tests: results, result: 'pass' }));
