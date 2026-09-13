@@ -14,8 +14,8 @@ current, bounded and honest about coverage. [README.md](README.md) owns the prop
   the 2026-09-11 deferral). An override: 0727 has no named mechanism and stays open. **Author's
   hands only, in order:** build, GPG-sign the tag, publish the `.xpi`; one commit adding BOTH
   `tag` and `update_link` (half-filled FAILs); fresh-profile install from the asset; announce.
-- **Zotero 11 incompatible, `10.*` stands** (0777). **0772/0773 ruled and UNIMPLEMENTED** — an
-  uninstall writes no switch, sweeps no state; RELEASE-NOTES.md says so rather than promising it.
+- **Zotero 11 incompatible, `10.*` stands** (0777). **0772/0773 ruled and IMPLEMENTED** (PR #544)
+  — uninstall writes the switch off only where the first-run question was answered; unanswered stays `null` and asks again.
 - Release the Multilingual test library and questions + grader as public Challenge
 - Zoteus feature freeze for the September 21 release: correctness, packaging and privacy,
 with QA tests for those. Indexer/worker rewrite and segmenter stay held.
