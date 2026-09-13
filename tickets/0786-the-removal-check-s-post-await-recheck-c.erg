@@ -1,0 +1,91 @@
+%erg 0.1
+Title: The removal check's post-await recheck carries no generation token
+Created: 2026-09-13
+Author: claude
+
+--- log ---
+2026-09-13T19:23Z claude created
+2026-09-13T19:24Z claude note Found by the decorrelated Sonnet review of PR #551 (ticket 0781), which approved the PR and flagged this as a residual the implementing agent had not itself noticed. Filed rather than fixed inline because the remedy is a one-line change to a file that four PRs touched tonight, and because the reviewer's own likelihood assessment is low enough that it does not justify reopening a merged payload the same evening. PR #551 merged on the author's standing instruction; this ticket is the record of what it merged WITH.
+
+--- body ---
+## Context
+
+Ticket 0781 added `checkSDTStillInstalled()` to `heartbeatTick()`: it asks
+`AddonManager.getAddonByID(addonID)` whether the add-on is still installed and,
+on a definite negative, announces a removal — journals `'vanished'`, writes a
+death certificate, replaces the dialog's switch line with an apology, and
+disarms the sweep.
+
+Because that query is awaited, a genuine user-initiated disable or uninstall can
+complete while the promise is in flight. The implementation handles that with a
+post-await recheck:
+
+    if (!alive || sealed || removalNoticed) return;
+
+which is correct for the case it was written for, and is proven by the test the
+ticket calls THE CONTROL.
+
+## The gap
+
+The recheck reads three flags and no generation token. Every other async
+continuation in `bootstrap.js` carries one — `token !== generation` in
+`initialize()` (around line 2504), `era !== shutdowns` elsewhere — and that is
+the file's own established idiom for exactly this class of bug.
+
+So the sequence that defeats it is a shutdown FOLLOWED BY a re-`initialize()`,
+both completing before a stale `getAddonByID` promise resolves. The new
+activation resets `alive`, `sealed` and `removalNoticed`, the stale continuation
+finds all three clean, and it certifies a healthy, freshly-armed sitter as
+vanished — disarming it, with no way back except a full Zotero restart.
+
+The reviewer assessed the practical likelihood as low and did not hold the PR
+for it: `getAddonByID` is an in-memory lookup rather than I/O, while a full
+teardown plus re-initialise is many ticks. That assessment is a judgement about
+timing, not a proof that the window is closed, and this file's own idiom exists
+because the judgement has been wrong before (ticket 0696 shipped a
+disable/re-enable race of precisely this shape).
+
+## Relevant files
+
+- `plugins/sdt-sitter/bootstrap.js` — `checkSDTStillInstalled()` around line 629
+  is the query and its definite-negative test; the post-await recheck around
+  line 623 is what needs the token
+- `plugins/sdt-sitter/bootstrap.js` — `initialize()` around line 2504, the
+  idiom to follow: capture the generation before the await, compare after
+- `verification/probes/sdt_sitter_bootstrap_mutants.py` — M56-M60 are 0781's;
+  the mutant this ticket needs is a sixth, deleting the token comparison
+
+## Actions
+
+1. Capture the activation's generation before the `getAddonByID` await and
+   compare it after, alongside the three flags already read.
+2. Add the mutant that deletes that comparison, and confirm it is caught.
+
+## Test
+
+Red step first, and it needs the sequence rather than the state: drive a
+shutdown and a re-initialise to completion while a `getAddonByID` promise is
+deliberately held pending, then resolve it with a negative and assert that the
+NEW activation is still armed and unannounced. A test that merely sets the
+flags and clears them again reproduces the end state without the path, and
+would pass against the current code.
+
+## Verification
+
+- [ ] The new test fails against today's `bootstrap.js` and passes after
+- [ ] The new mutant is caught, and the existing M56-M60 still are
+- [ ] `make check` passes
+
+## Invariants
+
+- An ambiguous or throwing `AddonManager` reading still reads as healthy. This
+  ticket narrows a false positive; it must not create one.
+- `removalNoticed` still latches once per activation, and `armSDTSitter` /
+  `toggleSDTSwitch` still gate on it — no self-healing after an announcement.
+
+## Exit criteria
+
+The post-await recheck cannot mistake a new activation for the one it was
+started under, a mutant proves the comparison is load-bearing, and the test
+that establishes it drives the real sequence rather than assembling the end
+state by hand.
