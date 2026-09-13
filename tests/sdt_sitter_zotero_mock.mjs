@@ -91,6 +91,14 @@ class StubNode {
     parent.childNodes = parent.childNodes.filter(node => node !== this);
     this.parentNode = null;
   }
+  /* Focus, recorded on the document exactly as a real one records it. Added
+     for ticket 0769: the dialog now places initial focus, and without this the
+     stub answered `first.focus is not a function` -- an absent capability, not
+     a failing behaviour. Recording it rather than making it a no-op is what
+     lets a headless test assert WHERE focus landed, which is the whole of the
+     accessibility claim; a no-op would have made the suite green while
+     establishing nothing. */
+  focus() { if (this.ownerDocument) this.ownerDocument.activeElement = this; }
   setAttribute(name, value) { this.attributes.set(name, String(value)); }
   getAttribute(name) { return this.attributes.has(name) ? this.attributes.get(name) : null; }
   removeAttribute(name) { this.attributes.delete(name); if (name === 'value') delete this.value; }
@@ -109,6 +117,7 @@ class StubDocument {
     this.documentElement.append(this.body);
     this.readyState = 'complete';
     this.title = '';
+    this.activeElement = null;
   }
   createElementNS(namespace, tag) {
     assert.equal(namespace, 'http://www.w3.org/1999/xhtml', 'the dialog must build XHTML, not XUL');
@@ -117,6 +126,44 @@ class StubDocument {
   createXULElement(tag) { return new StubNode(this, tag); }
   getElementById(id) {
     return this.documentElement.descendants().find(node => node.id === id) || null;
+  }
+  /* Enough of a selector engine for the one shape the dialog asks for: a
+     comma-separated list of tag names and `[attr]` / `[attr="value"]` tests,
+     matched in document order. Added for ticket 0769, whose initial-focus fix
+     asks the dialog for its first focusable control.
+
+     Deliberately NOT a real selector engine. A stub that silently answered a
+     selector it does not implement -- a descendant combinator, `:not()`, a
+     class -- would return null and read as "no such element", which is the
+     mock lying in the direction that makes a test pass. Anything it cannot
+     parse throws instead, so the suite fails loudly on the day the production
+     selector grows past it. */
+  querySelector(selector) {
+    const clauses = String(selector).split(',').map(part => part.trim()).filter(Boolean);
+    const matchers = clauses.map(clause => {
+      const attr = clause.match(/^\[([A-Za-z-]+)(?:="([^"]*)")?\]$/);
+      if (attr) {
+        const [, name, value] = attr;
+        return node => node.attributes?.has?.(name)
+          && (value === undefined || node.attributes.get(name) === value);
+      }
+      const not = clause.match(/^\[([A-Za-z-]+)\]:not\(\[([A-Za-z-]+)="([^"]*)"\]\)$/);
+      if (not) {
+        const [, name, exclName, exclValue] = not;
+        return node => node.attributes?.has?.(name)
+          && node.attributes.get(exclName) !== exclValue;
+      }
+      if (/^[A-Za-z][A-Za-z0-9-]*$/.test(clause)) {
+        const tag = clause.toLowerCase();
+        return node => String(node.tagName || '').toLowerCase() === tag;
+      }
+      throw new Error(`StubDocument.querySelector cannot parse ${JSON.stringify(clause)}; `
+        + 'extend the stub rather than letting it answer null');
+    });
+    for (const node of this.documentElement.descendants()) {
+      if (matchers.some(match => match(node))) return node;
+    }
+    return null;
   }
 }
 

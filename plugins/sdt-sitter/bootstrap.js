@@ -2289,6 +2289,18 @@ function openDialog(window) {
   // v0.3.15). `dialog.close()` is the same call the window's own unload path
   // already goes through, so this adds no second way to tear the window down.
   dialog.addEventListener('keydown', event => { if (event.key === 'Escape') dialog.close(); });
+  // And for the same reason, this window places no initial focus of its own:
+  // it opened with `document.activeElement` still on `<body>`, so a keyboard
+  // user arrived somewhere with nothing selected and no indication of where
+  // they were. Measured in a real window on 2026-09-13 (ticket 0769). The
+  // first focusable control is the right landing place rather than the window
+  // itself -- it is the switch row, which is what the panel is FOR.
+  const focusFirst = () => {
+    if (!alive || dialog.closed) return;
+    const first = dialog.document.querySelector(
+      'input, button, summary, [tabindex]:not([tabindex="-1"])');
+    if (first) first.focus();
+  };
   const populate = async () => {
     if (!alive || dialog.closed) return;
     const doc = dialog.document;
@@ -2438,8 +2450,12 @@ function openDialog(window) {
         sdtText('fulltext-unavailable', { error: String(error) });
     }
   };
-  if (dialog.document.readyState === 'complete') populate();
-  else dialog.addEventListener('load', populate, { once: true });
+  // After populate, not before: the body is replaced wholesale by
+  // `replaceChildren`, so anything focused ahead of it is gone by the time the
+  // user could have used it.
+  const populateThenFocus = async () => { await populate(); focusFirst(); };
+  if (dialog.document.readyState === 'complete') populateThenFocus();
+  else dialog.addEventListener('load', populateThenFocus, { once: true });
 }
 
 function onMainWindowLoad({ window }) {
@@ -2448,6 +2464,16 @@ function onMainWindowLoad({ window }) {
   if (!toolbar) return;
   const button = window.document.createXULElement('toolbarbutton');
   button.id = BUTTON;
+  // A XUL toolbarbutton is NOT focusable by default, and without focus there is
+  // no keyboard path to this control at all: the panel could be opened only
+  // with a mouse. Measured in a real window on 2026-09-13 (ticket 0769) --
+  // `button.focus()` left the focus on Zotero's search box, and setting this
+  // one attribute moved it to the button on the very next call, with the search
+  // box taking focus throughout as the control that the window itself was
+  // willing to focus something. That is the whole of ticket 0686's keyboard
+  // finding, and the aria-label below was never reachable by the readers who
+  // needed it most.
+  button.setAttribute('tabindex', '0');
   // Zotero's toolbar styles otherwise constrain this to an icon-sized square.
   button.style.setProperty('min-width', '80px', 'important');
   button.style.setProperty('width', 'auto', 'important');
