@@ -2,6 +2,7 @@
 Title: Disclose the sitter mandatory daily update fetch
 Created: 2026-09-12
 Author: claude
+Closed: the daily update fetch is disclosed installer-facing in RELEASE-NOTES.md and owned by SPEC.md 6, with a guard that derives its assertions rather than matching phrases
 
 --- log ---
 2026-09-12T09:02Z claude created
@@ -9,6 +10,8 @@ Author: claude
 2026-09-12T09:07Z claude note filed from the lifecycle audit (F4). Disclosure only, no design decision: update_url is required (0727's control) so the daily fetch cannot be turned off
 2026-09-12T09:19Z claude note Disclosed in two places: the installer-facing half of plugins/sdt-sitter/RELEASE-NOTES.md, and SPEC.md section 6 as a surface plus an answers-table row, with a pointer from 5.2.7's sitter privacy run so the fact is stated once. Narrower than the ticket's own wording on one point: the two sources cited (update.json's _comment, 0727's log of 2026-09-06T22:34Z) establish the required update_url and the 86400 s cadence, but neither establishes that the installed version travels with the request -- the declared URL is fixed and carries no substitution parameter -- so that part is reported as unread rather than asserted. No code, manifest or requirement touched.
 2026-09-12T09:47Z claude note Review round 1 (REROLL) returned two non-blocking findings for this lane, both fixed: the installer notes now point at SPEC section 6 for the interval instead of restating it, per the file's own precedent for 0752's cadence line; and the new guard's literal-phrase assertions are replaced by ones derived from the manifest's update_url, SPEC's heading structure and 0727's own log line, so a synonymously reworded disclosure passes while a missing or misplaced one fails (nine mutations run, results recorded in the docstring). The blocking finding was a cross-PR duplicate of this ticket file on PR 531, cured there at 32d26f7b; this copy lands.
+2026-09-13T09:17Z claude note Release audit ahead of the 0.4.0 tag. The exit criterion is that an installer can find out, without reading the source, that installing the add-on means a daily request to GitHub and what it carries. Checked in the tree: plugins/sdt-sitter/RELEASE-NOTES.md:22-32 says it in installer-facing words and points at SPEC.md 6 for the interval rather than restating it; SPEC.md 3565-3575 owns the fact -- the required update_url, the raw.githubusercontent.com target, extensions.update.interval 86400, and that the sitter makes none of that traffic itself -- with the answers-table row at :3607 and the pointer back from 5.2.7 at :2496. The guard is tests/test_sdt_sitter.py:699-733, deriving its assertions from the manifest's update_url and SPEC's heading structure rather than from literal phrases. The honest under-claim is preserved rather than rounded up: whether the host adds the installed version to the check is recorded as unread, not asserted. Merged in PR #532 (85e58a6f); the merge did not close the ticket.
+2026-09-13T09:17Z MinhHaDuong closed — the daily update fetch is disclosed installer-facing in RELEASE-NOTES.md and owned by SPEC.md 6, with a guard that derives its assertions rather than matching phrases
 --- body ---
 
 ## Context

@@ -2,6 +2,7 @@
 Title: The sitter lifecycle record: the reason in, the uninstall out, the cache row stamp
 Created: 2026-09-12
 Author: claude
+Closed: the reason in, the uninstall out and the cache row stamp are all in bootstrap.js on main; five named scenarios pass and 53 of 53 mutants are caught
 
 --- log ---
 2026-09-12T09:02Z claude created
@@ -9,6 +10,8 @@ Author: claude
 2026-09-12T09:07Z claude note filed from verification/SITTER-LIFECYCLE-AUDIT-2026-09-12.md: the three findings that cost a few lines each (F9, F3, F7). Implemented in the same pass, with a fourth defect the F9 test found -- the seal was lifted after the startup emit, so the ring never held a startup record at all
 2026-09-12T09:07Z claude note version 0.3.45, not 0.3.44: open PR #530 claims 0.3.44 on its own branch and the version guard cannot see it. That blind spot is filed as 0779
 2026-09-12T09:30Z claude bump verify-reroll — round 1: a startup timer orphaned by a second startup unseals the ring behind a shutdown record, and twelve comments cite ticket 0780, which does not exist
+2026-09-13T09:17Z claude note Release audit ahead of the 0.4.0 tag, checked against the tree rather than against this log. (a) the ring reads as a sequence in both directions -- BOOTSTRAP_REASONS carries app-startup at bootstrap.js:106, nameBootstrapReason() at :117 is read by startup() at :2323 and by shutdown() at :2876, and the seal lift sits at the top of initialize() at :2389 ahead of the startup emit. (b) an uninstall leaves neither session global -- shutdown()'s finally at :2895-2898 deletes Zotero.SDTPackSitterJournal and Zotero.SDTPackSitterCacheWrite on that reason alone and republishes on every other, which is 0703's rule preserved. (c) the cache row carries a schema stamp -- written at :2485, read at :2456, a foreign row skipped. Ran rather than read: node tests/sdt_sitter_bootstrap.mjs passes with all five 0771 scenarios present by name, and verification/probes/sdt_sitter_bootstrap_mutants.py catches 53 of 53 including M40-M44. Both round-1 verify-reroll findings are discharged: the orphaned-startup-arm test exists and passes (a07e7847), and 0780 was filed (7a04af08). Merged in PR #531 (35ab8d90); the merge did not close the ticket because 32d26f7b had moved its ownership between lanes.
+2026-09-13T09:17Z MinhHaDuong closed — the reason in, the uninstall out and the cache row stamp are all in bootstrap.js on main; five named scenarios pass and 53 of 53 mutants are caught
 --- body ---
 
 ## Context
