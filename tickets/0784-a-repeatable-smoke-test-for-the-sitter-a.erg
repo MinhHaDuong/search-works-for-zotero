@@ -1,0 +1,153 @@
+%erg 0.1
+Title: A repeatable smoke test for the sitter against a real Zotero
+Created: 2026-09-13
+Author: claude
+
+--- log ---
+2026-09-13T13:15Z claude created
+
+2026-09-13T13:19Z note Implemented bench/sitter_smoke_test.py, bench/fixtures/smoke_library.py, tests/test_sitter_smoke.py, and the make sitter-smoke target. Proved red (deliberate scratch-copy break, initialize() forced to throw) and green (real payload) against the real Zotero at ~/.local/Zotero_linux-x86_64/zotero under DISPLAY=:1; NOT-RUN (exit 3) confirmed against a missing Zotero binary. make check: 1397 passed, 15 skipped, green. Full transcript in this ticket's body.
+--- body ---
+## Context
+
+Version 0.4.0 of the sitter (`plugins/sdt-sitter/`) merged the night this
+ticket was filed, about to be GPG-signed as a tag. Every existing sitter suite
+(`tests/sdt_sitter_bootstrap.mjs` -- 69 scenarios -- plus `scheduler`, `dialog`,
+`startup`) drives `tests/sdt_sitter_zotero_mock.mjs`, and the two mutation
+probes kill mutants against that same mock. All of it is simulated; the launch
+report says so. Nothing in any gate has ever launched a real Zotero and watched
+the shipped `.xpi` actually arm. `bench/sitter_volume_experiment.py` (ticket
+0727) already launches a real Zotero and installs a real XPI through the exact
+call path the Add-ons UI uses, but for a different question -- does the add-on
+SURVIVE many install/replace/disable cycles -- over the 666 MB Multilingual
+Menagerie, and it cycles by design. `verification/probes/run_sdt_diagnostic.py
+--sitter` is the other existing real-Zotero harness, but it is a sandboxed
+(bwrap, network-unshared), `xvfb-run`-driven UI probe for a specific
+accessibility ticket (0769), not wired to any Makefile target, and not a
+repeatable pass/fail gate either.
+
+## What this ticket adds
+
+`bench/sitter_smoke_test.py` -- the short, non-cycling variant of the volume
+rig: build the XPI, launch ONE real Zotero against a fresh throwaway profile
+AND data directory, install once, wait for the sitter to arm, census a
+three-item fixture, confirm the cache landed on disk, tear down. Wired into the
+Makefile as `make sitter-smoke`, deliberately NOT part of `make check` (it
+needs a real Zotero binary and a real X display; `check` must stay green
+without either).
+
+`bench/fixtures/smoke_library.py` -- a three-item RIS fixture, each item one
+tiny genuinely-valid PDF written by `bench/fixtures/make_attachment_fixtures
+.write_pdf` (reused, not reinvented). Nothing is committed as a binary: the
+generator writes the RIS and its attachments fresh into a scratch directory
+every run, the same discipline `tests/test_attachment_format_fixtures.py`
+already documents for that module's own matrix.
+
+## A live finding along the way: ticket 0782's actual mechanism
+
+Ticket 0782 recorded the volume rig's `--data-dir` silently not taking, with
+the mechanism explicitly left unestablished ("candidates include the pref
+name"). Running this smoke test's first draft against a real Zotero
+reproduced 0782's exact hazard live: Zotero opened `/home/haduong/Zotero` (the
+author's real, already-222-item library) instead of the freshly pinned
+throwaway data directory, and only this ticket's own refusal (see Actions
+below) stopped an import into it.
+
+Reading `chrome/content/zotero/xpcom/dataDirectory.js` out of the installed
+Zotero's own `app/omni.ja` settled it: `dataDirectory.js` only honours the
+`dataDir` pref when a SECOND pref, `useDataDir`, is also true --
+`if (Zotero.Prefs.get('useDataDir') && Zotero.Prefs.get('dataDir'))`.
+`bench/sitter_volume_experiment.py`'s `SEED_PREFS` (reused by this smoke test)
+sets `dataDir` alone; `useDataDir` is never set, so Zotero always falls
+through to its default directory regardless of the pin. This is recorded here
+and logged on 0782 itself, but NOT fixed on `sitter_volume_experiment.py` --
+that is 0782's own exit criteria (the refusal there, the corrected log line),
+a separate unit of work this ticket does not claim.
+
+`bench/sitter_smoke_test.py`'s own `setup_profile()` adds the missing
+`useDataDir` pref on top of the reused `SEED_PREFS`, which is what let this
+ticket's own runs proceed past the refusal into a real pass.
+
+## Actions taken
+
+1. Wrote `bench/sitter_smoke_test.py`: builds the XPI via the existing
+   `bench/build_sdt_sitter.py` (reads `plugins/sdt-sitter/`, never writes to
+   it), reuses `bench/sitter_watch.py` (`Log`, `connect_resilient`,
+   `refuse_dot_log`) and `bench/sitter_volume_experiment.py` (`SEED_PREFS`,
+   `wait_for_port`, `eval_action`, `install_or_replace_code`,
+   `import_menagerie_code` -- generic despite the name, takes any RIS path --
+   `liveness_code`).
+2. Added the ticket-0782 refusal: after arming, compares the data directory
+   Zotero's own liveness read reports against the one this run created and
+   pinned; REFUSES before importing anything on any mismatch.
+3. Wrote `bench/fixtures/smoke_library.py`, the three-item fixture.
+4. Wired `make sitter-smoke` into the Makefile, outside `check`, with the
+   reasoning written above the target (same convention as `sitter-install`,
+   `acceptance-fixtures`, `golden-run`).
+5. Wrote `tests/test_sitter_smoke.py`: the parts checkable without a Zotero
+   (the fixture generator's validity, the profile setup's refusal-to-reuse and
+   its `useDataDir` pref, `find_zotero_bin`'s refusals). Green in `make check`.
+6. Proved the smoke test can go red and green against the real Zotero at
+   `~/.local/Zotero_linux-x86_64/zotero` under `DISPLAY=:1`:
+   - GREEN (real payload): `{"ok": true, "dataDir": ".../data", "liveness":
+     {"phase": "extracting", "scanned": 3, "total": 3, "cacheWritten": true},
+     "imported": {"items": 3, "attachments": 3, "missing": 0}}`, exit 0.
+   - RED (deliberate break, scratch copy only -- `plugins/sdt-sitter/` was
+     never touched): a copy of the source built with an unconditional
+     `throw new Error(...)` inserted at the top of `initialize()`, packaged
+     to a scratch XPI, run via `--xpi`. Output: `FAIL: the sitter never
+     became alive within the arm timeout: {'handle': False, 'cacheWritten':
+     False, ...}. Ticket 0778: initialize() needs a main window; a dead
+     handle here means the shipped payload does not arm under a real
+     Zotero.`, exit 1.
+   - GREEN again on a fresh run with the real (unbroken) build, exit 0.
+   No orphaned Zotero process after any run; `/home/haduong/Zotero`'s
+   existing 222-item library was not touched (the refusal fired before this
+   ticket's own `useDataDir` fix landed, and the fixed version's own runs used
+   throwaway data directories only).
+7. Confirmed NOT-RUN (exit 3) against a missing Zotero binary.
+8. `make check`: 1397 passed, 15 skipped, green.
+
+## Relevant files
+
+- `bench/sitter_smoke_test.py` -- the smoke test
+- `bench/fixtures/smoke_library.py` -- the fixture generator
+- `tests/test_sitter_smoke.py` -- the offline-checkable suite
+- `Makefile` -- `sitter-smoke` target, `SITTER_SMOKE_ZOTERO` variable
+- `bench/sitter_volume_experiment.py` -- reused helpers; `SEED_PREFS`'s missing
+  `useDataDir` pref is the mechanism finding above, logged there
+- `bench/sitter_watch.py`, `bench/zotero_rdp_client.py`, `bench/host_addon_record.py`
+  -- reused RDP/watch plumbing
+- `bench/build_sdt_sitter.py` -- reused to build the real payload
+- `bench/fixtures/make_attachment_fixtures.py` -- reused `write_pdf`/`token`
+- `tickets/0782-the-volume-rig-s-pinned-data-directory-s.erg` -- the sibling
+  hazard; this ticket's refusal answers the same class of hazard for the
+  smoke test, but does not close 0782 (that ticket's own mechanism-fix and
+  log-line exit criteria are untouched)
+- `tickets/0778-*.erg` -- headless-never-arms; this smoke test is why the real
+  Makefile target needs a real display, documented in the target's comment
+
+## Invariants
+
+- `plugins/sdt-sitter/bootstrap.js`, `scheduler.js`, `manifest.json` and
+  `update.json` were never edited -- the deliberate-break drill built a
+  scratch copy under `/scratch/tmp/`, never `plugins/sdt-sitter/`.
+- `make check` stays green without a Zotero binary or a display.
+- `sitter-smoke` is not a `check` prerequisite.
+
+## Exit criteria
+
+- [x] `bench/sitter_smoke_test.py` exists, builds the XPI, launches a real
+      Zotero against a fresh throwaway profile+data directory, installs,
+      waits for arming, censuses a small fixture, confirms the cache file,
+      tears down cleanly.
+- [x] Refuses, before importing anything, when the data directory Zotero
+      actually opened does not match the one requested (ticket 0782's
+      hazard).
+- [x] Exit codes distinguish PASS (0), FAIL (1), and NOT-RUN/could-not-look
+      (3) -- verified NOT-RUN against a missing Zotero binary.
+- [x] Wired into the Makefile as `make sitter-smoke`, deliberately outside
+      `make check`, with the reason written in the Makefile comment.
+- [x] Shown red (deliberate break, scratch payload) and green (real payload)
+      against the actual real Zotero at `~/.local/Zotero_linux-x86_64/zotero`.
+- [x] `make check` remains green.

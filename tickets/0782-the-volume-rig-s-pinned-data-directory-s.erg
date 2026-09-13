@@ -6,6 +6,7 @@ Author: claude
 --- log ---
 2026-09-13T10:47Z claude created
 
+2026-09-13T13:19Z note Action 1's mechanism, established while building ticket 0784's smoke test against a real Zotero and hitting this exact hazard live: chrome/content/zotero/xpcom/dataDirectory.js (read out of the installed Zotero's own app/omni.ja) only honours the 'dataDir' pref when a second pref, 'useDataDir', is ALSO true -- 'if (Zotero.Prefs.get("useDataDir") && Zotero.Prefs.get("dataDir"))'. SEED_PREFS here sets dataDir alone; useDataDir is never set, so Zotero always falls through to its default directory regardless of the pin. Not fixed here -- 0784's own setup_profile() adds the missing pref on top of this file's SEED_PREFS for its own runs, and this ticket's Actions 2/3 (the refusal, the corrected log line) are still open.
 --- body ---
 ## Context
 
