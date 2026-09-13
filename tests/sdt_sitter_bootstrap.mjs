@@ -141,6 +141,89 @@ await test('the sitter recovers on the next sweep once the readings come back', 
   assert.equal(harness.context.sitter.state.completed, 2);
 });
 
+/* --------------------------------------------------------------------------
+   The platform split, ruled 2026-09-13 (ticket 0783).
+
+   The two halves are one decision and neither is the test of it alone. Off
+   Linux the guards are SKIPPED, so an add-on that installs there indexes
+   instead of waiting for a reading that will never come; on Linux an
+   unreadable figure still REFUSES, because a missing /proc on a machine that
+   is supposed to have one is a fault and assuming room on a fault is how an
+   eager scheduler takes a machine down. The second arm is the one that catches
+   this being implemented as "treat unavailable as room to proceed", which
+   would pass the first arm and silently invert the Linux path.
+   -------------------------------------------------------------------------- */
+await test('off Linux the memory and load guards are skipped, and the sitter admits work', async () => {
+  const harness = createHarness({
+    attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')],
+    isLinux: false,
+    // Throwers, not absences: the platform test has to come BEFORE the read,
+    // so reaching either of these at all is the defect. A stub that returned a
+    // plausible figure would let a skip-by-catch implementation pass.
+    meminfo: () => { throw new Error('/proc/meminfo does not exist on this platform'); },
+    loadavg: () => { throw new Error('/proc/loadavg does not exist on this platform'); },
+  });
+  await harness.start();
+
+  assert.deepEqual(harness.calls.ensure, [1, 2], 'an off-Linux profile admitted nothing');
+  assert.equal(harness.context.sitter.state.phase, 'waiting');
+  assert.equal(harness.context.sitter.state.completed, 2);
+  assert.equal(harness.calls.meminfo, 0, '/proc/meminfo was read off Linux');
+  assert.equal(harness.calls.loadavg, 0, '/proc/loadavg was read off Linux');
+  // Not read, not failed, not treated as unavailable: a skip is not a refusal,
+  // so nothing is filed as one and the panel shows no error.
+  assert.deepEqual(harness.records('refuse'), [], 'a skipped guard was filed as a refusal');
+  assert.equal(harness.context.sitter.state.error, null);
+  // The reading that was not taken is absent from the panel rather than
+  // printed as a zero, which would read as a measurement of an empty machine.
+  assert(!harness.context.describeSDTAdmission().includes('Memory available'),
+    'the panel printed a memory reading nobody took');
+});
+
+await test('off Linux the free-disk guard still applies', async () => {
+  // The half of the ruling that is NOT "skip the resource guards". The storage
+  // checks reach the volume through host APIs that answer on every platform,
+  // so nothing about them depends on procfs and skipping them would remove a
+  // working protection on the two platforms least tested.
+  const harness = createHarness({
+    attachments: [pdf(1, 'AAAA1111')],
+    isLinux: false, diskAvailable: 1024,
+    meminfo: () => { throw new Error('/proc/meminfo does not exist on this platform'); },
+    loadavg: () => { throw new Error('/proc/loadavg does not exist on this platform'); },
+  });
+  await harness.start();
+  assert.equal(harness.context.sitter.state.phase, 'low-disk',
+    'the free-disk guard was skipped off Linux along with the procfs ones');
+  assert.deepEqual(harness.calls.ensure, []);
+});
+
+await test('on Linux, and on any platform the host will not name, an unreadable figure still refuses', async () => {
+  // Three arms, one property: the platform decides whether to LOOK, and a
+  // failed look is still a fault. `undefined` and a throwing read are the two
+  // indefinite answers and both take the stricter path, because the direction
+  // that can still refuse is the safe one to be wrong in.
+  const arms = [
+    { label: 'Linux', options: { isLinux: true } },
+    { label: 'a host that does not say', options: { isLinux: undefined } },
+    { label: 'a host whose platform read throws', options: { isLinuxThrows: true } },
+  ];
+  for (const arm of arms) {
+    const harness = createHarness({
+      attachments: [pdf(1, 'AAAA1111')],
+      ...arm.options,
+      meminfo: () => { throw new Error('/proc/meminfo is unreadable'); },
+    });
+    await harness.start();
+    assert.equal(harness.context.sitter.state.phase, 'resources-unavailable', arm.label);
+    assert.deepEqual(harness.calls.ensure, [],
+      `${arm.label}: a document was admitted on a reading that failed`);
+    assert.equal(harness.calls.meminfo, 1, `${arm.label}: the guard was skipped`);
+    const refusals = harness.records('refuse');
+    assert.equal(refusals.length, 1, arm.label);
+    assert.equal(refusals[0].reason, 'resources-unavailable', arm.label);
+  }
+});
+
 await test('a resource refusal backs off to the idle cadence, not the active one', async () => {
   // Found live, never ticketed: two full censuses eight minutes apart, both
   // correctly refused cpu-busy, neither one backed off -- the sitter was

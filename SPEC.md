@@ -2,7 +2,7 @@
 
 - **Status:** COMPLETE
 - **Author:** Minh Ha-Duong (CNRS)
-- **Date:** 2026-09-12
+- **Date:** 2026-09-13
 
 ## 1. Introduction
 
@@ -2291,6 +2291,20 @@ filesystem. These are checks before admission, not enforced peak resource caps.
 The sitter submits at most one attachment at a time, only to an idle native
 worker, at native background priority. It does not claim independent OS nice
 control or preemption. Unavailable resource readings prevent admission.
+
+The memory and load checks are Linux-only, and the behaviour is keyed on the
+platform rather than on whether a reading can be taken (ruled 2026-09-13). They
+are read from Linux procfs, which macOS and Windows do not have. On Linux an
+unreadable or unparseable figure prevents admission, as the sentence above
+states; off Linux the two checks are not performed at all, and their absence is
+not a resource refusal. A platform the add-on cannot identify is treated as
+Linux, so an indefinite answer keeps the stricter behaviour. The free-disk check
+is not part of this split: it reaches the volume through host APIs that answer
+on every supported platform, and applies everywhere. Off Linux the sitter
+therefore schedules without regard to available memory or machine load, which is
+a disclosed limitation of an untested platform rather than a claim that it has
+been made safe there.
+
 The sitter uses Zotero attachment-change notifications to queue affected
 attachments for inspection, coalescing repeated events. It reconciles the library
 on activation while enabled and every 1 hour thereafter to discover changes

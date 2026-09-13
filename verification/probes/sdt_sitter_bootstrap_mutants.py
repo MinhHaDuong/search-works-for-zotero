@@ -63,11 +63,38 @@ MUTANTS = [
     # returned, so the diagnostics panel can say how far from the threshold the
     # gate was even on a healthy sitter. Moved below the check, the panel is blank
     # in exactly the state it is opened to explain.
+    # Re-indented by ticket 0783, which put the procfs reads inside a platform
+    # test; the mutation is unchanged.
     ("M2 the admission reading is recorded only on the refusing branch",
-     "      admission = { at: monotonic(), memoryAvailableBytes: available };\n"
-     "      if (!Number.isFinite(available)) return 'resources-unavailable';\n",
-     "      if (!Number.isFinite(available)) return 'resources-unavailable';\n"
-     "      admission = { at: monotonic(), memoryAvailableBytes: available };\n"),
+     "        admission = { at: monotonic(), memoryAvailableBytes: available };\n"
+     "        if (!Number.isFinite(available)) return 'resources-unavailable';\n",
+     "        if (!Number.isFinite(available)) return 'resources-unavailable';\n"
+     "        admission = { at: monotonic(), memoryAvailableBytes: available };\n"),
+    # ---- the platform split, ticket 0783 -------------------------------------
+    # One mutant per half, because either half alone is a wrong implementation
+    # that passes the other half's test. M2a is the whole defect the ticket was
+    # filed for: the guards are read on every platform, so an off-Linux profile
+    # refuses for ever. M2b is the substitution the ruling explicitly forbids —
+    # keying on the read rather than on the platform — which grants admission
+    # on a Linux machine whose /proc could not be read.
+    ("M2a the procfs guards are read on every platform, so an off-Linux profile refuses for ever",
+     "      if (readsProcfs()) {\n",
+     "      if (true) {\n"),
+    ("M2b the skip is keyed on the read failing rather than on the platform",
+     "  try { return Zotero.isLinux !== false; }\n"
+     "  catch (_error) { return true; }\n",
+     "  try { return Zotero.isLinux !== false; }\n"
+     "  catch (_error) { return false; }\n"),
+    # An indefinite answer must keep the stricter behaviour: `undefined` from a
+    # host that does not say is not a licence to skip.
+    ("M2c a host that does not name its platform is treated as not-Linux",
+     "  try { return Zotero.isLinux !== false; }\n",
+     "  try { return Zotero.isLinux === true; }\n"),
+    # The disk guard is NOT part of the split; skipping it with the procfs ones
+    # would remove a working protection on the two least-tested platforms.
+    ("M2d the free-disk guard is skipped off Linux along with the procfs ones",
+     "      let directory = info.directory;\n",
+     "      if (!readsProcfs()) return null;\n      let directory = info.directory;\n"),
 
     # ---- the cache file, as the next session finds it ------------------------
     ("M3 one corrupt cache row aborts the whole load instead of being skipped",

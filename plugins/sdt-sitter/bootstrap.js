@@ -93,6 +93,32 @@ var sweepGeneration = 0;
 // the diagnostics layer needs to print them. One statement each, so a threshold
 // moved in the gate cannot leave a stale figure on screen beside the reading.
 var MIN_FREE_MEMORY = 4 * 1024 ** 3, MIN_FREE_DISK = 8 * 1024 ** 3;
+/* Whether the memory and load guards are read at all. Ruled 2026-09-13 on
+   ticket 0783: disclose the Linux dependency, and SKIP those guards on a
+   platform that has no procfs rather than letting them refuse for ever.
+
+   KEYED ON THE PLATFORM, NEVER ON THE READ. That is the whole of the ruling
+   and the one thing this function exists to keep straight. `blocked()` already
+   turns any throw into 'resources-unavailable', so the tempting one-line
+   version of this change is to treat that verdict as room to proceed — and it
+   is the opposite of what was ruled, because it would also grant admission on
+   a LINUX machine whose /proc could not be read. There an unreadable figure is
+   a fault, and assuming room on a fault is how an eager scheduler takes a
+   machine down. So the decision is taken before the read, on the platform, and
+   the two cases never meet.
+
+   `!== false` rather than `=== false` inverted, and the asymmetry is load
+   bearing: only a definite `false` skips. A host that answers `undefined`, or
+   one whose read throws, is treated as Linux and keeps the stricter behaviour —
+   attempting a guard that may fail costs today's bug at worst, where skipping
+   one on a machine that does have procfs discards a real protection on the
+   strength of a failed read. Zotero sets `isLinux` from `Services.appinfo.OS`
+   in its own `zotero.js`; read at 10.0.1 it is the host's own answer, not a
+   sniff of ours. */
+function readsProcfs() {
+  try { return Zotero.isLinux !== false; }
+  catch (_error) { return true; }
+}
 // Bootstrap reason constants are numeric here and named elsewhere; accept both.
 // Read from BOTH directions since ticket 0771, and the way IN is the half that
 // was missing: shutdown() has recorded its reason since 0689, while startup()
@@ -1465,8 +1491,13 @@ function describeSDTAdmission() {
     // calendar moves under a span. Its wording is this ticket's `.ftl`; its
     // clock is that ticket's, and the merge keeps both.
     sdtText('admission-age', { age: formatSDTAge(monotonic() - admission.at) }),
-    sdtText('admission-memory', { available: formatSDTBytes(admission.memoryAvailableBytes),
-      threshold: formatSDTBytes(MIN_FREE_MEMORY) }),
+    // Guarded like the two below it since ticket 0783, and for the same reason:
+    // off Linux the memory and load guards are not read at all, so there is no
+    // figure to show. An unguarded line would print the threshold beside a
+    // formatted `undefined` on every macOS and Windows profile.
+    admission.memoryAvailableBytes === undefined ? ''
+      : sdtText('admission-memory', { available: formatSDTBytes(admission.memoryAvailableBytes),
+        threshold: formatSDTBytes(MIN_FREE_MEMORY) }),
     // The load average is a bare number from /proc; passed as a NUMBER so that
     // Fluent's own NumberFormat gives it the same decimal mark as the two byte
     // readings beside it, whatever locale that is.
@@ -2731,22 +2762,31 @@ async function initialize(rootURI, token, era = shutdowns) {
     if (!alive) return 'disabled';
     if (workerBusy()) return 'native-worker-busy';
     try {
-      // procfs reports a zero stat size. Read its tiny generated streams, not
-      // IOUtils' regular-file size-based path. No library file uses this sync path.
-      const memory = Zotero.File.getContents('/proc/meminfo');
-      const available = Number(memory.match(/^MemAvailable:\s+(\d+) kB$/m)?.[1]) * 1024;
-      // Recorded where it is read, not where the verdict is returned: the
-      // diagnostics layer shows how far from each threshold the gate was, and a
-      // reading taken on the refusing branch alone would be blank whenever the
-      // sitter is healthy — which is most of the time it is looked at.
-      admission = { at: monotonic(), memoryAvailableBytes: available };
-      if (!Number.isFinite(available)) return 'resources-unavailable';
-      if (available < MIN_FREE_MEMORY) return 'low-memory';
-      const load = Number(Zotero.File.getContents('/proc/loadavg').split(' ')[0]);
-      const cpus = win.navigator.hardwareConcurrency;
-      admission.load = load; admission.cpus = cpus;
-      if (!Number.isFinite(load) || !cpus) return 'resources-unavailable';
-      if (load >= cpus) return 'cpu-busy';
+      if (readsProcfs()) {
+        // procfs reports a zero stat size. Read its tiny generated streams, not
+        // IOUtils' regular-file size-based path. No library file uses this sync path.
+        const memory = Zotero.File.getContents('/proc/meminfo');
+        const available = Number(memory.match(/^MemAvailable:\s+(\d+) kB$/m)?.[1]) * 1024;
+        // Recorded where it is read, not where the verdict is returned: the
+        // diagnostics layer shows how far from each threshold the gate was, and a
+        // reading taken on the refusing branch alone would be blank whenever the
+        // sitter is healthy — which is most of the time it is looked at.
+        admission = { at: monotonic(), memoryAvailableBytes: available };
+        if (!Number.isFinite(available)) return 'resources-unavailable';
+        if (available < MIN_FREE_MEMORY) return 'low-memory';
+        const load = Number(Zotero.File.getContents('/proc/loadavg').split(' ')[0]);
+        const cpus = win.navigator.hardwareConcurrency;
+        admission.load = load; admission.cpus = cpus;
+        if (!Number.isFinite(load) || !cpus) return 'resources-unavailable';
+        if (load >= cpus) return 'cpu-busy';
+      } else {
+        // Stamped anyway, so the panel says WHEN the gate last ran rather than
+        // "No resource reading since startup" on a platform where it runs every
+        // sweep. The two procfs fields stay absent, and describeSDTAdmission
+        // omits a line it has no reading for rather than printing a zero that
+        // would read as a measurement of an empty machine.
+        admission = { at: monotonic() };
+      }
       let directory = info.directory;
       while (!(await IOUtils.exists(directory))) {
         const parent = PathUtils.parent(directory);
@@ -2923,27 +2963,6 @@ function shutdown(data, reason) {
     if (named === 'uninstall') writeSDTSwitch(false);
     emit('shutdown', { reason: named });
     sealed = true;
-    // The shutdown record is the last thing written, and this is what keeps the
-    // ring holding it reachable afterwards. Guarded for the same reason emit()
-    // is: a teardown already halfway through a throw must not acquire a second.
-    //
-    // Except on the one reason that is not a recovery. Republishing the ring is
-    // ticket 0703's rule: disable is what a user reaches for to recover from a
-    // hang, and it removed the only way in to the evidence of what was being
-    // recovered from. An UNINSTALL is the opposite -- there is no next
-    // activation to read the ring, no window left to copy it from, and the two
-    // handles would keep this sandbox reachable for the rest of the session
-    // while the diagnostics payload stayed copyable for an add-on no longer
-    // installed. So on that reason alone both go, the cache-write chain
-    // included: it is shared across scopes so a REPLACEMENT's first write cannot
-    // interleave with the outgoing build's last, and an uninstall has no
-    // successor to serialize against. Ticket 0771.
-    try {
-      if (named === 'uninstall') {
-        delete Zotero.SDTPackSitterJournal;
-        delete Zotero.SDTPackSitterCacheWrite;
-      } else if (journal) Zotero.SDTPackSitterJournal = journal;
-    } catch (_error) { /* Nothing. */ }
     // The shutdown record is the last thing written, and this is what keeps the
     // ring holding it reachable afterwards. Guarded for the same reason emit()
     // is: a teardown already halfway through a throw must not acquire a second.

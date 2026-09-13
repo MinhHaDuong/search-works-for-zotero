@@ -220,6 +220,9 @@ function attachment(row) {
  * @param options.libraries    `[{libraryID, name, libraryType}]` (default: one user library)
  * @param options.meminfo      `() => string` for /proc/meminfo, or a thrower
  * @param options.loadavg      `() => string` for /proc/loadavg
+ * @param options.isLinux      what `Zotero.isLinux` answers; omit for `true`,
+ *                             pass `undefined` for a host that does not say
+ * @param options.isLinuxThrows  make reading `Zotero.isLinux` throw
  * @param options.writable     whether the storage directory accepts writes
  * @param options.diskAvailable  bytes free on the storage volume
  * @param options.pathToFile   replaces the whole `Zotero.File.pathToFile` answer
@@ -398,6 +401,22 @@ export function createHarness(options = {}) {
     initializationPromise: Promise.resolve(),
     uiReadyPromise: Promise.resolve(),
     version: '10.0.5-stub',
+    /* The platform, as Zotero itself answers it: `Zotero.isLinux` is set from
+       `Services.appinfo.OS == 'Linux'` in the host's own `zotero.js` (read at
+       10.0.1, `chrome/content/zotero/xpcom/zotero.js:245`). Ticket 0783 keys
+       the procfs resource guards on it.
+
+       Defaulted to `true` rather than invented: Linux is the platform this
+       repository runs, measures and ships from, so every scenario that does
+       not speak about the platform keeps reading /proc exactly as it did. The
+       two indefinite answers are reachable on purpose — `isLinux: undefined`
+       for a host that does not say, `isLinuxThrows` for one whose read fails —
+       because the ruling's conservative direction is that BOTH are treated as
+       Linux, and a default of `true` would otherwise make that untestable. */
+    get isLinux() {
+      if (options.isLinuxThrows) throw new Error('the host cannot say what platform this is');
+      return 'isLinux' in options ? options.isLinux : true;
+    },
     // The UI locale the sitter follows (ticket 0692). French, because every
     // string assertion in `tests/sdt_sitter_bootstrap.mjs` is French — and
     // because a mock that left this undefined would silently drive the whole
