@@ -65,13 +65,25 @@ REQUIREMENT = re.compile(r"^([A-Za-z0-9][A-Za-z0-9._-]*)")
 MODULE_RUN = re.compile(r"\bpython3?\s+-m\s+([A-Za-z0-9._-]+)")
 
 
+#: Distributions whose import name is not their distribution name, and cannot
+#: be derived from it by any rule. The docstring below used to say no per-package
+#: table was needed, which held until a probe imported `gi` (ticket 0769): PEP
+#: 503 normalisation turns `sentence-transformers` into `sentence_transformers`
+#: and that covers almost everything, but no amount of normalising turns
+#: `PyGObject` into `gi`. Kept deliberately small -- an entry here is a claim
+#: that a rule cannot express the mapping, not a convenience.
+IMPORT_ALIASES = {"pygobject": "gi"}
+
+
 def canonical(name: str) -> str:
     """A distribution name and its import name, reduced to one spelling.
 
     `sentence-transformers` is imported as `sentence_transformers`; PEP 503 says
-    the two are the same name, and nothing here needs a per-package table.
+    the two are the same name, and a rule covers that. `IMPORT_ALIASES` above
+    carries the handful for which no rule can.
     """
-    return re.sub(r"[-_.]+", "-", name).strip().lower()
+    reduced = re.sub(r"[-_.]+", "-", name).strip().lower()
+    return IMPORT_ALIASES.get(reduced, reduced)
 
 
 def declared(repo: Path, filename: str) -> dict[str, str]:

@@ -26,3 +26,15 @@ ftfy
 # onnxruntime: both distributions provide the same Python import. The measured
 # version and actual providers are recorded with the result, not assumed here.
 onnxruntime
+
+# AT-SPI2, for reading the sitter panel as an assistive technology sees it
+# (ticket 0769). `verification/probes/atspi_*.py` walk Zotero's accessible tree
+# from OUTSIDE the process -- the reading the plugin's own aria-label cannot
+# give, because that asserts what the markup says rather than what the
+# accessibility layer computed from it.
+#
+# Import name `gi`. Normally already present as the distribution's python3-gi
+# and NOT installed through pip; the typelib it loads (Atspi-2.0) is a system
+# file that a wheel cannot supply. Declared here because the probes import it
+# and this file is where the gate looks, not because pip is how to get it.
+PyGObject

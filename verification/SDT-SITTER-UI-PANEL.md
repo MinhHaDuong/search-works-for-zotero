@@ -75,3 +75,70 @@ generation, stats presence and disable cleanup. It does not establish keyboard
 navigation, screen-reader announcements, reduced-motion behavior or absence of
 overflow at large font sizes. No reviewer was asked to post a forge verdict;
 no pull request was opened or merged.
+
+## 2026-09-13 — the keyboard reading, taken at last (ticket 0769, action 1)
+
+Everything above this heading says the keyboard behaviour was not established.
+It is now, in a real Zotero 10.0.1 window with the sitter armed over three
+Menagerie documents, and it found two defects rather than confirming the panel.
+
+**The panel could not be reached from the keyboard at all.** The toolbar control
+is a XUL `toolbarbutton`, not focusable by default, and it carried no
+`tabindex`. `button.focus()` left focus on Zotero's search box; adding
+`tabindex="0"` moved it to the button on the very next call; the search box took
+focus throughout, which is the control ruling out a window that simply refuses
+to focus anything. Fixed with that one attribute.
+
+**The panel placed no initial focus.** It opened with `activeElement` still on
+`<body>`. It now focuses its first control, the switch row.
+
+Read back from OUTSIDE the process over AT-SPI — the same interface Orca uses,
+and a reading the plugin's own `getAttribute('aria-label')` cannot give, because
+that asserts what the markup says rather than what the accessibility layer
+computed:
+
+| id | role | accessible name | states |
+|----|------|-----------------|--------|
+| `sdt-pack-sitter-button` | push button | `Index 100 %` | focusable, enabled, showing, visible |
+| `sdt-switch` | push button | `Turn indexing off` | |
+| `sdt-global-progress` | progress bar | `Overall progress` | |
+| `sdt-announcer` | status bar | (empty at rest) | `live: polite`, `atomic: true`, `container-live-role: status` |
+
+The `focusable` state was demonstrated causally, not asserted: with the running
+window untouched otherwise, removing `tabindex` live over RDP and re-walking the
+tree returned `enabled, showing, visible` and **no `focusable`**; restoring it
+brought the state back. Same process, same window, one attribute.
+
+`sdt-announcer` carries exactly the live-region attributes ticket 0686 item (1)
+intended, exposed to AT-SPI as a polite atomic status region. An earlier reading
+in this session looked at `sdt-status` — the VISIBLE text — found no
+`aria-live` on it and briefly took that for a defect. It is not one: the
+announcer is a separate visually-hidden node, and the distinction is the whole
+reason it exists.
+
+### What is NOT established, and why
+
+**Tab ORDER.** Not a failure — unobservable from here.
+`windowUtils.sendKeyEvent` is gone in the Gecko 140 these Zotero 10 builds ship;
+`sendNativeKeyEvent` is accepted without error and delivers nothing, because
+the window reports `hasFocus === false` on the test display; a dispatched Tab
+does not move focus. `verification/probes/sdt_panel_keyboard.js` runs that as a
+CONTROL before the assertion depending on it and reports NOT-ESTABLISHED rather
+than pass or fail. Each summary is separately shown to accept focus, which is
+weaker and is labelled as such. Settling it needs a session with real X focus.
+
+**Whether Orca speaks.** The markup is now known to be right and the tree is
+known to expose it, which is a necessary condition and not a sufficient one.
+What no reading here establishes is whether Orca in fact utters the transition
+sentences, in what words, and at a useful moment.
+
+### The red arm
+
+`run_panel_keyboard.py --break-escape` removes the panel's Escape handling from
+a scratch copy of the payload and refuses to run if the removal matched nothing.
+With it, the Escape assertion goes red and every other assertion stays green.
+
+Not red-armed, and said rather than glossed: **focus-return**. It passed in the
+broken arm too, because focus was already on the button when the panel failed to
+close, so that assertion has not been shown capable of failing.
+
