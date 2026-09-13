@@ -71,6 +71,12 @@ var SWEEP_TOAST_MS = 8000;
    replacement's contiguity. */
 var SDT_ANNOUNCE_SETTLE_MS = 2000;
 var DEBUG_PREF = 'extensions.sdt-pack-sitter.debug';
+// The cache's filename alone. One statement, read by initialize() to build
+// the path it reads and writes and by shutdown()'s uninstall cleanup (ticket
+// 0773) to build the same path again -- a second literal here would be the
+// fact this file's own review discipline calls the most expensive kind of
+// drift.
+var CACHE_FILENAME = 'sdt-sitter-cache.jsonl';
 /* R22's one obvious way, ratified 2026-09-08 (ticket 0742). Tri-state: unset
    means the question has never been answered, and is the ONLY state in which
    the launch prompt is shown. `true` and `false` are the user's own answer,
@@ -2468,7 +2474,7 @@ async function initialize(rootURI, token, era = shutdowns) {
   let versions = JSON.parse(await Zotero.File.getContentsFromURLAsync('resource://zotero/document-worker/metadata.json'));
   environment = { ...environment, packVersions: versions };
   if (token !== generation) return;
-  const cachePath = PathUtils.join(Zotero.DataDirectory.dir, 'sdt-sitter-cache.jsonl');
+  const cachePath = PathUtils.join(Zotero.DataDirectory.dir, CACHE_FILENAME);
   await Zotero.SDTPackSitterCacheWrite?.catch(() => {});
   // `format` is the row schema, and since ticket 0771 it is written into every
   // row and read back off it. It used to exist only here, in memory, where
@@ -3018,7 +3024,43 @@ function shutdown(data, reason) {
     // operator's own request, made before the event, and ticket 0773 (which
     // removes the sitter's durable state on uninstall) must not sweep it away.
     writeSDTDeathCertificate(named);
+    // The rest of the sitter's durable state, on the uninstall reason and no
+    // other -- ticket 0773's Actions 1 and 2's second half. AFTER the
+    // certificate above, not beside it: writeSDTDeathCertificate reads
+    // DEBUG_PREF to decide whether to write at all, and clearing that pref
+    // first would make a clean uninstall erase the very signal the operator
+    // turned on to get a certificate out of this teardown. The certificate
+    // itself is the one file this sweep does not take (ruled 2026-09-12): it
+    // is the operator's own request, made before the event, and the only
+    // durable record a removal will ever leave.
+    if (named === 'uninstall') removeSDTDurableState();
   }
 }
+/* Best-effort and silent-on-failure (ticket 0773's Action 4): an unwritable or
+   already-gone target must not throw into a teardown that is already
+   unwinding, and there is no next session to report the failure to. Each
+   removal is independent so one failure does not block the rest.
+
+   The cache and its `.tmp` sibling are removed with a synchronous nsIFile
+   call, for the same reason the certificate above is written synchronously:
+   `IOUtils` is async, and the sandbox this code runs in is torn down when
+   shutdown() returns on this path, so a promise still in flight may never
+   land. `remove(false)` on a target that does not exist -- the ordinary case,
+   since most sessions never see a `.tmp` -- throws exactly like removing an
+   unwritable one, and the same catch covers both. */
+function removeSDTDurableState() {
+  const cachePath = PathUtils.join(Zotero.DataDirectory.dir, CACHE_FILENAME);
+  for (const path of [cachePath, `${cachePath}.tmp`]) {
+    try { Zotero.File.pathToFile(path).remove(false); } catch (_error) { /* Nothing. */ }
+  }
+  // Cleared, not written `false`: the debug checkbox is a diagnostics opt-in,
+  // not a first-run answer, and R22's tri-state discipline for ENABLED_PREF
+  // above does not apply to it. Unset reads as off either way.
+  try { Zotero.Prefs.clear(DEBUG_PREF, true); } catch (_error) { /* Nothing. */ }
+}
 function install() {}
+// Deliberately empty (ticket 0773's Action 1): the sandbox this scope runs in
+// is torn down when shutdown() returns on the uninstall path, which is why
+// shutdown()'s own finally -- not this hook -- is where 0773 and 0771 both do
+// their removal. A hook that may never run cannot be the cleanup site.
 function uninstall() {}

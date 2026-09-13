@@ -444,6 +444,18 @@ MUTANTS = [
     ("M51 the certificate carries the unredacted ring",
      "    const report = composeSDTJournalReport();\n",
      "    const report = JSON.stringify({ records: journal ? journal.tail(50) : [] });\n"),
+    # ---- the rest of the durable state, ticket 0773 Actions 1 and 4 ----------
+    # One mutant per half, as the ticket asks. M54 is the pre-change state: the
+    # cache file, its `.tmp` sibling and the debug pref all outlive a removal.
+    # M55 is the plausible wrong gate -- copying the certificate writer's own
+    # reason test, a few dozen lines away, would also sweep the disable path,
+    # which is the recovery a user reaches for and must keep its cache warm.
+    ("M54 an uninstall leaves the cache file, its .tmp sibling and the debug pref behind",
+     "    if (named === 'uninstall') removeSDTDurableState();\n",
+     ""),
+    ("M55 a disable removes the cache file, its .tmp sibling and the debug pref too",
+     "    if (named === 'uninstall') removeSDTDurableState();\n",
+     "    if (named === 'uninstall' || named === 'disable') removeSDTDurableState();\n"),
 ]
 
 

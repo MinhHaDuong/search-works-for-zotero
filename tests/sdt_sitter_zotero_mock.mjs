@@ -191,6 +191,14 @@ function createFiles() {
       const entry = files.get(path);
       return entry === undefined ? null : decoder.decode(entry.bytes);
     },
+    /* nsIFile.remove()'s own contract: absent is a throw, not a no-op, which
+       is exactly what makes a `.tmp` that most sessions never leave behind a
+       case bootstrap.js's removal must survive rather than one the mock can
+       paper over. */
+    remove(path) {
+      if (!files.has(path)) throw Object.assign(new Error('no such file'), { name: 'NotFoundError' });
+      files.delete(path);
+    },
     stat(path) {
       const entry = files.get(path);
       if (!entry) throw Object.assign(new Error('no such file'), { name: 'NotFoundError' });
@@ -424,7 +432,8 @@ export function createHarness(options = {}) {
     locale: options.locale ?? 'fr-FR',
     debug: line => debugged.push(line),
     logError: error => logged.push(String(error)),
-    Prefs: { get: name => prefs.get(name), set: (name, value) => prefs.set(name, value) },
+    Prefs: { get: name => prefs.get(name), set: (name, value) => prefs.set(name, value),
+      clear: name => prefs.delete(name) },
     getMainWindow: () => windows[0],
     getMainWindows: () => windows,
     Libraries: { getAll: () => libraries, get: id => libraries.find(row => row.libraryID === id) || null },
@@ -500,6 +509,17 @@ export function createHarness(options = {}) {
         path,
         isWritable: () => options.writable !== false,
         diskSpaceAvailable: options.diskAvailable ?? 500 * 1024 ** 3,
+        // `options.removeThrows`, a predicate over the path, stages the
+        // "unwritable directory" arm of ticket 0773's removal test without
+        // reaching for the whole-object override every other scenario here
+        // uses -- the default `isWritable`/`diskSpaceAvailable` stay live
+        // alongside it.
+        remove: () => {
+          if (options.removeThrows && options.removeThrows(path)) {
+            throw new Error('cannot remove (mock)');
+          }
+          files.remove(path);
+        },
       }),
       /* Synchronous, as Zotero's own is: the death certificate (ticket 0727) is
          written from a teardown whose sandbox does not outlive it, so an async
