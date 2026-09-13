@@ -52,8 +52,8 @@ installed version to the check has not been read here.
 
 ## Prepared for the next release
 
-Tickets [0760](../../tickets/0760-text-less-scanned-pdfs-silently-count-as.erg)
-and [0744](../../tickets/0744-group-unsupported-and-refused-documents.erg)
+Tickets [0760](../../tickets/closed/0760-text-less-scanned-pdfs-silently-count-as.erg)
+and [0744](../../tickets/closed/0744-group-unsupported-and-refused-documents.erg)
 make the distinction between a native pack that contains verified text and one
 that has been completely inspected but contains none. The latter is not
 admitted again and is not counted as indexed. A pack is only called empty when
