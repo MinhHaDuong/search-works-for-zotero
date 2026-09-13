@@ -7453,3 +7453,93 @@ it rather than discover it. 0776 therefore reduces to its original and much
 smaller question — whether the manifest lists every shipped version or only the
 tip, which is about hand-carried branch builds and touches no promise either
 way — and that question stays open.
+
+**2026-09-13 — RULED: the sitter's first tagged release SHIPS, with the
+disappearance disclosed rather than waited out. This SUPERSEDES the deferral of
+2026-09-11, and the condition that ruling set has NOT been met.**
+
+The author, asked nothing new, choosing differently on the same facts. The entry
+of 2026-09-11 above stands as written and is not amended; this one replaces its
+disposal.
+
+**What the earlier ruling required, and where that stands.** It gated 0764's
+Actions 1, 2, 3 and 5 behind ticket 0727 "acquiring at least a named mechanism
+(not necessarily a full fix)". It has not. Four candidates are refuted on 0727's
+own record: the `update_url`/empty-updates-list theory the ticket is still
+titled after (0.2.15 shipped a compatible entry and died on the same schedule,
+and a daily `extensions.update.interval` never fitted a twenty-second disable);
+"a fresh process survives"; "first install survives, replacement dies"; and the
+`const`-to-`var` double-load payload. Two remain untested. The last three
+instrumentation rounds each close with no cause. The one arm that ran to a
+bounded negative — 17 of ~50 cycles with zero disappearances — has since been
+shown to measure Zotero's add-on bookkeeping rather than a live sitter, because
+the rig runs headless where `initialize()` cannot pass its main-window check
+(ticket 0778, open). And ticket 0781, filed 2026-09-12, WIDENED the ignorance
+rather than narrowing it: in the phenomenon `shutdown()` never runs, so neither
+the death certificate nor the parked ring — both built for 0727 during the
+deferral — can witness the event they were built for.
+
+So this is an override, with the condition unmet and the author's eyes open. It
+is recorded that way deliberately. A later reader must not be able to mistake it
+for the condition having been satisfied.
+
+**The reasoning that changed, and it is about who carries the risk.** The
+2026-09-11 ruling held that removing RELEASE-NOTES.md's disclaimer would
+misrepresent what changed, because the sentence named a real unreproduced
+failure a real install base would inherit. That is still true of the failure.
+What is judged differently is the remedy. Waiting for a cause has now cost a
+week and produced a wider unknown, on a defect that has only ever appeared on
+one machine and that four deliberate arms cannot summon. A second machine that
+meets it, with the in-process journal read before the restart, is worth more
+than another arm run by the person who cannot reproduce it. Disclosure buys that
+and a hold does not. The cost of being wrong is bounded and known: a user loses
+the add-on, not their library, not their attachments, and not Zotero's own text
+index.
+
+**What the disclosure must therefore carry, since it is the whole consideration
+for shipping.** Prominently, in RELEASE-NOTES.md and in both announcement
+drafts: that the add-on has removed itself mid-session, seen repeatedly over one
+instrumented evening on one machine and once more uninstrumented two days later,
+cause not established, with every deliberate reproduction arm having survived.
+That the diagnostics switch does NOT catch it, because the add-on is never told.
+And the recovery instruction in the order that preserves the evidence — read
+`Zotero.SDTPackSitterJournal.tail(200)` and report it FIRST, restart SECOND —
+with its reason given, since an instruction whose reason is withheld is one a
+hurried reader reverses. A release that ships the defect without that section is
+not what was ruled here.
+
+**0686's half of the 2026-09-11 ruling is spent rather than overridden.** It
+closed on 2026-09-12; its residue is 0769, which the same ruling already placed
+outside the gate as a declared known limitation, and 0764 Action 5 writes it.
+
+**Sequencing, which is part of the ruling.** Tag, then the author installs into a
+fresh profile from the release asset and uses it for thirty minutes, then the
+announcement goes out. That arm is the released user's install path and the one
+path nothing has ever exercised — every previous copy of this add-on was carried
+by hand — so it runs before anyone is invited, and the announcement's account of
+it is written from the run. Neither draft may state its outcome in advance, in
+any tense; both carry a marked blank instead.
+
+**A second venue, and no bound covers it.** The release is announced on GitHub
+AND on the Zotero forums. GOVERNANCE.md's bounds — two upstream pull requests in
+flight, the six-PR budget, the form asymmetry, the sunset — are scoped to the
+zoteus relationship and count filings; Zotero core is tracked in SYNC.md as a
+watch surface with no filing relationship at all. So nothing ratified reaches a
+forum post announcing our own add-on, and nothing is being worked around. What
+does bind is the disclosure rule, and with more force in that venue than in any
+other: the post carries no ticket numbers, no governance, and no reading of
+anyone else's work. Recorded here because opening an outward channel to a
+project this repository has only ever watched is a change of posture in its own
+right, and the next person to consider a second post should find it ruled rather
+than improvised.
+
+**What this does not settle.** 0727 stays OPEN, as its own exit criteria
+require, and 0764 does not close it and does not claim its cause. 0764 itself
+stays open until a tag exists, a release carries the `.xpi`, `update.json` names
+it, and the version gate asserts all three agree. Two rulings of 2026-09-12
+remain recorded-and-unimplemented and are now disclosed as such in
+RELEASE-NOTES.md rather than promised: an uninstall does not yet write the
+indexing switch off (0772), and the sitter's durable state is not yet removed on
+uninstall (0773). Under the standing rule of the same day — we promise what we
+have tested, and nothing else — shipping a document that stated either as
+behaviour would have been the defect that rule exists to prevent.
