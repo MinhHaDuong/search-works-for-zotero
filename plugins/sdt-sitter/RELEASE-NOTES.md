@@ -56,7 +56,7 @@ Resource retries resume queued work without rescanning the library. The window
 shows how recently reconciliation completed; disk availability remains a last
 observation. Missing files stay in Zotero and their native packs are preserved.
 
-Ticket [0686](../../tickets/0686-follow-up-sdt-sitter-panel-accessibility.erg)
+Ticket [0686](../../tickets/closed/0686-follow-up-sdt-sitter-panel-accessibility.erg)
 adds a status region to the window for screen-reader users. It announces a
 change of state — scanning, waiting for resources, an error, indexing turned
 on or off — once the state it replaces has been gone for two seconds, and never
@@ -95,34 +95,72 @@ the library, nothing removed from Zotero's own text index. That is deliberate
 decided 2026-09-12): the add-on works through parts of Zotero that carry no
 compatibility promise, so claiming a version nobody has tested would be worse
 than being set aside by it. What such an upgrade must not do is make the add-on
-vanish on its own; that failure has been seen once, has no established cause,
-and is tracked in ticket
+vanish on its own. That failure has been seen repeatedly over one instrumented
+evening on one machine, and once more, uninstrumented, two days later. The cause
+is not established, and it is tracked in ticket
 [0727](../../tickets/0727-the-sitter-uninstalls-itself-update-url.erg).
 
-Removing the add-on leaves the indexing switch off rather than unset: install
-it again and it starts stopped, with its toolbar entry and window present and
-one click to start, and it does not ask the first-run question a second time
-(ticket [0772](../../tickets/0772-does-an-uninstall-withdraw-the-sitter-in.erg),
-decided 2026-09-12).
+How a removal should leave the indexing switch was decided on 2026-09-12
+(ticket [0772](../../tickets/0772-does-an-uninstall-withdraw-the-sitter-in.erg)):
+off rather than unset, so that installing again starts stopped, with the toolbar
+entry and window present and one click to start, and without asking the
+first-run question a second time. **That decision is not in this build.**
+`writeSDTSwitch` is called from the launch prompt and from the panel switch and
+from nowhere else; `uninstall()` is empty. So today the answer simply persists —
+a profile that had indexing on, removes the add-on and installs it again resumes
+indexing without asking. The write is ticket
+[0773](../../tickets/0773-an-uninstall-removes-the-sitter-own-dura.erg)'s
+Action 2 and has not been made. It is recorded here because a decision is not a
+behaviour, and this file states behaviour.
 
-With technical diagnostics switched on, ticket
-[0727](../../tickets/0727-the-sitter-uninstalls-itself-update-url.erg) adds one
-more file: if Zotero disables or removes the sitter, it writes what it was told
-— the host's own reason for the removal, and its last few state changes — to
-`sdt-sitter-last-shutdown.json` in the Zotero data directory. The sitter has
-twice vanished from a live profile with no explanation surviving the event. The
-file carries the same redaction as the diagnostics clipboard: opaque record
-keys, no document titles, no install path. With the switch off, which is how it
-ships, nothing is written — and since removing the add-on also takes its session
-handles off Zotero (above), an uninstall with the switch off leaves no record of
-itself at all. That is deliberate: a removed add-on should leave nothing behind,
-and this file is the one exception, kept only because you asked for it first. So
-if the add-on has been disappearing on you, switch diagnostics on and leave it
-on; the record you would want afterwards can only be made beforehand.
+With technical diagnostics switched on, the sitter writes one more file: when
+Zotero **tells** it that it is being disabled or removed, it records what it was
+told — the host's own reason, and its last few state changes — to
+`sdt-sitter-last-shutdown.json` in the Zotero data directory. The file carries
+the same redaction as the diagnostics clipboard: opaque record keys, no document
+titles, no install path. With the switch off, which is how it ships, nothing is
+written — and since removing the add-on also takes its session handles off
+Zotero (above), an uninstall with the switch off leaves no record of itself at
+all. That is deliberate: a removed add-on should leave nothing behind, and this
+file is the one exception, kept only because you asked for it first.
+
+Be exact about what that file covers, because the gap is the unknown itself. In
+the disappearance above the add-on was **not** told: it was still running, its
+window usable and its indicator still moving, after its record and its file had
+already gone. None of the sitter's teardown runs on that path, so no such file
+is written for it, and ticket
+[0781](../../tickets/0781-the-sitter-notices-its-own-removal-and-s.erg) is open
+for the self-check that would witness it from inside. What does survive, until
+Zotero is closed, is the record the sitter keeps in memory for the session —
+which is why the note below asks for that to be read before anything is
+restarted. Switching diagnostics on is still worth doing: it covers an ordinary
+disable or removal, and it makes the in-session record fuller. It is not a trap
+set for the disappearance, and this release does not claim it is.
+
+**If the sitter disappears from Tools → Add-ons, do these two things in this
+order.** First, before restarting anything, open Tools → Developer → Run
+JavaScript and evaluate
+`JSON.stringify(Zotero.SDTPackSitterJournal.tail(200))`, copy the result, and
+report it. Second, and only then, restart Zotero and install the add-on again.
+The order is the whole of the instruction: that object lives only as long as the
+Zotero **process**, the restart destroys it, and in this failure it is the only
+record there is. With the diagnostics switch on, the same records are also in
+`sdt-sitter-last-shutdown.json` for an ordinary disable or removal, which
+survives the restart; in the disappearance, and with the switch off, the live
+read is the only copy.
+
+**One limitation declared rather than discovered.** The supervision panel is not
+qualified accessible: keyboard operation, focus restoration, screen-reader
+behaviour in a real reader and layout at enlarged font sizes have not been
+verified in a real window, and no unit test takes those readings
+(ticket [0769](../../tickets/0769-verify-sitter-panel-keyboard-and-screen-r.erg),
+ruled 2026-09-11).
 
 Implementation and host-mock verification are recorded in
-[the scheduling report](../../verification/SDT-SITTER-EVENTS.md). This draft does
-not claim a live-profile deployment or a published release.
+[the scheduling report](../../verification/SDT-SITTER-EVENTS.md). What a live
+profile shows, installed from this release's own asset rather than from a file
+carried by hand, belongs to the announcement that accompanies the tag and is
+written from the run rather than from the plan.
 
 The experimental scope and operational limitations are recorded in
 [the launch report](../../verification/SDT-SITTER-LAUNCH.md).
