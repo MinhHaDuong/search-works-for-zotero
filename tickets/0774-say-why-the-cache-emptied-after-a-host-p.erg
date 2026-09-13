@@ -2,12 +2,12 @@
 Title: Say why the cache emptied after a host processor change
 Created: 2026-09-12
 Author: claude
-Blocked-by: 0771
 
 --- log ---
 2026-09-12T09:02Z claude created
 
 2026-09-12T09:07Z claude note filed from the lifecycle audit (F5). Blocked-by 0771: the skipped-row count is read in the cache loop 0771 edits, and 0771 adds a second occasion for the same silence
+2026-09-13T09:17Z MinhHaDuong note blocker 0771 closed — Blocked-by removed.
 --- body ---
 
 ## Context

@@ -73,7 +73,7 @@ for the next pass, and a pass that finished with attachments it could not index
 — the last pointing at the "Not indexed" list, where each obstacle already
 carries its own explanation.
 
-Ticket [0771](../../tickets/0771-the-sitter-lifecycle-record-the-reason-i.erg)
+Ticket [0771](../../tickets/closed/0771-the-sitter-lifecycle-record-the-reason-i.erg)
 records what the host says when it starts the add-on, as the log has recorded
 what it says when it stops it since ticket 0689: an install, an enable, an
 upgrade or a downgrade is now named on the way in as well as on the way out, so

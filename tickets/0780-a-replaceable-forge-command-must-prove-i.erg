@@ -2,12 +2,12 @@
 Title: A replaceable forge command must prove it looked before its silence is an empty enumeration
 Created: 2026-09-12
 Author: claude
-Blocked-by: 0779
 
 --- log ---
 2026-09-12T10:00Z claude created
 
 2026-09-12T10:02Z claude note Filed as the verification seat's residual on PR #533 (0779), APPROVED round 1 with zero blockers; the seat recorded this as non-blocking and the raid convention bundles the TICKET onto the spawning PR, never the fix, so nothing here is implemented on that branch. Reproduced independently before filing rather than taken on the seat's word: SITTER_FORGE_COMMAND pointed at a script that exits 0 and prints nothing, and the guard answered 'OK (rule 3): 0 open pull-request head(s) read' and exited 0 -- byte for byte the seat's own observation. Boundary as it stands: the shipped bench/forge_open_prs.py keeps its guarantee (an empty enumeration only after a 200 whose body parsed as a JSON array of integer-numbered objects, which the seat verified for that file specifically); the override does not, because the guard cannot see inside an executable another workshop wrote. Blocked-by 0779: rule 3 and the extension point it hangs on are unmerged, and this ticket edits both. Five options named in the body and none chosen, accepting-and-documenting among them; the decision is the work.
+2026-09-13T09:17Z MinhHaDuong note blocker 0779 closed — Blocked-by removed.
 --- body ---
 
 ## Context
