@@ -2874,8 +2874,76 @@ function shutdown(data, reason) {
     delete Zotero.SDTPackSitter;
   } finally {
     const named = nameBootstrapReason(reason);
+    /* Consent withdrawn, on the uninstall reason and on no other. Ruled
+       2026-09-12 on ticket 0772, implemented as ticket 0773's Action 2.
+
+       The switch is the answer to the first-run question, which is the consent
+       record for a background process that reads the whole library. Removing
+       the add-on is the plainest withdrawal of that consent a user can perform,
+       and before this line the answer simply stood: a profile that said yes,
+       removed the add-on and installed it again resumed indexing without being
+       asked.
+
+       WRITTEN `false`, NOT CLEARED, and the two are different states rather
+       than two spellings of one. `readSDTSwitch` is a tri-state whose `null`
+       means never answered and is the ONLY value that prompts, so clearing it
+       would re-open a question already answered -- the rejected option (1) of
+       0772. `false` starts the next installation in the state the plugin
+       already treats as one it RUNS in: entry and window present, "off" in
+       plain words, reversible at one click.
+
+       THE REASON GATE IS NOT the certificate writer's a few lines below, and
+       must not be made to match it. That one fires on `disable` AND
+       `uninstall`, because a disable is where its evidence is wanted. Here a
+       disable is the recovery path a user reaches for to quiet a hang, and an
+       app-shutdown is every ordinary quit; withdrawing consent on either would
+       stop indexing on a machine whose owner never asked for that, silently,
+       and it would look exactly like the plugin having decided on its own.
+       Upgrade and downgrade are likewise not removals.
+
+       ONE STATE THIS DOES NOT SEPARATE, flagged rather than settled. A profile
+       removed BEFORE the question was ever answered still reads `null`, and
+       this writes `false` over it — so "never answered" becomes "answered no",
+       and a later reinstall starts off without ever being asked. The ruling of
+       2026-09-12 speaks only of a profile that HAD answered, and both outcomes
+       are safe in the direction that matters, since neither indexes without
+       consent. Written unconditionally because that is what 0773's Action 2
+       says; the alternative is one `readSDTSwitch() !== null` away and is the
+       author's call. The test arm beside the others pins whichever is current,
+       so changing it has to be a deliberate edit rather than a drift.
+
+       BEFORE the seal, deliberately. `writeSDTSwitch` emits, and `emit` drops
+       everything once `sealed` is true, so the withdrawal would otherwise be
+       the one switch change that never reached the journal. In front of the
+       shutdown record rather than behind it, which keeps the seal's own
+       invariant -- the shutdown record is last -- while still making the last
+       thing the plugin did readable inside the certificate that carries the
+       ring. `writeSDTSwitch` guards its own write, so a preference that will
+       not persist cannot throw into a teardown that is already unwinding. */
+    if (named === 'uninstall') writeSDTSwitch(false);
     emit('shutdown', { reason: named });
     sealed = true;
+    // The shutdown record is the last thing written, and this is what keeps the
+    // ring holding it reachable afterwards. Guarded for the same reason emit()
+    // is: a teardown already halfway through a throw must not acquire a second.
+    //
+    // Except on the one reason that is not a recovery. Republishing the ring is
+    // ticket 0703's rule: disable is what a user reaches for to recover from a
+    // hang, and it removed the only way in to the evidence of what was being
+    // recovered from. An UNINSTALL is the opposite -- there is no next
+    // activation to read the ring, no window left to copy it from, and the two
+    // handles would keep this sandbox reachable for the rest of the session
+    // while the diagnostics payload stayed copyable for an add-on no longer
+    // installed. So on that reason alone both go, the cache-write chain
+    // included: it is shared across scopes so a REPLACEMENT's first write cannot
+    // interleave with the outgoing build's last, and an uninstall has no
+    // successor to serialize against. Ticket 0771.
+    try {
+      if (named === 'uninstall') {
+        delete Zotero.SDTPackSitterJournal;
+        delete Zotero.SDTPackSitterCacheWrite;
+      } else if (journal) Zotero.SDTPackSitterJournal = journal;
+    } catch (_error) { /* Nothing. */ }
     // The shutdown record is the last thing written, and this is what keeps the
     // ring holding it reachable afterwards. Guarded for the same reason emit()
     // is: a teardown already halfway through a throw must not acquire a second.

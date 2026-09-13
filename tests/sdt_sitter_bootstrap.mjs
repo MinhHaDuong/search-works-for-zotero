@@ -802,6 +802,110 @@ await test('an uninstall writes one too, and an ordinary quit does not', async (
   assert.deepEqual(quit.calls.putContents, []);
 });
 
+/* --------------------------------------------------------------------------
+   Consent, and what a removal does to it. Ruled 2026-09-12 on ticket 0772,
+   implemented as ticket 0773's Action 2.
+
+   The switch is the consent record for a background process that reads the
+   whole library, so the direction of this is the one least affordable to get
+   wrong. `false` and unset are DIFFERENT states and the difference is the
+   whole ruling: unset re-opens a question already answered, `false` withdraws
+   the consent without re-asking. The reason gate matters just as much in the
+   other direction — turning the switch off on every quit would stop indexing
+   on a machine whose owner never asked for that.
+   -------------------------------------------------------------------------- */
+const ENABLED_PREF = 'extensions.sdt-pack-sitter.enabled';
+
+await test('an uninstall withdraws the indexing consent; a disable, a quit and an upgrade do not', async () => {
+  const uninstalled = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+    prefs: { [ENABLED_PREF]: true } });
+  await uninstalled.start();
+  uninstalled.context.shutdown(null, 6);
+  assert.equal(uninstalled.context.Zotero.Prefs.get(ENABLED_PREF, true), false,
+    'an uninstall left the indexing consent standing');
+  // Written through writeSDTSwitch, so the withdrawal reaches the journal the
+  // way every other switch change does -- and BEFORE the seal, so it lands in
+  // the ring rather than behind it, and the certificate an operator asked for
+  // in advance carries the last thing the plugin did.
+  const switches = uninstalled.records('switch');
+  assert.equal(switches.at(-1)?.enabled, false, 'the withdrawal never reached the journal');
+  // The shutdown record still comes last: the seal's invariant is that nothing
+  // lands behind it, and this write goes in front of it, not through it.
+  assert.equal(uninstalled.records().at(-1).kind, 'shutdown');
+
+  // The positive control, and the reason this test exists in this shape. A
+  // certificate writer gates on `disable` AND `uninstall` a few lines away, so
+  // copying that gate here is the plausible wrong implementation: it would
+  // pass the arm above and quietly stop indexing on every recovery restart.
+  for (const [label, reason] of [['a disable', 4], ['an ordinary quit', 2],
+    ['an upgrade', 7], ['a downgrade', 8]]) {
+    const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+      prefs: { [ENABLED_PREF]: true } });
+    await harness.start();
+    harness.context.shutdown(null, reason);
+    assert.equal(harness.context.Zotero.Prefs.get(ENABLED_PREF, true), true,
+      `${label} withdrew the indexing consent`);
+    assert.deepEqual(harness.records('switch'), [],
+      `${label} filed a switch change`);
+  }
+});
+
+await test('after an uninstall a reinstall starts stopped, and is not asked the first-run question again', async () => {
+  // The state distinction, driven rather than reasoned about: the profile that
+  // comes back carries exactly what the uninstall left behind and nothing else.
+  const first = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+    prefs: { [ENABLED_PREF]: true } });
+  await first.start();
+  assert.equal(first.calls.prompt, 0, 'an already-answered profile was asked again');
+  first.context.shutdown(null, 6);
+  const left = first.context.Zotero.Prefs.get(ENABLED_PREF, true);
+  assert.equal(left, false);
+
+  const again = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+    prefs: { [ENABLED_PREF]: left } });
+  await again.start();
+  assert.equal(again.calls.prompt, 0, 'the first-run question was asked a second time');
+  assert.equal(again.context.sitter.state.phase, 'switched-off');
+  assert.deepEqual(again.calls.ensure, [],
+    'a reinstall resumed indexing the library without asking');
+  // Off is a state the plugin RUNS in: the entry and the window are there, so
+  // the user can see it is stopped and start it at one click.
+  assert(again.windows[0].document.getElementById('sdt-pack-sitter-button'),
+    'a reinstall left no toolbar entry, so "off" is reachable only from Add-ons');
+
+  // Clearing the pref instead of writing it false is the rejected option (1)
+  // of ticket 0772, and this is what would have caught it: an unset pref is
+  // the tri-state's "never answered" and prompts.
+  const cleared = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  await cleared.start();
+  assert.equal(cleared.calls.prompt, 1,
+    'the arm needs an unset pref to prompt, or it proves nothing about false');
+});
+
+await test('a profile removed before the question was answered is written off too, which nobody has ruled on', async () => {
+  // The one state the 2026-09-12 ruling does not speak to. It talks about a
+  // profile that HAD answered; this is one removed while the answer was still
+  // `null` -- an initialize() that threw before the modal, or one superseded by
+  // a second startup at the generation check. The write is unconditional, so
+  // "never answered" becomes "answered no" and the reinstall is never asked.
+  //
+  // Pinned rather than argued: both outcomes are safe in the direction that
+  // matters, since neither indexes without consent, so this arm exists to make
+  // the behaviour visible and to turn any future change of it into a
+  // deliberate edit of this line rather than a silent consequence.
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  await harness.start();
+  // Back to the tri-state's "never answered", which is the state such a
+  // teardown would actually carry.
+  harness.context.Zotero.Prefs.set(ENABLED_PREF, undefined, true);
+  assert.equal(harness.context.readSDTSwitch(), null,
+    'the arm never reached the unanswered state, so it pins nothing');
+
+  harness.context.shutdown(null, 6);
+  assert.equal(harness.context.Zotero.Prefs.get(ENABLED_PREF, true), false,
+    'the unanswered case changed behaviour; that is a ruling, not a refactor');
+});
+
 await test('the debug switch off writes nothing to disk, on any reason', async () => {
   // SPEC.md's sitter section suppresses failures for the session "without a
   // private durable ledger". The switch is what keeps this a certificate the

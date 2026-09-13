@@ -360,6 +360,33 @@ MUTANTS = [
     ("M49 only a disable is certified, so an uninstall leaves nothing",
      "  if (reason !== 'disable' && reason !== 'uninstall') return;\n",
      "  if (reason !== 'disable') return;\n"),
+    # ---- consent withdrawal, ticket 0773 Action 2 ----------------------------
+    # One mutant per half, as the ticket asks. M49a is the pre-change state: the
+    # write never happens and a reinstall resumes indexing the whole library
+    # without asking. M49b is the plausible wrong gate — the certificate writer
+    # twenty lines away fires on disable AND uninstall, and copying that here
+    # turns the switch off on every recovery restart, which is both wrong and
+    # invisible to the user who did not ask for it.
+    ("M49a an uninstall does not withdraw the indexing consent",
+     "    if (named === 'uninstall') writeSDTSwitch(false);\n",
+     ""),
+    ("M49b a disable withdraws consent too, as the certificate writer's gate does",
+     "    if (named === 'uninstall') writeSDTSwitch(false);\n",
+     "    if (named === 'uninstall' || named === 'disable') writeSDTSwitch(false);\n"),
+    # Cleared rather than written false is the rejected option (1) of ticket
+    # 0772: it reads as never-answered and re-asks the first-run question.
+    ("M49c the consent is cleared instead of written off, so a reinstall is asked again",
+     "    if (named === 'uninstall') writeSDTSwitch(false);\n",
+     "    if (named === 'uninstall') { try { Zotero.Prefs.clear(ENABLED_PREF, true); } catch (_e) { /* */ } }\n"),
+    # Behind the seal the switch record is dropped by emit(), so the withdrawal
+    # never reaches the journal or the certificate that carries it.
+    ("M49d the withdrawal is written behind the seal, where emit() drops it",
+     "    if (named === 'uninstall') writeSDTSwitch(false);\n"
+     "    emit('shutdown', { reason: named });\n"
+     "    sealed = true;\n",
+     "    emit('shutdown', { reason: named });\n"
+     "    sealed = true;\n"
+     "    if (named === 'uninstall') writeSDTSwitch(false);\n"),
     # The envelope names a reason the ring does not, so the certificate and the
     # records inside it can disagree about what happened.
     ("M50 the certificate reports a reason of its own rather than the one Gecko gave",
