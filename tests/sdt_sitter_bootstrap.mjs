@@ -141,6 +141,89 @@ await test('the sitter recovers on the next sweep once the readings come back', 
   assert.equal(harness.context.sitter.state.completed, 2);
 });
 
+/* --------------------------------------------------------------------------
+   The platform split, ruled 2026-09-13 (ticket 0783).
+
+   The two halves are one decision and neither is the test of it alone. Off
+   Linux the guards are SKIPPED, so an add-on that installs there indexes
+   instead of waiting for a reading that will never come; on Linux an
+   unreadable figure still REFUSES, because a missing /proc on a machine that
+   is supposed to have one is a fault and assuming room on a fault is how an
+   eager scheduler takes a machine down. The second arm is the one that catches
+   this being implemented as "treat unavailable as room to proceed", which
+   would pass the first arm and silently invert the Linux path.
+   -------------------------------------------------------------------------- */
+await test('off Linux the memory and load guards are skipped, and the sitter admits work', async () => {
+  const harness = createHarness({
+    attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')],
+    isLinux: false,
+    // Throwers, not absences: the platform test has to come BEFORE the read,
+    // so reaching either of these at all is the defect. A stub that returned a
+    // plausible figure would let a skip-by-catch implementation pass.
+    meminfo: () => { throw new Error('/proc/meminfo does not exist on this platform'); },
+    loadavg: () => { throw new Error('/proc/loadavg does not exist on this platform'); },
+  });
+  await harness.start();
+
+  assert.deepEqual(harness.calls.ensure, [1, 2], 'an off-Linux profile admitted nothing');
+  assert.equal(harness.context.sitter.state.phase, 'waiting');
+  assert.equal(harness.context.sitter.state.completed, 2);
+  assert.equal(harness.calls.meminfo, 0, '/proc/meminfo was read off Linux');
+  assert.equal(harness.calls.loadavg, 0, '/proc/loadavg was read off Linux');
+  // Not read, not failed, not treated as unavailable: a skip is not a refusal,
+  // so nothing is filed as one and the panel shows no error.
+  assert.deepEqual(harness.records('refuse'), [], 'a skipped guard was filed as a refusal');
+  assert.equal(harness.context.sitter.state.error, null);
+  // The reading that was not taken is absent from the panel rather than
+  // printed as a zero, which would read as a measurement of an empty machine.
+  assert(!harness.context.describeSDTAdmission().includes('Memory available'),
+    'the panel printed a memory reading nobody took');
+});
+
+await test('off Linux the free-disk guard still applies', async () => {
+  // The half of the ruling that is NOT "skip the resource guards". The storage
+  // checks reach the volume through host APIs that answer on every platform,
+  // so nothing about them depends on procfs and skipping them would remove a
+  // working protection on the two platforms least tested.
+  const harness = createHarness({
+    attachments: [pdf(1, 'AAAA1111')],
+    isLinux: false, diskAvailable: 1024,
+    meminfo: () => { throw new Error('/proc/meminfo does not exist on this platform'); },
+    loadavg: () => { throw new Error('/proc/loadavg does not exist on this platform'); },
+  });
+  await harness.start();
+  assert.equal(harness.context.sitter.state.phase, 'low-disk',
+    'the free-disk guard was skipped off Linux along with the procfs ones');
+  assert.deepEqual(harness.calls.ensure, []);
+});
+
+await test('on Linux, and on any platform the host will not name, an unreadable figure still refuses', async () => {
+  // Three arms, one property: the platform decides whether to LOOK, and a
+  // failed look is still a fault. `undefined` and a throwing read are the two
+  // indefinite answers and both take the stricter path, because the direction
+  // that can still refuse is the safe one to be wrong in.
+  const arms = [
+    { label: 'Linux', options: { isLinux: true } },
+    { label: 'a host that does not say', options: { isLinux: undefined } },
+    { label: 'a host whose platform read throws', options: { isLinuxThrows: true } },
+  ];
+  for (const arm of arms) {
+    const harness = createHarness({
+      attachments: [pdf(1, 'AAAA1111')],
+      ...arm.options,
+      meminfo: () => { throw new Error('/proc/meminfo is unreadable'); },
+    });
+    await harness.start();
+    assert.equal(harness.context.sitter.state.phase, 'resources-unavailable', arm.label);
+    assert.deepEqual(harness.calls.ensure, [],
+      `${arm.label}: a document was admitted on a reading that failed`);
+    assert.equal(harness.calls.meminfo, 1, `${arm.label}: the guard was skipped`);
+    const refusals = harness.records('refuse');
+    assert.equal(refusals.length, 1, arm.label);
+    assert.equal(refusals[0].reason, 'resources-unavailable', arm.label);
+  }
+});
+
 await test('a resource refusal backs off to the idle cadence, not the active one', async () => {
   // Found live, never ticketed: two full censuses eight minutes apart, both
   // correctly refused cpu-busy, neither one backed off -- the sitter was
@@ -800,6 +883,124 @@ await test('an uninstall writes one too, and an ordinary quit does not', async (
   quit.context.shutdown(null, 2);
   assert.equal(quit.files.text(CERTIFICATE), null, 'an ordinary quit wrote a certificate');
   assert.deepEqual(quit.calls.putContents, []);
+});
+
+/* --------------------------------------------------------------------------
+   Consent, and what a removal does to it. Ruled 2026-09-12 on ticket 0772,
+   implemented as ticket 0773's Action 2.
+
+   The switch is the consent record for a background process that reads the
+   whole library, so the direction of this is the one least affordable to get
+   wrong. `false` and unset are DIFFERENT states and the difference is the
+   whole ruling: unset re-opens a question already answered, `false` withdraws
+   the consent without re-asking. The reason gate matters just as much in the
+   other direction — turning the switch off on every quit would stop indexing
+   on a machine whose owner never asked for that.
+   -------------------------------------------------------------------------- */
+const ENABLED_PREF = 'extensions.sdt-pack-sitter.enabled';
+
+await test('an uninstall withdraws the indexing consent; a disable, a quit and an upgrade do not', async () => {
+  const uninstalled = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+    prefs: { [ENABLED_PREF]: true } });
+  await uninstalled.start();
+  uninstalled.context.shutdown(null, 6);
+  assert.equal(uninstalled.context.Zotero.Prefs.get(ENABLED_PREF, true), false,
+    'an uninstall left the indexing consent standing');
+  // Written through writeSDTSwitch, so the withdrawal reaches the journal the
+  // way every other switch change does -- and BEFORE the seal, so it lands in
+  // the ring rather than behind it, and the certificate an operator asked for
+  // in advance carries the last thing the plugin did.
+  const switches = uninstalled.records('switch');
+  assert.equal(switches.at(-1)?.enabled, false, 'the withdrawal never reached the journal');
+  // The shutdown record still comes last: the seal's invariant is that nothing
+  // lands behind it, and this write goes in front of it, not through it.
+  assert.equal(uninstalled.records().at(-1).kind, 'shutdown');
+
+  // The positive control, and the reason this test exists in this shape. A
+  // certificate writer gates on `disable` AND `uninstall` a few lines away, so
+  // copying that gate here is the plausible wrong implementation: it would
+  // pass the arm above and quietly stop indexing on every recovery restart.
+  for (const [label, reason] of [['a disable', 4], ['an ordinary quit', 2],
+    ['an upgrade', 7], ['a downgrade', 8]]) {
+    const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+      prefs: { [ENABLED_PREF]: true } });
+    await harness.start();
+    harness.context.shutdown(null, reason);
+    assert.equal(harness.context.Zotero.Prefs.get(ENABLED_PREF, true), true,
+      `${label} withdrew the indexing consent`);
+    assert.deepEqual(harness.records('switch'), [],
+      `${label} filed a switch change`);
+  }
+});
+
+await test('after an uninstall a reinstall starts stopped, and is not asked the first-run question again', async () => {
+  // The state distinction, driven rather than reasoned about: the profile that
+  // comes back carries exactly what the uninstall left behind and nothing else.
+  const first = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+    prefs: { [ENABLED_PREF]: true } });
+  await first.start();
+  assert.equal(first.calls.prompt, 0, 'an already-answered profile was asked again');
+  first.context.shutdown(null, 6);
+  const left = first.context.Zotero.Prefs.get(ENABLED_PREF, true);
+  assert.equal(left, false);
+
+  const again = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+    prefs: { [ENABLED_PREF]: left } });
+  await again.start();
+  assert.equal(again.calls.prompt, 0, 'the first-run question was asked a second time');
+  assert.equal(again.context.sitter.state.phase, 'switched-off');
+  assert.deepEqual(again.calls.ensure, [],
+    'a reinstall resumed indexing the library without asking');
+  // Off is a state the plugin RUNS in: the entry and the window are there, so
+  // the user can see it is stopped and start it at one click.
+  assert(again.windows[0].document.getElementById('sdt-pack-sitter-button'),
+    'a reinstall left no toolbar entry, so "off" is reachable only from Add-ons');
+
+  // Clearing the pref instead of writing it false is the rejected option (1)
+  // of ticket 0772, and this is what would have caught it: an unset pref is
+  // the tri-state's "never answered" and prompts.
+  const cleared = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  await cleared.start();
+  assert.equal(cleared.calls.prompt, 1,
+    'the arm needs an unset pref to prompt, or it proves nothing about false');
+});
+
+await test('a profile removed before the question was answered keeps null, and is asked again', async () => {
+  // You cannot withdraw consent that was never given. Ruled 2026-09-13, on the
+  // ambiguity the first implementation of Action 2 surfaced: the ruling of
+  // 2026-09-12 speaks only of a profile that HAD answered, and this is one
+  // removed while the answer was still `null` -- an initialize() that threw
+  // before the modal, or one superseded by a second startup at the generation
+  // check.
+  //
+  // Writing `false` over that `null` converts "never answered" into
+  // "declined", and since `null` is the only value that prompts, it suppresses
+  // the first-run question for ever for someone who simply never answered it.
+  // Both outcomes are safe against indexing without consent; this one is safe
+  // without also putting an answer in the user's mouth.
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  await harness.start();
+  // Back to the tri-state's "never answered", which is the state such a
+  // teardown would actually carry.
+  harness.context.Zotero.Prefs.set(ENABLED_PREF, undefined, true);
+  assert.equal(harness.context.readSDTSwitch(), null,
+    'the arm never reached the unanswered state, so it pins nothing');
+  // The launch prompt's own answer is already in the ring; what this arm is
+  // about is whether the TEARDOWN adds a second one.
+  const before = harness.records('switch').length;
+
+  harness.context.shutdown(null, 6);
+  assert.equal(harness.context.readSDTSwitch(), null,
+    'an uninstall withdrew a consent that had never been given');
+  assert.equal(harness.records('switch').length, before,
+    'a switch change was journalled for a switch nobody had set');
+
+  // The consequence that makes it worth ruling on: the profile that comes back
+  // is asked, rather than starting silently off with no way of knowing why.
+  const again = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  await again.start();
+  assert.equal(again.calls.prompt, 1,
+    'a reinstall of a never-answered profile was not asked the question');
 });
 
 await test('the debug switch off writes nothing to disk, on any reason', async () => {

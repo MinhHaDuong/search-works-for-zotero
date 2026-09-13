@@ -19,6 +19,21 @@ build a search index or isolate a stuck native worker. Coverage describes the
 last observed state; preparation depends on local files, available resources
 and successful native extraction.
 
+**It has only ever been run on Linux, and two of its three resource checks work
+only there.** Before starting any extraction the sitter looks at available
+memory and at the machine's load average, and it reads both from `/proc`, which
+is a Linux interface that macOS and Windows do not have. On those two platforms
+those checks are skipped rather than failed (decided 2026-09-13, ticket
+[0783](../../tickets/0783-skip-the-resource-guards-off-linux-and-d.erg)): the
+sitter will index, but it will not hold back because the machine is short of
+memory or already busy. The free-disk check still applies everywhere. Nobody
+has run this add-on on macOS or Windows, no test here takes a reading on
+either, and the paragraph above is a statement about what the code does rather
+than a report of it working — so if you install it on one of them, treat it as
+untested and watch what it does to a machine you are using for something else.
+On Linux nothing changes: a resource figure that cannot be read still stops
+admission rather than being assumed away.
+
 Installing the sitter causes one outbound request, and the plugin is not what
 makes it. `manifest.json` declares an update manifest served from this
 repository's `main` branch on `raw.githubusercontent.com`, and Zotero's own
@@ -100,18 +115,25 @@ evening on one machine, and once more, uninstrumented, two days later. The cause
 is not established, and it is tracked in ticket
 [0727](../../tickets/0727-the-sitter-uninstalls-itself-update-url.erg).
 
-How a removal should leave the indexing switch was decided on 2026-09-12
-(ticket [0772](../../tickets/0772-does-an-uninstall-withdraw-the-sitter-in.erg)):
-off rather than unset, so that installing again starts stopped, with the toolbar
-entry and window present and one click to start, and without asking the
-first-run question a second time. **That decision is not in this build.**
-`writeSDTSwitch` is called from the launch prompt and from the panel switch and
-from nowhere else; `uninstall()` is empty. So today the answer simply persists —
-a profile that had indexing on, removes the add-on and installs it again resumes
-indexing without asking. The write is ticket
+How a removal leaves the indexing switch was decided on 2026-09-12
+(ticket [0772](../../tickets/0772-does-an-uninstall-withdraw-the-sitter-in.erg)),
+and this build has it: removing the add-on leaves the switch off rather than
+unset, so that installing again starts stopped, with the toolbar entry and
+window present and one click to start, and without asking the first-run question
+a second time. The write is ticket
 [0773](../../tickets/0773-an-uninstall-removes-the-sitter-own-dura.erg)'s
-Action 2 and has not been made. It is recorded here because a decision is not a
-behaviour, and this file states behaviour.
+Action 2.
+
+It withdraws an answer that was given, and only that. A profile removed before
+the first-run question was ever answered keeps it unanswered, and is asked again
+on the next install: the question is put whenever the answer is absent, not once
+per installation. A ruling of 2026-09-13 settled that case.
+
+Removal is the only reason that touches the switch. Disabling the add-on,
+quitting Zotero, and upgrading or downgrading in place all leave the recorded
+answer as it stands. The withdrawal also depends on Zotero telling the add-on it
+is being removed; the disappearance described above is not such a removal, and
+nothing is written then.
 
 With technical diagnostics switched on, the sitter writes one more file: when
 Zotero **tells** it that it is being disabled or removed, it records what it was
@@ -266,6 +288,24 @@ unreadable resource figure refuses admission rather than assuming it. These are
 admission guards, not caps: they decide whether to start, and nothing about a
 document already running. The thresholds and the rest of the policy are owned by
 [SPEC.md's R22 design paragraph](../../SPEC.md).
+
+Two of those three guards are Linux-only, and the sentence above about an
+unreadable figure is a Linux sentence. Memory and load come from `/proc`, so on
+macOS and Windows they are skipped — not read, not failed, not counted as
+unavailable — and the sitter admits work without them. The distinction is drawn
+on the platform rather than on whether a reading can be taken, and that is
+deliberate: keying it on the read would also grant admission on a Linux machine
+whose `/proc` had become unreadable, where a failed reading is a fault and
+assuming room on a fault is how an eager scheduler takes a machine down. A
+platform the host will not name is treated as Linux, which keeps the stricter
+behaviour where the answer is uncertain. The free-disk guard reaches the volume
+through host APIs that answer everywhere and is not part of the split. Decided
+2026-09-13, ticket
+[0783](../../tickets/0783-skip-the-resource-guards-off-linux-and-d.erg); for
+the nearest prior art, Zotero's own #6012 reads its memory figure through
+`Zotero.Embeddings.Diagnostics.getAvailableMemory()`, returns 0 when the
+platform cannot say, and treats 0 as room to proceed on every platform — we
+take that posture only where the platform genuinely cannot answer.
 
 Admission is also the *only* control point available, which is the experiment's
 sharpest limit rather than an implementation shortcut. The generation entry

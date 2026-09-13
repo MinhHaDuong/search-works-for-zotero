@@ -7543,3 +7543,108 @@ indexing switch off (0772), and the sitter's durable state is not yet removed on
 uninstall (0773). Under the standing rule of the same day — we promise what we
 have tested, and nothing else — shipping a document that stated either as
 behaviour would have been the defect that rule exists to prevent.
+
+**2026-09-13 — RULED: disclose the Linux dependency, and SKIP the resource
+guards on an unsupported platform rather than letting them refuse.** The
+author, during the 0.4.0 release pass, on ticket 0783, in his own words:
+"Disclose and skip resource guards on unsupported platform."
+
+**What the defect was.** The admission policy reads `/proc/meminfo` and
+`/proc/loadavg` directly. On macOS and Windows those paths do not exist, every
+read throws, the catch returns `resources-unavailable`, and the sitter refuses
+admission forever — an add-on that installs cleanly and then indexes nothing,
+showing a permanent waiting-for-resources state. `manifest.json` declared no
+platform restriction and `RELEASE-NOTES.md` contained no occurrence of "Linux",
+so neither the installer nor the user was told. This is a source reading, not a
+measured outcome: no macOS or Windows run exists anywhere in this repository's
+record, and the disclosure says so rather than claiming either platform works.
+
+**The axis, and it is the whole of the ruling.** The behaviour is keyed on the
+PLATFORM, never on the read failure. On Linux an unreadable or unparseable
+figure still REFUSES, exactly as before: a missing `/proc/meminfo` on a platform
+that is supposed to have one is a fault, and assuming room on a fault is how an
+eager scheduler takes a machine down. Off Linux the guards are not read at all —
+not read, not failed, not treated as unavailable. Implementing this as "treat
+unavailable as room to proceed" would silently change the Linux path too, which
+is the opposite of what was ruled, so the two cases are separated at the
+platform test and never meet. The nearest prior art is Zotero's own #6012,
+which returns 0 when the platform cannot say and treats 0 as room to proceed —
+a fail-open default on every platform. We adopt that posture only where the
+platform genuinely cannot answer.
+
+**An unknown platform is treated as Linux.** `Zotero.isLinux` is read through a
+guard, and a read that throws or answers anything but a definite `false` takes
+the procfs path. The conservative direction is the one that can still refuse:
+attempting the guards on a machine that turns out not to have procfs reproduces
+today's behaviour, where skipping them on a machine that does have it would
+discard a real protection on the strength of a failed read — the exact
+substitution the paragraph above forbids.
+
+**Only the two procfs guards are skipped; the disk guard is not.** Ticket
+0783's Action 4 says "memory, load or disk", and that is wider than the defect
+it was written for. The storage checks reach the volume through
+`Zotero.File.pathToFile`, `isWritable()` and `diskSpaceAvailable`, which answer
+on every platform Zotero runs on; nothing about them depends on procfs, and
+none of them is why an off-Linux profile refuses forever. Skipping a guard that
+works would remove a protection for no reason and let an eager scheduler fill a
+user's disk on the two platforms least tested. So the split is drawn at the
+procfs boundary rather than at the word "resources", and the disclosure states
+what was actually done: memory and load are unchecked off Linux, free disk
+space is still checked everywhere. The rejected alternative is the literal
+reading of Action 4, and it is rejected on the merits rather than on effort.
+
+**What does not move.** The thresholds themselves — 4 GiB available memory,
+8 GiB free disk, load below the reported core count — are untouched, and so is
+every Linux code path, including the unreadable case. `manifest.json` still
+carries no platform restriction: with the guards skipped the add-on is expected
+to FUNCTION off Linux, which argues against restricting it, and nobody has run
+it there, which argues for. That question is Action 5 of 0783 and is the
+author's, left open here rather than settled in passing.
+
+**2026-09-13 — RULED: an uninstall withdraws only consent that was actually
+given. A profile that never answered the first-run question keeps `null`, and
+is asked again on a reinstall.** The author, on the ambiguity the
+implementation of 0773's Action 2 surfaced and flagged rather than decided.
+
+**What this resolves, and it is a resolution rather than a new rule.** The
+ruling of 2026-09-12 above speaks throughout of a profile that HAD answered —
+"a profile that removes the add-on and installs it again", "the answer that
+matters after a removal is not yes but not until you say so". It says nothing
+about a profile removed BEFORE the question was ever answered, which is
+reachable: an `initialize()` that threw before the modal, or one superseded at
+the generation check, leaves the preference unset. Writing `false` over that
+`null` was the literal reading of Action 2 and it is now retired.
+
+**Why the extra prompt is the cheaper mistake.** You cannot withdraw consent
+that was never given. Writing `false` over `null` converts "never answered"
+into "declined", and because `null` is the only value that prompts, it
+suppresses the first-run question for ever for someone who simply never got
+round to answering it — a user who would then have to find the switch in a
+window they were never told about. Both outcomes are safe against the thing
+that matters, since neither indexes without consent; this one is safe without
+also putting an answer in the user's mouth.
+
+**Where it lands.** `shutdown()` writes the switch off on the uninstall reason
+only where `readSDTSwitch()` is not `null`. The test arm that pinned the old
+behaviour is inverted rather than deleted, so the case stays covered in
+whichever direction it is ruled, and a mutant drops the guard.
+
+**2026-09-13 — RULED: the sitter ships with NO platform restriction in
+`manifest.json`; the Linux dependency is disclosed and nothing more.** The
+author, settling Action 5 of ticket 0783, which the implementing change left
+open for him.
+
+**The reasoning.** With the procfs guards skipped the add-on is expected to
+FUNCTION off Linux, so a `strict` platform key would refuse installation of
+something that should work — blocking a user from a build that would serve
+them, to protect them from a limitation the notes already name. The two facts a
+prospective installer needs are that the memory and load checks are absent
+there and that neither macOS nor Windows has been run, and `RELEASE-NOTES.md`
+carries both, in the installer-facing half rather than the appendix.
+
+**What this is not.** It is not a claim that either platform works, and it does
+not widen any declared range — the `10.*` host ceiling and the standing rule of
+2026-09-12, that we promise what we have tested and nothing else, are both
+untouched. A platform key would be a statement about what has been RUN, and
+nothing has been run there; its absence is the honest state, with the
+disclosure carrying what a reader needs.

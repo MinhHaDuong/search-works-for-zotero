@@ -63,11 +63,38 @@ MUTANTS = [
     # returned, so the diagnostics panel can say how far from the threshold the
     # gate was even on a healthy sitter. Moved below the check, the panel is blank
     # in exactly the state it is opened to explain.
+    # Re-indented by ticket 0783, which put the procfs reads inside a platform
+    # test; the mutation is unchanged.
     ("M2 the admission reading is recorded only on the refusing branch",
-     "      admission = { at: monotonic(), memoryAvailableBytes: available };\n"
-     "      if (!Number.isFinite(available)) return 'resources-unavailable';\n",
-     "      if (!Number.isFinite(available)) return 'resources-unavailable';\n"
-     "      admission = { at: monotonic(), memoryAvailableBytes: available };\n"),
+     "        admission = { at: monotonic(), memoryAvailableBytes: available };\n"
+     "        if (!Number.isFinite(available)) return 'resources-unavailable';\n",
+     "        if (!Number.isFinite(available)) return 'resources-unavailable';\n"
+     "        admission = { at: monotonic(), memoryAvailableBytes: available };\n"),
+    # ---- the platform split, ticket 0783 -------------------------------------
+    # One mutant per half, because either half alone is a wrong implementation
+    # that passes the other half's test. M2a is the whole defect the ticket was
+    # filed for: the guards are read on every platform, so an off-Linux profile
+    # refuses for ever. M2b is the substitution the ruling explicitly forbids —
+    # keying on the read rather than on the platform — which grants admission
+    # on a Linux machine whose /proc could not be read.
+    ("M2a the procfs guards are read on every platform, so an off-Linux profile refuses for ever",
+     "      if (readsProcfs()) {\n",
+     "      if (true) {\n"),
+    ("M2b the skip is keyed on the read failing rather than on the platform",
+     "  try { return Zotero.isLinux !== false; }\n"
+     "  catch (_error) { return true; }\n",
+     "  try { return Zotero.isLinux !== false; }\n"
+     "  catch (_error) { return false; }\n"),
+    # An indefinite answer must keep the stricter behaviour: `undefined` from a
+    # host that does not say is not a licence to skip.
+    ("M2c a host that does not name its platform is treated as not-Linux",
+     "  try { return Zotero.isLinux !== false; }\n",
+     "  try { return Zotero.isLinux === true; }\n"),
+    # The disk guard is NOT part of the split; skipping it with the procfs ones
+    # would remove a working protection on the two least-tested platforms.
+    ("M2d the free-disk guard is skipped off Linux along with the procfs ones",
+     "      let directory = info.directory;\n",
+     "      if (!readsProcfs()) return null;\n      let directory = info.directory;\n"),
 
     # ---- the cache file, as the next session finds it ------------------------
     ("M3 one corrupt cache row aborts the whole load instead of being skipped",
@@ -360,6 +387,40 @@ MUTANTS = [
     ("M49 only a disable is certified, so an uninstall leaves nothing",
      "  if (reason !== 'disable' && reason !== 'uninstall') return;\n",
      "  if (reason !== 'disable') return;\n"),
+    # ---- consent withdrawal, ticket 0773 Action 2 ----------------------------
+    # One mutant per half, as the ticket asks. M49a is the pre-change state: the
+    # write never happens and a reinstall resumes indexing the whole library
+    # without asking. M49b is the plausible wrong gate — the certificate writer
+    # twenty lines away fires on disable AND uninstall, and copying that here
+    # turns the switch off on every recovery restart, which is both wrong and
+    # invisible to the user who did not ask for it.
+    ("M49a an uninstall does not withdraw the indexing consent",
+     "    if (named === 'uninstall' && readSDTSwitch() !== null) writeSDTSwitch(false);\n",
+     ""),
+    ("M49b a disable withdraws consent too, as the certificate writer's gate does",
+     "    if (named === 'uninstall' && readSDTSwitch() !== null) writeSDTSwitch(false);\n",
+     "    if (named === 'uninstall' || named === 'disable') writeSDTSwitch(false);\n"),
+    # Cleared rather than written false is the rejected option (1) of ticket
+    # 0772: it reads as never-answered and re-asks the first-run question.
+    ("M49c the consent is cleared instead of written off, so a reinstall is asked again",
+     "    if (named === 'uninstall' && readSDTSwitch() !== null) writeSDTSwitch(false);\n",
+     "    if (named === 'uninstall') { try { Zotero.Prefs.clear(ENABLED_PREF, true); } catch (_e) { /* */ } }\n"),
+    # You cannot withdraw a consent that was never given. Ruled 2026-09-13:
+    # dropping the guard writes `false` over the tri-state's `null`, which turns
+    # "never answered" into "declined" and suppresses the first-run question for
+    # ever on a profile that simply never answered it.
+    ("M49e consent is withdrawn from a profile that never gave it",
+     "    if (named === 'uninstall' && readSDTSwitch() !== null) writeSDTSwitch(false);\n",
+     "    if (named === 'uninstall') writeSDTSwitch(false);\n"),
+    # Behind the seal the switch record is dropped by emit(), so the withdrawal
+    # never reaches the journal or the certificate that carries it.
+    ("M49d the withdrawal is written behind the seal, where emit() drops it",
+     "    if (named === 'uninstall' && readSDTSwitch() !== null) writeSDTSwitch(false);\n"
+     "    emit('shutdown', { reason: named });\n"
+     "    sealed = true;\n",
+     "    emit('shutdown', { reason: named });\n"
+     "    sealed = true;\n"
+     "    if (named === 'uninstall' && readSDTSwitch() !== null) writeSDTSwitch(false);\n"),
     # The envelope names a reason the ring does not, so the certificate and the
     # records inside it can disagree about what happened.
     ("M50 the certificate reports a reason of its own rather than the one Gecko gave",

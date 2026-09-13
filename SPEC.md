@@ -2,7 +2,7 @@
 
 - **Status:** COMPLETE
 - **Author:** Minh Ha-Duong (CNRS)
-- **Date:** 2026-09-12
+- **Date:** 2026-09-13
 
 ## 1. Introduction
 
@@ -2263,11 +2263,21 @@ Zotero may finish and persist its native pack; neither cancels that work or
 authorizes a queued library-wide drain. This graceful stop does not relax the
 separate obligation to avoid interfering with native work.
 
-Removing the add-on leaves that switch OFF rather than unanswered (ruled
-2026-09-12). A profile that reinstalls therefore starts in the state above —
+Removing the add-on withdraws the consent it was given, and only that (ruled
+2026-09-12, and refined 2026-09-13 on the case the first ruling did not reach).
+Where the first-run question HAD been answered, removal leaves that switch OFF
+rather than unanswered: a profile that reinstalls starts in the state above —
 entry and window present, indexing stopped, reversible at one click — and is
-not asked the first-run question a second time. Withdrawing the add-on
-withdraws the consent to index; it does not re-open a question already answered.
+not asked the question a second time, because withdrawing the add-on does not
+re-open a question already answered.
+
+Where the question had NEVER been answered, removal leaves the preference
+unanswered, and such a profile IS asked on its next activation. A consent that
+was never given cannot be withdrawn, and recording an answer on the user's
+behalf would suppress the question permanently for someone who had simply not
+reached it. This is not an exception to the once-per-profile rule above but an
+instance of it: that rule turns on finding the preference unanswered, not on
+the add-on being newly installed.
 
 The add-on declares the host versions it runs in, and the declaration is a
 ceiling as well as a floor. A host outside that range leaves the add-on
@@ -2291,6 +2301,20 @@ filesystem. These are checks before admission, not enforced peak resource caps.
 The sitter submits at most one attachment at a time, only to an idle native
 worker, at native background priority. It does not claim independent OS nice
 control or preemption. Unavailable resource readings prevent admission.
+
+The memory and load checks are Linux-only, and the behaviour is keyed on the
+platform rather than on whether a reading can be taken (ruled 2026-09-13). They
+are read from Linux procfs, which macOS and Windows do not have. On Linux an
+unreadable or unparseable figure prevents admission, as the sentence above
+states; off Linux the two checks are not performed at all, and their absence is
+not a resource refusal. A platform the add-on cannot identify is treated as
+Linux, so an indefinite answer keeps the stricter behaviour. The free-disk check
+is not part of this split: it reaches the volume through host APIs that answer
+on every supported platform, and applies everywhere. Off Linux the sitter
+therefore schedules without regard to available memory or machine load, which is
+a disclosed limitation of an untested platform rather than a claim that it has
+been made safe there.
+
 The sitter uses Zotero attachment-change notifications to queue affected
 attachments for inspection, coalescing repeated events. It reconciles the library
 on activation while enabled and every 1 hour thereafter to discover changes
