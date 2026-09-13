@@ -7600,3 +7600,51 @@ carries no platform restriction: with the guards skipped the add-on is expected
 to FUNCTION off Linux, which argues against restricting it, and nobody has run
 it there, which argues for. That question is Action 5 of 0783 and is the
 author's, left open here rather than settled in passing.
+
+**2026-09-13 — RULED: an uninstall withdraws only consent that was actually
+given. A profile that never answered the first-run question keeps `null`, and
+is asked again on a reinstall.** The author, on the ambiguity the
+implementation of 0773's Action 2 surfaced and flagged rather than decided.
+
+**What this resolves, and it is a resolution rather than a new rule.** The
+ruling of 2026-09-12 above speaks throughout of a profile that HAD answered —
+"a profile that removes the add-on and installs it again", "the answer that
+matters after a removal is not yes but not until you say so". It says nothing
+about a profile removed BEFORE the question was ever answered, which is
+reachable: an `initialize()` that threw before the modal, or one superseded at
+the generation check, leaves the preference unset. Writing `false` over that
+`null` was the literal reading of Action 2 and it is now retired.
+
+**Why the extra prompt is the cheaper mistake.** You cannot withdraw consent
+that was never given. Writing `false` over `null` converts "never answered"
+into "declined", and because `null` is the only value that prompts, it
+suppresses the first-run question for ever for someone who simply never got
+round to answering it — a user who would then have to find the switch in a
+window they were never told about. Both outcomes are safe against the thing
+that matters, since neither indexes without consent; this one is safe without
+also putting an answer in the user's mouth.
+
+**Where it lands.** `shutdown()` writes the switch off on the uninstall reason
+only where `readSDTSwitch()` is not `null`. The test arm that pinned the old
+behaviour is inverted rather than deleted, so the case stays covered in
+whichever direction it is ruled, and a mutant drops the guard.
+
+**2026-09-13 — RULED: the sitter ships with NO platform restriction in
+`manifest.json`; the Linux dependency is disclosed and nothing more.** The
+author, settling Action 5 of ticket 0783, which the implementing change left
+open for him.
+
+**The reasoning.** With the procfs guards skipped the add-on is expected to
+FUNCTION off Linux, so a `strict` platform key would refuse installation of
+something that should work — blocking a user from a build that would serve
+them, to protect them from a limitation the notes already name. The two facts a
+prospective installer needs are that the memory and load checks are absent
+there and that neither macOS nor Windows has been run, and `RELEASE-NOTES.md`
+carries both, in the installer-facing half rather than the appendix.
+
+**What this is not.** It is not a claim that either platform works, and it does
+not widen any declared range — the `10.*` host ceiling and the standing rule of
+2026-09-12, that we promise what we have tested and nothing else, are both
+untouched. A platform key would be a statement about what has been RUN, and
+nothing has been run there; its absence is the honest state, with the
+disclosure carrying what a reader needs.

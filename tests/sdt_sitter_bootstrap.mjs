@@ -965,17 +965,19 @@ await test('after an uninstall a reinstall starts stopped, and is not asked the 
     'the arm needs an unset pref to prompt, or it proves nothing about false');
 });
 
-await test('a profile removed before the question was answered is written off too, which nobody has ruled on', async () => {
-  // The one state the 2026-09-12 ruling does not speak to. It talks about a
-  // profile that HAD answered; this is one removed while the answer was still
-  // `null` -- an initialize() that threw before the modal, or one superseded by
-  // a second startup at the generation check. The write is unconditional, so
-  // "never answered" becomes "answered no" and the reinstall is never asked.
+await test('a profile removed before the question was answered keeps null, and is asked again', async () => {
+  // You cannot withdraw consent that was never given. Ruled 2026-09-13, on the
+  // ambiguity the first implementation of Action 2 surfaced: the ruling of
+  // 2026-09-12 speaks only of a profile that HAD answered, and this is one
+  // removed while the answer was still `null` -- an initialize() that threw
+  // before the modal, or one superseded by a second startup at the generation
+  // check.
   //
-  // Pinned rather than argued: both outcomes are safe in the direction that
-  // matters, since neither indexes without consent, so this arm exists to make
-  // the behaviour visible and to turn any future change of it into a
-  // deliberate edit of this line rather than a silent consequence.
+  // Writing `false` over that `null` converts "never answered" into
+  // "declined", and since `null` is the only value that prompts, it suppresses
+  // the first-run question for ever for someone who simply never answered it.
+  // Both outcomes are safe against indexing without consent; this one is safe
+  // without also putting an answer in the user's mouth.
   const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
   await harness.start();
   // Back to the tri-state's "never answered", which is the state such a
@@ -983,10 +985,22 @@ await test('a profile removed before the question was answered is written off to
   harness.context.Zotero.Prefs.set(ENABLED_PREF, undefined, true);
   assert.equal(harness.context.readSDTSwitch(), null,
     'the arm never reached the unanswered state, so it pins nothing');
+  // The launch prompt's own answer is already in the ring; what this arm is
+  // about is whether the TEARDOWN adds a second one.
+  const before = harness.records('switch').length;
 
   harness.context.shutdown(null, 6);
-  assert.equal(harness.context.Zotero.Prefs.get(ENABLED_PREF, true), false,
-    'the unanswered case changed behaviour; that is a ruling, not a refactor');
+  assert.equal(harness.context.readSDTSwitch(), null,
+    'an uninstall withdrew a consent that had never been given');
+  assert.equal(harness.records('switch').length, before,
+    'a switch change was journalled for a switch nobody had set');
+
+  // The consequence that makes it worth ruling on: the profile that comes back
+  // is asked, rather than starting silently off with no way of knowing why.
+  const again = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  await again.start();
+  assert.equal(again.calls.prompt, 1,
+    'a reinstall of a never-answered profile was not asked the question');
 });
 
 await test('the debug switch off writes nothing to disk, on any reason', async () => {

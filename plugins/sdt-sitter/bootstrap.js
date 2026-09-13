@@ -2941,16 +2941,23 @@ function shutdown(data, reason) {
        and it would look exactly like the plugin having decided on its own.
        Upgrade and downgrade are likewise not removals.
 
-       ONE STATE THIS DOES NOT SEPARATE, flagged rather than settled. A profile
-       removed BEFORE the question was ever answered still reads `null`, and
-       this writes `false` over it — so "never answered" becomes "answered no",
-       and a later reinstall starts off without ever being asked. The ruling of
-       2026-09-12 speaks only of a profile that HAD answered, and both outcomes
-       are safe in the direction that matters, since neither indexes without
-       consent. Written unconditionally because that is what 0773's Action 2
-       says; the alternative is one `readSDTSwitch() !== null` away and is the
-       author's call. The test arm beside the others pins whichever is current,
-       so changing it has to be a deliberate edit rather than a drift.
+       ONLY A CONSENT THAT WAS GIVEN CAN BE WITHDRAWN, which is why the write
+       is guarded on `readSDTSwitch()` rather than unconditional. Ruled
+       2026-09-13, resolving an ambiguity the first implementation of 0773's
+       Action 2 surfaced: the ruling of 2026-09-12 speaks throughout of a
+       profile that HAD answered and says nothing about one removed before the
+       question was ever put. That state is reachable — an `initialize()` that
+       threw before the modal, or one superseded at the generation check —
+       and it leaves the preference `null`.
+
+       Writing `false` over that `null` would convert "never answered" into
+       "declined". Because `null` is the only value that prompts, it would
+       suppress the first-run question for ever for a user who simply never got
+       round to answering it, and leave them to discover a switch in a window
+       nobody had told them about. Both readings are safe against the thing
+       that matters, since neither indexes without consent; this one is safe
+       without also putting an answer in the user's mouth. So an unanswered
+       profile keeps its `null` and is asked again on a reinstall.
 
        BEFORE the seal, deliberately. `writeSDTSwitch` emits, and `emit` drops
        everything once `sealed` is true, so the withdrawal would otherwise be
@@ -2960,7 +2967,7 @@ function shutdown(data, reason) {
        thing the plugin did readable inside the certificate that carries the
        ring. `writeSDTSwitch` guards its own write, so a preference that will
        not persist cannot throw into a teardown that is already unwinding. */
-    if (named === 'uninstall') writeSDTSwitch(false);
+    if (named === 'uninstall' && readSDTSwitch() !== null) writeSDTSwitch(false);
     emit('shutdown', { reason: named });
     sealed = true;
     // The shutdown record is the last thing written, and this is what keeps the

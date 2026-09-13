@@ -395,25 +395,32 @@ MUTANTS = [
     # turns the switch off on every recovery restart, which is both wrong and
     # invisible to the user who did not ask for it.
     ("M49a an uninstall does not withdraw the indexing consent",
-     "    if (named === 'uninstall') writeSDTSwitch(false);\n",
+     "    if (named === 'uninstall' && readSDTSwitch() !== null) writeSDTSwitch(false);\n",
      ""),
     ("M49b a disable withdraws consent too, as the certificate writer's gate does",
-     "    if (named === 'uninstall') writeSDTSwitch(false);\n",
+     "    if (named === 'uninstall' && readSDTSwitch() !== null) writeSDTSwitch(false);\n",
      "    if (named === 'uninstall' || named === 'disable') writeSDTSwitch(false);\n"),
     # Cleared rather than written false is the rejected option (1) of ticket
     # 0772: it reads as never-answered and re-asks the first-run question.
     ("M49c the consent is cleared instead of written off, so a reinstall is asked again",
-     "    if (named === 'uninstall') writeSDTSwitch(false);\n",
+     "    if (named === 'uninstall' && readSDTSwitch() !== null) writeSDTSwitch(false);\n",
      "    if (named === 'uninstall') { try { Zotero.Prefs.clear(ENABLED_PREF, true); } catch (_e) { /* */ } }\n"),
+    # You cannot withdraw a consent that was never given. Ruled 2026-09-13:
+    # dropping the guard writes `false` over the tri-state's `null`, which turns
+    # "never answered" into "declined" and suppresses the first-run question for
+    # ever on a profile that simply never answered it.
+    ("M49e consent is withdrawn from a profile that never gave it",
+     "    if (named === 'uninstall' && readSDTSwitch() !== null) writeSDTSwitch(false);\n",
+     "    if (named === 'uninstall') writeSDTSwitch(false);\n"),
     # Behind the seal the switch record is dropped by emit(), so the withdrawal
     # never reaches the journal or the certificate that carries it.
     ("M49d the withdrawal is written behind the seal, where emit() drops it",
-     "    if (named === 'uninstall') writeSDTSwitch(false);\n"
+     "    if (named === 'uninstall' && readSDTSwitch() !== null) writeSDTSwitch(false);\n"
      "    emit('shutdown', { reason: named });\n"
      "    sealed = true;\n",
      "    emit('shutdown', { reason: named });\n"
      "    sealed = true;\n"
-     "    if (named === 'uninstall') writeSDTSwitch(false);\n"),
+     "    if (named === 'uninstall' && readSDTSwitch() !== null) writeSDTSwitch(false);\n"),
     # The envelope names a reason the ring does not, so the certificate and the
     # records inside it can disagree about what happened.
     ("M50 the certificate reports a reason of its own rather than the one Gecko gave",
