@@ -2,6 +2,7 @@
 Title: The smoke test confirms the cache exists and reads nothing in it
 Created: 2026-09-13
 Author: claude
+Closed: autoclosed — PR #550
 
 --- log ---
 2026-09-13T18:29Z claude created
@@ -9,6 +10,7 @@ Author: claude
 
 2026-09-13T18:51Z claude note The author read the first green run and said the fixtures were too easy -- three generated 590-byte PDFs, byte-identical to each other, so a pack naming ANY of them satisfied the source-hash check. Drawing the three smallest Menagerie documents instead (137-230 KB, three languages, three distinct MD5s) found a real defect on its FIRST run: two cache records and two packs for three attachments. Not the sitter dropping a document -- the third was still being extracted when the run tore Zotero down. The old fixture always finished inside the census poll, so a one-shot read of a thing still being written measured the clock and called it a pass. The read is now a poll against the artefacts themselves, and a timeout re-raises the last real failure rather than reporting "timed out". Worth recording as the ticket's own lesson: the check was correct and the substrate was too weak to exercise it, which no green run could have revealed.
 
+2026-09-13T19:18Z MinhHaDuong closed — autoclosed — PR #550
 --- body ---
 ## Context
 
