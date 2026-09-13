@@ -62,17 +62,31 @@ accepts no cancellation, so a document already handed over runs to completion.
 Turning the sitter off stops it admitting anything new and lets the document in
 flight finish and save its pack. It does not kill work in progress.
 
+**It has only ever been run on Linux, and two of those three resource checks
+work only there.** The memory and load-average figures are read from `/proc`, a
+Linux interface that macOS and Windows do not have. On those two platforms those
+checks are skipped rather than failed: the add-on will index, but it will not
+hold back because the machine is short of memory or already busy. The free-disk
+check still applies everywhere. Nobody has run this add-on on macOS or Windows
+and no test here takes a reading on either, so that paragraph describes what the
+code does rather than reporting it working. If you install it on one of them,
+treat it as untested and watch what it does to a machine you are using for
+something else. On Linux nothing changes: a resource figure that cannot be read
+still stops the add-on from starting rather than being assumed away.
+
 ## Turning it on and off
 
 On first activation it asks once whether to prepare packs in the background. The
 answer is remembered and the question is not asked again. The same switch is the
 first control in the add-on's window, one click, without leaving Zotero.
 
-One thing to know about removing it: the answer to that first-run question
-outlives the add-on. If you had preparation switched on, remove the add-on and
-install it again later, it resumes preparing without asking. Leaving the switch
-off on a removal is decided and not yet built, so this version behaves as
-described rather than as intended.
+Removing the add-on withdraws that answer. If you had preparation switched on,
+remove the add-on and install it again later, it comes back **off**: toolbar
+entry and window present, nothing running, one click to start, and the first-run
+question is not put to you a second time. Only an answer you actually gave is
+withdrawn — a profile that removed the add-on before ever answering the question
+is asked again on the next install. Disabling the add-on, quitting Zotero and
+upgrading are not removals and change nothing about the switch.
 
 ## Which Zotero it runs on
 
@@ -142,9 +156,20 @@ restart Zotero and install the add-on again.
 
 The order is the whole of the instruction. That object lives only as long as the
 Zotero process, restarting destroys it, and in this particular failure it is the
-only record there is. Turning on the add-on's technical-diagnostics switch is
-worth doing and also writes a file for an ordinary disable or removal, but it
-cannot catch this one, because the add-on is never told.
+only record there is.
+
+**Be exact about what the diagnostics switch covers, because the gap is the
+unknown itself.** With technical diagnostics on, the add-on writes what it was
+told to a file in your Zotero data directory when Zotero **tells** it that it is
+being disabled or removed. In the disappearance above the add-on was *not* told:
+it was still running, its window usable and its indicator still moving, after
+its record and its file had already gone. None of the add-on's teardown runs on
+that path, so no such file is written for it. What does survive, until Zotero is
+closed, is the record it keeps in memory for the session, which is why the
+instruction above asks for that to be read before anything is restarted.
+Switching diagnostics on is still worth doing: it covers an ordinary disable or
+removal, and it makes the in-session record fuller. It is not a trap set for the
+disappearance, and this release does not claim it is.
 
 ### The window is not qualified as accessible
 

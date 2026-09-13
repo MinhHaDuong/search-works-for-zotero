@@ -43,6 +43,22 @@ below the core count. It re-reads all of that immediately before starting each
 document. Switching it off stops it taking on anything new and lets the document
 in flight finish.
 
+**Linux only, really.** Two of those three checks read `/proc`, which macOS and
+Windows do not have, and on those platforms they are skipped rather than failed:
+the add-on will index, but it will not hold back because the machine is short of
+memory or already busy. The free-disk check still applies everywhere. I have run
+this only on Linux and there is no test here that takes a reading on either of
+the others, so if you install it on macOS or Windows, treat it as untested and
+keep an eye on what it does to a machine you are using for something else.
+
+**Turning it on and off.** It asks once, on first activation, whether to prepare
+packs in the background, and the answer is a switch in its own window after
+that. Removing the add-on withdraws that answer: install it again and it comes
+back off, one click to start, and it does not put the question to you twice.
+Only an answer you actually gave is withdrawn — if you remove it before ever
+answering, it asks again next time. Disabling it, quitting Zotero and upgrading
+are not removals and leave the switch alone.
+
 **Versions.** Zotero 10.0.1 or later, and nothing after Zotero 10. The ceiling
 is deliberate: the add-on reaches into parts of Zotero that are not public API,
 so claiming to work on a version nobody has tested it against would be a claim I
@@ -80,6 +96,18 @@ and copy the result somewhere. That object exists only while the Zotero process
 is alive, so restarting destroys it, and it is the only record this failure
 leaves. Then restart and reinstall. If you send me that output it would help a
 lot.
+
+Be exact about what the add-on's technical-diagnostics switch covers, because
+the gap is the unknown itself. With it on, the add-on writes what it was told to
+a file in your Zotero data directory when Zotero *tells* it that it is being
+disabled or removed. In the disappearance above it was not told: it was still
+running, its window usable and its indicator still moving, after its record and
+its file had already gone. None of its teardown runs on that path, so no such
+file is written for it. What does survive, until Zotero is closed, is the record
+it keeps in memory for the session, which is why I ask for that before the
+restart. Turning diagnostics on is still worth doing — it covers an ordinary
+disable or removal, and it makes the in-session record fuller — but it is not a
+trap set for the disappearance and I am not claiming it is.
 
 **Also honest about:** the add-on's own window is not qualified as accessible.
 It has a reduced-motion pass and announces state changes, but I have not
