@@ -185,6 +185,16 @@ def check_packs(data_dir: Path, fixture_dir: Path, expected: int, log) -> dict:
     `dateCreated` millisecond timestamp the container embeds. A pinned file
     hash would go red on its second run (ticket 0785).
     """
+    # `expected` of zero would make every assertion below vacuous: no packs
+    # under a storage directory that does not exist would READ as agreement.
+    # The production call site already refuses an import with no attachment on
+    # disk, so this cannot fire there -- which is exactly why it belongs here,
+    # where a future caller has no such guard (found in review of ticket 0785).
+    if expected < 1:
+        raise SmokeFailure(
+            f"refusing to verify packs against expected={expected}: a count of "
+            "zero agrees with an empty or absent storage directory, and an "
+            "assertion that cannot fail is not an assertion")
     packs = sorted((data_dir / "storage").glob("*/.zotero-sdt-cache"))
     if len(packs) != expected:
         raise SmokeFailure(
@@ -225,6 +235,10 @@ def check_cache_rows(cache_path: Path, expected: int, log) -> dict:
     rows passed it, and so did one whose every row said `empty: true` -- the
     sitter having run and produced nothing.
     """
+    if expected < 1:
+        raise SmokeFailure(
+            f"refusing to verify cache rows against expected={expected}: see "
+            "check_packs() for why a zero expectation is not a check")
     rows = {}
     versions = set()
     for line in cache_path.read_text(encoding="utf-8").splitlines():

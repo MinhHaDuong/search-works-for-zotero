@@ -283,3 +283,16 @@ def test_write_menagerie_subset_refuses_to_overwrite(tmp_path):
     write_menagerie_subset(tmp_path / "fixture", picked)
     with pytest.raises(FileExistsError):
         write_menagerie_subset(tmp_path / "fixture", picked)
+
+
+def test_check_packs_refuses_a_zero_expectation(tmp_path):
+    # Zero would agree with an absent storage directory, so the all-clear would
+    # be indistinguishable from "I could not look". Found in review, and the
+    # production call site's own guard is why it could never fire there.
+    with pytest.raises(SmokeFailure, match="expected=0"):
+        check_packs(tmp_path / "nothing", tmp_path, 0, _Log())
+
+
+def test_check_cache_rows_refuses_a_zero_expectation(tmp_path):
+    with pytest.raises(SmokeFailure, match="expected=0"):
+        check_cache_rows(tmp_path / "absent.jsonl", 0, _Log())
