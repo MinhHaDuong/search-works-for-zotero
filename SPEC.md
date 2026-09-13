@@ -2263,11 +2263,21 @@ Zotero may finish and persist its native pack; neither cancels that work or
 authorizes a queued library-wide drain. This graceful stop does not relax the
 separate obligation to avoid interfering with native work.
 
-Removing the add-on leaves that switch OFF rather than unanswered (ruled
-2026-09-12). A profile that reinstalls therefore starts in the state above —
+Removing the add-on withdraws the consent it was given, and only that (ruled
+2026-09-12, and refined 2026-09-13 on the case the first ruling did not reach).
+Where the first-run question HAD been answered, removal leaves that switch OFF
+rather than unanswered: a profile that reinstalls starts in the state above —
 entry and window present, indexing stopped, reversible at one click — and is
-not asked the first-run question a second time. Withdrawing the add-on
-withdraws the consent to index; it does not re-open a question already answered.
+not asked the question a second time, because withdrawing the add-on does not
+re-open a question already answered.
+
+Where the question had NEVER been answered, removal leaves the preference
+unanswered, and such a profile IS asked on its next activation. A consent that
+was never given cannot be withdrawn, and recording an answer on the user's
+behalf would suppress the question permanently for someone who had simply not
+reached it. This is not an exception to the once-per-profile rule above but an
+instance of it: that rule turns on finding the preference unanswered, not on
+the add-on being newly installed.
 
 The add-on declares the host versions it runs in, and the declaration is a
 ceiling as well as a floor. A host outside that range leaves the add-on
