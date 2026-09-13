@@ -16,7 +16,7 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate schema-gate sitter-version sitter-mutants sitter-install sitter-verify-install golden golden-run menagerie-ris menagerie-package test-fork
+.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate schema-gate sitter-version sitter-mutants sitter-install sitter-verify-install sitter-smoke golden golden-run menagerie-ris menagerie-package test-fork
 
 # Where the acceptance layer's arenas live: outside the repository, because the
 # residue sweep fills them with a target's derived state and bench/ is scanned
@@ -148,6 +148,7 @@ help:
 	@echo "make sitter-mutants — the mutation gate over the sitter's bootstrap.js and scheduler.js"
 	@echo "make sitter-install        — SITTER_PROFILE=… SITTER_XPI=… persistent profile install"
 	@echo "make sitter-verify-install — SITTER_PROFILE=… what the host's extensions.json records"
+	@echo "make sitter-smoke — real Zotero, fresh throwaway profile+data dir, install/arm/census/cache (needs a real Zotero and display; exit 3 not-run when absent)"
 	@echo "make tickets     — erg check over the ticket store"
 	@echo "make ticket-logs — no log entry is stamped after the commit that wrote it"
 	@echo "make acceptance-fixtures — the acceptance layer's fail-controls still fail"
@@ -292,6 +293,32 @@ sitter-install:
 sitter-verify-install:
 	@test -n "$(SITTER_PROFILE)" || { echo "Set SITTER_PROFILE=<the Zotero profile directory>" >&2; exit 2; }
 	python3 bench/sdt_sitter_install.py verify --profile "$(SITTER_PROFILE)"
+
+SITTER_SMOKE_ZOTERO ?= $(HOME)/.local/Zotero_linux-x86_64/zotero
+
+# Ticket 0784: every sitter suite (`tests/sdt_sitter_*.mjs`, the two mutation
+# probes above) drives `tests/sdt_sitter_zotero_mock.mjs` -- nothing in any gate
+# has ever launched a real Zotero and watched the shipped .xpi arm. This does:
+# builds the XPI, launches ONE real Zotero against a fresh throwaway profile
+# AND data directory (never the author's real library -- it refuses before
+# importing anything if Zotero opened a different data directory than the one
+# just pinned, ticket 0782's hazard), installs, waits for the sitter to arm,
+# censuses a three-item fixture, and confirms the cache landed on disk. No
+# install/replace/disable cycling -- that is `bench/sitter_volume_experiment.py`'s
+# job, not a smoke test's.
+#
+# Deliberately NOT in `check`, for the same two reasons `sitter-install` and
+# `acceptance-fixtures` are not: it needs a real Zotero binary AND a real X
+# display (headless never arms the sitter, ticket 0778), neither of which a
+# gate may assume, and `check` has to stay green on a machine with neither.
+# Exit codes: 0 pass, 1 a real defect (the sitter never armed, the data
+# directory did not match what was requested, an assertion after import came
+# back wrong), 3 NOT-RUN -- no Zotero binary, no display, the XPI would not
+# build, or RDP never connected -- never conflated with 0.
+#
+#   DISPLAY=:1 make sitter-smoke SITTER_SMOKE_ZOTERO=~/.local/Zotero_linux-x86_64/zotero
+sitter-smoke:
+	python3 bench/sitter_smoke_test.py --zotero-bin "$(SITTER_SMOKE_ZOTERO)"
 
 # The acceptance layer's own positive control, and it reads backwards on
 # purpose: the fail-controls MUST fail. A fixture built to break an assertion
