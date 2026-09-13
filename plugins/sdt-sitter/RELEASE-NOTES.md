@@ -115,18 +115,25 @@ evening on one machine, and once more, uninstrumented, two days later. The cause
 is not established, and it is tracked in ticket
 [0727](../../tickets/0727-the-sitter-uninstalls-itself-update-url.erg).
 
-How a removal should leave the indexing switch was decided on 2026-09-12
-(ticket [0772](../../tickets/0772-does-an-uninstall-withdraw-the-sitter-in.erg)):
-off rather than unset, so that installing again starts stopped, with the toolbar
-entry and window present and one click to start, and without asking the
-first-run question a second time. **That decision is not in this build.**
-`writeSDTSwitch` is called from the launch prompt and from the panel switch and
-from nowhere else; `uninstall()` is empty. So today the answer simply persists —
-a profile that had indexing on, removes the add-on and installs it again resumes
-indexing without asking. The write is ticket
+How a removal leaves the indexing switch was decided on 2026-09-12
+(ticket [0772](../../tickets/0772-does-an-uninstall-withdraw-the-sitter-in.erg)),
+and this build has it: removing the add-on leaves the switch off rather than
+unset, so that installing again starts stopped, with the toolbar entry and
+window present and one click to start, and without asking the first-run question
+a second time. The write is ticket
 [0773](../../tickets/0773-an-uninstall-removes-the-sitter-own-dura.erg)'s
-Action 2 and has not been made. It is recorded here because a decision is not a
-behaviour, and this file states behaviour.
+Action 2.
+
+It withdraws an answer that was given, and only that. A profile removed before
+the first-run question was ever answered keeps it unanswered, and is asked again
+on the next install: the question is put whenever the answer is absent, not once
+per installation. A ruling of 2026-09-13 settled that case.
+
+Removal is the only reason that touches the switch. Disabling the add-on,
+quitting Zotero, and upgrading or downgrading in place all leave the recorded
+answer as it stands. The withdrawal also depends on Zotero telling the add-on it
+is being removed; the disappearance described above is not such a removal, and
+nothing is written then.
 
 With technical diagnostics switched on, the sitter writes one more file: when
 Zotero **tells** it that it is being disabled or removed, it records what it was
