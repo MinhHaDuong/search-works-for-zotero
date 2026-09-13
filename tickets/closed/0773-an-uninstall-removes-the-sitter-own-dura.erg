@@ -2,6 +2,7 @@
 Title: An uninstall removes the sitter own durable state
 Created: 2026-09-12
 Author: claude
+Closed: autoclosed — PR #548
 
 --- log ---
 2026-09-12T09:02Z claude created
@@ -11,6 +12,8 @@ Author: claude
 2026-09-12T14:27Z claude note ONE EXCEPTION THIS TICKET MUST CARRY, from the author's ruling of 2026-09-12 (DECISIONS.md, "in a live install a clean uninstall is the way"). Sweeping the sitter's durable state on uninstall is exactly right and this ruling strengthens it -- with one carve-out. `<dataDir>/sdt-sitter-last-shutdown.json`, the death certificate of ticket 0727, is written ONLY on the disable and uninstall reasons and ONLY when the diagnostics switch is on, which means it exists only because the operator asked for it BEFORE the event. Since the same ruling removed the parked ring, that file is the only durable record of a removal there will ever be. A clean uninstall must not delete it: it is the operator's own request, not state the plugin kept for itself. The table in the body should gain it as a row with that disposition rather than leave it to be rediscovered by whoever implements this.
 2026-09-13T09:17Z MinhHaDuong note blocker 0771 closed — Blocked-by removed.
 2026-09-13T11:16Z Action 2 ONLY is done: an uninstall now writes extensions.sdt-pack-sitter.enabled false via writeSDTSwitch, before the seal. Actions 1, 3 and 4 are NOT done and this ticket stays open for them -- the cache file and its .tmp, the debug pref, and the SPEC declaration of every durable location. Two notes for whoever takes the rest: the certificate carve-out in this ticket's log still stands, and 0771 (this ticket's Blocked-by) is still OPEN on origin/main, its close sitting in unmerged PR #538, so erg ready still reports 0773 blocked
+2026-09-13T18:15Z claude Actions 1, 3 and 4 done: shutdown()'s uninstall branch now removes the cache file and its .tmp sibling and clears the debug pref, best-effort and after the certificate write so its own DEBUG_PREF read is not defeated; SPEC.md 5.2.7 declares every durable location and its uninstall disposition, certificate carve-out included. Tests: two new scenarios plus a throwing-removal arm, mutants M54/M55. make check green (1397 passed/15 skipped, 64/64 and 19/19 mutants caught). Version bumped 0.4.0 to 0.4.1 in manifest.json and update.json, own commit. PR not merged: 0.4.0 tag unsigned.
+2026-09-13T19:17Z MinhHaDuong closed — autoclosed — PR #548
 --- body ---
 
 ## Context

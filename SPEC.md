@@ -2516,6 +2516,27 @@ It is declared nowhere and reads as unset, which the sitter treats as off, so
 debug output stays quiet until the author creates it; error and state records go
 out regardless. The ring takes every level whatever the preference says.
 
+**Every location the sitter's durable state can occupy** (audit finding F2,
+ticket 0773), so a removal has a declared list to answer to rather than one a
+reader has to rediscover from the source. Two preferences:
+`extensions.sdt-pack-sitter.enabled`, the on/off switch above, and
+`extensions.sdt-pack-sitter.debug` just named. Two files, both under the
+profile's data directory and neither in a plugin-owned subdirectory: the pack
+cache described above (`sdt-sitter-cache.jsonl`) and, on a quit that lands mid
+write, its `.jsonl.tmp` sibling. A fifth location is the death certificate
+(`sdt-sitter-last-shutdown.json`, ticket 0727): a single overwritten file, also
+under the data directory, written on the disable and uninstall reasons alone
+and only when the debug preference is already on -- the operator's own
+request, carrying the scrubbed ring's tail so a disappearance leaves one
+artefact behind naming which event it was. Removing the add-on removes the cache file,
+its `.tmp` sibling if a quit left one, and clears the debug preference; the
+switch is left `false` rather than removed, per its own disposition above, and
+the certificate is the one file a clean uninstall does not take, since it is
+the operator's own request made before the event and the only durable record a
+removal will ever leave. Every removal here is best-effort: an unwritable or
+already-gone target is not a teardown failure, and there is no next session to
+report one to.
+
 The add-on's presence also causes traffic that is none of the sitter's doing:
 the host's own check of the update manifest `update_url` names, which an add-on
 cannot omit and remain installable. §6 discloses that surface among the others,

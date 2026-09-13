@@ -1094,6 +1094,86 @@ await test('the certificate carries opaque keys and no title, and a failed write
   assert(unwritable.context.Zotero.SDTPackSitterJournal, 'the ring was not parked');
 });
 
+/* --------------------------------------------------------------------------
+   The rest of the sitter's durable state (ticket 0773, Actions 1, 2's second
+   half and 4). F2 named four locations an uninstall left behind: the cache
+   file, its `.tmp` sibling, the debug pref (this section) and the enabled
+   pref (the section above). The disable/quit/upgrade arm is the one most
+   likely to break by accident -- a cleanup keyed on the wrong reason would
+   pass every uninstall scenario and silently wipe a live profile's cache on
+   its next ordinary quit.
+   -------------------------------------------------------------------------- */
+const DEBUG_PREF = 'extensions.sdt-pack-sitter.debug';
+const TMP_PATH = `${CACHE_PATH}.tmp`;
+
+await test('an uninstall removes the cache file and its .tmp sibling; a disable, a quit, an upgrade and a downgrade do not', async () => {
+  const uninstalled = createHarness({ attachments: [pdf(1, 'AAAA1111')], cache: 'stale' });
+  uninstalled.files.put(TMP_PATH, 'partial');
+  await uninstalled.start();
+  uninstalled.context.shutdown(null, 6);
+  assert.equal(uninstalled.files.text(CACHE_PATH), null, 'an uninstall left the cache file in place');
+  assert.equal(uninstalled.files.text(TMP_PATH), null, 'an uninstall left the .tmp sibling in place');
+
+  // The positive control: the recovery path (disable) and every ordinary
+  // teardown keep both files, because the cache is what makes the NEXT
+  // activation fast rather than a cold re-inspection of the whole library.
+  for (const [label, reason] of [['a disable', 4], ['an ordinary quit', 2],
+    ['an upgrade', 7], ['a downgrade', 8]]) {
+    const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')], cache: 'stale' });
+    harness.files.put(TMP_PATH, 'partial');
+    await harness.start();
+    harness.context.shutdown(null, reason);
+    assert(harness.files.text(CACHE_PATH), `${label} removed the cache file`);
+    assert(harness.files.text(TMP_PATH), `${label} removed the .tmp sibling`);
+  }
+});
+
+await test('an uninstall clears the debug preference without erasing the certificate it requested; other reasons leave it set', async () => {
+  const uninstalled = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+    prefs: { [DEBUG_PREF]: true } });
+  await uninstalled.start();
+  uninstalled.context.shutdown(null, 6);
+  assert.equal(uninstalled.context.Zotero.Prefs.get(DEBUG_PREF, true), undefined,
+    'an uninstall left the debug preference set');
+  // The ordering this test exists to pin: the certificate reads DEBUG_PREF to
+  // decide whether to write at all, so a clear that ran BEFORE it would make
+  // a clean uninstall erase the one artefact the operator turned diagnostics
+  // on to get. It must still be there, naming the right reason.
+  assert.equal(JSON.parse(uninstalled.files.text(CERTIFICATE)).reason, 'uninstall',
+    'clearing the debug preference cost the operator the certificate it requested');
+
+  for (const [label, reason] of [['a disable', 4], ['an ordinary quit', 2],
+    ['an upgrade', 7], ['a downgrade', 8]]) {
+    const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+      prefs: { [DEBUG_PREF]: true } });
+    await harness.start();
+    harness.context.shutdown(null, reason);
+    assert.equal(harness.context.Zotero.Prefs.get(DEBUG_PREF, true), true,
+      `${label} cleared the debug preference`);
+  }
+});
+
+await test('a removal that throws does not escape shutdown(), and the sibling and the pref still go', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')], cache: 'stale',
+    prefs: { [DEBUG_PREF]: true },
+    // Only the cache file's removal fails -- an unwritable directory reached
+    // through one name and not the other is not a scenario this mock need
+    // invent; what matters is that ONE failing removal must not sink the rest.
+    removeThrows: path => path === CACHE_PATH });
+  harness.files.put(TMP_PATH, 'partial');
+  await harness.start();
+  assert.doesNotThrow(() => harness.context.shutdown(null, 6),
+    'a removal that threw escaped the teardown');
+  assert.equal(harness.files.text(TMP_PATH), null,
+    'the .tmp sibling was not removed after the cache file removal threw');
+  assert.equal(harness.context.Zotero.Prefs.get(DEBUG_PREF, true), undefined,
+    'the debug preference was not cleared after the cache file removal threw');
+  // The teardown's own post-conditions still hold: a diagnostics failure here
+  // is no different from the certificate's own failure arm above.
+  assert.equal(harness.context.Zotero.SDTPackSitter, undefined,
+    'the teardown did not finish after a removal failed');
+});
+
 await test('two windows and two startups leave one sitter, one launch prompt and two toolbars', async () => {
   const harness = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')], windows: 2 });
   // Zotero serializes add-on startup, but a second main window opening while
