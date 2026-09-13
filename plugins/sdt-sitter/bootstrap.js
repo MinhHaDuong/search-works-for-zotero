@@ -343,7 +343,7 @@ var SDT_TEXT = {
     "details-title": "Details",
     "not-indexed-title": "Not indexed",
     "not-indexed-title-count": "Not indexed ({count})",
-    "not-indexed-none": "No observed obstacles to indexing.",
+    "not-indexed-pending": "The first reading of the library is not finished yet.",
     "not-indexed-group-count": "{label} ({count})",
     "not-indexed-no-text": "No extracted text",
     "not-indexed-no-text-detail": "The stored index contains no text. OCR may help if the file consists of scanned images.",
@@ -369,6 +369,7 @@ var SDT_TEXT = {
     "not-indexed-no-attachment-detail": "No file attachment is recorded. A file may be available from the publisher or another source.",
     "not-indexed-show": "Show in Zotero",
     "not-indexed-show-tip": "Select every listed record in Zotero. This does not change the library.",
+    "not-indexed-show-unavailable-tip": "These records name no library, so they cannot be selected in Zotero.",
     "not-indexed-selected": "Listed records selected in Zotero.",
     "not-indexed-selected-omitted": "Listed records selected; {count} were no longer available.",
     "not-indexed-select-unavailable": "The listed records could not be selected in Zotero.",
@@ -1320,23 +1321,47 @@ function collectSDTNotIndexed(state) {
 }
 
 function fillSDTNotIndexed(doc, container, state) {
+  // Whether any complete observation generation exists at all, and therefore
+  // whether this section is entitled to make a claim about the library. Before
+  // the first census closes there is no generation, and `collectSDTNotIndexed`
+  // answers with an empty list for the same reason `state.counts` is empty —
+  // nothing has been looked at. Rendering that as "no obstacles" would be a
+  // measurement where there is none, the error `describeSDTCensusAccount` and
+  // `getSDTCoverage` each refuse in their own way, and SPEC.md §5.2.7 says what
+  // to do instead: "With no completed generation it shows that the reading is
+  // not yet available."
+  const known = !!state.censusSnapshot;
   const groups = collectSDTNotIndexed(state);
   const total = groups.reduce((count, group) => count + group.members.length, 0);
   const section = container.parentNode;
   const sectionSummary = section.querySelector?.('summary') || section.childNodes?.[0];
-  if (sectionSummary) sectionSummary.textContent = sdtText('not-indexed-title-count', { count: sdtNumber(total) });
-  const signature = JSON.stringify(groups.map(group => [group.id, group.members.map(member =>
+  if (sectionSummary) sectionSummary.textContent = known
+    ? sdtText('not-indexed-title-count', { count: sdtNumber(total) })
+    : sdtText('not-indexed-title');
+  // `known` is IN the signature, not merely consulted after it. The first
+  // completed census over a fully indexed library moves this section from "not
+  // yet read" to "nothing to show" without changing a single member, so a
+  // signature built from the members alone is identical across that transition
+  // and the early return below would leave the pending sentence on screen for
+  // the rest of the session.
+  const signature = JSON.stringify([known, groups.map(group => [group.id, group.members.map(member =>
     [member.itemID ?? member.id, member.libraryID ?? null, member.title ?? null, member.parentTitle ?? null,
-      member.key ?? null, member.errorClass ?? null]) ]));
+      member.key ?? null, member.errorClass ?? null]) ])]);
   if (container._sdtSignature === signature) return;
   container._sdtSignature = signature;
   container.replaceChildren();
-  if (!groups.length) {
+  if (!known) {
     section.hidden = false;
-    const empty = doc.createElementNS('http://www.w3.org/1999/xhtml', 'p');
-    empty.textContent = sdtText('not-indexed-none'); container.append(empty);
+    const pending = doc.createElementNS('http://www.w3.org/1999/xhtml', 'p');
+    pending.textContent = sdtText('not-indexed-pending'); container.append(pending);
     return;
   }
+  // "Empty groups and an entirely empty section are hidden" (SPEC.md §5.2.7).
+  // The group half falls out of `collectSDTNotIndexed`'s filter; this is the
+  // section half, and it used to render a "No observed obstacles" paragraph
+  // instead — a disclosure inviting a reader to open it and find nothing, in a
+  // layer whose whole premise is that it shows only what is there.
+  if (!groups.length) { section.hidden = true; return; }
   section.hidden = false;
   const make = tag => doc.createElementNS('http://www.w3.org/1999/xhtml', tag);
   const line = member => {
@@ -1387,7 +1412,21 @@ function fillSDTNotIndexed(doc, container, state) {
       const ids = members.map(member => member.itemID ?? member.id).filter(Number.isInteger);
       const select = make('button'); select.setAttribute('type', 'button');
       select.textContent = sdtText('not-indexed-show'); select.setAttribute('title', sdtText('not-indexed-show-tip'));
-      select.addEventListener('click', async () => {
+      // "An unavailable library identity is stated as such and cannot enable a
+      // library selection action" (SPEC.md §5.2.7). The discriminator is the
+      // identity, not the name: a library whose record will not load keeps its
+      // subsection, loses its name and keeps a working button, because its
+      // members still carry the id `selectItems` needs. A member with no
+      // libraryID at all is the other case — the scheduler's own inspection
+      // fallback records `{ status: 'inspection-error', itemID, title, errorClass }`
+      // and nothing else, so there is no library to select within. That button
+      // was rendered enabled and could only ever fail into the feedback line;
+      // an action offered and guaranteed to fail is worse than one not offered.
+      if (libraryID == null) {
+        select.disabled = true;
+        select.setAttribute('title', sdtText('not-indexed-show-unavailable-tip'));
+      }
+      else select.addEventListener('click', async () => {
         try {
           const pane = Zotero.getMainWindow?.()?.ZoteroPane;
           if (!pane || !ids.length || typeof pane.selectItems !== 'function') throw new Error('unavailable');
@@ -2707,23 +2746,73 @@ async function initialize(rootURI, token, era = shutdowns) {
     if (typeof block.text === 'string' && block.text.trim()) return true;
     return Array.isArray(block.content) && block.content.some(blockHasSDTText);
   };
-  const packHasSDTText = async reader => {
+  /* Did every page of this document actually receive full-quality layout
+     analysis? The native worker has fallback paths for inference overload and
+     per-page inference errors, and a page that took one is stamped
+     `extractionDegraded` in the pack's own catalog (worker.js:143251, 153043;
+     verification/SDT-PALGRAVE-AUDIT.md records the reading). The audit states
+     the consequence this function exists to honour: a generated pack must not
+     be presented as evidence that every page received full-quality analysis.
+
+     So a textless pack is only VERIFIED empty when the catalog says nothing was
+     degraded. Degraded and textless is the one combination that would otherwise
+     put the no-text heading — a confident claim, and one a reader acts on with
+     OCR — over pages the extractor itself declines to vouch for. SPEC.md
+     §5.2.7 forbids it in as many words: unknown content remains unknown, never
+     a confident empty classification.
+
+     Measured before it was written, on the author's own 46 packs
+     (verification/empty-pack-0760/): every pack carries a non-empty
+     `catalog.pages`, PDF and EPUB alike, so requiring one costs no real
+     document its empty verdict; 29 of 11 909 pages are degraded, and the three
+     textless packs carry none of them. The defect is therefore latent here
+     rather than observed — which is the reason to close it now, while the
+     population that would expose it is still empty.
+
+     A catalog this cannot read is not a reason to reject the pack: we are past
+     the text scan, the pack opened, and the only question left is whether the
+     empty verdict may be called verified. It may not, so the answer is unknown. */
+  const packSDTExtractionComplete = async reader => {
+    if (typeof reader.getCatalog !== 'function') return false;
+    let catalog = null;
+    try { catalog = await reader.getCatalog(); }
+    catch (_error) { return false; }
+    const pages = catalog?.pages;
+    if (!Array.isArray(pages) || !pages.length) return false;
+    return !pages.some(page => page?.extractionDegraded);
+  };
+  /* Three answers, not two. `text` and `empty` are the classifications ticket
+     0760 exists to separate; `unknown` is the third the ticket names explicitly
+     ("a partial sample or read failure is unknown") and it maps back to the
+     pre-0760 `current` at the call site — the conservative reading, because it
+     changes neither admission nor retries, which is what SPEC.md requires of
+     every group in this section. */
+  const packSDTTextVerdict = async reader => {
     if (typeof reader.getTopLevelBlockCount !== 'function' || typeof reader.getBlocks !== 'function') {
       // A reader that cannot inspect all blocks cannot establish an empty pack.
-      // Preserve the pre-0760 current classification rather than guessing.
-      return true;
+      return 'unknown';
     }
     const count = reader.getTopLevelBlockCount();
     if (!Number.isInteger(count) || count < 0) throw new Error('Invalid native block count');
     for (let index = 0; index < count; index++) {
+      /* Teardown stops the walk where it stands. Without this the loop is
+         bounded and yielding but not interruptible, and the two are not the
+         same promise: the widest pack in the author's library declares 39 526
+         top-level blocks, so a textless document of that size keeps handing
+         `timers.setTimeout` continuations to a module that has already been
+         shut down. `unknown` rather than a throw, because nothing was learned
+         and a throw would read as `invalid-pack` and queue a re-extraction —
+         the scheduler discards this record anyway, its own `current()` gate
+         having gone false with the same switch. */
+      if (!alive) return 'unknown';
       const blocks = await reader.getBlocks(index, index);
       if (!Array.isArray(blocks)) throw new Error('Invalid native block range');
-      if (blocks.some(blockHasSDTText)) return true;
+      if (blocks.some(blockHasSDTText)) return 'text';
       // One block is bounded by the native reader's chunk format. Yielding between
       // blocks keeps a long, textless document from monopolising Zotero's UI.
       await new Promise(resolve => timers.setTimeout(resolve, 0));
     }
-    return false;
+    return (await packSDTExtractionComplete(reader)) ? 'empty' : 'unknown';
   };
 
   async function inspect(id) {
@@ -2748,8 +2837,18 @@ async function initialize(rootURI, token, era = shutdowns) {
     try { filename = item.attachmentFilename || null; } catch (_error) { /* Optional primary data. */ }
     let linked = false;
     try {
-      linked = typeof item.isLinkedFileAttachment === 'function' ? item.isLinkedFileAttachment()
-        : item.attachmentLinkMode === Zotero.Attachments.LINK_MODE_LINKED_FILE;
+      // The constant has to EXIST before the comparison means anything. Read
+      // straight, `item.attachmentLinkMode === Zotero.Attachments.LINK_MODE_LINKED_FILE`
+      // is true whenever both sides are undefined, so a host that publishes
+      // neither would file every attachment in the library under "Linked file
+      // unavailable" and offer each one a remedy Zotero cannot perform. Found
+      // in the test harness, which published neither and had every fixture
+      // reading as linked; the shipped Zotero does publish the constant, so
+      // this is a guard against a host contract rather than a fix for a
+      // misclassification anyone has seen.
+      const linkedMode = Zotero.Attachments?.LINK_MODE_LINKED_FILE;
+      linked = typeof item.isLinkedFileAttachment === 'function' ? !!item.isLinkedFileAttachment()
+        : linkedMode !== undefined && item.attachmentLinkMode === linkedMode;
     } catch (_error) { /* Treat an unreadable link mode as the storage-neutral case. */ }
     const label = title || filename || sdtText('file-number', { id });
     const descriptor = { itemID: id, libraryID: item.libraryID, key: item.key,
@@ -2831,7 +2930,7 @@ async function initialize(rootURI, token, era = shutdowns) {
       }
       else if (sourceMismatch) result.status = 'stale-source';
       else if (processorMismatch) result.status = 'stale-processor';
-      else result.status = (await packHasSDTText(reader)) ? 'current' : 'empty-pack';
+      else result.status = (await packSDTTextVerdict(reader)) === 'empty' ? 'empty-pack' : 'current';
       if (result.status === 'current' || result.status === 'empty-pack') cache.remember(result.cacheKey, result.identity, fingerprint, result);
       else cache.drop(result.cacheKey);
     } catch (error) { result.status = 'invalid-pack'; }
