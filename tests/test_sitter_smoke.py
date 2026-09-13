@@ -20,7 +20,11 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "bench"))
 
-from fixtures.smoke_library import write_smoke_library  # noqa: E402
+from fixtures.smoke_library import (  # noqa: E402
+    pick_menagerie_documents,
+    write_menagerie_subset,
+    write_smoke_library,
+)
 from sitter_smoke_test import (  # noqa: E402
     SDT_MAGIC,
     NotRunError,
@@ -219,3 +223,63 @@ def test_check_cache_rows_refuses_mixed_version_stamps(tmp_path):
     path.write_text("\n".join(rows + [other]) + "\n", encoding="utf-8")
     with pytest.raises(SmokeFailure, match="mixes 2 version stamps"):
         check_cache_rows(path, 3, _Log())
+
+
+# --- ticket 0785: drawing the fixture from the Menagerie --------------------
+#
+# The generated PDFs are byte-identical to each other, so a pack naming ANY of
+# them satisfied the source-hash check. Real documents have distinct hashes.
+# The check still only asserts set membership, so a permutation -- pack A
+# naming document B -- would pass; binding each pack to its own attachment
+# needs Zotero's item keys and is not done here.
+
+
+def _package(tmp_path, sizes=(300, 100, 200)):
+    attachments = tmp_path / "package" / "attachments"
+    attachments.mkdir(parents=True)
+    for n, size in enumerate(sizes):
+        (attachments / f"doc-{n}.pdf").write_bytes(b"%PDF-1.4 " + bytes([65 + n]) * size)
+    return tmp_path / "package"
+
+
+def test_pick_menagerie_documents_takes_the_smallest_first(tmp_path):
+    picked = pick_menagerie_documents(_package(tmp_path), 2)
+    assert [f.name for f in picked] == ["doc-1.pdf", "doc-2.pdf"]
+
+
+def test_pick_menagerie_documents_is_deterministic(tmp_path):
+    package = _package(tmp_path)
+    assert pick_menagerie_documents(package, 3) == pick_menagerie_documents(package, 3)
+
+
+def test_pick_menagerie_documents_returns_nothing_without_a_package(tmp_path):
+    # The absent-package case is a fallback, not an error: the smoke test then
+    # says so and uses the generated fixture.
+    assert pick_menagerie_documents(tmp_path / "nope", 3) == []
+
+
+def test_write_menagerie_subset_copies_the_documents_and_links_them(tmp_path):
+    picked = pick_menagerie_documents(_package(tmp_path), 3)
+    ris = write_menagerie_subset(tmp_path / "fixture", picked)
+    text = ris.read_text(encoding="utf-8")
+    for source in picked:
+        copied = tmp_path / "fixture" / "attachments" / source.name
+        assert copied.read_bytes() == source.read_bytes()
+        assert f"L1  - attachments/{source.name}" in text
+
+
+def test_write_menagerie_subset_gives_each_document_a_distinct_hash(tmp_path):
+    # The point of the whole change: three fixtures the source-hash check can
+    # tell apart.
+    picked = pick_menagerie_documents(_package(tmp_path), 3)
+    write_menagerie_subset(tmp_path / "fixture", picked)
+    copied = sorted((tmp_path / "fixture" / "attachments").glob("*.pdf"))
+    digests = {hashlib.md5(f.read_bytes()).hexdigest() for f in copied}
+    assert len(digests) == len(copied) == 3
+
+
+def test_write_menagerie_subset_refuses_to_overwrite(tmp_path):
+    picked = pick_menagerie_documents(_package(tmp_path), 1)
+    write_menagerie_subset(tmp_path / "fixture", picked)
+    with pytest.raises(FileExistsError):
+        write_menagerie_subset(tmp_path / "fixture", picked)

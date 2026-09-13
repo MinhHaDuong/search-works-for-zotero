@@ -70,7 +70,12 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "bench"))
 
-from fixtures.smoke_library import write_smoke_library  # noqa: E402
+from fixtures.smoke_library import (  # noqa: E402
+    DEFAULT_MENAGERIE,
+    pick_menagerie_documents,
+    write_menagerie_subset,
+    write_smoke_library,
+)
 from sitter_volume_experiment import (  # noqa: E402
     SEED_PREFS,
     eval_action,
@@ -260,6 +265,36 @@ def check_cache_rows(cache_path: Path, expected: int, log) -> dict:
     return {"records": len(rows), "versions": stamp}
 
 
+def wait_for_preparation(data_dir: Path, fixture_dir: Path, cache_path: Path,
+                         expected: int, deadline: float, log) -> tuple[dict, dict]:
+    """Poll the on-disk artefacts until every document is prepared, or give up.
+
+    Reading these once was enough while the fixture was three generated
+    590-byte PDFs: extraction finished inside the census poll, every time. The
+    first run against three real Menagerie documents failed with two records
+    for three attachments and two packs in three storage directories -- the
+    third was still being extracted when the run tore Zotero down. A one-shot
+    read of a thing that is still being written measures the clock, not the
+    sitter (ticket 0785).
+
+    The predicate is the artefacts themselves, not the add-on's own report of
+    its phase, on the same principle as every other check here: what reaches
+    disk is the claim worth testing. On timeout the LAST failure is re-raised,
+    so the message names what was actually missing rather than "timed out".
+    """
+    while True:
+        try:
+            cache = check_cache_rows(cache_path, expected, log)
+            packs = check_packs(data_dir, fixture_dir, expected, log)
+            return cache, packs
+        except SmokeFailure as exc:
+            if time.monotonic() >= deadline:
+                raise SmokeFailure(
+                    f"{expected} document(s) were imported but preparation did "
+                    f"not complete before the deadline. Last state: {exc}") from exc
+            time.sleep(1.0)
+
+
 def setup_profile(work_dir: Path, port: int) -> tuple[Path, Path]:
     """A fresh profile and a fresh, pinned data directory. Refuses to reuse
     either, on the same principle as the volume rig: a profile or data
@@ -371,7 +406,25 @@ def _run_smoke(args, log: Log) -> dict:
 
     fixture_dir = args.work_dir / "fixture"
     fixture_dir.mkdir(parents=True)
-    ris_path = write_smoke_library(fixture_dir)
+    # Real documents when the Menagerie is here, generated ones otherwise. The
+    # generated three are byte-identical to each other, so the pack's
+    # `source.hash` check passes as long as SOME fixture matches it -- it
+    # cannot catch a per-document mix-up. Three real documents have three
+    # different hashes and bind each pack to its own source (ticket 0785).
+    documents = [] if args.synthetic_fixture else pick_menagerie_documents(
+        args.menagerie, args.fixture_documents)
+    if documents:
+        ris_path = write_menagerie_subset(fixture_dir, documents)
+        fixture_kind = "menagerie"
+        log.write(f"smoke fixture: {len(documents)} Menagerie document(s) from "
+                  f"{args.menagerie}: {[d.name for d in documents]}")
+    else:
+        if not args.synthetic_fixture:
+            log.write(f"smoke no Menagerie package at {args.menagerie}; falling "
+                      "back to the generated fixture, which is weaker -- its "
+                      "three PDFs are byte-identical")
+        ris_path = write_smoke_library(fixture_dir)
+        fixture_kind = "synthetic"
     log.write(f"smoke fixture written at {ris_path}")
 
     profile, requested_data_dir = setup_profile(args.work_dir, args.port)
@@ -446,12 +499,14 @@ def _run_smoke(args, log: Log) -> dict:
         # passed it (ticket 0785). Both reads below are on-disk, independent of
         # anything the add-on reported about itself.
         prepared = imported["attachments"] - imported["missing"]
-        cache = check_cache_rows(cache_path, prepared, log)
-        packs = check_packs(actual_data_dir, fixture_dir, prepared, log)
+        cache, packs = wait_for_preparation(
+            actual_data_dir, fixture_dir, cache_path, prepared,
+            time.monotonic() + args.census_timeout, log)
 
         log.write("smoke PASS")
         return {"ok": True, "dataDir": str(actual_data_dir), "liveness": censused,
-               "imported": imported, "cache": cache, "packs": packs}
+               "imported": imported, "cache": cache, "packs": packs,
+               "fixture": fixture_kind}
     finally:
         if client is not None:
             try:
@@ -483,6 +538,16 @@ def main(argv=None) -> int:
     parser.add_argument("--arm-timeout", type=float, default=90.0,
                         help="how long to wait for the sitter to become alive "
                              "after install")
+    parser.add_argument("--menagerie", type=Path, default=DEFAULT_MENAGERIE,
+                        help="a Menagerie package directory (attachments/ beside "
+                             "menagerie.ris) to draw real documents from; falls "
+                             "back to the generated fixture when absent")
+    parser.add_argument("--fixture-documents", type=int, default=3,
+                        help="how many Menagerie documents to census (default 3)")
+    parser.add_argument("--synthetic-fixture", action="store_true",
+                        help="use the generated PDFs even when a Menagerie package "
+                             "is present. Weaker by construction: the generated "
+                             "PDFs are byte-identical to each other")
     parser.add_argument("--census-timeout", type=float, default=60.0,
                         help="how long to wait for the census to pick up the "
                              "imported fixture")

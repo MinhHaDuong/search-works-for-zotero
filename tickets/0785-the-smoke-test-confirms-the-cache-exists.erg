@@ -7,6 +7,8 @@ Author: claude
 2026-09-13T18:29Z claude created
 2026-09-13T18:31Z claude note Filed from the author's question -- "the smoke test should check the hash of the three generated .sdt, does it?" -- which was right about the gap and named an artefact whose extension does not exist. It does exist: `storage/<key>/.zotero-sdt-cache`, one per attachment, magic \x89SDT\r\n\x1a\n. A repo grep for `.sdt` found nothing and I reported the artefact absent; the file is written by Zotero's native code, not by anything in this tree, so the grep was measuring the wrong thing. Found by re-running the smoke test with --keep and looking.
 
+2026-09-13T18:51Z claude note The author read the first green run and said the fixtures were too easy -- three generated 590-byte PDFs, byte-identical to each other, so a pack naming ANY of them satisfied the source-hash check. Drawing the three smallest Menagerie documents instead (137-230 KB, three languages, three distinct MD5s) found a real defect on its FIRST run: two cache records and two packs for three attachments. Not the sitter dropping a document -- the third was still being extracted when the run tore Zotero down. The old fixture always finished inside the census poll, so a one-shot read of a thing still being written measured the clock and called it a pass. The read is now a poll against the artefacts themselves, and a timeout re-raises the last real failure rather than reporting "timed out". Worth recording as the ticket's own lesson: the check was correct and the substrate was too weak to exercise it, which no green run could have revealed.
+
 --- body ---
 ## Context
 
@@ -89,6 +91,12 @@ construction.
 - The pack file's own digest is never pinned (see above). If a future reader
   wants byte-level stability, the question to ask upstream is whether
   `dateCreated` can be omitted, not whether this test can be made to tolerate it.
+- The source-hash check asserts SET MEMBERSHIP: each pack names one of the
+  documents this run handed over. With three distinct Menagerie documents that
+  is a real constraint, where three identical generated PDFs made it vacuous.
+  It still would not catch a PERMUTATION -- pack A naming document B -- which
+  needs the pack mapped to its own attachment through Zotero's item keys. Not
+  done, and not pretended to be done.
 - The smoke test stays non-cycling and seconds-long: no restart, no replace.
 - `plugins/sdt-sitter/` is only ever READ by this script.
 
