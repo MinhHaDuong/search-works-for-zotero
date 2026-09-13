@@ -118,11 +118,11 @@ is not established, and it is tracked in ticket
 The floor is a different kind of statement, and a harder one. Structured text is
 not an old part of Zotero: `chrome/content/zotero/xpcom/sdt.js` entered the
 application in a single commit on 2026-06-11, and exactly three releases carry
-it — 10.0.0, 10.0.1 and 10.0.2. Before that there is no pack to prepare and
+it — 10.0, 10.0.1 and 10.0.2. Before that there is no pack to prepare and
 nothing here to do, so the floor is the edge of the feature rather than a
 cautious margin below it, and an older Zotero refuses the install outright.
 Two consequences worth stating plainly. The declared minimum is 10.0.1, one
-release above the first that carries structured text, so 10.0.0 is excluded by
+release above the first that carries structured text, so 10.0 is excluded by
 declaration and has never been tried. And of the three hosts that could run this
 add-on at all, one has been measured here — the rest of this range is declared,
 not tested.
