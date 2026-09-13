@@ -245,7 +245,8 @@ regenerate a stale-processor pack before resolving `ensure()`"
 (`test/tests/sdtTest.js` at `19e7962`): unlike `getPack()`, which can hand
 back the stale pack immediately and regenerate in the background, `ensure()`
 blocks until the fresh pack exists. That is the call the sitter's census
-makes.
+makes. The file is byte-identical at `4427be9a` — same blob
+`2609c641` at both heads — so this reading needs no re-derivation.
 
 "Work done early is never wrong, only unused" is therefore half the claim.
 Work done early can also be redone, on the sitter's own initiative, at a
@@ -280,18 +281,36 @@ control of the same attachment finished quickly
 
 Queue order is a free parameter this experiment has not varied: pending
 attachments are taken in the order the census observed them. Zotero's draft
-[semantic-search PR #6012](https://github.com/zotero/zotero/pull/6012) chose the
-other obvious policy for the same problem.
-`_getEligibleItemIDs()` orders attachments smallest first — "smallest first so
-that one enormous book doesn't sit at the head of the queue while the rest of
-the library waits behind it", with unrecorded sizes sorting to the end
-([§5.3 of the full-text reading](../../verification/VERIFY-FULLTEXT-SQLITE.md)).
-That is worth naming plainly: #6012 is itself an eager scheduler over the same
-extraction stage, arrived at independently, and its own comment identifies the
-head-of-line behaviour the live probe observed. Two eager schedulers over one
-serial worker is the situation the concurrency section below is about.
+[semantic-search PR #6012](https://github.com/zotero/zotero/pull/6012) has varied
+it, and the direction it moved is the interesting part.
 
-It is eager by the same mechanisms. At `19e7962`, indexing resumes five seconds
+At `19e7962`, read 2026-09-08, `_getEligibleItemIDs()` ordered attachments
+**smallest first** — "smallest first so that one enormous book doesn't sit at
+the head of the queue while the rest of the library waits behind it", with
+unrecorded sizes sorting to the end
+([§5.3 of the full-text reading](../../verification/VERIFY-FULLTEXT-SQLITE.md),
+a reading pinned at that head and left standing). At
+`4427be9a`, read 2026-09-12, that policy is gone. The same function now orders
+attachments **most recently touched first**, by the greatest of the attachment's
+last-read time, its own modification time, its parent's, its annotations' and
+its sibling notes', descending. The comment says why: "Attachments the user
+touched most recently go first … since those are what they're most likely to
+search for". Attachments
+are enqueued last, after metadata, because they are "an order of magnitude more
+to index".
+
+The move is from a cost-minimizing order to a value-maximizing one. Smallest
+first shortens the average wait for *any* result; most-recent first shortens the
+wait for the result someone actually wants, and pays for it with the head-of-line
+behaviour the earlier comment was written to avoid — the same behaviour the live
+probe observed. So the axis this experiment left fixed is one the other scheduler
+has now moved along, deliberately and in a direction our own reasoning did not
+consider. #6012 remains an eager scheduler over the same extraction stage,
+arrived at independently; two eager schedulers over one serial worker is the
+situation the concurrency section below is about.
+
+It is eager by the same mechanisms, and these were re-read at `4427be9a` rather
+than carried forward. Indexing resumes five seconds
 after startup whenever a model is selected and indexing is not paused; item add
 and modify notifications enqueue behind a three-second debounce; and
 `startIndexing()` re-enqueues every eligible item in every library. No query
@@ -373,27 +392,49 @@ now the flat text and its lexical tables, the structured-document-text packs
 produced by an ONNX segmentation pipeline, and, in the draft semantic-search
 work, embeddings — each with model inference somewhere in its build path, and
 each carrying its own locally reasonable politeness constant. #6012 halves the
-runtime's recommended thread count, commenting "trade wall time for heat and
-leave the rest of the machine to the user"
-([inference-boundary review](../../verification/BRIDGE-0496.md)); it orders
-attachments smallest first; the sitter reads memory, load and disk before every
+runtime's recommended thread count; it orders attachments by how recently the
+user touched them; the sitter reads memory, load and disk before every
 admission. Three consumers, three private policies, one serial worker, and no
 shared budget any of them can see.
 
-The memory floors show it most sharply. At `19e7962` the embedding indexer
-declines to start a pass below 1,5 GiB available and retries five minutes later
-with its queue untouched; the sitter refuses admission below 4 GiB. Two
-components read the same meter on the same machine, disagree by more than a
-factor of two about what "enough" is, and neither can see the other's answer.
-They also disagree about the unreadable case, in opposite directions: where the
-platform cannot report available memory, `_availableMemory()` returns 0 and the
-check treats it as room to proceed, while the sitter refuses to admit. Neither
-default is wrong on its own terms — one protects progress, the other protects
-the machine — and that is exactly the point: they are answers to a question no
-document poses, so nothing makes them agree. One mechanism there is better than
-ours and worth saying so: under memory pressure #6012 shrinks its batches and
-releases the engine rather than stopping, so it keeps making progress where the
-sitter simply waits.
+The halving is still there and is no longer unconditional, which sharpens the
+point rather than blunting it. At `19e7962` it was one expression with a comment
+attached — "trade wall time for heat and leave the rest of the machine to the
+user"
+([inference-boundary review](../../verification/BRIDGE-0496.md), pinned at that
+head). At `4427be9a` it has become a named function,
+`Zotero.Embeddings.Indexing.getEngineThreads()`, whose halving a set of *thread
+boosts* can lift — among them `user-idle`, so the politeness is withdrawn
+precisely when nobody is at the machine. The quoted comment is gone from the
+source. A constant became a policy with inputs, and none of those inputs is
+visible to another consumer either.
+
+The memory floors show it most sharply, and they are unchanged between the two
+heads. The embedding indexer declines to start a pass below 1,5 GiB available
+and retries five minutes later with its queue untouched; the sitter refuses
+admission below 4 GiB. Two components read the same meter on the same machine,
+disagree by more than a factor of two about what "enough" is, and neither can
+see the other's answer. They also disagree about the unreadable case, in
+opposite directions: where the platform cannot report available memory the read
+returns 0 and the check treats it as room to proceed, while the sitter refuses
+to admit. (That read has moved from a private `_availableMemory()` at `19e7962`
+to a public `Zotero.Embeddings.Diagnostics.getAvailableMemory()` at `4427be9a`;
+it still returns 0 on the unreadable case, and the check still reads 0 as room.)
+Neither default is wrong on its own terms — one protects progress, the other
+protects the machine — and that is exactly the point: they are answers to a
+question no document poses, so nothing makes them agree. One mechanism there is
+better than ours and worth saying so: under memory pressure #6012 halves its
+token budget down to a floor and shuts the engine down alongside, restoring both
+when the pressure lifts, so it keeps making progress where the sitter simply
+waits.
+
+Since `19e7962` it has added a second memory mechanism of a kind the sitter has
+no equivalent for: a cap on the *inference process's own footprint*, above which
+the engine is restarted between batches. That is a plugin admitting its
+long-running arena does not shrink and treating a restart as the only reclaim —
+a fourth private constant on the same machine, and the one that would be hardest
+for an outside consumer to anticipate, because it is about a process nobody else
+can see.
 
 Per-document cost has moved in the same direction. On our own harness a document
 set totalling **849 pages** extracted in 16,54 s in one process and in 4,49 s
@@ -459,6 +500,9 @@ On an initially unindexed library, a long extraction backlog therefore delays
 the first attachment-content semantic results, even for documents whose packs
 are already ready. This is an implementation reading, not a measured duration;
 see the pinned [indexing source](https://github.com/zotero/zotero/blob/19e79625b1c6fbbdd75367aa85b62d5a7080d7f6/chrome/content/zotero/xpcom/embeddings.js).
+Re-read at `4427be9a` on 2026-09-12: the barrier holds, and the newer head is
+more explicit about it — attachments are enqueued after metadata because they
+are "an order of magnitude more to index".
 
 The search request itself does not ordinarily wait for the whole indexing run:
 it can use available embeddings, and hybrid search falls back to lexical ranking
@@ -503,8 +547,23 @@ the useful separation is from Zotero's bundled runtime and its exposed options,
 not merely from the UI thread. This does not establish that Gecko could never
 support GPU inference.
 
-The review also identifies an existing outbound passage-embedding hook in
-#6012, so Zotero could itself consume a compatible external service. Queries
-still embed locally through that implementation. Our existing service work
-(tickets 0491 and 0575) is the reuse path; device usability and compatibility
-between query and passage vectors must be verified before claiming GPU benefit.
+The review also identifies an outbound passage-embedding hook in #6012, so
+Zotero could itself consume a compatible external service. Queries still embed
+locally through that implementation. Our existing service work (tickets 0491 and
+0575) is the reuse path; device usability and compatibility between query and
+passage vectors must be verified before claiming GPU benefit.
+
+That description was accurate at `19e7962` and now understates what is there.
+Re-read at `4427be9a` on 2026-09-12, the hook has become a subsystem of its own:
+`Zotero.Embeddings.Endpoint`, with an active-endpoint resolver, failure and
+success recording, a recheck, a reported status — and a **sentinel-vector
+check**, which embeds a known passage through the endpoint and compares the
+answer, so a service that returns plausible numbers without actually serving
+embeddings is caught before a batch of vectors is stored against it. There is a
+preferences pane for it,
+`chrome/content/zotero/preferences/embeddingsEndpoint.xhtml`, so it is a
+user-facing setting rather than an internal seam. The GPU limit above is
+unchanged — `embeddings.js` still selects no device and no execution provider at
+either head — but the assumption that an external embedding service would be
+ours to design is not: the compatibility contract that work has to meet now
+exists upstream, and the sentinel check is the part to meet first.
