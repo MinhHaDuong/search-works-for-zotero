@@ -2,6 +2,7 @@
 Title: Does an uninstall withdraw the sitter indexing consent
 Created: 2026-09-12
 Author: claude
+Closed: autoclosed — PR #544
 
 --- log ---
 2026-09-12T09:02Z claude created
@@ -9,6 +10,7 @@ Author: claude
 2026-09-12T09:07Z claude note filed from the lifecycle audit (F1). Needs a ruling: 'asked once per profile' is ratified and conflicts with 'an uninstall withdraws consent'
 2026-09-12T10:37Z MinhHaDuong ruled — an uninstall writes the indexing switch off rather than clearing it: consent withdrawn, and the first-run question not re-asked. Neither option as put; recorded in DECISIONS.md and SPEC 5.2.7, implementation handed to 0773 Action 2
 2026-09-13T11:16Z implemented: shutdown() writes the switch false on the uninstall reason and no other, through writeSDTSwitch and before the seal so the record reaches the journal. Disable, app-shutdown, upgrade and downgrade are positive-control arms. This was 0772's sole remaining exit criterion
+2026-09-13T12:22Z MinhHaDuong closed — autoclosed — PR #544
 --- body ---
 
 ## Context
