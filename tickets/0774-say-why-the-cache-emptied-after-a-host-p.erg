@@ -8,6 +8,7 @@ Author: claude
 
 2026-09-12T09:07Z claude note filed from the lifecycle audit (F5). Blocked-by 0771: the skipped-row count is read in the cache loop 0771 edits, and 0771 adds a second occasion for the same silence
 2026-09-13T09:17Z MinhHaDuong note blocker 0771 closed — Blocked-by removed.
+2026-09-13T18:37Z claude note THIS TICKET'S CADENCE IS THREE TIMES FASTER THAN ITS CONTEXT STATES. The Context prices the total cache invalidation as eleven stamps across three point releases. Measured from the release tarballs themselves (verification/probes/sdt_stamps_by_release.py, full reading and controls on 0754): 10.0 and 10.0.1 carry byte-identical constants -- schema 1.1.0, pdf 3, epub 1, snapshot 1 -- and the entire delta to schema 1.2.0 / pdf 14 / epub 2 lands in the single step 10.0.1 -> 10.0.2. So the wholesale drop this ticket wants explained is triggered by ONE ordinary point upgrade rather than by an accumulation over three, which makes the unexplained silence in emit(cache-load) more frequent, not less, and strengthens rather than changes this ticket's case.
 --- body ---
 
 ## Context
