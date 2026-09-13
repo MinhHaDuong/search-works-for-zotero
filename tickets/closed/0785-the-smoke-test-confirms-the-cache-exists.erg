@@ -1,0 +1,110 @@
+%erg 0.1
+Title: The smoke test confirms the cache exists and reads nothing in it
+Created: 2026-09-13
+Author: claude
+Closed: autoclosed — PR #550
+
+--- log ---
+2026-09-13T18:29Z claude created
+2026-09-13T18:31Z claude note Filed from the author's question -- "the smoke test should check the hash of the three generated .sdt, does it?" -- which was right about the gap and named an artefact whose extension does not exist. It does exist: `storage/<key>/.zotero-sdt-cache`, one per attachment, magic \x89SDT\r\n\x1a\n. A repo grep for `.sdt` found nothing and I reported the artefact absent; the file is written by Zotero's native code, not by anything in this tree, so the grep was measuring the wrong thing. Found by re-running the smoke test with --keep and looking.
+
+2026-09-13T18:51Z claude note The author read the first green run and said the fixtures were too easy -- three generated 590-byte PDFs, byte-identical to each other, so a pack naming ANY of them satisfied the source-hash check. Drawing the three smallest Menagerie documents instead (137-230 KB, three languages, three distinct MD5s) found a real defect on its FIRST run: two cache records and two packs for three attachments. Not the sitter dropping a document -- the third was still being extracted when the run tore Zotero down. The old fixture always finished inside the census poll, so a one-shot read of a thing still being written measured the clock and called it a pass. The read is now a poll against the artefacts themselves, and a timeout re-raises the last real failure rather than reporting "timed out". Worth recording as the ticket's own lesson: the check was correct and the substrate was too weak to exercise it, which no green run could have revealed.
+
+2026-09-13T19:18Z MinhHaDuong closed — autoclosed — PR #550
+--- body ---
+## Context
+
+`bench/sitter_smoke_test.py` (ticket 0784) is the only gate that launches a real
+Zotero and watches the shipped `.xpi` arm. Its final assertion, at line 301, is:
+
+    cache_path = actual_data_dir / "sdt-sitter-cache.jsonl"
+    if not cache_path.exists():
+
+Existence. Nothing reads a row. A cache with zero rows passes; three rows all
+recording `empty: true` -- the sitter ran and produced nothing -- passes. This
+is the shape `tickets/AGENTS.md` names outright: a check whose all-clear is
+indistinguishable from "I could not look" is not a check.
+
+Meanwhile Zotero writes the real product, one per attachment, at
+`storage/<key>/.zotero-sdt-cache`. Observed on 2026-09-13 against 10.0.1, three
+fixture documents, all three present. Header is 24 bytes -- an 8-byte magic,
+then `01 01 01 00` and three little-endian uint32 -- and a raw-deflate stream
+begins at offset 40. It decompresses to:
+
+    {"processor":{"type":"pdf","version":3},
+     "dateCreated":"2026-09-13T18:27:27.611Z",
+     "source":{"contentType":"application/pdf",
+               "hash":"c28ebc2294e92415647827bfeb9d567f",
+               "properties":{"PDFFormatVersion":"1.4"}}}
+
+## What must NOT be asserted, and why
+
+**Not the file's own digest.** The three fixture PDFs are byte-identical
+(`bench/fixtures/smoke_library.py` calls `write_pdf` with no per-item content,
+and all three hash to `c28ebc22...`), yet their packs hashed to
+`c156e5c9...`, `dcdd4dac...` and `7e2d5b42...` in one run, at 462, 462 and 463
+bytes. The whole difference is `dateCreated`, a millisecond timestamp; the size
+split is deflate reacting to different digits. A pinned file hash would go red
+on its second run and teach every reader to ignore it.
+
+What IS pinnable is the pack's own `source.hash` -- Zotero's record of the bytes
+it read, which must equal the MD5 of the fixture this run wrote.
+
+## Relevant files
+
+- `bench/sitter_smoke_test.py` -- line 300-305, the assertion to replace
+- `bench/fixtures/smoke_library.py` -- writes the three PDFs whose MD5 is the
+  expected `source.hash`; note all three are identical, so this fixture cannot
+  catch a per-document mix-up (see Invariants)
+- `plugins/sdt-sitter/scheduler.js:344` -- `createSDTCache`, the row schema:
+  `{signature, fingerprint, sourceBytes, pages, empty, sample}`
+
+## Actions
+
+1. After the cache-exists check, read `sdt-sitter-cache.jsonl` back: assert one
+   row per imported attachment, each with `record.empty === false` and
+   `record.pages > 0`, and that every row's `versions` stamp agrees.
+2. Enumerate `storage/*/.zotero-sdt-cache`; assert the count equals the
+   attachments imported, and that each carries the SDT magic.
+3. Decompress each pack's metadata and assert `source.hash` equals the MD5 of
+   the fixture PDF this run wrote. Locate the deflate stream by scanning
+   offsets rather than hardcoding 40: 10.0.2 changes the SDT version and may
+   move the header.
+4. Return `processor.version` and the cache's `SDT_SCHEMA_VERSION` /
+   `SDT_PACK_VERSION` in the run's JSON result, so a cross-version run can diff
+   them instead of re-deriving them by hand.
+
+## Test
+
+Red step first, and it is cheap: assert `source.hash` against a deliberately
+wrong MD5 and confirm FAIL; then against the real fixture and confirm PASS.
+Separately, delete one `.zotero-sdt-cache` before the assertion and confirm the
+count check fails -- that is the arm that proves step 2 is not satisfied by
+construction.
+
+## Verification
+
+- [ ] Both red arms above observed failing, then passing
+- [ ] `make sitter-smoke` still PASSes against 10.0.1 end to end
+- [ ] `make check` green
+
+## Invariants
+
+- The pack file's own digest is never pinned (see above). If a future reader
+  wants byte-level stability, the question to ask upstream is whether
+  `dateCreated` can be omitted, not whether this test can be made to tolerate it.
+- The source-hash check asserts SET MEMBERSHIP: each pack names one of the
+  documents this run handed over. With three distinct Menagerie documents that
+  is a real constraint, where three identical generated PDFs made it vacuous.
+  It still would not catch a PERMUTATION -- pack A naming document B -- which
+  needs the pack mapped to its own attachment through Zotero's item keys. Not
+  done, and not pretended to be done.
+- The smoke test stays non-cycling and seconds-long: no restart, no replace.
+- `plugins/sdt-sitter/` is only ever READ by this script.
+
+## Exit criteria
+
+The smoke test reads the packs and the cache rows rather than confirming a
+filename, both red arms have been shown, and a run reports the SDT version
+numbers it observed. This is what lets the 10.0.2 carry-over arm distinguish a
+re-preparation from stale rows silently reused -- which it cannot do today.

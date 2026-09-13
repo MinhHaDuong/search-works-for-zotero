@@ -187,6 +187,15 @@ user_pref("extensions.sdt-pack-sitter.enabled", true);
 user_pref("app.update.auto", false);
 user_pref("datareporting.policy.dataSubmissionEnabled", false);
 user_pref("toolkit.telemetry.reportingpolicy.firstRun", false);
+// A fresh profile is a first install as far as Zotero is concerned, so it opens
+// "Success! You installed Zotero!" in the DEFAULT BROWSER -- the author's own
+// Firefox, outside anything this rig tears down. Three smoke runs left three
+// tabs open in his session (reported 2026-09-13). A rig that is meant to run
+// repeatedly and unattended must not leak into the machine it runs on.
+// Not a guessed pref name: Zotero writes exactly this line into the profile
+// itself once the page has been shown, so seeding it false beforehand is the
+// same switch, thrown one launch earlier.
+user_pref("extensions.zotero.firstRun2", false);
 """
 
 
