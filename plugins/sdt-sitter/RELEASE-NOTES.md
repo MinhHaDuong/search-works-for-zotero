@@ -120,12 +120,18 @@ not an old part of Zotero: `chrome/content/zotero/xpcom/sdt.js` entered the
 application in a single commit on 2026-06-11, and exactly three releases carry
 it — 10.0, 10.0.1 and 10.0.2. Before that there is no pack to prepare and
 nothing here to do, so the floor is the edge of the feature rather than a
-cautious margin below it, and an older Zotero refuses the install outright.
+cautious margin below it, and an older Zotero cannot run this add-on at all.
 Two consequences worth stating plainly. The declared minimum is 10.0.1, one
 release above the first that carries structured text, so 10.0 is excluded by
-declaration and has never been tried. And of the three hosts that could run this
-add-on at all, one has been measured here — the rest of this range is declared,
-not tested.
+declaration — and on 2026-09-13 that exclusion was measured rather than assumed.
+It does not work the way the word "minimum" suggests. The add-on installs on
+10.0 without complaint; Zotero then marks it incompatible and disables it
+itself, so it sits in the add-ons list doing nothing, never having started. If
+you are on 10.0, upgrade rather than wonder why nothing happens. Of the three
+releases that could run this add-on at all, two have now been exercised against
+real documents — 10.0.1, and 10.0.2 including the upgrade from one to the
+other, where the sitter discarded every cached answer and prepared the
+documents again rather than trusting work done under the older processor.
 
 How a removal leaves the indexing switch was decided on 2026-09-12
 (ticket [0772](../../tickets/0772-does-an-uninstall-withdraw-the-sitter-in.erg)),
