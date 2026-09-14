@@ -141,6 +141,11 @@ SDT_MAGIC = b"\x89SDT\r\n\x1a\n"
 #: read_pack_metadata() scans rather than trusting this.
 SDT_DEFLATE_HINT = 40
 
+#: How far to scan for the deflate stream. See read_pack_metadata's own note:
+#: the metadata's offset moves with the length of the header before it, which
+#: grows with the source document's embedded properties.
+SDT_SCAN_LIMIT = 4096
+
 
 def read_pack_metadata(path: Path) -> dict:
     """The pack's metadata section, decompressed and parsed.
@@ -156,7 +161,15 @@ def read_pack_metadata(path: Path) -> dict:
     if not blob.startswith(SDT_MAGIC):
         raise SmokeFailure(
             f"{path} does not carry the SDT magic; first bytes {blob[:8]!r}")
-    offsets = [SDT_DEFLATE_HINT] + [n for n in range(8, 128) if n != SDT_DEFLATE_HINT]
+    # 128 was too small, found by the acceptance run on 2026-09-14: a Menagerie
+    # PDF carrying rich document properties (Title, Author, Subject, Keywords)
+    # lengthens the header ahead of the metadata, which sat at offset 232 --
+    # outside the window, and reported as "no readable metadata section" on a
+    # pack the sitter had written perfectly well. The scan is a few thousand
+    # cheap zlib attempts either way, and the cost of looking too far is
+    # nothing next to the cost of calling a good pack unreadable.
+    offsets = [SDT_DEFLATE_HINT] + [n for n in range(8, SDT_SCAN_LIMIT)
+                                    if n != SDT_DEFLATE_HINT]
     for off in offsets:
         if off >= len(blob):
             break
@@ -172,7 +185,7 @@ def read_pack_metadata(path: Path) -> dict:
             continue
     raise SmokeFailure(
         f"{path} carries the SDT magic but no readable metadata section was "
-        f"found in its first 128 bytes ({len(blob)} bytes total). If Zotero "
+        f"found in its first {SDT_SCAN_LIMIT} bytes ({len(blob)} bytes total). If Zotero "
         "changed the container, this check needs updating -- do not read this "
         "as the sitter having failed.")
 
