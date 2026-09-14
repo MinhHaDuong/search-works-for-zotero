@@ -2,6 +2,12 @@
 
 *An independent open workshop for advancing semantic retrieval in Zotero.*
 
+> **Looking for the SDT Pack Sitter add-on?** It prepares Zotero 10's
+> structured-text caches in the background.
+> [Download and release notes](https://github.com/MinhHaDuong/search-works-for-zotero/releases/latest)
+> · [source](plugins/sdt-sitter/) · AGPL-3.0. Experimental — read the known
+> bugs before installing.
+
 Search should work across a whole scholarly library: records, notes,
 annotations, articles, books, and very large reference works. It should find
 meaning rather than merely matching strings, while remaining inspectable,
@@ -71,7 +77,7 @@ Contents below the bar is generated to track implementation progress.
 | [Multilingual Menagerie](https://www.zotero.org/groups/6659303/semantic_search_challenge_fixture) | **In progress** | ticket 0029 |
 | Verification and scoring bench | **In progress** | [bench/](bench/) and ticket 0026 |
 | Library-level bench | **In progress** | ticket 0719 |
-| SDT pack sitter plugin | **Experimental; release validation in progress** | [Plugin](plugins/sdt-sitter/), [launch evidence](verification/SDT-SITTER-LAUNCH.md) and ticket 0700 |
+| SDT pack sitter plugin | **Experimental** | [Download](https://github.com/MinhHaDuong/search-works-for-zotero/releases/latest), [source](plugins/sdt-sitter/), [launch evidence](verification/SDT-SITTER-LAUNCH.md) and ticket 0700 |
 | Full-text API plugin | **Existing control plugin; richer read interface in design** | [Plugin](bench/zotero-fulltext-plugin/), tickets 0726 and 0758 |
 
 The plugins aim to provide **a shared text foundation for Zotero AI tools**.
