@@ -2,22 +2,19 @@
 
 Minh.Ha-Duong@cnrs.fr, 2026-09-14
 
-This plugin eagerly runs Zotero 10's structured text extraction on your library's attached files.
+This developer plugin eagerly runs Zotero 10's structured text extraction on your local and group library's attached files.
 
-**Requires Zotero 10.0 or later, and will not run on Zotero 11.** Earlier
-versions do not have structured text extraction at all; later ones are
-untested, so the plugin declares a ceiling and Zotero will disable it there
-rather than run it unverified.
+**Requires Zotero 10.** Earlier versions do not have structured text extraction at all.
 
 ## Why ?
 
-- Fulltext search tools may use the extracted structured text for better replies. Someday.
-- The whole indexing may take hours. So if you don't index in advance, the reply to your first request will arrive tomorrow.
-- If you never refresh the index, you get stuck with old versions for years.
-- Surfacing unindexed parts in your library, so that completists can go fetch missing/broken PDFs.
-- An experiment in user interface.
-- A prototype. If these ideas are any good they belong upstream in Zotero,
-  not in a plugin everybody has to find and install.
+a. If you never refresh the index, you get stuck with old versions for years.
+b. Lists your unindexed items, so that you know which missing/broken PDFs to fetch.
+c. A prototype. Indexing should be automatic, complete, robust, up to date, a safe background process.
+d. Fulltext search tools can use the extracted structured text for better replies. And will, someday.
+e. The whole indexing may take hours. So if you don't index in advance, the reply to your first request will arrive tomorrow.
+
+Points a, b and c are current limits of Zotero. Points d and e are the frontier.
 
 ## What it does, after you click "Start indexing"
 
@@ -36,29 +33,24 @@ rather than run it unverified.
 
 - The plugin does not interfere with Zotero's own "Index on PDF open" behavior.
 - The plugin does not reimplement any extraction mechanism, its job is only to babysit a long-running job.
-- The plugin does not leave anything behind on uninstall. Exceptions: state is preserved on disable and upgrade in place.  If you turn debug mode on there will be a `sdt-sitter-last-shutdown.json` to the Zotero data directory for postmortem.
+- The plugin does not leave anything behind on uninstall. Exceptions: state is preserved on disable and upgrade in place. And if debug mode is on, a `sdt-sitter-last-shutdown.json` is left in the Zotero data directory for postmortem.
 - Sync between machines. The extracted structured text is a local cache file, it does not travel.
-- Does not exposes an external access point to the SDT. That is required for the Why reason 1, but looks like another plugin job to me.
-- Does not sit chunking and embedding. See PR #6012 for that.
+- Does not expose an external access point to the SDT. Yet?
+- Does not manage chunking and embedding. See PR #6012 for that.
+- Does not phone home or send your data anywhere. Exception: Zotero can automatically check online for plugin updates everyday. Disallowable in the Extensions "gear" menu.
 
 ## Known bugs and limitations
 
-- During development I observed Zotero removing the add-on without telling it. Could not identify the root cause.
-- If it vanishes on you: **before restarting Zotero**, open the plugin window,
-  expand Technical diagnostics and copy the log, then open an issue on my repo
-  (link below). That record lives only as long as the Zotero process — a
-  restart destroys the only trace there is.
-- The plugin mechanism to throttle down indexing in case of memory / disk / CPU pressure works only on Linux.
-- I did my best effort to ensure keyboard navigability and text-to-speech
-  readability (except that I could not find a way for a plugin to insert its
-  button into Zotero's Tab navigation order, so you have to click it).
+- When you uninstall a plugin, Zotero hides it from the list and schedules actual removal for later. So if you immediately reinstall, the new copy will get erased. Workaround: always restart Zotero after uninstalling a plugin. Bug report filed upstream.
+- The mechanism to throttle down indexing in case of memory / disk / CPU pressure works only on Linux.
+- I did my best effort to ensure keyboard navigability and text-to-speech readability, but could not find a way for a plugin to insert its button into Zotero's Tab navigation order. Workaround: none found, you have to click it. Bug report filed upstream.
 - The SDT format can evolve with automatic Zotero minor updates, triggering a full reindex. Wait, that's a feature not a bug !
-- This does not replace the "Index all" button that disappeared. Because that button addressed the "full text" index, not the "structured text" index.
+- This does not replace the "Rebuild Index" button that disappeared. Because that button addressed the "full text" index, not the "structured text" index. See next point why.
 
 ## Zotero text extraction remarks
 
 - The old "Rebuild Index" and "Clear Index" buttons were removed in Zotero 10
-  ([02fb0e92e](https://github.com/zotero/zotero/commit/02fb0e92e)). Rebuild Index marked all content unsynced and re-uploaded it, triggering a server reindex and a re-download on every other device — so it was never a local operation. SDT caches are genuinely local and never travel, which is why a plugin can sit on them without that blast radius. https://github.com/zotero/zotero/commit/02fb0e92e 
+  ([02fb0e92e](https://github.com/zotero/zotero/commit/02fb0e92e)). Rebuild Index marked all content unsynced and re-uploaded it, triggering a server reindex and a re-download on every other device — so it was never a local operation. SDT caches are genuinely local and never travel, which is why a plugin can index all without that blast radius.
 - Zotero phones home daily to fetch this repository's update manifest from raw.githubusercontent.com — one fixed URL, nothing about your library, recorded
   in [SPEC.md](../../SPEC.md#surfaces). Sorry, not my fault. The plugin makes no
   request of its own.

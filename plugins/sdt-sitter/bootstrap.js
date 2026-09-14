@@ -2384,7 +2384,7 @@ function renderState() {
     // not borrow its sentence. Neither input below tells the truth during one --
     // the census loop never assigns `state.active`, and `state.pending` holds
     // the previous generation until refreshQueue() runs at census close -- so
-    // the line used to read "Preparing the next attachment…" for the whole walk,
+    // the line used to take the `active-preparing` branch for the whole walk,
     // minutes of it on a large library, while no attachment was being prepared.
     // The phase decides first, and reports the one counter that does move.
     const activeMessage = s.phase === 'census'
