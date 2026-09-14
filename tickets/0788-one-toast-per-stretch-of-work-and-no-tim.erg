@@ -1,0 +1,132 @@
+%erg 0.1
+Title: One toast per stretch of work, and no timeout when the work never ends
+Created: 2026-09-14
+Author: claude
+
+--- log ---
+2026-09-14T07:10Z claude created
+2026-09-14T07:11Z claude note Filed AFTER the work, which is the wrong order and the reason review of PR #555 asked for it. The branch, the PR title and a commit message all named "ticket 0788" while no such ticket existed — tickets topped out at 0787. In a store whose IDs are allocated optimistically that is not cosmetic: the next `erg new` would have handed 0788 to something unrelated and the history would carry two. Filing the real one is the repair, and it is also the only place the author's two rulings below are written down.
+
+--- body ---
+## Context
+
+The end-of-sweep toast (`announceSDTSweep`, ticket 0696) fired whenever
+`completed` or `failed` had moved since that sweep began. While a library has
+work that is once per sweep: every thirty seconds, eight seconds on screen, for
+the whole of a large library's first index. The author met it on a real library
+and ruled it poor UX on 2026-09-14.
+
+Shipped in PR #555: the announcement is HELD while `s.busy || s.pending?.length`
+and made once when a sweep leaves the sitter at rest.
+
+## The rulings this ticket exists to record
+
+Both are the author's, given in conversation on 2026-09-14, and neither was
+written down anywhere before this ticket.
+
+**1. Do not normalize an error condition.** Asked whether the held
+announcement should have an upper bound — announce anyway after ten minutes, so
+a sitter whose work never finishes still says something — the author ruled:
+
+> Do not normalize error condition. If something is really stuck, that's a bug
+> in the sitter's job not user information.
+
+So the starvation case is deliberate. A sitter whose `busy || pending` never
+goes false is a defect to be found, and a toast that fired anyway would mask it.
+Silence there is the intended behaviour rather than an accepted cost, and a
+future reader meeting "it never told me anything" must not reach for the timeout
+this ruling refuses.
+
+**2. A background sitter is robust by itself and does not alarm on transient
+conditions.**
+
+> This is a background sitter. It should work robust by itself, and not cause
+> alarm for temporary errors. For example, disk full or CPU contention are log,
+> defer and retry, not a modal popup alert.
+
+Verified against the code rather than assumed: `SDT_BLOCKED_PHASES` routes
+`cpu-busy`, `low-memory`, `low-disk`, `storage-unavailable` and
+`resources-unavailable` to `IDLE_SWEEP_INTERVAL_MS` — ten minutes rather than
+thirty seconds — and the only `Services.prompt.confirmEx` in the file is the
+one-time launch question. The rule already held; nothing enforced it.
+
+## Should the resource backoff be exponential? No, and here is the rule
+
+Asked directly. The answer, with its reasoning, because the question will come
+back:
+
+**Back off exponentially when the retry costs the contended resource something.
+Poll flat when it does not.**
+
+The resource retry is three procfs reads and a disk stat: microseconds, no I/O
+of consequence, no lock, no network. Exponential backoff exists to protect a
+resource from the retries themselves, and there is nothing here to protect.
+What it would cost is real: these conditions are user-resolvable on a human
+timescale — disk full, you delete something; CPU busy, the other job ends — and
+a sitter backed off to four hours is at its worst exactly when the user has
+just fixed the problem and is watching for it to resume. Ten minutes flat is
+already the ceiling on that recovery latency.
+
+The asymmetry that matters is already right, and it is the reason this is not
+an oversight: the EXPENSIVE retry — re-extracting a document — is capped at once
+per session by `scheduler.js`'s `failed` set (ticket 0740), while the free one
+polls flat. Exponentializing the cheap poll optimizes the axis that costs
+nothing.
+
+## The one place the second ruling does not reach
+
+Checked at the author's request. A resource block does NOT poison a document:
+`host.blocked(before)` runs before submission, and on a reason the scheduler
+sets `state.phase` and breaks out of the admission loop, so the document is
+never handed to `ensure()` and never reaches the catch that populates `failed`.
+
+But `failed.add` sits in the catch of an extraction that WAS submitted, so a
+native worker dying mid-extraction — an out-of-memory, say — is held for the
+session. `scheduler.js` says so itself, deliberately:
+
+> a worker that ran out of memory and a photograph that holds no text are
+> indistinguishable from this side, and only one of them is permanent
+
+The design's answer there is prevention rather than recovery: the 4 GiB memory
+floor exists to make that case rare, and the scope is per-session so a restart
+clears it. Recorded as a known edge, not filed as a defect — the information
+needed to tell the two apart is not available at that point.
+
+## Actions
+
+1. Write ruling 1 into `announceSDTSweep`, at the hold, naming
+   `heartbeatTick`'s journal as the channel that stays live when the toast does
+   not. (Review's placement recommendation, and it is right: the reader who
+   needs it is the one looking at the hold.)
+2. Write the backoff rule beside `nextSweepDelayMS`.
+3. `RELEASE-NOTES.md` gains the toast's behaviour. It documents the
+   screen-reader region in detail and has never mentioned the toast at all,
+   old or new, although this changes its visible cadence from every thirty
+   seconds to once per run.
+
+## Test
+
+Covered by PR #555's two arms in `tests/sdt_sitter_scheduler.mjs` and mutants
+M74/M75, both shown red. What this ticket adds is prose, and prose has no red
+step — which is the argument for putting the rulings where a reader meets the
+code rather than only here.
+
+## Verification
+
+- [ ] A reader arriving at the hold learns why there is no timeout
+- [ ] A reader arriving at the backoff learns why it is flat
+- [ ] `RELEASE-NOTES.md` describes what a user now sees during indexing
+- [ ] `make check` passes
+
+## Invariants
+
+- No timeout on the hold, no periodic "still working" toast, no mechanism that
+  makes the starved case produce output. That is ruling 1, and reversing it
+  needs the author, not a reader who finds the silence surprising.
+- No modal, alert or popup on a transient resource condition. Log, defer, retry.
+- The toast stays a report of work done, never an alarm about work not done.
+
+## Exit criteria
+
+Both rulings are readable from the code they govern, the release notes say what
+a user sees, and nothing in the tree implies a timeout is coming.

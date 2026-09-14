@@ -663,6 +663,24 @@ function noticeSDTRemoval(addon) {
 /* Queue retries do no discovery. Quiet libraries wait for reconciliation;
    notifications can wake the pump earlier. SPEC.md §5.2.7 owns the cadence. */
 var SDT_BLOCKED_PHASES = ['cpu-busy', 'low-memory', 'low-disk', 'storage-unavailable', 'resources-unavailable'];
+/* Why the blocked cadence is FLAT and not exponential (ticket 0788).
+
+   Back off exponentially when the retry costs the contended resource something.
+   Poll flat when it does not. This retry is three procfs reads and a disk stat:
+   microseconds, no I/O of consequence, no lock, no network. Exponential backoff
+   exists to protect a resource from the retries themselves, and there is
+   nothing here to protect.
+
+   What it would cost is real. These conditions are user-resolvable on a human
+   timescale — a full disk gets something deleted, a busy CPU finishes its other
+   job — so a sitter backed off to hours is at its worst exactly when the user
+   has just fixed the problem and is watching for it to resume. Ten minutes is
+   already the ceiling on that latency.
+
+   The asymmetry is deliberate rather than an oversight: the EXPENSIVE retry,
+   re-extracting a document, is capped at once per session by scheduler.js's
+   `failed` set (ticket 0740). The free one polls flat. Exponentializing this
+   one optimizes the axis that costs nothing. */
 function nextSweepDelayMS(state) {
   if (state.busy) return SWEEP_INTERVAL_MS;
   const untilReconciliation = state.nextReconciliationAt == null ? SWEEP_INTERVAL_MS
@@ -736,6 +754,22 @@ function announceSDTSweep(before) {
   // which is the same rule `announceSDTTransition` states for the screen-reader
   // region -- the two channels now agree, where before this one announced the
   // progress the other deliberately refuses to.
+  //
+  // AND NO TIMEOUT. Held work that never comes to rest is never announced, and
+  // that is deliberate: asked whether the hold should give up after ten minutes
+  // so a wedged sitter still said something, the author ruled "do not normalize
+  // error condition — if something is really stuck, that's a bug in the
+  // sitter's job, not user information" (ticket 0788). A toast fired on a
+  // timeout would make the wedge look like ordinary operation, which is the
+  // one outcome worth avoiding.
+  //
+  // What stays live when this channel does not: `heartbeatTick` runs on its own
+  // sixty-second interval and journals `phase`, `elapsedMS`, `sinceProgressMS`
+  // and `pending`, and the toolbar spinner tracks `busy`. A wedge is diagnosable
+  // there, which is the precondition that makes the silence acceptable rather
+  // than merely quiet. Note the sharp edge honestly: because the hold
+  // accumulates over a whole run, a run that indexes real files and THEN wedges
+  // produces no toast for any of it, not just for the stuck tail.
   if (s.busy || s.pending?.length) return false;
   try {
     const toast = new Zotero.ProgressWindow();

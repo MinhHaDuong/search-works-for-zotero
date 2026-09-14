@@ -75,6 +75,22 @@ Resource retries resume queued work without rescanning the library. The window
 shows how recently reconciliation completed; disk availability remains a last
 observation. Missing files stay in Zotero and their native packs are preserved.
 
+The add-on also puts a small notice on screen when it has finished a stretch of
+indexing, saying how many files it did and how many it could not. Until
+2026-09-14 that notice appeared at the end of every thirty-second pass that had
+indexed anything, which on a large library meant one every thirty seconds for
+as long as the indexing lasted. It now waits until there is nothing left to do
+and says it once. A single file dropped into an up-to-date library is still
+announced as soon as it is done, because that pass also ends the work.
+
+One consequence is worth stating rather than leaving to be discovered: if the
+indexing never finishes — a job that wedges rather than one that takes a long
+time — no notice appears at all, for any of it. That is deliberate. A notice on
+a timer would make a stuck job look like a working one, and a stuck job is
+something to report rather than something to live with
+(ticket [0788](../../tickets/0788-one-toast-per-stretch-of-work-and-no-tim.erg)).
+The window itself keeps showing live progress throughout either way.
+
 Ticket [0686](../../tickets/closed/0686-follow-up-sdt-sitter-panel-accessibility.erg)
 adds a status region to the window for screen-reader users. It announces a
 change of state — scanning, waiting for resources, an error, indexing turned
