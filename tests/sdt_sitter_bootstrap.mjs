@@ -1079,6 +1079,95 @@ await test('the debug switch off writes nothing to disk, on any reason', async (
   }
 });
 
+/* Ticket 0727 guard 1, and the reason it exists is a measurement rather than a
+   worry. On the author's machine, 2026-09-14, Zotero's removal cleared the
+   add-on's whole `extensions.sdt-pack-sitter.*` branch -- DEBUG_PREF with it.
+   So the FIRST disappearance on a machine turns the evidence switch off and
+   every later one is silent, which is exactly what happened: four removals in
+   one hour and one possible certificate. The missing certificates were then
+   read (by me) as proof shutdown had never run, and the host's own log
+   disproved that. A switch the failure can erase is not a switch. */
+await test('the diagnostics marker opts in where the cleared preference cannot', async () => {
+  const MARKER = `${DATA_DIR}/sdt-sitter-diagnostics.on`;
+
+  // THE CASE THE PREFERENCE CANNOT COVER: branch cleared, marker present.
+  const marked = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  marked.files.put(MARKER, '');
+  await marked.start();
+  assert.equal(marked.context.Zotero.Prefs.get('extensions.sdt-pack-sitter.debug', true), undefined,
+    'the arm needs the pref unset to mean anything');
+  marked.context.shutdown(null, 6);
+  const written = marked.files.text(CERTIFICATE);
+  assert(written, 'a removal that cleared the pref left no certificate, which is the defect');
+  assert.equal(JSON.parse(written).reason, 'uninstall');
+
+  // THE CONTROL, without which the arm above proves only that something wrote a
+  // file: neither channel opted in, so nothing is written.
+  const neither = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  await neither.start();
+  neither.context.shutdown(null, 6);
+  assert.equal(neither.files.text(CERTIFICATE), null,
+    'a certificate appeared with no opt-in at all');
+});
+
+/* Ticket 0727 guard 3. Zotero's own log, 2026-09-14: a Remove takes the pending
+   branch, an install lands and the new copy starts, and 1.53 s later the stale
+   removal finalises on it -- shutdown, uninstall, the file gone. From inside,
+   that arrives as an ordinary ADDON_UNINSTALL and is indistinguishable from one
+   the user asked for, except by its timing.
+
+   The age goes BESIDE the reason and never instead of it. `reason` records what
+   the host said, and the host said "uninstall"; the first version of this guard
+   overloaded that field and the certificate test above caught it. */
+await test('an uninstall seconds after startup is recorded as having superseded a fresh install', async () => {
+  const prefs = { 'extensions.sdt-pack-sitter.debug': true };
+
+  const fresh = createHarness({ attachments: [pdf(1, 'AAAA1111')], prefs });
+  await fresh.start();
+  fresh.context.shutdown(null, 6);
+  const young = JSON.parse(fresh.files.text(CERTIFICATE));
+  assert.equal(young.reason, 'uninstall', 'the host said uninstall and the record must still say so');
+  assert.equal(typeof young.supersededAfterMS, 'number',
+    'a removal landing on a seconds-old activation was filed as an ordinary uninstall');
+  assert(young.supersededAfterMS >= 0 && young.supersededAfterMS <= 10000);
+  assert(fresh.context.journal.tail(50).some(r => r.kind === 'uninstall-superseded'),
+    'the journal did not carry it, so a machine with no certificate learns nothing');
+
+  // THE CONTROL, and it is the error this bound must not make: a deliberate
+  // uninstall of a long-running instance is NOT this, and must not be labelled
+  // as it. The activation clock is pushed back past the window rather than the
+  // test sleeping through it.
+  const settled = createHarness({ attachments: [pdf(1, 'AAAA1111')], prefs });
+  await settled.start();
+  // THE SANDBOX'S OWN CLOCK, not Node's. They are separate calendars here (see
+  // the mock's header), and the first version of this control mixed them: the
+  // age came out hugely negative, sdtSupersedeAgeMS() returned null for that
+  // reason rather than for the window, and mutation M-C (window widened to 27 h)
+  // survived the arm untouched.
+  const pushedBack = settled.context.Date.now() - 600000;
+  settled.context.activationStartedAtMS = pushedBack;
+  assert.equal(settled.context.activationStartedAtMS, pushedBack,
+    'the control could not push the activation clock back, so it tests nothing');
+  settled.context.shutdown(null, 6);
+  const old = JSON.parse(settled.files.text(CERTIFICATE));
+  assert.equal(old.reason, 'uninstall');
+  assert.equal(old.supersededAfterMS, undefined,
+    'an uninstall ten minutes into a session was blamed on the supersede race');
+  assert(!settled.context.journal.tail(50).some(r => r.kind === 'uninstall-superseded'),
+    'the journal claimed a supersede that did not happen');
+
+  // A clock stepped backwards must not manufacture one either.
+  const skewed = createHarness({ attachments: [pdf(1, 'AAAA1111')], prefs });
+  await skewed.start();
+  const pushedForward = skewed.context.Date.now() + 600000;
+  skewed.context.activationStartedAtMS = pushedForward;
+  assert.equal(skewed.context.activationStartedAtMS, pushedForward,
+    'the skew control could not move the clock, so it tests nothing');
+  skewed.context.shutdown(null, 6);
+  assert.equal(JSON.parse(skewed.files.text(CERTIFICATE)).supersededAfterMS, undefined,
+    'a wall clock stepped backwards produced a negative age and a false supersede');
+});
+
 await test('a write that keeps nothing is journalled, and an unreadable report is flagged not buried', async () => {
   // Two arms the first round asserted in a comment and never checked. Both are
   // silent failures by construction: one is a file system that accepts a write
