@@ -159,9 +159,36 @@
       }
       await sleep(200);
       for (const summary of summaries) {
+        // A disclosure the panel has deliberately hidden is not a disclosure
+        // that refuses focus. `fillSDTNotIndexed` sets `section.hidden = true`
+        // when a completed census finds nothing outstanding -- SPEC.md
+        // §5.2.7's "empty groups and an entirely empty section are hidden" --
+        // and an element inside `hidden` is not rendered, so it cannot take
+        // focus and must not be asked to.
+        //
+        // This probe reported that as a hard FAIL until review caught it. The
+        // runs that passed had simply been taken while the census was still in
+        // flight, with the section still on screen: a green that came from
+        // timing rather than from the panel being right, which is the exact
+        // confusion this file exists to prevent elsewhere. A reading whose
+        // subject is not on screen is NOT-ESTABLISHED, and says which.
+        const hiddenBy = (() => {
+          for (let n = summary; n && n !== doc.body; n = n.parentElement) {
+            if (n.hidden) return n.id || n.tagName;
+          }
+          return null;
+        })();
+        const id = summary.parentNode?.id || 'unnamed';
+        if (hiddenBy) {
+          record(`the ${id} summary accepts focus`, null,
+            `not on screen: hidden by ${hiddenBy}. A hidden disclosure cannot `
+            + 'take focus and is not asked to; this says nothing about the '
+            + 'panel, only that this run had nothing to show there.');
+          continue;
+        }
         summary.focus();
         await sleep(60);
-        record(`the ${summary.parentNode?.id || 'unnamed'} summary accepts focus`,
+        record(`the ${id} summary accepts focus`,
           doc.activeElement === summary,
           `activeElement=${doc.activeElement?.id || doc.activeElement?.tagName}`);
       }

@@ -1,0 +1,101 @@
+%erg 0.1
+Title: The toolbar control is focusable but may not be in Zotero's tab route
+Created: 2026-09-14
+Author: claude
+
+--- log ---
+2026-09-14T05:30Z claude created
+2026-09-14T05:31Z claude note Filed from the decorrelated review of PR #554, which raised it as a structural concern the PR neither tested nor discussed. The reviewer could not confirm it live for the same reason PR #554's own probe could not read tab order — no X focus on the test display, and no xdotool on the host — so this is filed as an open question with the evidence that motivates it, not as a confirmed defect. Filing it rather than fixing it because the remedy is not obvious: it may be an attribute, or it may be an entry in a Zotero map this add-on has no business writing into.
+
+--- body ---
+## Context
+
+PR #554 (ticket 0769) fixed a real defect: the sitter's toolbar control is a XUL
+`toolbarbutton`, which is not focusable by default and carried no `tabindex`, so
+`button.focus()` did nothing and the panel could be opened only with a mouse.
+Adding `tabindex="0"` fixed that, demonstrated both in the DOM and — causally,
+by removing the attribute on a live window and watching the state vanish — over
+AT-SPI, where the control now reports `focusable`.
+
+The review then asked the question the fix does not answer: **is the control
+reachable by actually pressing Tab?**
+
+## The evidence
+
+Read out of the shipped `omni.ja` of Zotero 10.0.1:
+
+- Every button in `zotero-items-toolbar` — `zotero-tb-add`, `zotero-tb-lookup`,
+  `zotero-tb-attachment-add`, `zotero-tb-note-add` — carries `tabindex="-1"`,
+  i.e. Zotero deliberately takes its own toolbar buttons OUT of the natural tab
+  order.
+- `zoteroPane.js`'s `setUpKeyboardNavigation` supplies the route instead: a
+  hardcoded actions map keyed by exact element ids, handling Tab, Shift-Tab and
+  arrows.
+- `zotero-tb-note-add`'s `Tab` handler jumps unconditionally to
+  `zotero-tb-search` and calls `preventDefault()` and `stopPropagation()`; its
+  `ArrowNext` is a dead end.
+- `sdt-pack-sitter-button` is appended after `zotero-tb-note-add` and appears
+  nowhere in that map, under any id or class.
+
+If that reading is right, the consequence is that tabbing forward through the
+toolbar group jumps over our control to the search box, and Shift-Tab back from
+the search box lands on `zotero-tb-note-add` rather than on us. The control
+would then be focusable — programmatically, and to an assistive technology —
+while still not being reachable by the keystroke a person would actually use.
+
+**Focusable and reachable are different claims, and only the first is
+demonstrated.** PR #554's release-note text was corrected to say so.
+
+## What would settle it
+
+One keypress on a focused window: put focus on `zotero-tb-note-add`, press Tab,
+read `document.activeElement`. The blocker is the same one PR #554 recorded for
+tab order generally — `windowUtils.sendKeyEvent` is gone in the Gecko 140 these
+builds ship, `sendNativeKeyEvent` delivers nothing to a window without X focus,
+and a dispatched Tab does not move focus. A session with a real focused window,
+or `xdotool` on the host, settles both this and 0769's tab-order reading in the
+same run.
+
+## Relevant files
+
+- `plugins/sdt-sitter/bootstrap.js` — `onMainWindowLoad`, where the control is
+  built and where `tabindex="0"` was added
+- `verification/probes/sdt_panel_keyboard.js` — the in-window assertions; its
+  `tabMovesFocus` control is what reports tab order as NOT-ESTABLISHED
+- `verification/probes/run_panel_keyboard.py` — the driver
+
+## Actions
+
+1. Take the reading above on a machine with a focused window.
+2. If the control is indeed skipped, decide the remedy — and the decision is
+   the work, not the edit. Writing this add-on's id into a map that belongs to
+   Zotero's own pane script is not obviously ours to do; an approach that does
+   not reach into the host's navigation table is preferable if one exists.
+
+## Test
+
+Whatever the remedy, the red step is the reading itself: focus the neighbouring
+toolbar button, press Tab, and assert where focus lands. A test that asserts
+only that the control CAN take focus is the test that already passes and is
+exactly what missed this.
+
+## Verification
+
+- [ ] The tab reading taken on a focused window, naming the machine
+- [ ] If a remedy lands, the same reading shown to have failed before it
+
+## Invariants
+
+- The control stays focusable: whatever this ticket concludes, removing
+  `tabindex="0"` returns the panel to being mouse-only, which is the defect
+  PR #554 fixed.
+- Zotero's own toolbar conventions are the host's. A remedy that fights them,
+  or that depends on the exact shape of `setUpKeyboardNavigation`, buys a
+  reachable button and an unbounded maintenance debt against a file we do not
+  own.
+
+## Exit criteria
+
+The question is answered by a reading rather than by inference, and either the
+control is reachable by Tab or a ruling records why it is acceptable that it is
+not. `plugins/sdt-sitter/RELEASE-NOTES.md` then says whichever is true.

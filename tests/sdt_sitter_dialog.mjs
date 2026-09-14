@@ -931,4 +931,27 @@ test('a re-initialization contaminates the ring, and the clipboard still holds n
   assert.equal(copied[0].rootURI, undefined);
 });
 
+/* Ticket 0769. The window places focus, and places it inside itself.
+
+   It used to open with `activeElement` still on `<body>`: a keyboard user
+   arrived somewhere with nothing selected and no indication of where they
+   were. Measured in a real Zotero, fixed there, and pinned here because review
+   of PR #554 found the behaviour had no regression coverage at all — only the
+   live probe exercised it, and a live probe is not run by `make check`.
+
+   The assertion is deliberately about WHICH control, not merely that something
+   took focus. `focusFirst` selects the first match of
+   `input, button, summary, [tabindex]:not([tabindex="-1"])`, and what that
+   resolves to is a property of the window's layer order, which
+   `tests/sdt_sitter_dialog.mjs` already pins a few tests above. An assertion
+   that only checked for a non-null activeElement would survive the day the
+   order changes and focus lands somewhere useless. */
+test('the window places initial focus on its first control, not on the body', () => {
+  assert.notEqual(doc.activeElement, null, 'the window opened with nothing focused');
+  assert.notEqual(doc.activeElement, doc.body, 'focus was left on the body');
+  assert.equal(doc.activeElement.id, 'sdt-switch',
+    `initial focus landed on ${doc.activeElement.id || doc.activeElement.tagName}, `
+    + 'not the indexing switch');
+});
+
 console.log(JSON.stringify({ tests: results, result: 'pass' }));
