@@ -345,6 +345,8 @@ var SDT_TEXT = {
     "diagnostics-denominator-churn": " It moved by {delta} since you last opened this panel.",
     "switch-turn-on": "Turn indexing on",
     "switch-turn-off": "Turn indexing off",
+    "switch-turned-on": "Indexing has been turned on, re-click to turn off.",
+    "switch-turned-off": "Indexing has been turned off, re-click to turn on.",
     "section-global": "Overall progress",
     "section-active": "Indexing under way",
     "details-title": "Details",
@@ -2141,8 +2143,19 @@ function renderState() {
     const switchLine = removalNoticed ? sdtText('vanished-message') : describeSDTSwitchLine(s);
     doc.getElementById('sdt-switch-state').textContent = switchLine;
     announceSDTTransition(dialog, doc, switchLine, s.phase, describeSDTSwitchKind(s));
-    doc.getElementById('sdt-switch').textContent =
-      sdtText(off ? 'switch-turn-on' : 'switch-turn-off');
+    const switchButton = doc.getElementById('sdt-switch');
+    switchButton.textContent = sdtText(off ? 'switch-turn-on' : 'switch-turn-off');
+    // Ticket 0790: the visible label names the action ("Turn indexing off"
+    // while on), which reads fine beside `switchLine`'s sentence stating the
+    // current state but inverts when heard alone -- click the button to turn
+    // indexing ON and the label becomes "Turn indexing off" at that instant,
+    // so a listener hears the opposite of what happened. `aria-label` carries
+    // a state-then-action sentence instead: what now holds, then the way
+    // back. Computed from `off` on every render rather than from "was this
+    // click", so it is exactly as true at rest -- tabbed onto cold -- as it is
+    // the instant a click flips it; there is no separate "just clicked" state
+    // to fall out of sync with the phase this line already reads from.
+    switchButton.setAttribute('aria-label', sdtText(off ? 'switch-turned-off' : 'switch-turned-on'));
     const elapsed = s.active === null ? null : Math.round((monotonic() - s.startedAt) / 1000);
     const silence = s.active === null ? null : Math.round((monotonic() - s.lastProgressAt) / 1000);
     const formatDuration = ms => {

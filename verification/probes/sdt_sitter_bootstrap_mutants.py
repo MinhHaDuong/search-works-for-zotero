@@ -633,6 +633,18 @@ MUTANTS = [
      "    sweepToastHeld = false;\n",
      "    sweepToastHeld = false;\n    toast.show();\n"
      "    toast.startCloseTimer(SWEEP_TOAST_MS);\n"),
+    # ---- ticket 0790: the switch's accessible name IS its action ------------
+    # The defect as the author heard it: click the button to turn indexing ON
+    # and the label instantly becomes "Turn indexing off", so a listener with
+    # no aria-label override hears the old, undifferentiated accessible name --
+    # identical to the visible action text -- and concludes the opposite of
+    # what happened. Dropped, the button's accessible name reverts to its
+    # content again, and the state-then-action sentence a screen reader needs
+    # is never attached at all.
+    ("M76 the switch's accessible name reverts to its visible action label, so"
+     " a click still announces the action it undoes rather than the state it produced",
+     "    switchButton.setAttribute('aria-label', sdtText(off ? 'switch-turned-off' : 'switch-turned-on'));\n",
+     ""),
 ]
 
 
