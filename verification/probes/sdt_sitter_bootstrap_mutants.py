@@ -654,6 +654,19 @@ MUTANTS = [
      " once the pulse that used to carry it has stopped",
      "    dialog._sdtLeftAt = now;\n    armSDTAnnounceSettle(dialog);\n    return;\n",
      "    dialog._sdtLeftAt = now; return;\n"),
+    # ---- ticket 0790: the switch's accessible name IS its action ------------
+    # The defect as the author heard it: click the button to turn indexing ON
+    # and the label instantly becomes "Turn indexing off", so a listener with
+    # no aria-label override hears the old, undifferentiated accessible name --
+    # identical to the visible action text -- and concludes the opposite of
+    # what happened. Dropped, the button's accessible name reverts to its
+    # content again, and the state-then-action sentence a screen reader needs
+    # is never attached at all.
+    ("M77 the switch's accessible name reverts to its visible action label, so"
+     " a click still announces the action it undoes rather than the state it produced",
+     "    doc.getElementById('sdt-switch').setAttribute('aria-label',\n"
+     "      sdtText(off ? 'switch-turned-off' : 'switch-turned-on'));\n",
+     ""),
 ]
 
 

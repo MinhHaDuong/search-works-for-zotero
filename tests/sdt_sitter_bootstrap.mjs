@@ -1978,6 +1978,50 @@ await test('an open dialog shows a switched-off job reach completion, not just i
     'the dialog is still showing a stale 10 % after the job it belonged to finished');
 });
 
+/* Ticket 0790. The switch's accessible name IS its action ("Turn indexing
+   off" while indexing is on), so on the click that turns indexing ON, Orca
+   speaks "Turn indexing off" at the exact instant indexing came on -- a
+   listener with no sentence beside the button reasonably concludes the
+   opposite of what happened. The visible label keeps naming the action (out
+   of scope for this ticket); only the accessible name changes, to a
+   state-then-action sentence, the author's own words for the shape.
+
+   The assertion is on what is announced AT THE MOMENT of the click -- read
+   with no settle and no further tick, right after `toggleSDTSwitch()`
+   returns, because a render synchronous with the toggle is the only render a
+   screen reader following the button ever hears before the next one -- and,
+   separately, at rest, because a reader tabbing onto the button without
+   having just clicked it must hear the state that holds now, not the state a
+   click would produce. */
+await test('the switch states the state a click just produced, not the action that would undo it', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
+  await harness.start();
+  harness.context.openDialog(harness.windows[0]);
+  await harness.turn();
+  const doc = harness.windows[0].dialogs[0].document;
+  const button = () => doc.getElementById('sdt-switch');
+
+  // At rest, indexing on.
+  assert.equal(button().textContent, 'Turn indexing off', 'the visible label moved out of scope');
+  assert.equal(button().getAttribute('aria-label'),
+    'Indexing has been turned on, re-click to turn off.',
+    'the accessible name at rest does not name the state that holds');
+
+  // The click that turns indexing off, read at the moment it happens.
+  harness.context.toggleSDTSwitch();
+  assert.equal(button().textContent, 'Turn indexing on');
+  assert.equal(button().getAttribute('aria-label'),
+    'Indexing has been turned off, re-click to turn on.',
+    'at the moment of the click the accessible name named the action, not the state it produced');
+
+  // And the click back on, read the same way.
+  harness.context.toggleSDTSwitch();
+  assert.equal(button().textContent, 'Turn indexing off');
+  assert.equal(button().getAttribute('aria-label'),
+    'Indexing has been turned on, re-click to turn off.',
+    'at the moment of the click the accessible name named the action, not the state it produced');
+});
+
 // Found live, testing v0.3.19: the active-file box still blinked between
 // documents even with its height reserved, because the text itself flashed to
 // "No indexing under way" for real -- scheduler.js awaits twice between one
