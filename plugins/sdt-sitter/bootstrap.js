@@ -2048,23 +2048,105 @@ function prefersSDTReducedMotion(node) {
    and never invented (the line written is read at the moment it is written).
    The reader is no worse served than the sighted user reading the same window,
    which is the bar; a private clock here would only disagree with the lines
-   around it. */
+   around it.
+
+   Ticket 0789: the settle above assumes SOMETHING will call this again once
+   the window has expired, and that assumption is false in exactly one
+   direction. `render()` runs off `pulse`, a 100 ms interval `armSDTSitter`
+   starts and `disarmSDTSitter` stops. Switching indexing ON keeps work
+   flowing, so the pulse keeps turning and a later tick always lands past the
+   settle. Switching OFF calls `disarmSDTSitter`, which clears the pulse and
+   fires exactly one more `render()` of its own before it does -- the call
+   that records `_sdtLeftAt` -- and then nothing ever calls this again. The
+   sentence the reader was told stays wrong forever, not for one settle
+   window's worth of latency.
+
+   The fix is `armSDTAnnounceSettle` below: the same call that first records
+   `_sdtLeftAt` also arms a ONE-SHOT timeout for exactly `SDT_ANNOUNCE_SETTLE_MS`,
+   so a pass is guaranteed at the moment the settle expires whether or not the
+   pulse is still turning. It changes nothing about what gets announced or
+   when -- the elapsed check two lines below is still what decides that, and a
+   kind that returns to `_sdtAnnounced` before the timer fires is still silent,
+   exactly as it was. It only guarantees the call the pulse used to promise and
+   no longer can. One timer per dialog, matching `_sdtAnnounced`/`_sdtLeftAt`'s
+   own per-dialog bookkeeping; armed at most once per leave (the branch that
+   arms it is the same branch that can only run once between two returns to
+   the announced kind), and cleared wherever this file already tears a dialog
+   down, so it cannot outlive the window or the add-on -- see
+   `armSDTAnnounceSettle`'s own comment. */
 function announceSDTTransition(dialog, doc, line, phase, kind) {
   const region = doc.getElementById('sdt-announcer');
   if (!region) return;
   if (dialog._sdtAnnounced === undefined) { dialog._sdtAnnounced = kind; return; }
-  if (kind === dialog._sdtAnnounced) { dialog._sdtLeftAt = null; return; }
+  if (kind === dialog._sdtAnnounced) {
+    dialog._sdtLeftAt = null;
+    disarmSDTAnnounceSettle(dialog);
+    return;
+  }
   const now = monotonic();
   if (dialog._sdtLeftAt === null || dialog._sdtLeftAt === undefined) {
-    dialog._sdtLeftAt = now; return;
+    dialog._sdtLeftAt = now;
+    armSDTAnnounceSettle(dialog);
+    return;
   }
   if (now - dialog._sdtLeftAt < SDT_ANNOUNCE_SETTLE_MS) return;
   dialog._sdtAnnounced = kind; dialog._sdtLeftAt = null;
+  disarmSDTAnnounceSettle(dialog);
   region.textContent = line;
   // The one record a live-window check can read without a screen reader
   // attached: what was spoken, and when. Rare by construction, so it costs
   // the ring nothing.
   emit('announce', { phase }, 'trace');
+}
+
+/* The guaranteed pass ticket 0789 adds, one shot and self-clearing rather than
+   a second interval: this file already has a leaked-timer history (0696,
+   0742), and a loop would only need to exist for as long as one settle
+   window. `dialog._sdtSettleTimer` means "a pass is still owed for the leave
+   in progress", so arming refuses when one is already outstanding -- not an
+   idempotence guard against a pathological caller, but the reader for the
+   condition `disarmSDTAnnounceSettle` below exists to keep honest.
+
+   The callback calls `render()`, not a narrower re-check of this one dialog:
+   `render()` is what the pulse itself called, so firing it here is standing
+   in for exactly the tick that stopped, not inventing a second announcement
+   path with its own rules. `render()`'s own guards (`renderState`'s
+   `!alive || !sitter`, the `dialog.closed` sweep below) make a timer that
+   outlives the window or the add-on a harmless no-op rather than a throw --
+   the cases this ticket's invariants rule out are covered by construction, not
+   by this function remembering to check them. */
+function armSDTAnnounceSettle(dialog) {
+  if (!timers || dialog._sdtSettleTimer !== undefined) return;
+  dialog._sdtSettleTimer = timers.setTimeout(() => {
+    dialog._sdtSettleTimer = undefined;
+    render();
+  }, SDT_ANNOUNCE_SETTLE_MS);
+}
+
+/* The other half. Three paths retire a leave without the armed timer ever
+   firing on its own: the flip undoes itself (kind returns to `_sdtAnnounced`
+   before the window closes), the settle expires under the ordinary pulse --
+   which writes the sentence well before a timer armed for the same deadline
+   gets to -- and the dialog or the whole scope tearing down while a leave is
+   still open. Left uncleared in any of the first two, the flag would go on
+   reading "a pass is owed" for a leave that already got one, or never needed
+   one, and the NEXT leave's own arm call would see it and skip scheduling its
+   own timer -- silently inheriting a deadline that belongs to the wrong
+   episode, the same class of cross-generation defect ticket 0696 shipped over
+   `armSDTSitter`'s own idempotence guard. Left uncleared in the third, a live
+   NSPR timer pins a closed dialog, or fires into a torn-down scope, for up to
+   `SDT_ANNOUNCE_SETTLE_MS` after nothing is listening -- harmless by
+   construction (`render()`'s own guards), but the inconsistency a later
+   reader trips on when `pulse`, `heartbeat` and `timer` are cleared in the
+   same breath and this is not. One function retires both cases so neither
+   site duplicates the two-line clear-and-undefine: called from the two
+   retirement branches in `announceSDTTransition` above, and from the
+   `dialog.closed` sweep in `renderState` and `shutdown`'s own
+   dialog-closing loop below. */
+function disarmSDTAnnounceSettle(dialog) {
+  if (!timers || dialog._sdtSettleTimer === undefined) return;
+  timers.clearTimeout(dialog._sdtSettleTimer);
+  dialog._sdtSettleTimer = undefined;
 }
 
 function render() {
@@ -2127,7 +2209,13 @@ function renderState() {
     button.setAttribute('tooltiptext', describeSDTTooltip(s));
   }
   for (const dialog of dialogs) {
-    if (dialog.closed) { dialogs.delete(dialog); continue; }
+    if (dialog.closed) {
+      // Ticket 0789: a settle armed for a dialog that closes before it fires
+      // would otherwise pin the closed window for up to SDT_ANNOUNCE_SETTLE_MS
+      // for no reader left to speak to.
+      disarmSDTAnnounceSettle(dialog);
+      dialogs.delete(dialog); continue;
+    }
     const doc = dialog.document;
     const status = doc.getElementById('sdt-status');
     if (!status) continue;
@@ -3237,7 +3325,13 @@ function shutdown(data, reason) {
     timer = pulse = heartbeat = undefined;
     for (const button of buttons) button.remove();
     buttons.clear();
-    for (const dialog of dialogs) if (!dialog.closed) { noteDialogClose(dialog); dialog.close(); }
+    // Ticket 0789: each dialog can carry its own pending settle timer
+    // (`armSDTAnnounceSettle`); `dialogs.clear()` below drops the handles this
+    // scope would otherwise use to reach them.
+    for (const dialog of dialogs) {
+      disarmSDTAnnounceSettle(dialog);
+      if (!dialog.closed) { noteDialogClose(dialog); dialog.close(); }
+    }
     dialogs.clear();
     delete Zotero.SDTPackSitter;
   } finally {

@@ -297,9 +297,16 @@ MUTANTS = [
     # contiguity instead of the announced state's absence, so a machine
     # alternating between two states restarts the clock on every flip and is
     # never spoken at all.
+    # Re-anchored for ticket 0789, which inserted the settle-guarantee call
+    # between the assignment and the return: the mutation itself is
+    # unchanged, still the reviewed-out contiguity form and still caught by
+    # the same alternating-states scenario, which drives the settle purely
+    # through repeated render() ticks and never touches the guarantee timer.
     ("M35 the settle times the replacement, not the absence, so an alternation is never announced",
      "  if (dialog._sdtLeftAt === null || dialog._sdtLeftAt === undefined) {\n"
-     "    dialog._sdtLeftAt = now; return;\n"
+     "    dialog._sdtLeftAt = now;\n"
+     "    armSDTAnnounceSettle(dialog);\n"
+     "    return;\n"
      "  }\n",
      "  if (dialog._sdtLine !== line) {\n"
      "    dialog._sdtLine = line; dialog._sdtLeftAt = now; return;\n"
@@ -633,6 +640,20 @@ MUTANTS = [
      "    sweepToastHeld = false;\n",
      "    sweepToastHeld = false;\n    toast.show();\n"
      "    toast.startCloseTimer(SWEEP_TOAST_MS);\n"),
+    # ---- ticket 0789: the switch-off announcement the pulse could no longer carry ----
+    # `disarmSDTSitter` clears the 100 ms pulse and fires exactly one `render()`
+    # of its own on the way out -- the call that records `_sdtLeftAt` -- and then
+    # nothing calls `render()` again. Drop the guarantee and the settle timer
+    # this ticket added never gets armed: the region is stuck on whatever it
+    # said before the switch went off, forever, exactly the measured defect.
+    # Every scenario written before this ticket drives the settle by hand
+    # through `settle()`'s own `render()` calls and so cannot see this: only
+    # the switch-off scenario this ticket added, which fires solely the timers
+    # bootstrap.js itself arms, is exposed to it.
+    ("M76 the settle guarantee is dropped, so switching off is never announced"
+     " once the pulse that used to carry it has stopped",
+     "    dialog._sdtLeftAt = now;\n    armSDTAnnounceSettle(dialog);\n    return;\n",
+     "    dialog._sdtLeftAt = now; return;\n"),
 ]
 
 

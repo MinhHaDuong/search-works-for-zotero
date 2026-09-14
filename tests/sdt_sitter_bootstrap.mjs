@@ -728,6 +728,67 @@ await test('a machine alternating between two states is announced, not left on t
   assert.equal(records[0].phase, 'extracting');
 });
 
+/* Ticket 0789. Every scenario above drives the settle through `settle()`,
+   which calls `context.render()` by hand on every 100 ms tick regardless of
+   whether bootstrap.js would actually still be calling it -- exactly the
+   isolation the ticket names as the reason five green scenarios coexisted
+   with a live announcer that never spoke a switch-off. `armSDTSitter` arms
+   `render()` on a 100 ms interval and `disarmSDTSitter` -- what a real
+   switch-off click reaches -- clears it, firing `render()` itself exactly
+   once on the way out. Nothing calls it again unless bootstrap.js schedules
+   its own follow-up. So this scenario never calls `context.render()`: it
+   drives the real control (`toggleSDTSwitch`) and then fires only the timers
+   bootstrap.js itself armed (`harness.timers`), the way the real event loop
+   would. Before the fix that set is empty at the settle deadline and the
+   region is stuck; after it, the settle timeout `announceSDTTransition` arms
+   for exactly this case is in that set. */
+await test('turning the switch off is announced once the pulse that used to carry it has stopped', async () => {
+  const { harness, region, sitter } = await announcerFixture();
+  // The sweep loop keeps its own armed `setTimeout` continuation going for as
+  // long as the sitter is alive (createSDTSweepLoop's reschedule), so "no
+  // timeout is armed" is never a true baseline here -- only "no MORE timeouts
+  // than before" is, which is what the deltas below compare against.
+  const idleTimeouts = harness.timers.ids('timeout').length;
+  // A held, announced, non-off kind -- the same baseline the flip scenario
+  // above establishes, and by the same means: `settle()` is legitimate here
+  // because this only sets up the state the switch-off is measured FROM, and
+  // that leg of the settle logic is not what this scenario tests.
+  sitter.state.phase = 'cpu-busy';
+  settle(harness, harness.context.SDT_ANNOUNCE_SETTLE_MS + 500);
+  const before = region.textContent;
+  assert.notEqual(before, '', 'the baseline this scenario measures from was never announced');
+  const spoken = harness.records('announce').length;
+  // The baseline's own leave settled under the ordinary pulse -- render() calls
+  // driven by `settle()`, not by the guarantee timer -- so the timer
+  // `armSDTAnnounceSettle` scheduled for it is no longer owed anything. Left
+  // armed, it would read as "a pass is still owed" to the very next leave's own
+  // arm call and block it from scheduling its own timer: the flip-onto-a-flip
+  // this scenario is about to reach on the switch-off below.
+  assert.equal(harness.timers.ids('timeout').length, idleTimeouts,
+    'the settled baseline left its guarantee timer armed with nothing left to guarantee');
+
+  // The real control, not a direct call to the announcer: this is the path a
+  // click on the panel's switch reaches.
+  harness.context.toggleSDTSwitch();
+  assert.equal(sitter.state.phase, 'switched-off', 'toggleSDTSwitch did not turn indexing off');
+  assert.equal(harness.timers.ids('interval').length, 0,
+    'the render pulse survived being switched off');
+  assert.equal(region.textContent, before,
+    'the switch-off line rendered before the settle even had a first tick');
+
+  // Advance past the settle window and let the real event loop's timers run
+  // -- no manual render() call anywhere below this line.
+  harness.advance(harness.context.SDT_ANNOUNCE_SETTLE_MS + 500);
+  const armed = harness.timers.ids('timeout');
+  for (const id of armed) harness.timers.fire(id);
+
+  const offLine = harness.context.describeSDTSwitchLine(sitter.state);
+  assert.equal(region.textContent, offLine,
+    'switching off was never announced once the render pulse stopped turning');
+  assert.equal(harness.records('announce').length, spoken + 1,
+    'the switch-off transition was not recorded as an announcement');
+});
+
 /* Ticket 0686 item (3), and the announcement channel it has to share.
 
    The idle sentence carries counts now, and counts move with ordinary library
