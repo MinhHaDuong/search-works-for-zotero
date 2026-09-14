@@ -89,7 +89,29 @@ var DEBUG_PREF = 'extensions.sdt-pack-sitter.debug';
 // 0773) to build the same path again -- a second literal here would be the
 // fact this file's own review discipline calls the most expensive kind of
 // drift.
+var activationStartedAtMS = null;
 var CACHE_FILENAME = 'sdt-sitter-cache.jsonl';
+/* Ticket 0727's guard 1. The diagnostics opt-in ALSO as a file, because the
+   preference form of it does not survive the phenomenon it exists to record.
+   Measured on the author's machine 2026-09-14: Zotero's removal clears the
+   add-on's whole `extensions.sdt-pack-sitter.*` branch, DEBUG_PREF included, so
+   the first disappearance on a machine turns the evidence switch off and every
+   later one is silent by construction. That is what happened -- four removals in
+   one hour, one certificate possible, and the missing certificates were read
+   (by me) as proof shutdown had not run, which the host's own log then
+   disproved.
+   A file in the data directory is out of the branch's reach. It is the
+   operator's standing request, made before the event, and it survives an
+   uninstall for exactly the reason the certificate does (ruled 2026-09-12): the
+   point of it is to be there when the add-on is not. */
+var DIAGNOSTICS_MARKER = 'sdt-sitter-diagnostics.on';
+/* How fresh an activation has to be for its own uninstall to be read as the
+   supersede race rather than as something the user asked for. The observed gap
+   between an install completing and the stale removal finalising on it was
+   1.53 s (host log, 2026-09-14); the four watched occurrences ran 1.5-4.7 s. Ten
+   seconds is comfortably clear of those and far short of any deliberate
+   install-then-change-my-mind, which is the error this bound must not make. */
+var SUPERSEDE_WINDOW_MS = 10000;
 /* R22's one obvious way, ratified 2026-09-08 (ticket 0742). Tri-state: unset
    means the question has never been answered, and is the ONLY state in which
    the launch prompt is shown. `true` and `false` are the user's own answer,
@@ -1843,17 +1865,53 @@ function composeSDTNotIndexedIdentifiers() {
    exactly the shutdown that matters, with nothing saying so. It goes under
    `reportUnreadable` instead, which is a field a reader trips over rather than
    a string that looks like a report and is not. */
+/* Ticket 0727 guard 1. Either channel opts diagnostics in: the preference, as
+   before, or a marker file the removal cannot clear. The pref is tried first and
+   its failure is not fatal -- a cleared branch reads as absent, which is the
+   whole case this exists for. */
+function sdtDiagnosticsRequested() {
+  try { if (Zotero.Prefs.get(DEBUG_PREF, true)) return true; }
+  catch (_error) { /* Fall through: the file is the channel that survives. */ }
+  try {
+    return Zotero.File.pathToFile(
+      PathUtils.join(Zotero.DataDirectory.dir, DIAGNOSTICS_MARKER)).exists();
+  } catch (_error) { return false; }
+}
+
+/* Ticket 0727 guard 3. An uninstall arriving seconds after this activation
+   started is not one the user asked for: it is the stale removal finalising on
+   the install that replaced it, which Zotero's own log showed doing exactly
+   that 1.53 s after the new copy had started (verification/incidents/
+   0727-2026-09-14-addonmanager-console.md).
+
+   Returned as an AGE and not as a reason word. `reason` carries what the HOST
+   said, and the host said "uninstall"; that this particular one landed on a
+   fresh install is our reading of it, and overloading the field that records
+   the host's own word would lose the distinction between the two. The existing
+   certificate test asserts that word and caught the first version of this,
+   correctly. Null whenever the question does not arise -- no clock, a clock
+   stepped backwards, or an uninstall old enough to be a deliberate one. */
+function sdtSupersedeAgeMS() {
+  if (activationStartedAtMS === null) return null;
+  const age = Date.now() - activationStartedAtMS;
+  if (age < 0 || age > SUPERSEDE_WINDOW_MS) return null;
+  return age;
+}
+
 function writeSDTDeathCertificate(reason) {
   // A third reason since ticket 0781: the host never gave it, `noticeSDTRemoval`
   // invents it, and it belongs on this gate for the reason the other two do --
   // it is the phenomenon, caught live, and not an ordinary teardown.
   if (reason !== 'disable' && reason !== 'uninstall' && reason !== 'vanished-without-teardown') return;
   try {
-    // Fully qualified, as every other read of this pref is: `true` stops Zotero
-    // prepending `extensions.zotero.`.
-    if (!Zotero.Prefs.get(DEBUG_PREF, true)) return;
+    if (!sdtDiagnosticsRequested()) return;
     const report = composeSDTJournalReport();
     const certificate = { reason, at: new Date().toISOString() };
+    // Guard 3's durable half. Beside the reason, never instead of it.
+    if (reason === 'uninstall') {
+      const supersedeAge = sdtSupersedeAgeMS();
+      if (supersedeAge !== null) certificate.supersededAfterMS = supersedeAge;
+    }
     try { JSON.parse(report); certificate.report = report; }
     catch (_error) { certificate.reportUnreadable = report; }
     const path = PathUtils.join(Zotero.DataDirectory.dir, 'sdt-sitter-last-shutdown.json');
@@ -2705,6 +2763,11 @@ var addonID = null;
 
 function startup({ rootURI, version, id }, reason) {
   const token = ++generation;
+  // Ticket 0727 guard 3: the clock this activation's own age is measured
+  // against. Wall clock and not the monotonic one on purpose -- it is compared
+  // only with itself, within one process, and it has to be readable from the
+  // certificate afterwards.
+  activationStartedAtMS = Date.now();
   addonID = typeof id === 'string' ? id : null;
   // The era this activation was armed in, carried rather than read: by the time
   // the callback below runs `shutdowns` may have moved, and that difference is
@@ -3363,6 +3426,20 @@ function shutdown(data, reason) {
     delete Zotero.SDTPackSitter;
   } finally {
     const named = nameBootstrapReason(reason);
+    /* Ticket 0727 guard 3, BEFORE THE SEAL and for the reason the switch write
+       below is: `emit` drops everything once `sealed` is set, and the first
+       version of this sat after it -- the record was made and thrown away, and
+       the test caught it. It runs whether or not a certificate can be written,
+       because `emit` gates only `trace` and this is `error`: the machine that
+       most needs to record a disappearance is the one whose diagnostics switch
+       the PREVIOUS disappearance cleared. */
+    if (named === 'uninstall') {
+      const supersedeAge = sdtSupersedeAgeMS();
+      if (supersedeAge !== null) {
+        try { emit('uninstall-superseded', { activationAgeMS: supersedeAge }, 'error'); }
+        catch (_error) { /* A diagnostic must never be what stops a teardown. */ }
+      }
+    }
     /* Consent withdrawn, on the uninstall reason and on no other. Ruled
        2026-09-12 on ticket 0772, implemented as ticket 0773's Action 2.
 
@@ -3500,6 +3577,10 @@ function removeSDTDurableState() {
   // not a first-run answer, and R22's tri-state discipline for ENABLED_PREF
   // above does not apply to it. Unset reads as off either way.
   try { Zotero.Prefs.clear(DEBUG_PREF, true); } catch (_error) { /* Nothing. */ }
+  // DIAGNOSTICS_MARKER is deliberately NOT swept, on the same ruling that spares
+  // the certificate (2026-09-12): it is the operator's own request, made before
+  // the event, and a request that did not outlive the removal would be no
+  // request at all -- that is precisely how the preference form of it failed.
 }
 function install() {}
 // Deliberately empty (ticket 0773's Action 1): the sandbox this scope runs in

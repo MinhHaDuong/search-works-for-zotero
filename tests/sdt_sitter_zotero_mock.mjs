@@ -657,6 +657,11 @@ export function createHarness(options = {}) {
         // `path` is carried because the real nsIFile carries it, and because
         // `putContents` below is given the file and has to know where it goes.
         path,
+        // nsIFile's own. Absent from this mock until ticket 0727's guard 1
+        // needed it, and its absence made that guard's first test fail for a
+        // reason that had nothing to do with the guard -- a mock that does not
+        // model a method the code calls answers the wrong question silently.
+        exists: () => files.files.has(path),
         isWritable: () => options.writable !== false,
         diskSpaceAvailable: options.diskAvailable ?? 500 * 1024 ** 3,
         // `options.removeThrows`, a predicate over the path, stages the
