@@ -2,11 +2,13 @@
 Title: One toast per stretch of work, and no timeout when the work never ends
 Created: 2026-09-14
 Author: claude
+Closed: autoclosed — PR #555
 
 --- log ---
 2026-09-14T07:10Z claude created
 2026-09-14T07:11Z claude note Filed AFTER the work, which is the wrong order and the reason review of PR #555 asked for it. The branch, the PR title and a commit message all named "ticket 0788" while no such ticket existed — tickets topped out at 0787. In a store whose IDs are allocated optimistically that is not cosmetic: the next `erg new` would have handed 0788 to something unrelated and the history would carry two. Filing the real one is the repair, and it is also the only place the author's two rulings below are written down.
 
+2026-09-14T09:24Z MinhHaDuong closed — autoclosed — PR #555
 --- body ---
 ## Context
 
