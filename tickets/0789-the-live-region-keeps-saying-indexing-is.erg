@@ -1,0 +1,90 @@
+%erg 0.1
+Title: The live region keeps saying indexing is on after the switch goes off
+Created: 2026-09-14
+Author: claude
+Blocked-by: 0769
+
+--- log ---
+2026-09-14T12:15Z claude created
+2026-09-14T12:16Z claude note Found by ticket 0769's Orca pass, on the author's own desktop with Orca running and speech captured to a debug log. This is the defect that pass existed to find, and no headless test could have: the region is present, correctly built and correctly exposed, and says the wrong thing.
+
+--- body ---
+## Context
+
+Ticket 0686 item (1) added a visually hidden live region, `sdt-announcer`, so a
+screen-reader user hears a change of state — scanning, waiting for resources, an
+error, indexing switched on or off — once it has held for
+`SDT_ANNOUNCE_SETTLE_MS`.
+
+The region is built correctly. Read from OUTSIDE the process over AT-SPI on
+2026-09-14 it reports `live: polite`, `atomic: true`,
+`container-live-role: status` — exactly what an assistive technology needs.
+
+**It is not rewritten when the indexing switch is turned off.**
+
+## The measurement
+
+Real Zotero 10.0.1, sitter 0.4.10, accessibility bus on, Orca running. The
+panel's switch was clicked and the panel read at four points:
+
+| after | `state.phase` | switch label | `sdt-announcer` |
+|---|---|---|---|
+| 1 s | `switched-off` | Turn indexing on | **Indexing is on.** Everything in view is indexed… |
+| 3 s | `switched-off` | Turn indexing on | **Indexing is on.** … |
+| 6 s | `switched-off` | Turn indexing on | **Indexing is on.** … |
+| 10 s | `switched-off` | Turn indexing on | **Indexing is on.** … |
+
+The phase changes within a second and the button's own label follows it. The
+region does not move, at five times the settle.
+
+## Why it matters more than a stale string
+
+The sighted user sees the button change. The screen-reader user is *told*, by
+the element built for exactly this purpose, that indexing is on while it is off.
+A region that is silent would be a gap; a region asserting the opposite state is
+worse than not having one, because the reader has no reason to doubt it.
+
+Orca was confirmed to speak the rest of the panel in the same session —
+`'Index push button'`, `'Indexing assistant frame'`,
+`'Turn indexing off push button'`, `'Library: Ma bibliothèque — 0 files
+indexed'` — so this is not Orca failing to read the window.
+
+## Relevant files
+
+- `plugins/sdt-sitter/bootstrap.js` — `announceSDTTransition`, around line 1979:
+  the settle logic, `_sdtAnnounced` and `_sdtLeftAt` on the dialog
+- `plugins/sdt-sitter/bootstrap.js` — `describeSDTSwitchKind`, around line 1527:
+  `phase === 'switched-off'` returns `'off'`, so the kind DOES change
+- `tests/sdt_sitter_bootstrap.mjs` — the existing announce scenarios, which pass
+
+## Actions
+
+1. Find why the writer does not run for this transition. The kind changes, so
+   the suspects are the render path not reaching `announceSDTTransition` while
+   switched off, or a settle that never expires.
+2. Fix it so the region carries the state that is true.
+
+## Test
+
+Red first, and the existing suite is the warning: five announce scenarios pass
+today while the live window does the wrong thing, so whatever is added must
+fail against this build. Drive the real switch-off path rather than calling the
+announcer directly — the existing tests establish the settle logic in
+isolation, and the isolation is where the defect hides.
+
+## Verification
+
+- [ ] A test that fails on today's `bootstrap.js` and passes after
+- [ ] A mutant covering the transition, caught
+- [ ] Re-measured in a real window with Orca: turning the switch off is spoken
+
+## Invariants
+
+- The settle stays: a state that comes back inside `SDT_ANNOUNCE_SETTLE_MS` is
+  still not announced, and progress figures are still never spoken.
+- Opening the window still announces nothing.
+
+## Exit criteria
+
+Turning indexing off updates the region within the settle, is spoken by a real
+screen reader, and a test plus a mutant hold it there.
