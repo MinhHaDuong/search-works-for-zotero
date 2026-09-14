@@ -41,9 +41,9 @@ Points a, b and c are current limits of Zotero. Points d and e are the frontier.
 
 ## Known bugs and limitations
 
-- When you uninstall a plugin, Zotero hides it from the list and schedules actual removal for later. So if you immediately reinstall, the new copy will get erased. Workaround: always restart Zotero after uninstalling a plugin. Bug report filed upstream.
+- When you uninstall a plugin, Zotero hides it from the list and schedules actual removal for later. So if you immediately reinstall, the new copy will get erased. Workaround: always restart Zotero after uninstalling a plugin. [Bug report filed upstream](https://forums.zotero.org/discussion/133758/installing-a-plugin-while-its-removal-is-still-pending-deletes-the-new-copy).
 - The mechanism to throttle down indexing in case of memory / disk / CPU pressure works only on Linux.
-- I did my best effort to ensure keyboard navigability and text-to-speech readability, but could not find a way for a plugin to insert its button into Zotero's Tab navigation order. Workaround: none found, you have to click it. Bug report filed upstream.
+- I did my best effort to ensure keyboard navigability and text-to-speech readability, but could not find a way for a plugin to insert its button into Zotero's Tab navigation order. Workaround: none found, you have to click it. [Bug report filed upstream](https://forums.zotero.org/discussion/133759/plugin-toolbar-buttons-are-still-outside-the-keyboard-navigation-chain).
 - The SDT format can evolve with automatic Zotero minor updates, triggering a full reindex. Wait, that's a feature not a bug !
 - This does not replace the "Rebuild Index" button that disappeared. Because that button addressed the "full text" index, not the "structured text" index. See next point why.
 
