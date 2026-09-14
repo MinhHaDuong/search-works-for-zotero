@@ -2049,6 +2049,52 @@ await test('the active-file box says "preparing" between documents, not "no inde
     'genuine idleness (nothing pending) still reads as "preparing"');
 });
 
+/* Ticket 0791, the author's ruling of 2026-09-14: during a census the line must
+   say what the census is doing, not claim an attachment is being prepared.
+
+   The census loop never assigns `state.active` (scheduler.js sets it at
+   admission only), and `state.pending` still holds the PREVIOUS generation's
+   queue until refreshQueue() runs at census close. So both inputs the line used
+   to read say something false for the whole walk, and on a 14 000-attachment
+   library that walk is minutes long. Reported three ways from one live run --
+   "0% and progresses slow", "does not has an animation", "seems stuck at
+   Preparing the next attachment" -- all of them this one line. */
+await test('the active-file box reports census progress, not a phantom preparation', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')] });
+  await harness.start();
+  const window = harness.windows[0];
+  harness.context.openDialog(window);
+  await harness.turn();
+  const doc = window.dialogs[0].document;
+  const sitter = harness.context.sitter;
+
+  // The author's own numbers, off the running instance.
+  sitter.state.phase = 'census';
+  sitter.state.active = null;
+  sitter.state.pending = [{ id: 2, title: null, parentTitle: null }];
+  sitter.state.scanned = 740;
+  sitter.state.total = 14122;
+  harness.context.render();
+  assert.equal(doc.getElementById('sdt-document-status').textContent, 'Scanning 5 %',
+    'a census was rendered as document work, which is what made a working sitter read as hung');
+
+  // The denominator is not yet known: host.list() has not returned, so `total`
+  // is whatever the last census left. Zero must not divide.
+  sitter.state.scanned = 0;
+  sitter.state.total = 0;
+  harness.context.render();
+  assert.equal(doc.getElementById('sdt-document-status').textContent, 'Scanning 0 %',
+    'the census line divided by an unknown total');
+
+  // And the phase is what decides it: the same null active and stale pending,
+  // outside a census, still mean a real gap between two documents.
+  sitter.state.phase = 'waiting';
+  sitter.state.scanned = sitter.state.total = 2;
+  harness.context.render();
+  assert.equal(doc.getElementById('sdt-document-status').textContent, 'Preparing the next attachment…',
+    'the census branch swallowed the genuine between-documents gap');
+});
+
 /* PASS / FAIL / NOT-RUN, rather than a boolean. A guard that greens because it
  * found nothing to check is the failure this repository keeps meeting, so the
  * empty set gets a verdict of its own and the caller has to say what it does
