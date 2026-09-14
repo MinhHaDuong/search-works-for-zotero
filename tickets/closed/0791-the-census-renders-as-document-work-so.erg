@@ -2,11 +2,13 @@
 Title: The census renders as document work, so a working sitter reads as hung
 Created: 2026-09-14
 Author: claude
+Closed: autoclosed — PR #566
 
 --- log ---
 2026-09-14T13:49Z claude created
 2026-09-14T13:53Z claude note Author ruled the wording at the panel: "It should not say 'Indexing under way' but 'Scanning x%'". Implemented as `active-census`, "Scanning {progress} %", taken from state.scanned/state.total -- the one counter that moves during a census. Action 2 (what the coverage bar does during a first census with no snapshot) is NOT in this change and stays open.
 
+2026-09-14T15:45Z MinhHaDuong closed — autoclosed — PR #566
 --- body ---
 ## Context
 
