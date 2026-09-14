@@ -1,0 +1,24 @@
+{
+  "_capture": "First journal ever captured from a live ticket-0727 disappearance. Copied from the author's running Zotero via Zotero.SDTPackSitterJournal before any restart, 2026-09-14. The add-on had been installed minutes earlier as a replacement over a RUNNING, actively-extracting 0.4.10.",
+  "version": "0.4.13",
+  "zoteroVersion": "10.0.2",
+  "nativeVersions": {
+    "SDT_SCHEMA_VERSION": "1.2.0",
+    "SDT_PACK_VERSION": 1,
+    "SDT_PROCESSOR_VERSIONS": { "pdf": 14, "epub": 2, "snapshot": 1 }
+  },
+  "notIndexed": {},
+  "records": [
+    { "at": 1789405250311, "kind": "cache-load", "level": "state", "records": 0 },
+    { "at": 1789405256402, "kind": "dialog-open", "level": "state", "reused": false },
+    { "at": 1789405256407, "kind": "dialog-close", "level": "state" },
+    { "at": 1789405257824, "kind": "switch", "level": "state", "enabled": true },
+    { "at": 1789405257829, "kind": "sweep-start", "level": "trace" },
+    { "at": 1789405259847, "kind": "announce", "level": "trace", "phase": "census" },
+    { "at": 1789405317836, "kind": "heartbeat", "level": "trace", "id": null, "phase": "census",
+      "progress": null, "elapsedMS": null, "sinceProgressMS": null, "pending": 0 },
+    { "at": 1789405317836, "kind": "vanished", "level": "error", "installed": false, "active": null },
+    { "at": 1789405317837, "kind": "sweep-end", "level": "trace", "phase": "census",
+      "scanned": 10119, "completed": 0, "failed": 0, "pending": 0 }
+  ]
+}

@@ -1,0 +1,116 @@
+19:12:05.684  WATCHING (poll 50 ms, 3600 s)
+19:12:05.684    baseline extensions.json: (1789405810.732, 4712)
+19:12:05.684    baseline prefs.js: (1789405811.102, 5125)
+19:12:05.684    baseline addonStartup.json.lz4: (1789405812.146, 503)
+19:12:05.684    baseline sdt-sitter-cache.jsonl: (1789304926.683, 22869)
+19:12:05.684    baseline sdt-sitter-last-shutdown.json: (1789292884.352, 766)
+19:12:05.684    baseline /home/haduong/.zotero/zotero/e8mz6uxw.default/extensions/: ['fulltext-control@search-works-for-zotero.invalid.xpi', 'sdt-pack-sitter@search-works-for-zotero.invalid.xpi']
+19:12:05.684    baseline extensions.json names sdt-pack-sitter: True
+19:12:05.684  --- armed; install the .xpi now ---
+19:12:48.295  CREATED  extensions/staged  (1789405968.274, 94)
+19:12:48.345  CHANGED  extensions.json  mtime 1789405810.732 -> 1789405968.295  size 4712 -> 4737
+19:12:48.346        (still names sdt-pack-sitter: True)
+19:12:48.848  CHANGED  prefs.js  mtime 1789405811.102 -> 1789405968.837  size 5125 -> 5126
+19:12:49.852  CHANGED  addonStartup.json.lz4  mtime 1789405812.146 -> 1789405969.842  size 503 -> 510
+19:12:52.116  CHANGED  extensions.json  mtime 1789405968.295 -> 1789405972.092  size 4737 -> 4712
+19:12:52.117        (still names sdt-pack-sitter: True)
+19:12:52.117  DELETED  extensions/staged
+19:12:52.117  CHANGED  extensions/sdt-pack-sitter@search-works-for-zotero.invalid.xpi  (1789405810.606, 81438) -> (1789405972.069, 78871)
+19:12:53.576  CHANGED  addonStartup.json.lz4  mtime 1789405969.842 -> 1789405973.57  size 510 -> 502
+19:12:55.945  CHANGED  extensions.json  mtime 1789405972.092 -> 1789405975.934  size 4712 -> 2219
+19:12:55.945    >>> extensions.json names sdt-pack-sitter: True -> False
+19:12:55.945  DELETED  extensions/sdt-pack-sitter@search-works-for-zotero.invalid.xpi
+19:12:56.447  CHANGED  prefs.js  mtime 1789405968.837 -> 1789405976.437  size 5126 -> 5033
+19:12:57.365  CHANGED  addonStartup.json.lz4  mtime 1789405973.57 -> 1789405977.354  size 502 -> 436
+19:13:00.589  CHANGED  prefs.js  mtime 1789405976.437 -> 1789405980.583  size 5033 -> 5034
+19:15:45.371  CREATED  extensions/sdt-pack-sitter@search-works-for-zotero.invalid.xpi  (1789406145.356, 81438)
+19:15:45.371  CREATED  extensions/staged  (1789406145.356, 0)
+19:15:45.422  CHANGED  extensions.json  mtime 1789405975.934 -> 1789406145.394  size 2219 -> 4712
+19:15:45.422    >>> extensions.json names sdt-pack-sitter: False -> True
+19:15:45.422  DELETED  extensions/staged
+19:15:45.873  CHANGED  prefs.js  mtime 1789405980.583 -> 1789406145.849  size 5034 -> 5127
+19:15:46.876  CHANGED  addonStartup.json.lz4  mtime 1789405977.354 -> 1789406146.857  size 436 -> 503
+19:16:01.574  CHANGED  prefs.js  mtime 1789406145.849 -> 1789406161.564  size 5127 -> 5126
+19:20:59.121  CHANGED  prefs.js  mtime 1789406161.564 -> 1789406459.079  size 5126 -> 5127
+19:21:11.563  CREATED  extensions/staged  (1789406471.554, 94)
+19:21:11.613  CHANGED  extensions.json  mtime 1789406145.394 -> 1789406471.575  size 4712 -> 4737
+19:21:11.613        (still names sdt-pack-sitter: True)
+19:21:12.065  CHANGED  prefs.js  mtime 1789406459.079 -> 1789406472.055  size 5127 -> 5126
+19:21:13.168  CHANGED  addonStartup.json.lz4  mtime 1789406146.857 -> 1789406473.127  size 503 -> 510
+19:21:18.536  CHANGED  extensions/sdt-pack-sitter@search-works-for-zotero.invalid.xpi  (1789406145.356, 81438) -> (1789406478.53, 81438)
+19:21:18.536  CHANGED  extensions/staged  (1789406471.554, 94) -> (1789406478.53, 0)
+19:21:18.587  CHANGED  extensions.json  mtime 1789406471.575 -> 1789406478.558  size 4737 -> 4712
+19:21:18.587        (still names sdt-pack-sitter: True)
+19:21:18.587  DELETED  extensions/staged
+19:21:20.042  CHANGED  addonStartup.json.lz4  mtime 1789406473.127 -> 1789406480.03  size 510 -> 503
+19:21:21.797  DELETED  extensions/sdt-pack-sitter@search-works-for-zotero.invalid.xpi
+19:21:21.847  CHANGED  extensions.json  mtime 1789406478.558 -> 1789406481.814  size 4712 -> 2219
+19:21:21.848    >>> extensions.json names sdt-pack-sitter: True -> False
+19:21:22.349  CHANGED  prefs.js  mtime 1789406472.055 -> 1789406482.307  size 5126 -> 5033
+19:21:23.302  CHANGED  addonStartup.json.lz4  mtime 1789406480.03 -> 1789406483.267  size 503 -> 436
+19:21:27.918  CHANGED  prefs.js  mtime 1789406482.307 -> 1789406487.869  size 5033 -> 5032
+19:21:28.972  CHANGED  prefs.js  mtime 1789406487.869 -> 1789406488.953  size 5032 -> 5033
+19:21:36.850  CHANGED  prefs.js  mtime 1789406488.953 -> 1789406496.844  size 5033 -> 5034
+19:23:06.337  CHANGED  sdt-sitter-cache.jsonl  mtime 1789304926.683 -> 1789406586.292  size 22869 -> 1
+19:23:09.010  CHANGED  sdt-sitter-cache.jsonl  mtime 1789406586.292 -> 1789406589.006  size 1 -> 510
+19:23:20.874  DELETED  sdt-sitter-cache.jsonl
+19:23:20.874  CHANGED  sdt-sitter-last-shutdown.json  mtime 1789292884.352 -> 1789406600.851  size 766 -> 663
+19:23:28.770  CREATED  sdt-sitter-cache.jsonl  (1789406608.751, 446)
+19:25:39.874  CHANGED  sdt-sitter-cache.jsonl  mtime 1789406608.751 -> 1789406739.832  size 446 -> 432
+19:26:00.489  CHANGED  sdt-sitter-cache.jsonl  mtime 1789406739.832 -> 1789406760.458  size 432 -> 950
+19:26:11.314  CHANGED  sdt-sitter-cache.jsonl  mtime 1789406760.458 -> 1789406771.284  size 950 -> 936
+19:26:26.177  DELETED  sdt-sitter-cache.jsonl
+19:26:26.177  CHANGED  sdt-sitter-last-shutdown.json  mtime 1789406600.851 -> 1789406786.138  size 663 -> 792
+19:30:02.217  CHANGED  prefs.js  mtime 1789406496.844 -> 1789407002.213  size 5034 -> 5033
+19:30:09.343  CREATED  extensions/sdt-pack-sitter@search-works-for-zotero.invalid.xpi  (1789407009.328, 81438)
+19:30:09.343  CREATED  extensions/staged  (1789407009.329, 0)
+19:30:09.393  CHANGED  extensions.json  mtime 1789406481.814 -> 1789407009.369  size 2219 -> 4712
+19:30:09.393    >>> extensions.json names sdt-pack-sitter: False -> True
+19:30:09.393  DELETED  extensions/staged
+19:30:09.845  CHANGED  prefs.js  mtime 1789407002.213 -> 1789407009.834  size 5033 -> 5126
+19:30:10.898  CHANGED  addonStartup.json.lz4  mtime 1789406483.267 -> 1789407010.868  size 436 -> 502
+19:30:13.257  CHANGED  prefs.js  mtime 1789407009.834 -> 1789407013.25  size 5126 -> 5125
+19:30:14.562  CHANGED  prefs.js  mtime 1789407013.25 -> 1789407014.529  size 5125 -> 5126
+19:30:25.648  CHANGED  extensions.json  mtime 1789407009.369 -> 1789407025.635  size 4712 -> 4737
+19:30:25.648        (still names sdt-pack-sitter: True)
+19:30:25.648  CREATED  extensions/staged  (1789407025.614, 94)
+19:30:26.150  CHANGED  prefs.js  mtime 1789407014.529 -> 1789407026.114  size 5126 -> 5125
+19:30:27.154  CHANGED  addonStartup.json.lz4  mtime 1789407010.868 -> 1789407027.118  size 502 -> 509
+19:30:29.815  CHANGED  extensions/sdt-pack-sitter@search-works-for-zotero.invalid.xpi  (1789407009.328, 81438) -> (1789407029.79, 81438)
+19:30:29.815  CHANGED  extensions/staged  (1789407025.614, 94) -> (1789407029.791, 0)
+19:30:29.865  CHANGED  extensions.json  mtime 1789407025.635 -> 1789407029.827  size 4737 -> 4712
+19:30:29.865        (still names sdt-pack-sitter: True)
+19:30:29.866  DELETED  extensions/staged
+19:30:31.321  CHANGED  addonStartup.json.lz4  mtime 1789407027.118 -> 1789407031.29  size 509 -> 503
+19:30:34.483  DELETED  extensions/sdt-pack-sitter@search-works-for-zotero.invalid.xpi
+19:30:34.534  CHANGED  extensions.json  mtime 1789407029.827 -> 1789407034.494  size 4712 -> 2219
+19:30:34.534    >>> extensions.json names sdt-pack-sitter: True -> False
+19:30:35.035  CHANGED  prefs.js  mtime 1789407026.114 -> 1789407034.99  size 5125 -> 5032
+19:30:35.989  CHANGED  addonStartup.json.lz4  mtime 1789407031.29 -> 1789407035.938  size 503 -> 436
+19:31:00.130  CHANGED  prefs.js  mtime 1789407034.99 -> 1789407060.087  size 5032 -> 5033
+19:32:36.496  CHANGED  prefs.js  mtime 1789407060.087 -> 1789407156.445  size 5033 -> 5080
+19:32:44.878  CREATED  extensions/sdt-pack-sitter@search-works-for-zotero.invalid.xpi  (1789407164.873, 81438)
+19:32:44.878  CREATED  extensions/staged  (1789407164.873, 0)
+19:32:44.928  CHANGED  extensions.json  mtime 1789407034.494 -> 1789407164.915  size 2219 -> 4712
+19:32:44.928    >>> extensions.json names sdt-pack-sitter: False -> True
+19:32:44.928  DELETED  extensions/staged
+19:32:45.380  CHANGED  prefs.js  mtime 1789407156.445 -> 1789407165.368  size 5080 -> 5173
+19:32:46.485  CHANGED  addonStartup.json.lz4  mtime 1789407035.938 -> 1789407166.446  size 436 -> 503
+19:32:49.498  CHANGED  prefs.js  mtime 1789407165.368 -> 1789407169.481  size 5173 -> 5172
+19:32:50.101  CHANGED  prefs.js  mtime 1789407169.481 -> 1789407170.064  size 5172 -> 5173
+19:33:00.044  CREATED  extensions/staged  (1789407180.04, 94)
+19:33:00.094  CHANGED  extensions.json  mtime 1789407164.915 -> 1789407180.061  size 4712 -> 4737
+19:33:00.094        (still names sdt-pack-sitter: True)
+19:33:00.596  CHANGED  prefs.js  mtime 1789407170.064 -> 1789407180.545  size 5173 -> 5172
+19:33:01.601  CHANGED  addonStartup.json.lz4  mtime 1789407166.446 -> 1789407181.551  size 503 -> 510
+19:33:03.911  CHANGED  extensions/sdt-pack-sitter@search-works-for-zotero.invalid.xpi  (1789407164.873, 81438) -> (1789407183.91, 78871)
+19:33:03.911  CHANGED  extensions/staged  (1789407180.04, 94) -> (1789407183.91, 0)
+19:33:03.962  DELETED  extensions/staged
+19:33:04.012  CHANGED  extensions.json  mtime 1789407180.061 -> 1789407183.998  size 4737 -> 4712
+19:33:04.012        (still names sdt-pack-sitter: True)
+19:33:05.418  CHANGED  addonStartup.json.lz4  mtime 1789407181.551 -> 1789407185.414  size 510 -> 502
+19:33:05.919  CHANGED  extensions.json  mtime 1789407183.998 -> 1789407185.895  size 4712 -> 2219
+19:33:05.920    >>> extensions.json names sdt-pack-sitter: True -> False
+19:33:05.920  DELETED  extensions/sdt-pack-sitter@search-works-for-zotero.invalid.xpi
+19:33:06.421  CHANGED  prefs.js  mtime 1789407180.545 -> 1789407186.392  size 5172 -> 5079
+19:33:07.425  CHANGED  addonStartup.json.lz4  mtime 1789407185.414 -> 1789407187.408  size 502 -> 436
