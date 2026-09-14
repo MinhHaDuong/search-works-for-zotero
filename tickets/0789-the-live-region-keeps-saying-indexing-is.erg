@@ -2,7 +2,6 @@
 Title: The live region keeps saying indexing is on after the switch goes off
 Created: 2026-09-14
 Author: claude
-Blocked-by: 0769
 
 --- log ---
 2026-09-14T12:15Z claude created
@@ -10,6 +9,7 @@ Blocked-by: 0769
 
 2026-09-14T12:19Z claude note SHARPENED, and the first framing was too broad. The author said the visible display looked fine -- it does, and that is the point: the visible switch row and the hidden announcer are different elements and they DIVERGE. Re-measured from a known-empty announcer in both directions: off -> ON updates the region within 2.5 s, correctly. ON -> off does not, at 8 s, while the visible row changes immediately. So the defect is ASYMMETRIC and only the switch-off transition is lost. Likely mechanism, and it explains the asymmetry: the settle needs TWO passes -- the first records that the kind left, a later one writes the sentence once SDT_ANNOUNCE_SETTLE_MS has elapsed. Switching ON starts work, so renders keep arriving and the second pass happens. Switching OFF stops the work: one render fires on the click, updating the visible row, and then nothing renders again, so the write never lands. If that is right the fix is to guarantee a pass after the settle rather than to rely on the render loop still turning.
 
+2026-09-14T12:37Z MinhHaDuong note blocker 0769 closed — Blocked-by removed.
 --- body ---
 ## Context
 
