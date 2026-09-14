@@ -210,8 +210,12 @@ read is the only copy.
 panel's toolbar control took no keyboard focus at all: it is a XUL button,
 which is not focusable unless asked to be, and it had not been asked. That is
 fixed, and in a real Zotero the control now takes focus, a press of Enter on it
-opens the panel, focus lands inside the panel on the indexing switch, Escape
-closes the window, and focus returns to the control. The panel's accessible
+opens the panel, focus lands inside the panel on the indexing switch, and
+Escape closes the window. Afterwards focus is on the toolbar control — but that
+is an observation rather than a mechanism: nothing in this add-on restores it,
+and in every path tested the main window's focus had simply never left the
+control while the panel was open. A path that did move it has not been found,
+and would not be caught. The panel's accessible
 names and its status region were read back through the same accessibility
 interface a screen reader uses, from outside Zotero, and are what they claim to
 be.
