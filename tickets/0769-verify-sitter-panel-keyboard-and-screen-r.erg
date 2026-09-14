@@ -8,6 +8,8 @@ Author: claude
 2026-09-11T20:10Z claude note Split from 0686 per the author's ruling of 2026-09-11 (DECISIONS.md, option B): this item no longer gates the sitter's first tagged release (0764); it ships as a declared known limitation in RELEASE-NOTES.md instead.
 2026-09-12T06:06Z claude note Review round on the 0686 item (1) patch. Two things land here. (1) The body gained the Relevant files, Test and Verification sections the handoff template asks for -- this ticket is a cold handoff and was missing three of them. (2) verification/probes/sdt-sitter-harness/bootstrap.js asserted `body.firstElementChild.id === 'sdt-global-section'`, stale since 0693's rendering put the switch row first (tests/sdt_sitter_dialog.mjs pins the order); Action 1 would have failed on it in a real window before reading anything it is there for. Corrected in the same commit, headless-unverifiable by construction -- the probe runs only in a real window -- so the order it now asserts is the one the dialog test pins.
 
+2026-09-14T12:29Z claude note Orca pass DONE and recorded in verification/SDT-SITTER-UI-PANEL.md, speech quoted from Orca's own debug log. Orca speaks the toolbar control, the window, the switch, the coverage sentence and the end-of-work notice, all with correct roles and names. It found two defects nothing headless could: 0789 (the live region misses the switch-off transition -- asymmetric, and invisible on screen because the visible row is right in both directions) and 0790 (the toggle announces the next action, so a listener hears the opposite of what just happened -- found by the author listening, not by any instrument). Both filed, both Blocked-by this ticket, both under fix. Exit criteria rewritten on the author's instruction: the original set assumed the answer would be yes, and criterion 3 asked to delete a limitation that 0787 has since proved true.
+
 --- body ---
 ## Context
 
@@ -65,7 +67,23 @@ corrected on 2026-09-12 is the same trap, caught by reading rather than running)
 
 ## Exit criteria
 
-- [ ] Harness assertions green in a real window, each with a deliberate
-      break shown red once.
-- [ ] Orca pass recorded in `verification/SDT-SITTER-UI-PANEL.md`.
-- [ ] RELEASE-NOTES.md's known-limitation line for this item removed.
+REWRITTEN 2026-09-14, on the author's instruction, because the original set was
+written on the assumption that the answer would be "it works". Two of the three
+could not be met by doing the work — only by the work coming out differently.
+
+- [x] The panel's keyboard behaviour read in a real window, each assertion shown
+      red once where a break could express it. `verification/probes/` carries the
+      probe and the driver; the Escape assertion was red-armed, focus-return was
+      not, and that is recorded rather than glossed.
+- [x] Orca pass recorded in `verification/SDT-SITTER-UI-PANEL.md`, with speech
+      quoted from Orca's own debug log rather than recalled.
+- [x] `RELEASE-NOTES.md` states what a user actually gets. NOT the original
+      criterion, which was to DELETE the limitation: ticket 0787 established the
+      toolbar control is not reachable by Tab, so the limitation is true and
+      stays. The notes now say so in the author's own words, and say what to do
+      about it (click the button).
+
+What the pass found is filed rather than fixed here: 0789 (the live region
+misses the switch-off transition) and 0790 (the toggle announces the next
+action). Both are `Blocked-by` this ticket, and both are being fixed under
+their own numbers. Closing this one records that the reading was taken.

@@ -142,3 +142,54 @@ Not red-armed, and said rather than glossed: **focus-return**. It passed in the
 broken arm too, because focus was already on the button when the panel failed to
 close, so that assertion has not been shown capable of failing.
 
+## 2026-09-14 — the Orca pass (ticket 0769, action 2)
+
+Zotero 10.0.1, sitter 0.4.10, on padme: GNOME accessibility bus enabled, Orca
+3.x from `/usr/bin/orca` run with `--debug-file`, speech captured rather than
+recalled. The author drove the mouse and listened; the session drove state
+changes over RDP and read the log.
+
+### What Orca speaks, quoted from its own debug output
+
+    SPEECH OUTPUT: 'Index push button.'
+    SPEECH OUTPUT: 'Indexing assistant frame.'
+    SPEECH OUTPUT: 'Turn indexing off push button.'
+    SPEECH OUTPUT: 'Turn indexing on push button.'
+    SPEECH OUTPUT: 'Library: Ma bibliothèque — 0 files indexed.'
+    SPEECH OUTPUT: 'Progression frame.'
+
+So the toolbar control, the window, the switch, the panel's coverage sentence
+and the end-of-work notice all reach a real screen reader with correct roles and
+names. Read separately from OUTSIDE the process over AT-SPI, `sdt-announcer`
+reports `live: polite`, `atomic: true`, `container-live-role: status` — the
+markup is right too.
+
+### Two defects the pass found, which nothing headless could
+
+**The live region misses the switch-off transition** (ticket 0789). From a
+known-empty announcer, both directions:
+
+| transition | visible switch row | hidden `sdt-announcer` |
+|---|---|---|
+| off → **on** | updates | updates within 2.5 s — correct |
+| on → **off** | updates immediately | still "Indexing is on" at 8 s |
+
+Only switch-off is lost. The visible row is right in both directions, which is
+why the author, watching the screen, reasonably reported the display as fine.
+The asymmetry is the diagnosis: the settle needs a second pass to write, and
+switching off stops the renders that would supply it.
+
+**The toggle announces the next action** (ticket 0790). The switch's accessible
+name is its action, so clicking it to turn indexing ON makes the label "Turn
+indexing off" — and that is what Orca says, at the moment indexing was turned
+on. Found by the author listening. Neither the AT-SPI read nor the speech log
+flags it: both show a correct name on a correct control, and what is wrong is
+what a person concludes from hearing it then. This is the half of ticket 0769
+that needed a listener rather than more instrumentation, and it is the one that
+justifies the whole pass.
+
+### Not established
+
+Whether the announcements, once 0789 is fixed, are worded usefully enough for a
+blind user to follow a long indexing run. One session with one listener does not
+settle that.
