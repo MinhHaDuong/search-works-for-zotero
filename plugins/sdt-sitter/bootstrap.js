@@ -345,6 +345,8 @@ var SDT_TEXT = {
     "diagnostics-denominator-churn": " It moved by {delta} since you last opened this panel.",
     "switch-turn-on": "Turn indexing on",
     "switch-turn-off": "Turn indexing off",
+    "switch-turned-on": "Indexing has been turned on, re-click to turn off.",
+    "switch-turned-off": "Indexing has been turned off, re-click to turn on.",
     "section-global": "Overall progress",
     "section-active": "Indexing under way",
     "details-title": "Details",
@@ -2231,6 +2233,20 @@ function renderState() {
     announceSDTTransition(dialog, doc, switchLine, s.phase, describeSDTSwitchKind(s));
     doc.getElementById('sdt-switch').textContent =
       sdtText(off ? 'switch-turn-on' : 'switch-turn-off');
+    // Ticket 0790: the visible label above names the action to take, which
+    // reads fine beside `switchLine`'s sentence stating the current state but
+    // inverts when heard alone -- the click that starts indexing flips this
+    // same label to name the OPPOSITE action in the same instant, so a
+    // listener with no sentence beside the button hears the undo and
+    // reasonably concludes the click did the reverse of what it did.
+    // `aria-label` carries a state-then-action sentence instead: what now
+    // holds, then the way back. Computed from `off` on every render rather
+    // than from "was this click", so it is exactly as true at rest -- tabbed
+    // onto cold -- as it is the instant a click flips it; there is no
+    // separate "just clicked" state to fall out of sync with the phase this
+    // line already reads from.
+    doc.getElementById('sdt-switch').setAttribute('aria-label',
+      sdtText(off ? 'switch-turned-off' : 'switch-turned-on'));
     const elapsed = s.active === null ? null : Math.round((monotonic() - s.startedAt) / 1000);
     const silence = s.active === null ? null : Math.round((monotonic() - s.lastProgressAt) / 1000);
     const formatDuration = ms => {
