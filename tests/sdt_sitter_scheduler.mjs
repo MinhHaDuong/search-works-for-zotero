@@ -1022,6 +1022,117 @@ await test('a sweep announces the work it did, and an idle one announces nothing
   assert.equal(shown.length, 2);
   ui.alive = true;
 });
+/* Ticket 0788. The announcement is HELD while there is more to do.
+
+   The arm above stops a CAUGHT-UP library toasting every thirty seconds: it
+   asserts silence when a sweep found nothing. What it cannot catch, and what
+   the author met on a real library, is the opposite storm -- a library with
+   plenty to do, where every sweep DOES index something and so every sweep
+   announced it. Thirty seconds apart, eight seconds on screen, for as long as
+   the work lasts.
+
+   So this arm runs sweeps that all do work, and asserts silence from the ones
+   that leave work behind. The last one, which does not, speaks once and speaks
+   for all of them. Without the hold in `announceSDTSweep` every line marked
+   HELD below returns true and this test fails on the first of them. */
+await test('a run with more to do holds its announcement until the work stops', async () => {
+  const f = fixture(), shown = [];
+  ui.journal = context.createSDTJournal(50); ui.sealed = false;
+  ui.alive = true; ui.sitter = f.api;
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => true },
+    ProgressWindow: recordingProgressWindow(shown) };
+
+  // Work done, and more of it still queued: the shape of every sweep in the
+  // middle of a long index. `pending` is what `nextSweepDelayMS` reads to keep
+  // sweeping at the active cadence, so it is also the honest signal for "this
+  // run is not over".
+  const sweepLeavingWork = async () => {
+    const before = { completed: f.api.state.completed, failed: f.api.state.failed };
+    await f.api.sweep();
+    f.api.state.pending = [1];
+    return ui.announceSDTSweep(before);
+  };
+  assert.equal(await sweepLeavingWork(), false, 'HELD: a sweep with work left announced');
+  assert.equal(shown.length, 0, 'a run announced itself before it had finished');
+
+  // More files arrive and are indexed, still mid-run. Each of these sweeps
+  // moved the counters, so each of them would have toasted under the old rule.
+  for (const list of [[1, 2, 3], [1, 2, 3, 4]]) {
+    f.host.list = async () => list;
+    assert.equal(await sweepLeavingWork(), false,
+      `HELD: the sweep that indexed ${list.length} announced mid-run`);
+  }
+  assert.equal(shown.length, 0,
+    `${shown.length} toasts during a run that had not finished: `
+    + JSON.stringify(shown.map(t => t.lines)));
+
+  // The run ends: nothing pending, nothing busy. Now it speaks -- once, with
+  // the figures true at the moment it speaks, not one sentence per sweep.
+  const before = { completed: f.api.state.completed, failed: f.api.state.failed };
+  await f.api.sweep();
+  f.api.state.pending = [];
+  assert.equal(ui.announceSDTSweep(before), true, 'the finished run never announced itself');
+  assert.equal(shown.length, 1, 'the finished run announced more than once');
+  assert.deepEqual(shown[0].lines, ['4 files indexed']);
+
+  // And having spoken, it does not speak again for the same work: the held
+  // flag is cleared by the toast, not by the sweep.
+  assert.equal(await sweepLeavingWork(), false, 'the run announced itself twice');
+  f.api.state.pending = [];
+  assert.equal(ui.announceSDTSweep(
+    { completed: f.api.state.completed, failed: f.api.state.failed }), false,
+    'a quiet sweep re-announced work already announced');
+  assert.equal(shown.length, 1);
+});
+/* The held flag is cleared by the toast that SUCCEEDS, not by the attempt.
+
+   Holding an announcement for the length of a run concentrates everything the
+   run had to say into one sentence, which makes losing that sentence a whole
+   run's silence rather than one sweep's. So the clear sits after `show()`: a
+   window that throws on the way to the screen leaves the flag set, and the next
+   sweep that comes to rest says it instead.
+
+   Mutant M75 is this line moved one statement earlier. It survived until this
+   arm existed -- every other assertion in this file is about whether a toast
+   arrives, and none of them makes one fail. */
+await test('a toast that throws on the way to the screen is retried, not lost', async () => {
+  const f = fixture(), shown = [];
+  let breakShow = true;
+  ui.journal = context.createSDTJournal(50); ui.sealed = false;
+  ui.alive = true; ui.sitter = f.api;
+  ui.Zotero = { debug: () => {}, Prefs: { get: () => true },
+    ProgressWindow: class {
+      constructor() { this.lines = []; this.headline = null; this.closeMS = null; }
+      changeHeadline(text) { this.headline = text; }
+      addDescription(text) { this.lines.push(text); }
+      show() {
+        if (breakShow) throw new Error('the window manager said no');
+        shown.push(this);
+      }
+      startCloseTimer(ms) { this.closeMS = ms; }
+    } };
+
+  const quietSweep = async () => {
+    const before = { completed: f.api.state.completed, failed: f.api.state.failed };
+    await f.api.sweep();
+    f.api.state.pending = [];
+    return ui.announceSDTSweep(before);
+  };
+
+  assert.equal(await quietSweep(), false, 'a toast that threw reported success');
+  assert.equal(shown.length, 0, 'the broken window reached the screen');
+
+  // The run is over and its counters no longer move, so nothing here re-sets
+  // the flag: if the failed attempt cleared it, this sweep is silent forever.
+  breakShow = false;
+  assert.equal(await quietSweep(), true, 'the lost announcement was never retried');
+  assert.equal(shown.length, 1);
+  assert.deepEqual(shown[0].lines, ['2 files indexed']);
+
+  // And once it lands, it is done -- the retry does not become a second storm.
+  assert.equal(await quietSweep(), false, 'the retried announcement repeated');
+  assert.equal(shown.length, 1);
+});
 await test('a changed failure total is announced, in the words the dialog uses', async () => {
   const f = fixture(), shown = [];
   f.host.ensure = async () => false;          // no pack becomes current

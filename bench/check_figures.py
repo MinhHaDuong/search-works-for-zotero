@@ -60,10 +60,18 @@ REPO = Path(__file__).resolve().parent.parent
 #: worst version of it: the document becomes permanent at exactly that moment.
 PROSE = {
     "v0674": ["verification/SDT-PARALLELISM-0674.md"],
-    # The sitter's release notes quote the parallelism pilot to say which axis paid
-    # for extraction cost. A shipped plugin's notes are read outside this repo, so a
+    # The sitter's notes quote the parallelism pilot to say which axis paid for
+    # extraction cost. A shipped plugin's notes are read outside this repo, so a
     # stale figure there outlives the branch that wrote it.
-    "sitternotes": ["plugins/sdt-sitter/RELEASE-NOTES.md"],
+    #
+    # DESIGN-NOTES.md since 2026-09-14, not RELEASE-NOTES.md. The release notes had
+    # grown into 680 lines of engineering rationale; the essays -- and these
+    # anchors with them -- moved to the design notes, and this gate is what
+    # noticed, which is the whole reason it names documents rather than grepping
+    # the tree. Listing both was tried first and is wrong: every listed document
+    # must carry the figure, so naming a file that no longer quotes it reddens the
+    # gate on a document that is correct.
+    "sitternotes": ["plugins/sdt-sitter/DESIGN-NOTES.md"],
     "readme": ["README.md"],
     "sync": ["SYNC.md"],
     "design": ["SPEC.md"],

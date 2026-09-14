@@ -1,14 +1,16 @@
 {
   "manifest_version": 2,
   "name": "SDT Pack Sitter (experimental)",
-  "version": "0.4.7",
+  "version": "0.4.10",
   "description": "Warm native Zotero SDT packs, one attachment at a time; a disposable on-disk cache carries pack-freshness and duration observations across sessions, never an active-job or failure ledger. A failed document is suppressed for the session and asked again on the next activation. Indexing is asked about once, then held by a persisted on/off switch in the add-on's own window, which stops admissions and lets the file under way finish. State transitions go to Zotero's debug output and a volatile in-session ring.",
   "applications": {
     "zotero": {
       "id": "sdt-pack-sitter@search-works-for-zotero.invalid",
-      "strict_min_version": "10.0.1",
+      "strict_min_version": "10.0",
       "strict_max_version": "10.*",
       "update_url": "https://raw.githubusercontent.com/MinhHaDuong/search-works-for-zotero/main/plugins/sdt-sitter/update.json"
     }
-  }
+  },
+  "author": "Minh Ha-Duong",
+  "homepage_url": "https://github.com/MinhHaDuong/search-works-for-zotero"
 }
