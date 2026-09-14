@@ -1,0 +1,87 @@
+%erg 0.1
+Title: The toggle announces the next action, so a listener hears the opposite state
+Created: 2026-09-14
+Author: claude
+Blocked-by: 0769
+
+--- log ---
+2026-09-14T12:19Z claude created
+2026-09-14T12:19Z claude note Found by the author, listening, during ticket 0769's Orca pass. He put it exactly: "On click to turn on, it says Turn indexing off because the button just changed to off. That is confusing." Neither the AT-SPI read nor the speech log would have caught this — both show a correct name for a correct control. What is wrong is what a person concludes from hearing it at that moment, which is why the pass needed a listener and not more instrumentation.
+
+--- body ---
+## Context
+
+The panel's switch is a button whose accessible name IS its action: "Turn
+indexing off" while indexing is on, "Turn indexing on" while it is off. That
+reads well on screen, where the button sits beside a sentence stating the
+current state.
+
+Heard, it inverts. Click the button to turn indexing ON and the label
+immediately becomes "Turn indexing off" — so Orca says **"Turn indexing off
+push button"** at the exact moment indexing was turned on. A listener has no
+sentence beside it and reasonably concludes the opposite of what happened.
+
+Captured in the same session, in this order, from one click that turned
+indexing on:
+
+    SPEECH OUTPUT: 'Turn indexing off push button.'
+
+## Why the live region does not save it today
+
+It would have. `announceSDTTransition` writes "Indexing is on…" to
+`sdt-announcer` after the settle, which corrects the impression a second later.
+That is the mitigation the design already has — and ticket 0789 establishes it
+does not fire on the switch-OFF transition, so in that direction the misleading
+label is the ONLY thing a listener gets.
+
+The two tickets are worth reading together, and 0789 should land first: if the
+region is reliable, this one is a polish; if it is not, this one is the whole
+experience.
+
+## The author's proposal
+
+> it should say "Indexing has been turned on, re-click to turn off"
+
+That is a state-then-action sentence, and it is the right shape: it says what
+happened before what to do next.
+
+The conventional alternative is a toggle button — a STABLE name ("Indexing")
+plus `aria-pressed`, which a screen reader renders as "Indexing, pressed" /
+"Indexing, not pressed". It is less wordy and needs no live region to be
+correct at the moment of the click. It also changes what a sighted user sees,
+since the visible label would no longer name the action, so it is not a free
+swap.
+
+Deciding between them is the work of this ticket and it belongs to the author:
+both are defensible, and one of them changes the visible UI.
+
+## Relevant files
+
+- `plugins/sdt-sitter/bootstrap.js` — the switch's label composition and its
+  `aria-label`; `describeSDTSwitchKind` for the state the sentence would name
+- `tests/sdt_sitter_dialog.mjs` — pins the switch row's text today
+- `verification/SDT-SITTER-UI-PANEL.md` — where the Orca reading is recorded
+
+## Test
+
+Whatever the remedy, the assertion is about what is announced AT THE MOMENT of
+the click, not about the resting label. A test that reads the button after the
+dust settles passes today and proves nothing.
+
+## Verification
+
+- [ ] A listener hears, on one click, a sentence that names the state that now
+      holds — not the action that would undo it
+- [ ] Re-measured with Orca in a real window, quoted in the UI panel record
+
+## Invariants
+
+- Whatever the button says, the visible panel must still tell a sighted user
+  the current state; that sentence is what makes today's label acceptable on
+  screen.
+- No regression in the accessible name being free of the spinner glyph (0686).
+
+## Exit criteria
+
+Clicking the switch announces the state it produced. Recorded from a real
+screen reader, not inferred from the markup.

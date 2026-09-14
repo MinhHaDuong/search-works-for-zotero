@@ -8,6 +8,8 @@ Blocked-by: 0769
 2026-09-14T12:15Z claude created
 2026-09-14T12:16Z claude note Found by ticket 0769's Orca pass, on the author's own desktop with Orca running and speech captured to a debug log. This is the defect that pass existed to find, and no headless test could have: the region is present, correctly built and correctly exposed, and says the wrong thing.
 
+2026-09-14T12:19Z claude note SHARPENED, and the first framing was too broad. The author said the visible display looked fine -- it does, and that is the point: the visible switch row and the hidden announcer are different elements and they DIVERGE. Re-measured from a known-empty announcer in both directions: off -> ON updates the region within 2.5 s, correctly. ON -> off does not, at 8 s, while the visible row changes immediately. So the defect is ASYMMETRIC and only the switch-off transition is lost. Likely mechanism, and it explains the asymmetry: the settle needs TWO passes -- the first records that the kind left, a later one writes the sentence once SDT_ANNOUNCE_SETTLE_MS has elapsed. Switching ON starts work, so renders keep arriving and the second pass happens. Switching OFF stops the work: one render fires on the click, updating the visible row, and then nothing renders again, so the write never lands. If that is right the fix is to guarantee a pass after the settle rather than to rely on the render loop still turning.
+
 --- body ---
 ## Context
 
@@ -27,15 +29,16 @@ The region is built correctly. Read from OUTSIDE the process over AT-SPI on
 Real Zotero 10.0.1, sitter 0.4.10, accessibility bus on, Orca running. The
 panel's switch was clicked and the panel read at four points:
 
-| after | `state.phase` | switch label | `sdt-announcer` |
-|---|---|---|---|
-| 1 s | `switched-off` | Turn indexing on | **Indexing is on.** Everything in view is indexed… |
-| 3 s | `switched-off` | Turn indexing on | **Indexing is on.** … |
-| 6 s | `switched-off` | Turn indexing on | **Indexing is on.** … |
-| 10 s | `switched-off` | Turn indexing on | **Indexing is on.** … |
+From a known-empty announcer, both directions:
 
-The phase changes within a second and the button's own label follows it. The
-region does not move, at five times the settle.
+| transition | visible switch row | hidden `sdt-announcer` |
+|---|---|---|
+| off → **on** | updates | **updates within 2.5 s** — correct |
+| on → **off** | updates immediately | **still "Indexing is on" at 8 s** |
+
+Only the switch-OFF transition is lost. The visible row is right in both
+directions, which is why the defect is invisible to anyone watching the screen —
+the author looked, and reasonably reported the display as fine.
 
 ## Why it matters more than a stale string
 
