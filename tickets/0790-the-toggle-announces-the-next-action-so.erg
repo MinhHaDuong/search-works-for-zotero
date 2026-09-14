@@ -2,12 +2,12 @@
 Title: The toggle announces the next action, so a listener hears the opposite state
 Created: 2026-09-14
 Author: claude
-Blocked-by: 0769
 
 --- log ---
 2026-09-14T12:19Z claude created
 2026-09-14T12:19Z claude note Found by the author, listening, during ticket 0769's Orca pass. He put it exactly: "On click to turn on, it says Turn indexing off because the button just changed to off. That is confusing." Neither the AT-SPI read nor the speech log would have caught this — both show a correct name for a correct control. What is wrong is what a person concludes from hearing it at that moment, which is why the pass needed a listener and not more instrumentation.
 
+2026-09-14T12:37Z MinhHaDuong note blocker 0769 closed — Blocked-by removed.
 --- body ---
 ## Context
 

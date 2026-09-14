@@ -2,6 +2,7 @@
 Title: Verify sitter panel keyboard and screen-reader behaviour in a real window
 Created: 2026-09-11
 Author: claude
+Closed: autoclosed — PR #561
 
 --- log ---
 2026-09-11T20:10Z claude created
@@ -10,6 +11,7 @@ Author: claude
 
 2026-09-14T12:29Z claude note Orca pass DONE and recorded in verification/SDT-SITTER-UI-PANEL.md, speech quoted from Orca's own debug log. Orca speaks the toolbar control, the window, the switch, the coverage sentence and the end-of-work notice, all with correct roles and names. It found two defects nothing headless could: 0789 (the live region misses the switch-off transition -- asymmetric, and invisible on screen because the visible row is right in both directions) and 0790 (the toggle announces the next action, so a listener hears the opposite of what just happened -- found by the author listening, not by any instrument). Both filed, both Blocked-by this ticket, both under fix. Exit criteria rewritten on the author's instruction: the original set assumed the answer would be yes, and criterion 3 asked to delete a limitation that 0787 has since proved true.
 
+2026-09-14T12:37Z MinhHaDuong closed — autoclosed — PR #561
 --- body ---
 ## Context
 
