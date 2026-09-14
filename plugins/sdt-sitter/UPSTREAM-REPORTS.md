@@ -1,6 +1,9 @@
-# Two reports for the Zotero forum — drafts
+# Two reports for the Zotero forum
 
-*For the author to post, in his own name. Nothing here has been posted.*
+*Posted by the author, in his own name, 2026-09-14.*
+
+1. https://forums.zotero.org/discussion/133758/installing-a-plugin-while-its-removal-is-still-pending-deletes-the-new-copy
+2. https://forums.zotero.org/discussion/133759/plugin-toolbar-buttons-are-still-outside-the-keyboard-navigation-chain
 
 *Register: forums.zotero.org, where staff read and reply. Short, evidence first,
 no plugin promotion — the add-on is how these were found, not what they are
