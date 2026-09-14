@@ -397,6 +397,7 @@ var SDT_TEXT = {
     "global-estimate": "Estimated finish around {median} (between {low} and {high})",
     "active-none": "No indexing under way",
     "active-preparing": "Preparing the next attachment…",
+    "active-census": "Scanning {progress} %",
     "active-file": "Indexing: {file} — {progress} % — {elapsed} elapsed",
     "active-finalising": "Finishing…",
     "active-references": "Reading the references…",
@@ -2321,7 +2322,17 @@ function renderState() {
     // for that span. `state.pending` still names what is queued behind it,
     // so a reader is not told nothing is happening when something is about
     // to be.
-    const activeMessage = s.active === null
+    // Ticket 0791, the author's ruling: a census is not document work and must
+    // not borrow its sentence. Neither input below tells the truth during one --
+    // the census loop never assigns `state.active`, and `state.pending` holds
+    // the previous generation until refreshQueue() runs at census close -- so
+    // the line used to read "Preparing the next attachment…" for the whole walk,
+    // minutes of it on a large library, while no attachment was being prepared.
+    // The phase decides first, and reports the one counter that does move.
+    const activeMessage = s.phase === 'census'
+      ? sdtText('active-census', { progress: s.total > 0
+        ? Math.floor((s.scanned / s.total) * 100) : 0 })
+      : s.active === null
       ? (s.pending && s.pending.length > 0 ? sdtText('active-preparing') : sdtText('active-none'))
       : sdtText('active-file', { file: describeSDTActiveFile(s),
         progress: s.progress ?? sdtText('unknown-value'),

@@ -1,0 +1,104 @@
+%erg 0.1
+Title: The census renders as document work, so a working sitter reads as hung
+Created: 2026-09-14
+Author: claude
+Closed: autoclosed — PR #566
+
+--- log ---
+2026-09-14T13:49Z claude created
+2026-09-14T13:53Z claude note Author ruled the wording at the panel: "It should not say 'Indexing under way' but 'Scanning x%'". Implemented as `active-census`, "Scanning {progress} %", taken from state.scanned/state.total -- the one counter that moves during a census. Action 2 (what the coverage bar does during a first census with no snapshot) is NOT in this change and stays open.
+
+2026-09-14T15:45Z MinhHaDuong closed — autoclosed — PR #566
+--- body ---
+## Context
+
+Reported three times by the author in one sitting, on v0.4.10 against his own
+library (~13,000 attachments, Zotero 10.0.2), each time as a different symptom:
+
+- "Scan starts at Index 0% and progresses slow."
+- "The scan does not has an animation."
+- "Seems Stuck at Preparing the next attachment..."
+
+All three are one defect. The panel's document-status line is computed from
+`s.active` and `s.pending` alone and never consults `s.phase`
+(`plugins/sdt-sitter/bootstrap.js:2220`):
+
+```js
+const activeMessage = s.active === null
+  ? (s.pending && s.pending.length > 0 ? sdtText('active-preparing') : sdtText('active-none'))
+  : sdtText('active-file', { ... });
+```
+
+During a census neither input says what it looks like it says:
+
+- `state.active` is assigned in exactly one place (`scheduler.js:226`, when a
+  document is admitted for settling) and cleared in one (`:323`). The census
+  loop never touches it, so `active === null` for the whole walk.
+- `state.pending` still holds the PREVIOUS generation's queue, because
+  `refreshQueue()` runs only after the census closes (`scheduler.js:170`). On
+  the author's library that is 13,011, unchanged for the duration.
+
+So the branch taken is `active-preparing` — "Preparing the next attachment…" —
+held for the entire census, while no attachment is being prepared. Nothing
+animates because no document is active. Coverage climbs from 0 because
+`state.counts` is reset at census start (`scheduler.js:143`) and the held
+`censusSnapshot` is only populated when a previous census had completed in this
+session (`:142`).
+
+The scheduler already carries a decided label for this state — `census:
+'phase-census'` in `SDT_PHASE_LABELS`, "Census" — and the document line ignores
+it.
+
+This is the author's own rule biting the sitter: a background sitter must not
+cause alarm. The panel states something false about what the add-on is doing,
+and the author's reading of it was that the add-on was stuck. It is the worst
+version of that failure, because the sitter is working correctly.
+
+## Relevant files
+
+- `plugins/sdt-sitter/bootstrap.js` — the `activeMessage` computation, ~2220;
+  the `SDT_PHASE_LABELS` table it should consult, ~960; the string table, ~396.
+- `plugins/sdt-sitter/scheduler.js` — the census loop (~137-172) that leaves
+  `active` null and `pending` stale; `refreshQueue()` at ~170.
+
+## Actions
+
+1. Make the document-status line phase-aware: during `phase === 'census'` say
+   what the census is doing, using the counters that do move (`scanned` /
+   `total`), not a claim about an attachment.
+2. Decide what the coverage bar should show during the first census of a
+   session, when no `censusSnapshot` exists. Climbing from 0 is honest about the
+   walk but reads as lost work to a user who indexed 14% yesterday. A
+   determinate census bar plus a separate, held coverage figure is one option;
+   the author rules the class.
+3. Check the same blindness elsewhere in the panel: any other line whose text is
+   derived from `active`/`pending` without consulting `phase`.
+
+## Test
+
+Red first, in `tests/`: drive the scheduler into `phase === 'census'` with
+`active === null` and a non-empty stale `pending`, render the panel's document
+line, and assert it does NOT read "Preparing the next attachment…". That
+assertion fails against today's code, which is the point.
+
+## Verification
+
+- [ ] The red test above fails before the fix and passes after.
+- [ ] On a real library, a reconciliation census shows census progress rather
+      than "Preparing the next attachment…", confirmed by the author at the
+      panel, not by a headless assertion.
+
+## Invariants
+
+- No new modal, toast or alert. This is a wording-and-source defect in an
+  existing line; the author's ruling stands that a background sitter logs and
+  defers rather than alarming.
+- `state.active` keeps its current meaning — a document under settlement. Do
+  not widen it to cover census items to make the line come out right.
+
+## Exit criteria
+
+- The panel does not claim an attachment is being prepared while a census is
+  walking.
+- The three symptoms the author reported are each accounted for, in the ticket
+  log, as fixed or as deliberately left (action 2 may be ruled out of scope).
