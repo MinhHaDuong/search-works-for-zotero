@@ -82,7 +82,10 @@ on or off — once the state it replaces has been gone for two seconds, and neve
 the progress figures that update several times a second. A state that comes
 back inside those two seconds is not announced; one that does not is, even if
 the window has moved on again since. Opening the window announces nothing.
-Behaviour with an actual screen reader has not yet been verified.
+The region is exposed to the accessibility layer as a polite, atomic status
+region — read back from outside Zotero on 2026-09-13, not merely declared in
+the markup. Whether a screen reader speaks it aloud, and how well, has not yet
+been verified.
 
 The same ticket makes the window's resting sentence say which kind of rest it
 is in. It used to read "Nothing to index right now" over a library that was
@@ -203,12 +206,23 @@ record there is. With the diagnostics switch on, the same records are also in
 survives the restart; in the disappearance, and with the switch off, the live
 read is the only copy.
 
-**One limitation declared rather than discovered.** The supervision panel is not
-qualified accessible: keyboard operation, focus restoration, screen-reader
-behaviour in a real reader and layout at enlarged font sizes have not been
-verified in a real window, and no unit test takes those readings
-(ticket [0769](../../tickets/0769-verify-sitter-panel-keyboard-and-screen-r.erg),
-ruled 2026-09-11).
+**Keyboard access, and what is still not qualified.** Until 2026-09-13 the
+panel could not be opened without a mouse at all: its toolbar control is a XUL
+button, which takes no keyboard focus unless asked to, and it had not been
+asked. That is fixed, and the window was then driven from the keyboard in a
+real Zotero to confirm it — the control takes focus, Enter opens the panel,
+focus lands on the indexing switch, each disclosure heading accepts focus,
+Escape closes the window and focus returns to the control it came from. The
+panel's accessible names and its status region were read back through the same
+accessibility interface a screen reader uses, from outside Zotero, and are what
+they claim to be.
+
+Two readings are still missing and the panel is not yet qualified accessible
+without them: whether a screen reader in fact speaks the announcements, in
+words that help; and the layout at enlarged font sizes. Tab ORDER is also
+unconfirmed — each heading takes focus when asked, but the order in which
+tabbing reaches them could not be observed on the machine used
+(ticket [0769](../../tickets/0769-verify-sitter-panel-keyboard-and-screen-r.erg)).
 
 Implementation and host-mock verification are recorded in
 [the scheduling report](../../verification/SDT-SITTER-EVENTS.md). What a live
