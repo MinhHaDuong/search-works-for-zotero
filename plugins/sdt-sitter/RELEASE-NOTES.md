@@ -82,7 +82,10 @@ on or off — once the state it replaces has been gone for two seconds, and neve
 the progress figures that update several times a second. A state that comes
 back inside those two seconds is not announced; one that does not is, even if
 the window has moved on again since. Opening the window announces nothing.
-Behaviour with an actual screen reader has not yet been verified.
+The region is exposed to the accessibility layer as a polite, atomic status
+region — read back from outside Zotero on 2026-09-13, not merely declared in
+the markup. Whether a screen reader speaks it aloud, and how well, has not yet
+been verified.
 
 The same ticket makes the window's resting sentence say which kind of rest it
 is in. It used to read "Nothing to index right now" over a library that was
@@ -203,12 +206,32 @@ record there is. With the diagnostics switch on, the same records are also in
 survives the restart; in the disappearance, and with the switch off, the live
 read is the only copy.
 
-**One limitation declared rather than discovered.** The supervision panel is not
-qualified accessible: keyboard operation, focus restoration, screen-reader
-behaviour in a real reader and layout at enlarged font sizes have not been
-verified in a real window, and no unit test takes those readings
-(ticket [0769](../../tickets/0769-verify-sitter-panel-keyboard-and-screen-r.erg),
-ruled 2026-09-11).
+**Keyboard access, and what is still not qualified.** Until 2026-09-13 the
+panel's toolbar control took no keyboard focus at all: it is a XUL button,
+which is not focusable unless asked to be, and it had not been asked. That is
+fixed, and in a real Zotero the control now takes focus, a press of Enter on it
+opens the panel, focus lands inside the panel on the indexing switch, and
+Escape closes the window. Afterwards focus is on the toolbar control — but that
+is an observation rather than a mechanism: nothing in this add-on restores it,
+and in every path tested the main window's focus had simply never left the
+control while the panel was open. A path that did move it has not been found,
+and would not be caught. The panel's accessible
+names and its status region were read back through the same accessibility
+interface a screen reader uses, from outside Zotero, and are what they claim to
+be.
+
+The panel is still not qualified accessible, and the gaps are worth naming
+exactly rather than summarising. Whether a screen reader speaks the
+announcements, in words that help, has not been heard. The layout at enlarged
+font sizes has not been looked at. Tab ORDER is unconfirmed in both directions:
+the headings inside the panel take focus when asked, but the order tabbing
+visits them in could not be observed on the machine used — and reaching the
+toolbar control itself by tabbing is a separate question again, because Zotero
+gives its own toolbar buttons an explicit keyboard route that this add-on is
+not part of. Focusable is not the same as reachable, and only the first of
+those has been demonstrated
+(tickets [0769](../../tickets/0769-verify-sitter-panel-keyboard-and-screen-r.erg)
+and [0787](../../tickets/0787-the-toolbar-control-is-focusable-but-may.erg)).
 
 Implementation and host-mock verification are recorded in
 [the scheduling report](../../verification/SDT-SITTER-EVENTS.md). What a live

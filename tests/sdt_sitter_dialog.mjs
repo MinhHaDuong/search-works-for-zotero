@@ -62,6 +62,9 @@ class StubNode {
   }
   /** Stand-in for a user activating the control; the plugin registers real listeners. */
   fire(type) { for (const listener of this.listeners.get(type) || []) listener({ target: this }); }
+  /* See the matching note in sdt_sitter_zotero_mock.mjs: recorded, not a
+     no-op, so a test can assert WHERE focus landed (ticket 0769). */
+  focus() { if (this.ownerDocument) this.ownerDocument.activeElement = this; }
   descendants() { return this.childNodes.flatMap(child => [child, ...child.descendants()]); }
 }
 
@@ -72,6 +75,7 @@ class StubDocument {
     this.documentElement.append(this.body);
     this.readyState = 'complete';
     this.title = '';
+    this.activeElement = null;
   }
   createElementNS(namespace, tag) {
     assert.equal(namespace, XHTML, 'the dialog must build XHTML, not XUL');
@@ -79,6 +83,44 @@ class StubDocument {
   }
   getElementById(id) {
     return this.documentElement.descendants().find(node => node.id === id) || null;
+  }
+  /* Enough of a selector engine for the one shape the dialog asks for: a
+     comma-separated list of tag names and `[attr]` / `[attr="value"]` tests,
+     matched in document order. Added for ticket 0769, whose initial-focus fix
+     asks the dialog for its first focusable control.
+
+     Deliberately NOT a real selector engine. A stub that silently answered a
+     selector it does not implement -- a descendant combinator, `:not()`, a
+     class -- would return null and read as "no such element", which is the
+     mock lying in the direction that makes a test pass. Anything it cannot
+     parse throws instead, so the suite fails loudly on the day the production
+     selector grows past it. */
+  querySelector(selector) {
+    const clauses = String(selector).split(',').map(part => part.trim()).filter(Boolean);
+    const matchers = clauses.map(clause => {
+      const attr = clause.match(/^\[([A-Za-z-]+)(?:="([^"]*)")?\]$/);
+      if (attr) {
+        const [, name, value] = attr;
+        return node => node.attributes?.has?.(name)
+          && (value === undefined || node.attributes.get(name) === value);
+      }
+      const not = clause.match(/^\[([A-Za-z-]+)\]:not\(\[([A-Za-z-]+)="([^"]*)"\]\)$/);
+      if (not) {
+        const [, name, exclName, exclValue] = not;
+        return node => node.attributes?.has?.(name)
+          && node.attributes.get(exclName) !== exclValue;
+      }
+      if (/^[A-Za-z][A-Za-z0-9-]*$/.test(clause)) {
+        const tag = clause.toLowerCase();
+        return node => String(node.tagName || '').toLowerCase() === tag;
+      }
+      throw new Error(`StubDocument.querySelector cannot parse ${JSON.stringify(clause)}; `
+        + 'extend the stub rather than letting it answer null');
+    });
+    for (const node of this.documentElement.descendants()) {
+      if (matchers.some(match => match(node))) return node;
+    }
+    return null;
   }
 }
 
@@ -887,6 +929,29 @@ test('a re-initialization contaminates the ring, and the clipboard still holds n
   assert.equal(copied.length, 1, 'the scrub dropped the record instead of the field');
   assert.equal(copied[0].zoteroVersion, '10.0.5-stub');
   assert.equal(copied[0].rootURI, undefined);
+});
+
+/* Ticket 0769. The window places focus, and places it inside itself.
+
+   It used to open with `activeElement` still on `<body>`: a keyboard user
+   arrived somewhere with nothing selected and no indication of where they
+   were. Measured in a real Zotero, fixed there, and pinned here because review
+   of PR #554 found the behaviour had no regression coverage at all — only the
+   live probe exercised it, and a live probe is not run by `make check`.
+
+   The assertion is deliberately about WHICH control, not merely that something
+   took focus. `focusFirst` selects the first match of
+   `input, button, summary, [tabindex]:not([tabindex="-1"])`, and what that
+   resolves to is a property of the window's layer order, which
+   `tests/sdt_sitter_dialog.mjs` already pins a few tests above. An assertion
+   that only checked for a non-null activeElement would survive the day the
+   order changes and focus lands somewhere useless. */
+test('the window places initial focus on its first control, not on the body', () => {
+  assert.notEqual(doc.activeElement, null, 'the window opened with nothing focused');
+  assert.notEqual(doc.activeElement, doc.body, 'focus was left on the body');
+  assert.equal(doc.activeElement.id, 'sdt-switch',
+    `initial focus landed on ${doc.activeElement.id || doc.activeElement.tagName}, `
+    + 'not the indexing switch');
 });
 
 console.log(JSON.stringify({ tests: results, result: 'pass' }));
