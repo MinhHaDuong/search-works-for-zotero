@@ -224,9 +224,13 @@ MUTANTS = [
     # The second is the mutation that left all forty driven arms green before
     # this ticket's review, which is why it is recorded here rather than in a
     # merge request.
+    # Re-anchored by ticket 0788, which rewrote this line from an early return
+    # into a flag the hold consumes. The MUTATION is unchanged in substance:
+    # remove the test of whether this sweep moved anything, so the announcement
+    # is driven by the call rather than by the work.
     ("M24 the toast fires on the sweep call rather than on the work it did",
-     "  if (s.completed === before.completed && s.failed === before.failed) return false;\n",
-     ""),
+     "  if (s.completed !== before.completed || s.failed !== before.failed) sweepToastHeld = true;\n",
+     "  sweepToastHeld = true;\n"),
     ("M25 the snapshot is the live state object, so the gate never opens",
      "    const before = { completed: sitter.state.completed, failed: sitter.state.failed };",
      "    const before = sitter.state;"),
@@ -234,8 +238,8 @@ MUTANTS = [
     # whole, which is what makes it usable in the gate at all. Dropped from the
     # comparison, a sweep that indexed nothing and failed two files says nothing.
     ("M26 a changed failure total no longer opens the gate",
-     "  if (s.completed === before.completed && s.failed === before.failed) return false;",
-     "  if (s.completed === before.completed) return false;"),
+     "  if (s.completed !== before.completed || s.failed !== before.failed) sweepToastHeld = true;",
+     "  if (s.completed !== before.completed) sweepToastHeld = true;"),
     # The guard that keeps a diagnostic from becoming a new way to break the
     # sweep loop. Unguarded, a host with no ProgressWindow rejects the toast into
     # the loop's own catch, which journals it as a sweep error — the wrong record
@@ -608,6 +612,27 @@ MUTANTS = [
      "    if (!alive || token !== generation) return 'unknown';\n"
      "    return (await packSDTExtractionComplete(reader)) ? 'empty' : 'unknown';\n",
      "    return (await packSDTExtractionComplete(reader)) ? 'empty' : 'unknown';\n"),
+    # Ticket 0788's hold. Removed, the toast returns to firing on every sweep
+    # that moved a counter -- which is every sweep, for as long as a library has
+    # work. That is the defect the author met on a real library, and it is
+    # invisible to a caught-up-library arm because a caught-up library moves no
+    # counters at all.
+    ("M74 the end-of-sweep toast fires mid-run again, once per sweep for the"
+     " length of the work",
+     "  if (s.busy || s.pending?.length) return false;\n",
+     ""),
+    # The other half, and the reason the flag is not simply recomputed: cleared
+    # before show() rather than after, a throw on the way to the screen loses
+    # the only announcement a long run was going to make, silently.
+    ("M75 the held flag is cleared before the toast is shown, so a throw on the"
+     " way to the screen loses the announcement",
+     "    toast.show();\n    toast.startCloseTimer(SWEEP_TOAST_MS);\n"
+     "    // After show(), not before: a throw on the way here leaves the flag set and\n"
+     "    // the next quiescent sweep tries again, rather than swallowing the only\n"
+     "    // announcement a long run was going to get.\n"
+     "    sweepToastHeld = false;\n",
+     "    sweepToastHeld = false;\n    toast.show();\n"
+     "    toast.startCloseTimer(SWEEP_TOAST_MS);\n"),
 ]
 
 

@@ -67,6 +67,13 @@ var RECONCILIATION_INTERVAL_MS = 60 * 60 * 1000;
 // two short lines without looking up quickly, and comfortably shorter than the
 // 30 s floor above, so two toasts can never be on screen at once.
 var SWEEP_TOAST_MS = 8000;
+/* Set by a sweep that indexed or failed something, cleared by the toast that
+   finally says so. It exists because the announcement is HELD while there is
+   more to do: see `announceSDTSweep`. Module-level rather than per-sitter, and
+   deliberately not cleared on a disable -- work done before the switch went off
+   still happened, and the user is owed the sentence when the sitter next comes
+   to rest rather than having it dropped for the timing of a click. */
+var sweepToastHeld = false;
 /* How long the announced state must be GONE before the status region speaks
    what replaced it (ticket 0686 item 1). The scheduler can pass through a phase
    for one sweep boundary -- `extracting` to `cpu-busy` and back -- and a reader
@@ -701,7 +708,35 @@ function wakeSDTSitter() {
 function announceSDTSweep(before) {
   if (!alive || !sitter) return false;
   const s = sitter.state;
-  if (s.completed === before.completed && s.failed === before.failed) return false;
+  // Did THIS sweep move anything? Unchanged since the snapshot means a sweep
+  // that found nothing to do, and a caught-up library sweeping every thirty
+  // seconds all night must stay silent -- ticket 0696, whose arm for it is in
+  // tests/sdt_sitter_scheduler.mjs.
+  if (s.completed !== before.completed || s.failed !== before.failed) sweepToastHeld = true;
+  if (!sweepToastHeld) return false;
+  // HELD while there is more to do. This is ticket 0788, and the whole of it.
+  // The toast used to fire on the count change alone, which is once per sweep
+  // for as long as a library has work: every thirty seconds, eight seconds on
+  // screen, for the whole of a large library's first index. The author ran it
+  // that way and ruled it poor UX on 2026-09-14.
+  //
+  // Coalescing rather than re-keying on the state's KIND, which was tried
+  // first and is wrong: a kind compared across a sweep misses any transition
+  // that begins and ends INSIDE one sweep, so a single newly-added file --
+  // idle, extracting, idle again, all between two snapshots -- would be indexed
+  // in total silence. That is a worse failure than the one being fixed, and it
+  // is the arm tests/sdt_sitter_scheduler.mjs already had ("a newly added file
+  // was indexed in silence") that caught it.
+  //
+  // What holding gives instead: one announcement per stretch of work, whatever
+  // its length. A file dropped into a caught-up library is announced by the
+  // sweep that indexes it, because that sweep also ends the stretch. Five
+  // thousand files are announced once, when the last of them is done. The
+  // figures shown are the ones true at the moment the sentence is written,
+  // which is the same rule `announceSDTTransition` states for the screen-reader
+  // region -- the two channels now agree, where before this one announced the
+  // progress the other deliberately refuses to.
+  if (s.busy || s.pending?.length) return false;
   try {
     const toast = new Zotero.ProgressWindow();
     // The same message the status window's own title reads (ticket 0692). The
@@ -716,6 +751,10 @@ function announceSDTSweep(before) {
     }
     toast.show();
     toast.startCloseTimer(SWEEP_TOAST_MS);
+    // After show(), not before: a throw on the way here leaves the flag set and
+    // the next quiescent sweep tries again, rather than swallowing the only
+    // announcement a long run was going to get.
+    sweepToastHeld = false;
     emit('toast', { completed: s.completed, failed: s.failed });
     return true;
   } catch (error) {
