@@ -49,7 +49,9 @@ rather than run it unverified.
   (link below). That record lives only as long as the Zotero process — a
   restart destroys the only trace there is.
 - The plugin mechanism to throttle down indexing in case of memory / disk / CPU pressure works only on Linux.
-- I did my best effort to ensure keyboard navigability and text-to-speech readability.
+- I did my best effort to ensure keyboard navigability and text-to-speech
+  readability (except that I could not find a way for a plugin to insert its
+  button into Zotero's Tab navigation order, so you have to click it).
 - The SDT format can evolve with automatic Zotero minor updates, triggering a full reindex. Wait, that's a feature not a bug !
 - This does not replace the "Index all" button that disappeared. Because that button addressed the "full text" index, not the "structured text" index.
 
