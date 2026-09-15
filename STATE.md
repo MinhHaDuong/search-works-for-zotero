@@ -33,8 +33,8 @@ Open here: 0774, 0786, and 0727's guard 2 — unbuilt: a check that cannot fire 
 Correctness/privacy gaps unchanged: R10 (0660–0664), R13 (0650–0652), R15 (0654–0657),
 R22 (0643, 0665), fixtures 0602, 0623, 0658.
 #6012 parity train (0754, 0755–0757) filed, unstarted.
-Filed today, both unstarted: **0793** (instrument the AR6 plateau) and **0794** (a plates
-volume and the 3 666-page draft EIS, two shapes the menagerie lacks).
+Filed today, all unstarted: **0793** (instrument the AR6 plateau), **0794** (two shapes the
+menagerie lacks), **0795**/**0796** (the drain starves the sitter during sync — not 0793).
 
 ## Basic state
 
