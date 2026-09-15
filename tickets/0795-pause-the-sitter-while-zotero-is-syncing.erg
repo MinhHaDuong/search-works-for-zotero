@@ -9,6 +9,7 @@ Author: MinhHaDuong
 2026-09-15T19:53Z claude note Live evidence, and it moves the ticket's centre of gravity: the cost is not the display. The author's diagnostics dump, taken during the sync, shows `pump()` inside the drain loop for 8 minutes with no `drain-end` — `busy` true, `active` null, `phase: draining`, candidate queue frozen at 44. The drain calls `host.unattached()` once per dirty id (`scheduler.js:215-218`, a library-wide query its own comment at 193-195 already calls "long on its own account") while `invalidate()` refills `dirty` from the sync's item notifications. Candidate reading: a race the drain loses, not a wedge. Record and analysis in `verification/incidents/0795-2026-09-15-drain-during-sync.md`; the discriminating measurement (three reads of `state.draining`) is named there and was NOT taken.
 2026-09-15T19:59Z claude note Correction to the 19:53Z note, and the reason 0796 exists. "A race the drain loses, not a wedge" was wrong. Three live reads of `state.draining` — 6495, 6543, 6573, against 761 at `drain-start` twenty-five minutes earlier — show the backlog growing 8.5x, and the structure explains why the sitter cannot recover: the drain at `scheduler.js:201` is unbounded, so `refreshQueue()` (99, called only at 176) never re-runs and admission (228+) is never reached. `pending: 44` was a photograph from 19:39, not a live count. This ticket still stands on its own terms — pausing during a sync is right, and it removes the common trigger — but the loop is unsafe with or without it, and that is 0796.
 
+2026-09-15T20:43Z claude note Action 1 now states what this session learned trying to take the measurement and failing: neither arm is available on demand. The reading needs a live Zotero window with the Run JavaScript pane, so no headless session and no RDP client can take it unless the instance was launched with --start-debugger-server, and relaunching for the flag destroys the state under observation. The active arm additionally needs a real bulk sync, which is hours of transfer and starves the sitter until 0796 is fixed. The evening's instance shut down at 20:31:54Z with the plugin uninstalled before either arm was taken. Ticket 0797 action 4 points here, so the constraint belongs in the ticket rather than in a session's hope.
 --- body ---
 ## Context
 
@@ -85,6 +86,17 @@ file. A phase that cannot fire, or that fires always, is worse than no phase.
 
    Record the output in this ticket. Re-run it with sync idle: a key that reads
    the same in both states does not discriminate and must not be used.
+
+   **Neither arm is available on demand, and the active one is the scarce half.**
+   The reading needs a live Zotero window with the Run JavaScript pane — no
+   headless session, no RDP client against an instance that was not launched with
+   `--start-debugger-server`, can take it, and relaunching for the flag destroys
+   whatever state was being observed. The idle arm only costs a session. The
+   active arm additionally needs a real bulk sync in progress, which is not
+   something to provoke: it is hours of transfer and, until 0796 is fixed, it
+   starves the sitter for the duration. So this measurement waits for the next
+   sync that happens anyway. Plan the ticket around catching one, not around
+   scheduling one.
 2. Decide the fallback when the API is absent or unreadable. The default this
    ticket proposes: behave exactly as today. A sitter that pauses because it
    cannot tell is a sitter that never runs.
