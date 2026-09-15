@@ -132,3 +132,37 @@ must never read as a gate that passed.
 Until ticket 0782 is fixed, read the liveness line's `dataDir` before trusting
 `--data-dir`, and do not run this on a machine whose default Zotero data
 directory holds a library you care about.
+
+---
+
+## 2026-09-14 — this pass is now automated, and the manual steps are its steps
+
+Everything below was performed by hand for 0.4.0. Since 0.4.15 there is a script
+for it, and it should be run before a tag rather than re-derived:
+
+```
+python3 bench/sitter_acceptance.py --work-dir <fresh dir> --xpi <the built payload>
+```
+
+It runs the nine steps the author specified on 2026-09-14, against a throwaway
+profile and a pinned throwaway data directory: fresh Zotero with the Menagerie
+imported, install, PAUSE at the real `#sdt-switch` and verify nothing is
+admitted while it is off, resume and watch it finish, every pack's `source.hash`
+checked against the bytes on disk, delete an attachment and watch its pack go,
+restore it and watch the pack return inside a minute, the same for a whole item,
+then uninstall and verify nothing is left behind.
+
+`bench/sitter_smoke_test.py` is unchanged in scope and stays the fast one, run
+on every change. This is the long one.
+
+**The pause and uninstall steps are the two that are easy to fake, so read how
+they are written before trusting a green.** The fixture is imported WHILE the
+switch is off, because the first version of this paused an already-indexed
+library and reported success with nothing left to admit. And the uninstall step
+withdraws the diagnostics opt-in first, because the first version demanded no
+certificate while the rig's own seeded prefs had asked for one -- the
+certificate being the one file a clean uninstall must not sweep away (ruled
+2026-09-12).
+
+First recorded pass: `verification/acceptance/0.4.15-2026-09-14.json`, version
+0.4.15 against Zotero 10.0.2.
