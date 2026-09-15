@@ -16,24 +16,12 @@ current, bounded and honest about coverage. [README.md](README.md) owns the prop
   and 0727's two guards — a tester on v0.4.10 meets all of them.
   **Author's hands only, in order:** GPG-sign the tag, publish the `.xpi`, then ONE commit
   adding BOTH `tag` and `update_link` (half-filled FAILs rule 2).
-- Announcement drafts are **out of the repo** (ruled 2026-09-14: outward communications the
-  author sends in his own name are not deliverables). A forum draft sits at
-  `~/Bureau/sdt-sitter-ANNOUNCEMENT-zotero-forum.md`.
 - Release the Multilingual test library and questions + grader as public Challenge.
 - Zoteus feature freeze for the September 21 release: correctness, packaging and privacy,
   with QA tests for those. Indexer/worker rewrite and segmenter stay held.
 
 ## Recent outcomes
 
-- **Only the reader consumes SDT in 10.0.2** — not search, not full-text. No OCR. From `omni.ja`.
-- **0727's mechanism is found, and it is Zotero's.** A Remove is queued, not performed; an
-  install of the same id then succeeds and the queued removal finalises on the new copy
-  ~3 s later, by id, without rechecking. Witnessed in the host's own `addons.manager` log
-  after four occurrences, three watched at 50 ms. Workaround: remove, **quit**, install.
-- **Both defects reported upstream** and linked from the release notes:
-  [133758](https://forums.zotero.org/discussion/133758/) (the removal race) and
-  [133759](https://forums.zotero.org/discussion/133759/) (0787, plugin buttons outside the
-  Tab chain — mechanism verified against `zoteroPane.js`, not inferred).
 - **A full-library sweep stopped advancing at 90 % on the IPCC AR6 WG1 report** (3 949 pages,
   242 MB) and was ended by hand. Nothing crashed — no dump, no OOM, heartbeats firing
   throughout; the native `Zotero.SDT.ensure()` stopped reporting. Slow tail or wedged worker
