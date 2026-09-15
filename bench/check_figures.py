@@ -72,8 +72,14 @@ PROSE = {
     # must carry the figure, so naming a file that no longer quotes it reddens the
     # gate on a document that is correct.
     "sitternotes": ["plugins/sdt-sitter/DESIGN-NOTES.md"],
-    "readme": ["README.md"],
-    "sync": ["SYNC.md"],
+    # `readme` and `sync` stood here until 2026-09-15, declared and never used:
+    # no entry in FIGURES named either, so README.md and SYNC.md carried zero
+    # guarded figures while this map read as though they were covered. That is
+    # the failure the block above describes, one level up — there the document
+    # vanishes, here the key is simply never invoked, and neither run says so.
+    # Anchoring their figures is still to do; what goes away here is the map
+    # that read as though it had been done. A guard against a declared-unused
+    # key was offered and declined (author, 2026-09-15).
     "design": ["SPEC.md"],
     "requirements": ["SPEC.md"],
     # Ticket 0160: SPEC.md quotes 0012's sequence-probe figures as "measured" —
@@ -144,10 +150,6 @@ PROSE = {
     "t0481": [
         "tickets/0481-the-gpu-throughput-anomaly-find-the-mech.erg",
         "tickets/closed/0481-the-gpu-throughput-anomaly-find-the-mech.erg",
-    ],
-    "t0482": [
-        "tickets/0482-re-run-the-gpu-fidelity-and-x8-cells-wit.erg",
-        "tickets/closed/0482-re-run-the-gpu-fidelity-and-x8-cells-wit.erg",
     ],
     "v0482": ["verification/GPU-CORRECTED-0482.md"],
     "t0499": [

@@ -25,11 +25,32 @@ SOURCE = 'plugins/sdt-sitter'
 DELIVERED = ('manifest.json', 'bootstrap.js', 'scheduler.js')
 
 
+def default_output(source: Path) -> Path:
+    """Beside the payload it packs, named for the version the payload declares.
+
+    `--output` was required and had no default, so the path was whatever the
+    caller typed from wherever they stood — which is how four .xpi files came to
+    sit at the repository root, a directory that packages nothing and that the
+    document map does not claim. Deriving it removes the choice that put them
+    there. Both halves of the name come from the manifest rather than from a
+    constant here: the id's local part is the add-on's stable machine name, and
+    the version is the number Zotero keys its record on, so a bump cannot leave
+    this naming the previous build.
+    """
+    manifest = json.loads((source / 'manifest.json').read_text())
+    stem = manifest['applications']['zotero']['id'].split('@')[0]
+    return source / f"{stem}-{manifest['version']}.xpi"
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--output', type=Path, default=None,
+                        help='where to write the package; '
+                             'defaults beside the payload, named from its manifest')
     args = parser.parse_args()
     source = Path(__file__).resolve().parent.parent / SOURCE
+    if args.output is None:
+        args.output = default_output(source)
     names = DELIVERED
     with zipfile.ZipFile(args.output, 'x', compression=zipfile.ZIP_DEFLATED) as package:
         for name in names:
