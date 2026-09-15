@@ -53,3 +53,8 @@ corpus-cache/
 # its siblings). Regenerable by re-running the probe, and a trace holds this
 # machine's paths and pids, which bench/results/** must not carry.
 bench/results/**/traces/
+
+# pytest's cache directory. Regenerable by the next `make check`, and it
+# appeared untracked at the repo root where every other build artefact above
+# is already named.
+.pytest_cache/

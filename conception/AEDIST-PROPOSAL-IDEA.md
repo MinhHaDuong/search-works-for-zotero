@@ -5,7 +5,7 @@ Monitoring system, as clarified by the author.
 ANR is a possible funding route; the note is to be assessed against a specific
 call later. No instrument, eligibility, consortium, budget or submission date
 is settled. This is a research concept, not a funding application or a change
-to the system requirements owned by [SPEC.md](SPEC.md).
+to the system requirements owned by [SPEC.md](../SPEC.md).
 
 ## Proposition
 
@@ -114,8 +114,8 @@ views, with a caller-selected chunking strategy. Preserve source locations and
 extraction/strategy identity across bounded reads. Keep representation access
 separate from embedding, indexing and ranking so independent tools can reuse it.
 
-The initial interface vision is [ticket 0758](tickets/0758-fulltext-api-initial-vision-text-structu.erg);
-[ticket 0726](tickets/0726-structured-text-plugin-contract-what-the.erg) owns the
+The initial interface vision is [ticket 0758](../tickets/0758-fulltext-api-initial-vision-text-structu.erg);
+[ticket 0726](../tickets/0726-structured-text-plugin-contract-what-the.erg) owns the
 contract work. Their unresolved choices remain unresolved here. Separate
 plugin versions and release readiness permit a tested pair without requiring
 simultaneous releases. A future native Zotero interface should be able to
@@ -129,7 +129,7 @@ active maintenance, practical usage, architectural diversity and willingness
 to participate; do not label a tool "leading" without evidence.
 
 Zoteus is an available first integration vehicle, with existing consumer work
-in [ticket 0572](tickets/0572-read-structured-text-from-the-sdt-plugin.erg).
+in [ticket 0572](../tickets/0572-read-structured-text-from-the-sdt-plugin.erg).
 Additional tools are candidates, not committed partners. The work concerns
 document-consuming integrations rather than changes to general MCP SDKs.
 Keep adapters thin and upstreamable, with maintainers' agreement for any
@@ -193,7 +193,7 @@ contract for the Energy Transition Monitoring system, tested plugins and
 adapters, the corpus/question/provenance package, a runnable evaluation bench,
 an operated Challenge with reproducible results, and research publications on
 evidence lineage, failure mechanisms and method comparisons. These would extend the
-[workshop deliverables](README.md#workshop-deliverables).
+[workshop deliverables](../README.md#workshop-deliverables).
 
 A credible team would combine energy-transition monitoring expertise,
 information retrieval/NLP and document-processing research, research software
