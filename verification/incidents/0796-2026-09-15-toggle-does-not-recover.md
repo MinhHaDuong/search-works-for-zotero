@@ -10,6 +10,14 @@ This file answers the question
 [0795-2026-09-15-drain-during-sync.md](0795-2026-09-15-drain-during-sync.md)
 left open, and **refutes the workaround that file and this session recommended.**
 
+**Who performed the two toggles and the uninstall is not established.** The ring
+records the events, not their actor. A sister session working on the same
+codebase that evening confirmed it did none of the three — it runs headless,
+with no Zotero window and no Run JavaScript pane — and this session did not
+either. The author at his keyboard is the likely hand, but that is an inference
+from who was present, not a reading, and nothing here should be cited as
+evidence of it.
+
 ## The ring
 
 ```
