@@ -1,0 +1,164 @@
+%erg 0.1
+Title: Add two documents the menagerie lacks: a plates volume and a 3 666-page EIS
+Created: 2026-09-15
+Author: haduong
+
+--- log ---
+2026-09-15T16:34Z haduong created
+2026-09-15T16:34Z haduong note Settled in session: Malynes stays, the final EIS is rejected, the draft is taken. Reasons in the body.
+
+--- body ---
+## Context
+
+Two holes, both found by measuring the corpus rather than by reading it, and
+both left open by every document currently in the recipe.
+
+**Hole 1 — bulk and a thin text layer never meet.** The records with a thin or
+absent text layer stop at 528 pages (`ibn-khaldun-1904-muqaddimah`); every record
+above 300 pages with real bulk carries dense text throughout. Nothing in the
+corpus has text concentrated in a minority of its pages.
+
+**Hole 2 — page count.** The corpus tops out at 1 104 pages
+(`johnson-1785-dictionary`). The document that stalled the sitter on the author's
+own library (ticket 0793) is 3 949 pages. Nothing here is within a factor of
+three of it.
+
+## The two documents
+
+**`gri_33125001118088`** — *Recueil de planches*, Getty Research Institute scan,
+1762. 758 pages, 42 MB, Internet Archive, public domain by age.
+
+Measured per page, not averaged — the average is what made this document look
+uninteresting at first, and it is worth recording why. Characters per page:
+
+| chars/page | pages | share |
+|---|---|---|
+| 0 – 50 | 464 | 61 % |
+| 50 – 200 | 156 | 21 % |
+| 200 – 5 000 | 23 | 3 % |
+| 5 000 + | 115 | 15 % |
+
+Median 25, mean 1 199 — and only 2 pages of 758 fall in the band the mean names.
+The two modes are 31 and 6 639 characters. A text volume of the same
+Encyclopédie, measured the same way as control, is unimodal: 97 % of its pages
+between 3 000 and 6 461, median 4 916.
+
+The structure is blocky rather than alternating: each subject's explication runs
+as consecutive dense pages, then its plates run near-empty. Pages 9-20 hold
+6 076, 6 289, 5 529, 5 888…; pages 380-403 hold 0, 20, 0, 151, 0, 141, 0, 96…
+
+The two caps land in unrelated places, which is the point:
+
+| | plates volume | control text volume |
+|---|---|---|
+| 500 000th character | page 258 of 758 | page 112 of 1 040 |
+| thin pages before the 100-page cap | 77 % | 7 % |
+
+Locators for `cap_expectations`, already read off: page 9 (6 076 chars, dense,
+before the page cap), page 101 (0 chars, thin, after), page 109 (7 050 chars,
+dense, after). A zero-character plate page immediately after a 7 050-character
+explication page, on both sides of the cap, is a case no current document can
+produce.
+
+Proposed mechanism name: `text-concentrated-in-minority-of-pages`. Not
+`sparse-captions` — the sparseness is a property of the distribution, not of the
+pages.
+
+**`desertquartzites00unse_1`** — Desert Quartzite Solar Project, *draft* plan
+amendment and environmental impact statement, US Department of the Interior,
+Bureau of Land Management. 3 666 pages, 224 MB, Internet Archive.
+
+Licence basis is settled precedent, not a new category: the recipe already holds
+`epa-2016-ghg-inventory-1990-2014` ("US federal government work (EPA), public
+domain in the United States under 17 U.S.C. §105") and
+`doe-2011-quadrennial-technology-review`.
+
+## Three decisions taken in session, with their reasons
+
+**Malynes stays.** Removing it was considered as a way to pay for the new bytes.
+It cannot be done. `absent-from-library` appears exactly once across the 86
+`expected_miss` questions, on q-0149, whose stated purpose is to separate "the
+library answered badly" from "the library has no such record at all". Malynes is
+the corpus's only control for that distinction. `oversized-source-file` would go
+with it too. And the saving is illusory: Malynes was never ingested — its 352 MB
+source is above the sourcing run's 300 MB cap, the export holds 103 parents for
+104 recipe records, and its bytes live only in the git-ignored fetch cache.
+
+**The final EIS is rejected in favour of the draft.** `desertquartzites00unse_0`
+is 4 548 pages but 489 MB, above the same 300 MB sourcing cap. It would not
+become the corpus's large report; it would become a second Malynes — declared,
+never ingested, useful only as another absence control. One is enough. The draft
+at 224 MB clears the cap and sits within 7 % of the AR6 on both pages and bytes.
+
+**The draft/final pair is rejected.** The relation it would demonstrate,
+`near-duplicate-publication`, is already declared twice on the Bettencourt
+preprint/published pair, at a few MB. Adding 713 MB — 57 % of the current 1.25 GB
+cache — for a relation already covered does not hold. A near-duplicate at
+four-thousand-page scale is a *retrieval* property and belongs to the scoring
+lane, not here; if that lane ever needs it, the pair is on the Archive.
+
+## Relevant files
+
+- `bench/fixtures/recipe.json` — where both records go, at the ruled shape of 0721
+- `bench/fixtures/archives.json` — internet-archive is already admitted
+- `bench/fixtures/fetch_recipe.py` — refuses a malformed record before fetching
+- `bench/fixtures/README.md` — the census table and licence bases to update
+- `bench/fixtures/questions/` — where the new questions land
+- `tests/test_fixture_recipe.py` — the refusals that must keep firing
+
+## Actions
+
+1. Add both records to `recipe.json` at the 0721 shape: topic, stratum,
+   per-attachment language and charset, relations labelled truthfully,
+   `license_basis`, `provenance_check`, `page_count`.
+2. Pin the bytes: sha256 of each, `bytes_url`, `archive`, `identifier`.
+3. Fill `cap_expectations` for the plates volume from the locators above, and
+   measure the equivalent locators for the EIS the same way.
+4. Read the EIS title page for its publication year — the Archive record has no
+   `year` field, and the ruled shape wants one.
+5. Register `text-concentrated-in-minority-of-pages` as a mechanism.
+6. Write the questions: at least one whose answer sits on a dense explication
+   page past the 100-page cap, and one whose answer sits on a plate page whose
+   caption is the only text.
+7. Update the README census table and the shape paragraph.
+
+## Test
+
+Method for step 3, so it need not be rediscovered: the Archive's
+`_hocr_pageindex.json.gz` derivative holds one entry per page,
+`[searchtext_start, searchtext_end, hocr_start, hocr_end]`, so a page's character
+count is the difference of the first two. It weighs about 10 KB.
+
+**Check the unit before trusting any number from it: `len(index)` must equal the
+item's `imagecount`.** Two derivatives were tried first and both gave a plausible
+wrong answer — `_djvu.txt` is a flat concatenation with no page separator and
+yielded a single page of 939 329 characters; a `_hocr_searchtext` line is a text
+block, not a page, and reported 16 082 pages for a 1 040-page volume. Neither
+failure announced itself.
+
+The red step is the control that caught them: run the measurement on a document
+whose shape is known — a text volume of the same Encyclopédie — and require it to
+come back unimodal. A distribution probe that cannot distinguish a unimodal
+document from a bimodal one has not been shown to work.
+
+## Verification
+
+- [ ] `len(pageindex) == imagecount` asserted for every item measured
+- [ ] Control volume comes back unimodal; plates volume bimodal
+- [ ] `fetch_recipe.py` accepts both records and the sha256 of both matches
+- [ ] Both files under the 300 MB sourcing cap, so both actually reach the export
+- [ ] README census figures recomputed, not edited by hand
+
+## Invariants
+
+- `malynes-1622-lex-mercatoria` and q-0149 are untouched.
+- No new archive admitted; no new licence basis invented.
+- Existing question ids keep their subjects.
+- `make check` passes.
+
+## Exit criteria
+
+- Both records in `recipe.json`, bytes pinned, fetched and hash-verified.
+- The plates volume's `cap_expectations` carry real page locators, not prose.
+- At least two new questions, each naming the page its answer sits on.
+- README census updated and consistent with the recipe.
