@@ -47,7 +47,11 @@ var createSDTSitter = function (host) {
     lastProgressAt: null, startedAt: null, completed: 0, failed: 0,
     scanned: 0, total: 0, counts: {}, serviceMS: 0, samples: [], activeInfo: null,
     fittedSamples: [], pending: [], candidates: 0, error: null, cacheWarning: null,
-    censusSnapshot: null, censusBuilding: false, unattached: [] };
+    censusSnapshot: null, censusBuilding: false, unattached: [],
+    // Ticket 0792: the drain's remaining backlog, so the window can count it
+    // down. Distinct from `candidates`, which is the census queue and does not
+    // move during a drain at all.
+    draining: 0 };
   const failed = new Set();
   // Publish one complete census generation at a time. `state.counts` is rebuilt
   // from empty on every sweep and remains useful as live diagnostics, but no UI
@@ -170,7 +174,30 @@ var createSDTSitter = function (host) {
             // A delayed or long scan is one reconciliation, never a catch-up loop.
             state.nextReconciliationAt = state.lastReconciliationAt + interval;
             refreshQueue(); state.candidates = state.pending.length; publish();
+            // Ticket 0792. The census is OVER here, and until this line the
+            // phase said otherwise for the whole of what follows: `'census'`
+            // is assigned once above and the next assignment is admission's,
+            // so the drain, the candidate search and `blocked()` all inherited
+            // it. Six minutes of post-census work read as a census on the
+            // author's own library (2026-09-15, v0.4.15), and the heartbeat
+            // that should have caught it repeated the same false word.
+            //
+            // `'ready'` and not a new label for the admission gap itself: that
+            // gap recurs between every pair of documents, so a labelled phase
+            // there would flip on every file and put the switch line on the
+            // announcement channel each time -- the 10 Hz defect in slower
+            // clothes, which is the one thing this may not buy. `'ready'` is
+            // silent by design and the transition hold absorbs it.
+            state.phase = 'ready'; publish();
           }
+          // Ticket 0792: the drain is the one post-census stretch that is
+          // long on its own account -- a library-wide `unattached()` per id --
+          // so it gets a name and two records, where it had neither.
+          if (dirty.size && current()) {
+            state.phase = 'draining'; state.draining = dirty.size; publish();
+            if (host.emit) host.emit('drain-start', { pending: dirty.size }, 'trace');
+          }
+          const drained = dirty.size;
           while (dirty.size && current()) {
             let changed = false;
             const id = dirty.values().next().value;
@@ -190,7 +217,12 @@ var createSDTSitter = function (host) {
               changed = true;
             }
             if (!current()) { dirty.add(id); return; }
+            state.draining = dirty.size;
             if (changed) publish();
+          }
+          if (drained && current()) {
+            state.draining = 0;
+            if (host.emit) host.emit('drain-end', { drained, pending: dirty.size }, 'trace');
           }
           if (!current()) return;
           const candidate = state.pending.find(item => !attempted.has(item.id) ||
@@ -217,8 +249,34 @@ var createSDTSitter = function (host) {
           before = await inspect(id);
           if (!current()) return;
           record(id, before); publish();
-          if (!SDT_STATUS_CLASSES.queued.includes(observed.get(id)?.status)) continue;
-          if (before.identity !== gated.identity || before.directory !== gated.directory) continue;
+          // Ticket 0792, both lines. These `continue`s return to the top of the
+          // OUTER loop, three lines above `attempted.set(id, ...)`, so the item
+          // was never marked tried and `state.pending.find()` could re-pick it
+          // on the very next turn. While the re-inspect keeps disagreeing with
+          // the census -- a file being written, a memoized hash turning over --
+          // that is an unbounded spin, each turn costing two /proc reads, a
+          // stat, a DB query and possibly an MD5, with the phase stuck on
+          // whatever preceded it. Recording the identity just observed keeps
+          // the retry: `find()` re-picks an item whose identity has CHANGED
+          // since the attempt, which is exactly the case worth retrying, and
+          // skips it while it has not.
+          if (!SDT_STATUS_CLASSES.queued.includes(observed.get(id)?.status)) {
+            attempted.set(id, before.identity); continue;
+          }
+          // A MOVED source is re-gated at once and deliberately NOT recorded as
+          // an attempt: the resource reading `blocked()` just took was for a
+          // directory this attachment no longer lives in, and the loop must
+          // come straight back to it and read the new one. The directory is
+          // Zotero's own storage layout rather than anything the file's bytes
+          // decide, so it does not churn.
+          if (before.directory !== gated.directory) continue;
+          // Identity alone is the churn case, and the one that span: a file
+          // being written or a memoized hash falling out of its re-verify
+          // window changes it on every inspect, and with no record of the
+          // attempt `find()` re-picks the same item forever.
+          if (before.identity !== gated.identity) {
+            attempted.set(id, before.identity); continue;
+          }
           const admissionReason = host.beforeSubmit?.();
           if (admissionReason) { state.phase = admissionReason; publish(); break; }
           attempted.set(id, before.identity);

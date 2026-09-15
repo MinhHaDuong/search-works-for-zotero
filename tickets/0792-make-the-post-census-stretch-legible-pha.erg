@@ -1,0 +1,124 @@
+%erg 0.1
+Title: Make the post-census stretch legible: phase, drain trace, and the strings that report it
+Created: 2026-09-15
+Author: MinhHaDuong
+
+--- log ---
+2026-09-15T05:25Z MinhHaDuong created
+
+2026-09-15T05:45Z MinhHaDuong note Implemented: retry bound (identity, not directory), phase at census close, draining phase + drain-start/drain-end records, three strings, manifest 0.4.15 -> 0.4.16. Both new scheduler tests confirmed red against origin/main.
+--- body ---
+## Context
+
+Observed live on 2026-09-15, v0.4.15 / Zotero 10.0.2, on the author's own
+library. The sitter appeared wedged for six minutes. The debug dump showed
+`phase: "census"` on every heartbeat, with `id`, `progress` and `elapsedMS`
+null and `pending` frozen at 10522. It later unblocked on its own and began
+processing.
+
+The phase label was false. The same dump dates the census's end: the
+`cache-write rows 3318 compact:true` record is `censusComplete()`, which runs
+only after the scan loop has walked every attachment, and `pending` moving
+0 -> 10522 on the next heartbeat is the `refreshQueue()` on the following
+line. The scan was over at +110 s; the six minutes that followed were
+something else wearing the census's name.
+
+They wore it because `state.phase = 'census'` is assigned once
+(`scheduler.js:143`) and never reassigned until admission either succeeds
+(`'extracting'`) or is refused (`state.phase = reason`). Everything between --
+the dirty drain, candidate selection, `host.yield()`, `host.blocked()`, the
+re-inspect -- inherits the stale label.
+
+Two live paths sit in that stretch, and nothing in the journal distinguishes
+them, because between `refreshQueue()` and the `admit` emit there is not a
+single `host.emit` call:
+
+1. The dirty drain (`scheduler.js:175-190`), which runs a library-wide
+   `host.unattached()` query once per dirty id.
+2. A retry at `scheduler.js:218-219`, where both post-`blocked()` re-checks
+   `continue` to the top of the OUTER loop without reaching
+   `attempted.set(id, ...)` three lines below. `state.pending.find()` can then
+   re-pick the same item indefinitely, for as long as its identity keeps
+   changing between two inspects -- a file being written, a hash re-verify
+   turning over. Each turn costs two /proc reads, a stat, a DB query and
+   possibly an MD5.
+
+Which of the two ran is no longer knowable: the discriminator would have been
+`admission.at` (the diagnostics pane's "Last reading {age} ago"), and the
+episode is gone. That irrecoverability is the finding. The sitter must not be
+able to spend minutes in a state that neither its own label nor its own ring
+can name.
+
+Three reader-facing strings were ruled on in the same session and travel with
+this work, because labelling a phase buys nothing if the window does not show
+it:
+
+- "Coverage is last observed" is opaque. It means the totals come from the
+  last completed full pass, not a live recount.
+- The active box is legended "Indexing under way" and says so even when its
+  own contents read "No indexing under way". It should name the phase and
+  carry a counter or bar for each one.
+- "Estimated finish 09/15" should read "today".
+
+## Relevant files
+
+- `plugins/sdt-sitter/scheduler.js` -- the sweep loop, the phase assignments,
+  the drain, the two `continue`s
+- `plugins/sdt-sitter/bootstrap.js` -- `SDT_PHASE_LABELS`, `SDT_TEXT`, the
+  render loop, `finishAt`
+- `tests/sdt_sitter_scheduler.mjs` -- enumerates every `state.phase = '...'`
+  literal and requires a decided, non-silent label for each
+- `tests/sdt_sitter_bootstrap.mjs` -- the dialog's rendering assertions
+
+## Actions
+
+1. Bound the retry: record the attempt with the identity just observed on both
+   `continue` paths at `scheduler.js:218-219`, so an item is re-picked only
+   when its identity has actually changed since the attempt, never on an
+   unchanged one.
+2. Clear the stale label: assign a phase when the census block closes, so
+   `'census'` does not ride through to admission.
+3. Name the drain: `state.phase = 'draining'` around the dirty loop, with
+   `phase-draining` in `SDT_PHASE_LABELS` and `SDT_TEXT`.
+4. Emit the drain: one `trace` record at drain start and one at drain end,
+   each carrying `dirty.size`, so a backlog is a number in the ring rather
+   than silence.
+5. Rewrite `reconciliation-never` / `reconciliation-age` in plain language,
+   using "pass", the word the switch lines already use.
+6. Make the active box phase-aware: a neutral legend, a per-phase status line
+   with its own counter, and a `<progress>` element that tracks the census by
+   scanned/total, extraction by percentage, and the drain indeterminately.
+7. Render a finish time on today's or tomorrow's calendar date as "today" or
+   "tomorrow" plus the time; keep the localized date otherwise (ticket 0692:
+   the field order is the locale's, not ours).
+
+## Test
+
+Red first, in `tests/sdt_sitter_scheduler.mjs`: drive a sweep whose candidate
+returns a different identity from the re-inspect than from the census, and
+assert the sweep does not re-pick that same item on the next turn. Against
+today's code that assertion loops or fails; against the fix it passes.
+
+## Verification
+
+- [ ] The phase enumeration test sees `draining` and requires its label
+- [ ] No phase other than `ready`/`waiting` is silent
+- [ ] Drain start/end records appear in the ring with a size
+- [ ] The active box renders a counter for census, drain and extraction
+- [ ] A finish time later today renders as "today", not as a date
+
+## Invariants
+
+- `tests/sdt_sitter_scheduler.mjs` and `tests/sdt_sitter_bootstrap.mjs` pass
+- `make sitter-mutants` passes: both probes anchor on this region
+- No new phase announces per document -- the admission gap must not become a
+  labelled state that flips on every file (the 10 Hz defect, in slower
+  clothes)
+- Nothing here changes admission policy, thresholds, or what is extracted
+
+## Exit criteria
+
+- The six-minute stretch is reported as what it is, in the window and in the
+  ring, so the next occurrence is diagnosable after the fact
+- The unbounded re-pick at `scheduler.js:218-219` cannot recur
+- The three strings read as the author ruled
