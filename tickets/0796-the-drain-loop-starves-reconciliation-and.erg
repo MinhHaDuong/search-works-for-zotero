@@ -5,6 +5,7 @@ Author: claude
 
 --- log ---
 2026-09-15T19:59Z claude created — measured on the author's live instance during a bulk file sync (padme, v0.4.16, Zotero 10.0.2). Three reads of `state.draining` two minutes apart: 6495, 6543, 6573, against 761 at `drain-start` twenty-five minutes earlier. `pending` 44, `active` null, `busy` true throughout. Split from 0795, which avoids the trigger but leaves the unbounded loop.
+2026-09-15T20:34Z claude note Measured answer to this ticket's open question, and a correction. The toggle is NOT a workaround. `sdt-sitter-last-shutdown.json` (uninstall, 20:31:54Z) holds two full off/on cycles: each is followed within two seconds by `announce phase=census`, so the forced reconciliation works and `failed` falls 13749 -> 5242 while `pending` rises 436 -> 8926 — the reclassification this ticket predicted. Then each census is followed by a `drain-start` of ~9600 dirty ids and `pending` freezes again, seven minutes on the second attempt. `completed: 0` in both `sweep-end` records: 8926 admissible candidates, not one submitted. The sitter DOES recover unaided once notifications stop (pending climbed 44 -> 389 at 20:08-20:15, which only happens if `refreshQueue()` at 176 ran), so the starvation is not permanent — it lasts as long as the source outruns the drain. Consequence for the red test: assert ADMISSION is reached, not merely that the outer loop advances; both toggles forced the outer loop round with no `admit`. Record: `verification/incidents/0796-2026-09-15-toggle-does-not-recover.md`.
 
 --- body ---
 ## Context
@@ -92,7 +93,9 @@ one that makes the loop safe.
 ## Exit criteria
 
 - [ ] Red test in the scheduler suite reproducing the starvation, failing
-      against current `main` before the fix
+      against current `main` before the fix, and asserting that **admission is
+      reached** — the 2026-09-15 postmortem shows the outer loop can be forced
+      round twice, by a switch toggle, with `completed: 0` both times
 - [ ] The inner drain is bounded and the outer loop demonstrably advances under
       a sustained `invalidate()` source
 - [ ] `state.pending` updates while a drain backlog exists
