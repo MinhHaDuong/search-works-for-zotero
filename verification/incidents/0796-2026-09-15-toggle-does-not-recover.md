@@ -61,12 +61,17 @@ stays null. Seven minutes on the second attempt, until the uninstall.
 **Nothing was ever indexed.** `completed: 0` in both `sweep-end` records.
 8 926 admissible candidates sat ready and not one was submitted.
 
-**The sitter does recover on its own when the notification source stops** — the
-20:08→20:15 climb from 44 to 389 is `refreshQueue()` running again, which only
-happens at `scheduler.js:176`, which is only reachable when the drain empties.
-So the starvation is not a permanent wedge; it lasts exactly as long as
-notifications outrun the drain. With a library this size the drain cannot get
-ahead, because each dirty id costs a library-wide `unattached()`.
+**Whether the sitter recovers on its own is still open.** This file first read
+the 20:08→20:15 climb from 44 to 389 as proof that the drain had emptied, on the
+ground that `refreshQueue()` runs only at `scheduler.js:176`. That ground is
+wrong: `refreshQueue()` is also called from `record()` at line 113, and the drain
+calls `record()` every iteration at line 210. So the climb is simply files
+landing and being reclassified by the drain itself, and it says nothing about
+whether the drain ever emptied. The candidate queue was live all along.
+
+What the ring does show is that `pending` is an honest number and was never a
+stale photograph. It sat at 44 because nothing was changing class while the files
+were still absent — `missing-source` is in `failed`, not `queued`.
 
 ## The correction
 
