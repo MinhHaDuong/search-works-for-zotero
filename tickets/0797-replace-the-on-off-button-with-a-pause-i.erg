@@ -15,6 +15,7 @@ Author: MinhHaDuong
 2026-09-15T20:48Z claude note ACTION 3b WAS WRONG and is corrected, on three readings from the concurrent session, each confirmed in the source here rather than relayed. (1) "askSDTLaunch and its five strings" was wrong twice over: the modal owns SIX ids, and `launch-worker`/`launch-disable` are not among them -- bootstrap.js:2019 feeds those two, with `about-updates`, to the About panel's disclosures. They are precisely the paragraphs saying that extraction runs on a shared background process and that turning indexing off lets the file in flight finish, which is what a user who has just ticked "Pause indexing" goes looking for, so a `launch-` prefix sweep would empty About of the text this ticket's own label makes relevant. (2) `writeSDTSwitch` also calls `emit('switch', { enabled })` at bootstrap.js:1065, and those ring records are how this evening's two cycles and their `completed: 0` were reconstructed at all -- the emission must survive the pref write's removal or the control stops leaving any trace. (3) `readSDTSwitch`'s `null` is not only "never answered": the catch returns it for an UNREADABLE pref too, deliberately, per bootstrap.js:1049-1051 -- silently indexing on a machine whose answer could not be read is what the question exists to prevent. So the tri-state is a safety guard as well as a memory, and starting on unconditionally dissolves it. Under this ruling it has nothing left to protect, since indexing unasked is now the intended default, but that must be decided in the commit rather than carried away. Action 9 also gains R22's second citation site, removeSDTDurableState at bootstrap.js:3628-3630, whose comment contrasts the debug pref with "R22's tri-state discipline for ENABLED_PREF above" and would otherwise point at a retired clause.
 2026-09-15T20:53Z claude note RETRACTION, of a claim this ticket's own 20:36Z entry carries and which is now known false. That entry ends "The starvation is also not permanent: between 20:08 and 20:15 `pending` rose 44 -> 389, which only happens if `refreshQueue()` ran, so the drain had emptied when the notification source dried up." The inference is invalid and the conclusion is withdrawn. `refreshQueue()` is NOT reachable only from the reconciliation at scheduler.js:176: `record()` calls it at line 113, and the drain calls `record()` at line 210 on every turn -- verified in the source here, not taken on report. So `state.pending` is rebuilt continuously throughout the drain, a rise in it says nothing about the drain having emptied, and 44 was a live value rather than a frozen snapshot -- it stayed at 44 because nothing was changing class, `missing-source` being in `failed` and not in `queued`. The concurrent session found this by checking its own citations rather than its prose, and retracted it upstream; 0796's recovery question is REOPENED, and its title is tightened to "starves admission". What survives is measured rather than inferred, and this ticket leans on none of the retracted part: the unbounded loop at scheduler.js:201, admission never reached, `active: null`, `completed: 0` across two sweeps, no `drain-end`. Nothing in this ticket's body or invariants rests on "the sitter recovers by itself" -- checked before writing this, the phrase and the claim appear nowhere outside that log entry -- so the correction costs this ticket one retraction and no edit.
 
+2026-09-15T21:16Z REROLL round 1 answered, seven blocking findings, every one confirmed in source against origin/main at c7c7c3a6 rather than taken from the report. The substantive one is mine and it was a misreading of scale: Action 9 called the SPEC edit 'a sentence', and SPEC.md's sitter passage (repo root, ~2246-2266) asserts the reversed design across twenty lines -- 'the answer holds across a restart and across a disable and re-enable' -- and contains one sentence that is the exact inverse of the author's ruling, 'Zotero's plugin disable control ... is no longer R22's control for the sitter'. A SPEC keeping that while the code ships the ruling is not a stale doc, it is a denial of the design. Action 9 now names the passage, the sentence to reverse, and all FOUR bootstrap.js R22 sites (~114-119, ~1038, ~2656, ~3650), one more than the review found. Also fixed: plugins/sdt-sitter/SPEC.md does not exist and was cited (it is at the repo root); tests/test_sdt_sitter.py and verification/SDT-SITTER-LAUNCH.md were unnamed though Action 3b reddens the first and contradicts the second; the state table dropped phase 'error', which has its own string switch-on-error; and the uninstall write was cited as 3560, called 3548 by the review and is 3569 on today's main -- three readers, three trees, one evening -- so it is now quoted as a statement with the number marked perishable. The Verification section was the real hole: its SPEC box named no procedure and was tickable while SPEC said the opposite, which is this ticket's own recurring trap turned on itself; it now carries greps. NOT corroborated externally: the gate's three external seats all failed to review (two OpenRouter errors, one quota), so PANEL-INTEGRITY read 3 of 3 did not review and this round rests on the local panel alone.
 --- body ---
 
 ## Context
@@ -165,6 +166,7 @@ in slower clothes -- the thing 0792's own invariants exist to prevent.
 | `draining` | unchecked | yes | `switch-on-draining` |
 | `extracting` | unchecked | yes | `switch-on-extracting` |
 | a blocked phase | unchecked | yes | that phase's `SDT_PHASE_LABELS` entry |
+| `error` | unchecked | yes | `switch-on-error`, which the phase already has (`bootstrap.js:1665`) and which this table omitted until the review caught it |
 | idle | unchecked | yes | `describeSDTIdleLine`'s counts |
 | removal noticed (0781) | checked | no | `vanished-message`, unchanged |
 
@@ -207,7 +209,16 @@ in flight** has no string today.
   bound checkbox label for the diagnostics pref; the same pattern applies.
 - `verification/probes/sdt_panel_keyboard.js`, `run_panel_keyboard.py` -- focus
   and keyboard assertions.
-- `plugins/sdt-sitter/RELEASE-NOTES.md`, `DESIGN-NOTES.md`, `SPEC.md` (R22).
+- `plugins/sdt-sitter/RELEASE-NOTES.md` and `DESIGN-NOTES.md`.
+- `SPEC.md` **at the repository root** -- R22 and its sitter passage
+  (~2246-2266). There is no `plugins/sdt-sitter/SPEC.md`; an earlier draft of
+  this ticket cited one that does not exist.
+- `tests/test_sdt_sitter.py` -- the Python side, and the one Action 3b will
+  redden: it carries ~15 assertions over the launch prompt and the enabled
+  pref, and `make check-fast` runs it. Removing the modal without touching this
+  file turns a green branch red at the first gate that reads it.
+- `verification/SDT-SITTER-LAUNCH.md` -- the launch flow's own document. It
+  describes the prompt and the persisted answer that Action 3b removes.
 
 ## Actions
 
@@ -263,8 +274,11 @@ in flight** has no string today.
      must be decided, not carried away.
    Decide explicitly what happens to `extensions.sdt-pack-sitter.enabled`
    itself -- a pref left written but unread is exactly the invisible state the
-   ruling is against -- and to `bootstrap.js:3560`, which writes `false` into it
-   on uninstall.
+   ruling is against -- and to the uninstall write -- `if (named === 'uninstall' &&
+   readSDTSwitch() !== null) writeSDTSwitch(false);`, `bootstrap.js:3569` as of
+   `c7c7c3a6`. That line has been cited as 3548, 3560 and 3569 within one
+   evening by three readers on three trees: quote the statement, and treat the
+   number as perishable.
 4. Add the sync condition. **No Zotero-sync gate exists in the plugin today** --
    grep for it before building: `sync` appears in `bootstrap.js` only in a
    not-indexed detail string and in unrelated prose. The candidate reading,
@@ -301,23 +315,37 @@ in flight** has no string today.
      (its own words, `check_sitter_version.py:85`). A version another open
      branch has already claimed would read as unclaimed in that state. Re-run
      it; never take the NOT-RUN line for a pass.
-9. Give SPEC.md R22 a sentence naming which control answers which clause, in
-   the same PR as the behaviour: the checkbox pauses for the session, Zotero's
-   own add-on disable is the stop that holds across restarts. R22's wording
-   does not have to weaken -- do not weaken it -- but as it stands it reads as
-   though one switch owed both clauses, which is what the plugin has been
-   trying to be. The edit must also carry forward, rather than silently drop,
-   ticket 0742's two objections to add-on disable (four clicks away; it removes
-   the window that would have shown the sitter stopped) and say why they no
-   longer decide the question. Update the `bootstrap.js:1038` comment block in
-   the same commit -- it opens "the switch: R22's one obvious way (ticket
-   0742)" and will be describing a design that no longer exists.
-   R22 is cited in a SECOND place and the sweep must reach it:
-   `removeSDTDurableState` (`bootstrap.js:3628-3630`) justifies clearing the
-   debug pref rather than writing `false` by contrast with "R22's tri-state
-   discipline for ENABLED_PREF above". Retiring the tri-state leaves that
-   comment pointing at a clause that no longer exists, so the amendment touches
-   two things R22 is understood to say, not one.
+9. Rewrite SPEC.md's R22 passage for the sitter, in the same PR as the
+   behaviour. **It is a passage, not a sentence, and it asserts the reversed
+   design as fact.** `SPEC.md` at the REPO ROOT (not `plugins/sdt-sitter/`,
+   which has no SPEC.md), around lines 2246-2266 as of `c7c7c3a6`, currently
+   says: "A preference records the user's answer; the question is asked once
+   per profile, on the first activation that finds it unanswered, and never
+   again, so the answer holds across a restart and across a disable and
+   re-enable." Every clause of that is what this ticket removes.
+   One sentence in it is the exact inverse of the author's ruling and must be
+   reversed, not softened: "Zotero's plugin disable control keeps its graceful
+   host-level semantics and **is no longer R22's control for the sitter**."
+   The ruling of 2026-09-15 makes it R22's control for the durable clause
+   again. A SPEC that keeps this sentence while the code ships the ruling is
+   not a stale doc, it is a denial of the design.
+   Carry forward, rather than silently drop, ticket 0742's two objections to
+   add-on disable (four clicks away; it removes the window that would have
+   shown the sitter stopped) and say why they no longer decide the question.
+   Also in the same commit, the FOUR sites in `bootstrap.js` that cite R22 --
+   line numbers as of `c7c7c3a6`, and re-locate them by symbol rather than by
+   number, because #585 moved every one of them tonight:
+   - `~114-119`, the `ENABLED_PREF` declaration: "Tri-state: unset means the
+     question has never been answered ... both hold across a restart and
+     across a disable/re-enable, which is what R22 requires".
+   - `~1038`, opening "the switch: R22's one obvious way (ticket 0742)".
+   - `~2656`, on why the control leads the window: "R22's 'one obvious way'".
+   - `~3650`, in `removeSDTDurableState`, contrasting the debug pref with
+     "R22's tri-state discipline for ENABLED_PREF above" -- retiring the
+     tri-state leaves it pointing at a clause that no longer exists.
+   Do not treat this list as closed: `grep -n R22 plugins/sdt-sitter/*.js
+   SPEC.md verification/SDT-SITTER-LAUNCH.md` is the sweep, and the Verification
+   section makes it a checked step rather than a claim.
 
 ## Test
 
@@ -352,12 +380,18 @@ Red first, in `tests/sdt_sitter_dialog.mjs`, against the stub document:
       and none is observed; this ticket must not repeat that.
 - [ ] `grep` shows the retired string ids are gone, not merely unreferenced --
       the four switch ids and, per Action 3b, the five launch ids
-- [ ] SPEC.md R22 carries the sentence splitting its two clauses between the
-      checkbox and add-on disable, in the same PR as the behaviour, and no
-      other SPEC requirement still asserts that the plugin's own pause survives
-      a restart
-- [ ] The `bootstrap.js:1038` "R22's one obvious way" comment no longer
-      describes the persisted switch it was written for
+- [ ] SPEC.md's sitter passage rewritten, checked BY GREP and not by reading:
+      `grep -n "holds across a restart\|no longer R22's control" SPEC.md`
+      returns nothing, and `grep -rn R22 plugins/sdt-sitter/*.js SPEC.md
+      verification/SDT-SITTER-LAUNCH.md` has been walked site by site with each
+      one either edited or justified. Without a named procedure this box is
+      tickable while SPEC still asserts the opposite design -- the
+      all-clear-indistinguishable-from-never-looked trap this ticket cites
+      three times elsewhere and fell into here
+- [ ] `grep -rn "launch-question\|askSDTLaunch\|ENABLED_PREF" tests/ verification/
+      plugins/` returns only sites this PR meant to leave, in particular
+      `tests/test_sdt_sitter.py`, which `make check-fast` runs
+- [ ] `make check-fast` green AFTER Action 3b, not only before it
 - [ ] Quitting Zotero with the box checked and restarting begins indexing again,
       read in a live window, not inferred from the code
 
