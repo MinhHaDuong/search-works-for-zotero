@@ -51,7 +51,8 @@
       "reading": "plateau",
       "bands": {
         "wedgeBelowPct": 2.0,
-        "slowAbovePct": 10.0
+        "slowAbovePct": 10.0,
+        "ioFloorBytes": 1000000
       },
       "evidence": {
         "journal": "no progress tick for 172724 ms (threshold 120000 ms) with phase 'extracting' at progress 90; 2 consecutive beat(s) saw no tick. This is an observation, not a cause: a slow tail and a wedged worker produce the same journal.",
@@ -65,7 +66,7 @@
     "version": "0.4.15",
     "zotero": "10.0.2",
     "host": "padme",
-    "when": "2026-09-15T22:00Z",
+    "when": "2026-09-15T22:54Z",
     "script": "bench/sdt_stall_probe.py",
     "fixture": null
   }

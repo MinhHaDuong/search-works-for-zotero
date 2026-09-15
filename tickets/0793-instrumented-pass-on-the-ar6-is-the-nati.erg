@@ -9,6 +9,7 @@ Author: haduong
 2026-09-15T16:02Z haduong note Added action 6: settle whether progress counts pages or bytes. The plates volume filed in 0794 is the bench for it.
 
 2026-09-15T22:04Z claude note Instrument built and both control arms asserted: bench/sdt_stall_probe.py, tests/test_sdt_stall_probe.py. Verdict on the preserved trace is undetermined (plateau confirmed, no CPU sample); the AR6 run is still owed and only the author can make it.
+2026-09-15T23:03Z claude note Review round 1 found three blockers in the probe: a thread rotation could report workerPercent 0 on a saturated process (confident false wedge), I/O-bound work was stripped before the verdict saw it, and no test stood on any threshold's exact value. All three fixed; six mutants now caught.
 --- body ---
 ## Context
 

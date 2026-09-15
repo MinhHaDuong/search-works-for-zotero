@@ -21,6 +21,31 @@ readings of the 2026-09-15 trace; only the CPU sample separates them. Where the
 CPU sample is missing, `stall_verdict()` returns `undetermined` and says so —
 it never falls through to a default.
 
+### Three ways a flat worker thread is *not* a wedge
+
+Added after review round 1, which produced two of them as measured
+counterexamples rather than as arguments. Each downgrades to `undetermined`:
+
+1. **The process is busy while the identified thread is not.** Thread
+   identification is a heuristic — the busiest thread — and Zotero rotates
+   workers. A rotation inside the sampling window used to drop the busy thread
+   from the roster entirely, because a tid absent from the *first* snapshot was
+   skipped; the reviewer measured `processPercent 99.7` with `workerPercent 0.0`
+   and a verdict of **wedged** on a fully saturated process. Two repairs:
+   a thread born in the window now gets a zero baseline (all its jiffies did
+   accrue in the window), and a process-versus-thread contradiction is reported
+   as undetermined, whether it shows over the whole window or in any one
+   interval.
+2. **The worker is blocked on I/O.** A read off a slow device holds ~0 % CPU and
+   is work. The I/O counters were being computed and then stripped by
+   `worker_cpu()` before the verdict saw them; measured, 6.4 MB genuinely read
+   at `processPercent 1.0` returned **wedged**. They now travel with the
+   reading, and bytes at or above a 1 MB floor veto a wedge.
+3. **The I/O counters could not be read at all.** `/proc/<pid>/io` is unreadable
+   under some hardening. A wedge verdict then rests on a channel nobody
+   consulted, which is the all-clear-versus-could-not-look failure this
+   repository keeps meeting. It is refused.
+
 ## Control arm 1 — the predicate, both directions, one call
 
 `verification/incidents/0793-2026-09-15-ar6-stall.json` carries a healthy arm
@@ -95,6 +120,26 @@ RSS from `statm` and `read_bytes`/`rchar` from `io` where the kernel allows
 reading them (it reports absence rather than a zero that reads like "no I/O").
 
 Stdlib only — no `psutil`, nothing added to `requirements-check.txt`.
+
+## Control arm 3 — every threshold that decides something, at its exact value
+
+Review round 1 found the offsets defect recurring one level up: flipping `>=` to
+`>` on the plateau threshold, or on either CPU band, left the suite fully green.
+A boundary that no test stands on is a boundary nobody chose. Each decision
+threshold now carries two assertions — one exactly on the value, one one unit
+off — and the mutation control was run to confirm they fire:
+
+| Mutant | Result |
+|---|---|
+| `quiet_ms_observed >= quiet_ms` → `>` | CAUGHT |
+| `worker >= slow_cpu_pct` → `>` | CAUGHT |
+| `worker <= wedge_cpu_pct` → `<` | CAUGHT |
+| `read_bytes >= io_floor_bytes` → `>` | CAUGHT |
+| `_UTIME = 13` → `11` | CAUGHT |
+| a thread born in the window dropped again | CAUGHT |
+
+Six mutants, six red suites. That is the only evidence that any of these guards
+is load-bearing.
 
 ## What the instrument says about the preserved trace
 

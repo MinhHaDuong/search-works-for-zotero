@@ -35,8 +35,10 @@ sys.path.insert(0, str(REPO / "bench"))
 
 from sdt_stall_probe import (  # noqa: E402
     DEFAULT_QUIET_MS,
+    IO_FLOOR_BYTES,
     ProbeError,
     analyse_heartbeats,
+    analyse_journal_file,
     build_record,
     cpu_between,
     snapshot,
@@ -160,34 +162,124 @@ def test_verdict_without_cpu_is_undetermined():
     assert "CPU" in verdict["why"]
 
 
+def cpu(worker, process, *, read_bytes=0, peak=None):
+    return {"workerPercent": worker, "processPercent": process,
+            "maxProcessPercent": process if peak is None else peak,
+            "readBytes": read_bytes, "tid": 4242, "comm": "DOM Worker"}
+
+
 def test_verdict_wedged_needs_a_flat_worker():
-    verdict = stall_verdict(analyse_heartbeats(records()),
-                            cpu={"workerPercent": 0.2, "processPercent": 0.4,
-                                 "tid": 4242, "comm": "DOM Worker"})
+    verdict = stall_verdict(analyse_heartbeats(records()), cpu=cpu(0.2, 0.4))
     assert verdict["verdict"] == "wedged"
 
 
 def test_verdict_slow_tail_needs_a_busy_worker():
-    verdict = stall_verdict(analyse_heartbeats(records()),
-                            cpu={"workerPercent": 97.0, "processPercent": 104.0,
-                                 "tid": 4242, "comm": "DOM Worker"})
+    verdict = stall_verdict(analyse_heartbeats(records()), cpu=cpu(97.0, 104.0))
     assert verdict["verdict"] == "slow-tail"
 
 
 def test_verdict_between_the_bands_refuses_to_choose():
-    verdict = stall_verdict(analyse_heartbeats(records()),
-                            cpu={"workerPercent": 5.0, "processPercent": 6.0,
-                                 "tid": 4242, "comm": "DOM Worker"})
+    verdict = stall_verdict(analyse_heartbeats(records()), cpu=cpu(5.0, 6.0))
     assert verdict["verdict"] == "undetermined"
 
 
 def test_verdict_on_the_healthy_arm_is_advancing():
-    verdict = stall_verdict(analyse_heartbeats(healthy_arm()),
-                            cpu={"workerPercent": 0.0, "processPercent": 0.1,
-                                 "tid": 4242, "comm": "DOM Worker"})
+    verdict = stall_verdict(analyse_heartbeats(healthy_arm()), cpu=cpu(0.0, 0.1))
     # A flat CPU while progress still ticks is not a wedge; the plateau is the
     # precondition, and without it no CPU reading names anything.
     assert verdict["verdict"] == "advancing"
+
+
+# --- the three ways a flat worker thread is NOT a wedge --------------------
+
+def test_a_busy_process_with_a_flat_worker_is_not_a_wedge():
+    """Thread rotation: the roster lost the busy thread, not the process."""
+    verdict = stall_verdict(analyse_heartbeats(records()), cpu=cpu(0.0, 99.7))
+    assert verdict["verdict"] == "undetermined"
+    assert "heuristic" in verdict["why"]
+
+
+def test_a_process_busy_in_one_interval_only_is_not_a_wedge():
+    """Averaged over the window it looks flat; the peak says otherwise."""
+    verdict = stall_verdict(analyse_heartbeats(records()),
+                            cpu=cpu(0.1, 0.9, peak=64.0))
+    assert verdict["verdict"] == "undetermined"
+
+
+def test_io_bound_work_is_not_a_wedge():
+    verdict = stall_verdict(analyse_heartbeats(records()),
+                            cpu=cpu(0.2, 1.0, read_bytes=6_400_000))
+    assert verdict["verdict"] == "undetermined"
+    assert "I/O-bound" in verdict["why"]
+
+
+def test_unreadable_io_counters_refuse_a_wedge_verdict():
+    """An all-clear on a channel that was never consulted is not a check."""
+    verdict = stall_verdict(analyse_heartbeats(records()),
+                            cpu=cpu(0.2, 0.4, read_bytes=None))
+    assert verdict["verdict"] == "undetermined"
+    assert "never consulted" in verdict["why"]
+
+
+def test_io_noise_below_the_floor_does_not_veto_a_wedge():
+    verdict = stall_verdict(analyse_heartbeats(records()),
+                            cpu=cpu(0.2, 0.4, read_bytes=4096))
+    assert verdict["verdict"] == "wedged"
+
+
+# --- the exact values of every threshold that decides something ------------
+
+def test_the_plateau_threshold_is_inclusive_at_its_exact_value():
+    """Off-by-one at the boundary is silent; these two assertions are not."""
+    def beat(since):
+        return [{"at": since, "kind": "heartbeat", "id": 1,
+                 "phase": "extracting", "progress": 90,
+                 "sinceProgressMS": since}]
+    assert analyse_heartbeats(beat(DEFAULT_QUIET_MS))["plateau"] is True
+    assert analyse_heartbeats(beat(DEFAULT_QUIET_MS - 1))["plateau"] is False
+
+
+def test_the_slow_band_is_inclusive_at_its_exact_value():
+    plateau = analyse_heartbeats(records())
+    assert stall_verdict(plateau, cpu(10.0, 10.0))["verdict"] == "slow-tail"
+    assert stall_verdict(plateau, cpu(9.9, 9.9))["verdict"] != "slow-tail"
+
+
+def test_the_wedge_band_is_inclusive_at_its_exact_value():
+    plateau = analyse_heartbeats(records())
+    assert stall_verdict(plateau, cpu(2.0, 2.0))["verdict"] == "wedged"
+    assert stall_verdict(plateau, cpu(2.1, 2.1))["verdict"] == "undetermined"
+
+
+def test_the_io_floor_is_inclusive_at_its_exact_value():
+    plateau = analyse_heartbeats(records())
+    at_floor = cpu(0.2, 0.4, read_bytes=IO_FLOOR_BYTES)
+    below = cpu(0.2, 0.4, read_bytes=IO_FLOOR_BYTES - 1)
+    assert stall_verdict(plateau, at_floor)["verdict"] == "undetermined"
+    assert stall_verdict(plateau, below)["verdict"] == "wedged"
+
+
+# --- shapes that must degrade rather than raise ----------------------------
+
+def test_a_heartbeat_with_no_timestamp_degrades_to_unknown():
+    beat = {"kind": "heartbeat", "id": 1, "phase": "extracting",
+            "progress": 90, "sinceProgressMS": None, "at": None}
+    reading = analyse_heartbeats([beat, dict(beat)])
+    assert reading["reading"] == "unknown"
+    assert reading["ticksSinceFirstBeat"] is None
+
+
+def test_a_bare_record_array_is_a_journal_too(tmp_path):
+    path = tmp_path / "bare.json"
+    path.write_text(json.dumps(records()), encoding="utf-8")
+    assert analyse_journal_file(path)["plateau"] is True
+
+
+def test_a_journal_that_is_neither_shape_is_refused(tmp_path):
+    path = tmp_path / "odd.json"
+    path.write_text("42", encoding="utf-8")
+    with pytest.raises(ProbeError):
+        analyse_journal_file(path)
 
 
 # --------------------------------------------------------------------------
@@ -265,6 +357,49 @@ def test_stat_field_offsets_are_utime_and_stime():
     fields = _stat_fields(line)
     assert (fields[11], fields[12]) == ("12", "13")  # majflt, cmajflt
     assert (fields[_UTIME], fields[_STIME]) == ("14", "15")
+
+
+def test_a_thread_born_inside_the_window_keeps_its_cpu():
+    """Zotero rotates workers; dropping the newcomer lost the busy thread.
+
+    Skipping a tid absent from the first snapshot left `topThread` pointing at
+    an idle helper while the process ran at full tilt — and the verdict that
+    followed was a confident `wedged` on a saturated process.
+    """
+    ticks = 100
+    before = {"pid": 1, "comm": "z", "at": 0, "monotonic": 0.0,
+              "cpuJiffies": 0, "rssBytes": 1, "io": None, "clockTicks": ticks,
+              "threads": {"11": {"tid": 11, "comm": "idle", "cpuJiffies": 0,
+                                 "io": None}}}
+    after = {**before, "monotonic": 1.0, "cpuJiffies": 100,
+             "threads": {"11": {"tid": 11, "comm": "idle", "cpuJiffies": 0,
+                                "io": None},
+                         "22": {"tid": 22, "comm": "worker", "cpuJiffies": 100,
+                                "io": None}}}
+    rates = cpu_between(before, after)
+    assert rates["processPercent"] == pytest.approx(100.0)
+    assert rates["topThread"]["tid"] == 22
+    assert rates["topThread"]["percent"] == pytest.approx(100.0)
+    assert rates["topThread"]["bornInWindow"] is True
+
+
+def test_a_thread_that_exited_inside_the_window_is_counted():
+    ticks = 100
+    before = {"pid": 1, "comm": "z", "at": 0, "monotonic": 0.0,
+              "cpuJiffies": 0, "rssBytes": 1, "io": None, "clockTicks": ticks,
+              "threads": {"11": {"tid": 11, "comm": "gone", "cpuJiffies": 0,
+                                 "io": None},
+                          "12": {"tid": 12, "comm": "stays", "cpuJiffies": 0,
+                                 "io": None}}}
+    after = {**before, "monotonic": 1.0, "cpuJiffies": 100,
+             "threads": {"12": {"tid": 12, "comm": "stays", "cpuJiffies": 0,
+                                "io": None}}}
+    rates = cpu_between(before, after)
+    assert rates["threadsExitedInWindow"] == 1
+    # Its CPU is unrecoverable per thread but still in the process total, and
+    # that asymmetry is what stall_verdict's contradiction guard exists for.
+    assert rates["processPercent"] == pytest.approx(100.0)
+    assert rates["topThread"]["percent"] == pytest.approx(0.0)
 
 
 def test_sampler_refuses_a_pid_that_is_not_there():
