@@ -1,0 +1,422 @@
+{
+  "ticket": "0793",
+  "captured": "2026-09-15",
+  "source": "~/data/Zotero-fresh/sdt-sitter-last-shutdown.json on the author's machine; that file is overwritten by the next shutdown, hence this copy",
+  "redaction": "notIndexed held 5538 Zotero item keys of a private library; kept here as per-bucket counts only. Nothing else altered.",
+  "shutdown": {
+    "reason": "uninstall",
+    "at": "2026-09-15T05:22:29.115Z"
+  },
+  "version": "0.4.15",
+  "zoteroVersion": "10.0.2",
+  "nativeVersions": {
+    "SDT_SCHEMA_VERSION": "1.2.0",
+    "SDT_PACK_VERSION": 1,
+    "SDT_PROCESSOR_VERSIONS": {
+      "pdf": 14,
+      "epub": 2,
+      "snapshot": 1
+    }
+  },
+  "notIndexedCounts": {
+    "empty-pack": 244,
+    "failed-session": 5,
+    "missing-source-stored": 325,
+    "missing-source-linked": 3,
+    "no-extractor": 2668,
+    "mismatched-type": 18,
+    "no-attachment": 2275
+  },
+  "notIndexedTotal": 5538,
+  "records": [
+    {
+      "at": 1789449430414,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 49
+    },
+    {
+      "at": 1789449432219,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 50
+    },
+    {
+      "at": 1789449434331,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 51
+    },
+    {
+      "at": 1789449436639,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 52
+    },
+    {
+      "at": 1789449438188,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 53
+    },
+    {
+      "at": 1789449441101,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 54
+    },
+    {
+      "at": 1789449443121,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 55
+    },
+    {
+      "at": 1789449445100,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 56
+    },
+    {
+      "at": 1789449445880,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 57
+    },
+    {
+      "at": 1789449450741,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 58
+    },
+    {
+      "at": 1789449452906,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 59
+    },
+    {
+      "at": 1789449454783,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 60
+    },
+    {
+      "at": 1789449456435,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 61
+    },
+    {
+      "at": 1789449458381,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 62
+    },
+    {
+      "at": 1789449459106,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 63
+    },
+    {
+      "at": 1789449461943,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 64
+    },
+    {
+      "at": 1789449467432,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 65
+    },
+    {
+      "at": 1789449469639,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 66
+    },
+    {
+      "at": 1789449471215,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 67
+    },
+    {
+      "at": 1789449474559,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 68
+    },
+    {
+      "at": 1789449483011,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 69
+    },
+    {
+      "at": 1789449488829,
+      "kind": "heartbeat",
+      "level": "trace",
+      "id": 11940,
+      "phase": "extracting",
+      "progress": 69,
+      "elapsedMS": 148238,
+      "sinceProgressMS": 5818,
+      "pending": 10493
+    },
+    {
+      "at": 1789449493032,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 70
+    },
+    {
+      "at": 1789449495243,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 71
+    },
+    {
+      "at": 1789449497308,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 72
+    },
+    {
+      "at": 1789449498672,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 73
+    },
+    {
+      "at": 1789449501053,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 74
+    },
+    {
+      "at": 1789449503045,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 75
+    },
+    {
+      "at": 1789449505567,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 76
+    },
+    {
+      "at": 1789449507826,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 77
+    },
+    {
+      "at": 1789449509084,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 78
+    },
+    {
+      "at": 1789449513804,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 79
+    },
+    {
+      "at": 1789449518948,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 80
+    },
+    {
+      "at": 1789449521368,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 81
+    },
+    {
+      "at": 1789449523332,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 82
+    },
+    {
+      "at": 1789449525457,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 83
+    },
+    {
+      "at": 1789449526102,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 84
+    },
+    {
+      "at": 1789449529721,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 85
+    },
+    {
+      "at": 1789449536949,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 86
+    },
+    {
+      "at": 1789449539561,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 87
+    },
+    {
+      "at": 1789449543667,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 88
+    },
+    {
+      "at": 1789449548867,
+      "kind": "heartbeat",
+      "level": "trace",
+      "id": 11940,
+      "phase": "extracting",
+      "progress": 88,
+      "elapsedMS": 208276,
+      "sinceProgressMS": 5200,
+      "pending": 10493
+    },
+    {
+      "at": 1789449554455,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 89
+    },
+    {
+      "at": 1789449556253,
+      "kind": "progress",
+      "level": "trace",
+      "id": 11940,
+      "progress": 90
+    },
+    {
+      "at": 1789449608890,
+      "kind": "heartbeat",
+      "level": "trace",
+      "id": 11940,
+      "phase": "extracting",
+      "progress": 90,
+      "elapsedMS": 268299,
+      "sinceProgressMS": 52637,
+      "pending": 10493
+    },
+    {
+      "at": 1789449668905,
+      "kind": "heartbeat",
+      "level": "trace",
+      "id": 11940,
+      "phase": "extracting",
+      "progress": 90,
+      "elapsedMS": 328314,
+      "sinceProgressMS": 112652,
+      "pending": 10493
+    },
+    {
+      "at": 1789449728977,
+      "kind": "heartbeat",
+      "level": "trace",
+      "id": 11940,
+      "phase": "extracting",
+      "progress": 90,
+      "elapsedMS": 388386,
+      "sinceProgressMS": 172724,
+      "pending": 10493
+    },
+    {
+      "at": 1789449738026,
+      "kind": "switch",
+      "level": "state",
+      "enabled": false
+    },
+    {
+      "at": 1789449749113,
+      "kind": "switch",
+      "level": "state",
+      "enabled": false
+    },
+    {
+      "at": 1789449749113,
+      "kind": "shutdown",
+      "level": "state",
+      "reason": "uninstall"
+    }
+  ],
+  "recordRingNote": "The ring is bounded at 50 records; the census and this document's own 'admit' record, which carries sourceBytes and pages, had already rolled off when the file was written.",
+  "document": {
+    "itemID": 11940,
+    "key": "AI6DJUTA",
+    "parentItemID": 3231,
+    "title": "Climate change 2021: The Physical Science Basis. Contribution of Working Group I to the Sixth Assessment Report of the IPCC",
+    "pages": 3949,
+    "bytes": 253889746,
+    "pdfinfo": "Creator/Producer Adobe Acrobat Pro DC 21.5.20060; Tagged: no; Form: AcroForm; PDF 1.7; letter",
+    "storage": ".zotero-ft-cache present (378.7 KB), .zotero-sdt-cache absent"
+  },
+  "libraryShape": {
+    "storageDirs": 15885,
+    "sdtCaches": 3342,
+    "ftCaches": 13592,
+    "pdfs": 9228
+  },
+  "negativeChecks": {
+    "crashDumps": "none under ~/.zotero (*.dmp, since 2026-09-01)",
+    "crashEvents": "crashes/events empty",
+    "kernelOOM": "none; positive control fired — journalctl -k --since 2026-09-14 returns 101 lines, so the zero is a read, not a refusal"
+  }
+}

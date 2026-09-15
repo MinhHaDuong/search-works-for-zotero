@@ -1,0 +1,112 @@
+%erg 0.1
+Title: Instrumented pass on the AR6: is the native ensure() slow or wedged at 90 %
+Created: 2026-09-15
+Author: haduong
+
+--- log ---
+2026-09-15T15:31Z haduong created
+2026-09-15T15:52Z haduong note Trace preserved as verification/incidents/0793-2026-09-15-ar6-stall.json — the source file is overwritten by the next shutdown
+
+--- body ---
+## Context
+
+The 2026-09-15T05:22Z sweep of the author's full library (sitter 0.4.15,
+Zotero 10.0.2, pdf processor 14) stopped advancing on one document and was
+ended by hand. The document is the IPCC AR6 WG1 report: **3 949 pages,
+242 MB**, born digital, `itemID` 11940 / key `AI6DJUTA`.
+
+What the trace shows, and only what it shows:
+
+- progress ran **49 → 90** in 126 s, one tick every 2–3 s;
+- then **90 held for at least 173 s**, phase still `extracting`, across three
+  60 s heartbeats. The extension is alive throughout — the heartbeats prove it;
+- two `switch enabled:false` records 11 s apart, then `shutdown reason:uninstall`.
+- `storage/AI6DJUTA/` holds a `.zotero-ft-cache` and **no `.zotero-sdt-cache`**:
+  no pack was persisted.
+
+Nothing crashed. No `.dmp`, no `crashes/events` entry, no kernel OOM — and that
+last zero is a read, not a refusal: `journalctl -k` returns 101 lines over the
+same window.
+
+The sitter does not extract. It calls `Zotero.SDT.ensure(id, {isPriority:false,
+onProgress})` (`plugins/sdt-sitter/bootstrap.js:3412`) and the number it reports
+is the native worker's own. `scheduler.js:305-312` documents that once handed to
+the native worker the call cannot be told to stop — which is why the switch had
+to be thrown twice.
+
+**The open question, and the whole of this ticket:** at the observed rate the
+remaining ~10 % (≈ 395 pages) should have taken ~25 s, not ≥ 173 s. Is the
+native worker still advancing — coarse progress granularity, or a genuinely slow
+tail — or is it wedged? Both answers are actionable and they point at different
+fixes. Neither is established, and `scheduler.js:322-325` already warns that
+from the sitter's side "a worker that ran out of memory and a photograph that
+holds no text are indistinguishable".
+
+Guard 2 of 0727 is unbuilt for exactly this reason: a check that cannot fire
+must not ship. Same rule here — no sitter change lands off this trace alone.
+
+## Relevant files
+
+- `verification/incidents/0793-2026-09-15-ar6-stall.json` — the preserved trace,
+  library shape, document metadata and negative checks. Item keys redacted to
+  counts; the source file on the author's machine is overwritten at each shutdown.
+- `plugins/sdt-sitter/bootstrap.js:3412` — the `Zotero.SDT.ensure()` call site.
+- `plugins/sdt-sitter/scheduler.js:283-330` — admit, progress tick, heartbeat,
+  and the comments on uninterruptibility and on indistinguishable failures.
+- `bench/sitter_acceptance.py` — the existing acceptance driver; the run harness
+  to extend rather than improvise.
+- `verification/acceptance/0.4.15-2026-09-14.json` — the record shape to follow.
+- `~/data/Zotero-fresh/storage/AI6DJUTA/` — the document. Not in the repo, not
+  redistributable (IPCC permits excerpts, not whole reports).
+
+## Actions
+
+1. Re-run the pass on `~/data/Zotero-fresh` with the AR6 admitted, and **let it
+   sit for at least 30 minutes past the plateau** instead of switching off.
+2. Sample, for the whole run: Zotero process CPU (per thread, so the document
+   worker is separable), RSS, and read I/O. This is the discriminator — steady
+   CPU on the worker thread means slow; ~0 % means wedged or waiting.
+3. Record whether progress ever ticks past 90 and whether
+   `storage/AI6DJUTA/.zotero-sdt-cache` appears.
+4. Run the positive control of step "Test" below in the same session, so the
+   probe is known to be able to see a completion.
+5. Write the run up in `verification/incidents/` beside the preserved trace,
+   naming which of slow / wedged holds and on what evidence.
+
+## Test
+
+The red step is the **positive control**, not the AR6: a null on the AR6 means
+nothing until the probe has been watched reacting to a document that completes.
+
+Run the same instrumentation on `johnson-1785-dictionary` (1 104 pages, 124 MB,
+already in the fixture cache) — it crosses the page cap, it finishes, and it is
+the nearest thing in the corpus to the AR6. Record its progress granularity and
+its tail timing: how long does *it* sit on its last tick before settling? If a
+document that completes also plateaus for tens of seconds near the end, the AR6
+plateau is a tail, not a wedge, and the whole reading changes.
+
+## Verification
+
+- [ ] CPU/RSS/IO series captured for the full AR6 attempt, worker thread separable
+- [ ] Plateau observed for ≥ 30 min, or broken by a tick — with the timestamp either way
+- [ ] `.zotero-sdt-cache` presence in `storage/AI6DJUTA/` recorded at the end
+- [ ] Positive control (Johnson 1785) run in the same session, its tail timing recorded
+- [ ] Verdict written as "slow" or "wedged" with the evidence that distinguishes them
+
+## Invariants
+
+- The author's live library is read, never rewritten; the pass runs on
+  `~/data/Zotero-fresh`.
+- No change to `plugins/sdt-sitter/` in this ticket. It measures; it does not fix.
+- `make check` passes.
+
+## Exit criteria
+
+- One recorded run in `verification/incidents/` naming slow or wedged, with the
+  positive control's numbers beside it.
+- If **wedged**: an upstream report drafted, third alongside
+  [133758](https://forums.zotero.org/discussion/133758/) and
+  [133759](https://forums.zotero.org/discussion/133759/) — the sitter can neither
+  cancel nor shut down while the native call hangs, which is the reportable part.
+- If **slow**: the tail duration measured, and a recorded decision on whether the
+  sitter should bound or announce it. That decision feeds 0792's bounded retry.
