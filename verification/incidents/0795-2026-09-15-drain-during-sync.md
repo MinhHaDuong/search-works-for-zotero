@@ -1,6 +1,8 @@
-# Drain does not converge while Zotero syncs files — 2026-09-15, v0.4.16
+# The drain starves the sitter while Zotero syncs files — 2026-09-15, v0.4.16
 
-Ticket: [0795](../../tickets/0795-pause-the-sitter-while-zotero-is-syncing.erg).
+Tickets: [0796](../../tickets/0796-the-drain-loop-starves-reconciliation-and.erg)
+owns the defect, [0795](../../tickets/0795-pause-the-sitter-while-zotero-is-syncing.erg)
+owns the trigger.
 Captured from the author's Technical diagnostics panel on padme, Zotero 10.0.2,
 sitter v0.4.16 (`sha256 1ee8f0ed33d392b6…`), three libraries, while a bulk file
 sync was running.
@@ -60,29 +62,50 @@ untouched throughout — but nothing here establishes that identification.
 - `phase` is `draining`, set at `scheduler.js:197`, so the pump is inside the
   drain loop at `scheduler.js:201-222`.
 - `drain-end` (`scheduler.js:225`) never fired, so `while (dirty.size)` never
-  emptied `dirty`.
+  emptied `dirty` — and § The mechanism shows it was never going to.
 
-## The mechanism, stated as a candidate and not as a verdict
+## The mechanism — measured, and it is starvation, not a lost race
 
-The drain loop calls `host.unattached()` on **every** iteration
-(`scheduler.js:215-218`) — a library-wide query per dirty id, which the loop's
-own comment (`scheduler.js:193-195`) already names as "long on its own account".
-`invalidate(ids)` (`scheduler.js:129`) refills `dirty` from Zotero item
-notifications, which a bulk file sync generates continuously: `storage/` went
-from 688 attachment folders at 19:39 to 2 893 at 19:47, about 1 000 files a
-minute, under the heaviest DB and disk contention of the session.
+**Superseded reading, kept because it was wrong in a way worth naming.** This
+file first proposed "a race the drain loses, not a wedge": the drain retiring
+dirty ids slightly slower than the sync produces them. Three live reads of
+`state.draining` refuted it. The loop does not merely fall behind; it never
+returns control.
 
-So the candidate reading is **a race the drain loses, not a wedge**: it pays a
-full-library query per notification while the sync produces notifications faster
-than it can retire them. That is consistent with every figure above and with no
-`drain-end`, but it is not established.
+`Zotero.SDTPackSitter.state`, read three times on the live instance:
 
-**The one measurement that settles it, not yet taken:** read
-`Zotero.SDT.sitter.state.draining` (which is `dirty.size`, `scheduler.js:220`)
-three times a few seconds apart on a live instance in this state. Falling means
-the race reading is right and 0795 dissolves the incident. Holding or rising
-means something else, and it earns its own ticket. The author was asked for this
-while the state was live; if it is not in this file, it was not obtained.
+| | `draining` | `phase` | `pending` | `busy` | `active` |
+|---|---|---|---|---|---|
+| `drain-start`, 19:39:10Z | 761 | draining | — | — | — |
+| ~19:57Z | **6495** | draining | 44 | true | null |
+| +~1 min | **6543** | draining | 44 | true | null |
+| +~1 min | **6573** | draining | 44 | true | null |
+
+`storage/`: 688 attachment folders at 19:39, 6 168 at 19:58. The backlog grew
+8.5× while the drain ran. The candidate queue never moved.
+
+The structure that produces this, all in `scheduler.js`:
+
+- the outer loop is at 140; its body is reconciliation (143-176), then the drain
+  (196-226), then admission (228+);
+- the drain is a nested `while (dirty.size && current())` at 201 with **no
+  bound** — it returns to 140 only when `dirty` is empty;
+- `invalidate(ids)` (129) refills `dirty` from item notifications, and each drain
+  iteration pays a library-wide `host.unattached()` (215-218).
+
+So while notifications outrun the drain:
+
+1. **`refreshQueue()` (99, called only at 176) never re-runs**, so `state.pending`
+   is frozen at the last census's snapshot. That is why `pending` reads 44
+   throughout — it is a photograph from 19:39, not a live count. Files that have
+   arrived since and become indexable never enter the candidate list.
+2. **Admission (228+) is never reached**, so `active` stays `null` and nothing is
+   ever submitted.
+3. `busy` stays true and the heartbeat keeps firing, so nothing reports a fault.
+
+The sitter does no work at all, and cannot resume while `dirty` grows. Split out
+as ticket [0796](../../tickets/0796-the-drain-loop-starves-reconciliation-and.erg):
+0795 removes the most common trigger, 0796 makes the loop safe.
 
 ## Two phenomena, not one
 
