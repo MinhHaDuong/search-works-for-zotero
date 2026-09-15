@@ -9,6 +9,7 @@ Author: MinhHaDuong
 2026-09-15T20:34Z claude note Cross-session input from the concurrent sitter session (padme, same repo, author-authorised): the sync condition this ticket needs in Action 4 has a candidate reading, Zotero.Sync.Runner.syncInProgress, and a warning that comes with it -- it must be sampled TWICE, once during an active sync and once at rest, because a key that reads the same in both states does not discriminate and must not be used. Folded into Action 4 rather than left in a chat log. That session also holds PR #585, which bumps the sitter manifest to 0.4.17; THIS PR is tickets-only and touches no plugin file, so the implementation of this ticket takes 0.4.18 or later. Two live findings from that session bear on the control's value and are recorded here because they are the reason the author is tired of the button: toggling off/on is currently the only way to break the unbounded drain loop (stop() burns the epoch, start() sets reconciliationPending, forcing a fresh census), and a fresh census is itself needed because ~13 700 attachments enumerated while their files were not yet on disk are classed missing-source, which is in `failed` and not in `queued`. Incident dossier: verification/incidents/0795-2026-09-15-drain-during-sync.md, tickets 0795 and 0796.
 2026-09-15T20:36Z claude note CORRECTION to this ticket's 20:34Z entry, which is append-only and therefore stands wrong above: toggling off/on is NOT the escape hatch from ticket 0796's drain starvation. The concurrent sitter session measured it from `sdt-sitter-last-shutdown.json` across two real off/on cycles (20:16:55 and 20:22:53) and the record splits in two. What the toggle DOES do, and what this ticket's invariant now protects, is force a fresh census within two seconds of each `on`, and that census works: `failed` fell 13 749 -> 5 242 and `pending` rose 436 -> 8 926 as attachments whose files had landed left `missing-source`. What it does NOT do is restart the pump: each census was followed by a `drain-start` of ~9 600 dirty ids, after which `pending` froze and `active` stayed null, seven minutes the second time, and BOTH `sweep-end` records carry `completed: 0` -- 8 926 admissible candidates, not one submitted, nothing indexed all session. The starvation is also not permanent: between 20:08 and 20:15 `pending` rose 44 -> 389, which only happens if `refreshQueue()` ran, so the drain had emptied when the notification source dried up. Dossier: verification/incidents/0796-2026-09-15-toggle-does-not-recover.md. Two attributions in that session's reading are corrected here: the toggles and the 20:31:54Z uninstall were NOT this session's doing -- this session has no console on the live Zotero instance and touched neither -- so whoever took those actions is unidentified by anything either session measured, and the incident record should not name one.
 2026-09-15T20:40Z claude note CHECKED, not relayed: PR #585's exclusion of `no-attachment` from the "Not indexed" heading does NOT propagate into this control's own sentence, and the effect on this ticket is the opposite of a hazard. Read the two routes rather than taking the concurrent session's warning on trust. The switch line's exception figure is `coverage.unindexed + coverage.failed`, tallied by `getSDTCoverage` over `SDT_STATUS_CLASSES` -- `unindexed: ['empty-pack']`, `failed: ['failed-session', 'inspection-error', 'unsupported-pack', 'missing-source']` (scheduler.js:13-31). `no-attachment` appears in none of those keys: it is not a status at all but a separate list, `state.unattached`, filled by `host.unattached()` (scheduler.js:215-216), which scheduler.js:213 itself calls "the separate no-attachment view". The heading is the other route, `groups.reduce(...members.length)` over `collectSDTNotIndexed` (bootstrap.js:1466), and that is the one #585 changes -- verified against the PR's own diff, not its description. So the sentence never counted `no-attachment`, the heading did, and the two have been disagreeing all along while `switch-on-exceptions` told the reader to compare them ("{count} attachments are not indexed -- see 'Not indexed' below"). #585 CLOSES that divergence. The consequence for this ticket is a thing not to undo: an implementer rewriting `describeSDTIdleLine` must not reintroduce it, which is why it is now an invariant below.
+2026-09-15T20:42Z claude note AUTHOR RULED, and with a third reading that discards the mechanism the first two were arguing about: "Je prefere ne pas avoir d'etat donc aucune preference memorisee. D'ailleurs ce n'est marque nulle part 'Preference memorisee'. On commence allume des que possible." So no remembered answer at all -- the box is checked and inert while indexing cannot be launched, and the moment it can be, indexing STARTS, unasked; checking the box pauses for this session only. Body rewritten accordingly: the adopted/not-adopted pair is gone, Action 3b removes the startup pref read AND askSDTLaunch together (half of it is worse than none -- dropping the modal while still reading the pref leaves a machine obeying an answer the user can no longer give), and the persistence invariant is replaced. His second sentence was checked rather than accepted: exactly one string claims persistence, `launch-details` ("This answer is remembered."), and it lives in the modal shown at most once per profile and deliberately never seen again, so the only statement of the memory sits on the one surface designed never to return while the window he actually consults says nothing -- which argues for the ruling. THE CONSEQUENCE HE HAS NOT YET SEEN, and it is why Action 9 exists: SPEC.md R22 requires in as many words that the stop "MUST hold across restarts", with the rationale that work resuming after a reboot "was never stopped, only interrupted". A session-scoped pause contradicts that clause. It is his requirement and his to change, but the amendment must land in the same PR as the behaviour -- a SPEC that claims the opposite of the running code is worse than either state. Also recorded, from the same message: the 20:31:54Z uninstall and the two toggles were the author's own, so nothing is owed to the 0796 incident record on attribution.
 
 --- body ---
 
@@ -62,27 +63,52 @@ control that satisfies it has until now said "Turn indexing off".
    `style.cssText` sites, and Gecko keeps the native widget, the focus ring and
    the forced-colours rendering.
 
-### The reading adopted for "commence checked"
+### Settled: no remembered state, start on as soon as possible
 
-**Adopted:** at startup the box renders **checked and non-interactive**, because
-indexing cannot yet be launched, and the line beside it says *why* (boot wait).
-When indexing becomes launchable the box becomes interactive and the remembered
-answer takes effect -- a profile that already consented unchecks itself and
-starts reporting the phase. **The remembered preference survives**:
-`extensions.sdt-pack-sitter.enabled`, its tri-state `null`, and the
-once-per-profile `askSDTLaunch` modal (R22, ticket 0742) are untouched by this
-ticket.
+Author, 2026-09-15, asked which of the two readings below he meant and
+answering with a third:
 
-**Not adopted:** the box starts checked *every session* and the user unchecks it
-at each Zotero start. That would revoke 0742's ruling and make a remembered
-answer mean nothing -- the precise defect 0742 was filed to fix ("declining the
-launch prompt was forgotten by the next Zotero start, so the prompt came back
-every session and the answer meant nothing"). It would also leave R22's "one
-obvious way" satisfied in one direction only.
+> Je préfère ne pas avoir d'état donc aucune préférence mémorisée. D'ailleurs
+> ce n'est marqué nulle part "Préférence mémorisée". On commence allumé dès que
+> possible.
 
-If the author meant the second reading, **this paragraph is the whole diff**:
-the pref stops being read at startup and the box is checked unconditionally.
-Nothing else in this ticket moves.
+Neither reading this ticket first offered, then. There is no remembered answer
+to survive or to revoke. The box is checked and non-interactive while indexing
+cannot be launched, the line says why, and the moment it can be launched
+**indexing starts**: the box unchecks itself and nobody is asked. Checking it
+afterwards pauses for this session, and the next Zotero start begins indexing
+again.
+
+The two readings that are now moot, kept in one line each so nobody re-derives
+them: the pref survives and the box reflects it (what this ticket first
+adopted), or the box starts checked every session and the user unchecks it each
+time (which would have revoked ticket 0742). The ruling discards the mechanism
+both were arguing about.
+
+**His second sentence, checked.** It is very nearly true, and the exception
+argues for the ruling rather than against it. Exactly one string says the
+choice persists -- `launch-details`, "This answer is remembered." -- and it
+lives in the launch modal, which is shown at most once per profile and
+deliberately never returns (ticket 0742). So the only statement that the
+preference is remembered sits on the one surface designed never to be seen
+twice, while the window the user actually consults says nothing about it. State
+that nothing on screen admits to is the thing the ruling removes.
+
+### This ruling amends R22, and the implementation must not ship around it
+
+R22 reads: "There MUST be one obvious way to stop all background work, and it
+MUST hold across restarts", and gives its own reason -- "background work that
+resumes on its own after a reboot was never stopped, only interrupted."
+
+A pause that ends at the next Zotero start does not hold across restarts.
+**R22's second clause is what this ruling changes**, and SPEC.md must say so
+before the behaviour ships: a requirement that still claims the opposite of the
+running code is worse than either. Amending R22 is Action 9 and it gates the
+implementation rather than trailing it.
+
+R22's first clause is untouched. One obvious way survives, and a checkbox
+labelled "Pause indexing" is a more obvious way than a button that names the
+inverse action.
 
 ### Which states check the box by themselves
 
@@ -104,7 +130,7 @@ in slower clothes -- the thing 0792's own invariants exist to prevent.
 |---|---|---|---|
 | boot wait -- the sitter cannot yet be armed | checked | no | why: Zotero is still starting |
 | sync in progress | checked | no | why: waiting for sync to finish |
-| user paused (`phase === 'switched-off'`) | checked | yes | `switch-off`, unchanged |
+| user paused this session (`phase === 'switched-off'`) | checked | yes | `switch-off`, minus any claim of persistence |
 | checked, a document still in flight | checked | yes | finishing the current document, then stopping |
 | `census` | unchecked | yes | `switch-on-census` |
 | `draining` | unchecked | yes | `switch-on-draining` |
@@ -171,6 +197,18 @@ in flight** has no string today.
    `alive = true`, so "checked and non-interactive during boot wait" needs the
    render to be able to distinguish *not yet armable* from *user paused*. Do
    not invent a phase name that announces per document.
+3b. Remove the persisted answer, all of it or none of it. `readSDTSwitch` stops
+   being consulted at startup (`bootstrap.js:3436`) and the startup path arms
+   unconditionally once indexing is launchable; `askSDTLaunch` and its five
+   strings (`launch-title`, `launch-question`, `launch-conditions`,
+   `launch-details`, `launch-yes`/`launch-no`) go with it, because a prompt
+   whose only job is to write a preference that no longer exists has nothing to
+   ask. Decide explicitly what happens to `extensions.sdt-pack-sitter.enabled`
+   itself -- a pref left written but unread is exactly the invisible state the
+   ruling is against -- and to `bootstrap.js:3560`, which writes `false` into it
+   on uninstall.
+   Half of this is worse than none: dropping the modal while still reading the
+   pref leaves a machine that obeys an answer the user can no longer give.
 4. Add the sync condition. **No Zotero-sync gate exists in the plugin today** --
    grep for it before building: `sync` appears in `bootstrap.js` only in a
    not-indexed detail string and in unrelated prose. The candidate reading,
@@ -194,6 +232,13 @@ in flight** has no string today.
 8. Bump the manifest to 0.4.18 or later. PR #585 already holds 0.4.17, and
    `bench/check_sitter_version.py` rule 3 reddens when two builds answer to one
    number.
+9. Amend SPEC.md R22's second clause, in the same PR as the behaviour. The
+   pause no longer holds across restarts, by the author's ruling; R22 currently
+   requires that it does, and gives a rationale that must be rewritten rather
+   than deleted, since the reasoning it states ("background work that resumes
+   on its own after a reboot was never stopped") is precisely what the new
+   behaviour does. Say what replaces it: the pause is for this session, and
+   starting on is the default the author chose.
 
 ## Test
 
@@ -226,17 +271,26 @@ Red first, in `tests/sdt_sitter_dialog.mjs`, against the stub document:
       screen reader announces for it, and that the native widget survives a
       forced-colours setting. 0792's rendering claims are all read from source
       and none is observed; this ticket must not repeat that.
-- [ ] `grep` shows the four retired string ids are gone, not merely unreferenced
+- [ ] `grep` shows the retired string ids are gone, not merely unreferenced --
+      the four switch ids and, per Action 3b, the five launch ids
+- [ ] SPEC.md R22 amended in the same PR as the behaviour, and no other SPEC
+      requirement still asserts a pause that survives a restart
+- [ ] Quitting Zotero with the box checked and restarting begins indexing again,
+      read in a live window, not inferred from the code
 
 ## Invariants
 
 - Admission policy, thresholds, and what gets extracted do not change.
 - `disarmSDTSitter`'s semantics do not change: nothing is cancelled, the sitter
   stops asking, `alive` stays true so the window and the control remain.
-- The preference still persists before the effect is applied
-  (`toggleSDTSwitch` writes the pref first, so a crash right after a click
-  still holds across the restart), and R22's "one obvious way" stays one way:
-  no second switch appears anywhere.
+- R22's FIRST clause holds: one obvious way to stop all background work, and no
+  second switch appears anywhere. Its second clause is amended by Action 9, not
+  quietly broken -- the pause is session-scoped by ruling, and SPEC must say so
+  in the same PR.
+- No state the window does not admit to. The ruling's reason is that a
+  remembered answer was stated only in a modal shown once per profile, so any
+  replacement that persists something invisibly -- a pref read but not shown, a
+  cache that restores the paused state -- reintroduces exactly what it removed.
 - Toggling off then on must keep forcing a fresh census: `stop()` burns the
   epoch, `start()` sets `reconciliationPending`, and the census that follows is
   what moves attachments out of `missing-source` once their files have landed.
@@ -266,6 +320,7 @@ The dialog's on/off control is a checkbox labelled "Pause indexing" that is
 checked when nothing is being indexed and unchecked when something is; it is
 non-interactive exactly while the user's choice cannot change the outcome, and
 in that state the line beside it says why; when it is interactive and unchecked
-that line says the phase. The behaviour is demonstrated by a suite that was red
-on both the boot-wait and the blocked-phase arms, and read once in a live
-Zotero window.
+that line says the phase. Nothing about the choice is remembered: the next
+Zotero start indexes as soon as it can, and SPEC.md R22 says that rather than
+the opposite. The behaviour is demonstrated by a suite that was red on both the
+boot-wait and the blocked-phase arms, and read once in a live Zotero window.
