@@ -1,0 +1,133 @@
+%erg 0.1
+Title: Pause the sitter while Zotero is syncing files
+Created: 2026-09-15
+Author: MinhHaDuong
+
+--- log ---
+2026-09-15T19:46Z MinhHaDuong created — proposed by the author while watching a live sync on padme: "Pauser quand ça sync ?"
+2026-09-15T19:46Z claude note Observed tonight on padme, v0.4.16, Zotero 10.0.2, three libraries. The panel read "Stored or linked file unavailable 13 699" against "Indexed and up to date 2", and both the author and this session first read it as a defect. It was not: `storage/` held 688 attachment folders at 19:39 and 1 285 at 19:43, growing ~1 000 files/minute — the census had classified a library whose files were ~9 % present. The reconciliation line said "last full pass, 3 min 43 s ago" and was correct. An age in minutes does not warn that the data behind it is 95 % obsolete.
+
+--- body ---
+## Context
+
+During a bulk file sync, every attachment Zotero has not yet downloaded reads
+as `missing-source`: `bootstrap.js:3207-3216` sets that status when
+`getFilePathAsync()` returns nothing or `IOUtils.stat()` throws, which is the
+correct answer about a file that is genuinely not on disk yet. The census is
+therefore not wrong — it is a true account of a moment that the sync makes
+obsolete within minutes.
+
+Two costs, and the second is the one that matters:
+
+1. The work is wasted. Classifying 13 700 attachments that are about to change
+   state, then re-classifying them, is exactly the footprint SPEC.md's "quiet
+   supervisor" paragraph exists to bound (ticket 0701).
+2. **The display misleads.** A reader sees a full categorical breakdown, stated
+   with the same confidence as in steady state, beside an age of three minutes.
+   Nothing in the panel says the classification was taken against a library
+   that was 9 % present. Tonight this misled the author and this session at
+   once, and only measuring the filesystem settled it.
+
+## What already exists, and must be reused
+
+- `SDT_BLOCKED_PHASES` (`bootstrap.js:718`) already holds five refusal phases,
+  and ticket **0745** already made a blocked phase back off to the 10-minute
+  idle cadence instead of the 30-second active one. A sixth phase inherits
+  both the backoff and the phase label. Nothing new is needed for the
+  mechanism — only for the detection.
+- Ticket **0759**'s ruling governs the display half: *"RULING: live. Accept the
+  truth and disclose it, rather than hiding or debouncing it."* So a pause must
+  not merely freeze the numbers. The phase label is what discloses the reason,
+  and that is the half of this change the ruling makes mandatory rather than
+  optional.
+
+## The unknown, and why it is measured before anything is designed
+
+The sitter has **zero** references to `Zotero.Sync`, `syncInProgress` or
+`Sync.Runner` in `bootstrap.js` and `scheduler.js`. Whether Zotero 10 exposes a
+readable sync state to a bootstrap extension is unestablished here.
+
+This matters more than the usual missing-API question because the five existing
+phases all read the **machine** (`/proc/meminfo`, disk, CPU) while this one
+would read the **host application** — the contract class where this codebase
+has already been burned once: `bootstrap.js:3190-3196` carries a guard written
+against an assumed host contract that made every attachment read as a linked
+file. A phase that cannot fire, or that fires always, is worse than no phase.
+
+## Relevant files
+
+- `plugins/sdt-sitter/bootstrap.js` — `SDT_BLOCKED_PHASES` (718),
+  `nextSweepDelayMS`, `blocked()` (~3333-3360), the phase label table (~350)
+- `plugins/sdt-sitter/scheduler.js` — `record()`, `publish()`; sets `phase`
+  from `host.blocked()`
+- `tests/sdt_sitter_zotero_mock.mjs` — the mock host; see the warning below
+- `tests/test_sdt_sitter.py`, `tests/sdt_sitter_scheduler.mjs`
+
+## Actions
+
+1. **Measure the host contract first.** In the author's Zotero console, while a
+   sync is running, enumerate what is readable rather than guessing a name:
+
+   ```js
+   (() => {
+     const R = Zotero.Sync?.Runner, S = Zotero.Sync?.Storage;
+     return JSON.stringify({
+       runner: !!R,
+       syncInProgress: R?.syncInProgress ?? null,
+       runnerKeys: R ? Object.keys(R).filter(k => !k.startsWith('_')) : null,
+       storageKeys: S ? Object.keys(S) : null,
+       localKeys: S?.Local ? Object.keys(S.Local).filter(k => !k.startsWith('_')) : null,
+     }, null, 2);
+   })()
+   ```
+
+   Record the output in this ticket. Re-run it with sync idle: a key that reads
+   the same in both states does not discriminate and must not be used.
+2. Decide the fallback when the API is absent or unreadable. The default this
+   ticket proposes: behave exactly as today. A sitter that pauses because it
+   cannot tell is a sitter that never runs.
+3. Add the phase, its label, and its entry in `SDT_BLOCKED_PHASES`.
+4. Ensure a sync ending wakes the sitter rather than leaving it parked for the
+   full 10-minute idle interval.
+
+## Test
+
+Red step, in the scheduler suite: a mock host reporting a sync in progress must
+leave `phase` at the new value and `nextSweepDelayMS` at the idle cadence.
+Reverting the `SDT_BLOCKED_PHASES` entry must reproduce the active cadence —
+the same red-first shape ticket 0745 used for the five existing phases.
+
+**The mock must not invent the platform.** `bootstrap.js:3190-3196` records
+what happens when the harness publishes a host API the real Zotero shapes
+differently: every fixture read as a linked file and the defect was invisible
+until a real host disagreed. Shape the mock from the step-1 output, not from
+what the API ought to look like.
+
+## Decision for the author
+
+**On a fresh install the first run is a large sync, so this pauses the sitter
+for precisely the session where a new user is watching it.** Indexing files
+that are still arriving is wasted work — they are re-hashed once settled — but
+the cost is that first value arrives later, and the panel says "waiting" during
+the one session that decides whether the plugin looks alive.
+
+Accepting that is the proposal. The alternative is to pause the **census** and
+let admission keep indexing whatever is already on disk, which keeps the
+counter moving at the price of a second, narrower rule. Not chosen here.
+
+## Invariants
+
+- The five existing phases and 0745's backoff keep their current behaviour.
+- 0759 stands: totals stay live and disclosed, never debounced or hidden.
+- No new library write, and no new periodic cost while idle.
+
+## Exit criteria
+
+- [ ] Step 1's console output recorded in this ticket, with the sync-idle
+      control, and a named key that discriminates between the two states
+- [ ] The phase ships with a label, or the ticket closes with the measured
+      reason it cannot
+- [ ] Red-first test in the scheduler suite, reverting the entry reproduces the
+      active cadence
+- [ ] Sync completion wakes the sitter without waiting out the idle interval
+- [ ] `make check` passes
