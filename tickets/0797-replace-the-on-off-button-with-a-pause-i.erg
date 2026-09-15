@@ -1,0 +1,258 @@
+%erg 0.1
+Title: Replace the on/off button with a Pause indexing checkbox
+Created: 2026-09-15
+Author: MinhHaDuong
+
+--- log ---
+2026-09-15T20:29Z MinhHaDuong created
+2026-09-15T20:31Z claude note Filed from the author's ruling of this date, quoted verbatim in the body. It SUPERSEDES the "Deferred: the on/off control" section of closed ticket 0792, which recorded the analysis and explicitly scheduled nothing: the widget is now decided (a checkbox), and so is the label (a state, "Pause indexing", not an action). Two of 0792's own conclusions are corrected by the ruling rather than confirmed, and both corrections are written out below so the next agent does not re-derive them from a closed ticket: Pause/Play was rejected there and is now the author's chosen word, which turns "extraction cannot be paused once a file has started" from a veto into a design constraint on one string; and 0792's recommended role="switch" should be DROPPED, because a control labelled "Pause indexing" is a checkbox and saying so is free. One clause of the ruling admits two readings and the body names which one is adopted, why, and the single paragraph that changes if the author meant the other.
+2026-09-15T20:34Z claude note Cross-session input from the concurrent sitter session (padme, same repo, author-authorised): the sync condition this ticket needs in Action 4 has a candidate reading, Zotero.Sync.Runner.syncInProgress, and a warning that comes with it -- it must be sampled TWICE, once during an active sync and once at rest, because a key that reads the same in both states does not discriminate and must not be used. Folded into Action 4 rather than left in a chat log. That session also holds PR #585, which bumps the sitter manifest to 0.4.17; THIS PR is tickets-only and touches no plugin file, so the implementation of this ticket takes 0.4.18 or later. Two live findings from that session bear on the control's value and are recorded here because they are the reason the author is tired of the button: toggling off/on is currently the only way to break the unbounded drain loop (stop() burns the epoch, start() sets reconciliationPending, forcing a fresh census), and a fresh census is itself needed because ~13 700 attachments enumerated while their files were not yet on disk are classed missing-source, which is in `failed` and not in `queued`. Incident dossier: verification/incidents/0795-2026-09-15-drain-during-sync.md, tickets 0795 and 0796.
+
+--- body ---
+
+## Context
+
+Author, 2026-09-15, having asked whether a ticket existed for this and been
+shown 0792's deferred section:
+
+> J'en ai marre du bouton. C'est un checkbox "Pause indexing". Qui commence
+> checked, et devient controlable quand l'indexing peut être lancé (boot wait,
+> sync). Quand il est auto-checked, ça dit pourquoi. Quand il est unchecked, ça
+> dit la phase.
+
+### What the ruling fixes
+
+`#sdt-switch` is a `<button>` whose visible text names the **action to take** --
+"Turn indexing on" / "Turn indexing off" -- so it inverts in the same instant it
+is clicked. Ticket 0790 patched the *announcement* (an `aria-label` carrying a
+state-then-action sentence, `switch-turned-on` / `switch-turned-off`) and left
+the widget alone, because the widget was the open question 0792 then deferred.
+
+A checkbox carries state natively. Checked/unchecked *is* the state, the label
+never inverts, and the 0790 `aria-label` workaround can go with it: the reason
+that attribute exists is that a button's name had to do a job a checkbox's
+`checked` does for free.
+
+It also puts the UI on SPEC.md's own vocabulary. R22 is named **"Pause"**; the
+control that satisfies it has until now said "Turn indexing off".
+
+### Two corrections this ruling makes to closed ticket 0792
+
+1. **Pause/Play was rejected there; the label is now the author's.** 0792's
+   ground was that `launch-worker` "cannot be paused once a file has started",
+   and that pause implies session-scoped state where this is a remembered
+   preference. The first half becomes a **design constraint on one string, not
+   a veto**: checking the box ends admissions and the document already in
+   flight finishes, exactly as `disarmSDTSitter` already behaves ("nothing is
+   cancelled; the sitter simply stops asking"). The line beside the box must
+   say so while it is true, and `RELEASE-NOTES.md` must not promise an instant
+   stop. No scheduler or admission semantics change anywhere in this ticket.
+   The second half is answered by the reading adopted below: the preference
+   stays remembered.
+
+2. **Drop `role="switch"`.** 0792's recommendation was
+   `<input type="checkbox" role="switch">`, chosen when the control was still
+   imagined as a slider. With "Pause indexing" as the label it is a checkbox;
+   the ARIA role would only make a screen reader say "switch" about a thing the
+   label calls a checkbox. A plain `<input type="checkbox">` sits strictly
+   inside 0792's costed option 1: no Lit, no `chrome://` coupling, no
+   stylesheet, no `<style>` element in a window built from twelve inline
+   `style.cssText` sites, and Gecko keeps the native widget, the focus ring and
+   the forced-colours rendering.
+
+### The reading adopted for "commence checked"
+
+**Adopted:** at startup the box renders **checked and non-interactive**, because
+indexing cannot yet be launched, and the line beside it says *why* (boot wait).
+When indexing becomes launchable the box becomes interactive and the remembered
+answer takes effect -- a profile that already consented unchecks itself and
+starts reporting the phase. **The remembered preference survives**:
+`extensions.sdt-pack-sitter.enabled`, its tri-state `null`, and the
+once-per-profile `askSDTLaunch` modal (R22, ticket 0742) are untouched by this
+ticket.
+
+**Not adopted:** the box starts checked *every session* and the user unchecks it
+at each Zotero start. That would revoke 0742's ruling and make a remembered
+answer mean nothing -- the precise defect 0742 was filed to fix ("declining the
+launch prompt was forgotten by the next Zotero start, so the prompt came back
+every session and the answer meant nothing"). It would also leave R22's "one
+obvious way" satisfied in one direction only.
+
+If the author meant the second reading, **this paragraph is the whole diff**:
+the pref stops being read at startup and the box is checked unconditionally.
+Nothing else in this ticket moves.
+
+### Which states check the box by themselves
+
+The ruling names boot wait and sync as the conditions that hold the control.
+Read with "when it is unchecked, it says the phase", that puts the blocked
+phases on the *unchecked* side: `cpu-busy`, `low-memory`, `low-disk`,
+`storage-unavailable`, `resources-unavailable` and `native-worker-busy` are
+phases, they already have decided labels in `SDT_PHASE_LABELS`, and the user
+has not paused anything when one of them holds. Auto-checked is reserved for
+the two states where the user's intent cannot change the outcome at all.
+
+Keeping a transient `cpu-busy` off the checkbox also keeps the control from
+flickering checked and unchecked under ordinary load, which is the 10 Hz defect
+in slower clothes -- the thing 0792's own invariants exist to prevent.
+
+### The table the implementation owes
+
+| Sitter state | box | interactive | the line beside it says |
+|---|---|---|---|
+| boot wait -- the sitter cannot yet be armed | checked | no | why: Zotero is still starting |
+| sync in progress | checked | no | why: waiting for sync to finish |
+| user paused (`phase === 'switched-off'`) | checked | yes | `switch-off`, unchanged |
+| checked, a document still in flight | checked | yes | finishing the current document, then stopping |
+| `census` | unchecked | yes | `switch-on-census` |
+| `draining` | unchecked | yes | `switch-on-draining` |
+| `extracting` | unchecked | yes | `switch-on-extracting` |
+| a blocked phase | unchecked | yes | that phase's `SDT_PHASE_LABELS` entry |
+| idle | unchecked | yes | `describeSDTIdleLine`'s counts |
+| removal noticed (0781) | checked | no | `vanished-message`, unchanged |
+
+Two rows are new work and not merely a rewiring of what exists: **sync** has no
+gate anywhere in the plugin today (see Actions 4), and **checked with a document
+in flight** has no string today.
+
+## Relevant files
+
+- `plugins/sdt-sitter/bootstrap.js`
+  - `~2639-2660` -- where the control is built: `sdt-switch-row`, the
+    `sdt-switch-state` span, and `element('button', 'sdt-switch')` with its
+    `type=button`, its `white-space: nowrap` sizing note and its click listener.
+    The flex `space-between` comment explains why the button is pinned right;
+    a checkbox's box + label is a different shape and that reasoning must be
+    re-read, not inherited.
+  - `~2322-2356` -- the per-render block: `#sdt-switch-state`'s text,
+    `announceSDTTransition`, `switch-turn-on`/`switch-turn-off` and the 0790
+    `aria-label`. `const off = s.phase === 'switched-off'` is the polarity that
+    inverts here: **checked <=> not indexing**.
+  - `~1651-1660` `describeSDTSwitchLine` -- already says the phase when on and
+    `switch-off` when off; it gains the two new cases.
+  - `~1672-1690` `describeSDTSwitchKind` -- the announcement identity. It must
+    stay digits-free, or a moving count reaches the live region.
+  - `~1014-1035` `SDT_PHASE_LABELS`, `~718` `SDT_BLOCKED_PHASES`.
+  - `~1052-1070` `readSDTSwitch` / `writeSDTSwitch`; `~1140-1150`
+    `toggleSDTSwitch` (writes the pref FIRST, deliberately).
+  - `~1104-1135` `armSDTSitter` / `disarmSDTSitter`.
+  - `~3436-3459` -- the startup launch decision, where `enabled === null`
+    reaches `askSDTLaunch` and where `armSDTSitter()` or `disarmSDTSitter()` is
+    chosen. This is where "boot wait" has to become a state the render can read
+    rather than a gap before `alive = true`.
+  - `~354-373` -- the string table: `switch-on-prefix`, `switch-off`,
+    `switch-turn-on`, `switch-turn-off`, `switch-turned-on`, `switch-turned-off`.
+- `tests/sdt_sitter_dialog.mjs` -- the dialog suite, drives a stub document and
+  pins the window's layer order.
+- `tests/sdt_sitter_bootstrap.mjs`, `tests/sdt_sitter_scheduler.mjs` -- the
+  scheduler suite asks `SDT_PHASE_LABELS` about every phase it can enumerate.
+- `verification/probes/sdt-sitter-harness/bootstrap.js` -- already asserts a
+  bound checkbox label for the diagnostics pref; the same pattern applies.
+- `verification/probes/sdt_panel_keyboard.js`, `run_panel_keyboard.py` -- focus
+  and keyboard assertions.
+- `plugins/sdt-sitter/RELEASE-NOTES.md`, `DESIGN-NOTES.md`, `SPEC.md` (R22).
+
+## Actions
+
+1. Replace `element('button', 'sdt-switch')` with an `<input type="checkbox">`
+   plus a bound `<label>`, unstyled, no `role`. Bind by `for`/`id` so the label
+   text is clickable and is the accessible name. Re-read the row's flex
+   reasoning rather than porting it: the comment that pins the button right was
+   written about a two-word button whose text changes length, and neither
+   clause is true of a fixed "Pause indexing" label.
+2. Invert the polarity at the one place it is computed. `checked` is
+   `!indexing`, derived from the sitter's phase exactly as `off` is today --
+   "reread from the sitter's own phase rather than from the pref: the two
+   agree, and a disagreement shows here instead of hiding" is a property worth
+   keeping.
+3. Make boot wait a readable state. Today the window does not exist before
+   `alive = true`, so "checked and non-interactive during boot wait" needs the
+   render to be able to distinguish *not yet armable* from *user paused*. Do
+   not invent a phase name that announces per document.
+4. Add the sync condition. **No Zotero-sync gate exists in the plugin today** --
+   grep for it before building: `sync` appears in `bootstrap.js` only in a
+   not-indexed detail string and in unrelated prose. The candidate reading,
+   from the concurrent session's live work on tickets 0795/0796, is
+   `Zotero.Sync.Runner.syncInProgress`. **It is a candidate, not a fact**: it
+   must be sampled twice, once while a sync is running and once at rest, and
+   adopted only if the two readings differ. A key identical in both states does
+   not discriminate and must not be used -- that probe is exactly this ticket's
+   positive control, and the reading is taken from a live Zotero window, since
+   nothing offline can settle it.
+5. Retire `switch-turn-on` / `switch-turn-off` / `switch-turned-on` /
+   `switch-turned-off` and add: the checkbox label, the boot-wait reason, the
+   sync reason, and the in-flight "finishing the current document" line. Delete
+   the retired ids rather than leaving them unreferenced.
+6. Drop the 0790 `aria-label` on this control and say in the commit why it is
+   safe to drop: the defect it patched was a button label that named the
+   inverse action, and a checkbox has no such label.
+7. Update `RELEASE-NOTES.md` and `DESIGN-NOTES.md`. The release note must state
+   that checking the box stops new work and lets the current document finish --
+   the promise 0792 refused to let Pause/Play make.
+8. Bump the manifest to 0.4.18 or later. PR #585 already holds 0.4.17, and
+   `bench/check_sitter_version.py` rule 3 reddens when two builds answer to one
+   number.
+
+## Test
+
+Red first, in `tests/sdt_sitter_dialog.mjs`, against the stub document:
+
+- The control is an `input[type=checkbox]` with a bound label, and its
+  `checked` is true when the phase is `switched-off` and false when the phase
+  is `census`. Today there is no checkbox at all, so this is red by absence.
+- **The control that matters**: assert the box is `disabled` during boot wait
+  and `enabled` under a blocked phase (`cpu-busy`). A test that only asserts
+  "checked when off" passes against a checkbox wired to the pref alone and
+  would miss the entire ruling. Both arms must be shown to fail before the fix
+  -- a suite where the blocked-phase arm is green by construction is the defect
+  ticket 0787 recorded in its own words: focusable and reachable were never the
+  same claim.
+- The announcement kind stays digits-free across a count change.
+
+## Verification
+
+- [ ] A test asserting `disabled` during boot wait fails before the change
+- [ ] A test asserting the box is NOT checked under `cpu-busy` fails before the
+      change
+- [ ] `node --test tests/sdt_sitter_dialog.mjs` and the other
+      `tests/sdt_sitter_*.mjs` suites pass
+- [ ] `make sitter-mutants` passes -- both probes anchor on this region
+- [ ] The two sync probe readings taken, active and at rest, and shown to differ
+      before `syncInProgress` (or whatever replaces it) is wired to the control
+- [ ] `make sitter-smoke SITTER_SMOKE_ZOTERO=~/.local/Zotero_linux-x86_64/zotero`
+      run against a real Zotero, and the checkbox read in a live window: what a
+      screen reader announces for it, and that the native widget survives a
+      forced-colours setting. 0792's rendering claims are all read from source
+      and none is observed; this ticket must not repeat that.
+- [ ] `grep` shows the four retired string ids are gone, not merely unreferenced
+
+## Invariants
+
+- Admission policy, thresholds, and what gets extracted do not change.
+- `disarmSDTSitter`'s semantics do not change: nothing is cancelled, the sitter
+  stops asking, `alive` stays true so the window and the control remain.
+- The preference still persists before the effect is applied
+  (`toggleSDTSwitch` writes the pref first, so a crash right after a click
+  still holds across the restart), and R22's "one obvious way" stays one way:
+  no second switch appears anywhere.
+- Toggling off then on must keep working as the escape hatch it currently is:
+  `stop()` burns the epoch and `start()` sets `reconciliationPending`, which is
+  what breaks the unbounded drain loop of ticket 0796 and forces a fresh
+  census. A checkbox that only writes a pref, or that debounces its own
+  transitions, would take that away.
+- No new phase announces per document (the 10 Hz defect).
+- Ticket 0781's removal notice still wins over every other reading in the row.
+- The control stays focusable. Ticket 0787's ruling stands and is NOT reopened
+  here: plugin toolbar buttons are outside Zotero's keyboard navigation chain,
+  that is upstream's gap, and nothing in this ticket works around it. The
+  checkbox lives in the dialog, which is a different document from the toolbar.
+
+## Exit criteria
+
+The dialog's on/off control is a checkbox labelled "Pause indexing" that is
+checked when nothing is being indexed and unchecked when something is; it is
+non-interactive exactly while the user's choice cannot change the outcome, and
+in that state the line beside it says why; when it is interactive and unchecked
+that line says the phase. The behaviour is demonstrated by a suite that was red
+on both the boot-wait and the blocked-phase arms, and read once in a live
+Zotero window.
