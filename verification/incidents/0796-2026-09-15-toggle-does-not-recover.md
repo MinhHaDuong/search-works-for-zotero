@@ -14,9 +14,9 @@ left open, and **refutes the workaround that file and this session recommended.*
 records the events, not their actor. A sister session working on the same
 codebase that evening confirmed it did none of the three — it runs headless,
 with no Zotero window and no Run JavaScript pane — and this session did not
-either. The author at his keyboard is the likely hand, but that is an inference
-from who was present, not a reading, and nothing here should be cited as
-evidence of it.
+either. The author confirmed afterwards that all three were his, so the question is
+closed by his word rather than by the ring — which is the distinction worth
+keeping: this file measures what happened, not who did it.
 
 ## The ring
 
