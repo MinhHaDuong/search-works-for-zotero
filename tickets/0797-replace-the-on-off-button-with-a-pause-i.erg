@@ -11,6 +11,8 @@ Author: MinhHaDuong
 2026-09-15T20:40Z claude note CHECKED, not relayed: PR #585's exclusion of `no-attachment` from the "Not indexed" heading does NOT propagate into this control's own sentence, and the effect on this ticket is the opposite of a hazard. Read the two routes rather than taking the concurrent session's warning on trust. The switch line's exception figure is `coverage.unindexed + coverage.failed`, tallied by `getSDTCoverage` over `SDT_STATUS_CLASSES` -- `unindexed: ['empty-pack']`, `failed: ['failed-session', 'inspection-error', 'unsupported-pack', 'missing-source']` (scheduler.js:13-31). `no-attachment` appears in none of those keys: it is not a status at all but a separate list, `state.unattached`, filled by `host.unattached()` (scheduler.js:215-216), which scheduler.js:213 itself calls "the separate no-attachment view". The heading is the other route, `groups.reduce(...members.length)` over `collectSDTNotIndexed` (bootstrap.js:1466), and that is the one #585 changes -- verified against the PR's own diff, not its description. So the sentence never counted `no-attachment`, the heading did, and the two have been disagreeing all along while `switch-on-exceptions` told the reader to compare them ("{count} attachments are not indexed -- see 'Not indexed' below"). #585 CLOSES that divergence. The consequence for this ticket is a thing not to undo: an implementer rewriting `describeSDTIdleLine` must not reintroduce it, which is why it is now an invariant below.
 2026-09-15T20:42Z claude note AUTHOR RULED, and with a third reading that discards the mechanism the first two were arguing about: "Je prefere ne pas avoir d'etat donc aucune preference memorisee. D'ailleurs ce n'est marque nulle part 'Preference memorisee'. On commence allume des que possible." So no remembered answer at all -- the box is checked and inert while indexing cannot be launched, and the moment it can be, indexing STARTS, unasked; checking the box pauses for this session only. Body rewritten accordingly: the adopted/not-adopted pair is gone, Action 3b removes the startup pref read AND askSDTLaunch together (half of it is worse than none -- dropping the modal while still reading the pref leaves a machine obeying an answer the user can no longer give), and the persistence invariant is replaced. His second sentence was checked rather than accepted: exactly one string claims persistence, `launch-details` ("This answer is remembered."), and it lives in the modal shown at most once per profile and deliberately never seen again, so the only statement of the memory sits on the one surface designed never to return while the window he actually consults says nothing -- which argues for the ruling. THE CONSEQUENCE HE HAS NOT YET SEEN, and it is why Action 9 exists: SPEC.md R22 requires in as many words that the stop "MUST hold across restarts", with the rationale that work resuming after a reboot "was never stopped, only interrupted". A session-scoped pause contradicts that clause. It is his requirement and his to change, but the amendment must land in the same PR as the behaviour -- a SPEC that claims the opposite of the running code is worse than either state. Also recorded, from the same message: the 20:31:54Z uninstall and the two toggles were the author's own, so nothing is owed to the 0796 incident record on attribution.
 2026-09-15T20:45Z claude note Two mechanics of the version guard folded into Action 8, from the concurrent session that hit both, and confirmed against bench/check_sitter_version.py rather than relayed. It digests the delivered payload with hashlib.sha256 and holds that no two DIFFERENT payloads share a version, so a comment-only edit reddens it -- that session's added comment did, under 0.4.17, and it amended its commit rather than take 0.4.18. And its forge leg answers NOT-RUN, on its own line, when it cannot enumerate the open PRs (an HTTP 504 did it once), because "a gate that cannot look must never answer as" green -- the script says so at line 85. In that state a version another open branch has already claimed reads as unclaimed, so a NOT-RUN must be re-run and never counted as a pass. Same shape as this ticket's other two controls, the sync probe and the blocked-phase test arm: an all-clear indistinguishable from "I could not look" is not a check, and this guard is unusual in saying which one it is giving you. Also noted: ticket 0795's Action 1 now carries the sync probe's availability constraint in writing -- neither arm is available on demand, the reading needs a live Zotero window with the Run JavaScript panel, and the active arm needs a real bulk sync that must be caught rather than provoked, since while 0796 is unfixed such a sync starves the sitter for its whole duration.
+2026-09-15T20:47Z claude note AUTHOR ON R22: "Zotero a un bouton pour desactiver un plugin." That resolves the conflict better than the amendment this ticket proposed an hour ago, and Action 9 is rewritten accordingly: R22 is NOT weakened. Its two clauses are answered by two controls, one of them the host's -- the checkbox pauses for the session, Zotero's own add-on disable is the stop that holds across restarts, by construction, and re-implementing a durable stop beside it was the plugin storing state the host already stores. What SPEC.md owes is a sentence saying which control answers which clause, since the text today reads as though one switch owed both. CHECKED, and the check changes what the SPEC edit must say: ticket 0742 -- titled "Collapse the sitter's launch prompt and pause into one persisted switch" -- considered add-on disable for exactly this role and rejected it, and bootstrap.js:1039-1042 still carries the reasons, that it "held across restarts but lived four clicks away in Tools -> Add-ons and removed the very window that would have shown the sitter stopped". Both are still true; what changed is their weight, and the edit must carry them forward rather than drop them: they were fatal while disable was the only durable stop and the routine need had to travel through it, and a rare deliberate act may cost four clicks and may take the window with it. This ticket therefore REVERSES 0742 -- its launch prompt goes, its persistence goes, the durable half returns to the host -- and what survives is one control in the window, with paused a state the user can see and leave. Action 9 also now requires updating the bootstrap.js:1038 comment block, which opens "the switch: R22's one obvious way (ticket 0742)" and would otherwise describe a design that no longer exists.
+2026-09-15T20:48Z claude note ACTION 3b WAS WRONG and is corrected, on three readings from the concurrent session, each confirmed in the source here rather than relayed. (1) "askSDTLaunch and its five strings" was wrong twice over: the modal owns SIX ids, and `launch-worker`/`launch-disable` are not among them -- bootstrap.js:2019 feeds those two, with `about-updates`, to the About panel's disclosures. They are precisely the paragraphs saying that extraction runs on a shared background process and that turning indexing off lets the file in flight finish, which is what a user who has just ticked "Pause indexing" goes looking for, so a `launch-` prefix sweep would empty About of the text this ticket's own label makes relevant. (2) `writeSDTSwitch` also calls `emit('switch', { enabled })` at bootstrap.js:1065, and those ring records are how this evening's two cycles and their `completed: 0` were reconstructed at all -- the emission must survive the pref write's removal or the control stops leaving any trace. (3) `readSDTSwitch`'s `null` is not only "never answered": the catch returns it for an UNREADABLE pref too, deliberately, per bootstrap.js:1049-1051 -- silently indexing on a machine whose answer could not be read is what the question exists to prevent. So the tri-state is a safety guard as well as a memory, and starting on unconditionally dissolves it. Under this ruling it has nothing left to protect, since indexing unasked is now the intended default, but that must be decided in the commit rather than carried away. Action 9 also gains R22's second citation site, removeSDTDurableState at bootstrap.js:3628-3630, whose comment contrasts the debug pref with "R22's tri-state discipline for ENABLED_PREF above" and would otherwise point at a retired clause.
 
 --- body ---
 
@@ -95,21 +97,46 @@ preference is remembered sits on the one surface designed never to be seen
 twice, while the window the user actually consults says nothing about it. State
 that nothing on screen admits to is the thing the ruling removes.
 
-### This ruling amends R22, and the implementation must not ship around it
+### R22: the durable half is the host's, the session half is ours
 
-R22 reads: "There MUST be one obvious way to stop all background work, and it
-MUST hold across restarts", and gives its own reason -- "background work that
-resumes on its own after a reboot was never stopped, only interrupted."
+Author, 2026-09-15, on being shown that a session-scoped pause contradicts
+R22's second clause:
 
-A pause that ends at the next Zotero start does not hold across restarts.
-**R22's second clause is what this ruling changes**, and SPEC.md must say so
-before the behaviour ships: a requirement that still claims the opposite of the
-running code is worse than either. Amending R22 is Action 9 and it gates the
-implementation rather than trailing it.
+> Zotero a un bouton pour désactiver un plugin.
 
-R22's first clause is untouched. One obvious way survives, and a checkbox
-labelled "Pause indexing" is a more obvious way than a button that names the
-inverse action.
+That is the answer, and it is better than weakening the requirement. R22 asks
+for one obvious way to stop all background work, holding across restarts. The
+two clauses are now answered by two controls, one of which the plugin does not
+have to build:
+
+- **Pause, for this session** -- the checkbox, one click, in the window the
+  user already has open.
+- **Stop, durably** -- Zotero's own add-on disable. It holds across restarts by
+  construction, and re-implementing a durable stop beside it was the plugin
+  storing state the host already stores.
+
+So R22 is not weakened. What SPEC.md owes is a sentence saying which control
+answers which clause, because today the text reads as though one switch had to
+do both.
+
+**What that sentence must answer, and must not pretend is new.** Ticket 0742 --
+titled, in as many words, "Collapse the sitter's launch prompt and pause into
+one persisted switch" -- considered add-on disable for exactly this role and
+rejected it. `bootstrap.js:1039-1042` still carries the reasoning: disable
+"held across restarts but lived four clicks away in Tools -> Add-ons and
+removed the very window that would have shown the sitter stopped". Both
+observations are still true. What changed is their weight, and the SPEC edit
+has to say so rather than quietly drop them: they were fatal while disable was
+the ONLY durable stop and the routine need -- quiet it, now -- had to travel
+through it. With a one-click pause in the window, reaching for the durable stop
+becomes a rare, deliberate act, and a rare deliberate act may cost four clicks
+and may take the window with it. Removing the UI is the correct behaviour for
+someone who meant to stop it for good.
+
+**Say plainly that this reverses 0742.** Its launch prompt goes (Action 3b),
+its persistence goes, and the durable half returns to the host. What survives
+is the half that worked: one control, in the window, and "paused" as a state
+the user can see and leave rather than the silence a removed UI leaves behind.
 
 ### Which states check the box by themselves
 
@@ -200,16 +227,43 @@ in flight** has no string today.
    not invent a phase name that announces per document.
 3b. Remove the persisted answer, all of it or none of it. `readSDTSwitch` stops
    being consulted at startup (`bootstrap.js:3436`) and the startup path arms
-   unconditionally once indexing is launchable; `askSDTLaunch` and its five
-   strings (`launch-title`, `launch-question`, `launch-conditions`,
-   `launch-details`, `launch-yes`/`launch-no`) go with it, because a prompt
-   whose only job is to write a preference that no longer exists has nothing to
-   ask. Decide explicitly what happens to `extensions.sdt-pack-sitter.enabled`
+   unconditionally once indexing is launchable; `askSDTLaunch` goes with it,
+   because a prompt whose only job is to write a preference that no longer
+   exists has nothing to ask. Half of this is worse than none: dropping the
+   modal while still reading the pref leaves a machine that obeys an answer the
+   user can no longer give.
+   Three traps in that removal, all three read in the source rather than
+   assumed:
+   - **Do not sweep the `launch-` prefix.** The modal owns exactly six ids --
+     `launch-title`, `launch-question`, `launch-conditions`, `launch-details`,
+     `launch-yes`, `launch-no`. `launch-worker` and `launch-disable` are NOT
+     modal strings: `bootstrap.js:2019` feeds them, with `about-updates`, to the
+     About panel's disclosures. They are the paragraphs explaining that
+     extraction runs on a shared background process, and that turning indexing
+     off stops new attachments while one already being processed finishes --
+     the two things a user who has just ticked "Pause indexing" is most likely
+     to go looking for. A prefix sweep would empty the About panel of exactly
+     the text this ticket's own label makes relevant.
+   - **`writeSDTSwitch` is not only a pref write.** It also calls
+     `emit('switch', { enabled })` (`bootstrap.js:1065`), and those ring records
+     are what let a post-mortem reconstruct the control's transitions -- they
+     are how the 2026-09-15 evening's two cycles and their `completed: 0` were
+     measured at all. If the pref write goes with the function, the emission
+     must survive it, or the diagnostics lose the only trace the control leaves.
+   - **The tri-state is also a safety guard, and dissolving it is a decision.**
+     `readSDTSwitch`'s `null` does not only mean "never answered": the `catch`
+     returns `null` for an UNREADABLE pref too, and `bootstrap.js:1049-1051`
+     says why that conflation is deliberate -- "asking a question that was
+     already answered is a nuisance, where silently indexing on a machine whose
+     answer could not be read is the thing the question exists to prevent."
+     Starting on unconditionally removes that protection along with the memory.
+     Under this ruling it has nothing left to protect, since indexing without
+     being asked is now the intended default -- but say so in the commit. It
+     must be decided, not carried away.
+   Decide explicitly what happens to `extensions.sdt-pack-sitter.enabled`
    itself -- a pref left written but unread is exactly the invisible state the
    ruling is against -- and to `bootstrap.js:3560`, which writes `false` into it
    on uninstall.
-   Half of this is worse than none: dropping the modal while still reading the
-   pref leaves a machine that obeys an answer the user can no longer give.
 4. Add the sync condition. **No Zotero-sync gate exists in the plugin today** --
    grep for it before building: `sync` appears in `bootstrap.js` only in a
    not-indexed detail string and in unrelated prose. The candidate reading,
@@ -246,13 +300,23 @@ in flight** has no string today.
      (its own words, `check_sitter_version.py:85`). A version another open
      branch has already claimed would read as unclaimed in that state. Re-run
      it; never take the NOT-RUN line for a pass.
-9. Amend SPEC.md R22's second clause, in the same PR as the behaviour. The
-   pause no longer holds across restarts, by the author's ruling; R22 currently
-   requires that it does, and gives a rationale that must be rewritten rather
-   than deleted, since the reasoning it states ("background work that resumes
-   on its own after a reboot was never stopped") is precisely what the new
-   behaviour does. Say what replaces it: the pause is for this session, and
-   starting on is the default the author chose.
+9. Give SPEC.md R22 a sentence naming which control answers which clause, in
+   the same PR as the behaviour: the checkbox pauses for the session, Zotero's
+   own add-on disable is the stop that holds across restarts. R22's wording
+   does not have to weaken -- do not weaken it -- but as it stands it reads as
+   though one switch owed both clauses, which is what the plugin has been
+   trying to be. The edit must also carry forward, rather than silently drop,
+   ticket 0742's two objections to add-on disable (four clicks away; it removes
+   the window that would have shown the sitter stopped) and say why they no
+   longer decide the question. Update the `bootstrap.js:1038` comment block in
+   the same commit -- it opens "the switch: R22's one obvious way (ticket
+   0742)" and will be describing a design that no longer exists.
+   R22 is cited in a SECOND place and the sweep must reach it:
+   `removeSDTDurableState` (`bootstrap.js:3628-3630`) justifies clearing the
+   debug pref rather than writing `false` by contrast with "R22's tri-state
+   discipline for ENABLED_PREF above". Retiring the tri-state leaves that
+   comment pointing at a clause that no longer exists, so the amendment touches
+   two things R22 is understood to say, not one.
 
 ## Test
 
@@ -287,8 +351,12 @@ Red first, in `tests/sdt_sitter_dialog.mjs`, against the stub document:
       and none is observed; this ticket must not repeat that.
 - [ ] `grep` shows the retired string ids are gone, not merely unreferenced --
       the four switch ids and, per Action 3b, the five launch ids
-- [ ] SPEC.md R22 amended in the same PR as the behaviour, and no other SPEC
-      requirement still asserts a pause that survives a restart
+- [ ] SPEC.md R22 carries the sentence splitting its two clauses between the
+      checkbox and add-on disable, in the same PR as the behaviour, and no
+      other SPEC requirement still asserts that the plugin's own pause survives
+      a restart
+- [ ] The `bootstrap.js:1038` "R22's one obvious way" comment no longer
+      describes the persisted switch it was written for
 - [ ] Quitting Zotero with the box checked and restarting begins indexing again,
       read in a live window, not inferred from the code
 
@@ -297,10 +365,10 @@ Red first, in `tests/sdt_sitter_dialog.mjs`, against the stub document:
 - Admission policy, thresholds, and what gets extracted do not change.
 - `disarmSDTSitter`'s semantics do not change: nothing is cancelled, the sitter
   stops asking, `alive` stays true so the window and the control remain.
-- R22's FIRST clause holds: one obvious way to stop all background work, and no
-  second switch appears anywhere. Its second clause is amended by Action 9, not
-  quietly broken -- the pause is session-scoped by ruling, and SPEC must say so
-  in the same PR.
+- R22 is satisfied, not weakened: the checkbox answers the pause clause and
+  Zotero's add-on disable answers the across-restarts clause. No third control
+  appears. The plugin must not grow its own durable stop back -- that is the
+  state the ruling removed, and the host already holds it.
 - No state the window does not admit to. The ruling's reason is that a
   remembered answer was stated only in a modal shown once per profile, so any
   replacement that persists something invisibly -- a pref read but not shown, a
@@ -335,6 +403,7 @@ checked when nothing is being indexed and unchecked when something is; it is
 non-interactive exactly while the user's choice cannot change the outcome, and
 in that state the line beside it says why; when it is interactive and unchecked
 that line says the phase. Nothing about the choice is remembered: the next
-Zotero start indexes as soon as it can, and SPEC.md R22 says that rather than
-the opposite. The behaviour is demonstrated by a suite that was red on both the
+Zotero start indexes as soon as it can, and SPEC.md R22 says which control
+holds which half of it -- the checkbox pauses this session, Zotero's add-on
+disable is the stop that lasts. The behaviour is demonstrated by a suite that was red on both the
 boot-wait and the blocked-phase arms, and read once in a live Zotero window.
