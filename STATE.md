@@ -1,6 +1,6 @@
 # STATE — Search Works for Zotero
 
-*Live handoff, under forty lines. Updated 2026-09-15 (housekeeping sweep 16:20Z). Ownership: [AGENTS.md](AGENTS.md).*
+*Live handoff. Updated 2026-09-15 (sitter 0.4.16, root tidy 19:36Z). Ownership: [AGENTS.md](AGENTS.md).*
 
 ## North Star
 
@@ -10,12 +10,13 @@ current, bounded and honest about coverage. [README.md](README.md) owns the prop
 
 ## Current Goals
 
-- **v0.4.10 is released; the tree is five versions past it at 0.4.15 and awaiting a retag.**
-  Acceptance PASS on 0.4.15 against Zotero 10.0.2 (`bench/sitter_acceptance.py`, record in
-  `verification/acceptance/`). 0.4.11–0.4.15 carry both Orca defects, the census display fix,
-  and 0727's two guards — a tester on v0.4.10 meets all of them.
-  **Author's hands only, in order:** GPG-sign the tag, publish the `.xpi`, then ONE commit
-  adding BOTH `tag` and `update_link` (half-filled FAILs rule 2).
+- **v0.4.10 is released; the tree is six versions past it at 0.4.16 and awaiting a retag.**
+  Acceptance PASS covers **0.4.15 only** (`verification/acceptance/0.4.15-2026-09-14.json`, Zotero 10.0.2);
+  **0.4.16 is untested** — it names the post-census stretch and bounds the retry that spun there (2e16f199).
+  Re-run `bench/sitter_acceptance.py`, or tag 0.4.15. 0.4.11–0.4.16 carry both Orca defects, the census
+  display fix, and 0727's two guards. **Author's hands only, in order:** build (`bench/build_sdt_sitter.py`
+  now defaults to `plugins/sdt-sitter/`), GPG-sign the tag, publish the `.xpi`, then ONE commit adding BOTH
+  `tag` and `update_link` (half-filled FAILs rule 2).
 - Release the Multilingual test library and questions + grader as public Challenge.
 - Zoteus feature freeze for the September 21 release: correctness, packaging and privacy,
   with QA tests for those. Indexer/worker rewrite and segmenter stay held.
