@@ -1463,7 +1463,28 @@ function fillSDTNotIndexed(doc, container, state) {
   // not yet available."
   const known = !!state.censusSnapshot;
   const groups = collectSDTNotIndexed(state);
-  const total = groups.reduce((count, group) => count + group.members.length, 0);
+  // The heading counts attachments; `no-attachment` holds bibliographic records.
+  // Summing it put "Not indexed (19016)" above a library of 13 780 attachments
+  // on the author's own panel (his ruling, 2026-09-15) -- a total larger than
+  // the library, which reads as a fault in the plugin rather than as two
+  // populations under one label. It is also the one group that is no obstacle
+  // to extraction, for the reason SDT_NOT_INDEXED_GROUPS states: there is
+  // nothing to extract. And the sentence beside the switch already counted the
+  // other way: `describeSDTIdleLine` tallies `coverage.unindexed + coverage.failed`
+  // off SDT_STATUS_CLASSES, which has no `no-attachment` key at all -- it is not a
+  // status but a separate list, read here off `state.censusSnapshot.unattached`.
+  // So the two numbers disagreed,
+  // on a sentence -- "{count} attachments are not indexed, see Not indexed below"
+  // -- whose whole job is to send the reader from one to the other. Excluding the
+  // group here aligns them; a later rewrite of that sentence that folds in a
+  // population with no attachment would silently reopen the gap.
+  // So it is excluded from the number a reader compares
+  // against his library, and from nothing else -- the group still renders, with
+  // its own title and remedy, still last. `tests/sdt_sitter_dialog.mjs` reads
+  // the heading and the section both, so dropping it from the section to get
+  // the total right would redden rather than pass.
+  const total = groups.reduce((count, group) =>
+    count + (group.id === 'no-attachment' ? 0 : group.members.length), 0);
   const section = container.parentNode;
   const sectionSummary = section.querySelector?.('summary') || section.childNodes?.[0];
   if (sectionSummary) sectionSummary.textContent = known

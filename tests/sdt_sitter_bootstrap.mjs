@@ -2363,7 +2363,13 @@ await test('unattached records stay outside attachment coverage and source acces
   // whole point: the order is the declaration's, not the walk's. The reading
   // order itself is held in `tests/test_sdt_sitter.py`; what this fixture proves
   // is that the renderer obeys it against a walk that disagrees.
-  assert.match(notIndexed.textContent, /Not indexed \(3\).*Could not be examined \(1\).*NotAllowedError.*Entries without any attached file \(2\).*Reference without a file/s);
+  // `(1)`, not `(3)`: the heading counts attachments and the two records without
+  // a file are not attachments. This assertion read `(3)` until 2026-09-15 and
+  // so contradicted its own test name and line 2352 above, both of which say
+  // unattached records stay outside attachment coverage — the heading was the
+  // one place they did not. Author's ruling, after reading "Not indexed (19016)"
+  // over a library of 13 780 attachments on his own panel.
+  assert.match(notIndexed.textContent, /Not indexed \(1\).*Could not be examined \(1\).*NotAllowedError.*Entries without any attached file \(2\).*Reference without a file/s);
   const libraryHeadings = notIndexed.descendants().filter(node => node.tagName === 'h4');
   assert.deepEqual(libraryHeadings.map(node => node.textContent),
     ['Library: Ma bibliothèque (1)', 'Library: Ma bibliothèque (2)'],
