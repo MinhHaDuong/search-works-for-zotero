@@ -1392,18 +1392,24 @@ await test('an identity that turns over on every inspect is retried once, never 
      admission. Observed live on 2026-09-15 as a sitter that looked hung for
      six minutes under a stale 'census' label.
 
-     The throw is the bound: without it this test does not fail, it hangs, and
-     a gate that hangs reports nothing. Item 2 getting its turn is the
-     assertion that the queue still moves. */
+     A bound is needed because the unfixed loop does not fail, it hangs, and a
+     gate that hangs reports nothing. The bound is a terminal STATUS and the
+     assertion is the COUNT -- deliberately not a throw. `inspect()` catches
+     everything the host throws and returns 'inspection-error', which is itself
+     terminal: the item leaves the queue, the sweep completes and every
+     assertion below passes on the unfixed scheduler. The first version of this
+     test threw, and measured 501 re-picks against 2 without noticing either.
+     Item 2 getting its turn is the assertion that the queue still moves. */
   const f = fixture(); let churn = 0;
   f.host.inspect = async id => {
     if (id !== 1) return { status: f.cached.has(id) ? 'current' : 'missing-pack',
       identity: String(id), directory: 'd' };
-    if (++churn > 20) throw new Error('item 1 was re-picked without bound');
+    if (++churn > 50) return { status: 'current', identity: 'settled', directory: 'd' };
     return { status: 'missing-pack', identity: `churn-${churn}`, directory: 'd' };
   };
   await f.api.sweep();
   assert.notEqual(f.api.state.phase, 'error', String(f.api.state.error));
+  assert.ok(churn <= 3, `item 1 was re-picked without bound: ${churn} inspections`);
   assert.deepEqual(f.calls, [2], 'the churning item monopolised the sweep');
   assert.equal(f.api.state.phase, 'waiting');
 });
