@@ -1,6 +1,6 @@
 # STATE — Search Works for Zotero
 
-*Live handoff, under forty lines. Updated 2026-09-15. Ownership: [AGENTS.md](AGENTS.md).*
+*Live handoff, under forty lines. Updated 2026-09-15 (housekeeping sweep 16:20Z). Ownership: [AGENTS.md](AGENTS.md).*
 
 ## North Star
 
@@ -25,8 +25,6 @@ current, bounded and honest about coverage. [README.md](README.md) owns the prop
 
 ## Recent outcomes
 
-- **All three 10.x releases exercised against real documents**, including the 10.0.1 → 10.0.2
-  carry-over: the sitter discarded every cached pack and re-prepared at processor 14.
 - **Only the reader consumes SDT in 10.0.2** — not search, not full-text. No OCR. From `omni.ja`.
 - **0727's mechanism is found, and it is Zotero's.** A Remove is queued, not performed; an
   install of the same id then succeeds and the queued removal finalises on the new copy
@@ -36,7 +34,11 @@ current, bounded and honest about coverage. [README.md](README.md) owns the prop
   [133758](https://forums.zotero.org/discussion/133758/) (the removal race) and
   [133759](https://forums.zotero.org/discussion/133759/) (0787, plugin buttons outside the
   Tab chain — mechanism verified against `zoteroPane.js`, not inferred).
-- Toast now announces once per stretch of work, not once per sweep (0788, ruled poor UX).
+- **A full-library sweep stopped advancing at 90 % on the IPCC AR6 WG1 report** (3 949 pages,
+  242 MB) and was ended by hand. Nothing crashed — no dump, no OOM, heartbeats firing
+  throughout; the native `Zotero.SDT.ensure()` stopped reporting. Slow tail or wedged worker
+  is unestablished, and 0793 measures it. Trace preserved in `verification/incidents/`,
+  since `sdt-sitter-last-shutdown.json` is overwritten at every shutdown.
 
 ## Handoff
 
@@ -47,8 +49,12 @@ unmeasured, and a check that cannot fire must not ship.
 Correctness/privacy gaps unchanged:
 R10 (0660–0664), R13 (0650–0652), R15 (0654–0657), R22 (0643, 0665), fixtures 0602, 0623, 0658.
 #6012 parity train (0754, 0755–0757) filed, unstarted.
+Filed today, both unstarted: **0793** (instrument the AR6 plateau — its red step is the
+positive control, not the AR6) and **0794** (two documents the menagerie lacks: a *Recueil
+de planches* volume, text concentrated in a fifth of its pages, and the 3 666-page Desert
+Quartzite draft EIS; Malynes stays, and the ticket says why).
 
 ## Basic state
 
 Reviewed upstream: **v1.16.0+1** at `4467663` (0738). Requirements: **24 ratified**.
-Tickets: run `erg ready tickets/` — 347 total here. No open PRs.
+Tickets: run `erg ready tickets/` — 350 total here. No open PRs.
