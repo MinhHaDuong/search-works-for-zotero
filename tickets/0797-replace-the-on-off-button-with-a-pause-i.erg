@@ -7,6 +7,7 @@ Author: MinhHaDuong
 2026-09-15T20:29Z MinhHaDuong created
 2026-09-15T20:31Z claude note Filed from the author's ruling of this date, quoted verbatim in the body. It SUPERSEDES the "Deferred: the on/off control" section of closed ticket 0792, which recorded the analysis and explicitly scheduled nothing: the widget is now decided (a checkbox), and so is the label (a state, "Pause indexing", not an action). Two of 0792's own conclusions are corrected by the ruling rather than confirmed, and both corrections are written out below so the next agent does not re-derive them from a closed ticket: Pause/Play was rejected there and is now the author's chosen word, which turns "extraction cannot be paused once a file has started" from a veto into a design constraint on one string; and 0792's recommended role="switch" should be DROPPED, because a control labelled "Pause indexing" is a checkbox and saying so is free. One clause of the ruling admits two readings and the body names which one is adopted, why, and the single paragraph that changes if the author meant the other.
 2026-09-15T20:34Z claude note Cross-session input from the concurrent sitter session (padme, same repo, author-authorised): the sync condition this ticket needs in Action 4 has a candidate reading, Zotero.Sync.Runner.syncInProgress, and a warning that comes with it -- it must be sampled TWICE, once during an active sync and once at rest, because a key that reads the same in both states does not discriminate and must not be used. Folded into Action 4 rather than left in a chat log. That session also holds PR #585, which bumps the sitter manifest to 0.4.17; THIS PR is tickets-only and touches no plugin file, so the implementation of this ticket takes 0.4.18 or later. Two live findings from that session bear on the control's value and are recorded here because they are the reason the author is tired of the button: toggling off/on is currently the only way to break the unbounded drain loop (stop() burns the epoch, start() sets reconciliationPending, forcing a fresh census), and a fresh census is itself needed because ~13 700 attachments enumerated while their files were not yet on disk are classed missing-source, which is in `failed` and not in `queued`. Incident dossier: verification/incidents/0795-2026-09-15-drain-during-sync.md, tickets 0795 and 0796.
+2026-09-15T20:36Z claude note CORRECTION to this ticket's 20:34Z entry, which is append-only and therefore stands wrong above: toggling off/on is NOT the escape hatch from ticket 0796's drain starvation. The concurrent sitter session measured it from `sdt-sitter-last-shutdown.json` across two real off/on cycles (20:16:55 and 20:22:53) and the record splits in two. What the toggle DOES do, and what this ticket's invariant now protects, is force a fresh census within two seconds of each `on`, and that census works: `failed` fell 13 749 -> 5 242 and `pending` rose 436 -> 8 926 as attachments whose files had landed left `missing-source`. What it does NOT do is restart the pump: each census was followed by a `drain-start` of ~9 600 dirty ids, after which `pending` froze and `active` stayed null, seven minutes the second time, and BOTH `sweep-end` records carry `completed: 0` -- 8 926 admissible candidates, not one submitted, nothing indexed all session. The starvation is also not permanent: between 20:08 and 20:15 `pending` rose 44 -> 389, which only happens if `refreshQueue()` ran, so the drain had emptied when the notification source dried up. Dossier: verification/incidents/0796-2026-09-15-toggle-does-not-recover.md. Two attributions in that session's reading are corrected here: the toggles and the 20:31:54Z uninstall were NOT this session's doing -- this session has no console on the live Zotero instance and touched neither -- so whoever took those actions is unidentified by anything either session measured, and the incident record should not name one.
 
 --- body ---
 
@@ -235,11 +236,15 @@ Red first, in `tests/sdt_sitter_dialog.mjs`, against the stub document:
   (`toggleSDTSwitch` writes the pref first, so a crash right after a click
   still holds across the restart), and R22's "one obvious way" stays one way:
   no second switch appears anywhere.
-- Toggling off then on must keep working as the escape hatch it currently is:
-  `stop()` burns the epoch and `start()` sets `reconciliationPending`, which is
-  what breaks the unbounded drain loop of ticket 0796 and forces a fresh
-  census. A checkbox that only writes a pref, or that debounces its own
-  transitions, would take that away.
+- Toggling off then on must keep forcing a fresh census: `stop()` burns the
+  epoch, `start()` sets `reconciliationPending`, and the census that follows is
+  what moves attachments out of `missing-source` once their files have landed.
+  That much is measured (see the log entry of this date). A checkbox that only
+  writes a pref, or that debounces its own transitions, would take it away.
+  It is **not** an escape hatch from the drain starvation of ticket 0796 --
+  also measured, and the opposite of what this ticket's earlier log entry
+  claimed -- so nothing here may be designed as if the control could rescue a
+  starved pump.
 - No new phase announces per document (the 10 Hz defect).
 - Ticket 0781's removal notice still wins over every other reading in the row.
 - The control stays focusable. Ticket 0787's ruling stands and is NOT reopened
