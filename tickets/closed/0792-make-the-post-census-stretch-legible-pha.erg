@@ -2,12 +2,14 @@
 Title: Make the post-census stretch legible: phase, drain trace, and the strings that report it
 Created: 2026-09-15
 Author: MinhHaDuong
+Closed: autoclosed — PR #576
 
 --- log ---
 2026-09-15T05:25Z MinhHaDuong created
 
 2026-09-15T05:45Z MinhHaDuong note Implemented: retry bound (identity, not directory), phase at census close, draining phase + drain-start/drain-end records, three strings, manifest 0.4.15 -> 0.4.16. Both new scheduler tests confirmed red against origin/main.
 2026-09-15T08:01Z MinhHaDuong note On/off control: findings recorded in the body from a direct read of Zotero 10.0.2; decision DEFERRED by the author, nothing scheduled. Pause/Play rejected outright.
+2026-09-15T08:29Z MinhHaDuong closed — autoclosed — PR #576
 --- body ---
 ## Context
 
