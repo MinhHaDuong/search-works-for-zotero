@@ -326,6 +326,38 @@ downloads on other devices, so indexing state was a distributed concern already
 in the lexical era. Larger derived artifacts make the same question harder —
 what syncs, what is rebuilt per device, and which device pays.
 
+The sitter added a fifth constant of its own on 2026-09-15, and it is the one
+that marks where the shared-budget question stops. `SDT_DRAIN_BUDGET_MS = 5000`
+(`scheduler.js`) caps how long one pass of the notification drain may hold the
+pump before the candidate search below it gets a turn. Before it, that loop ran
+to an empty set and paid a library-wide unattached-items query per id, so a bulk
+file sync — which fires notifications faster than the query returns — held
+control below it indefinitely: the backlog went 761 to 6 573 in twenty minutes
+on the author's library, `active` stayed null, and both sweep records read
+`completed: 0` while the window showed a plausible busy sitter (ticket 0796,
+`verification/incidents/0796-2026-09-15-toggle-does-not-recover.md`).
+
+It is deliberately not a candidate for any shared budget, and that is the answer
+to question 6 below that we can give from inside. The four constants above
+ration a *machine* — memory, threads, the inference process's own footprint —
+and a machine-wide arbiter could in principle set all of them, which is what
+makes their disagreement a defect rather than a difference. This one rations
+this scheduler's control flow between two stretches of its own work. No other
+consumer could read the number and act on it, so sharing it would buy nothing
+and hide where it belongs. The test for which kind a constant is: whether
+anything outside the component could have an opinion about its value.
+
+Its value is chosen against a different neighbour entirely. Wall clock rather
+than a count of ids, because what it bounds is a library-wide query whose cost
+scales with the library and not with the backlog, and the same count is a
+different duration on a library of 700 and one of 10 000. Five seconds, an order
+of magnitude under `bootstrap.js`'s 60 s heartbeat, so no drain pass can span a
+heartbeat: a stretch of work no periodic record could see the inside of was the
+whole visibility failure in the incident. The number is a cadence knob and not a
+correctness gate — any positive budget restores the property, because what
+admission needs is control reaching the end of the loop, not `dirty` being
+empty.
+
 The questions we could not answer from outside, in the order they cost us most:
 
 1. Is there a read-only way to observe extraction work — queued, active,
@@ -338,7 +370,12 @@ The questions we could not answer from outside, in the order they cost us most:
 5. Is the singleton serial worker meant to stay one as per-document cost rises,
    and if a bounded pool were considered, which invariants would it have to keep?
 6. Should the several indexing consumers share one resource budget rather than
-   each carrying its own constant?
+   each carrying its own constant? Half-answered above, and only for our side:
+   what meters a machine should be shared, what paces a loop's own internals
+   should not, and `SDT_DRAIN_BUDGET_MS` is the second kind. The half addressed
+   to the platform stays open — nothing the sitter can read exposes a budget to
+   join, so the memory floors still disagree by more than a factor of two with
+   no way for either side to learn it.
 
 These are questions rather than requests, and they are not an argument for
 restoring the removed buttons. The narrower claim is that an eager third-party

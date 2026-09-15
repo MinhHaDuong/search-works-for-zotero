@@ -35,6 +35,21 @@ var SDT_STATUS_CLASSES = {
   outOfScope: ['excluded', 'unsupported'],
 };
 
+/* How long one pass of the drain may hold the pump before the candidate search
+   below it gets a turn. Ticket 0796: the loop had no bound at all, so any
+   notification source faster than it held control below it indefinitely and
+   admission was never reached. Wall clock and not a count of ids -- the one
+   thing about this line a later reader is most likely to undo -- because what
+   it bounds is a library-wide `unattached()` per iteration, and the same count
+   is a different duration on a library of 700 and one of 10 000.
+
+   DESIGN-NOTES.md owns the rest and this comment deliberately does not restate
+   it: the incident the number answers, how its value is set against
+   bootstrap.js's heartbeat, why it is a cadence knob and not a correctness
+   gate, and the open question it is an instance of (6, whether the indexing
+   consumers should share one budget). */
+var SDT_DRAIN_BUDGET_MS = 5000;
+
 /* Host-independent admission loop. Native ensure owns extraction and persistence. */
 var createSDTSitter = function (host) {
   // `busy` is on the state rather than a closure variable because the heartbeat
@@ -198,7 +213,21 @@ var createSDTSitter = function (host) {
             if (host.emit) host.emit('drain-start', { pending: dirty.size }, 'trace');
           }
           const drained = dirty.size;
+          // Ticket 0796, and the two halves are not redundant. The deadline is
+          // what returns control to the outer loop under a source that refills
+          // `dirty` faster than this retires it -- without it the loop below
+          // exits only on an empty set, which such a source never allows, and
+          // the candidate search and admission underneath are never reached.
+          // `retired` is what guarantees the converse: the deadline is read
+          // against a clock an `unattached()` slower than the whole budget can
+          // already have run past, so a bare deadline check would break before
+          // retiring anything and the drain would livelock, spending every
+          // outer pass on an id it never removes. At least one id leaves
+          // `dirty` per pass, always; the set still empties, only later.
+          const deadline = host.now() + SDT_DRAIN_BUDGET_MS;
+          let retired = 0;
           while (dirty.size && current()) {
+            if (retired > 0 && host.now() >= deadline) break;
             let changed = false;
             const id = dirty.values().next().value;
             dirty.delete(id); // BEFORE awaits: a new event for this ID survives.
@@ -218,11 +247,22 @@ var createSDTSitter = function (host) {
             }
             if (!current()) { dirty.add(id); return; }
             state.draining = dirty.size;
+            retired++;
             if (changed) publish();
           }
           if (drained && current()) {
-            state.draining = 0;
-            if (host.emit) host.emit('drain-end', { drained, pending: dirty.size }, 'trace');
+            // Ticket 0796 moved both fields off constants the budget made false.
+            // `state.draining` used to be zeroed here because the loop above
+            // could only exit on an empty set; a budgeted exit leaves a real
+            // backlog, and the window's "draining N" line reads this (0759: the
+            // totals stay live and disclosed, so it must not read 0 over 6000
+            // outstanding ids). `drained` used to be the backlog at the START of
+            // the pass, which equalled what the pass retired only because the
+            // pass always ran to empty. `retired` is that count directly, so the
+            // record keeps meaning what its name says across a budgeted exit,
+            // and `pending` beside it is what is left for the next pass.
+            state.draining = dirty.size;
+            if (host.emit) host.emit('drain-end', { drained: retired, pending: dirty.size }, 'trace');
           }
           if (!current()) return;
           const candidate = state.pending.find(item => !attempted.has(item.id) ||

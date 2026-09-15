@@ -1438,6 +1438,57 @@ await test('the census label does not outlive the census, and the drain names it
   assert.equal(drain[0].pending, 1);
   assert.equal(drain[1].drained, 1);
 });
+await test('a sustained notification source cannot starve admission', async () => {
+  /* Ticket 0796. The drain ran `while (dirty.size && current())` with no
+     per-iteration bound while paying a library-wide `unattached()` every turn, so
+     any source that outran it held control below line 200 indefinitely and the
+     candidate search and admission underneath were never reached. Measured on the
+     author's library during a bulk file sync; the figures are in
+     verification/incidents/0796-2026-09-15-toggle-does-not-recover.md and are
+     deliberately not restated here.
+
+     The feed is bounded at FEED rather than guarded by a timeout, deliberately.
+     Nothing inside the drain's `while` calls `host.yield()` and every `await` in
+     it settles as a microtask, so the loop never defers to the macrotask queue
+     and a `setTimeout` could not fire -- the churn test above is this repo's
+     record of an abort mechanism swallowed by the very loop it was meant to
+     bound. With a finite feed the UNBOUNDED loop terminates too, which is the
+     point: red and green differ not in whether `pump()` returns but in WHEN
+     admission happens relative to the feed. `admittedAtFed < FEED` is the only
+     assertion that separates them. "pump resolved", "dirty emptied" and "the
+     phase moved" all pass against a machine that admitted nothing, which is
+     exactly what the two live switch toggles that evening produced. */
+  const f = fixture();
+  await f.api.sweep();
+  const FEED = 300, STEP_MS = 250;
+  let fed = 0, admittedAtFed = null, pendingAtAdmission = null, now = 1000;
+  f.host.now = () => now;
+  const ensure = f.host.ensure;
+  f.host.ensure = (id, progress) => {
+    admittedAtFed ??= fed; pendingAtAdmission ??= f.api.state.pending.length;
+    return ensure(id, progress);
+  };
+  // One call carries both halves of the live shape: the drain's own per-iteration
+  // cost, which is what the budget is spent on, and a notification landing while
+  // that query runs, which is what refills `dirty` behind it.
+  f.host.unattached = async () => {
+    now += STEP_MS;
+    if (fed < FEED) f.api.invalidate([1000 + fed++]);
+    return [];
+  };
+  f.api.invalidate([1]);
+  await f.api.pump();
+  assert.equal(fed, FEED, 'the feed never ran out, so this proves nothing');
+  assert.equal(f.api.state.draining, 0, 'the drain left a backlog standing');
+  assert(admittedAtFed !== null, 'admission was never reached');
+  assert(admittedAtFed < FEED,
+    `admission waited for the source to stop: first admit after ${admittedAtFed} of ${FEED} events`);
+  // The regression guard the ticket pairs with the red step: a bound on the drain
+  // must not cost the live candidate queue. `record()` inside the drain refreshes
+  // it, so ids invalidated mid-drain are already queued at the first admission.
+  assert(pendingAtAdmission > 2,
+    `the candidate queue did not grow during the drain: ${pendingAtAdmission}`);
+});
 await test('events arriving during a refused resource read update coverage before the pump sleeps', async () => {
   const f = fixture(); let reads = 0;
   f.host.blocked = async () => {

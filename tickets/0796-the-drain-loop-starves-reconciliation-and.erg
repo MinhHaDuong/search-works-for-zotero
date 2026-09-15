@@ -9,6 +9,7 @@ Author: claude
 
 2026-09-15T20:37Z claude note Attribution correction: the two off/on cycles and the uninstall in the 20:31:54Z postmortem have no established actor. A sister session on the same codebase confirmed it performed none of the three (headless, no Run JavaScript pane) and this session performed none either. The likely hand is the author at his keyboard, but that is an inference from presence, not a reading, and the incident file now says so rather than leaving a reader to assume.
 2026-09-15T20:50Z claude note Mechanism correction, found by verifying this ticket's own citations during a proportionate review of PR 588. refreshQueue() is NOT reachable only from reconciliation at 176: record() calls it at 113, and the drain calls record() every iteration at 210. So the candidate queue is rebuilt continuously and state.pending was live, not a photograph — it held at 44, then 8926, because the classification was not changing, missing-source being in the failed class and not queued. Three claims fall: refreshQueue unreachable, pending frozen, and the inference that the sitter recovers unaided once the source stops, which rested on reading the 44-to-389 climb as proof the drain had emptied. That climb is just files landing and being reclassified by the drain itself. What survives is measured rather than inferred: the loop at 201 is unbounded, admission at 228+ is never reached, active stays null, completed is 0 across both sweep-ends, and no drain-end is ever emitted. Title narrowed from 'starves both reconciliation and admission' to 'starves admission'. The recovery question is open again.
+2026-09-15T21:58Z claude note Exit criterion amended: the budget constant is documented in plugins/sdt-sitter/DESIGN-NOTES.md, not SPEC.md 5.2.9. 5.2.9 is the query pipeline's disk/RAM budgets — passage counts, token geometry, embedder residency — a different subsystem with no precedent for a sitter scheduler constant. DESIGN-NOTES.md already discusses the sitter's per-call-site constants and its open question 6 asks whether the indexing consumers should share one budget; the constant is recorded there and that question answered for our side (machine meters shared, a loop's own pacing not).
 --- body ---
 ## Context
 
@@ -75,9 +76,12 @@ property a bound must not break, not a red step.
 ## Actions
 
 1. Write the red test above; confirm it fails against current `main`.
-2. Bound the inner drain — a budget of ids or of wall-clock per outer
-   iteration — so the outer loop always makes progress. The budget's value is a
-   design number and belongs in `SPEC.md` §5.2.9 if it ships as one.
+2. Bound the inner drain — a budget of wall-clock per outer iteration, not of
+   ids: the cost bounded is a library-wide `unattached()`, so the same id count
+   is a different duration on a library of 700 and one of 10 000, and this
+   backlog moved 761 → 9 727 in one evening. The budget's value is a design
+   number and belongs in `plugins/sdt-sitter/DESIGN-NOTES.md`, NOT in `SPEC.md`
+   §5.2.9 — see the amended exit criterion below.
 3. Check the same shape elsewhere in `pump()`: the census loop at 154-164 also
    iterates a host-supplied list, though it yields per item (155) and is bounded
    by `ids.length`, which does not grow mid-loop.
@@ -106,5 +110,12 @@ one that makes the loop safe.
       a sustained `invalidate()` source
 - [ ] `state.pending` still updates while a drain backlog exists (true today; a
       bound on the drain must not cost it)
-- [ ] Any new budget constant lives in `SPEC.md`, not in the scheduler
+- [ ] Any new budget constant is documented outside the source that carries it,
+      in `plugins/sdt-sitter/DESIGN-NOTES.md` — amended 2026-09-15, this
+      criterion said `SPEC.md` §5.2.9 and that was wrong: §5.2.9 is the query
+      pipeline's disk and RAM budgets (passage counts, token geometry, embedder
+      residency), a different subsystem with no sitter-scheduler constant in it.
+      DESIGN-NOTES.md is where the sitter's other per-call-site constants are
+      already discussed, and its open question 6 asks exactly what this constant
+      is an instance of, so the record and the answer land together
 - [ ] `make check` passes

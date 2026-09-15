@@ -178,6 +178,16 @@ MUTANTS = [
     ('M18 current external packs remain masked by session failure',
      '  const classify = info => SDT_STATUS_CLASSES.queued.includes(info.status) &&',
      '  const classify = info =>'),
+    # Ticket 0796's defect, restored in one edit: the drain runs to an empty set
+    # again instead of to a budget. It is the mutant this probe most needed, and
+    # the one that best shows why a probe is worth running -- every assertion in
+    # the suite except the one the ticket added stays green under it, because
+    # `pump()` still returns, `dirty` still empties, the phase still moves and
+    # every count still sums. What it costs is that admission is not reached
+    # while a source keeps feeding, which is silence, not a failure.
+    ('M35 the drain runs to an empty set again, so a live source starves admission',
+     '            if (retired > 0 && host.now() >= deadline) break;\n',
+     ''),
 ]
 
 
