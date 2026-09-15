@@ -954,4 +954,46 @@ test('the window places initial focus on its first control, not on the body', ()
     + 'not the indexing switch');
 });
 
+/* Author's ruling, 2026-09-15, reading his own panel: "Not indexed (19016)",
+   against a library of 13 780 attachments. The arithmetic was honest and the
+   heading was not. `no-attachment` comes off `unattached` -- bibliographic
+   records, not attachments, as SDT_NOT_INDEXED_GROUPS' own comment says -- and
+   it is the one group that is not an obstacle to extraction, because there is
+   nothing to extract. Summing it into a heading a reader compares against his
+   attachment count produces a number larger than the library, which reads as a
+   fault in the plugin rather than as two populations under one label.
+
+   This is the defect the census comment already records being fixed once, one
+   level up: "Two unrelated facts under one label, and this session's own
+   analysis went wrong on that figure twice before the breakdown was read."
+
+   The group still renders, still last, with its own title and remedy. Only the
+   count in the heading changes, so this test reads the heading and the section
+   both. */
+test('the Not indexed heading counts attachments, not records without a file', () => {
+  const saved = sitter.state.censusSnapshot;
+  sitter.state.censusSnapshot = {
+    members: [
+      { itemID: 21, libraryID: 1, key: 'AAAA1111', title: 'a', status: 'empty-pack' },
+      { itemID: 22, libraryID: 1, key: 'BBBB2222', title: 'b', status: 'missing-source', linked: false },
+      { itemID: 23, libraryID: 1, key: 'CCCC3333', title: 'c', status: 'unsupported', reason: 'no-extractor' },
+    ],
+    unattached: [
+      { itemID: 24, libraryID: 1, key: 'DDDD4444', title: 'no file at all' },
+      { itemID: 25, libraryID: 1, key: 'EEEE5555', title: 'nor this one' },
+    ],
+  };
+  ui.render();
+  const heading = doc.getElementById('sdt-not-indexed-title').textContent;
+  assert.equal(heading, 'Not indexed (3)',
+    `the heading counted the two records without a file: ${heading}`);
+  // The group itself is still shown -- excluding it from the count must not
+  // exclude it from the section, which is the remedy the reader acts on.
+  const body = doc.getElementById('sdt-not-indexed').textContent;
+  assert(body.includes('Entries without any attached file'),
+    'excluding the group from the total also dropped it from the section');
+  sitter.state.censusSnapshot = saved;
+  ui.render();
+});
+
 console.log(JSON.stringify({ tests: results, result: 'pass' }));
