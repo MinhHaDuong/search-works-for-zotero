@@ -1,6 +1,6 @@
 # STATE — Search Works for Zotero
 
-*Live handoff. Updated 2026-09-15 (sitter 0.4.17, critical path 21:05Z). Ownership: [AGENTS.md](AGENTS.md).*
+*Live handoff. Updated 2026-09-15 (sitter 0.4.19, critical path 21:05Z). Ownership: [AGENTS.md](AGENTS.md).*
 
 ## North Star
 
@@ -17,9 +17,9 @@ every language present — local by default, current, bounded, honest about cove
   whose opening reading needs a bulk sync caught rather than provoked: author's hands.
   Then extraction wedged on one document, the AR6 plateau — **0793**. Then the "Pause
   indexing" checkbox — **0797**. Bound it, quiet it, unwedge it, make it legible.
-- **v0.4.10 released; the tree is seven versions past it at 0.4.17, awaiting a retag.**
+- **v0.4.10 released; the tree is nine versions past it at 0.4.19, awaiting a retag.**
   Acceptance PASS covers **0.4.15 only** (`verification/acceptance/0.4.15-2026-09-14.json`);
-  0.4.16 and 0.4.17 untested. Re-run `bench/sitter_acceptance.py`, or tag 0.4.15. **Author's
+  0.4.16 through 0.4.19 untested. Re-run `bench/sitter_acceptance.py`, or tag 0.4.15. **Author's
   hands only, in order:** build, GPG-sign the tag, publish the `.xpi`, then ONE commit
   adding BOTH `tag` and `update_link` (half-filled FAILs rule 2).
 - Release the Multilingual test library and questions + grader as public Challenge.
