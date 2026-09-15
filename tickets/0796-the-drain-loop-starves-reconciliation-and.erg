@@ -1,11 +1,14 @@
 %erg 0.1
-Title: The drain loop is unbounded and starves both reconciliation and admission
+Title: The drain loop is unbounded and starves admission
 Created: 2026-09-15
 Author: claude
 
 --- log ---
 2026-09-15T19:59Z claude created — measured on the author's live instance during a bulk file sync (padme, v0.4.16, Zotero 10.0.2). Three reads of `state.draining` two minutes apart: 6495, 6543, 6573, against 761 at `drain-start` twenty-five minutes earlier. `pending` 44, `active` null, `busy` true throughout. Split from 0795, which avoids the trigger but leaves the unbounded loop.
+2026-09-15T20:34Z claude note Measured answer to this ticket's open question, and a correction. The toggle is NOT a workaround. `sdt-sitter-last-shutdown.json` (uninstall, 20:31:54Z) holds two full off/on cycles: each is followed within two seconds by `announce phase=census`, so the forced reconciliation works and `failed` falls 13749 -> 5242 while `pending` rises 436 -> 8926 — the reclassification this ticket predicted. Then each census is followed by a `drain-start` of ~9600 dirty ids and `pending` freezes again, seven minutes on the second attempt. `completed: 0` in both `sweep-end` records: 8926 admissible candidates, not one submitted. The sitter DOES recover unaided once notifications stop (pending climbed 44 -> 389 at 20:08-20:15, which only happens if `refreshQueue()` at 176 ran), so the starvation is not permanent — it lasts as long as the source outruns the drain. Consequence for the red test: assert ADMISSION is reached, not merely that the outer loop advances; both toggles forced the outer loop round with no `admit`. Record: `verification/incidents/0796-2026-09-15-toggle-does-not-recover.md`.
 
+2026-09-15T20:37Z claude note Attribution correction: the two off/on cycles and the uninstall in the 20:31:54Z postmortem have no established actor. A sister session on the same codebase confirmed it performed none of the three (headless, no Run JavaScript pane) and this session performed none either. The likely hand is the author at his keyboard, but that is an inference from presence, not a reading, and the incident file now says so rather than leaving a reader to assume.
+2026-09-15T20:50Z claude note Mechanism correction, found by verifying this ticket's own citations during a proportionate review of PR 588. refreshQueue() is NOT reachable only from reconciliation at 176: record() calls it at 113, and the drain calls record() every iteration at 210. So the candidate queue is rebuilt continuously and state.pending was live, not a photograph — it held at 44, then 8926, because the classification was not changing, missing-source being in the failed class and not queued. Three claims fall: refreshQueue unreachable, pending frozen, and the inference that the sitter recovers unaided once the source stops, which rested on reading the 44-to-389 climb as proof the drain had emptied. That climb is just files landing and being reclassified by the drain itself. What survives is measured rather than inferred: the loop at 201 is unbounded, admission at 228+ is never reached, active stays null, completed is 0 across both sweep-ends, and no drain-end is ever emitted. Title narrowed from 'starves both reconciliation and admission' to 'starves admission'. The recovery question is open again.
 --- body ---
 ## Context
 
@@ -23,14 +26,17 @@ sync does comfortably, since each drain iteration pays a library-wide
 
 ## What that starves, and why the symptom is silence rather than an error
 
-- **Reconciliation never re-runs**, so `refreshQueue()` (176) never re-runs, so
-  `state.pending` (built at 99 from `observed`) stays frozen at whatever the
-  last census produced. Files that have since arrived and become indexable never
-  enter the candidate list.
-- **Admission is never reached**, so `state.active` stays `null` and not one
-  document is submitted.
-- The phase stays `draining` and the heartbeat keeps firing (`busy` is true), so
-  nothing anywhere reports a fault. The panel shows a plausible steady state.
+**Admission is never reached**, so `state.active` stays `null` and not one
+document is submitted. The phase stays `draining` and the heartbeat keeps firing
+(`busy` is true), so nothing anywhere reports a fault. The panel shows a
+plausible steady state.
+
+**Reconciliation is not starved**, contrary to this ticket's first version and
+its title until 2026-09-15. `refreshQueue()` is called from `record()` at line
+113 as well as from reconciliation at 176, and the drain calls `record()` every
+iteration at 210, so the candidate queue is rebuilt continuously and
+`state.pending` is live. It held at 44, and later at 8 926, because the
+classification was not changing — not because it could not be recomputed.
 
 ## Measured, on the author's library
 
@@ -62,8 +68,9 @@ today's code the test hangs or times out with `active === null`; that failure is
 the positive control and must be seen before any fix.
 
 A second assertion worth pinning in the same test: `state.pending` must change
-when a mock item becomes indexable mid-drain. Today it cannot, because
-`refreshQueue()` is unreachable.
+when a mock item becomes indexable mid-drain. This already holds today — the
+drain's own `record()` refreshes the queue — so it is a regression guard on a
+property a bound must not break, not a red step.
 
 ## Actions
 
@@ -92,9 +99,12 @@ one that makes the loop safe.
 ## Exit criteria
 
 - [ ] Red test in the scheduler suite reproducing the starvation, failing
-      against current `main` before the fix
+      against current `main` before the fix, and asserting that **admission is
+      reached** — the 2026-09-15 postmortem shows the outer loop can be forced
+      round twice, by a switch toggle, with `completed: 0` both times
 - [ ] The inner drain is bounded and the outer loop demonstrably advances under
       a sustained `invalidate()` source
-- [ ] `state.pending` updates while a drain backlog exists
+- [ ] `state.pending` still updates while a drain backlog exists (true today; a
+      bound on the drain must not cost it)
 - [ ] Any new budget constant lives in `SPEC.md`, not in the scheduler
 - [ ] `make check` passes

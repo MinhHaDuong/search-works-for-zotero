@@ -93,18 +93,23 @@ The structure that produces this, all in `scheduler.js`:
 - `invalidate(ids)` (129) refills `dirty` from item notifications, and each drain
   iteration pays a library-wide `host.unattached()` (215-218).
 
-So while notifications outrun the drain:
+So while notifications outrun the drain, **admission (228+) is never reached**:
+`active` stays `null`, nothing is ever submitted, and `busy` stays true so the
+heartbeat keeps firing and nothing reports a fault.
 
-1. **`refreshQueue()` (99, called only at 176) never re-runs**, so `state.pending`
-   is frozen at the last census's snapshot. That is why `pending` reads 44
-   throughout — it is a photograph from 19:39, not a live count. Files that have
-   arrived since and become indexable never enter the candidate list.
-2. **Admission (228+) is never reached**, so `active` stays `null` and nothing is
-   ever submitted.
-3. `busy` stays true and the heartbeat keeps firing, so nothing reports a fault.
+> **Correction, 2026-09-15, found reviewing this file's own citations.** It first
+> said `refreshQueue()` was "called only at 176" and therefore unreachable, so
+> `state.pending` was "a photograph from 19:39, not a live count". Both are
+> false. `refreshQueue()` is also called from `record()` at line 113, and the
+> drain calls `record()` on every iteration at line 210, so the candidate queue is
+> rebuilt continuously and `pending` is live throughout. It read 44 because
+> nothing was changing class: the files were not on disk yet, so those attachments
+> stayed `missing-source`, which `SDT_STATUS_CLASSES` puts in `failed` and not in
+> `queued`. Reconciliation is not starved. **Admission is**, and that is the
+> defect — it is measured (`active: null`, no `drain-end`), not inferred.
 
-The sitter does no work at all, and cannot resume while `dirty` grows. Split out
-as ticket [0796](../../tickets/0796-the-drain-loop-starves-reconciliation-and.erg):
+The sitter admits nothing while `dirty` grows. Split out as ticket
+[0796](../../tickets/0796-the-drain-loop-starves-reconciliation-and.erg):
 0795 removes the most common trigger, 0796 makes the loop safe.
 
 ## Two phenomena, not one
