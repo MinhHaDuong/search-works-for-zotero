@@ -7,6 +7,7 @@ Author: MinhHaDuong
 2026-09-15T05:25Z MinhHaDuong created
 
 2026-09-15T05:45Z MinhHaDuong note Implemented: retry bound (identity, not directory), phase at census close, draining phase + drain-start/drain-end records, three strings, manifest 0.4.15 -> 0.4.16. Both new scheduler tests confirmed red against origin/main.
+2026-09-15T08:01Z MinhHaDuong note On/off control: findings recorded in the body from a direct read of Zotero 10.0.2; decision DEFERRED by the author, nothing scheduled. Pause/Play rejected outright.
 --- body ---
 ## Context
 
@@ -122,3 +123,75 @@ today's code that assertion loops or fails; against the fix it passes.
   ring, so the next occurrence is diagnosable after the fact
 - The unbounded re-pick at `scheduler.js:218-219` cannot recur
 - The three strings read as the author ruled
+
+## Deferred: the on/off control
+
+Raised by the author on 2026-09-15 while the work above was in review. **The
+decision is deferred and nothing here is scheduled.** It is written down so it
+need not be re-derived, not to schedule it. No measurer is named because no
+measurement is owed until someone decides to act.
+
+### What was established, by reading the installed Zotero 10.0.2
+
+Read off `~/.local/Zotero_linux-x86_64`, not from memory or documentation.
+
+- `moz-toggle` **is** embarked, in the toolkit archive rather than Zotero's own:
+  `omni.ja` carries `chrome/toolkit/content/global/elements/moz-toggle.mjs`
+  (2.2K) and `moz-toggle.css`, and `customElements.js` lists it in the lazy
+  custom-element map, so `<moz-toggle>` upgrades on first use -- in a document
+  that loads that file.
+- Zotero's own UI uses it nowhere. Across all 511 files of
+  `chrome/content/zotero/`: `moz-toggle` in **0** files, `role="switch"` in
+  **0** files, `<checkbox>` in **15** files (**27** occurrences in the
+  preference panes alone). The XUL checkbox is Zotero's on/off idiom; the
+  toggle is inherited platform furniture it has never sat on.
+- `moz-toggle` renders a **button**, not a switch:
+  `html`<button id="input" type="button" aria-pressed=${pressed} ...>``. It
+  carries state through `aria-pressed`, not `role="switch"`/`aria-checked`.
+  This corrects the first reading given to the author, which claimed the
+  latter. Either fixes the real wart -- a reader hears a state rather than an
+  action that inverts the instant it is taken -- but by different routes.
+- It is Lit-based (`import { html, ifDefined } from "../vendor/lit.all.mjs"`,
+  extends `MozBaseInputElement`), so adopting it pulls Lit and the moz
+  design-system base classes into a dialog that has no framework at all.
+- Zotero uses `AccentColor` in **0** files and `forced-colors` in **0** files,
+  because its checkboxes never opt out of the native widget and get
+  high-contrast rendering free.
+
+### The options, as they stood at that reading
+
+1. `<input type="checkbox" role="switch">`, **unstyled**. Works in the dialog's
+   existing chrome `about:blank` XHTML document today; no `chrome://` coupling,
+   no Lit, no stylesheet. Gecko keeps responsibility for the native look, the
+   focus ring and forced colours. Loses the sliding look. This was the
+   recommendation.
+2. The same, plus ~20 lines / ~1 076 bytes of CSS for a slider. The bytes are
+   not the cost: `appearance: none` opts out of the native widget, which is why
+   a third of those lines is a `forced-colors` block -- without it the state is
+   carried by colour alone and goes invisible in high contrast. It would also
+   introduce the dialog's **first** `<style>` element (the window is built from
+   12 inline `style.cssText` sites; `:checked` and `::before` cannot be
+   expressed inline), and it would duplicate in CSS the reduced-motion
+   commitment `prefersSDTReducedMotion()` already keeps in JS.
+3. `<moz-toggle>`. A real slider for free, but a bare chrome `about:blank` does
+   not load `customElements.js`, so the module would be imported explicitly,
+   and the plugin would be the application's only caller, against a
+   Firefox-internal `chrome://` path that moves across ESR rebases.
+4. XUL `<checkbox>`. Zotero's own idiom, but its home is the XUL preference
+   panes; this dialog is XHTML.
+
+### Why Pause/Play was rejected rather than deferred
+
+It would promise twice what the plugin cannot do. `launch-worker` already
+states that extraction "cannot be paused once a file has started", and turning
+off stops only new admissions while the file under way finishes. Pause also
+implies session-scoped state, where this is a remembered consent preference.
+That is a settled no, not a deferral.
+
+### What is NOT established
+
+- Every claim above about rendering and about what a screen reader announces is
+  read from source, not observed in a running window. `make sitter-smoke`
+  against a real Zotero is what would settle them.
+- `AccentColor` / `AccentColorText` support is read from the specification;
+  there is no in-app precedent, since Zotero uses neither.
