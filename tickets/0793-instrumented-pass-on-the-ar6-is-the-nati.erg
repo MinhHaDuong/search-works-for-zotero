@@ -6,6 +6,7 @@ Author: haduong
 --- log ---
 2026-09-15T15:31Z haduong created
 2026-09-15T15:52Z haduong note Trace preserved as verification/incidents/0793-2026-09-15-ar6-stall.json — the source file is overwritten by the next shutdown
+2026-09-15T16:34Z haduong note Added action 6: settle whether progress counts pages or bytes. The plates volume filed in 0794 is the bench for it.
 
 --- body ---
 ## Context
@@ -72,6 +73,16 @@ must not ship. Same rule here — no sitter change lands off this trace alone.
    probe is known to be able to see a completion.
 5. Write the run up in `verification/incidents/` beside the preserved trace,
    naming which of slow / wedged holds and on what evidence.
+6. **Settle what the progress number counts.** `scheduler.js` only relays it, so
+   whether it tracks pages, bytes or something else is unread. It changes what a
+   plateau means: if progress counts pages while the work per page varies, a bar
+   advancing evenly says nothing about work remaining, and a stall at 90 on a
+   document with heavy tail pages is expected rather than pathological. The bench
+   is the plates volume filed in ticket 0794 — 758 pages whose individual
+   character counts are now known, two modes a factor of 200 apart. Run it
+   through `ensure()` and compare the progress ticks against the known per-page
+   weights: ticks even across the plate run means pages, ticks clustered on the
+   explication pages means text.
 
 ## Test
 
