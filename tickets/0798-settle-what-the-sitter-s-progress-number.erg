@@ -1,0 +1,93 @@
+%erg 0.1
+Title: Settle what the sitter's progress number counts: pages or text
+Created: 2026-09-15
+Author: haduong
+Blocked-by: 0794
+
+--- log ---
+2026-09-15T22:01Z haduong created
+
+2026-09-15T22:04Z claude note Split out of 0793 action 6: orthogonal question, and Blocked-by 0794 which must import the plates volume first.
+--- body ---
+## Context
+
+Split out of ticket 0793, which had it as action 6. It does not belong there:
+0793 asks one question — is the native worker slow or wedged — and this question
+is orthogonal to it and carries a hard dependency 0793 does not. Leaving it in
+would have held 0793 open behind a fixture import that has not started.
+
+`plugins/sdt-sitter/scheduler.js` only relays the number `Zotero.SDT.ensure()`
+hands its `onProgress` callback. Whether that number tracks pages, bytes,
+extracted characters or something else is unread on this side, and it changes
+what a plateau means. If progress counts pages while the work per page varies by
+orders of magnitude, a bar advancing evenly says nothing about work remaining,
+and a stall at 90 % on a document with heavy tail pages is expected rather than
+pathological. If it tracks text, an even climb is a real rate and a plateau is a
+real anomaly.
+
+This is worth settling on its own terms, whatever 0793 concludes. It decides
+whether the progress number can ever carry a prediction, and it is the
+precondition for any "N % done" wording the UI might want.
+
+## Dependency
+
+**Blocked by 0794**, which imports the bench: `gri_33125001118088`, the 1762
+*Recueil de planches*, 758 pages whose per-page character counts are already
+measured — two modes a factor of 200 apart, at 31 and 6 639 characters, with an
+overall median of 25 and 61 % of pages under 50 characters, structured in blocks
+rather than alternating.
+Nothing currently in the fixture cache has that shape, which is exactly why this
+ticket cannot run before 0794 lands.
+
+`Blocked-by` names 0794 and not 0793: the dependency is the fixture, not the
+stall investigation.
+
+## Relevant files
+
+- `bench/fixtures/` and the menagerie recipe — where 0794 lands the document.
+- `plugins/sdt-sitter/scheduler.js` — the `onProgress` relay; read, not changed.
+- `bench/sdt_stall_probe.py` — `analyse_heartbeats()` already parses the journal
+  and reports ticks; the tick series it reads is the input to this measurement.
+- `verification/incidents/0793-2026-09-15-ar6-stall.json` — the trace whose
+  interpretation this ticket sharpens.
+
+## Actions
+
+1. With 0794's plates volume imported, run it through `ensure()` in an
+   instrumented session and capture the full `progress` record series with
+   timestamps.
+2. Map each progress tick onto the page range it must correspond to under each
+   hypothesis, using the per-page character counts 0794 records.
+3. Compare: ticks even across the plate run (where pages are near-empty) means
+   the number counts **pages**; ticks clustered on the explication pages means it
+   counts **text**. A third shape — neither — is a real outcome and is reported
+   as such rather than forced into one of the two.
+4. Record what this implies for reading a plateau, and feed it back into 0793's
+   write-up if 0793 is still open.
+
+## Test
+
+The control is the *text* volume 0794 also names — the same Encyclopédie in a
+unimodal edition, 97 % of pages between 3 000 and 6 461 characters. Under either
+hypothesis its ticks are even, so it cannot discriminate; it is there to show
+that the instrumentation produces a readable tick series at all on a document of
+that size, before a null on the plates volume is allowed to mean anything.
+
+## Verification
+
+- [ ] Full progress-tick series captured for the plates volume, with timestamps
+- [ ] Per-page character counts from 0794 aligned against the tick positions
+- [ ] Control run on the unimodal text volume in the same session
+- [ ] The answer stated as pages / text / neither, with the alignment as evidence
+
+## Invariants
+
+- No change to `plugins/sdt-sitter/`. This ticket measures; it does not fix.
+- `make check` passes.
+
+## Exit criteria
+
+- A recorded answer to "what does the progress number count", with the tick
+  alignment that supports it, in `verification/`.
+- A one-line statement of what a plateau in that number does and does not imply,
+  cited from 0793 (or from its successor if 0793 has closed).

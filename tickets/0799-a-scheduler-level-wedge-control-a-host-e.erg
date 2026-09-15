@@ -1,0 +1,93 @@
+%erg 0.1
+Title: A scheduler-level wedge control: a host.ensure that never resolves
+Created: 2026-09-15
+Author: haduong
+
+--- log ---
+2026-09-15T22:01Z haduong created
+
+2026-09-15T22:04Z claude note Filed from 0793: the wedge control Johnson cannot be. Deferred out of 0793 because tests/sdt_sitter_scheduler.mjs was being edited concurrently for 0796.
+--- body ---
+## Context
+
+Ticket 0793 built `bench/sdt_stall_probe.py`: a plateau predicate over the
+sitter's heartbeat journal, plus a per-thread CPU sampler, plus the verdict that
+combines them. Both arms of the predicate are asserted against the preserved AR6
+trace — silent while progress climbs 69 → 88, loud across the three beats pinned
+at 90 — and the sampler is validated against a synthetic busy loop and a
+sleeping process.
+
+What is still missing is a control one level up: **a fabricated wedge inside the
+scheduler itself**. `tests/sdt_sitter_scheduler.mjs` drives `sweep()` against a
+mock host. A mock `host.ensure` that never resolves, with a fake clock advanced
+past the heartbeat interval, would show the scheduler emitting exactly the beat
+shape the AR6 produced — and therefore that the predicate fires on a wedge
+manufactured end to end, not only on one historical JSON file.
+
+Why it is a separate ticket and not part of 0793: `tests/sdt_sitter_scheduler.mjs`
+was being edited concurrently for ticket 0796 while 0793's work was in flight,
+and two agents on one test file is the contention the delegation rules say to
+avoid. The 0793 work was scoped to `bench/` and `verification/` for that reason.
+
+Why it is worth doing at all: the predicate's plateau arm currently rests on one
+recorded incident. If the sitter's heartbeat fields ever change shape — a rename,
+a different clock, a beat that stops firing when `active` is set — the fixture
+keeps passing while the live predicate goes blind. A scheduler-level control is
+the only thing that couples the predicate to the code that produces its input.
+
+## Relevant files
+
+- `tests/sdt_sitter_scheduler.mjs` — where the control belongs; already has the
+  mock-host and fake-clock machinery (see the existing heartbeat assertions).
+- `plugins/sdt-sitter/scheduler.js` — `sweep()`, the `host.ensure` await, and the
+  comments on uninterruptibility; read, not changed.
+- `plugins/sdt-sitter/bootstrap.js` — `heartbeatTick()` builds `elapsedMS` and
+  `sinceProgressMS`; the fields the predicate reads.
+- `bench/sdt_stall_probe.py` — `analyse_heartbeats()`, the predicate under test.
+- `tests/test_sdt_stall_probe.py` — the existing two-arm assertion over the
+  recorded trace.
+- `verification/incidents/0793-2026-09-15-ar6-stall.json` — the shape to
+  reproduce.
+
+## Actions
+
+1. In `tests/sdt_sitter_scheduler.mjs`, add a case whose `host.ensure` returns a
+   promise that never settles, with the fake clock advanced past several
+   heartbeat intervals.
+2. Assert the emitted heartbeats have the AR6 shape: `phase` stays `extracting`,
+   `progress` frozen, `sinceProgressMS` growing by one interval per beat.
+3. Assert the healthy counterpart too — a `host.ensure` that reports progress
+   and settles — so the control discriminates rather than merely fires.
+4. Cross-check the emitted beats against the Python predicate (export them as a
+   fixture, or assert the same arithmetic in the JS test; whichever keeps one
+   source of truth for the thresholds rather than two copies of them).
+
+## Test
+
+The test IS the deliverable here. Its own red step: run step 2's assertions
+against the *healthy* mock first and watch them fail — a wedge control that also
+passes on a document that finishes is not a control.
+
+## Verification
+
+- [ ] Wedge case emits beats whose `sinceProgressMS` grows by exactly one
+      heartbeat interval, progress frozen
+- [ ] Healthy case emits beats whose `sinceProgressMS` resets, progress climbing
+- [ ] The predicate's verdict on each set of beats is asserted, not assumed
+- [ ] Thresholds live in one place, not duplicated between the JS and Python sides
+
+## Invariants
+
+- No change to `plugins/sdt-sitter/scheduler.js` or `bootstrap.js`: this adds a
+  test, it does not change behaviour.
+- The never-resolving promise must not leave the test runner hanging — the fake
+  clock advances, the real one does not wait.
+- `make check` passes.
+
+## Exit criteria
+
+- `tests/sdt_sitter_scheduler.mjs` carries both the wedge and the healthy case,
+  and the wedge case has been observed failing against the healthy mock before
+  being made to pass.
+- 0793's predicate is exercised against beats the scheduler produced, not only
+  against a recorded file.
