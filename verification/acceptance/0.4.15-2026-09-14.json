@@ -1,0 +1,92 @@
+{
+  "ok": true,
+  "phases": {
+    "install": {
+      "installed": {
+        "ok": true,
+        "id": "sdt-pack-sitter@search-works-for-zotero.invalid",
+        "version": "0.4.15"
+      },
+      "dataDir": "/home/haduong/.claude/jobs/f7d7cc4a/tmp/acceptance-run/data"
+    },
+    "pause": {
+      "before": {
+        "ok": true,
+        "label": "Turn indexing off",
+        "ariaLabel": "Indexing has been turned on, re-click to turn off.",
+        "state": "Indexing is on. Nothing to index right now."
+      },
+      "after": {
+        "ok": true,
+        "label": "Turn indexing on",
+        "ariaLabel": "Indexing has been turned off, re-click to turn on.",
+        "state": "Indexing is off. Zotero will still index PDFs as you view them."
+      },
+      "completed_at_pause": 0
+    },
+    "import": {
+      "ok": true,
+      "items": 4,
+      "attachments": 4,
+      "missing": 0
+    },
+    "paused_verified": {
+      "completed": 0,
+      "packs": 0
+    },
+    "resume": {
+      "ok": true,
+      "enabled": true,
+      "busy": false,
+      "phase": "waiting",
+      "active": null,
+      "scanned": 4,
+      "total": 4,
+      "completed": 4,
+      "failed": 0,
+      "pending": 0
+    },
+    "packs": {
+      "count": 4,
+      "processors": [
+        {
+          "type": "pdf",
+          "version": 14
+        }
+      ]
+    },
+    "attachment_cycle": {
+      "what": "attachment",
+      "key": "4GZ27HPE",
+      "hash": "8aeb0502f31aa3e47db6d84cccd629e0",
+      "packs_before": 4,
+      "packs_after_delete": 3,
+      "packs_after_restore": 4
+    },
+    "item_cycle": {
+      "what": "item",
+      "key": "5L6GJIY2",
+      "hash": "da07e339e94ce298a5ba6a04e1782785",
+      "packs_before": 4,
+      "packs_after_delete": 3,
+      "packs_after_restore": 4
+    },
+    "uninstall": {
+      "residue": {
+        "cache": false,
+        "cache_tmp": false,
+        "certificate": false,
+        "xpi": false
+      },
+      "clean": true
+    }
+  },
+  "_run": {
+    "version": "0.4.15",
+    "zotero": "10.0.2",
+    "host": "padme",
+    "when": "2026-09-14T20:06Z",
+    "script": "bench/sitter_acceptance.py",
+    "fixture": "four Menagerie documents, smallest-first, distinct hashes"
+  }
+}
