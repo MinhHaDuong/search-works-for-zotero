@@ -1,0 +1,100 @@
+%erg 0.1
+Title: The drain loop is unbounded and starves both reconciliation and admission
+Created: 2026-09-15
+Author: claude
+
+--- log ---
+2026-09-15T19:59Z claude created — measured on the author's live instance during a bulk file sync (padme, v0.4.16, Zotero 10.0.2). Three reads of `state.draining` two minutes apart: 6495, 6543, 6573, against 761 at `drain-start` twenty-five minutes earlier. `pending` 44, `active` null, `busy` true throughout. Split from 0795, which avoids the trigger but leaves the unbounded loop.
+
+--- body ---
+## Context
+
+`scheduler.js`'s `pump()` has one outer loop at line 140 whose body runs, in
+order: reconciliation (143-176, ending in `refreshQueue()` at 176), the drain
+(196-226), then admission (228+). The drain is a nested
+`while (dirty.size && current())` at 201 with **no bound**: it returns to the
+outer loop only when `dirty` is empty.
+
+`invalidate(ids)` (line 129) adds to `dirty` from Zotero item notifications.
+When notifications arrive faster than the drain retires them — which a bulk file
+sync does comfortably, since each drain iteration pays a library-wide
+`host.unattached()` (215-218, "long on its own account" by its own comment at
+193-195) — `dirty` never empties, and control never returns to line 140.
+
+## What that starves, and why the symptom is silence rather than an error
+
+- **Reconciliation never re-runs**, so `refreshQueue()` (176) never re-runs, so
+  `state.pending` (built at 99 from `observed`) stays frozen at whatever the
+  last census produced. Files that have since arrived and become indexable never
+  enter the candidate list.
+- **Admission is never reached**, so `state.active` stays `null` and not one
+  document is submitted.
+- The phase stays `draining` and the heartbeat keeps firing (`busy` is true), so
+  nothing anywhere reports a fault. The panel shows a plausible steady state.
+
+## Measured, on the author's library
+
+| | |
+|---|---|
+| `drain-start`, 19:39:10Z | `pending` (= `dirty.size`) **761** |
+| `state.draining`, ~19:57Z | **6495** |
+| +~1 min | **6543** |
+| +~1 min | **6573** |
+| throughout 19:39 → 20:00 | `pending` 44, `active` null, `busy` true, no `drain-end` |
+
+`storage/` went from 688 attachment folders at 19:39 to 6 168 at 19:58. The
+backlog grew 8.5× while the drain ran; the candidate queue did not move once.
+
+Record: `verification/incidents/0795-2026-09-15-drain-during-sync.md`.
+
+## Relevant files
+
+- `plugins/sdt-sitter/scheduler.js` — outer loop 140, reconciliation 143-176,
+  `refreshQueue()` 99 and 176, drain 196-226, admission 228+, `invalidate()` 129
+- `tests/sdt_sitter_scheduler.mjs`, `tests/test_sdt_sitter.py`
+
+## Test
+
+Red step, in the scheduler suite, and it is the whole ticket: a mock host that
+adds to `dirty` on every `unattached()` call — the shape of a sync firing
+notifications while the drain queries — must still reach admission. Against
+today's code the test hangs or times out with `active === null`; that failure is
+the positive control and must be seen before any fix.
+
+A second assertion worth pinning in the same test: `state.pending` must change
+when a mock item becomes indexable mid-drain. Today it cannot, because
+`refreshQueue()` is unreachable.
+
+## Actions
+
+1. Write the red test above; confirm it fails against current `main`.
+2. Bound the inner drain — a budget of ids or of wall-clock per outer
+   iteration — so the outer loop always makes progress. The budget's value is a
+   design number and belongs in `SPEC.md` §5.2.9 if it ships as one.
+3. Check the same shape elsewhere in `pump()`: the census loop at 154-164 also
+   iterates a host-supplied list, though it yields per item (155) and is bounded
+   by `ids.length`, which does not grow mid-loop.
+
+## Invariants
+
+- 0792's phase labelling and 0745's blocked-phase backoff keep their behaviour.
+- The drain must still retire every dirty id eventually; bounding it per
+  iteration must not drop work.
+- 0759 stands: the totals stay live and disclosed.
+
+## Relation to 0795
+
+0795 pauses the sitter while Zotero syncs, which removes the most common
+trigger. It does not fix this: any sustained notification source outruns the
+drain the same way. 0795 can ship first and independently; this ticket is the
+one that makes the loop safe.
+
+## Exit criteria
+
+- [ ] Red test in the scheduler suite reproducing the starvation, failing
+      against current `main` before the fix
+- [ ] The inner drain is bounded and the outer loop demonstrably advances under
+      a sustained `invalidate()` source
+- [ ] `state.pending` updates while a drain backlog exists
+- [ ] Any new budget constant lives in `SPEC.md`, not in the scheduler
+- [ ] `make check` passes
