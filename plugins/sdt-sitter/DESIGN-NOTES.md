@@ -334,7 +334,17 @@ The questions we could not answer from outside, in the order they cost us most:
    ownership meant to be stable?
 3. Is background indexing expected to yield to interactive work, and by which
    mechanism? Priority orders waiting jobs only.
-4. Is submitted extraction meant to become cancellable?
+4. Is submitted extraction meant to become cancellable? Still open, and ticket
+   0793 sharpened rather than settled it: on 2026-09-15 a 3 949-page document
+   held progress at 90 for at least 173 s with the sitter's heartbeat still
+   firing, and from this side a slow tail and a wedged worker leave the same
+   journal. `bench/sdt_stall_probe.py` now separates the two — but only with a
+   per-thread CPU sample taken from OUTSIDE the process, which is itself the
+   answer to question 1 in miniature: the observation exists, and not through
+   any interface the platform offers. Until a submitted call can be cancelled,
+   the sitter cannot bound `ensure()`; the only move available to it is to
+   announce the plateau, which is what 0793's exit criteria were corrected to
+   say.
 5. Is the singleton serial worker meant to stay one as per-document cost rises,
    and if a bounded pool were considered, which invariants would it have to keep?
 6. Should the several indexing consumers share one resource budget rather than

@@ -8,6 +8,7 @@ Author: haduong
 2026-09-15T15:34Z haduong note Trace preserved as verification/incidents/0793-2026-09-15-ar6-stall.json — the source file is overwritten by the next shutdown
 2026-09-15T16:02Z haduong note Added action 6: settle whether progress counts pages or bytes. The plates volume filed in 0794 is the bench for it.
 
+2026-09-15T22:04Z claude note Instrument built and both control arms asserted: bench/sdt_stall_probe.py, tests/test_sdt_stall_probe.py. Verdict on the preserved trace is undetermined (plateau confirmed, no CPU sample); the AR6 run is still owed and only the author can make it.
 --- body ---
 ## Context
 
@@ -30,8 +31,8 @@ last zero is a read, not a refusal: `journalctl -k` returns 101 lines over the
 same window.
 
 The sitter does not extract. It calls `Zotero.SDT.ensure(id, {isPriority:false,
-onProgress})` (`plugins/sdt-sitter/bootstrap.js:3412`) and the number it reports
-is the native worker's own. `scheduler.js:305-312` documents that once handed to
+onProgress})` (`plugins/sdt-sitter/bootstrap.js:3433`) and the number it reports
+is the native worker's own. `scheduler.js:301-312` documents that once handed to
 the native worker the call cannot be told to stop — which is why the switch had
 to be thrown twice.
 
@@ -39,24 +40,92 @@ to be thrown twice.
 remaining ~10 % (≈ 395 pages) should have taken ~25 s, not ≥ 173 s. Is the
 native worker still advancing — coarse progress granularity, or a genuinely slow
 tail — or is it wedged? Both answers are actionable and they point at different
-fixes. Neither is established, and `scheduler.js:322-325` already warns that
+fixes. Neither is established, and `scheduler.js:320-325` already warns that
 from the sitter's side "a worker that ran out of memory and a photograph that
 holds no text are indistinguishable".
 
 Guard 2 of 0727 is unbuilt for exactly this reason: a check that cannot fire
 must not ship. Same rule here — no sitter change lands off this trace alone.
 
+**The question is also open in the project's own ledger.**
+`plugins/sdt-sitter/DESIGN-NOTES.md`, open question 4, asks "Is submitted
+extraction meant to become cancellable?" — the same question wearing a different
+hat. That entry now cites this ticket and records why it stays open.
+
+## What is built, and what is still owed
+
+The instrument landed ahead of the run, because a measurement taken with an
+unvalidated instrument is not a measurement:
+
+- `bench/sdt_stall_probe.py` — the plateau predicate over heartbeat records, a
+  per-thread `/proc` CPU/RSS/IO sampler, and `stall_verdict()`, the one place
+  the two meet and the only place a cause is named.
+- `tests/test_sdt_stall_probe.py` — both control arms of the predicate, asserted
+  through one call with one set of thresholds, and the sampler's own two
+  controls (a synthetic busy loop and a sleeping process).
+- `verification/incidents/0793-2026-09-15-stall-probe-controls.md` and
+  `…-ar6-stall-reading.json` — the instrument applied to the preserved trace.
+  Its verdict today is **undetermined**: the plateau is confirmed, and with no
+  CPU sample beside it a slow tail and a wedge are indistinguishable. That
+  undetermined is why this ticket stays open.
+
+Still owed: the AR6 run itself. Only the author can make it — see below.
+
+## The single experiment
+
+Start Zotero on `~/data/Zotero-fresh` with the sitter installed and the AR6
+(`storage/AI6DJUTA/`, 3 949 pages, 242 MB) in the queue, note its PID, and from a
+second terminal run
+`python3 bench/sdt_stall_probe.py --pid <PID> --seconds 2400 --interval 5
+--version 0.4.17 --zotero 10.0.2 --json-out verification/incidents/0793-<date>-ar6-run.json`,
+then leave the window alone — do **not** throw the switch, do **not** uninstall
+— until the sampler exits, which is at least thirty minutes past the moment the
+progress bar stops moving. Quit Zotero normally afterwards, copy
+`~/data/Zotero-fresh/sdt-sitter-last-shutdown.json` (it is overwritten by the
+next shutdown) beside the run, and re-run the probe with `--journal` pointed at
+that copy so the plateau reading and the CPU series sit in one record. **The
+reading that decides it is the busiest thread's percent across the beats where
+progress is frozen**: with the heartbeats still firing — which proves the
+extension is alive and the sampler is looking at a live process — a worker
+thread holding **≥ 10 % of a core** through the plateau means the native worker
+is still working and the plateau is a *slow tail*; a worker thread at **≤ 2 %**
+through the plateau means it has stopped and the document is *wedged*. Anything
+between those bands the probe reports as undetermined rather than rounding to
+the answer one was hoping for; if that happens, sample longer rather than
+narrowing the bands. Also record, at the end, whether progress ever ticked past
+90 and whether `storage/AI6DJUTA/.zotero-sdt-cache` exists — both are one-line
+facts that the journal cannot supply and that decide whether a pack was ever
+persisted.
+
+`johnson-1785-dictionary` (1 104 pages, 124 MB, already in the fixture cache) is
+worth running in the same session as a pipeline-realism control: it crosses the
+page cap, it exercises the same path at a comparable size, and it tells us how
+long a document that *does* settle sits on its last tick. It **cannot** prove
+the predicate detects a wedge, because Johnson always finishes — a green Johnson
+run establishes only that the instrument sees a completion. Nobody should read
+one as sufficient. The wedge control that Johnson cannot be is filed as ticket
+0799 (a mock `host.ensure` that never resolves, at the scheduler level).
+
 ## Relevant files
 
 - `verification/incidents/0793-2026-09-15-ar6-stall.json` — the preserved trace,
   library shape, document metadata and negative checks. Item keys redacted to
   counts; the source file on the author's machine is overwritten at each shutdown.
-- `plugins/sdt-sitter/bootstrap.js:3412` — the `Zotero.SDT.ensure()` call site.
-- `plugins/sdt-sitter/scheduler.js:283-330` — admit, progress tick, heartbeat,
-  and the comments on uninterruptibility and on indistinguishable failures.
+- `plugins/sdt-sitter/bootstrap.js:3433` — the `Zotero.SDT.ensure()` call site.
+  (The line number moved; re-derive by symbol, not by the number written here.)
+- `plugins/sdt-sitter/bootstrap.js:633-646` — `heartbeatTick()`, which computes
+  the `elapsedMS` and `sinceProgressMS` the predicate reads.
+- `plugins/sdt-sitter/scheduler.js:276-330` — admit, progress tick, heartbeat,
+  and the comments on uninterruptibility (301-312) and on indistinguishable
+  failures (320-325).
+- `plugins/sdt-sitter/DESIGN-NOTES.md`, open question 4 — the same question in
+  the project's own ledger; updated by this ticket's work.
+- `bench/sdt_stall_probe.py` — the instrument built for this ticket.
+- `tests/test_sdt_stall_probe.py` — its controls, both arms.
 - `bench/sitter_acceptance.py` — the existing acceptance driver; the run harness
   to extend rather than improvise.
-- `verification/acceptance/0.4.15-2026-09-14.json` — the record shape to follow.
+- `verification/acceptance/0.4.15-2026-09-14.json` — the record shape to follow;
+  `build_record()` in the probe emits it.
 - `~/data/Zotero-fresh/storage/AI6DJUTA/` — the document. Not in the repo, not
   redistributable (IPCC permits excerpts, not whole reports).
 
@@ -73,16 +142,12 @@ must not ship. Same rule here — no sitter change lands off this trace alone.
    probe is known to be able to see a completion.
 5. Write the run up in `verification/incidents/` beside the preserved trace,
    naming which of slow / wedged holds and on what evidence.
-6. **Settle what the progress number counts.** `scheduler.js` only relays it, so
-   whether it tracks pages, bytes or something else is unread. It changes what a
-   plateau means: if progress counts pages while the work per page varies, a bar
-   advancing evenly says nothing about work remaining, and a stall at 90 on a
-   document with heavy tail pages is expected rather than pathological. The bench
-   is the plates volume filed in ticket 0794 — 758 pages whose individual
-   character counts are now known, two modes a factor of 200 apart. Run it
-   through `ensure()` and compare the progress ticks against the known per-page
-   weights: ticks even across the plate run means pages, ticks clustered on the
-   explication pages means text.
+6. ~~Settle what the progress number counts.~~ **Moved to ticket 0798.** It was
+   a dependency chain hidden in prose: it needs the two large fixture documents
+   that ticket 0794 (open, unstarted) must import first, and the question —
+   pages or text — is orthogonal to slow-versus-wedged. Left here it would have
+   held this ticket open behind a fixture import that has not started. 0798 is
+   `Blocked-by: 0794`, and names the fixture, not this ticket, as its blocker.
 
 ## Test
 
@@ -96,12 +161,37 @@ its tail timing: how long does *it* sit on its last tick before settling? If a
 document that completes also plateaus for tens of seconds near the end, the AR6
 plateau is a tail, not a wedge, and the whole reading changes.
 
+**What a Johnson run does NOT establish.** Johnson always finishes, so it can
+never show that the predicate detects a wedge — only that the instrument sees a
+completion. It is a pipeline-realism control, not a positive control for the
+wedge arm, and a green Johnson run is not sufficient evidence that the probe
+would have fired had the AR6 been wedged. The positive control for the wedge arm
+is ticket 0799: a mock `host.ensure` that never resolves, asserted at the
+scheduler level.
+
+**Already done offline, without a Zotero.** The predicate's two arms are
+asserted in `tests/test_sdt_stall_probe.py` against the preserved trace — silent
+on the two beats where progress climbs 69 → 88, firing on the three pinned at 90
+— through one call with one set of thresholds. The sampler's own two controls
+(a synthetic busy loop at 100.0 % and a sleeping process at 0.0 %) run in the
+same file. The busy-loop control earned its keep on its first run: it caught the
+sampler reading `proc(5)` fields at the wrong offsets and reporting a spinning
+process as idle, which is a wedge verdict on a healthy document — the one
+direction this instrument must never be wrong in, and one no amount of predicate
+testing would have found.
+
 ## Verification
 
+- [x] The predicate fires on the plateau arm AND stays silent on the healthy arm,
+      one call, one set of thresholds (`tests/test_sdt_stall_probe.py`)
+- [x] The sampler separates a spinning process from a sleeping one, validated
+      offline before ever being pointed at Zotero (100.0 % vs 0.0 %)
+- [x] The record follows `bench/sitter_acceptance.py`'s phase-dict shape
 - [ ] CPU/RSS/IO series captured for the full AR6 attempt, worker thread separable
 - [ ] Plateau observed for ≥ 30 min, or broken by a tick — with the timestamp either way
 - [ ] `.zotero-sdt-cache` presence in `storage/AI6DJUTA/` recorded at the end
-- [ ] Positive control (Johnson 1785) run in the same session, its tail timing recorded
+- [ ] Pipeline-realism control (Johnson 1785) run in the same session, its tail
+      timing recorded — and read as what it is, not as a wedge control
 - [ ] Verdict written as "slow" or "wedged" with the evidence that distinguishes them
 
 ## Invariants
@@ -120,4 +210,31 @@ plateau is a tail, not a wedge, and the whole reading changes.
   [133759](https://forums.zotero.org/discussion/133759/) — the sitter can neither
   cancel nor shut down while the native call hangs, which is the reportable part.
 - If **slow**: the tail duration measured, and a recorded decision on whether the
-  sitter should bound or announce it. That decision feeds 0792's bounded retry.
+  sitter should **announce** it — and, if the answer is that it should also be
+  bounded, an upstream feature request for a cancellable `ensure()`, because
+  bounding is not ours to implement.
+
+  **Correction, filed with this ticket's instrument work.** The original wording
+  read "whether the sitter should bound or announce it. That decision feeds
+  0792's bounded retry", and it named a mechanism that cannot exist. Two
+  independent reasons:
+
+  1. **A duration bound on `host.ensure()` is not implementable from the sitter
+     side.** `scheduler.js:301-312` states it in its own comment — there are no
+     `enabled` checks from admission to a document's own settlement, and "the
+     worker cannot be told to stop". A timer that fires while the call is
+     outstanding can change what the sitter *reports*; it cannot stop the work,
+     cannot free the queue, and cannot prevent the pack landing later. That is
+     announcing with extra steps, and calling it a bound would be the kind of
+     check this repository keeps having to delete.
+  2. **0792 is the wrong ticket, and it is closed.** Its "bounded retry" is the
+     identity-churn re-pick bound — a cap on re-picking an item whose identity
+     changes between inspects — which has nothing to do with the duration of a
+     single native call. It merged on 2026-09-15. An exit criterion cannot feed
+     a closed ticket's unrelated mechanism.
+
+  So: **announce is the only option actually available to the sitter**, and the
+  bound, if wanted, is an upstream ask. `DESIGN-NOTES.md` open question 4 ("Is
+  submitted extraction meant to become cancellable?") is where that ask is
+  already framed; the upstream report in the *wedged* branch above is the same
+  request arriving by the other route.

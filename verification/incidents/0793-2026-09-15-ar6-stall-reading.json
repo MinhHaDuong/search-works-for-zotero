@@ -1,0 +1,72 @@
+{
+  "ok": true,
+  "phases": {
+    "heartbeats": {
+      "reading": "plateau",
+      "plateau": true,
+      "corroborated": true,
+      "beats": 5,
+      "id": 11940,
+      "phase": "extracting",
+      "progress": 90,
+      "elapsedMS": 388386,
+      "quietMS": 172724,
+      "quietBeats": 2,
+      "quietSpan": [
+        {
+          "at": 1789449668905,
+          "kind": "heartbeat",
+          "level": "trace",
+          "id": 11940,
+          "phase": "extracting",
+          "progress": 90,
+          "elapsedMS": 328314,
+          "sinceProgressMS": 112652,
+          "pending": 10493
+        },
+        {
+          "at": 1789449728977,
+          "kind": "heartbeat",
+          "level": "trace",
+          "id": 11940,
+          "phase": "extracting",
+          "progress": 90,
+          "elapsedMS": 388386,
+          "sinceProgressMS": 172724,
+          "pending": 10493
+        }
+      ],
+      "ticksInQuietWindow": 0,
+      "ticksSinceFirstBeat": 21,
+      "thresholds": {
+        "quietMS": 120000,
+        "slackMS": 2000,
+        "minQuietBeats": 2
+      },
+      "why": "no progress tick for 172724 ms (threshold 120000 ms) with phase 'extracting' at progress 90; 2 consecutive beat(s) saw no tick. This is an observation, not a cause: a slow tail and a wedged worker produce the same journal.",
+      "source": "verification/incidents/0793-2026-09-15-ar6-stall.json"
+    },
+    "verdict": {
+      "plateau": true,
+      "reading": "plateau",
+      "bands": {
+        "wedgeBelowPct": 2.0,
+        "slowAbovePct": 10.0
+      },
+      "evidence": {
+        "journal": "no progress tick for 172724 ms (threshold 120000 ms) with phase 'extracting' at progress 90; 2 consecutive beat(s) saw no tick. This is an observation, not a cause: a slow tail and a wedged worker produce the same journal.",
+        "cpu": null
+      },
+      "verdict": "undetermined",
+      "why": "a plateau was observed and no CPU sample accompanies it; a slow tail and a wedged worker leave the same journal, so nothing here distinguishes them"
+    }
+  },
+  "_run": {
+    "version": "0.4.15",
+    "zotero": "10.0.2",
+    "host": "padme",
+    "when": "2026-09-15T22:00Z",
+    "script": "bench/sdt_stall_probe.py",
+    "fixture": null
+  }
+}
