@@ -5,8 +5,8 @@ Author: haduong
 
 --- log ---
 2026-09-15T15:31Z haduong created
-2026-09-15T15:52Z haduong note Trace preserved as verification/incidents/0793-2026-09-15-ar6-stall.json — the source file is overwritten by the next shutdown
-2026-09-15T16:34Z haduong note Added action 6: settle whether progress counts pages or bytes. The plates volume filed in 0794 is the bench for it.
+2026-09-15T15:34Z haduong note Trace preserved as verification/incidents/0793-2026-09-15-ar6-stall.json — the source file is overwritten by the next shutdown
+2026-09-15T16:02Z haduong note Added action 6: settle whether progress counts pages or bytes. The plates volume filed in 0794 is the bench for it.
 
 --- body ---
 ## Context
