@@ -1381,6 +1381,63 @@ await test('source moving during admission requires a resource reading for its n
   f.host.blocked = async info => { gated.push(info.directory); directory = 'new'; return gated.length === 2 ? 'low-disk' : null; };
   await f.api.sweep(); assert.deepEqual(gated, ['old', 'new']); assert.deepEqual(f.calls, []);
 });
+await test('an identity that turns over on every inspect is retried once, never spun on', async () => {
+  /* Ticket 0792, and the reason this file gained a bound at all. Item 1's
+     identity changes on every inspect -- a file being written, a memoized hash
+     falling out of its re-verify window -- so the re-check after `blocked()`
+     never agrees with what the census saw. That `continue` returned to the top
+     of the OUTER loop three lines above `attempted.set()`, so the item was
+     never marked tried and `state.pending.find()` re-picked it on the very
+     next turn, forever, with the phase still reading whatever preceded
+     admission. Observed live on 2026-09-15 as a sitter that looked hung for
+     six minutes under a stale 'census' label.
+
+     A bound is needed because the unfixed loop does not fail, it hangs, and a
+     gate that hangs reports nothing. The bound is a terminal STATUS and the
+     assertion is the COUNT -- deliberately not a throw. `inspect()` catches
+     everything the host throws and returns 'inspection-error', which is itself
+     terminal: the item leaves the queue, the sweep completes and every
+     assertion below passes on the unfixed scheduler. The first version of this
+     test threw, and measured 501 re-picks against 2 without noticing either.
+     Item 2 getting its turn is the assertion that the queue still moves. */
+  const f = fixture(); let churn = 0;
+  f.host.inspect = async id => {
+    if (id !== 1) return { status: f.cached.has(id) ? 'current' : 'missing-pack',
+      identity: String(id), directory: 'd' };
+    if (++churn > 50) return { status: 'current', identity: 'settled', directory: 'd' };
+    return { status: 'missing-pack', identity: `churn-${churn}`, directory: 'd' };
+  };
+  await f.api.sweep();
+  assert.notEqual(f.api.state.phase, 'error', String(f.api.state.error));
+  assert.ok(churn <= 3, `item 1 was re-picked without bound: ${churn} inspections`);
+  assert.deepEqual(f.calls, [2], 'the churning item monopolised the sweep');
+  assert.equal(f.api.state.phase, 'waiting');
+});
+await test('the census label does not outlive the census, and the drain names itself', async () => {
+  /* Ticket 0792. `state.phase = 'census'` was assigned once and the next
+     assignment was admission's, so the gate, the drain and the candidate
+     search all ran under the census's name and the heartbeat repeated it. The
+     drain additionally emitted nothing at all, which is why the live episode
+     could not be told apart from the spin above after the fact. */
+  const f = fixture(); const records = []; const atGate = []; const atDrain = [];
+  f.host.emit = (kind, data) => records.push({ kind, ...data });
+  f.host.blocked = async () => { atGate.push(f.api.state.phase); return null; };
+  f.host.unattached = async () => { atDrain.push(f.api.state.phase); return []; };
+  await f.api.sweep();
+  assert(atGate.length > 0, 'the gate never ran, so this proves nothing');
+  assert(!atGate.includes('census'),
+    `the admission gate ran under the census label: ${atGate.join(', ')}`);
+  records.length = 0; atDrain.length = 0;
+  f.api.invalidate([1]); await f.api.pump();
+  assert.deepEqual(atDrain, ['draining'], `the drain ran as '${atDrain.join(', ')}'`);
+  // The counter the window renders is the drain's own backlog, not the census
+  // queue: `candidates` does not move during a drain at all.
+  assert.equal(f.api.state.draining, 0, 'the drain backlog was left standing after the drain');
+  const drain = records.filter(record => record.kind.startsWith('drain-'));
+  assert.deepEqual(drain.map(record => record.kind), ['drain-start', 'drain-end']);
+  assert.equal(drain[0].pending, 1);
+  assert.equal(drain[1].drained, 1);
+});
 await test('events arriving during a refused resource read update coverage before the pump sleeps', async () => {
   const f = fixture(); let reads = 0;
   f.host.blocked = async () => {
@@ -1517,6 +1574,27 @@ assert.equal(rendered.size, stalled.length, 'two blocking phases share one toolt
 assert.equal(tooltip({ phase: 'a-brand-new-phase', completed: 3 }), hyphenatedIdle);
 named('Ma bibliothèque');
 assert.equal(tooltip({ phase: 'waiting', completed: 3 }), idle);
+
+/* Ticket 0792. The author read "Estimated finish 09/15" on 15 September. The
+   boundary cases are driven explicitly because the interesting one -- 23:00
+   today, finishing after midnight -- is unreachable from a wall-clock
+   assertion at any other hour, and so would never have been checked. */
+{
+  const at = (y, m, d, h, min) => new Date(y, m - 1, d, h, min);
+  const noon = at(2026, 9, 15, 12, 0);
+  assert.match(ui.nameSDTFinish(at(2026, 9, 15, 14, 32), noon), /^today /);
+  assert.match(ui.nameSDTFinish(at(2026, 9, 16, 9, 15), noon), /^tomorrow /);
+  // Two days out keeps the localized date rather than inventing a third word.
+  const later = ui.nameSDTFinish(at(2026, 9, 17, 9, 15), noon);
+  assert(!/^(today|tomorrow) /.test(later), later);
+  assert.match(later, /\d\d\/\d\d/);
+  // Late evening: thirty minutes ahead is a different calendar day, and the
+  // rule a duration-based comparison would get wrong.
+  const lateEvening = at(2026, 9, 15, 23, 0);
+  assert.match(ui.nameSDTFinish(at(2026, 9, 16, 0, 30), lateEvening), /^tomorrow /);
+  // And just before midnight it is still today, however few minutes are left.
+  assert.match(ui.nameSDTFinish(at(2026, 9, 15, 23, 59), lateEvening), /^today /);
+}
 
 /* Zotero auto-names attachments, so the reference must lead. A line reading
    only 'Full Text PDF' identifies nothing, which is the whole point of

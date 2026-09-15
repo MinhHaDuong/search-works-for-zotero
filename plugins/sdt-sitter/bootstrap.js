@@ -339,6 +339,7 @@ var SDT_TEXT = {
       "{count} files indexed"
     ],
     "phase-census": "Census",
+    "phase-draining": "Checking changed attachments",
     "phase-extracting": "Indexing under way",
     "phase-error": "Error",
     "phase-disabled": "Turned off",
@@ -360,6 +361,7 @@ var SDT_TEXT = {
     "switch-on-exceptions": ["This pass is finished. One attachment is not indexed \u2014 see \u201cNot indexed\u201d below.",
       "This pass is finished. {count} attachments are not indexed \u2014 see \u201cNot indexed\u201d below."],
     "switch-on-census": "Scanning the library for new or modified attachments.",
+    "switch-on-draining": "Checking the attachments that changed since the last pass.",
     "switch-on-extracting": "Extracting structured text from attachments.",
     "switch-on-error": "An unexpected problem stopped the last scan — see Technical diagnostics.",
     "diagnostics-internal-phase": "Internal phase: {phase}",
@@ -370,7 +372,7 @@ var SDT_TEXT = {
     "switch-turned-on": "Indexing has been turned on, re-click to turn off.",
     "switch-turned-off": "Indexing has been turned off, re-click to turn on.",
     "section-global": "Overall progress",
-    "section-active": "Indexing under way",
+    "section-active": "Current activity",
     "details-title": "Details",
     "not-indexed-title": "Not indexed",
     "not-indexed-title-count": "Not indexed ({count})",
@@ -417,9 +419,13 @@ var SDT_TEXT = {
     "files-indexed-of": "Files indexed: {current} / {total}",
     "files-indexed-count": "Files indexed: {current}",
     "global-estimate": "Estimated finish around {median} (between {low} and {high})",
+    "finish-today": "today {time}",
+    "finish-tomorrow": "tomorrow {time}",
     "active-none": "No indexing under way",
     "active-preparing": "Preparing the next attachment…",
-    "active-census": "Scanning {progress} %",
+    "active-census": "Scanning the library — {scanned} of {total} ({progress} %)",
+    "active-census-unknown": "Scanning the library…",
+    "active-draining": "Checking changed attachments — {count} left",
     "active-file": "Indexing: {file} — {progress} % — {elapsed} elapsed",
     "active-finalising": "Finishing…",
     "active-references": "Reading the references…",
@@ -433,8 +439,8 @@ var SDT_TEXT = {
     "observations-basis": "Observed durations: {count} — basis: {basis}",
     "basis-pages": "per page",
     "basis-bytes": "per byte",
-    "reconciliation-never": "Coverage is last observed; a full reconciliation has not completed yet.",
-    "reconciliation-age": "Coverage is last observed. Last full reconciliation: {age} ago.",
+    "reconciliation-never": "These totals come from the pass now running; no full pass of the library has finished yet.",
+    "reconciliation-age": "These totals come from the last full pass of the library, {age} ago.",
     "diagnostics-census": "{total} attachments in the library.",
     "diagnostics-completed": "Attachments indexed this session: {count}",
     "census-total-label": "Attachments counted in all",
@@ -487,6 +493,28 @@ var SDT_TEXT = {
     "launch-disable": "Turning indexing off stops the assistant from picking up new attachments; one already being processed still finishes. A failed extraction is only remembered for this session and is tried again the next time Zotero starts. A small file on disk remembers which attachments are already up to date and how long extraction usually takes — never their text, and never an unfinished job.",
     "about-updates": "After the first library pass, the assistant listens to Zotero attachment and file-download changes and rechecks only the affected records. It also reconciles the whole library every hour, so changes outside Zotero are eventually noticed."
   };
+
+/* Ticket 0792. "Estimated finish around 09/15" on 15 September hands the reader
+   a date to decode back into the word they already had. Today and tomorrow are
+   named; every other finish keeps the localized date, because the field order
+   is the locale's and not ours (ticket 0692) -- 03/04 is two different days to
+   two readers, which is the whole reason that date is not hand-assembled here.
+
+   The comparison is between CALENDAR days, not across a 24-hour window: at
+   23:00 a job finishing at 00:30 is tomorrow, and a rule written as
+   `ms < 86400000` would call it today. Both arguments are Dates rather than a
+   Date and an offset so the boundary can be driven from a test without waiting
+   for midnight -- the one case a wall-clock assertion cannot reach on demand,
+   and therefore the one that would never have been checked. */
+function nameSDTFinish(at, now) {
+  const startOfDay = date => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  const days = Math.round((startOfDay(at) - startOfDay(now)) / 86400000);
+  const time = at.toLocaleString('en', { hour: '2-digit', minute: '2-digit' });
+  if (days === 0) return sdtText('finish-today', { time });
+  if (days === 1) return sdtText('finish-tomorrow', { time });
+  return at.toLocaleString('en',
+    { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
 
 /* Every string a reader sees passes through here. */
 function sdtText(id, args) {
@@ -987,6 +1015,11 @@ var SDT_PHASE_LABELS = {
   ready: null,
   waiting: null,
   census: 'phase-census',
+  // Ticket 0792. The drain is the one post-census stretch long enough on its
+  // own account to be mistaken for a hang: it runs a library-wide
+  // `unattached()` query per dirty id, so a notification backlog is minutes of
+  // work that used to wear the census's label and emit nothing.
+  draining: 'phase-draining',
   extracting: 'phase-extracting',
   error: 'phase-error',
   disabled: 'phase-disabled',
@@ -1606,6 +1639,7 @@ function describeSDTIdleLine(state) {
 function describeSDTSwitchLine(state) {
   if (state.phase === 'switched-off') return sdtText('switch-off');
   const detail = state.phase === 'census' ? sdtText('switch-on-census')
+    : state.phase === 'draining' ? sdtText('switch-on-draining')
     : state.phase === 'extracting' ? sdtText('switch-on-extracting')
     : state.phase === 'error' ? sdtText('switch-on-error')
     : SDT_PHASE_LABELS[state.phase] ? sdtText(SDT_PHASE_LABELS[state.phase])
@@ -2332,8 +2366,7 @@ function renderState() {
     // span, so it comes from the totals above. Its LOCALE decides the field
     // order and not merely the separators — 05/09 and 09/05 are the same
     // instant and two different dates to two readers (ticket 0692).
-    const finishAt = ms => new Date(Date.now() + ms).toLocaleString('en',
-      { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    const finishAt = ms => nameSDTFinish(new Date(Date.now() + ms), new Date());
     let unknown = 0;
     for (const item of s.pending) {
       const prediction = estimateSDTDuration(s.fittedSamples, item);
@@ -2387,9 +2420,19 @@ function renderState() {
     // the line used to take the `active-preparing` branch for the whole walk,
     // minutes of it on a large library, while no attachment was being prepared.
     // The phase decides first, and reports the one counter that does move.
+    // Ticket 0792 extends 0791's rule to every phase that can hold the window
+    // for minutes: the box names what is happening and shows the one counter
+    // that actually moves in that phase. A census counts attachments walked; a
+    // drain counts the backlog left; extraction counts one document's percent.
+    // Before host.list() resolves there is no denominator, and a bare "0 of 0"
+    // is a measurement of nothing rather than the absence of one.
     const activeMessage = s.phase === 'census'
-      ? sdtText('active-census', { progress: s.total > 0
-        ? Math.floor((s.scanned / s.total) * 100) : 0 })
+      ? (s.total > 0
+        ? sdtText('active-census', { scanned: s.scanned, total: s.total,
+          progress: Math.floor((s.scanned / s.total) * 100) })
+        : sdtText('active-census-unknown'))
+      : s.phase === 'draining'
+      ? sdtText('active-draining', { count: s.draining ?? 0 })
       : s.active === null
       ? (s.pending && s.pending.length > 0 ? sdtText('active-preparing') : sdtText('active-none'))
       : sdtText('active-file', { file: describeSDTActiveFile(s),
@@ -2455,10 +2498,19 @@ function renderState() {
       fillSDTTable(doc, doc.getElementById('sdt-census-body'), accountEntries, { totalRow: true });
     }
     fillSDTNotIndexed(doc, doc.getElementById('sdt-not-indexed-body'), s);
+    // Ticket 0792. The bar used to appear only for document work, so the two
+    // phases a reader most needs a bar for -- the census walk and the drain,
+    // the long ones -- showed an empty box with one line of text. It now tracks
+    // whatever the line above it is counting, and goes indeterminate (no
+    // `value`) where there is a phase but no denominator, which is the honest
+    // rendering of "working, total unknown" rather than a bar pinned at zero.
     const progress = doc.getElementById('sdt-progress');
-    progress.hidden = s.active === null;
-    if (s.active !== null && Number.isFinite(s.progress)) progress.value = s.progress;
-    else progress.removeAttribute('value');
+    const census = s.phase === 'census';
+    const draining = s.phase === 'draining';
+    progress.hidden = s.active === null && !census && !draining;
+    if (census && s.total > 0) { progress.max = s.total; progress.value = s.scanned; }
+    else if (s.active !== null && Number.isFinite(s.progress)) { progress.max = 100; progress.value = s.progress; }
+    else { progress.max = 100; progress.removeAttribute('value'); }
     // Layer 3 since the ruling of 2026-09-08. What the estimates above rest on:
     // how many durations were kept, and which covariate carried the fit. An
     // estimate whose basis is unreadable is a number the reader has no way to

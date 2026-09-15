@@ -2164,16 +2164,27 @@ await test('the active-file box reports census progress, not a phantom preparati
   sitter.state.scanned = 740;
   sitter.state.total = 14122;
   harness.context.render();
-  assert.equal(doc.getElementById('sdt-document-status').textContent, 'Scanning 5 %',
+  assert.equal(doc.getElementById('sdt-document-status').textContent,
+    'Scanning the library \u2014 740 of 14122 (5 %)',
     'a census was rendered as document work, which is what made a working sitter read as hung');
+  // Ticket 0792: the bar tracks the counter the line states, rather than
+  // hiding for every phase that is not document work.
+  assert.equal(doc.getElementById('sdt-progress').hidden, false, 'the census bar was hidden');
+  assert.equal(Number(doc.getElementById('sdt-progress').value), 740);
+  assert.equal(Number(doc.getElementById('sdt-progress').max), 14122);
 
   // The denominator is not yet known: host.list() has not returned, so `total`
   // is whatever the last census left. Zero must not divide.
   sitter.state.scanned = 0;
   sitter.state.total = 0;
   harness.context.render();
-  assert.equal(doc.getElementById('sdt-document-status').textContent, 'Scanning 0 %',
+  // Ticket 0792: a bare "0 of 0" would state a measurement where there is only
+  // the absence of one, so the unknown denominator drops the counter entirely
+  // and the bar goes indeterminate rather than pinning itself at zero.
+  assert.equal(doc.getElementById('sdt-document-status').textContent, 'Scanning the library\u2026',
     'the census line divided by an unknown total');
+  assert.equal(doc.getElementById('sdt-progress').value, undefined,
+    'an unknown total was rendered as a bar at zero');
 
   // And the phase is what decides it: the same null active and stale pending,
   // outside a census, still mean a real gap between two documents.
@@ -2470,7 +2481,8 @@ await test('events ignored while off are repaired on re-enable and reconciliatio
   assert.equal(h.context.sitter.state.counts['missing-source'], 1);
   h.context.openDialog(h.windows[0]); h.context.render();
   const dialog = [...h.context.dialogs][0];
-  assert.match(dialog.document.getElementById('sdt-scope').textContent, /Coverage is last observed.*Last full reconciliation/s);
+  assert.match(dialog.document.getElementById('sdt-scope').textContent,
+    /These totals come from the last full pass of the library/s);
 });
 await test('a worker activated during admission inspection wins the final native guard', async () => {
   const h = createHarness({ attachments: [pdf(1, 'AAAA1111')] });

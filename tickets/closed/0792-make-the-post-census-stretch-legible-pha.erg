@@ -1,0 +1,199 @@
+%erg 0.1
+Title: Make the post-census stretch legible: phase, drain trace, and the strings that report it
+Created: 2026-09-15
+Author: MinhHaDuong
+Closed: autoclosed — PR #576
+
+--- log ---
+2026-09-15T05:25Z MinhHaDuong created
+
+2026-09-15T05:45Z MinhHaDuong note Implemented: retry bound (identity, not directory), phase at census close, draining phase + drain-start/drain-end records, three strings, manifest 0.4.15 -> 0.4.16. Both new scheduler tests confirmed red against origin/main.
+2026-09-15T08:01Z MinhHaDuong note On/off control: findings recorded in the body from a direct read of Zotero 10.0.2; decision DEFERRED by the author, nothing scheduled. Pause/Play rejected outright.
+2026-09-15T08:29Z MinhHaDuong closed — autoclosed — PR #576
+--- body ---
+## Context
+
+Observed live on 2026-09-15, v0.4.15 / Zotero 10.0.2, on the author's own
+library. The sitter appeared wedged for six minutes. The debug dump showed
+`phase: "census"` on every heartbeat, with `id`, `progress` and `elapsedMS`
+null and `pending` frozen at 10522. It later unblocked on its own and began
+processing.
+
+The phase label was false. The same dump dates the census's end: the
+`cache-write rows 3318 compact:true` record is `censusComplete()`, which runs
+only after the scan loop has walked every attachment, and `pending` moving
+0 -> 10522 on the next heartbeat is the `refreshQueue()` on the following
+line. The scan was over at +110 s; the six minutes that followed were
+something else wearing the census's name.
+
+They wore it because `state.phase = 'census'` is assigned once
+(`scheduler.js:143`) and never reassigned until admission either succeeds
+(`'extracting'`) or is refused (`state.phase = reason`). Everything between --
+the dirty drain, candidate selection, `host.yield()`, `host.blocked()`, the
+re-inspect -- inherits the stale label.
+
+Two live paths sit in that stretch, and nothing in the journal distinguishes
+them, because between `refreshQueue()` and the `admit` emit there is not a
+single `host.emit` call:
+
+1. The dirty drain (`scheduler.js:175-190`), which runs a library-wide
+   `host.unattached()` query once per dirty id.
+2. A retry at `scheduler.js:218-219`, where both post-`blocked()` re-checks
+   `continue` to the top of the OUTER loop without reaching
+   `attempted.set(id, ...)` three lines below. `state.pending.find()` can then
+   re-pick the same item indefinitely, for as long as its identity keeps
+   changing between two inspects -- a file being written, a hash re-verify
+   turning over. Each turn costs two /proc reads, a stat, a DB query and
+   possibly an MD5.
+
+Which of the two ran is no longer knowable: the discriminator would have been
+`admission.at` (the diagnostics pane's "Last reading {age} ago"), and the
+episode is gone. That irrecoverability is the finding. The sitter must not be
+able to spend minutes in a state that neither its own label nor its own ring
+can name.
+
+Three reader-facing strings were ruled on in the same session and travel with
+this work, because labelling a phase buys nothing if the window does not show
+it:
+
+- "Coverage is last observed" is opaque. It means the totals come from the
+  last completed full pass, not a live recount.
+- The active box is legended "Indexing under way" and says so even when its
+  own contents read "No indexing under way". It should name the phase and
+  carry a counter or bar for each one.
+- "Estimated finish 09/15" should read "today".
+
+## Relevant files
+
+- `plugins/sdt-sitter/scheduler.js` -- the sweep loop, the phase assignments,
+  the drain, the two `continue`s
+- `plugins/sdt-sitter/bootstrap.js` -- `SDT_PHASE_LABELS`, `SDT_TEXT`, the
+  render loop, `finishAt`
+- `tests/sdt_sitter_scheduler.mjs` -- enumerates every `state.phase = '...'`
+  literal and requires a decided, non-silent label for each
+- `tests/sdt_sitter_bootstrap.mjs` -- the dialog's rendering assertions
+
+## Actions
+
+1. Bound the retry: record the attempt with the identity just observed on both
+   `continue` paths at `scheduler.js:218-219`, so an item is re-picked only
+   when its identity has actually changed since the attempt, never on an
+   unchanged one.
+2. Clear the stale label: assign a phase when the census block closes, so
+   `'census'` does not ride through to admission.
+3. Name the drain: `state.phase = 'draining'` around the dirty loop, with
+   `phase-draining` in `SDT_PHASE_LABELS` and `SDT_TEXT`.
+4. Emit the drain: one `trace` record at drain start and one at drain end,
+   each carrying `dirty.size`, so a backlog is a number in the ring rather
+   than silence.
+5. Rewrite `reconciliation-never` / `reconciliation-age` in plain language,
+   using "pass", the word the switch lines already use.
+6. Make the active box phase-aware: a neutral legend, a per-phase status line
+   with its own counter, and a `<progress>` element that tracks the census by
+   scanned/total, extraction by percentage, and the drain indeterminately.
+7. Render a finish time on today's or tomorrow's calendar date as "today" or
+   "tomorrow" plus the time; keep the localized date otherwise (ticket 0692:
+   the field order is the locale's, not ours).
+
+## Test
+
+Red first, in `tests/sdt_sitter_scheduler.mjs`: drive a sweep whose candidate
+returns a different identity from the re-inspect than from the census, and
+assert the sweep does not re-pick that same item on the next turn. Against
+today's code that assertion loops or fails; against the fix it passes.
+
+## Verification
+
+- [ ] The phase enumeration test sees `draining` and requires its label
+- [ ] No phase other than `ready`/`waiting` is silent
+- [ ] Drain start/end records appear in the ring with a size
+- [ ] The active box renders a counter for census, drain and extraction
+- [ ] A finish time later today renders as "today", not as a date
+
+## Invariants
+
+- `tests/sdt_sitter_scheduler.mjs` and `tests/sdt_sitter_bootstrap.mjs` pass
+- `make sitter-mutants` passes: both probes anchor on this region
+- No new phase announces per document -- the admission gap must not become a
+  labelled state that flips on every file (the 10 Hz defect, in slower
+  clothes)
+- Nothing here changes admission policy, thresholds, or what is extracted
+
+## Exit criteria
+
+- The six-minute stretch is reported as what it is, in the window and in the
+  ring, so the next occurrence is diagnosable after the fact
+- The unbounded re-pick at `scheduler.js:218-219` cannot recur
+- The three strings read as the author ruled
+
+## Deferred: the on/off control
+
+Raised by the author on 2026-09-15 while the work above was in review. **The
+decision is deferred and nothing here is scheduled.** It is written down so it
+need not be re-derived, not to schedule it. No measurer is named because no
+measurement is owed until someone decides to act.
+
+### What was established, by reading the installed Zotero 10.0.2
+
+Read off `~/.local/Zotero_linux-x86_64`, not from memory or documentation.
+
+- `moz-toggle` **is** embarked, in the toolkit archive rather than Zotero's own:
+  `omni.ja` carries `chrome/toolkit/content/global/elements/moz-toggle.mjs`
+  (2.2K) and `moz-toggle.css`, and `customElements.js` lists it in the lazy
+  custom-element map, so `<moz-toggle>` upgrades on first use -- in a document
+  that loads that file.
+- Zotero's own UI uses it nowhere. Across all 511 files of
+  `chrome/content/zotero/`: `moz-toggle` in **0** files, `role="switch"` in
+  **0** files, `<checkbox>` in **15** files (**27** occurrences in the
+  preference panes alone). The XUL checkbox is Zotero's on/off idiom; the
+  toggle is inherited platform furniture it has never sat on.
+- `moz-toggle` renders a **button**, not a switch:
+  `html`<button id="input" type="button" aria-pressed=${pressed} ...>``. It
+  carries state through `aria-pressed`, not `role="switch"`/`aria-checked`.
+  This corrects the first reading given to the author, which claimed the
+  latter. Either fixes the real wart -- a reader hears a state rather than an
+  action that inverts the instant it is taken -- but by different routes.
+- It is Lit-based (`import { html, ifDefined } from "../vendor/lit.all.mjs"`,
+  extends `MozBaseInputElement`), so adopting it pulls Lit and the moz
+  design-system base classes into a dialog that has no framework at all.
+- Zotero uses `AccentColor` in **0** files and `forced-colors` in **0** files,
+  because its checkboxes never opt out of the native widget and get
+  high-contrast rendering free.
+
+### The options, as they stood at that reading
+
+1. `<input type="checkbox" role="switch">`, **unstyled**. Works in the dialog's
+   existing chrome `about:blank` XHTML document today; no `chrome://` coupling,
+   no Lit, no stylesheet. Gecko keeps responsibility for the native look, the
+   focus ring and forced colours. Loses the sliding look. This was the
+   recommendation.
+2. The same, plus ~20 lines / ~1 076 bytes of CSS for a slider. The bytes are
+   not the cost: `appearance: none` opts out of the native widget, which is why
+   a third of those lines is a `forced-colors` block -- without it the state is
+   carried by colour alone and goes invisible in high contrast. It would also
+   introduce the dialog's **first** `<style>` element (the window is built from
+   12 inline `style.cssText` sites; `:checked` and `::before` cannot be
+   expressed inline), and it would duplicate in CSS the reduced-motion
+   commitment `prefersSDTReducedMotion()` already keeps in JS.
+3. `<moz-toggle>`. A real slider for free, but a bare chrome `about:blank` does
+   not load `customElements.js`, so the module would be imported explicitly,
+   and the plugin would be the application's only caller, against a
+   Firefox-internal `chrome://` path that moves across ESR rebases.
+4. XUL `<checkbox>`. Zotero's own idiom, but its home is the XUL preference
+   panes; this dialog is XHTML.
+
+### Why Pause/Play was rejected rather than deferred
+
+It would promise twice what the plugin cannot do. `launch-worker` already
+states that extraction "cannot be paused once a file has started", and turning
+off stops only new admissions while the file under way finishes. Pause also
+implies session-scoped state, where this is a remembered consent preference.
+That is a settled no, not a deferral.
+
+### What is NOT established
+
+- Every claim above about rendering and about what a screen reader announces is
+  read from source, not observed in a running window. `make sitter-smoke`
+  against a real Zotero is what would settle them.
+- `AccentColor` / `AccentColorText` support is read from the specification;
+  there is no in-app precedent, since Zotero uses neither.
