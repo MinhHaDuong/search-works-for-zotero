@@ -106,6 +106,21 @@ class ProbeError(Exception):
     """The probe could not read what it was asked to read."""
 
 
+def _pct(value):
+    """A percentage for a message, or the honest word for a missing one."""
+    return "unmeasured" if value is None else f"{value:.1f} %"
+
+
+def _ms(value):
+    """A millisecond field, or None when the journal's value is not a number.
+
+    Journals are read from disk and a wrong-typed `at` or `sinceProgressMS`
+    must degrade to `unknown`, never raise: a probe that crashes on a malformed
+    input tells the reader nothing about the document.
+    """
+    return value if isinstance(value, (int, float)) and not isinstance(value, bool) else None
+
+
 # --------------------------------------------------------------------------
 # 1. the plateau predicate -- pure, over journal records
 # --------------------------------------------------------------------------
@@ -136,7 +151,7 @@ def _ticks_between(records, item_id, after_at, until_at):
             continue
         if item_id is not None and record.get("id") != item_id:
             continue
-        at = record.get("at")
+        at = _ms(record.get("at"))
         if at is None:
             continue
         if after_at < at <= until_at:
@@ -182,32 +197,29 @@ def analyse_heartbeats(records, *, item_id=None, quiet_ms=DEFAULT_QUIET_MS,
     if item_id is None and resolved_id is not None:
         beats = _beats(records, resolved_id) or beats
         last = beats[-1]
-    quiet_ms_observed = last.get("sinceProgressMS")
+    quiet_ms_observed = _ms(last.get("sinceProgressMS"))
+    last_at = _ms(last.get("at"))
 
     # How many trailing beats saw no tick at all, by the delta rule.
     quiet_beats = 0
     for older, newer in zip(reversed(beats[:-1]), reversed(beats[1:])):
-        since_new = newer.get("sinceProgressMS")
-        since_old = older.get("sinceProgressMS")
-        if (since_new is None or since_old is None
-                or newer.get("at") is None or older.get("at") is None):
+        since_new = _ms(newer.get("sinceProgressMS"))
+        since_old = _ms(older.get("sinceProgressMS"))
+        at_new, at_old = _ms(newer.get("at")), _ms(older.get("at"))
+        if None in (since_new, since_old, at_new, at_old):
             break
-        wall = newer["at"] - older["at"]
-        if since_new - since_old >= wall - slack_ms:
+        if since_new - since_old >= (at_new - at_old) - slack_ms:
             quiet_beats += 1
         else:
             break
     span = beats[len(beats) - quiet_beats:] if quiet_beats else []
 
-    first_at = beats[0].get("at")
-    ticks_since_first = _ticks_between(records, resolved_id, first_at,
-                                       last.get("at"))
-    quiet_from = (last.get("at") - quiet_ms_observed
-                  if quiet_ms_observed is not None and last.get("at") is not None
+    first_at = _ms(beats[0].get("at"))
+    ticks_since_first = _ticks_between(records, resolved_id, first_at, last_at)
+    quiet_from = (last_at - quiet_ms_observed
+                  if quiet_ms_observed is not None and last_at is not None
                   else None)
-    ticks_in_quiet = (None if quiet_from is None
-                      else _ticks_between(records, resolved_id, quiet_from,
-                                          last.get("at")))
+    ticks_in_quiet = _ticks_between(records, resolved_id, quiet_from, last_at)
 
     if quiet_ms_observed is None:
         reading, plateau = "unknown", False
@@ -430,8 +442,14 @@ def sample_series(pid: int, seconds: float, interval: float = 5.0,
     return series
 
 
-def summarize_cpu(series: list[dict]) -> dict:
-    """Fold a series into per-interval rates plus the whole-window rate."""
+def summarize_cpu(series: list[dict], *,
+                  slow_cpu_pct: float = SLOW_CPU_PCT) -> dict:
+    """Fold a series into per-interval rates plus the whole-window rate.
+
+    The peaks and the count of busy intervals are carried because the verdict
+    decides on the window average: a reader needs to see how much that average
+    smoothed over, even though a burst cannot silence the verdict.
+    """
     if len(series) < 2:
         raise ProbeError("a rate needs two snapshots; got "
                          f"{len(series)}")
@@ -450,6 +468,9 @@ def summarize_cpu(series: list[dict]) -> dict:
         "maxTopThreadPercent": max(
             (i["topThread"]["percent"] for i in intervals
              if i["topThread"] is not None), default=None),
+        "intervalsAboveSlow": sum(1 for i in intervals
+                                  if i["processPercent"] >= slow_cpu_pct),
+        "slowCpuPct": slow_cpu_pct,
         "perInterval": [
             {"elapsedS": i["elapsedS"], "processPercent": i["processPercent"],
              "rssBytes": i["rssBytes"], "readBytes": i["readBytes"],
@@ -483,6 +504,8 @@ def worker_cpu(summary: dict, *, comm_hint: str | None = None) -> dict | None:
         "processPercent": overall["processPercent"],
         "maxProcessPercent": summary.get("maxProcessPercent"),
         "maxTopThreadPercent": summary.get("maxTopThreadPercent"),
+        "intervals": summary.get("intervals"),
+        "intervalsAboveSlow": summary.get("intervalsAboveSlow"),
         "readBytes": overall.get("readBytes"),
         "rcharBytes": overall.get("rcharBytes"),
         "threadsExitedInWindow": summary.get("threadsExitedInWindow"),
@@ -553,23 +576,35 @@ def stall_verdict(plateau: dict, cpu: dict | None, *,
                        "doing work the progress number is too coarse to show"}
 
     # Guard 1: the process contradicts the thread we picked as the worker.
+    # SUSTAINED, not peak. Round 1 asked for the peak too, and round 2 showed
+    # what that costs: over 480 five-second intervals of a live desktop app,
+    # one unrelated 15 % burst is a near-certainty, so a peak-based veto makes
+    # `wedged` almost unreachable -- trading a rare false positive for a common
+    # false negative on the exact question this ticket asks. The window average
+    # is what separates the measured defect (a rotation leaving the process at
+    # 99.7 % throughout) from desktop noise. The peaks are reported in `why` and
+    # in the record instead of deciding, so a burst pattern is visible to a
+    # reader without being able to silence the verdict.
     process = cpu.get("processPercent")
-    peak_process = cpu.get("maxProcessPercent")
-    for label, value in (("over the window", process),
-                         ("in one sampling interval", peak_process)):
-        if value is not None and value >= slow_cpu_pct:
-            return {**base, "verdict": "undetermined",
-                    "why": f"plateau with the process at {value:.1f} % of a core "
-                           f"{label} but the thread identified as the worker at "
-                           f"{worker:.1f} %. Thread identification is a heuristic "
-                           "(busiest thread) and a rotation or an exit inside the "
-                           "window defeats it; something in this process is "
-                           "working, so this is not a wedge. Re-sample with a "
-                           "shorter interval and a comm hint."}
+    if process is not None and process >= slow_cpu_pct:
+        return {**base, "verdict": "undetermined",
+                "why": f"plateau with the process at {process:.1f} % of a core "
+                       f"over the whole window but the thread identified as the "
+                       f"worker at {worker:.1f} %. Thread identification is a "
+                       "heuristic (busiest thread) and a rotation or an exit "
+                       "inside the window defeats it; something in this process "
+                       "is working, so this is not a wedge. Re-sample with a "
+                       "shorter interval and a comm hint."}
 
     # Guard 2: blocked on I/O is work, and holds no CPU while it happens.
+    # BOTH counters, not just read_bytes. `read_bytes` is the block layer, so a
+    # worker pulling ALREADY-CACHED pages of a 242 MB PDF -- the case this
+    # floor's own comment names -- moves `rchar` and leaves `read_bytes` flat.
+    # Reading only the block layer returned `wedged` on a process doing 7.9 MB
+    # of real reads (round 2, reproduced).
     read_bytes = cpu.get("readBytes")
-    if read_bytes is None:
+    rchar_bytes = cpu.get("rcharBytes")
+    if read_bytes is None or rchar_bytes is None:
         return {**base, "verdict": "undetermined",
                 "why": f"plateau with the worker thread at {worker:.1f} % of a "
                        "core, but the I/O counters could not be read "
@@ -577,21 +612,31 @@ def stall_verdict(plateau: dict, cpu: dict | None, *,
                        "read holds ~0 % CPU and is not wedged, and that channel "
                        "was never consulted here, so a wedge verdict would rest "
                        "on a check that did not run."}
-    if read_bytes >= io_floor_bytes:
+    io_bytes = max(read_bytes, rchar_bytes)
+    if io_bytes >= io_floor_bytes:
         return {**base, "verdict": "undetermined",
                 "why": f"plateau with the worker thread at {worker:.1f} % of a "
-                       f"core but {read_bytes} bytes read from disk in the same "
-                       f"window (floor {io_floor_bytes}). The process is doing "
-                       "I/O-bound work, which looks exactly like a wedge on the "
-                       "CPU channel alone."}
+                       f"core but {io_bytes} bytes read in the same window "
+                       f"(block layer {read_bytes}, syscall layer {rchar_bytes}, "
+                       f"floor {io_floor_bytes}). The process is doing I/O-bound "
+                       "work, which looks exactly like a wedge on the CPU "
+                       "channel alone."}
 
     if worker <= wedge_cpu_pct:
         return {**base, "verdict": "wedged",
                 "why": f"plateau with the worker thread at {worker:.1f} % of a "
                        f"core (<= {wedge_cpu_pct} %), the whole process below "
-                       f"{slow_cpu_pct} %, and {read_bytes} bytes read (floor "
-                       f"{io_floor_bytes}), while heartbeats keep firing: the "
-                       "extension is alive and nothing in the process is working"}
+                       f"{slow_cpu_pct} % over the window, and {io_bytes} bytes "
+                       f"read (floor {io_floor_bytes}), while heartbeats keep "
+                       "firing: the extension is alive and nothing in the "
+                       "process is working. Peaks, which do NOT decide this "
+                       "verdict but bound how much the window average smoothed "
+                       f"over: process {_pct(cpu.get('maxProcessPercent'))}, "
+                       f"worker thread {_pct(cpu.get('maxTopThreadPercent'))}, "
+                       f"{cpu.get('intervalsAboveSlow')} of "
+                       f"{cpu.get('intervals')} interval(s) above "
+                       f"{slow_cpu_pct} %. A burst pattern there is the known "
+                       "limit of a sustained reading; read it before acting."}
     return {**base, "verdict": "undetermined",
             "why": f"plateau with the worker thread at {worker:.1f} % of a "
                    f"core, between the {wedge_cpu_pct} % and {slow_cpu_pct} % "
@@ -639,7 +684,15 @@ def analyse_journal_file(path: Path, **kwargs) -> dict:
         records = payload.get("records", [])
     else:
         raise ProbeError(f"{path}: expected a journal object or a record array")
-    return analyse_heartbeats(records, **kwargs)
+    # `{"records": null}` is a shape a truncated or half-written journal takes,
+    # and it must read as "nothing to look at" rather than crash the probe.
+    if records is None:
+        records = []
+    if not isinstance(records, list):
+        raise ProbeError(f"{path}: 'records' is {type(records).__name__}, "
+                         "not an array")
+    return analyse_heartbeats([r for r in records if isinstance(r, dict)],
+                              **kwargs)
 
 
 def main(argv=None) -> int:

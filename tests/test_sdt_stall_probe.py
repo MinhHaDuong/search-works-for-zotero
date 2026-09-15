@@ -162,10 +162,13 @@ def test_verdict_without_cpu_is_undetermined():
     assert "CPU" in verdict["why"]
 
 
-def cpu(worker, process, *, read_bytes=0, peak=None):
+def cpu(worker, process, *, read_bytes=0, rchar_bytes=0, peak=None):
     return {"workerPercent": worker, "processPercent": process,
             "maxProcessPercent": process if peak is None else peak,
-            "readBytes": read_bytes, "tid": 4242, "comm": "DOM Worker"}
+            "maxTopThreadPercent": worker, "intervals": 10,
+            "intervalsAboveSlow": 0 if peak is None else 1,
+            "readBytes": read_bytes, "rcharBytes": rchar_bytes,
+            "tid": 4242, "comm": "DOM Worker"}
 
 
 def test_verdict_wedged_needs_a_flat_worker():
@@ -199,31 +202,63 @@ def test_a_busy_process_with_a_flat_worker_is_not_a_wedge():
     assert "heuristic" in verdict["why"]
 
 
-def test_a_process_busy_in_one_interval_only_is_not_a_wedge():
-    """Averaged over the window it looks flat; the peak says otherwise."""
+def test_a_single_noisy_interval_does_not_veto_a_wedge():
+    """The verdict is decided on the sustained reading, not on a peak.
+
+    Deliberate reversal of round 1's suggestion. Over 480 five-second intervals
+    of a live desktop app one unrelated burst is a near-certainty, so a
+    peak-based veto would make `wedged` nearly unobservable -- a common false
+    negative traded for a rare false positive, on the exact question 0793 asks.
+    The peaks are reported so a reader can see what the average smoothed over.
+    """
     verdict = stall_verdict(analyse_heartbeats(records()),
                             cpu=cpu(0.1, 0.9, peak=64.0))
+    assert verdict["verdict"] == "wedged"
+    assert "64.0 %" in verdict["why"]       # the peak is named, not hidden
+    assert "1 of 10 interval(s)" in verdict["why"]
+
+
+def test_a_sustained_busy_process_with_a_flat_worker_is_not_a_wedge():
+    verdict = stall_verdict(analyse_heartbeats(records()),
+                            cpu=cpu(0.0, 42.0, peak=99.7))
     assert verdict["verdict"] == "undetermined"
 
 
 def test_io_bound_work_is_not_a_wedge():
     verdict = stall_verdict(analyse_heartbeats(records()),
-                            cpu=cpu(0.2, 1.0, read_bytes=6_400_000))
+                            cpu=cpu(0.2, 1.0, read_bytes=6_400_000,
+                                    rchar_bytes=6_400_000))
     assert verdict["verdict"] == "undetermined"
     assert "I/O-bound" in verdict["why"]
 
 
+def test_cached_reads_are_work_even_when_the_block_layer_is_flat():
+    """`read_bytes` is the block layer; already-cached pages move only `rchar`.
+
+    A worker pulling cached pages of a 242 MB PDF -- the case IO_FLOOR_BYTES's
+    own comment names -- leaves `read_bytes` at zero. Reading only the block
+    layer returned `wedged` on a process doing 7.9 MB of real reads.
+    """
+    verdict = stall_verdict(analyse_heartbeats(records()),
+                            cpu=cpu(0.2, 0.4, read_bytes=0,
+                                    rchar_bytes=7_900_000))
+    assert verdict["verdict"] == "undetermined"
+    assert "syscall layer" in verdict["why"]
+
+
 def test_unreadable_io_counters_refuse_a_wedge_verdict():
     """An all-clear on a channel that was never consulted is not a check."""
-    verdict = stall_verdict(analyse_heartbeats(records()),
-                            cpu=cpu(0.2, 0.4, read_bytes=None))
-    assert verdict["verdict"] == "undetermined"
-    assert "never consulted" in verdict["why"]
+    for missing in ({"read_bytes": None}, {"rchar_bytes": None}):
+        verdict = stall_verdict(analyse_heartbeats(records()),
+                                cpu=cpu(0.2, 0.4, **missing))
+        assert verdict["verdict"] == "undetermined"
+        assert "never consulted" in verdict["why"]
 
 
 def test_io_noise_below_the_floor_does_not_veto_a_wedge():
     verdict = stall_verdict(analyse_heartbeats(records()),
-                            cpu=cpu(0.2, 0.4, read_bytes=4096))
+                            cpu=cpu(0.2, 0.4, read_bytes=4096,
+                                    rchar_bytes=8192))
     assert verdict["verdict"] == "wedged"
 
 
@@ -253,10 +288,18 @@ def test_the_wedge_band_is_inclusive_at_its_exact_value():
 
 def test_the_io_floor_is_inclusive_at_its_exact_value():
     plateau = analyse_heartbeats(records())
-    at_floor = cpu(0.2, 0.4, read_bytes=IO_FLOOR_BYTES)
-    below = cpu(0.2, 0.4, read_bytes=IO_FLOOR_BYTES - 1)
-    assert stall_verdict(plateau, at_floor)["verdict"] == "undetermined"
-    assert stall_verdict(plateau, below)["verdict"] == "wedged"
+    for field in ("read_bytes", "rchar_bytes"):
+        at_floor = cpu(0.2, 0.4, **{field: IO_FLOOR_BYTES})
+        below = cpu(0.2, 0.4, **{field: IO_FLOOR_BYTES - 1})
+        assert stall_verdict(plateau, at_floor)["verdict"] == "undetermined"
+        assert stall_verdict(plateau, below)["verdict"] == "wedged"
+
+
+def test_the_contradiction_guard_is_inclusive_at_its_exact_value():
+    """The guard round 2 found unguarded: `process >= slow_cpu_pct` at :560."""
+    plateau = analyse_heartbeats(records())
+    assert stall_verdict(plateau, cpu(0.1, 10.0))["verdict"] == "undetermined"
+    assert stall_verdict(plateau, cpu(0.1, 9.9))["verdict"] == "wedged"
 
 
 # --- shapes that must degrade rather than raise ----------------------------
@@ -280,6 +323,28 @@ def test_a_journal_that_is_neither_shape_is_refused(tmp_path):
     path.write_text("42", encoding="utf-8")
     with pytest.raises(ProbeError):
         analyse_journal_file(path)
+
+
+def test_a_null_records_key_reads_as_unknown_not_as_a_crash(tmp_path):
+    """The shape a truncated or half-written journal takes."""
+    path = tmp_path / "null.json"
+    path.write_text('{"records": null}', encoding="utf-8")
+    assert analyse_journal_file(path)["reading"] == "unknown"
+
+
+def test_a_wrong_typed_records_key_is_refused(tmp_path):
+    path = tmp_path / "wrong.json"
+    path.write_text('{"records": {"a": 1}}', encoding="utf-8")
+    with pytest.raises(ProbeError):
+        analyse_journal_file(path)
+
+
+def test_a_wrong_typed_timestamp_degrades_to_unknown():
+    beat = {"kind": "heartbeat", "id": 1, "phase": "extracting",
+            "progress": 90, "sinceProgressMS": "172724", "at": "not-a-number"}
+    reading = analyse_heartbeats([beat, dict(beat)])
+    assert reading["reading"] == "unknown"
+    assert reading["quietBeats"] == 0
 
 
 # --------------------------------------------------------------------------

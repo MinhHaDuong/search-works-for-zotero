@@ -33,18 +33,38 @@ counterexamples rather than as arguments. Each downgrades to `undetermined`:
    skipped; the reviewer measured `processPercent 99.7` with `workerPercent 0.0`
    and a verdict of **wedged** on a fully saturated process. Two repairs:
    a thread born in the window now gets a zero baseline (all its jiffies did
-   accrue in the window), and a process-versus-thread contradiction is reported
-   as undetermined, whether it shows over the whole window or in any one
-   interval.
+   accrue in the window), and a process-versus-thread contradiction over the
+   window average is reported as undetermined.
 2. **The worker is blocked on I/O.** A read off a slow device holds ~0 % CPU and
    is work. The I/O counters were being computed and then stripped by
    `worker_cpu()` before the verdict saw them; measured, 6.4 MB genuinely read
    at `processPercent 1.0` returned **wedged**. They now travel with the
-   reading, and bytes at or above a 1 MB floor veto a wedge.
+   reading, and bytes at or above a 1 MB floor veto a wedge — counting **both**
+   `read_bytes` (block layer) and `rchar` (syscall layer). Round 2 found the
+   first repair reading only `read_bytes`, so a worker pulling *already-cached*
+   pages — the case the floor's own comment names — still returned `wedged` at
+   7.9 MB of real reads. Both counters are read now, and both must be present.
 3. **The I/O counters could not be read at all.** `/proc/<pid>/io` is unreadable
    under some hardening. A wedge verdict then rests on a channel nobody
    consulted, which is the all-clear-versus-could-not-look failure this
    repository keeps meeting. It is refused.
+
+### Why the guards read the window average and not the peak
+
+Round 1 asked for the peak as well, and round 2 measured what that costs: over
+480 five-second intervals of a live desktop application, a single unrelated
+15 %-of-a-core burst is a near-certainty, so a peak-based veto makes `wedged`
+almost unobservable — a *common false negative* traded for a *rare false
+positive*, on the exact question this ticket asks. The guards therefore decide
+on the window average, which is what separated the measured defect (a rotation
+leaving the process at 99.7 % throughout) from ordinary desktop noise.
+
+The peaks are not discarded. `maxProcessPercent`, `maxTopThreadPercent` and the
+count of intervals above the slow band are recorded, and a `wedged` verdict
+names all three in its own `why` string, so a reader sees exactly how much the
+window average smoothed over. A *burst* pattern there — idle on average,
+repeatedly busy for one interval at a time — is neither of the two readings
+0793 offers, and it is a finding in its own right.
 
 ## Control arm 1 — the predicate, both directions, one call
 
@@ -134,12 +154,19 @@ off — and the mutation control was run to confirm they fire:
 | `quiet_ms_observed >= quiet_ms` → `>` | CAUGHT |
 | `worker >= slow_cpu_pct` → `>` | CAUGHT |
 | `worker <= wedge_cpu_pct` → `<` | CAUGHT |
-| `read_bytes >= io_floor_bytes` → `>` | CAUGHT |
+| `io_bytes >= io_floor_bytes` → `>` | CAUGHT |
+| `process >= slow_cpu_pct` → `>` (the contradiction guard) | CAUGHT |
+| `io_bytes = max(read, rchar)` → `read` only | CAUGHT |
+| `io_bytes = max(read, rchar)` → `rchar` only | CAUGHT |
+| I/O presence check → `read_bytes` only | CAUGHT |
 | `_UTIME = 13` → `11` | CAUGHT |
 | a thread born in the window dropped again | CAUGHT |
+| `_ms()` passes wrong-typed values through | CAUGHT |
 
-Six mutants, six red suites. That is the only evidence that any of these guards
-is load-bearing.
+Eleven mutants, eleven red suites. That is the only evidence that any of these
+guards is load-bearing. The last five were added in round 2, which found the
+contradiction guard itself unguarded at its exact value — the same defect one
+level further up, for the third time in this file.
 
 ## What the instrument says about the preserved trace
 
@@ -163,7 +190,8 @@ a second terminal, let it sit 30 minutes past the plateau instead of switching
 off, then feed the shutdown journal back through `--journal`. The reading that
 decides it: the **busiest thread's percent through the plateau window**.
 Non-trivial (≥ 10 % of a core) with heartbeats still firing is a slow tail;
-~0 % (≤ 2 %) with heartbeats still firing is a wedge.
+~0 % (≤ 2 %) with heartbeats still firing is a wedge — subject to the three
+downgrades above, which the probe applies and explains in its own `why`.
 
 `johnson-1785-dictionary` is a useful pipeline-realism control and **cannot**
 stand in for the AR6: it always finishes, so a Johnson run can show that the

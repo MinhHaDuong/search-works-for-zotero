@@ -10,6 +10,7 @@ Author: haduong
 
 2026-09-15T22:04Z claude note Instrument built and both control arms asserted: bench/sdt_stall_probe.py, tests/test_sdt_stall_probe.py. Verdict on the preserved trace is undetermined (plateau confirmed, no CPU sample); the AR6 run is still owed and only the author can make it.
 2026-09-15T23:03Z claude note Review round 1 found three blockers in the probe: a thread rotation could report workerPercent 0 on a saturated process (confident false wedge), I/O-bound work was stripped before the verdict saw it, and no test stood on any threshold's exact value. All three fixed; six mutants now caught.
+2026-09-15T23:47Z claude note Review round 2: the I/O veto read only /proc io read_bytes, so a worker pulling already-cached pages still returned wedged at 7.9 MB of real reads. Both read_bytes and rchar are read now. The peak-based contradiction guard from round 1 is reverted to the window average: over 480 intervals a peak veto makes wedged nearly unobservable. Eleven mutants caught.
 --- body ---
 ## Context
 
@@ -97,6 +98,28 @@ narrowing the bands. Also record, at the end, whether progress ever ticked past
 90 and whether `storage/AI6DJUTA/.zotero-sdt-cache` exists — both are one-line
 facts that the journal cannot supply and that decide whether a pack was ever
 persisted.
+
+**Three further readings the probe takes before it will say *wedged*,** each of
+which is a flat worker thread that is nonetheless not a wedge. Read them off
+the record rather than re-deriving them: (1) the **whole process** must also be
+under 10 % of a core *averaged over the window* — thread identification is a
+heuristic (busiest thread) and a rotation inside the window defeats it, so a
+busy process with a flat "worker" is reported as undetermined; (2) the process
+must have read **under 1 MB**, counting both `/proc/<pid>/io`'s `read_bytes`
+(block layer) and `rchar` (syscall layer, which is the one that moves when the
+pages are already in cache) — a worker blocked on I/O holds ~0 % CPU and is
+working; (3) those counters must have been **readable at all** — where
+`/proc/<pid>/io` is unavailable the probe refuses a wedge rather than granting
+one on a channel nobody consulted.
+
+One known limit, stated so it is not discovered from the run: the verdict is
+decided on the **window average**, not on peaks, because over 480 five-second
+intervals of a live desktop application one unrelated CPU burst is a
+near-certainty and a peak-based veto would make `wedged` almost unreachable.
+The peaks and the count of busy intervals are recorded in the verdict's own
+`why` string. If they show a *burst* pattern — a worker idle on average but
+repeatedly busy for one interval at a time — that is neither of the two
+readings this ticket offers, and it is a finding in its own right.
 
 `johnson-1785-dictionary` (1 104 pages, 124 MB, already in the fixture cache) is
 worth running in the same session as a pipeline-realism control: it crosses the
