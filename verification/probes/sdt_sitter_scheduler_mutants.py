@@ -188,6 +188,19 @@ MUTANTS = [
     ('M35 the drain runs to an empty set again, so a live source starves admission',
      '            if (retired > 0 && host.now() >= deadline) break;\n',
      ''),
+    # The other half of ticket 0796, and the hazard the first half introduced: a
+    # budgeted drain can reach the candidate search with a real backlog, where the
+    # unbounded one could not. Leaving on it is invisible to the host --
+    # `nextSweepDelayMS` reads `pending.length` and never `state.draining` -- so
+    # the sweep ends and nothing brings it back inside the reconciliation
+    # interval. Every count still sums and `pump()` still returns; what is lost is
+    # a notification nobody reads for an hour.
+    ('M36 a budgeted drain leaves on an empty candidate queue with events outstanding',
+     '          if (!candidate) {\n'
+     '            if (dirty.size) continue;\n'
+     "            state.phase = 'waiting'; break;\n"
+     '          }',
+     "          if (!candidate) { state.phase = 'waiting'; break; }"),
 ]
 
 

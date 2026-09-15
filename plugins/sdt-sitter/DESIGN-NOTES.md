@@ -333,9 +333,12 @@ pump before the candidate search below it gets a turn. Before it, that loop ran
 to an empty set and paid a library-wide unattached-items query per id, so a bulk
 file sync — which fires notifications faster than the query returns — held
 control below it indefinitely: the backlog went 761 to 6 573 in twenty minutes
-on the author's library, `active` stayed null, and both sweep records read
-`completed: 0` while the window showed a plausible busy sitter (ticket 0796,
-`verification/incidents/0796-2026-09-15-toggle-does-not-recover.md`).
+on the author's library and `active` stayed null
+(`verification/incidents/0795-2026-09-15-drain-during-sync.md`), and both sweep
+records read `completed: 0` while the window showed a plausible busy sitter
+(`verification/incidents/0796-2026-09-15-toggle-does-not-recover.md`, which also
+records that forcing the outer loop round by hand does not recover it). Ticket
+0796.
 
 It is deliberately not a candidate for any shared budget, and that is the answer
 to question 6 below that we can give from inside. The four constants above

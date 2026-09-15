@@ -38,16 +38,14 @@ var SDT_STATUS_CLASSES = {
 /* How long one pass of the drain may hold the pump before the candidate search
    below it gets a turn. Ticket 0796: the loop had no bound at all, so any
    notification source faster than it held control below it indefinitely and
-   admission was never reached. Wall clock and not a count of ids -- the one
-   thing about this line a later reader is most likely to undo -- because what
-   it bounds is a library-wide `unattached()` per iteration, and the same count
-   is a different duration on a library of 700 and one of 10 000.
+   admission was never reached.
 
-   DESIGN-NOTES.md owns the rest and this comment deliberately does not restate
-   it: the incident the number answers, how its value is set against
-   bootstrap.js's heartbeat, why it is a cadence knob and not a correctness
-   gate, and the open question it is an instance of (6, whether the indexing
-   consumers should share one budget). */
+   DESIGN-NOTES.md owns every fact about the value and this comment restates
+   none of them: why the bound is wall clock rather than a count of ids -- the
+   thing about this line a later reader is most likely to undo -- how the number
+   is set against bootstrap.js's heartbeat, why it is a cadence knob and not a
+   correctness gate, the incident it answers, and the open question it is an
+   instance of (6, whether the indexing consumers should share one budget). */
 var SDT_DRAIN_BUDGET_MS = 5000;
 
 /* Host-independent admission loop. Native ensure owns extraction and persistence. */
@@ -267,7 +265,23 @@ var createSDTSitter = function (host) {
           if (!current()) return;
           const candidate = state.pending.find(item => !attempted.has(item.id) ||
             attempted.get(item.id) !== observed.get(item.id)?.identity);
-          if (!candidate) { state.phase = 'waiting'; break; }
+          // Ticket 0796: `continue` while events are still waiting, which is the
+          // rule the resource gate twelve lines below has always applied, for the
+          // same reason. The budgeted drain above can hand this line a real
+          // backlog, where before the drain could only exit on an empty set and
+          // this `break` was reached with nothing outstanding. Leaving with one
+          // is worse than it looks: `nextSweepDelayMS` in bootstrap.js reads
+          // `pending.length`, `phase`, `busy` and `nextReconciliationAt` and
+          // never `state.draining`, so with no candidate and no blocked phase its
+          // retry is Infinity and the next sweep is the reconciliation deadline,
+          // up to an hour out; and `wakeSDTSitter()` does not cover it either,
+          // since it returns early while `busy` -- exactly when these
+          // notifications arrived. The drain retires at least one id per pass, so
+          // this terminates as soon as the source does.
+          if (!candidate) {
+            if (dirty.size) continue;
+            state.phase = 'waiting'; break;
+          }
           const id = candidate.id;
           let before = observed.get(id);
           const gated = before;

@@ -58,3 +58,7 @@ bench/results/**/traces/
 # appeared untracked at the repo root where every other build artefact above
 # is already named.
 .pytest_cache/
+
+# /review-pr writes its perspectives here, per worktree. Untracked and
+# unignored they sit one `git add -A` away from a sibling commit.
+.panel/
