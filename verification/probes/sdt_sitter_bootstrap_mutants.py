@@ -313,10 +313,18 @@ MUTANTS = [
      "  }\n"),
     # The settle expires and the region speaks the sentence it was already on:
     # a live region that fires with nothing new to say.
+    # RE-ANCHORED 2026-09-15. Ticket 0789 (PR #564) inserted
+    # `disarmSDTAnnounceSettle(dialog)` between these two lines, the patch
+    # stopped applying, and the mutant reported ANCHOR LOST rather than being
+    # caught -- inert from the moment 0789 merged until `make check` ran here.
+    # The harness refusing to score an unapplied mutation as a catch is the
+    # whole reason that was visible at all.
     ("M36 the announcement writes a state it is not in, so the region speaks stale news",
      "  dialog._sdtAnnounced = kind; dialog._sdtLeftAt = null;\n"
+     "  disarmSDTAnnounceSettle(dialog);\n"
      "  region.textContent = line;\n",
      "  dialog._sdtAnnounced = kind; dialog._sdtLeftAt = null;\n"
+     "  disarmSDTAnnounceSettle(dialog);\n"
      "  region.textContent = sdtText('switch-on-idle');\n"),
     # ---- ticket 0686 item (3): a finished pass is not a finished library ----
     # The idle sentence stops distinguishing, which is the panel finding itself.
@@ -390,8 +398,13 @@ MUTANTS = [
      ""),
     # The switch stops gating it: a released build keeps a durable record of a
     # library nobody asked it to keep one of.
-    ("M48 the certificate is written with the debug switch off",
-     "    if (!Zotero.Prefs.get(DEBUG_PREF, true)) return;\n",
+    # RE-ANCHORED 2026-09-15. Ticket 0727's guard 1 replaced the bare pref read
+    # with `sdtDiagnosticsRequested()`, which also honours a marker file -- the
+    # preference alone cannot survive the removal it exists to record. Same
+    # mutation, same meaning: drop the gate and the certificate is written with
+    # diagnostics never asked for.
+    ("M48 the certificate is written with the diagnostics opt-in withdrawn",
+     "    if (!sdtDiagnosticsRequested()) return;\n",
      ""),
     # The uninstall path loses it, which is the half of the phenomenon that
     # takes the whole add-on with it.
