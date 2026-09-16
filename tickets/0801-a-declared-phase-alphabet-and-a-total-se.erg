@@ -8,6 +8,7 @@ Author: MinhHaDuong
 
 2026-09-16T05:59Z Decided the tick-versus-everywhere question in the body rather than leaving it to the implementer, on the author's ruling of this date. Transitions are requested everywhere, applied at once, and checked at the centre. The reasoning is that a tick-only model requires the state to be observable and half of this state is positional -- extracting is true because we called ensure(), census because control is inside that loop, and nothing outside the control flow can rediscover where the program is. Deferring also breaks on the fact that the assignment currently carries control flow: state.phase = admissionReason followed by publish() and break is one gesture, so a deferred application leaves the decision to leave the loop still to be taken on the spot, which is a second mechanism doing the first one's job. And what a tick would buy -- one place where a transition happens, hence one place where the relation is checked -- is exactly what the total setPhase already buys, without latency, without flapping, and without requiring the world to be re-observable. The one honest reservation is recorded with it: the reason axis IS observable and nothing re-examines low-disk until the next sweep, but that tick already exists as the sweep and a second cadence would cost the periodic-cost-while-idle that 0795 and 0701 both forbid.
 2026-09-16T06:06Z TWO LEVELS, on the author's reading, and it reshapes this ticket rather than adding to it. Outer -- RUNNING, PAUSED, HELD, BLOCKED, ERROR, ENDING, VANISHED -- and inner -- census, draining, extracting, idle -- each closed. The decisive consequence: the open set stops being states. low-disk, cpu-busy, storage-unavailable and resources-unavailable become the reason carried by the single outer state BLOCKED, so the host's freely-invented vocabulary is a payload rather than an alphabet member, and the scheduler can be exhaustive over its own states without learning bootstrap.js's words. That dissolves the Fable review's objection to a transition graph at its root instead of by the argument this ticket first made against it. HELD and BLOCKED stay distinct on a criterion the author's own checkbox ruling already drew: BLOCKED is cannot, still trying and prevented, hence unchecked and interactive; HELD is could-but-should-not, withdrawn by decision, hence auto-checked and inert. Two findings verified in source rather than assumed: 'disabled' is a teardown transient only, since blocked() returns it when !alive and alive is cleared in shutdown(), so nothing sits in it; and removal ALREADY exists outside the alphabet as removalNoticed, set by checkSDTStillInstalled() and overriding every other reading at render. The strongest argument for the hierarchy is that it is description and not invention -- the code has been forced to grow the second level twice already, once as removalNoticed and once as switched-off occupying a phase slot while toggleSDTSwitch reads it as the switch's polarity. And the flat variable forces a choice between two simultaneously true facts: during a sync beginning mid-document the sitter is held outside and extracting inside, which is why a review warned that writing syncing while state.active is non-null would name a state the machine is not in, and which makes 0797's awkward 'checked, a document still in flight' row simply the combination HELD x extracting.
+2026-09-16T06:14Z Body rewritten on four author rulings, and one correction of mine that is recorded rather than quietly dropped. (1) The two levels are a PRODUCT of orthogonal axes, not a hierarchy, and the code proves it: extracting stays true under DEFERRED, so the inner value is not a child of RUNNING. DEFERRED x extracting, PAUSED x extracting and VANISHED x extracting are all meaningful, which is also what makes 0797's awkward 'checked, a document still in flight' row an ordinary cell rather than a special case. Do not unfold into twenty-four flat names. (2) DEFERRED carries a SET of reasons. Today blocked() returns one string, the first condition matched in its own evaluation order, so the displayed reason is arbitrary among the true ones and lifting the first manufactures a phantom transition to a reason that was true all along. Cost named: blocked() short-circuits today and the full set pays every procfs and storage read, tolerable once per admission and not at an arbitrary cadence. (3) MY CRITERION WAS WRONG and section 1d now says so at length so nobody restores it as a forgotten idea. Separating HELD from BLOCKED on cannot-versus-could-but-should-not does not work: cpu-busy, low-memory and low-disk are all could-but-should-not, only storage-unavailable is a true cannot, and resources-unavailable is could-not-measure. What actually separates them is not a state distinction at all but whether the condition reads to a user as an event with a beginning and an end -- so it becomes a declared presentation class on each reason, and 0797's checkbox reads that field instead of special-casing a phase by literal name. That wart disappears instead of being documented. (4) The exit criteria are now three graphs and their three differences, not 'transitions are declared': the intended graph by hand, the static graph extracted from the setPhase call sites, and the dynamic graph observed by instrumenting setPhase across the suite. An edge in code but not in spec is undocumented behaviour; in spec but not in code is unimplemented or dead; static but never dynamic is untested OR unreachable and the ticket must say WHICH, which is this project's positive-control rule applied to a graph. The graph ships as a checked-in artifact a test compares, so drift reddens instead of rotting the way the line-number citations did three times on 2026-09-15. Recorded with it: dynamic extraction is the funnel's real second dividend, where phaseSince was the first and did not survive review.
 --- body ---
 
 ## Context
@@ -51,70 +52,100 @@ deliberate `null` that `ready` and `waiting` carry), and whether it is
 and become projections of it. That alone makes the `native-worker-busy` class
 of misfiling impossible rather than merely absent.
 
-### 1b. The alphabet is two closed alphabets, not one open list
+### 1b. Two axes whose PRODUCT is the state, not a hierarchy
 
-The author's reading, and it is what makes the rest tractable. The states are
-two levels, and each level is **closed**:
+Outer — **is work being admitted?** `RUNNING`, `PAUSED`, `DEFERRED`, `ERROR`,
+`ENDING`, `VANISHED`. Six.
 
-**Outer — is it working?** `RUNNING`, `PAUSED`, `HELD`, `BLOCKED`, `ERROR`,
-`ENDING`, `VANISHED`. Seven, complete, because the question they answer is
-binary refined rather than open.
+Inner — **what is in flight?** `census`, `draining`, `extracting`, `idle`. Four.
 
-**Inner — what is it doing?** `census`, `draining`, `extracting`, `idle`. Four,
-meaningful only under `RUNNING`.
+**They are orthogonal, and the proof is in the code's own behaviour:
+`extracting` stays true under `DEFERRED`.** A sync beginning mid-document
+leaves the sitter deferred on the outside and extracting on the inside. If the
+inner value were a *child* of `RUNNING` it would be undefined there; it is not.
+So the full state is the product of two axes, each varying independently, and
+these combinations are all meaningful: `DEFERRED × extracting` (held, a
+document finishing), `PAUSED × extracting` (0797's "checked, a document still
+in flight" row), `VANISHED × extracting` (removed mid-document), `RUNNING ×
+idle`.
 
-**The open set stops being states.** `low-disk`, `cpu-busy`,
-`storage-unavailable`, `resources-unavailable` are not phases: they are the
-*reason* carried by the single outer state `BLOCKED`. The vocabulary the host
-is free to invent becomes a payload, not a member of the alphabet — so the
-scheduler can be exhaustive over its own states without ever learning
-`bootstrap.js`'s words. That dissolves the decorrelated review's objection to a
-transition graph at the root, rather than by the argument this ticket first
-offered against it.
+**Do not unfold the product into a flat set.** Twenty-four names would lose the
+independence of the axes and make the alphabet larger rather than smaller,
+which is the error the code already makes in miniature.
 
-**HELD and BLOCKED are not the same, and the author's own ruling drew the
-line.** `BLOCKED` is *cannot*: it is trying and prevented. `HELD` is *could,
-but should not*: during a file sync the work is possible and would be wasted,
-so the sitter withdraws by decision. That is the same frontier as 0797's
-checkbox rule — `HELD` is auto-checked and inert because the sitter has left
-the field, `BLOCKED` stays unchecked and interactive because it is still trying
-and failing.
+Not every cell is reachable — `ERROR × extracting` probably is not, `ENDING ×
+census` probably is. **Enumerating which cells exist is the transition work,
+not a preliminary to it.**
 
-**`ENDING` is a teardown transient, not a resting state.** `blocked()` returns
-`'disabled'` when `!alive`, and `alive` is set false in `shutdown()`, so the
-value exists only in the window between teardown starting and the pump noticing
-at its next gate. Modelling it as a state the sitter sits in would be false.
+### 1c. `DEFERRED` carries a SET of reasons, and the open set leaves the alphabet
 
-**`VANISHED` already exists, outside the alphabet.** Removal is carried by
-`removalNoticed`, a module variable set by `checkSDTStillInstalled()`, and it
-already overrides every other reading at render:
-`removalNoticed ? sdtText('vanished-message') : describeSDTSwitchLine(s)`.
+`low-disk`, `cpu-busy`, `low-memory`, `storage-unavailable` and
+`resources-unavailable` are not states. They are the reason carried by
+`DEFERRED`. The vocabulary the host may invent becomes a payload, so the
+scheduler is exhaustive over its own states without ever learning
+`bootstrap.js`'s words — which dissolves the decorrelated review's objection to
+a transition graph at the root rather than by argument.
 
-### 1c. The evidence that this is description, not invention
+**Several can hold at once, and today the code cannot say so.** `blocked()`
+returns one string: the first condition that matched, in its own evaluation
+order. If the disk is low and the load is high and a sync is running, the
+reader sees whichever was tested first. That manufactures phantom transitions —
+when the first condition lifts, the phase appears to change to a reason that
+was true all along, and nothing actually moved. A reason *set* makes a real
+transition precise: the outer state changed, or the set changed.
 
-**The code has already been forced to grow the second level twice**, each time
-because an outer-level fact would not fit in the flat variable:
+**The cost, named rather than discovered later:** `blocked()` short-circuits
+today, returning on the first refusal and so skipping the expensive procfs and
+storage reads. Computing the full set pays all of them every time. Tolerable
+once per admission; not at an arbitrary cadence.
 
-- `removalNoticed` — a separate boolean that wins over the phase at display.
-- `switched-off` — occupies a phase slot while being read as the switch's
-  polarity by `toggleSDTSwitch` (`turningOn = phase === 'switched-off'`), which
-  is control state wearing a phase's clothes.
+### 1d. A correction, recorded so it is not restored by someone who thinks it was forgotten
 
-And the flat variable forces a choice between two facts that are both true.
-During a sync that begins mid-document the sitter is **held** on the outside and
-**extracting** on the inside; one slot can hold only one of them. That is
-exactly why a decorrelated review warned that writing `syncing` while
-`state.active !== null` would have the window name a state the machine is not
-in. Two levels have no such conflict, and 0797's awkward table row "checked, a
-document still in flight" stops being a special case: it is the combination
-`HELD` × `extracting`. The checkbox reads the outer level; the line beside it
-reads the inner one — which is the structure that table already had, without
-the code carrying it.
+An earlier revision of this ticket separated `HELD` from `BLOCKED` on the
+criterion *cannot* versus *could but should not*. **That criterion is wrong.**
+Checked reason by reason: `cpu-busy` is a load average above the core count —
+indexing is possible, it would merely slow the machine. `low-memory` and
+`low-disk` are the same shape. Only `storage-unavailable` is a true cannot, the
+attachment's directory being absent. And `resources-unavailable` is neither: it
+is "could not measure", which the code refuses out of prudence. So the
+criterion isolates one reason and files `cpu-busy` with sync — it does not
+separate the two.
 
-**What it costs** is the one-way door this ticket already names: the journal's
-`phase` goes from one field to two, and every incident JSON under
-`verification/incidents/` is read against the old shape. That is the real
-arbitration, not the difficulty of the code.
+What actually separates them is **not a state distinction at all**: it is
+whether the condition is legible to the user as an event with a beginning and
+an end. A sync is visible in Zotero's own interface and resolves itself;
+`cpu-busy` is a sample that may clear in seconds and whose display flickers.
+
+So each reason declares a **presentation class**, and 0797's checkbox reads
+that field instead of special-casing a phase by literal name — which was the
+exact wart 0797 had to carry. The wart disappears rather than being documented.
+
+### 1e. The declaration's fields
+
+Each outer state, each inner state, and each reason carries: its **axis**, its
+**cadence class**, its **label id** (or the deliberate `null` that `ready` and
+`waiting` hold), its **terminality**, and for reasons its **presentation
+class**. `SDT_PHASE_LABELS` and `SDT_BLOCKED_PHASES` become projections rather
+than parallel hand-maintained lists — which is what makes the
+`native-worker-busy` class of misfiling impossible instead of merely absent.
+
+### 1f. The evidence that this is description, not invention
+
+The code has already been forced to grow the second axis twice, each time
+because a fact would not fit the flat variable: `removalNoticed`, a separate
+boolean that overrides the phase at render, and `switched-off`, which occupies a
+phase slot while `toggleSDTSwitch` reads it as the switch's polarity — control
+state wearing a phase's clothes.
+
+Two states verified in source rather than assumed. **`ENDING` is a teardown
+transient**: `blocked()` returns `'disabled'` when `!alive`, and `shutdown()`
+clears `alive`, so the value exists only between teardown starting and the pump
+noticing at its next gate — nothing sits in it. **`VANISHED` already exists
+outside the alphabet**, as `removalNoticed`, set by `checkSDTStillInstalled()`.
+
+**What it costs** is the one-way door named below: the journal's `phase` goes
+from one field to two plus a reason set, and every incident JSON under
+`verification/incidents/` is read against the old shape.
 
 ### 2. A total `setPhase`
 
@@ -286,8 +317,39 @@ and one a unit off, and the mutant is **run**, not assumed.
 
 ## Exit criteria
 
-The set of phases is declared in one place, both derived tables are projections
-of it rather than parallel lists, every assignment passes a check that refuses
-an unknown value and reports it, and the transitions are declared with their
-conditions — completely, or partially with the wildcard named as a gap. A test
-iterates the declaration rather than scraping the source for it.
+The alphabet is declared in one place; `SDT_PHASE_LABELS` and
+`SDT_BLOCKED_PHASES` are projections of it rather than parallel lists; every
+assignment passes a check that refuses an unknown value and reports it; and a
+test iterates the declaration rather than scraping the source for it.
+
+And the transition work is finished when **three graphs exist and every gap
+between them has been ruled on** — not when the transitions are "declared".
+
+1. **The intended graph**, declared by hand with its conditions. A
+   specification.
+2. **The static graph**, extracted from the code: which `setPhase(to)` calls
+   exist and from which predecessors they are reachable. What the code *can*
+   express.
+3. **The dynamic graph**, observed: instrument `setPhase`, run the full suite,
+   record every `(from → to)` actually taken. What the code *does*, wherever
+   the tests reach.
+
+The three differences each mean something different, and each must be ruled on
+rather than listed:
+
+- **In the code, absent from the spec** — undocumented behaviour. Fix it or
+  write it down; never leave it.
+- **In the spec, absent from the code** — unimplemented, or dead specification.
+- **Static but never dynamic** — untested *or* unreachable, and **the ticket
+  must say which**. A zero of observation cannot tell those apart, which is
+  this project's own positive-control rule applied to a graph.
+
+The graph ships as a **checked-in artifact compared by a test**, not as prose:
+a drift then reddens instead of rotting, which is the failure the line-number
+citations demonstrated three times on 2026-09-15. It is generated, so it is
+regenerated rather than hand-merged on a conflict.
+
+Note that the dynamic extraction is the funnel's real second dividend. The
+first one originally claimed, `phaseSince`, did not survive review; this one
+does, and a single passage point is the only place it can be obtained without
+rewriting the code under instrumentation.
