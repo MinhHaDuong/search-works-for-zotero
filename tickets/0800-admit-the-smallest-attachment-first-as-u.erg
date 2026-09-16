@@ -1,0 +1,124 @@
+%erg 0.1
+Title: Admit the smallest attachment first, as upstream 6012 does
+Created: 2026-09-16
+Author: MinhHaDuong
+
+--- log ---
+2026-09-16T00:00Z MinhHaDuong created
+
+--- body ---
+
+## Context
+
+Author, 2026-09-16, reconsidering the admission order after the AR6 stall:
+starting with the small easy files is also a way to minimise risk, and upstream
+does it.
+
+Checked rather than assumed, and both halves hold:
+
+- **Upstream orders smallest-first.** `SPEC.md` C2 already records it: "Zotero's
+  own draft PR #6012 orders attachments smallest-first".
+- **We do not.** Admission takes the first match, in whatever order
+  `refreshQueue()` happened to build the array:
+  `state.pending.find(item => !attempted.has(item.id) || attempted.get(item.id)
+  !== observed.get(item.id)?.identity)`.
+
+## Why this is more than throughput
+
+Coverage rising faster is the obvious half and the weaker one. The half that
+matters is what an admission order does to the cost of a stall.
+
+A document can wedge extraction and **nothing on this side can end it** — the
+worker accepts no abort signal, and the sitter's own code says there is no
+check "from here to this document's own settlement". Ticket 0793 exists to
+establish whether the AR6 plateau is a slow tail or a wedge, and the honest
+reading today is that it is unestablished.
+
+Under that constraint, the admission order is the only lever the sitter has
+over what a wedge costs. Largest-last means a wedge takes the tail of a pass;
+largest-first means it takes the whole pass. On 2026-09-15 the AR6 ate the end
+of a sweep. Admitted first, it would have eaten all of it.
+
+**This is risk management that needs nobody upstream to fix anything**, which
+is what makes it worth doing before 0793 reports.
+
+## The field already exists
+
+No new plumbing. `bootstrap.js`'s inspect path already computes
+`result.sourceBytes = source.size` from an `IOUtils.stat` it already performs,
+and `refreshQueue()` already carries it onto every queue entry alongside
+`pages`:
+
+```js
+.map(([id, info]) => ({ id, title: ..., parentTitle: ...,
+  sourceBytes: info.sourceBytes, pages: info.pages }));
+```
+
+It is a trusted field rather than a stray one: the duration-estimate fit
+already keys on it, guarded by `Number.isFinite(s.sourceBytes) && s.sourceBytes > 0`.
+
+## Relevant files
+
+- `plugins/sdt-sitter/scheduler.js` — `refreshQueue()`, and the candidate
+  search in `pump()` that calls `state.pending.find(...)`. Cite by symbol: the
+  line numbers moved three times on 2026-09-15 alone.
+- `tests/sdt_sitter_scheduler.mjs` — the suite that drives `pump()` against a
+  fixture host.
+- `SPEC.md` C2 — where the upstream parity claim already lives.
+
+## The two design decisions this ticket owes
+
+1. **Where the order is applied.** Sorting inside `refreshQueue()` is one line,
+   but that function runs from `record()` on every observation, so a bulk sync
+   would pay an O(n log n) sort per notification over a queue of thousands.
+   Selecting the minimum at admission is O(n) once per document instead.
+   Measure before choosing, and say which you chose and why.
+2. **Where an unknown size sorts.** `sourceBytes` can be absent when the stat
+   failed. Deferring the unknown is the reading consistent with this ticket's
+   own argument — an unmeasured document is exactly the one whose cost you
+   cannot bound — but it is a decision, not a default, and it needs its own
+   assertion.
+
+## The objection that must be answered, not skipped
+
+**Strict smallest-first can starve the largest document indefinitely.** On a
+library with continuous small-file churn, a new small attachment can always
+arrive before the big one is reached, and the document most in need of being
+indexed once is the one never admitted. Either show that the queue drains in
+practice so the case cannot arise, or carry an ageing rule so a deferred
+document eventually wins. Do not ship strict ordering without saying which.
+
+## Test
+
+Red first, in the scheduler suite. A fixture whose queue holds attachments of
+known differing `sourceBytes`, admitted in a recorded order, and asserted to be
+ascending. Against today's code the order is the array's, so seed the queue so
+that insertion order and size order disagree — otherwise the test passes
+against the unfixed code and proves nothing.
+
+Second test for the starvation objection, matching whichever answer action 2
+above gives.
+
+## Verification
+
+- [ ] The order test fails before the change, with the failure recorded
+- [ ] A queue whose insertion order already happens to be ascending is NOT what
+      the test uses
+- [ ] The unknown-size policy has an assertion on its exact behaviour
+- [ ] The starvation objection is answered by a test or by a recorded argument
+- [ ] `make check` green; scheduler mutants green with a mutant for the order
+- [ ] `SPEC.md` C2's parity claim updated to say we now match, if we do
+
+## Invariants
+
+- The `attempted` / identity re-pick logic survives: the candidate search skips
+  what was already tried unless its identity changed, and ordering must not
+  quietly re-admit a failed document forever.
+- 0796's drain budget is untouched.
+- No new periodic cost while idle (0795's invariant, and 0701's).
+
+## Exit criteria
+
+Admission takes the smallest unattempted candidate rather than the first, the
+unknown-size and starvation cases each have a recorded answer, and a test that
+was red on the old order is green on the new one.
