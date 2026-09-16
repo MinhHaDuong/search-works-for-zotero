@@ -17,12 +17,10 @@ Author: MinhHaDuong
 ## Context
 
 During a bulk file sync, every attachment Zotero has not yet downloaded reads
-as `missing-source`: the `missingSource()` closure in
-`inspect()` (`bootstrap.js:3269-3283` at v0.4.22 — cited by symbol because
-0796 moved every line in this region) sets that status when
-`getFilePathAsync()` returns nothing or `IOUtils.stat()` throws `NotFoundError`,
-which is the correct answer about a file that is genuinely not on disk yet.
-The census is
+as `missing-source`: the `missingSource()` closure in `inspect()`
+(`plugins/sdt-sitter/bootstrap.js`) sets that status when `getFilePathAsync()`
+returns nothing or `IOUtils.stat()` throws `NotFoundError`, which is the correct
+answer about a file that is genuinely not on disk yet. The census is
 therefore not wrong — it is a true account of a moment that the sync makes
 obsolete within minutes.
 
@@ -39,8 +37,7 @@ Two costs, and the second is the one that matters:
 
 ## What already exists, and must be reused
 
-- `SDT_BLOCKED_PHASES` (`bootstrap.js:744` at v0.4.22; it was 718 before 0796
-  moved this file) already held five refusal phases,
+- `SDT_BLOCKED_PHASES` in `bootstrap.js` already held five refusal phases,
   and ticket **0745** already made a blocked phase back off to the 10-minute
   idle cadence instead of the 30-second active one. A sixth phase inherits
   both the backoff and the phase label. Nothing new is needed for the
@@ -61,9 +58,8 @@ This matters more than the usual missing-API question because the five existing
 phases all read the **machine** (`/proc/meminfo`, disk, CPU) while this one
 would read the **host application** — the contract class where this codebase
 has already been burned once: the `LINK_MODE_LINKED_FILE` guard in `inspect()`
-(`bootstrap.js:3250-3262` at v0.4.22) carries a guard written
-against an assumed host contract that made every attachment read as a linked
-file. A phase that cannot fire, or that fires always, is worse than no phase.
+is written against an assumed host contract that made every attachment read as a
+linked file. A phase that cannot fire, or that fires always, is worse than no phase.
 
 **This is exactly why v0.4.22 ships the phase and NOT a measurement.** The
 `syncing()` predicate is one named function whose body is the whole of the
@@ -74,10 +70,12 @@ contract this repository owns. Nothing was added to
 
 ## Relevant files
 
-- `plugins/sdt-sitter/bootstrap.js` — `SDT_SYNC_PHASE` / `SDT_SYNC_PHASE_LABEL`
-  and `SDT_BLOCKED_PHASES` (744), `nextSweepDelayMS` (773), `syncing()` and
-  `blocked()` (3412+), `SDT_PHASE_LABELS` (1050), `SDT_TEXT` (340). Line numbers
-  are v0.4.22 and shifted by ~66 when 0796 landed: re-derive by symbol.
+- `plugins/sdt-sitter/bootstrap.js` — `SDT_SYNC_PHASE` / `SDT_SYNC_PHASE_LABEL`,
+  `SDT_BLOCKED_PHASES`, `nextSweepDelayMS`, `syncing()` and `blocked()`,
+  `SDT_PHASE_LABELS`, `SDT_TEXT`. Cited by symbol and not by line: 0796 moved
+  every line in this file by ~66, and a comment-only edit inside this branch
+  moved three of them again by 2. A line number here is a citation with a
+  half-life.
 - `plugins/sdt-sitter/scheduler.js` — `record()`, `publish()`; sets `phase`
   from `host.blocked()`
 - `tests/sdt_sitter_zotero_mock.mjs` — the mock host; see the warning below
@@ -182,7 +180,7 @@ Reverting the `SDT_BLOCKED_PHASES` entry must reproduce the active cadence —
 the same red-first shape ticket 0745 used for the five existing phases.
 
 **The mock must not invent the platform.** The `LINK_MODE_LINKED_FILE` guard in
-`inspect()` (`bootstrap.js:3250-3262` at v0.4.22) records
+`inspect()` records
 what happens when the harness publishes a host API the real Zotero shapes
 differently: every fixture read as a linked file and the defect was invisible
 until a real host disagreed. Shape the mock from the step-1 output, not from
