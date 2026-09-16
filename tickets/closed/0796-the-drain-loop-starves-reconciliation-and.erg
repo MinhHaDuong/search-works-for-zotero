@@ -2,6 +2,7 @@
 Title: The drain loop is unbounded and starves admission
 Created: 2026-09-15
 Author: claude
+Closed: autoclosed — PR #590
 
 --- log ---
 2026-09-15T19:59Z claude created — measured on the author's live instance during a bulk file sync (padme, v0.4.16, Zotero 10.0.2). Three reads of `state.draining` two minutes apart: 6495, 6543, 6573, against 761 at `drain-start` twenty-five minutes earlier. `pending` 44, `active` null, `busy` true throughout. Split from 0795, which avoids the trigger but leaves the unbounded loop.
@@ -14,6 +15,7 @@ Author: claude
 2026-09-15T23:14Z claude note Action 3 done: the census loop is genuinely bounded. host.list() returns a snapshot array, the for-of iterates that array, nothing writes to it mid-loop, and host.yield() is the first statement in the body. Unlike dirty, it cannot grow underneath the loop. No change needed.
 2026-09-16T00:00Z claude note Review round 2 of PR 590: no blocker; round 1's red-team blocker confirmed closed by its own unmodified reproduction (state.draining 10 -> 0). Five comment-tier findings fixed: PR body stale for the second commit, .gitignore's .panel/ rule duplicated by open PR 591 (dropped ours, 591's carries the better note), STATE.md's lead bullet still describing the unbounded loop, an adherence sentence in the PR body, and a line count in the new comment that was wrong when written (named the gate instead). Also took the consider-tier rename: the local 'drained' never counted anything drained, it is now 'hadBacklog'. Left unchanged and answered on the PR: refreshQueue()'s O(n^2) shape under a flood is pre-existing and per-record, not introduced here, and the extra drain-start/drain-end pairs are debug-pref-gated trace records and are the visibility the incident lacked.
 2026-09-16T00:01Z claude note Correction to the round-2 response. I acted on the reviewer .gitignore finding by deleting our .panel/ hunk, and the very next add -A staged 27 panel files into the commit, the exact hazard the rule exists for. Reverted: the rule stays. The finding is real but its action belongs at MERGE time, to whichever of PR 590 and PR 591 lands second, not to either branch while both are live. A deduplication that removes the guard before the duplicate exists is not a deduplication.
+2026-09-16T00:26Z MinhHaDuong closed — autoclosed — PR #590
 --- body ---
 ## Context
 
