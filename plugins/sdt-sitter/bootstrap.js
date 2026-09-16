@@ -327,7 +327,16 @@ function compareSDTVersion(left, right) {
    supplies the second half of a sentence whose first half is always
    `switch-on-prefix`; the full explanation of what "off" does and does not do
    still lives in the About disclosure, so `switch-off` only has to say what a
-   glance needs. */
+   glance needs.
+
+   A fifth, from ticket 0795: `phase-sync-in-progress` reads "Waiting for sync
+   to finish" and not "Waiting: sync in progress", which is the form the four
+   resource phases would suggest. The colon form names a CONDITION the reader
+   may be able to act on — free some disk, close the other job; this one names
+   an event the reader can only wait out. The wording is also quoted verbatim by
+   ticket 0797's state table, which is what keeps the pause checkbox's
+   explanatory line and this tooltip one sentence rather than two paraphrases of
+   one fact. */
 var SDT_TEXT = {
     "index": "Index",
     "index-coverage": "Index {percent} %",
@@ -349,6 +358,7 @@ var SDT_TEXT = {
     "phase-low-disk": "Waiting: not enough disk space",
     "phase-storage-unavailable": "Waiting: storage unavailable",
     "phase-resources-unavailable": "Waiting: system resources unreadable",
+    "phase-sync-in-progress": "Waiting for sync to finish",
     "phase-off": "Indexing off",
     "dialog-title": "Indexing assistant",
     "switch-on-prefix": "Indexing is on.",
@@ -713,9 +723,37 @@ function noticeSDTRemoval(addon) {
   render();
 }
 
+/* Ticket 0795, and the two names exist to be READ FROM ANOTHER TICKET rather
+   than for this file's own convenience.
+
+   Ticket 0797 replaces the on/off button with a pause checkbox whose state
+   table puts this phase on the CHECKED, NON-INTERACTIVE side, beside the boot
+   wait — the author's ruling is that sync is one of the two states where the
+   user's intent cannot change the outcome. Every other blocked phase sits on
+   the unchecked, interactive side. So `SDT_BLOCKED_PHASES.includes(phase)` is
+   NOT the logic 0797 needs: it has to special-case this one phase by name, and
+   the two things it must name are exactly these — the phase string and the
+   message id whose `SDT_TEXT` wording its table paraphrases. That wording is
+   NOT repeated here: the table above is its one home, the wording note beside
+   it says why it is phrased as it is, and a third copy in this comment is
+   exactly the drift the paragraph below is about. Exported as constants so 0797
+   reuses the strings instead of writing a second copy nothing keeps in step.
+
+   PARAPHRASES, not quotes, and the review of PR 592 was right to catch the
+   overclaim. 0797's table row reads `why: waiting for sync to finish`, lower
+   case and with the column's own `why:` prefix; this label is that sentence,
+   sentence-cased. Nothing mechanical compares the two — the mutant M80 that
+   reddens on a reword compares this table to an assertion in
+   tests/sdt_sitter_scheduler.mjs, which is the repository's own copy and not
+   0797's. What is guaranteed to 0797 is the message ID, which is what it should
+   read; the sentence is a matter for whoever implements that table. */
+var SDT_SYNC_PHASE = 'sync-in-progress';
+var SDT_SYNC_PHASE_LABEL = 'phase-sync-in-progress';
+
 /* Queue retries do no discovery. Quiet libraries wait for reconciliation;
    notifications can wake the pump earlier. SPEC.md §5.2.7 owns the cadence. */
-var SDT_BLOCKED_PHASES = ['cpu-busy', 'low-memory', 'low-disk', 'storage-unavailable', 'resources-unavailable'];
+var SDT_BLOCKED_PHASES = ['cpu-busy', 'low-memory', 'low-disk', 'storage-unavailable',
+  'resources-unavailable', SDT_SYNC_PHASE];
 /* Why the blocked cadence is FLAT and not exponential (ticket 0788).
 
    Back off exponentially when the retry costs the contended resource something.
@@ -733,7 +771,16 @@ var SDT_BLOCKED_PHASES = ['cpu-busy', 'low-memory', 'low-disk', 'storage-unavail
    The asymmetry is deliberate rather than an oversight: the EXPENSIVE retry,
    re-extracting a document, is capped at once per session by scheduler.js's
    `failed` set (ticket 0740). The free one polls flat. Exponentializing this
-   one optimizes the axis that costs nothing. */
+   one optimizes the axis that costs nothing.
+
+   Ticket 0795's sync phase joins the list under the same test, by a different
+   route. It is NOT user-resolvable — nobody deletes a file to make a sync end —
+   but the retry is one property read on an object the host already holds, so
+   there is still no contended resource for a backoff to protect, and a sync
+   that finishes in under ten minutes is exactly the case a growing interval
+   would punish. Ten minutes is also, for now, the ONLY thing that ends this
+   pause: nothing here observes a sync-completion notification, because whether
+   Zotero's Notifier carries one is unmeasured (see `syncing()` below). */
 function nextSweepDelayMS(state) {
   if (state.busy) return SWEEP_INTERVAL_MS;
   const untilReconciliation = state.nextReconciliationAt == null ? SWEEP_INTERVAL_MS
@@ -1029,6 +1076,12 @@ var SDT_PHASE_LABELS = {
   'low-disk': 'phase-low-disk',
   'storage-unavailable': 'phase-storage-unavailable',
   'resources-unavailable': 'phase-resources-unavailable',
+  // Ticket 0795, keyed off the constant rather than a sixth copy of the string:
+  // ticket 0797 special-cases this phase by name, so the name has exactly one
+  // home. 0759's ruling is what makes the label mandatory here rather than
+  // optional — a pause that only froze the numbers would hide the reason, and
+  // the label IS the disclosure.
+  [SDT_SYNC_PHASE]: SDT_SYNC_PHASE_LABEL,
   // The user's own switch, off. Distinct from `disabled`, which is what the
   // scheduler reports when the whole plugin is being torn down: this one is a
   // state the plugin is running in, with a window and a control that leaves it.
@@ -3337,9 +3390,76 @@ async function initialize(rootURI, token, era = shutdowns) {
   }
 
   const workerBusy = () => Zotero.PDFWorker?._processingQueue !== false || Zotero.PDFWorker?._queue?.length !== 0;
+  /* Ticket 0795. THE ONE LINE IN THIS FILE THAT HAS NEVER BEEN MEASURED, and
+     everything the pending live reading can change is inside this body.
+
+     `Zotero.Sync.Runner.syncInProgress` is a CANDIDATE property path. That the
+     path EXISTS is not the open part: `bench/zotero-fulltext-plugin/bootstrap.js`
+     takes `Zotero.Sync.Runner` and reads `.syncInProgress` off it, so somebody
+     writing against Zotero believed in it. Nothing in this repository exercises
+     that plugin, though, so no VALUE has been observed. What stays unmeasured is
+     therefore the part that decides: whether it is truthy during a bulk file sync,
+     or — the failure mode that matters most — whether it reads the SAME in both
+     states, which would disqualify it outright rather than being a result to
+     work around. The ticket carries the two-armed experiment and the decision
+     rule; the seam is one named predicate precisely so the answer collapses into
+     this body and touches nothing else.
+
+     Deliberately NOT covered by any suite. Faking a `Zotero.Sync.Runner` shape
+     in `tests/sdt_sitter_zotero_mock.mjs` would assert this session's guess
+     about the platform and turn an unmeasured contract into a green test — the
+     failure the LINK_MODE_LINKED_FILE guard a few hundred lines up was written
+     against, where the harness published a host API in a shape the real Zotero
+     does not use and every fixture read as a linked file. The POLICY this
+     predicate feeds (refuse admission, back off, say why) is tested through
+     `host.blocked` in tests/sdt_sitter_scheduler.mjs, which is an honest fake of
+     a contract we own.
+
+     Absent, undefined, or throwing reads as NOT syncing — ticket 0795's Action 2
+     default, and the only safe one: a sitter that pauses because it cannot tell
+     is a sitter that never runs. `=== true` rather than a truthy test so a host
+     that exposes the name as something else entirely (an object, a promise, a
+     function) does not silently pause the plugin for ever; the try/catch is for
+     a throwing getter on a lazily-loaded service, which optional chaining does
+     not cover and which would otherwise escape blocked() altogether, since this
+     call sits above its try. */
+  const syncing = () => {
+    try { return Zotero.Sync?.Runner?.syncInProgress === true; }
+    catch (_error) { return false; }
+  };
   async function blocked(info) {
     if (!alive) return 'disabled';
     if (workerBusy()) return 'native-worker-busy';
+    // Above the procfs reads and the storage walk on purpose: during a bulk file
+    // sync this is the phase most likely to answer, so it must be the cheapest
+    // thing that can refuse. Two property reads, no I/O, no library query.
+    //
+    // WHAT THIS GATE DOES NOT REACH, found by the review of PR 592 and confirmed
+    // in scheduler.js before it was written here. `host.blocked()` has one call
+    // site, and it sits BELOW the no-candidate guard: with `state.pending` empty
+    // the pump breaks on 'waiting' and this function is never called. A
+    // not-yet-downloaded attachment classifies `missing-source`, which is in
+    // `SDT_STATUS_CLASSES.failed` and not in `queued`, so it never becomes a
+    // candidate. The refusal therefore holds whenever a sync coexists with
+    // something indexable — the observed incident, `pending: 44` — and is a
+    // no-op when the sync is ALL that is outstanding, where there was nothing to
+    // admit anyway. What is lost in that second case is not admission but the
+    // DISCLOSURE half of 0759: the panel shows a count and no reason. Closing
+    // that needs the census paused too, which ticket 0795's "Decision for the
+    // author" names and does not choose, so it is with the author on
+    // DECISIONS.md's awaiting list rather than decided here.
+    //
+    // The literal, not `SDT_SYNC_PHASE`: tests/sdt_sitter_scheduler.mjs
+    // enumerates the phases by matching every returned string literal across
+    // this function, and a phase reaching it through an identifier drops
+    // silently out of the "every phase has a decided tooltip" check. An
+    // assertion there ties this literal back to the exported constant.
+    //
+    // That enumeration reads the SOURCE, comments included, so a comment in this
+    // function that spells out the pattern it matches becomes a phantom phase
+    // with no tooltip and reddens the suite. Writing one is how this paragraph
+    // came to be here.
+    if (syncing()) return 'sync-in-progress';
     try {
       if (readsProcfs()) {
         // procfs reports a zero stat size. Read its tiny generated streams, not
@@ -3381,6 +3501,11 @@ async function initialize(rootURI, token, era = shutdowns) {
       return 'resources-unavailable';
     }
     // Recheck after async resource reads; never deliberately queue behind native work.
+    // `syncing()` is deliberately NOT rechecked here: a sync that began during
+    // the millisecond of procfs reads above costs at most one admitted document,
+    // which the next pass's top-of-function check then stops, where native work
+    // rechecked here is a queue this document would sit behind for its whole
+    // extraction.
     if (!alive) return 'disabled';
     if (workerBusy()) return 'native-worker-busy';
     return null;

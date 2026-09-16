@@ -680,6 +680,36 @@ MUTANTS = [
      "    doc.getElementById('sdt-switch').setAttribute('aria-label',\n"
      "      sdtText(off ? 'switch-turned-off' : 'switch-turned-on'));\n",
      ""),
+    # ---- ticket 0795: the sync pause ---------------------------------------
+    # WHAT IS NOT MUTATED HERE, and it is the whole point of the ticket: the
+    # `syncing()` predicate that decides to return this phase reads
+    # `Zotero.Sync.Runner.syncInProgress`, a property path nobody has yet read on
+    # a live host. No suite covers it, deliberately (faking the shape would make
+    # the mock assert a guess about the platform — the LINK_MODE_LINKED_FILE
+    # failure), so a mutant of that line would SURVIVE by construction and redden
+    # this gate over a hole the ticket already declares in writing. It stays a
+    # named open item on 0795 rather than a survivor here. What follows mutates
+    # only the parts a test can honestly reach.
+    #
+    # M78 is the ticket's own red step: the backoff is bought by membership and
+    # by nothing else, so a phase appended to the label table but left off this
+    # list looks entirely finished and polls the machine every 30 seconds
+    # through a sync — the cadence ticket 0745 removed.
+    ("M78 the sync phase is off SDT_BLOCKED_PHASES, so a sync is polled at the active cadence",
+     "var SDT_BLOCKED_PHASES = ['cpu-busy', 'low-memory', 'low-disk', 'storage-unavailable',\n"
+     "  'resources-unavailable', SDT_SYNC_PHASE];",
+     "var SDT_BLOCKED_PHASES = ['cpu-busy', 'low-memory', 'low-disk', 'storage-unavailable',\n"
+     "  'resources-unavailable'];"),
+    # 0759's ruling is what makes the two below findings rather than cosmetics:
+    # the pause must DISCLOSE its reason, so an unlabelled phase is a frozen
+    # window with no explanation, and a reworded label silently desynchronizes
+    # ticket 0797's state table, which quotes this sentence verbatim.
+    ("M79 the sync phase ships with no label, so the window pauses without saying why",
+     "  [SDT_SYNC_PHASE]: SDT_SYNC_PHASE_LABEL,\n",
+     ""),
+    ("M80 the sync label is reworded, so 0797's state table quotes a sentence this no longer says",
+     '    "phase-sync-in-progress": "Waiting for sync to finish",',
+     '    "phase-sync-in-progress": "Waiting: sync in progress",'),
 ]
 
 
