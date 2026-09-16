@@ -2,7 +2,7 @@
 
 - **Status:** COMPLETE
 - **Author:** Minh Ha-Duong (CNRS)
-- **Date:** 2026-09-13
+- **Date:** 2026-09-16
 
 ## 1. Introduction
 

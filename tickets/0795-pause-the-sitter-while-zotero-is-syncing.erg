@@ -11,12 +11,13 @@ Author: MinhHaDuong
 
 2026-09-15T20:43Z claude note Action 1 now states what this session learned trying to take the measurement and failing: neither arm is available on demand. The reading needs a live Zotero window with the Run JavaScript pane, so no headless session and no RDP client can take it unless the instance was launched with --start-debugger-server, and relaunching for the flag destroys the state under observation. The active arm additionally needs a real bulk sync, which is hours of transfer and starves the sitter until 0796 is fixed. The evening's instance shut down at 20:31:54Z with the plugin uninstalled before either arm was taken. Ticket 0797 action 4 points here, so the constraint belongs in the ticket rather than in a session's hope.
 2026-09-16T02:00Z claude note v0.4.21 ships the mechanism and NOT the measurement. One named predicate syncing() beside workerBusy() in blocked(), called above the procfs and storage costs; SDT_SYNC_PHASE / SDT_SYNC_PHASE_LABEL exported for ticket 0797, which must special-case this phase by name because its state table puts sync on the checked, non-interactive side while every other blocked phase is unchecked and interactive; label wording 'Waiting for sync to finish', quoted verbatim from 0797's table. Backoff is free: SDT_BLOCKED_PHASES membership is all nextSweepDelayMS reads, no new branch. Policy tested through host.blocked in tests/sdt_sitter_scheduler.mjs, both sides of the membership boundary, with mutants M78 (entry reverted), M79 (label dropped), M80 (label reworded) all caught. Nothing added to tests/sdt_sitter_zotero_mock.mjs and the syncing() body stays untested by any suite, on purpose. Action 4 NOT done and reframed: wake-on-sync-completion assumes Zotero's Notifier carries a sync lifecycle signal, a SECOND unmeasured platform contract the ticket did not flag as one; no observer was speculatively registered, the flat 10-minute idle poll ships instead, and the question is folded into the same live sitting as the first reading.
+2026-09-16T03:34Z claude note Correction to the previous entry's version: the payload shipped as 0.4.22, not 0.4.21. The pre-PR adherence gate asked for three more edits — SPEC.md's admission paragraph now names this sixth gate and says in writing that its host contract is unmeasured, STATE.md was still on 0.4.20, and one comment in bootstrap.js held a third copy of the label wording — and bench/check_sitter_version.py hashes the delivered payload, so the comment-only edit alone obliges its own number. The body above is restamped; this log line is the append-only record that 0.4.21 named an earlier payload on this branch.
 --- body ---
 ## Context
 
 During a bulk file sync, every attachment Zotero has not yet downloaded reads
 as `missing-source`: the `missingSource()` closure in
-`inspect()` (`bootstrap.js:3269-3283` at v0.4.21 — cited by symbol because
+`inspect()` (`bootstrap.js:3269-3283` at v0.4.22 — cited by symbol because
 0796 moved every line in this region) sets that status when
 `getFilePathAsync()` returns nothing or `IOUtils.stat()` throws `NotFoundError`,
 which is the correct answer about a file that is genuinely not on disk yet.
@@ -37,7 +38,7 @@ Two costs, and the second is the one that matters:
 
 ## What already exists, and must be reused
 
-- `SDT_BLOCKED_PHASES` (`bootstrap.js:744` at v0.4.21; it was 718 before 0796
+- `SDT_BLOCKED_PHASES` (`bootstrap.js:744` at v0.4.22; it was 718 before 0796
   moved this file) already held five refusal phases,
   and ticket **0745** already made a blocked phase back off to the 10-minute
   idle cadence instead of the 30-second active one. A sixth phase inherits
@@ -59,11 +60,11 @@ This matters more than the usual missing-API question because the five existing
 phases all read the **machine** (`/proc/meminfo`, disk, CPU) while this one
 would read the **host application** — the contract class where this codebase
 has already been burned once: the `LINK_MODE_LINKED_FILE` guard in `inspect()`
-(`bootstrap.js:3250-3262` at v0.4.21) carries a guard written
+(`bootstrap.js:3250-3262` at v0.4.22) carries a guard written
 against an assumed host contract that made every attachment read as a linked
 file. A phase that cannot fire, or that fires always, is worse than no phase.
 
-**This is exactly why v0.4.21 ships the phase and NOT a measurement.** The
+**This is exactly why v0.4.22 ships the phase and NOT a measurement.** The
 `syncing()` predicate is one named function whose body is the whole of the
 unmeasured contract; the policy it feeds is tested through `host.blocked`, a
 contract this repository owns. Nothing was added to
@@ -75,7 +76,7 @@ contract this repository owns. Nothing was added to
 - `plugins/sdt-sitter/bootstrap.js` — `SDT_SYNC_PHASE` / `SDT_SYNC_PHASE_LABEL`
   and `SDT_BLOCKED_PHASES` (744), `nextSweepDelayMS` (773), `syncing()` and
   `blocked()` (3412+), `SDT_PHASE_LABELS` (1050), `SDT_TEXT` (340). Line numbers
-  are v0.4.21 and shifted by ~66 when 0796 landed: re-derive by symbol.
+  are v0.4.22 and shifted by ~66 when 0796 landed: re-derive by symbol.
 - `plugins/sdt-sitter/scheduler.js` — `record()`, `publish()`; sets `phase`
   from `host.blocked()`
 - `tests/sdt_sitter_zotero_mock.mjs` — the mock host; see the warning below
@@ -116,7 +117,7 @@ contract this repository owns. Nothing was added to
    ticket proposes: behave exactly as today. A sitter that pauses because it
    cannot tell is a sitter that never runs.
 3. Add the phase, its label, and its entry in `SDT_BLOCKED_PHASES`.
-   **Done, v0.4.21.** `SDT_SYNC_PHASE` / `SDT_SYNC_PHASE_LABEL`, the
+   **Done, v0.4.22.** `SDT_SYNC_PHASE` / `SDT_SYNC_PHASE_LABEL`, the
    `SDT_BLOCKED_PHASES` entry, the `SDT_TEXT` wording, and a `syncing()`
    predicate beside `workerBusy()` in `blocked()`. The predicate body is the
    only unmeasured line and is uncovered by design — see the experiment below.
@@ -180,13 +181,13 @@ Reverting the `SDT_BLOCKED_PHASES` entry must reproduce the active cadence —
 the same red-first shape ticket 0745 used for the five existing phases.
 
 **The mock must not invent the platform.** The `LINK_MODE_LINKED_FILE` guard in
-`inspect()` (`bootstrap.js:3250-3262` at v0.4.21) records
+`inspect()` (`bootstrap.js:3250-3262` at v0.4.22) records
 what happens when the harness publishes a host API the real Zotero shapes
 differently: every fixture read as a linked file and the defect was invisible
 until a real host disagreed. Shape the mock from the step-1 output, not from
 what the API ought to look like.
 
-**What v0.4.21 actually shipped, and what it deliberately left uncovered.** The
+**What v0.4.22 actually shipped, and what it deliberately left uncovered.** The
 red step is `a sync in progress refuses admission, backs off to the idle
 cadence, and says why` in `tests/sdt_sitter_scheduler.mjs`, driving
 `host.blocked` — the same honest fake the five existing phases use. It asserts
@@ -228,15 +229,15 @@ counter moving at the price of a second, narrower rule. Not chosen here.
       Until it exists, `syncing()` reads a candidate path and the phase can
       never fire, which is the honest state and not a silent one.
 - [x] The phase ships with a label, or the ticket closes with the measured
-      reason it cannot — v0.4.21: `phase-sync-in-progress`, "Waiting for sync to
+      reason it cannot — v0.4.22: `phase-sync-in-progress`, "Waiting for sync to
       finish", mutants M79 and M80
 - [x] Red-first test in the scheduler suite, reverting the entry reproduces the
-      active cadence — v0.4.21: the scheduler test named above, plus mutant M78,
+      active cadence — v0.4.22: the scheduler test named above, plus mutant M78,
       which IS the reverted entry and is caught
 - [ ] Sync completion wakes the sitter without waiting out the idle interval
       — **OPEN and reframed.** This rests on a second unmeasured platform
       contract (does Zotero's Notifier carry a sync lifecycle signal?), folded
-      into the same experiment. v0.4.21 ships the flat 10-minute idle poll,
+      into the same experiment. v0.4.22 ships the flat 10-minute idle poll,
       which ends the pause on its own.
 - [x] Three reads of `state.draining` on a live syncing instance, recorded in
       `verification/incidents/0795-2026-09-15-drain-during-sync.md`: falling
@@ -246,4 +247,4 @@ counter moving at the price of a second, narrower rule. Not chosen here.
       merged 2026-09-15 and bounded the drain, which is also what makes this
       ticket's check reachable at all (before it, `blocked()` was not called
       once in eight minutes during the captured incident).
-- [ ] `make check` passes — green for v0.4.21; re-run when the reading lands
+- [ ] `make check` passes — green for v0.4.22; re-run when the reading lands

@@ -1,6 +1,6 @@
 # STATE — Search Works for Zotero
 
-*Live handoff. Updated 2026-09-16 (sitter 0.4.21, critical path 21:05Z). Ownership: [AGENTS.md](AGENTS.md).*
+*Live handoff. Updated 2026-09-16 (sitter 0.4.22, critical path 21:05Z). Ownership: [AGENTS.md](AGENTS.md).*
 
 ## North Star
 
@@ -13,16 +13,14 @@ every language present — local by default, current, bounded, honest about cove
 - **Critical path: 0796 → 0795 → 0793 → 0797** (author, 2026-09-15). The sitter indexes
   nothing: two sweeps at `completed: 0`, admission never reached, the drain loop
   unbounded — **0796**, bounded on a wall-clock budget in PR 590 and awaiting a live
-  reading; whether it recovers unaided is open. Then
-  stop working against the sync that feeds it, and ship the phase that says so — **0795**,
-  whose phase, label and backoff are in 0.4.21 and whose *detection* is one unmeasured
-  property path: the two-armed console reading needs a bulk sync caught rather than
-  provoked, so the gate is in the code and cannot fire until the author takes it.
+  reading; whether it recovers unaided is open. Then stop working against the sync that
+  feeds it — **0795**: phase, label and backoff shipped in 0.4.22, but the detection is one
+  unmeasured property path and cannot fire until the author's two-armed console reading.
   Then extraction wedged on one document, the AR6 plateau — **0793**. Then the "Pause
   indexing" checkbox — **0797**. Bound it, quiet it, unwedge it, make it legible.
-- **v0.4.10 released; the tree is eleven versions past it at 0.4.21, awaiting a retag.**
+- **v0.4.10 released; the tree is twelve versions past it at 0.4.22, awaiting a retag.**
   Acceptance PASS covers **0.4.15 only** (`verification/acceptance/0.4.15-2026-09-14.json`);
-  0.4.16 through 0.4.21 untested. Re-run `bench/sitter_acceptance.py`, or tag 0.4.15. **Author's
+  0.4.16 through 0.4.22 untested. Re-run `bench/sitter_acceptance.py`, or tag 0.4.15. **Author's
   hands only, in order:** build, GPG-sign the tag, publish the `.xpi`, then ONE commit
   adding BOTH `tag` and `update_link` (half-filled FAILs rule 2).
 - Release the Multilingual test library and questions + grader as public Challenge.

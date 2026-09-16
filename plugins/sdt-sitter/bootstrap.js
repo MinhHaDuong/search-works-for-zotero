@@ -733,9 +733,11 @@ function noticeSDTRemoval(addon) {
    the unchecked, interactive side. So `SDT_BLOCKED_PHASES.includes(phase)` is
    NOT the logic 0797 needs: it has to special-case this one phase by name, and
    the two things it must name are exactly these — the phase string and the
-   message id whose text ("Waiting for sync to finish") its table quotes.
-   Exported as constants so that table reuses the strings instead of writing a
-   second copy of them that nothing keeps in step. */
+   message id whose `SDT_TEXT` wording its table quotes. That wording is NOT
+   repeated here: the table above is its one home, the wording note beside it
+   says why it is phrased as it is, and a third copy in this comment is exactly
+   the drift the paragraph below is about. Exported as constants so 0797 reuses
+   the strings instead of writing a second copy nothing keeps in step. */
 var SDT_SYNC_PHASE = 'sync-in-progress';
 var SDT_SYNC_PHASE_LABEL = 'phase-sync-in-progress';
 
