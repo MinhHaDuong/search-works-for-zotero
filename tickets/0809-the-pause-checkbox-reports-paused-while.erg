@@ -1,0 +1,116 @@
+%erg 0.1
+Title: The pause checkbox reports paused while the sitter keeps admitting
+Created: 2026-09-16
+Author: MinhHaDuong
+
+--- log ---
+2026-09-16T11:41Z MinhHaDuong created
+
+--- body ---
+## Context
+
+**This blocks the release.** `bench/sitter_acceptance.py` FAILS on 0.4.26, built
+from `main` at `45da9ac9`, at step 3 — the step whose whole purpose is to prove
+the pause is real:
+
+```
+11:37:56 acceptance payload .../sitter-acceptance.xpi
+11:37:56 acceptance fixture: [4 PDFs]
+11:38:02 switch before:    state: 'Indexing is on. Nothing to index right now.'
+11:38:06 switch after off: state: 'Indexing is off. Zotero will still index PDFs as you view them.'
+11:38:07 holding 30.0s with work outstanding
+FAIL: the sitter kept admitting work while paused: completed went 0 -> 4 over 30.0s
+```
+
+The fixture is four documents and **all four completed while the control read
+"Indexing is off"**. This is the failure the acceptance script's own docstring
+names: *"A pause that only reports itself paused is the assertion this repository
+keeps finding."*
+
+It is a user-facing lie, not merely a test failure. The author checks a box
+labelled "Pause indexing", the panel confirms indexing is off, and the machine
+keeps working.
+
+## What is already ruled out
+
+The obvious polarity bug is **not** it, and the obvious missing call is not it
+either. Read on `main` at `45da9ac9`:
+
+- `toggle.addEventListener('change', () => toggleSDTSwitch(toggle.checked))` —
+  and `.click()` on a checkbox does fire `change`.
+- `toggleSDTSwitch(paused)` treats its argument as *paused*, so checked →
+  `pausing` → `disarmSDTSitter()`. Polarity is right.
+- `disarmSDTSitter()` burns `++sweepGeneration`, clears all three timers, calls
+  `sitter?.stop()`, sets `phase = 'switched-off'`.
+- `stop()` in `scheduler.js` sets `state.enabled = false` and `epoch++`; the
+  loops consult `current() = state.enabled && token === epoch`.
+
+Every link looks correct, which is exactly why this needs an isolation rather
+than a guess. The state text tracked the change correctly, so the *display* saw
+the stop; the admission path did not.
+
+**The standing suspect, not a conclusion.** `scheduler.js` carries its own
+comment near the admission-to-settlement window: *"No `enabled` checks from here
+to this document's own settlement"*, with the claim that *"OUTER loops above and
+below this one still gate on `enabled`"*. Four completions in thirty seconds is
+more than one in-flight document finishing gracefully, so either an outer loop
+is not gating as that comment asserts, or admission is reachable by a path that
+never consults `current()`. Establish which before changing anything.
+
+## Regression window
+
+The recorded acceptance PASS is **0.4.15**
+(`verification/acceptance/0.4.15-2026-09-14.json`), which predates the pause
+checkbox. 0.4.26 FAILs. So the regression is somewhere in 0.4.16–0.4.26, and
+**0797 rewrote exactly this control** — that makes it the first place to look
+and not yet the culprit. Bisect the acceptance across the span rather than
+assuming; the span also contains 0796's drain bound, which changed loop
+structure.
+
+## Relevant files
+
+- `plugins/sdt-sitter/scheduler.js` — `stop()`, the `current()` gate, and the
+  admission-to-settlement window that documents its own missing checks.
+- `plugins/sdt-sitter/bootstrap.js` — `toggleSDTSwitch`, `disarmSDTSitter`, and
+  the checkbox's `change` listener.
+- `bench/sitter_acceptance.py` — step 3, which is the reproduction.
+
+## Actions
+
+1. Reproduce headlessly and cheaply: a scheduler-level test that arms the
+   sitter with a multi-document backlog, calls `stop()` mid-sweep, and asserts
+   **no further admission** — not merely that the outer loop exits.
+2. Isolate which loop re-enters admission after `stop()`. Instrument, do not
+   reason: every link above reads correct and one of them is not.
+3. Fix, and state in the commit which of the two hypotheses held.
+4. Re-run the full acceptance on the fixed build and record the JSON under
+   `verification/acceptance/`.
+
+## Test
+
+Red first. The test must fail on `45da9ac9` for the reason in the FAIL line —
+admission continuing after the stop — and not merely because a loop kept
+spinning. Assert on the count of documents ADMITTED after `stop()`, which must
+be zero, and let one already-handed-off document settle: that in-flight grace is
+the shipped design (`switch-off-in-flight`), not part of the defect.
+
+## Verification
+
+- [ ] The new scheduler test fails on `45da9ac9` and passes after the fix.
+- [ ] `bench/sitter_acceptance.py --work-dir <fresh>` reaches step 9 and exits 0.
+- [ ] Its JSON lands in `verification/acceptance/` naming the version tested.
+- [ ] `make check` passes.
+
+## Invariants
+
+- The in-flight document may still settle after a pause — `switch-off-in-flight`
+  promises exactly that, and removing it would be a different, unruled change.
+- 0796's drain bound stays bounded; this fix must not restore an unbounded loop.
+- The checkbox writes no preference (0797's ruling): nothing here may reintroduce
+  remembered state.
+
+## Exit criteria
+
+- A paused sitter admits nothing, demonstrated by a red-then-green scheduler test
+  and by a full acceptance run that reaches the end.
+- The recorded acceptance PASS names the version that will actually ship.
