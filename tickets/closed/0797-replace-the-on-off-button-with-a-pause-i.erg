@@ -2,6 +2,7 @@
 Title: Replace the on/off button with a Pause indexing checkbox
 Created: 2026-09-15
 Author: MinhHaDuong
+Closed: autoclosed — PR #596
 
 --- log ---
 2026-09-15T20:29Z MinhHaDuong created
@@ -15,8 +16,20 @@ Author: MinhHaDuong
 2026-09-15T20:48Z claude note ACTION 3b WAS WRONG and is corrected, on three readings from the concurrent session, each confirmed in the source here rather than relayed. (1) "askSDTLaunch and its five strings" was wrong twice over: the modal owns SIX ids, and `launch-worker`/`launch-disable` are not among them -- bootstrap.js:2019 feeds those two, with `about-updates`, to the About panel's disclosures. They are precisely the paragraphs saying that extraction runs on a shared background process and that turning indexing off lets the file in flight finish, which is what a user who has just ticked "Pause indexing" goes looking for, so a `launch-` prefix sweep would empty About of the text this ticket's own label makes relevant. (2) `writeSDTSwitch` also calls `emit('switch', { enabled })` at bootstrap.js:1065, and those ring records are how this evening's two cycles and their `completed: 0` were reconstructed at all -- the emission must survive the pref write's removal or the control stops leaving any trace. (3) `readSDTSwitch`'s `null` is not only "never answered": the catch returns it for an UNREADABLE pref too, deliberately, per bootstrap.js:1049-1051 -- silently indexing on a machine whose answer could not be read is what the question exists to prevent. So the tri-state is a safety guard as well as a memory, and starting on unconditionally dissolves it. Under this ruling it has nothing left to protect, since indexing unasked is now the intended default, but that must be decided in the commit rather than carried away. Action 9 also gains R22's second citation site, removeSDTDurableState at bootstrap.js:3628-3630, whose comment contrasts the debug pref with "R22's tri-state discipline for ENABLED_PREF above" and would otherwise point at a retired clause.
 2026-09-15T20:53Z claude note RETRACTION, of a claim this ticket's own 20:36Z entry carries and which is now known false. That entry ends "The starvation is also not permanent: between 20:08 and 20:15 `pending` rose 44 -> 389, which only happens if `refreshQueue()` ran, so the drain had emptied when the notification source dried up." The inference is invalid and the conclusion is withdrawn. `refreshQueue()` is NOT reachable only from the reconciliation at scheduler.js:176: `record()` calls it at line 113, and the drain calls `record()` at line 210 on every turn -- verified in the source here, not taken on report. So `state.pending` is rebuilt continuously throughout the drain, a rise in it says nothing about the drain having emptied, and 44 was a live value rather than a frozen snapshot -- it stayed at 44 because nothing was changing class, `missing-source` being in `failed` and not in `queued`. The concurrent session found this by checking its own citations rather than its prose, and retracted it upstream; 0796's recovery question is REOPENED, and its title is tightened to "starves admission". What survives is measured rather than inferred, and this ticket leans on none of the retracted part: the unbounded loop at scheduler.js:201, admission never reached, `active: null`, `completed: 0` across two sweeps, no `drain-end`. Nothing in this ticket's body or invariants rests on "the sitter recovers by itself" -- checked before writing this, the phrase and the claim appear nowhere outside that log entry -- so the correction costs this ticket one retraction and no edit.
 
-2026-09-15T21:16Z REROLL round 1 answered, seven blocking findings, every one confirmed in source against origin/main at c7c7c3a6 rather than taken from the report. The substantive one is mine and it was a misreading of scale: Action 9 called the SPEC edit 'a sentence', and SPEC.md's sitter passage (repo root, ~2246-2266) asserts the reversed design across twenty lines -- 'the answer holds across a restart and across a disable and re-enable' -- and contains one sentence that is the exact inverse of the author's ruling, 'Zotero's plugin disable control ... is no longer R22's control for the sitter'. A SPEC keeping that while the code ships the ruling is not a stale doc, it is a denial of the design. Action 9 now names the passage, the sentence to reverse, and all FOUR bootstrap.js R22 sites (~114-119, ~1038, ~2656, ~3650), one more than the review found. Also fixed: plugins/sdt-sitter/SPEC.md does not exist and was cited (it is at the repo root); tests/test_sdt_sitter.py and verification/SDT-SITTER-LAUNCH.md were unnamed though Action 3b reddens the first and contradicts the second; the state table dropped phase 'error', which has its own string switch-on-error; and the uninstall write was cited as 3560, called 3548 by the review and is 3569 on today's main -- three readers, three trees, one evening -- so it is now quoted as a statement with the number marked perishable. The Verification section was the real hole: its SPEC box named no procedure and was tickable while SPEC said the opposite, which is this ticket's own recurring trap turned on itself; it now carries greps. NOT corroborated externally: the gate's three external seats all failed to review (two OpenRouter errors, one quota), so PANEL-INTEGRITY read 3 of 3 did not review and this round rests on the local panel alone.
-2026-09-15T21:22Z Round 2 APPROVED, and its one non-blocking finding is OVERRULED and fixed, because verifying it made it larger than the report. The gate judged grep C non-blocking on magnitude and named two missed files in bench/, outside the grep's path list. Running it found FOUR missed files, and the two it did not name are INSIDE the path list already, missed on the pattern alone because they carry the pref string and never the JS constant: tests/sdt_sitter_dialog.mjs:327,337 and verification/SITTER-LIFECYCLE-AUDIT-2026-09-12.md:59,99, alongside bench/sitter_acceptance.py:151,155 and bench/sitter_volume_experiment.py:186,385. So the hole is in the pattern as much as in the path, which is a different finding from the one that was weighed, and the lifecycle audit is a document that would have gone quietly stale describing a pref that no longer exists. Widened to cover bench/ and the pref string, and positive-controlled: the old form returns 4 files, the new one returns 9, and every one of the four missed files is in the difference. None of them reddens anything when it goes inert -- make check-fast is pytest tests/ -q and never reaches bench/, and the bench pref sites are string literals inside JS payloads -- which is exactly the shape this ticket exists to refuse. Cost of the fix: one line. Cost of trusting it: an implementer reads a complete-looking roster. Gate's own reasoning for not blocking was sound on what it had measured; this reverses on new measurement, not on judgement. Also recorded from round 2: the gate found ~2656 was outside its own R22 sweep and this ticket named one site more than the review did; and the external panel failed 3 of 3 seats in BOTH rounds, so neither round is externally corroborated.
+2026-09-15T21:16Z claude note REROLL round 1 answered, seven blocking findings, every one confirmed in source against origin/main at c7c7c3a6 rather than taken from the report. The substantive one is mine and it was a misreading of scale: Action 9 called the SPEC edit 'a sentence', and SPEC.md's sitter passage (repo root, ~2246-2266) asserts the reversed design across twenty lines -- 'the answer holds across a restart and across a disable and re-enable' -- and contains one sentence that is the exact inverse of the author's ruling, 'Zotero's plugin disable control ... is no longer R22's control for the sitter'. A SPEC keeping that while the code ships the ruling is not a stale doc, it is a denial of the design. Action 9 now names the passage, the sentence to reverse, and all FOUR bootstrap.js R22 sites (~114-119, ~1038, ~2656, ~3650), one more than the review found. Also fixed: plugins/sdt-sitter/SPEC.md does not exist and was cited (it is at the repo root); tests/test_sdt_sitter.py and verification/SDT-SITTER-LAUNCH.md were unnamed though Action 3b reddens the first and contradicts the second; the state table dropped phase 'error', which has its own string switch-on-error; and the uninstall write was cited as 3560, called 3548 by the review and is 3569 on today's main -- three readers, three trees, one evening -- so it is now quoted as a statement with the number marked perishable. The Verification section was the real hole: its SPEC box named no procedure and was tickable while SPEC said the opposite, which is this ticket's own recurring trap turned on itself; it now carries greps. NOT corroborated externally: the gate's three external seats all failed to review (two OpenRouter errors, one quota), so PANEL-INTEGRITY read 3 of 3 did not review and this round rests on the local panel alone.
+2026-09-15T21:22Z claude note Round 2 APPROVED, and its one non-blocking finding is OVERRULED and fixed, because verifying it made it larger than the report. The gate judged grep C non-blocking on magnitude and named two missed files in bench/, outside the grep's path list. Running it found FOUR missed files, and the two it did not name are INSIDE the path list already, missed on the pattern alone because they carry the pref string and never the JS constant: tests/sdt_sitter_dialog.mjs:327,337 and verification/SITTER-LIFECYCLE-AUDIT-2026-09-12.md:59,99, alongside bench/sitter_acceptance.py:151,155 and bench/sitter_volume_experiment.py:186,385. So the hole is in the pattern as much as in the path, which is a different finding from the one that was weighed, and the lifecycle audit is a document that would have gone quietly stale describing a pref that no longer exists. Widened to cover bench/ and the pref string, and positive-controlled: the old form returns 4 files, the new one returns 9, and every one of the four missed files is in the difference. None of them reddens anything when it goes inert -- make check-fast is pytest tests/ -q and never reaches bench/, and the bench pref sites are string literals inside JS payloads -- which is exactly the shape this ticket exists to refuse. Cost of the fix: one line. Cost of trusting it: an implementer reads a complete-looking roster. Gate's own reasoning for not blocking was sound on what it had measured; this reverses on new measurement, not on judgement. Also recorded from round 2: the gate found ~2656 was outside its own R22 sweep and this ticket named one site more than the review did; and the external panel failed 3 of 3 seats in BOTH rounds, so neither round is externally corroborated.
+2026-09-16T07:55Z claude note Implemented on branch t0797-pause-checkbox, at manifest 0.4.25. The control is now an <input type=checkbox> with a bound <label> reading 'Pause indexing', no ARIA role, and no aria-label: ticket 0790's workaround went with the button whose visible text named the inverse action. One composer, describeSDTPauseControl(state), owns the whole state table and returns {checked, interactive, line, kind} so the four answers cannot disagree. Rows: boot wait -> checked, inert, 'Zotero is still starting...'; SDT_SYNC_PHASE -> checked, inert, sdtText(SDT_SYNC_PHASE_LABEL) with no 'Indexing is on.' prefix, special-cased BY THE CONSTANT (a mutant routing the row through SDT_BLOCKED_PHASES.includes was run and is caught by three arms, two of them in the dialog suite and one in bootstrap.mjs); switched-off -> checked, interactive; every other phase -> unchecked, interactive, falling through to describeSDTSwitchLine. removalNoticed still wins over all of it (0781).
+2026-09-16T07:55Z claude note TWO CORRECTIONS TO THIS TICKET'S OWN BODY, both made in the body above rather than only here. (1) native-worker-busy is NOT in SDT_BLOCKED_PHASES -- verified on origin/main at e0cd54f3 -- so the 'Which states check the box by themselves' paragraph listed a sixth member that does not exist, and the table's 'a blocked phase' row did not cover it. It is a WAIT, not a block: nextSweepDelayMS gives it the ordinary sweep interval instead of the ten-minute idle one, and scheduler.js emits it at trace as worker-idle-wait rather than as a refuse. It lands on the unchecked, interactive row anyway, for that row's own reasons -- the user has paused nothing, it is transient, and it already has a decided SDT_PHASE_LABELS entry -- and it gets there by falling through, named nowhere. The general form: two classifications agreeing on five of six members are the ones that get conflated, and SDT_SYNC_PHASE is the same trap in the other direction, so neither membership nor non-membership decides this table. (2) The in-flight row's promise, 'finishing the current document, then stopping', is false: a submitted extraction cannot be ended from this side at all, and from here a slow tail and a wedged worker leave the same journal (DESIGN-NOTES open question 4, ticket 0793). What ships is switch-off-in-flight, which says the assistant has no way to end it and names Zotero's Add-ons window as the stop that works -- R22's durable clause doing the work its own ruling assigns it.
+2026-09-16T07:55Z claude note PHASE AGE, the author's ask of 2026-09-15, shipped as a render-local observation and not as a scheduler field. Each dialog notes when it first saw the current announcement KIND (dialog._sdtPhaseKind/_sdtPhaseSeenAt, beside _sdtAnnounced's own per-dialog bookkeeping) and reports the age of that observation in its own node, sdt-switch-age. Keyed on kind rather than phase so an idle count moving from 4 to 5 does not reset an age that has been accumulating. Both rejected designs are named in the code comment so neither returns: a phaseSince on the scheduler lies, because the abort path deliberately leaves phase stale at extracting; and the journal's 60 s heartbeat already records phase with elapsed, so a second copy has an owner problem. SDT_PHASE_AGE_THRESHOLD_MS = 60000, and the mutant WAS RUN, twice, which found a defect in the first version of the test: arms written as SDT_PHASE_AGE_THRESHOLD_MS - 1 MOVE WITH a mutated constant, and 60001 survived them -- only the pinned-value assertion was red. Rewritten as literals, 59999 and 60000, and re-run: 59999 is caught by 'an age one millisecond under the threshold is shown' and 60001 by 'an age exactly at the threshold is withheld', each with the pinned-value assertion temporarily removed so the behavioural arm is shown to catch it alone. The age never reaches the announcement channel: describeSDTPauseControl's kind stays digits-free and announceSDTTransition is handed the line without it, asserted both in the dialog suite and by a source-level test.
+2026-09-16T07:56Z claude note ACTION 3b AND ACTION 9. The preference is gone in full: readSDTSwitch, writeSDTSwitch and askSDTLaunch are deleted, six launch- modal ids are deleted from SDT_TEXT, and launch-worker/launch-disable are NOT swept -- they are About-panel disclosures and a source test now asserts they still reach buildSDTAbout. writeSDTSwitch's emit('switch', {enabled}) survives inside toggleSDTSwitch, emitted before the arm/disarm, because those ring records are the control's only trace; a mutant that drops it is in the bootstrap mutants probe. The tri-state's safety half is dissolved DELIBERATELY and the decision is written at the retirement site: an unreadable pref read as 'never answered' so the machine asked rather than indexed silently, and indexing unasked is now the intended default. extensions.sdt-pack-sitter.enabled is CLEARED on startup by retireSDTSwitchPref() rather than left unread -- a pref written and never read is exactly the invisible state the ruling removes -- and the uninstall consent withdrawal (0772/0773) goes with it, since there is no consent record left to withdraw. SPEC.md's sitter passage at the repo root is rewritten across its whole ~20 lines, not softened: 'Zotero's plugin disable control ... is no longer R22's control for the sitter' is reversed to 'is R22's control for the durable clause', the once-per-profile paragraph and both removal-consent paragraphs are gone, and 0742's two objections to add-on disable are carried forward with why they no longer decide. R22's requirement text itself is untouched: it is not weakened, its two clauses are answered by two controls.
+2026-09-16T07:56Z claude note GATES AND WHAT IS OWED. Green here: node tests/sdt_sitter_dialog.mjs, sdt_sitter_bootstrap.mjs, sdt_sitter_scheduler.mjs, sdt_sitter_startup.mjs; rtk proxy python3 -m pytest tests/ -q = 1462 passed, 15 skipped; bench/check_sitter_version.py rule 3 RAN (3 open PR heads read, not NOT-RUN) at 0.4.25. THE FOUR RED ARMS WERE SHOWN SEPARATELY before the fix, each as its own test so none hid behind another's failure: boot-wait checked FAIL, boot-wait disabled FAIL, cpu-busy not-checked FAIL, cpu-busy not-disabled FAIL. make sitter-smoke RAN against a real Zotero 10 on this machine with 0.4.25 and PASSED -- and it is a live positive control for Action 3b's central claim, since on a fresh profile with no seeded preference the sitter reported phase 'waiting' three seconds after install and went on to extract 3 documents: it armed without asking, where the old build would have blocked on a native modal (the volume rig seeded the pref for exactly that reason, and that seed is now removed). STILL OWED, and NOT claimed: (1) the checkbox read in a live window -- what Orca announces for it in each checked/unchecked and enabled/disabled combination, and that the native widget survives a forced-colours setting. A dated amendment in verification/SDT-SITTER-UI-PANEL.md records that its AT-SPI table and its two SPEECH OUTPUT lines describe a control that no longer exists, and says both readings are owed; nothing there was rewritten from source, which is the trap 0792 fell into. (2) Ticket 0795's two sync-probe readings, active and at rest, which 0795 already carries as its own open item -- this ticket wires the phase, it does not settle syncInProgress.
+2026-09-16T08:24Z claude note REROLL round 1 (verify-adherence) answered, two blocking findings, both confirmed in source rather than taken from the report. (1) DECISIONS.md was not touched, and AGENTS.md:38 says the author's rulings land there FIRST: this PR reverses the 2026-09-08 ratification 'the sitter's own persisted switch becomes R22's one obvious way, replacing add-on disable' with nothing appended. Fixed: a dated RATIFIED entry now records all three of the author's 2026-09-15 messages verbatim, says it SUPERSEDES the 2026-09-08 entry and ticket 0742's design, states that R22 is not weakened and which control holds which clause, carries 0742's two objections to add-on disable forward with why they no longer decide, names the 2026-09-12/13 consent rulings as governing a record that no longer exists rather than as overruled on their merits, and records the dissolution of readSDTSwitch's unreadable-pref guard as a decision. (2) A VACUOUS ASSERTION of my own, and it hid a real hole. _site() returns a slice that INCLUDES its start anchor, the anchor is the signature 'function observeSDTPhaseAge(dialog, kind, now) {', so 'kind' in observe is true of a gutted body. The reviewer mutated the call site to key the age on control.line instead of control.kind -- the exact defect the assertion names -- and all three node suites passed. Fixed twice over: the needle is now 'dialog._sdtPhaseKind !== kind', which only the body can contain and which I positive-controlled against a gutted body; and a driven arm, 'the age survives a count change but not a phase change', now moves an idle count and asserts the sentence changed while the age did not. The control.line mutant was re-run against it and dies on 'a moving count reset an age that had been accumulating'. NOT changed, and the reason: the gate's one nit called the two threshold assertion messages inverted. They are failure messages, describing the defect when the arm goes red, which is this suite's convention throughout -- 'an age one millisecond under the threshold is shown' is what is true when that arm fails.
+2026-09-16T08:50Z claude note Review round 1 on PR 596 answered: request-changes, 2 blockers and 4 non-blocking, all acted on and two of them widened by verifying them. BLOCKER 1, verification/SDT-SITTER-LAUNCH.md contradicted itself -- I rewrote its intro and left lines 96-106 saying 'Turn the switch off ... the persisted answer stands ... the first-run dialog'. The panel SPLIT on this (doc-propagation reported the file correctly updated) and the reviewer re-ran the grep rather than taking the clean report, which is the only reason it survived. Fixed, and swept: 'the switch', 'switch off', 'persisted' now appear in that file only inside the sentence recording what 0742 did. BLOCKER 2, the phase age had no authorization anywhere in this ticket -- no Action, no Context, no exit criterion, only a paraphrased log entry of mine where every other decision here carries a verbatim author quote. Ticket now carries Action 10, which says so in as many words: the instruction reached the implementation RELAYED, in the task brief, not as a quoted message; the dated observation behind it is the author's, the wording of the requirement is the relayer's; and it lifts out cleanly if he disowns it (one constant, one observer, one composer, one span, two tests). NON-BLOCKING, all four: (a) ticket 0746 is orphaned -- its entire subject is askSDTLaunch's confirmEx call, which this PR deletes -- so 0746 now carries a log entry recommending close-as-obsolete, left for the merging PR rather than closed here. (b) The 0781 removal row's announcement was BROKEN for screen-reader users and I had asserted the opposite: the kind was describeSDTSwitchKind(state), a removal does not change the phase, so announceSDTTransition compared it against what it had already announced and stayed silent -- the window showed vanished-message and nobody was told. Pre-existing, and this is the row that owns it: kind is now 'vanished', with a driven arm whose first assertion is the positive control. (c) 'no way to end it' challenged as needing 'no safe way', since DESIGN-NOTES says terminate() IS reachable. NOT changed, and the comment now says why: terminate() does not END the extraction, it parks the promise for ever and stops the shared queue draining for the life of the process, so there is no affordance that ends this document safe or otherwise, and 'no safe way' would invite the question whose answer is 'and then nothing indexes until you restart Zotero'. (d) The SDT_BLOCKED_PHASES.includes mutant was hand-run and not committed, so the claim resting on it was not re-derivable by make sitter-mutants; it is now M49f in the probe. Manifest 0.4.25 -> 0.4.26: the guard reddened on the comment-only edits above, exactly as this ticket's Action 8 says it would.
+2026-09-16T09:25Z claude note Review round 2 on PR 596: verdict comment, no perspective returned request-changes, both round-1 blockers closed. Four findings acted on, none of them a code change. (1) Action 10's reversibility claim was WRONG BY ABOUT HALF, and it is the load-bearing sentence of that action -- it is the argument for shipping a feature the author has not ratified. 'One constant, one observer, one composer, one span, two tests' was written from memory; the grep says three files, 14 lines in bootstrap.js, 11 in sdt_sitter_dialog.mjs across THREE tests, 7 in test_sdt_sitter.py, plus a RELEASE-NOTES paragraph. The half it missed is the two call-site lines in renderSDTPauseRow, without which deleting the functions is a ReferenceError. Action 10 now carries the grep and the measured figures, and still calls it a clean lift, because no other reading consumes it and describeSDTPauseControl does not know it exists. (2) Every log entry I appended this session was missing the actor and verb the %erg 0.1 format puts after the timestamp, so 'Implemented' was parsing as the author and 'on' as the verb -- eight entries across 0797 and 0746, all repaired in place to 'claude note' with no word of the detail changed, and erg validate cannot see this class (rule 11 checks only that two tokens follow the timestamp). Two PRE-EXISTING entries of 2026-09-15 have the same shape and are left alone: they are somebody else's record. (3) SDT-SITTER-UI-PANEL.md's owed-readings list did not include the reading this round's own fix created, and now does: kind: 'vanished' puts a value on the aria-live channel that has never been on it before, and whether Orca reads a 60-word sentence usefully, and whether it arrives on a window whose 100 ms pulse the removal has just stopped, are readings rather than deductions. (4) STATE.md NOT updated, deliberately, and this is the reasoning rather than an omission: it says sitter 0.4.24 and lists 0797 as work ahead, and both are TRUE of origin/main, which is what that file describes. Writing 0.4.26 into it before this PR merges would be the false move, and the post-merge refresh is /roar's step. Independently confirmed by the reviewer on its own run rather than relayed: make check exit 0, 1462 passed 15 skipped, bootstrap mutants 91/91 with M49f new and caught, scheduler 21/21. Also recorded from the round: the 'vanished' fix was positive-controlled three times independently, three reviewers reverting it and getting three reds, which is the strongest evidence in either round.
+2026-09-16T09:29Z claude note One environment note for the next agent, measured rather than relayed. The brief warned that bench/check_sitter_version.py rule 3 returns NOT-RUN on an intermittent HTTP 403 and that a NOT-RUN must never be read as a pass. It never did that here, but it did print something that LOOKS like the same trap and is not: 'OK (rule 3): 0 open pull-request head(s) read'. Read the source before treating that as a failure to look -- the loop does 'if in_our_history(root, head): continue', so this branch's own pull request is skipped by construction, and with PR 596 the only one open, zero heads read is the truthful answer rather than a blind one. Earlier in the same session, with three sibling PRs open and none of them mine, the same line read '3 open pull-request head(s) read'. The discriminator is whether any OTHER PR is open, and the check to run before believing a zero is 'gh pr list --state open', not a re-run. Also confirmed on this machine: 'gh pr edit --title' fails the mutation while exiting on a Projects-classic deprecation warning that reads like a harmless aside -- the title came back unchanged, and 'gh api repos/OWNER/REPO/pulls/N -X PATCH -f title=...' is what worked. Read the mutation back either way.
+2026-09-16T09:38Z claude note CLOSING ON MERGE, with the live readings moved to ticket 0807 rather than ticked from source. The checkbox is delivered and gated: make check exit 0 at 1462 passed / 15 skipped, mutants 91/91 and 21/21 with zero survivors, the four red arms shown separately before the fix, two review rounds ending in comment rather than request-changes, and make sitter-smoke RUN against a real Zotero 10 -- a fresh profile reporting phase 'waiting' three seconds after install and extracting three documents, which is the live positive control for Action 3b. What cannot be ticked is what a person hears and sees: what Orca announces for the checkbox in each state, whether the native widget survives forced colours, and whether the removal notice is now spoken -- that last one NEW rather than a re-check, since the review of PR 596 found the vanished transition had always reached the announcer and never been read, the kind being computed from a phase a removal does not change. Ticket 0807 carries all three, Blocked-by 0797. Closing this ticket with those boxes ticked from source is precisely what ticket 0792 did and what this ticket's own body names as the trap not to repeat, so it is not done here. Also closed by this merge: ticket 0746, whose entire subject was askSDTLaunch's confirmEx call -- Action 3b deleted askSDTLaunch and grep returns zero occurrences, so there is no surface left to guard.
+2026-09-16T09:52Z claude bump verify-reroll -- round 1 bounced on two findings, neither in code and both mine. The Exit criteria paragraph still demanded 'read once in a live Zotero window' while the Verification list above it had already routed that reading to ticket 0807, so the ticket contradicted itself and would have closed against a criterion its own text still required -- pointed, ironically, at this PR's central argument that a live reading must not be ticked from source. The paragraph now stops where the headless lane stops and names 0807. Second finding, and it is systematic rather than local: three log entries in this ticket put prose where the author and verb fields belong, so 'REROLL' and 'CLOSING' parsed as authors. erg check exits 0 on them because rule 11 counts two tokens and does not read them, which is exactly why the class is invisible to the mechanical gate. All three repaired to the claude-note form, following the precedent of the commit that repaired eight earlier on this branch; the file now has zero malformed entries out of twenty-two.
+2026-09-16T10:13Z MinhHaDuong closed — autoclosed — PR #596
 --- body ---
 
 ## Context
@@ -146,10 +159,35 @@ the user can see and leave rather than the silence a removed UI leaves behind.
 The ruling names boot wait and sync as the conditions that hold the control.
 Read with "when it is unchecked, it says the phase", that puts the blocked
 phases on the *unchecked* side: `cpu-busy`, `low-memory`, `low-disk`,
-`storage-unavailable`, `resources-unavailable` and `native-worker-busy` are
-phases, they already have decided labels in `SDT_PHASE_LABELS`, and the user
-has not paused anything when one of them holds. Auto-checked is reserved for
-the two states where the user's intent cannot change the outcome at all.
+`storage-unavailable` and `resources-unavailable` are phases, they already have
+decided labels in `SDT_PHASE_LABELS`, and the user has not paused anything when
+one of them holds. Auto-checked is reserved for the two states where the user's
+intent cannot change the outcome at all.
+
+**CORRECTION, made during implementation: `native-worker-busy` is NOT one of the
+blocked phases**, and this paragraph listed it as a sixth. Verified on
+`origin/main`: `SDT_BLOCKED_PHASES` is `['cpu-busy', 'low-memory', 'low-disk',
+'storage-unavailable', 'resources-unavailable', SDT_SYNC_PHASE]` and
+`native-worker-busy` is not in it. The difference is the retry cadence rather
+than the wording -- `nextSweepDelayMS` gives blocked phases the ten-minute idle
+interval and gives this one the ordinary sweep interval, and scheduler.js emits
+it at `trace` as `worker-idle-wait` rather than as a `refuse`. So it is a WAIT,
+not a block, and the table's "a blocked phase" row did not cover it.
+
+It belongs on the same row all the same, for the reasons that row exists rather
+than for membership in a list: the user has paused nothing, it is transient, and
+it already has a decided `SDT_PHASE_LABELS` entry ("Waiting: native indexing
+under way"). Auto-checking a phase that turns over in seconds would flicker the
+control exactly as `cpu-busy` would. The row is therefore read as *any phase
+with a decided label that is neither the user's own pause nor the sync*, which
+is what the implementation does -- it falls through, and nothing names it.
+
+The general form of the error is worth keeping: two classifications that agree
+on five of six members are the ones that get conflated. `SDT_SYNC_PHASE` is the
+other direction of the same trap -- it IS in `SDT_BLOCKED_PHASES` and belongs on
+the *checked* row -- so neither membership nor non-membership decides this
+table, and a composer that reached for `SDT_BLOCKED_PHASES.includes` would be
+right for five phases and wrong for two.
 
 Keeping a transient `cpu-busy` off the checkbox also keeps the control from
 flickering checked and unchecked under ordinary load, which is the 10 Hz defect
@@ -162,11 +200,11 @@ in slower clothes -- the thing 0792's own invariants exist to prevent.
 | boot wait -- the sitter cannot yet be armed | checked | no | why: Zotero is still starting |
 | sync in progress | checked | no | why: waiting for sync to finish |
 | user paused this session (`phase === 'switched-off'`) | checked | yes | `switch-off`, minus any claim of persistence |
-| checked, a document still in flight | checked | yes | finishing the current document, then stopping |
+| checked, a document still in flight | checked | yes | `switch-off-in-flight` -- see the correction below; NOT "finishing the current document, then stopping" |
 | `census` | unchecked | yes | `switch-on-census` |
 | `draining` | unchecked | yes | `switch-on-draining` |
 | `extracting` | unchecked | yes | `switch-on-extracting` |
-| a blocked phase | unchecked | yes | that phase's `SDT_PHASE_LABELS` entry |
+| a blocked phase, or the `native-worker-busy` wait | unchecked | yes | that phase's `SDT_PHASE_LABELS` entry |
 | `error` | unchecked | yes | `switch-on-error`, which the phase already has (`bootstrap.js:1665`) and which this table omitted until the review caught it |
 | idle | unchecked | yes | `describeSDTIdleLine`'s counts |
 | removal noticed (0781) | checked | no | `vanished-message`, unchanged |
@@ -174,6 +212,26 @@ in slower clothes -- the thing 0792's own invariants exist to prevent.
 Two rows are new work and not merely a rewiring of what exists: **sync** has no
 gate anywhere in the plugin today (see Actions 4), and **checked with a document
 in flight** has no string today.
+
+**CORRECTION to the in-flight row, made during implementation, and it is a
+correction to what the row PROMISES rather than to its wording.** "Finishing the
+current document, then stopping" is false, and now established rather than
+suspected. A submitted extraction cannot be ended from the sitter's side at all:
+`ensure()`'s whole option surface is `isPriority` and `onProgress`, the worker's
+dispatcher has no cancel action, and `Zotero.PDFWorker._worker.terminate()` is
+reachable but strictly worse than doing nothing -- the parked promise never
+settles, `_processingQueue` never resets, and the queue shared with full-text
+indexing never drains again for the life of the process. From this side a slow
+tail and a wedged worker leave the same journal (DESIGN-NOTES open question 4,
+ticket 0793's log). So the sentence cannot promise a stop, and it must be true
+of the wedged case as well as the ordinary one.
+
+What ships says what is true and names the recourse that works, which is the
+host's: "Indexing is paused. No new attachment is picked up. One was already
+handed to Zotero's shared extractor before you paused, and the assistant has no
+way to end it: it finishes, or stops, on Zotero's own terms. To stop everything
+now, disable the assistant in Zotero's Add-ons window." That is R22's durable
+clause doing the work its own ruling assigns it.
 
 ## Relevant files
 
@@ -348,6 +406,64 @@ in flight** has no string today.
    SPEC.md verification/SDT-SITTER-LAUNCH.md` is the sweep, and the Verification
    section makes it a checked step rather than a claim.
 
+10. **Show how long the window has been saying the same thing.** ADDED AFTER
+   FILING, and its provenance is written out here rather than left implicit,
+   because the review of PR 596 was right that it appeared in no Action, no
+   Context and no exit criterion while every other decision in this ticket
+   carries a verbatim author quote.
+
+   **This one does not, and that is the honest state of it.** It reached the
+   implementation as a relayed instruction in the task brief that dispatched the
+   work, not as a quoted message: the author wants to see how long the sitter has
+   held its current phase, because on 2026-09-15 his window showed a plausible
+   steady state while `draining` had held for eight minutes. The observation
+   behind it is his and is dated; the wording of the requirement is the relayer's.
+   A relayed claim is unverified until someone measures it or names whose
+   measurement it is, so it is named here.
+
+   Two designs are ruled OUT in the same instruction, and both reasons are
+   checkable in this repository rather than taken on trust:
+   - a `phaseSince` field on the scheduler LIES, because the abort path
+     deliberately leaves `phase` stale at `extracting`;
+   - the journal already records phase with elapsed every 60 s, so a second copy
+     has an owner problem.
+
+   What ships is therefore a **render-local observation**: the dialog notes when
+   it first saw the current announcement kind and reports the age of that
+   observation. It is honest about what it measures, needs no scheduler change,
+   and cannot go stale behind an abort. Two constraints: the age must not reach
+   the announcement channel (`describeSDTSwitchKind` stays digits-free, or a
+   duration is spoken to a screen reader as though the machine had changed
+   state), and a threshold decides when the age is worth showing -- "2 s ago" is
+   noise, "8 min" is the diagnosis. That threshold is a number that decides
+   something, so it gets an assertion on its exact value AND on one unit either
+   side of it, and the mutants get run.
+
+   **If the author disowns it, it lifts out cleanly** -- and the first version of
+   this sentence said "one constant, one observer, one composer, one `<span>`,
+   and the two tests", which the review of PR 596 measured and found wrong by
+   about half. It is the reversibility argument for shipping a feature the author
+   has not ratified, so its accuracy is load-bearing, and the honest figure comes
+   from the grep rather than from memory:
+
+       grep -rn "SDT_PHASE_AGE_THRESHOLD_MS\|observeSDTPhaseAge\|\
+       describeSDTPhaseAge\|sdt-switch-age\|switch-age\|_sdtPhaseSeenAt\|\
+       _sdtPhaseKind" plugins/ tests/
+
+   **Three files, and nothing outside them**: 14 lines in
+   `plugins/sdt-sitter/bootstrap.js` (the constant, `observeSDTPhaseAge`,
+   `describeSDTPhaseAge`, the `switch-age` string-table entry, the
+   `sdt-switch-age` node built in `populate`, and the two call-site lines in
+   `renderSDTPauseRow` -- deleting the functions without those is a
+   `ReferenceError`, which is the half the first count missed), 11 in
+   `tests/sdt_sitter_dialog.mjs` across THREE tests rather than two, and 7 in
+   `tests/test_sdt_sitter.py` in one test. Plus one `RELEASE-NOTES.md` paragraph.
+
+   Still a clean lift -- no other reading in the window consumes it, no
+   scheduler state backs it, and `describeSDTPauseControl` does not know it
+   exists -- but it is a dozen and a half lines across four files, not five
+   things.
+
 ## Test
 
 Red first, in `tests/sdt_sitter_dialog.mjs`, against the stub document:
@@ -374,11 +490,16 @@ Red first, in `tests/sdt_sitter_dialog.mjs`, against the stub document:
 - [ ] `make sitter-mutants` passes -- both probes anchor on this region
 - [ ] The two sync probe readings taken, active and at rest, and shown to differ
       before `syncInProgress` (or whatever replaces it) is wired to the control
-- [ ] `make sitter-smoke SITTER_SMOKE_ZOTERO=~/.local/Zotero_linux-x86_64/zotero`
-      run against a real Zotero, and the checkbox read in a live window: what a
-      screen reader announces for it, and that the native widget survives a
-      forced-colours setting. 0792's rendering claims are all read from source
-      and none is observed; this ticket must not repeat that.
+- [x] `make sitter-smoke SITTER_SMOKE_ZOTERO=~/.local/Zotero_linux-x86_64/zotero`
+      run against a real Zotero, and PASSED: fresh profile, no seeded pref,
+      `phase: 'waiting'` three seconds after install, three documents extracted.
+      It is the live positive control for Action 3b — the sitter armed without
+      asking, where the old build blocked on a native modal.
+- [→] **The screen-reader and forced-colours readings move to ticket 0807.**
+      They need a human at the machine, and ticking them from source is exactly
+      what 0792 did and what this ticket's own body names as the trap. 0807
+      carries all three, including one that is new rather than a re-check: that
+      the removal notice is now spoken at all.
 - [ ] `grep` shows the retired string ids are gone, not merely unreferenced --
       the four switch ids and, per Action 3b, the five launch ids
 - [ ] SPEC.md's sitter passage rewritten, checked BY GREP and not by reading:
@@ -404,8 +525,10 @@ Red first, in `tests/sdt_sitter_dialog.mjs`, against the stub document:
       `pytest tests/ -q` and never reaches `bench/`, and the pref sites there
       are string literals inside JS payloads
 - [ ] `make check-fast` green AFTER Action 3b, not only before it
-- [ ] Quitting Zotero with the box checked and restarting begins indexing again,
-      read in a live window, not inferred from the code
+- [→] Quitting Zotero with the box checked and restarting begins indexing again:
+      moved to ticket 0807 with the other live readings. `make sitter-smoke`
+      establishes the adjacent half — a fresh profile arms unasked — but not
+      this one, which needs a person to check the box, quit, and watch.
 
 ## Invariants
 
@@ -452,5 +575,14 @@ in that state the line beside it says why; when it is interactive and unchecked
 that line says the phase. Nothing about the choice is remembered: the next
 Zotero start indexes as soon as it can, and SPEC.md R22 says which control
 holds which half of it -- the checkbox pauses this session, Zotero's add-on
-disable is the stop that lasts. The behaviour is demonstrated by a suite that was red on both the
-boot-wait and the blocked-phase arms, and read once in a live Zotero window.
+disable is the stop that lasts. The behaviour is demonstrated by a suite that
+was red on both the boot-wait and the blocked-phase arms, and by
+`make sitter-smoke` against a real Zotero 10.
+
+**The live-window reading is NOT part of this criterion, and is not ticked
+here.** What a person hears and sees -- what a screen reader announces for the
+checkbox in each state, whether the native widget survives forced colours, and
+whether the removal notice is now spoken at all -- moves to ticket 0807,
+`Blocked-by: 0797`. Ticking a screen-reader reading from source is what ticket
+0792 did and what this ticket's own body names three times as the trap; this
+criterion therefore stops where the headless lane stops.

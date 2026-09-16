@@ -10,15 +10,31 @@ Consequently pack coverage is not a claim that Zotero's separate lexical index
 or Zoteus's embedding index is complete. Native SDT does not use the flat-text
 extraction caps.
 
-Install through Zotero's extension manager. The first activation asks once
-whether to index in the background; the answer is written to
-`extensions.sdt-pack-sitter.enabled` and the question is never asked again, on
-this restart or any later one. That preference is R22's one obvious way for the
-sitter (ratified 2026-09-08, ticket 0742), and the switch that carries it is the
-first control in the add-on's window: off runs no census and admits nothing, and
-says so on the toolbar; on is ordinary operation. Editing the preference away in
-the Config Editor puts the profile back in the unanswered state, and the question
-is asked once more.
+Install through Zotero's extension manager. Nothing is asked and nothing is
+remembered (ticket 0797, ruled 2026-09-15): indexing starts on every activation
+as soon as it can, and the first control in the add-on's window is a **"Pause
+indexing"** checkbox that stops it for that session alone. Checked runs no census
+and admits nothing, and the toolbar says so; unchecked is ordinary operation. The
+box checks itself and goes inert exactly while the choice could not change the
+outcome — while Zotero is still starting, and while a sync is in progress — and
+the line beside it says which. Every other gate the sitter holds itself on
+(processor, memory, disk, storage, Zotero's own native indexer) leaves the box
+unchecked and usable, and the line names the condition.
+
+R22's two clauses are answered by two controls. The checkbox is the pause. The
+stop that holds across restarts is **Zotero's own add-on disable**, which the
+host stores by construction; the sitter keeps no preference of its own, and
+clears `extensions.sdt-pack-sitter.enabled` on startup if an earlier build left
+one. This REVERSES ticket 0742, which collapsed a launch prompt and the pause
+into one persisted switch; 0742's objections to add-on disable (four clicks away
+in Tools → Add-ons, and it removes the very window that would have shown the
+sitter stopped) are still true and no longer decide the question, because the
+routine need is now served by one click in the window.
+
+Checking the box stops new admissions and does not cancel the attachment already
+handed to Zotero's shared extractor: a submitted extraction cannot be ended from
+the sitter's side at all. The line beside a checked box states that while it is
+true and promises no stop the plugin cannot perform.
 
 Attachment changes and completed file downloads now queue targeted inspections.
 Full reconciliation runs on activation, re-enabling and the cadence owned by
@@ -77,17 +93,21 @@ reactivation with restored observations and no repeated native extraction.
 `verification/SDT-SITTER-UI-PANEL.md` records the requested independent panel
 verdicts and the remaining accessibility/wording recommendations.
 
-Turn the switch off, in the add-on's own window, to stop further admissions;
+Check "Pause indexing", in the add-on's own window, to stop further admissions;
 disabling the extension in Zotero's add-ons manager does the same and also
 removes the window and the toolbar entry. Under either, the already submitted
-native job can finish and persist its pack. Re-enabling does not ask for
-confirmation again — the persisted answer stands — and reconstructs coverage
-from native caches. Turning the in-window switch back on retains session
-failures; a fresh extension activation creates a new session and can retry them. No unresolved native promise is retried.
+native job can finish and persist its pack. Re-enabling asks for nothing and
+remembers nothing (ticket 0797): it arms, and reconstructs coverage from native
+caches. Unchecking the box within a session retains that session's failures; a
+fresh extension activation creates a new session and can retry them. No
+unresolved native promise is retried.
 
 What the sitter does not control (the shared worker's priority and
-interruptibility) and what stopping it does and does not do are readable in the
-window's Details layer at any time, rather than only in the first-run dialog.
+interruptibility) and what pausing it does and does not do are readable in the
+window's Details layer at any time. That is now the only place they are readable,
+which is a simplification rather than a loss: the two paragraphs concerned were
+already written for that layer and were only ever duplicated into the first-run
+dialog that ticket 0797 removed.
 
 ## Experimental limits
 

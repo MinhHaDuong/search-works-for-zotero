@@ -2,10 +2,13 @@
 Title: Guard askSDTLaunch's confirmEx call against a throwing host surface
 Created: 2026-09-08
 Author: claude
+Closed: Obsolete: its whole subject is askSDTLaunch's confirmEx call, and ticket 0797 deleted askSDTLaunch entirely -- grep returns zero occurrences in bootstrap.js on this branch. There is no confirmEx left to guard. Closed by the PR that removed the surface rather than by work on the ticket itself.
 
 --- log ---
 2026-09-08T18:15Z claude created
 
+2026-09-16T08:46Z claude note OBSOLETED by ticket 0797, merged with the pause checkbox. This ticket's entire subject is askSDTLaunch's confirmEx call, and 0797 deletes askSDTLaunch: the author ruled on 2026-09-15 that nothing about indexing is asked or remembered, so there is no modal left whose confirmEx could throw, and the plugin's Services.prompt surface is not reached at all on any path. Verified rather than assumed: grep for 'askSDTLaunch' and 'confirmEx' over plugins/sdt-sitter/ returns nothing on branch t0797-pause-checkbox, and tests/test_sdt_sitter.py now asserts both absences. Nothing of this ticket's hazard survives in another form -- it was specific to a synchronous native modal on the startup path, and that path now arms unconditionally. Left open rather than closed here because closing another ticket's file is the merging PR's business and this PR names 0797: the author's call, and the recommendation is close-as-obsolete.
+2026-09-16T09:37Z MinhHaDuong closed — Obsolete: its whole subject is askSDTLaunch's confirmEx call, and ticket 0797 deleted askSDTLaunch entirely -- grep returns zero occurrences in bootstrap.js on this branch. There is no confirmEx left to guard. Closed by the PR that removed the surface rather than by work on the ticket itself.
 --- body ---
 ## Context
 

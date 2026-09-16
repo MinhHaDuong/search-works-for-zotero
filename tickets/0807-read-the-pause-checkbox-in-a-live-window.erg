@@ -1,0 +1,86 @@
+%erg 0.1
+Title: Read the Pause checkbox in a live window, with a screen reader
+Created: 2026-09-16
+Author: MinhHaDuong
+
+--- log ---
+2026-09-16T09:38Z MinhHaDuong created
+
+2026-09-16T10:13Z MinhHaDuong note blocker 0797 closed — Blocked-by removed.
+--- body ---
+
+## Context
+
+Ticket 0797 replaced the dialog's on/off button with an
+`<input type="checkbox">` labelled "Pause indexing". The control is built,
+gated and shipped — `make check` green, mutants 91/91 and 21/21, and
+`make sitter-smoke` run against a real Zotero 10 with a fresh profile.
+
+**What no headless lane can establish is what a person hears and sees.** Three
+readings are owed, all needing a human at the machine, and they are carried
+here rather than left as unticked boxes on 0797 so that ticket can close on the
+work it actually delivered.
+
+That separation is the point. Ticket 0792 closed with its accessibility
+criterion ticked from source, and 0797's own body records that as the defect
+not to repeat. A criterion that needs a screen reader is not met by reading the
+code that drives it.
+
+## The three readings
+
+1. **What Orca announces for the checkbox**, in each of its checked/unchecked
+   and enabled/disabled combinations. The control's accessible name now comes
+   from the bound `<label>` and its state from `checked`; ticket 0790's
+   inverting-label defect cannot recur by construction, because a checkbox's
+   name does not name an action. That is an argument, not a reading.
+
+2. **That the native widget survives a forced-colours setting.** This is one of
+   the reasons the control is a plain platform checkbox with no stylesheet and
+   no ARIA role: Gecko keeps responsibility for the rendering. Unverified in a
+   real window at a real high-contrast setting.
+
+3. **That the removal notice is now spoken** — and this one is new, not a
+   re-check. Until the review of PR 596 the `vanished` transition reached the
+   announcer and was never read: the announcement's identity was computed from
+   the phase, and a removal does not change the phase, so the kind never moved
+   and the live region stayed silent. The one reader who cannot see the window
+   was the one never told. The fix keys that row on `'vanished'` and was
+   positive-controlled three times in the suite, but no screen reader has spoken
+   it.
+
+## Relevant files
+
+- `verification/SDT-SITTER-UI-PANEL.md` — where the readings belong once taken;
+  it already records that its own AT-SPI table and both SPEECH OUTPUT lines
+  describe a control that no longer exists.
+- `plugins/sdt-sitter/bootstrap.js` — `describeSDTPauseControl`, the announcer
+  node, and the `'vanished'` kind. Cite by symbol: this file moved four times
+  on 2026-09-15/16.
+
+## Test
+
+There is no test. That is the ticket: every arm of this is a human reading, and
+writing an automated assertion for it would produce exactly the false
+confidence 0792 shipped. What the suite already covers — that the right string
+reaches the right node, that the kind changes on removal — is green and is not
+what is being asked here.
+
+## Verification
+
+- [ ] Orca's announcement recorded for checked/unchecked × enabled/disabled,
+      verbatim, with the machine named
+- [ ] The checkbox read at a forced-colours setting, with what was seen
+- [ ] A removal performed with a screen reader listening, and what it said —
+      including the case where it says nothing, which is the result that matters
+- [ ] `verification/SDT-SITTER-UI-PANEL.md` updated with all three, replacing
+      the rows that describe the old button
+
+## Invariants
+
+- Nothing is ticked from source. A reading absent is recorded as absent.
+
+## Exit criteria
+
+The three readings are in `SDT-SITTER-UI-PANEL.md`, each naming the machine and
+the date, or the ticket records why one could not be taken and what would be
+needed.

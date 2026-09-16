@@ -947,121 +947,64 @@ await test('an uninstall writes one too, and an ordinary quit does not', async (
 });
 
 /* --------------------------------------------------------------------------
-   Consent, and what a removal does to it. Ruled 2026-09-12 on ticket 0772,
-   implemented as ticket 0773's Action 2.
+   Consent, and what ticket 0797 did to it.
 
-   The switch is the consent record for a background process that reads the
-   whole library, so the direction of this is the one least affordable to get
-   wrong. `false` and unset are DIFFERENT states and the difference is the
-   whole ruling: unset re-opens a question already answered, `false` withdraws
-   the consent without re-asking. The reason gate matters just as much in the
-   other direction — turning the switch off on every quit would stop indexing
-   on a machine whose owner never asked for that.
+   Ruled 2026-09-12 on ticket 0772 and implemented as 0773's Action 2, an
+   uninstall used to withdraw the launch answer by writing the enabled
+   preference `false`, and a profile removed before the question was ever put
+   kept its `null` so that a reinstall asked again. Both rested on there BEING
+   an answer to hold.
+
+   The author's ruling of 2026-09-15 (ticket 0797) removes the question and the
+   preference together: nothing about the choice is remembered, a reinstall
+   indexes as soon as it can exactly as a restart does, and the durable stop is
+   Zotero's own add-on disable. So there is no consent record left for a
+   teardown to withdraw, and the arms below assert the absence -- which is a
+   claim about a teardown that USED to write, so it needs the positive control
+   it carries: the pref is seeded, and the assertion is that the teardown left
+   the seed exactly as it found it rather than that the pref happens to be
+   unset.
    -------------------------------------------------------------------------- */
-const ENABLED_PREF = 'extensions.sdt-pack-sitter.enabled';
+const RETIRED_SWITCH_PREF = 'extensions.sdt-pack-sitter.enabled';
 
-await test('an uninstall withdraws the indexing consent; a disable, a quit and an upgrade do not', async () => {
-  const uninstalled = createHarness({ attachments: [pdf(1, 'AAAA1111')],
-    prefs: { [ENABLED_PREF]: true } });
-  await uninstalled.start();
-  uninstalled.context.shutdown(null, 6);
-  assert.equal(uninstalled.context.Zotero.Prefs.get(ENABLED_PREF, true), false,
-    'an uninstall left the indexing consent standing');
-  // Written through writeSDTSwitch, so the withdrawal reaches the journal the
-  // way every other switch change does -- and BEFORE the seal, so it lands in
-  // the ring rather than behind it, and the certificate an operator asked for
-  // in advance carries the last thing the plugin did.
-  const switches = uninstalled.records('switch');
-  assert.equal(switches.at(-1)?.enabled, false, 'the withdrawal never reached the journal');
-  // The shutdown record still comes last: the seal's invariant is that nothing
-  // lands behind it, and this write goes in front of it, not through it.
-  assert.equal(uninstalled.records().at(-1).kind, 'shutdown');
-
-  // The positive control, and the reason this test exists in this shape. A
-  // certificate writer gates on `disable` AND `uninstall` a few lines away, so
-  // copying that gate here is the plausible wrong implementation: it would
-  // pass the arm above and quietly stop indexing on every recovery restart.
-  for (const [label, reason] of [['a disable', 4], ['an ordinary quit', 2],
-    ['an upgrade', 7], ['a downgrade', 8]]) {
+await test('no teardown reason writes an indexing preference any more', async () => {
+  // Seeded with a value a previous version would have written, so "nothing was
+  // written" is distinguishable from "nothing was there to write".
+  for (const [label, reason] of [['an uninstall', 6], ['a disable', 4],
+    ['an ordinary quit', 2], ['an upgrade', 7], ['a downgrade', 8]]) {
     const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')],
-      prefs: { [ENABLED_PREF]: true } });
+      prefs: { [RETIRED_SWITCH_PREF]: true } });
     await harness.start();
+    // The startup path clears it: a preference written by a previous version
+    // and read by none is the invisible state the ruling removes.
+    assert.equal(harness.context.Zotero.Prefs.get(RETIRED_SWITCH_PREF, true), undefined,
+      'the retired preference survived startup, so it still looks like a control');
     harness.context.shutdown(null, reason);
-    assert.equal(harness.context.Zotero.Prefs.get(ENABLED_PREF, true), true,
-      `${label} withdrew the indexing consent`);
+    assert.equal(harness.context.Zotero.Prefs.get(RETIRED_SWITCH_PREF, true), undefined,
+      `${label} wrote an indexing preference`);
     assert.deepEqual(harness.records('switch'), [],
-      `${label} filed a switch change`);
+      `${label} filed a switch change nobody made`);
   }
 });
 
-await test('after an uninstall a reinstall starts stopped, and is not asked the first-run question again', async () => {
-  // The state distinction, driven rather than reasoned about: the profile that
-  // comes back carries exactly what the uninstall left behind and nothing else.
-  const first = createHarness({ attachments: [pdf(1, 'AAAA1111')],
-    prefs: { [ENABLED_PREF]: true } });
-  await first.start();
-  assert.equal(first.calls.prompt, 0, 'an already-answered profile was asked again');
-  first.context.shutdown(null, 6);
-  const left = first.context.Zotero.Prefs.get(ENABLED_PREF, true);
-  assert.equal(left, false);
-
-  const again = createHarness({ attachments: [pdf(1, 'AAAA1111')],
-    prefs: { [ENABLED_PREF]: left } });
-  await again.start();
-  assert.equal(again.calls.prompt, 0, 'the first-run question was asked a second time');
-  assert.equal(again.context.sitter.state.phase, 'switched-off');
-  assert.deepEqual(again.calls.ensure, [],
-    'a reinstall resumed indexing the library without asking');
-  // Off is a state the plugin RUNS in: the entry and the window are there, so
-  // the user can see it is stopped and start it at one click.
-  assert(again.windows[0].document.getElementById('sdt-pack-sitter-button'),
-    'a reinstall left no toolbar entry, so "off" is reachable only from Add-ons');
-
-  // Clearing the pref instead of writing it false is the rejected option (1)
-  // of ticket 0772, and this is what would have caught it: an unset pref is
-  // the tri-state's "never answered" and prompts.
-  const cleared = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
-  await cleared.start();
-  assert.equal(cleared.calls.prompt, 1,
-    'the arm needs an unset pref to prompt, or it proves nothing about false');
-});
-
-await test('a profile removed before the question was answered keeps null, and is asked again', async () => {
-  // You cannot withdraw consent that was never given. Ruled 2026-09-13, on the
-  // ambiguity the first implementation of Action 2 surfaced: the ruling of
-  // 2026-09-12 speaks only of a profile that HAD answered, and this is one
-  // removed while the answer was still `null` -- an initialize() that threw
-  // before the modal, or one superseded by a second startup at the generation
-  // check.
-  //
-  // Writing `false` over that `null` converts "never answered" into
-  // "declined", and since `null` is the only value that prompts, it suppresses
-  // the first-run question for ever for someone who simply never answered it.
-  // Both outcomes are safe against indexing without consent; this one is safe
-  // without also putting an answer in the user's mouth.
-  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
-  await harness.start();
-  // Back to the tri-state's "never answered", which is the state such a
-  // teardown would actually carry.
-  harness.context.Zotero.Prefs.set(ENABLED_PREF, undefined, true);
-  assert.equal(harness.context.readSDTSwitch(), null,
-    'the arm never reached the unanswered state, so it pins nothing');
-  // The launch prompt's own answer is already in the ring; what this arm is
-  // about is whether the TEARDOWN adds a second one.
-  const before = harness.records('switch').length;
-
-  harness.context.shutdown(null, 6);
-  assert.equal(harness.context.readSDTSwitch(), null,
-    'an uninstall withdrew a consent that had never been given');
-  assert.equal(harness.records('switch').length, before,
-    'a switch change was journalled for a switch nobody had set');
-
-  // The consequence that makes it worth ruling on: the profile that comes back
-  // is asked, rather than starting silently off with no way of knowing why.
-  const again = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
-  await again.start();
-  assert.equal(again.calls.prompt, 1,
-    'a reinstall of a never-answered profile was not asked the question');
+await test('a reinstall indexes as soon as it can, asking nothing and remembering nothing', async () => {
+  // The state distinction the old ruling turned on is gone: whatever the
+  // profile carries, the next activation arms. Driven from both seeds, because
+  // `false` is exactly what the retired withdrawal used to leave behind and is
+  // the one value that would still stop a machine if anything read it.
+  for (const seed of [undefined, true, false]) {
+    const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+      prefs: seed === undefined ? {} : { [RETIRED_SWITCH_PREF]: seed } });
+    await harness.start();
+    assert.equal(harness.calls.prompt, 0,
+      `a profile seeded ${String(seed)} was asked a question that no longer exists`);
+    assert.notEqual(harness.context.sitter.state.phase, 'switched-off',
+      `a profile seeded ${String(seed)} started paused, so something is still remembered`);
+    // Paused is still a state the plugin RUNS in -- the entry and the window
+    // are there either way -- it is simply not one any restart starts in.
+    assert(harness.windows[0].document.getElementById('sdt-pack-sitter-button'),
+      'the toolbar entry is missing, so the control is reachable only from Add-ons');
+  }
 });
 
 await test('the debug switch off writes nothing to disk, on any reason', async () => {
@@ -1324,7 +1267,7 @@ await test('a removal that throws does not escape shutdown(), and the sibling an
     'the teardown did not finish after a removal failed');
 });
 
-await test('two windows and two startups leave one sitter, one launch prompt and two toolbars', async () => {
+await test('two windows and two startups leave one sitter, one arm and two toolbars', async () => {
   const harness = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')], windows: 2 });
   // Zotero serializes add-on startup, but a second main window opening while
   // the first initialize() is still on `uiReadyPromise` puts two of them in
@@ -1339,7 +1282,9 @@ await test('two windows and two startups leave one sitter, one launch prompt and
   // reach the debug log, and only one of them goes on to build anything.
   assert.equal(harness.debugged.filter(line => line.startsWith('SDT sitter startup ')).length, 2);
   assert.equal(harness.records('cache-load').length, 1, 'the cache was loaded twice');
-  assert.equal(harness.calls.prompt, 1, 'the author was asked to launch twice');
+  // Ticket 0797 removed the launch prompt; the counter is kept as the one that
+  // would still catch a second activation reaching the user at all.
+  assert.equal(harness.calls.prompt, 0, 'the author was asked anything at all');
 
   assert.equal(harness.Zotero.SDTPackSitter.state, harness.context.sitter.state);
   assert.deepEqual(harness.calls.ensure, [1, 2], 'a document was submitted more than once');
@@ -1892,97 +1837,90 @@ function discoverBootstraps(root) {
 }
 
 /* --------------------------------------------------------------------------
-   Ticket 0742: the launch answer is a persisted switch, not a startup ritual.
+   Ticket 0797: nobody is asked, and nothing is remembered.
 
-   The three arms below are the ticket's own red fixtures, and each one was red
-   against the code this ticket replaced: the prompt fired at every Zotero
-   start, at every disable/re-enable (ticket 0727 arm 4 measured that live), and
-   declining left a sitter with a dead toolbar button whose only recovery was
-   four clicks into Tools -> Add-ons.
+   Ticket 0742's three arms lived here: the launch question asked once per
+   profile, a declined launch running switched off, and an answered profile
+   never asked again. All three rested on a persisted answer, and the author's
+   ruling of 2026-09-15 removes it -- "On commence allumé dès que possible."
+   0742's own defects are still the reason this section exists, one level up:
+   the prompt used to fire at every Zotero start and at every disable/re-enable
+   (ticket 0727 arm 4 measured that live). It now fires never.
 
-   `calls.prompt` is the load-bearing counter. The prompt is synchronous and its
-   only trace is that number, so a test that asserted on the sitter's behaviour
-   alone would pass against a plugin that asked the question every single time
-   and then ignored the answer.
+   `calls.prompt` is still the load-bearing counter, and it still discriminates:
+   the mock's `Services.prompt.confirmEx` is present and counting, so a
+   bootstrap.js that asked anything at all would move it. An assertion on the
+   sitter's behaviour alone would pass against a plugin that asked the question
+   every single time and then ignored the answer.
    -------------------------------------------------------------------------- */
-await test('the launch question is asked once and never again, and the answer persists', async () => {
+await test('a fresh profile is asked nothing and starts indexing as soon as it can', async () => {
   const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
   await harness.start();
-  assert.equal(harness.calls.prompt, 1, 'a fresh profile was not asked');
-  assert.equal(harness.Zotero.Prefs.get('extensions.sdt-pack-sitter.enabled'), true,
-    'the answer reached no pref, so nothing could hold across a restart');
-  // The buttons are labelled to the question. OK/Cancel do not answer "Index
-  // attachments in the background, from now on?", which is defect 4 of the
-  // ticket's list; a `confirm` reverted here would not reach this assertion at
-  // all, since the mock no longer serves one.
-  assert.deepEqual(harness.calls.prompts[0].buttons, ['Start indexing', 'Not now']);
-  assert(!harness.calls.prompts[0].text.includes('tonight'),
-    'the prompt still says "tonight" for a loop that runs for as long as Zotero is open');
+  assert.equal(harness.calls.prompt, 0, 'a fresh profile was asked a question');
+  assert.deepEqual(harness.calls.ensure, [1], 'a fresh profile did not start indexing');
+  assert.equal(harness.Zotero.Prefs.get('extensions.sdt-pack-sitter.enabled'), undefined,
+    'an answer was recorded for a question nobody was asked');
+  // The toolbar entry and the window are installed either way: "paused" has to
+  // stay discoverable and reversible without leaving Zotero's main window.
+  assert(harness.windows[0].document.getElementById('sdt-pack-sitter-button'),
+    'no toolbar button, so the control is reachable only from the Add-ons manager');
 
   // The disable/re-enable of ticket 0727 arm 4, which re-asked every time.
   harness.context.shutdown(null, 4);
   harness.context.startup({ rootURI: ROOT_URI });
   await harness.quiet();
-  assert.equal(harness.calls.prompt, 1, 'the re-enable asked the question again');
+  assert.equal(harness.calls.prompt, 0, 'the re-enable asked a question');
   assert.equal(harness.context.alive, true, 'the re-enable left the plugin down');
 });
 
-await test('a profile that answered no runs switched off: no census, and a way back', async () => {
-  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')], launch: false });
+await test('a pause lasts this session and no longer, and it is the user who ends it', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
   await harness.start();
+  const before = harness.records('switch').length;
+  harness.context.toggleSDTSwitch(true);
   const s = harness.context.sitter.state;
   assert.equal(s.phase, 'switched-off');
-  // The census hashes files, so R22's "all background work" covers it. Nothing
-  // ran: no attachment was inspected, none was submitted.
-  assert.equal(s.total, 0, 'the census walked the library with indexing off');
-  assert.deepEqual(harness.calls.ensure, [], 'a file was submitted with indexing off');
-  assert.equal(harness.timers.ids('timeout').length, 0, 'a sweep is armed with indexing off');
-
-  // Off is DISCOVERABLE, which is the half declining never had: the button is
-  // installed and says so, rather than reading "Index" over a sitter that will
-  // never index anything.
+  /* The control's ONLY trace. `writeSDTSwitch` used to carry this emission
+     beside its pref write, and ticket 0797 deleted the pref write: the emission
+     had to survive it, or a post-mortem loses the transitions entirely. It is
+     not decoration -- those ring records are how the evening of 2026-09-15
+     reconstructed two off/on cycles and their `completed: 0` at all. Asserted
+     here rather than only in the dialog suite because the mutation gate runs
+     this file and that one, and a mutant dropping the emit survived while the
+     only arm that caught it was in the suite the gate does not run. */
+  const switches = harness.records('switch');
+  assert.equal(switches.length, before + 1, 'the pause left no record in the ring');
+  assert.equal(switches.at(-1).enabled, false, 'the record says the wrong direction');
+  assert.equal(harness.timers.ids('timeout').length, 0, 'a sweep is armed while paused');
+  // The census hashes files, so R22's "all background work" covers it, and a
+  // pause has to reach it too.
+  const submitted = harness.calls.ensure.length;
+  await harness.quiet();
+  assert.equal(harness.calls.ensure.length, submitted,
+    'a file was submitted after the box was checked');
+  // Paused is DISCOVERABLE, which is the half declining the old prompt never
+  // had: the toolbar button says so rather than reading "Index" over a sitter
+  // that is not indexing.
   const button = harness.windows[0].document.getElementById('sdt-pack-sitter-button');
-  assert(button, 'no toolbar button, so "off" is reachable only from the Add-ons manager');
+  assert(button, 'no toolbar button, so paused is reachable only from the Add-ons manager');
   assert.equal(button.getAttribute('label'), 'Indexing off');
+  // Nothing is written, so nothing can survive: the next session indexes.
+  assert.equal(harness.Zotero.Prefs.get('extensions.sdt-pack-sitter.enabled'), undefined,
+    'the pause was recorded somewhere the window never admits to');
 
-  // And it holds. A second session does not ask again and does not start.
   harness.context.shutdown(null, 4);
   harness.context.startup({ rootURI: ROOT_URI });
   await harness.quiet();
-  assert.equal(harness.calls.prompt, 1, 'a declined launch was asked again next session');
-  assert.equal(harness.context.sitter.state.phase, 'switched-off');
-  assert.deepEqual(harness.calls.ensure, []);
-});
+  assert.equal(harness.calls.prompt, 0, 'the next session asked a question');
+  assert.notEqual(harness.context.sitter.state.phase, 'switched-off',
+    'the pause outlived the session that set it');
 
-await test('an answered profile is never asked, and the toolbar is installed after the question', async () => {
-  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')],
-    prefs: { 'extensions.sdt-pack-sitter.enabled': true } });
-  await harness.start();
-  assert.equal(harness.calls.prompt, 0, 'a profile that already answered was asked again');
-  assert.deepEqual(harness.calls.ensure, [1], 'the persisted yes did not start the sitter');
-
-  /* The ordering race, defect 6. `alive = true` and the toolbar button used to
-     be installed BEFORE the confirm, so the button appeared in the window under
-     a modal still asking whether the sitter should run — a promise made to the
-     user before he had answered, and the same class of defect ticket 0696 had
-     to guard against. Observed the only way it can be: a hook that reads the
-     window while the modal is up.
-
-     Both halves are asserted. `underTheModal` proves the hook actually ran —
-     without it a plugin that never asked at all would leave `seen` at its
-     initial value and this arm would pass by never looking. */
-  let seen = null;
-  const staged = createHarness({ attachments: [pdf(2, 'BBBB2222')],
-    onPrompt: windows => {
-      seen = windows.map(window => !!window.document.getElementById('sdt-pack-sitter-button'));
-    } });
-  await staged.start();
-  assert.deepEqual(seen, [false],
-    'the toolbar button was installed under the modal that was still asking');
-  assert.equal(staged.calls.prompt, 1, 'the ordering hook never ran; nothing was observed');
-  // And it arrives once the answer is in.
-  assert(staged.windows[0].document.getElementById('sdt-pack-sitter-button'),
-    'the button never arrived after the question was answered');
+  // And the way back leaves its own record, in the other direction.
+  const resumed = harness.records('switch').length;
+  harness.context.toggleSDTSwitch(false);
+  const after = harness.records('switch');
+  assert.equal(after.length, resumed + 1, 'unpausing left no record in the ring');
+  assert.equal(after.at(-1).enabled, true, 'the record says the wrong direction');
 });
 
 /* The half of the switch the three arms above could not see, found by review
@@ -2067,48 +2005,70 @@ await test('an open dialog shows a switched-off job reach completion, not just i
     'the dialog is still showing a stale 10 % after the job it belonged to finished');
 });
 
-/* Ticket 0790. The switch's accessible name IS its action ("Turn indexing
-   off" while indexing is on), so on the click that turns indexing ON, Orca
-   speaks "Turn indexing off" at the exact instant indexing came on -- a
-   listener with no sentence beside the button reasonably concludes the
-   opposite of what happened. The visible label keeps naming the action (out
-   of scope for this ticket); only the accessible name changes, to a
-   state-then-action sentence, the author's own words for the shape.
+/* Ticket 0790, RETIRED by ticket 0797 and replaced by the state it patched.
 
-   The assertion is on what is announced AT THE MOMENT of the click -- read
-   with no settle and no further tick, right after `toggleSDTSwitch()`
-   returns, because a render synchronous with the toggle is the only render a
-   screen reader following the button ever hears before the next one -- and,
-   separately, at rest, because a reader tabbing onto the button without
-   having just clicked it must hear the state that holds now, not the state a
-   click would produce. */
-await test('the switch states the state a click just produced, not the action that would undo it', async () => {
+   0790's defect: the switch was a <button> whose accessible name IS its action
+   ("Turn indexing off" while indexing is on), so on the click that turned
+   indexing ON, Orca spoke "Turn indexing off" at the exact instant indexing
+   came on -- a listener with no sentence beside the button reasonably concludes
+   the opposite of what happened. The fix was an `aria-label` carrying a
+   state-then-action sentence, over a visible label that went on naming the
+   action because the widget was the open question ticket 0792 then deferred.
+
+   The widget is now decided. A checkbox's `checked` carries the state natively,
+   the label never inverts, and the workaround goes with the defect: there is no
+   `aria-label` to assert on, and asserting its ABSENCE is what this arm does,
+   beside the property that replaced it. Read at the moment of the toggle, with
+   no settle and no further tick, because a render synchronous with the toggle
+   is the only render a screen reader following the control ever hears before
+   the next one -- and, separately, at rest, because a reader tabbing onto the
+   box without having just clicked it must meet the state that holds now. */
+await test('the checkbox carries its state natively, with no inverting label to undo', async () => {
   const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')] });
   await harness.start();
   harness.context.openDialog(harness.windows[0]);
   await harness.turn();
   const doc = harness.windows[0].dialogs[0].document;
-  const button = () => doc.getElementById('sdt-switch');
+  const box = () => doc.getElementById('sdt-switch');
+  const label = () => doc.getElementById('sdt-switch-label');
 
-  // At rest, indexing on.
-  assert.equal(button().textContent, 'Turn indexing off', 'the visible label moved out of scope');
-  assert.equal(button().getAttribute('aria-label'),
-    'Indexing has been turned on, re-click to turn off.',
-    'the accessible name at rest does not name the state that holds');
+  // At rest, indexing on. The label is the state the control HOLDS, not the
+  // action a click would take, so it is the same string in both directions.
+  assert.equal(label().textContent, 'Pause indexing');
+  assert.equal(label().getAttribute('for'), 'sdt-switch');
+  assert.equal(box().checked, false, 'indexing is on and the box is checked');
+  assert.equal(box().getAttribute('aria-label'), null,
+    'the 0790 workaround outlived the button whose label inverted');
 
-  // The click that turns indexing off, read at the moment it happens.
-  harness.context.toggleSDTSwitch();
-  assert.equal(button().textContent, 'Turn indexing on');
-  assert.equal(button().getAttribute('aria-label'),
-    'Indexing has been turned off, re-click to turn on.',
-    'at the moment of the click the accessible name named the action, not the state it produced');
+  // The click that pauses, read at the moment it happens.
+  harness.context.toggleSDTSwitch(true);
+  assert.equal(box().checked, true);
+  assert.equal(label().textContent, 'Pause indexing', 'the label inverted with the state');
+  assert.equal(box().getAttribute('aria-label'), null);
 
-  // And the click back on, read the same way.
-  harness.context.toggleSDTSwitch();
-  assert.equal(button().textContent, 'Turn indexing off');
-  assert.equal(button().getAttribute('aria-label'),
-    'Indexing has been turned on, re-click to turn off.',
-    'at the moment of the click the accessible name named the action, not the state it produced');
+  // And the click back, read the same way.
+  harness.context.toggleSDTSwitch(false);
+  assert.equal(box().checked, false);
+  assert.equal(label().textContent, 'Pause indexing');
+  assert.equal(box().disabled, false, 'the control the user just used is inert');
+
+  /* The other half of ticket 0797's table, and the half the `checked` arms
+     above cannot see: the box is INERT exactly where the user's choice cannot
+     change the outcome. A sync is one of the two such states, and it is the
+     one that has to be reached by the exported constant rather than by
+     membership -- ticket 0795 put `SDT_SYNC_PHASE` in `SDT_BLOCKED_PHASES` for
+     the retry cadence, and every other member of that list belongs on the
+     unchecked, operable row. `cpu-busy` is the control for that. */
+  const at = phase => {
+    harness.context.sitter.state.phase = phase;
+    harness.context.render();
+    return { checked: box().checked, disabled: box().disabled };
+  };
+  assert.deepEqual(at(harness.context.SDT_SYNC_PHASE), { checked: true, disabled: true },
+    'a sync in progress left the box unchecked or operable');
+  assert.deepEqual(at('cpu-busy'), { checked: false, disabled: false },
+    'a busy processor checked the box or took the control away');
+  at('ready');
 });
 
 // Found live, testing v0.3.19: the active-file box still blinked between

@@ -174,16 +174,14 @@ user_pref("extensions.zotero.debug.store", true);
 // The add-on's own switch, which gates its death certificate. On here, off in a
 // released build, per the author's ruling of 2026-09-12.
 user_pref("extensions.sdt-pack-sitter.debug", true);
-// The launch question, ANSWERED BEFORE IT IS ASKED. `readSDTSwitch` reads this
-// pref as the persisted answer and only asks when it is unset -- through
-// `Services.prompt.confirmEx`, a synchronous native modal. Headless there is no
-// one to answer it, and this repo has the precedent in writing: the RDP client's
-// own docstring records an unanswered native prompt hanging forever, which is why
-// `devtools.debugger.prompt-connection` is seeded three lines up. An unanswered
-// or defaulted question disarms the sitter for the WHOLE run -- it is asked once
-// and never again -- so every cycle after it would replace an add-on that does
-// nothing, which is the defect this rig was just widened to escape.
-user_pref("extensions.sdt-pack-sitter.enabled", true);
+// THE LAUNCH QUESTION IS GONE, and so is the pref that used to be seeded here
+// to answer it before it was asked (ticket 0797). The sitter now arms
+// unconditionally on every activation, so a headless rig has no native modal to
+// deadlock on and no persisted answer to keep in step. The precedent that made
+// the seed necessary is kept in writing because it applies to any future prompt:
+// this repo's RDP client docstring records an unanswered native prompt hanging
+// forever, which is why `devtools.debugger.prompt-connection` is seeded three
+// lines up. If the plugin ever asks anything again, it will deadlock this rig.
 user_pref("app.update.auto", false);
 user_pref("datareporting.policy.dataSubmissionEnabled", false);
 user_pref("toolkit.telemetry.reportingpolicy.firstRun", false);
@@ -365,30 +363,21 @@ def import_menagerie_code(ris_path: Path) -> str:
 """
 
 
-def rearm_code() -> str:
-    """Write the launch answer back, as the seeded pref does before first launch.
-
-    Ticket 0772's ruling (2026-09-12): an UNINSTALL writes `enabled = false`, so
-    a reinstall starts in Off -- no modal, button and window installed,
-    discoverable and reversible. Right for a user, and a trap for this rig: the
-    randomised arm draws `uninstall-then-install` about one cycle in ten, and
-    after 0773 lands every such draw would leave the sitter Off for the REST of
-    the run. No error, no prompt, nothing in the log -- which is ticket 0778's
-    defect exactly, reopened by an unrelated and correct decision.
-
-    So the rig re-answers after any action that could have withdrawn the answer,
-    and then reads liveness again rather than assuming the write took.
-    """
-    return """
-(async function() {
-  try {
-    Zotero.Prefs.set("extensions.sdt-pack-sitter.enabled", true, true);
-    return JSON.stringify({ok: true});
-  } catch (e) {
-    return JSON.stringify({ok: false, reason: "threw", error: String(e)});
-  }
-})()
-"""
+# RETIRED by ticket 0797, and the reason is recorded rather than deleted because
+# the trap it closed was real and would return with any new persisted answer.
+#
+# `rearm_code()` wrote the launch answer back after an uninstall. Ticket 0772's
+# ruling (2026-09-12) had an UNINSTALL write `enabled = false`, so a reinstall
+# started Off -- right for a user, and a trap for this rig: the randomised arm
+# draws `uninstall-then-install` about one cycle in ten, and every such draw
+# would have left the sitter Off for the REST of the run. No error, no prompt,
+# nothing in the log, which is ticket 0778's defect exactly, reopened by an
+# unrelated and correct decision.
+#
+# Under 0797 nothing is remembered and no teardown withdraws anything, so a
+# reinstall arms like any other activation and there is no answer to write back.
+# The rig still reads liveness after each cycle rather than assuming: that arm is
+# what would catch the day this stops being true.
 
 
 def liveness_code() -> str:
@@ -572,9 +561,9 @@ def run_action(action: str, client: ZoteroRDPClient, cycle: int, version: str,
             time.sleep(max(args.disable_hold_seconds, 2.0))
         eval_action(client, install_or_replace_code(xpi), timeout, log,
                     f"cycle {cycle} install after uninstall")
-        # The answer the uninstall withdrew (ticket 0772's ruling), written back
-        # before the next cycle replaces an add-on that would otherwise be Off.
-        eval_action(client, rearm_code(), timeout, log, f"cycle {cycle} re-arm")
+        # No re-arm: ticket 0797 leaves nothing for an uninstall to withdraw, so
+        # the reinstall above arms on its own. See the retired `rearm_code`
+        # above for the trap this used to close and would close again.
         return
 
     result = eval_action(client, install_or_replace_code(xpi), timeout, log,

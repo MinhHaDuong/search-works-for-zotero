@@ -141,20 +141,23 @@ CLICK_SWITCH = _switch_js("""
       return JSON.stringify({ok: true, clicked: true});
 """)
 
-CONSENT_PREF = """
+# Ticket 0797 retired `extensions.sdt-pack-sitter.enabled`: nothing about the
+# pause is remembered, the startup path arms unconditionally, and the plugin
+# CLEARS that preference on startup rather than leaving a dead boolean in the
+# profile. So this probe no longer reads a consent answer -- there is none -- and
+# instead reads the two facts that can still explain a sitter found paused: the
+# phase it is actually in, and whether the retired preference survived (which
+# would mean an old build is installed, not that the answer was honoured).
+SWITCH_PROBE = """
 (function() {
   try {
     const read = (name) => {
       try { return Zotero.Prefs.get(name, true); } catch (e) { return `threw: ${e}`; }
     };
     return JSON.stringify({ok: true,
-      enabled: read("extensions.sdt-pack-sitter.enabled"),
-      debug: read("extensions.sdt-pack-sitter.debug"),
-      branchViaServices: (() => {
-        try {
-          return Services.prefs.getBoolPref("extensions.sdt-pack-sitter.enabled");
-        } catch (e) { return `threw: ${e}`; }
-      })()});
+      phase: Zotero.SDTPackSitter ? Zotero.SDTPackSitter.state.phase : "no sitter",
+      retiredPrefStillSet: read("extensions.sdt-pack-sitter.enabled"),
+      debug: read("extensions.sdt-pack-sitter.debug")});
   } catch (e) { return JSON.stringify({ok: false, reason: String(e)}); }
 })()
 """
@@ -516,14 +519,16 @@ def run_acceptance(args) -> dict:
             live = poll_until_armed(client, log, args.eval_timeout,
                                     time.monotonic() + args.arm_timeout)
         except SmokeFailure:
-            # Read the consent pref from INSIDE the process before giving up.
+            # Read the switch state from INSIDE the process before giving up.
             # Attempt 3 failed with phase 'switched-off' on a profile whose
             # prefs.js carried enabled=true, and the failure could not say
             # whether the pref was not read, not honoured, or overwritten --
-            # three different bugs wearing one message.
-            probe = eval_action(client, CONSENT_PREF, args.eval_timeout, log,
-                                "consent pref")
-            log.write(f"acceptance arm failed; consent pref reads {probe}")
+            # three different bugs wearing one message. Since ticket 0797 there
+            # is no pref to read, so the same question is answered by the phase
+            # itself plus whether an old build's preference is still lying around.
+            probe = eval_action(client, SWITCH_PROBE, args.eval_timeout, log,
+                                "switch state")
+            log.write(f"acceptance arm failed; switch state reads {probe}")
             raise
         data_dir = Path(live["dataDir"]).resolve()
         if data_dir != requested.resolve():

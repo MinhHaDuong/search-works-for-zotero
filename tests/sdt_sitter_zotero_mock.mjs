@@ -273,9 +273,14 @@ function attachment(row) {
 /**
  * @param options.attachments  rows for the mock library (see `attachment`)
  * @param options.cache        initial contents of the sitter's cache file, or null
- * @param options.launch       the answer to the launch prompt (default: yes)
+ * @param options.launch       answer for a modal the plugin no longer shows
+ *                             (ticket 0797). Kept with `onPrompt` and
+ *                             `calls.prompt` so `Services.prompt.confirmEx`
+ *                             stays a WORKING surface: an assertion that the
+ *                             plugin asked nothing proves nothing against a
+ *                             mock that could not have been asked.
  * @param options.prefs        prefs already set in the profile, `{ name: value }`
- * @param options.onPrompt     `windows => void`, run while the launch modal is up
+ * @param options.onPrompt     `windows => void`, run while a modal is up
  * @param options.windows      how many main windows exist (default: 1)
  * @param options.libraries    `[{libraryID, name, libraryType}]` (default: one user library)
  * @param options.meminfo      `() => string` for /proc/meminfo, or a thrower
@@ -770,11 +775,19 @@ export function createHarness(options = {}) {
   const context = vm.createContext({
     Zotero, IOUtils, PathUtils, TextEncoder, Cc: {}, Ci: {},
     Services: {
-      /* `confirmEx`, and deliberately NOT `confirm` beside it (ticket 0742).
-         The launch question now carries labelled buttons, and a mock that still
-         answered the old two-button call would let a bootstrap.js reverted to
-         OK/Cancel stay green. The button titles are captured so a test can
-         assert the question is not asked over generic buttons.
+      /* THE PLUGIN NO LONGER ASKS ANYTHING (ticket 0797), and this surface is
+         kept precisely because of that. `calls.prompt` is asserted to be zero
+         in several places, and a zero from a host that has no `confirmEx` at
+         all is the all-clear-indistinguishable-from-could-not-look trap: a
+         bootstrap.js that started asking again would throw here rather than
+         move the counter, and a throw in startup is a different failure
+         wearing a different message. So the call stays live, counting, and
+         answering.
+
+         `confirmEx`, and deliberately NOT `confirm` beside it (ticket 0742).
+         A mock that answered the old two-button call would let a bootstrap.js
+         reverted to OK/Cancel stay green. The button titles are captured so a
+         test can assert a question is not asked over generic buttons.
 
          `BUTTON_POS_*` and `BUTTON_TITLE_IS_STRING` are nsIPromptService's own
          values, not invented ones: a flag word computed from different numbers
