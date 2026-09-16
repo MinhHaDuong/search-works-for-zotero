@@ -7682,7 +7682,7 @@ ever have failed.
   alone, and whether an unreadable sync state counts as not syncing (claude,
   2026-09-16; ticket 0795).** The author asked for the pause himself — *"Pauser
   quand ça sync ?"*, 2026-09-15 — so that a pause exists is not the question.
-  Two narrower choices are, and v0.4.23 ships both without a ruling, which is
+  Two narrower choices are, and v0.4.24 ships both without a ruling, which is
   why they are filed here rather than in `DECISIONS.md`'s ruled body.
 
   **Scope, sharpened by the review of PR 592.** `syncing()` sits at the top of
