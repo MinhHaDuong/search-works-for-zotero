@@ -13,6 +13,19 @@ var SDT_STATUS_CLASSES;
 // drives this file's emit/heartbeat/shutdown against, and only `var` reaches the
 // script global a sandboxed load exposes.
 var sitter, journal, alive = false, sealed = false;
+/* Boot wait, ticket 0797. The interval in which this scope is loaded and the
+   sitter cannot yet be armed: `initialize()` awaits the host's initialization
+   and UI promises, loads scheduler.js, reads the pack metadata and the cache,
+   and only then sets `alive`. The author's ruling puts that interval on the
+   checkbox's CHECKED, NON-INTERACTIVE side -- indexing has not been paused by
+   anyone, it simply cannot be launched yet, and the line says so.
+
+   A flag rather than a phase, deliberately, because there is no sitter to hold
+   a phase yet. `!alive` alone would not do: it is also true after shutdown(),
+   and a torn-down scope is not a booting one -- so this is set per activation
+   at the top of initialize() and cleared where `alive` is, and shutdown() does
+   NOT set it again. */
+var booting = true;
 // Ticket 0781: latched the first time this activation notices, from inside,
 // that the host has taken the add-on away without ever calling shutdown().
 // Not `sealed` -- `sealed` is shutdown()'s own latch and this scope keeps
@@ -112,15 +125,29 @@ var DIAGNOSTICS_MARKER = 'sdt-sitter-diagnostics.on';
    seconds is comfortably clear of those and far short of any deliberate
    install-then-change-my-mind, which is the error this bound must not make. */
 var SUPERSEDE_WINDOW_MS = 10000;
-/* R22's one obvious way, ratified 2026-09-08 (ticket 0742). Tri-state: unset
-   means the question has never been answered, and is the ONLY state in which
-   the launch prompt is shown. `true` and `false` are the user's own answer,
-   and both hold across a restart and across a disable/re-enable, which is what
-   R22 requires and what the old session-only decline never gave.
+/* RETIRED by ticket 0797, and named here for exactly one purpose: clearing it.
 
-   Same mechanism and same naming as DEBUG_PREF above (ticket 0693), so a
-   reader who found one in the Config Editor finds the other beside it. */
-var ENABLED_PREF = 'extensions.sdt-pack-sitter.enabled';
+   Ticket 0742 made this a tri-state preference holding the user's answer to a
+   once-per-profile launch question, on the reading that R22's "holds across
+   restarts" clause was the switch's to satisfy. The author's ruling of
+   2026-09-15 splits R22's two clauses between two controls instead -- the
+   checkbox pauses for this session, Zotero's own add-on disable is the stop
+   that lasts -- so nothing about the choice is remembered any more, and there
+   is no answer for a preference to hold.
+
+   It is CLEARED rather than merely left unread. A preference written by a
+   previous version and read by none is precisely the invisible state the
+   ruling removes: it would sit in the Config Editor looking like a control,
+   contradicting a window that says nothing about it. `retireSDTSwitchPref()`
+   below is its one and only remaining reader.
+
+   What went with it, and is written here because a later reader will look for
+   it: `readSDTSwitch`'s tri-state `null` was a safety guard as well as a
+   memory -- an UNREADABLE preference read as "never answered" so the machine
+   asked rather than indexed silently. Under this ruling indexing unasked IS
+   the intended default, so that guard has nothing left to protect, and
+   dissolving it is a decision taken here rather than an oversight. */
+var RETIRED_SWITCH_PREF = 'extensions.sdt-pack-sitter.enabled';
 // The generation token the armed loop belongs to. The dialog's switch can arm a
 // sweep long after initialize() returned, and a sweep armed against a stale
 // token is the cross-generation defect ticket 0696 shipped.
@@ -305,22 +332,31 @@ function compareSDTVersion(left, right) {
    without a JavaScript engine; a `//` line in there fails fifteen tests at once
    with a decoder error that names nothing. Wording notes go here instead.
 
-   Three of them, from ticket 0742:
+   One of them survives from ticket 0742, and it matters MORE now that the
+   control says "Pause":
 
    * "Waiting", never "Paused", for the phases the sitter gates itself on. The
-     switch below owns "on" and "off", and a reader who met "Paused: processor
-     busy" beside a switch he never touched would go looking for how to unpause
-     something he never paused.
-   * `launch-question` says neither "tonight" nor "whole library". The sweep
-     reschedules for as long as Zotero is open, so nothing ends at dawn, and the
-     census walks every attachment Zotero holds, which is not the library in
-     view. What is left is the question actually being asked.
-   * `launch-details` is the pointer that replaces two paragraphs of consent
-     box. `launch-worker` and `launch-disable` are still here, and are now read
-     in the window's Details layer, at any time, rather than once inside a modal
-     that is the format least likely to be read at all.
+     checkbox below owns the word "Pause", and a reader who met "Paused:
+     processor busy" beside a box he never ticked would go looking for how to
+     unpause something he never paused. `phase-sync-in-progress` is the one
+     phase that reaches the checkbox's own line, and it still says "Waiting":
+     the box is ticked there by the machine, not by the reader.
 
-   A fourth, from live testing of v0.3.18: the switch line and the raw
+   Ticket 0797 retired four of them. `launch-title`, `launch-question`,
+   `launch-conditions`, `launch-details`, `launch-yes` and `launch-no` are gone
+   with the modal they composed: nothing is remembered, so there is no answer to
+   ask for. `launch-worker` and `launch-disable` are NOT modal strings and stay
+   -- `buildSDTAbout` feeds them to the About panel's disclosures, and they are
+   the two paragraphs a reader who has just ticked "Pause indexing" goes looking
+   for: that extraction runs on a shared background process, and that pausing
+   stops new attachments while one already under way finishes. A `launch-`
+   prefix sweep would empty the About panel of exactly that text.
+   `switch-turn-on`, `switch-turn-off`, `switch-turned-on` and
+   `switch-turned-off` went with the button: a checkbox's `checked` carries the
+   state natively, so neither an inverting label nor the 0790 `aria-label`
+   sentence that patched it has anything left to do.
+
+   A further one, from live testing of v0.3.18: the switch line and the raw
    "State: {phase}" line merged into one. The raw phase name in its own line
    said less than the window already knew, and read as a second,
    disconnected status next to the one the reader came to check. `switch-on-*`
@@ -329,7 +365,7 @@ function compareSDTVersion(left, right) {
    still lives in the About disclosure, so `switch-off` only has to say what a
    glance needs.
 
-   A fifth, from ticket 0795: `phase-sync-in-progress` reads "Waiting for sync
+   And one from ticket 0795: `phase-sync-in-progress` reads "Waiting for sync
    to finish" and not "Waiting: sync in progress", which is the form the four
    resource phases would suggest. The colon form names a CONDITION the reader
    may be able to act on — free some disk, close the other job; this one names
@@ -377,10 +413,10 @@ var SDT_TEXT = {
     "diagnostics-internal-phase": "Internal phase: {phase}",
     "diagnostics-denominator-live": "The totals above track the library as it changes, not only a completed scan; a count can move without meaning anything is wrong.",
     "diagnostics-denominator-churn": " It moved by {delta} since you last opened this panel.",
-    "switch-turn-on": "Turn indexing on",
-    "switch-turn-off": "Turn indexing off",
-    "switch-turned-on": "Indexing has been turned on, re-click to turn off.",
-    "switch-turned-off": "Indexing has been turned off, re-click to turn on.",
+    "switch-pause-label": "Pause indexing",
+    "switch-boot-wait": "Zotero is still starting. Indexing begins on its own as soon as it can.",
+    "switch-off-in-flight": "Indexing is paused. No new attachment is picked up. One was already handed to Zotero's shared extractor before you paused, and the assistant has no way to end it: it finishes, or stops, on Zotero's own terms. To stop everything now, disable the assistant in Zotero's Add-ons window.",
+    "switch-age": "unchanged for {duration}",
     "section-global": "Overall progress",
     "section-active": "Current activity",
     "details-title": "Details",
@@ -493,12 +529,6 @@ var SDT_TEXT = {
     "file-number": "file no. {id}",
     "settle-failed": "“{file}” failed: {error}",
     "resources-read": "Reading resources: {error}",
-    "launch-title": "Indexing assistant — experimental",
-    "launch-question": "Index attachments in the background, from now on?",
-    "launch-conditions": "One file at a time, with at least 4 GiB of memory available and 8 GiB of free disk. PDFs and the full-text search index settings are left untouched.",
-    "launch-details": "This answer is remembered. The assistant's window carries what it does not control, and the switch that turns it off again.",
-    "launch-yes": "Start indexing",
-    "launch-no": "Not now",
     "launch-worker": "Extraction runs on a background process Zotero itself also uses, and it cannot be paused once a file has started: a large file can delay a smaller one that arrived just after it. The assistant starts a new file only when the current free memory and disk space meet its admission thresholds; those checks do not limit a file already being processed.",
     "launch-disable": "Turning indexing off stops the assistant from picking up new attachments; one already being processed still finishes. A failed extraction is only remembered for this session and is tried again the next time Zotero starts. A small file on disk remembers which attachments are already up to date and how long extraction usually takes — never their text, and never an unfinished job.",
     "about-updates": "After the first library pass, the assistant listens to Zotero attachment and file-download changes and rechecks only the affected records. It also reconciles the whole library every hour, so changes outside Zotero are eventually noticed."
@@ -1088,60 +1118,53 @@ var SDT_PHASE_LABELS = {
   'switched-off': 'phase-off',
 };
 
-/* ---- the switch: R22's one obvious way (ticket 0742) ----
+/* ---- the pause checkbox: R22's session clause (tickets 0742, 0797) ----
 
-   Three functions and one pref. What they replace was two half-controls that
-   between them satisfied neither clause of R22: add-on disable held across
-   restarts but lived four clicks away in Tools -> Add-ons and removed the very
-   window that would have shown the sitter stopped; declining the launch prompt
-   was one click away and was forgotten by the next Zotero start, so the prompt
-   came back every session and the answer meant nothing. */
+   R22 asks for one obvious way to stop all background work, holding across
+   restarts. Ticket 0742 read that as one control and built it: a persisted
+   tri-state preference, a once-per-profile launch question, and a button in the
+   sitter's own window. It replaced two half-controls that between them
+   satisfied neither clause -- add-on disable held across restarts but lived
+   four clicks away in Tools -> Add-ons and removed the very window that would
+   have shown the sitter stopped; declining the launch prompt was one click away
+   and was forgotten by the next Zotero start, so the prompt came back every
+   session and the answer meant nothing.
 
-/* `null` for "never answered", which is what makes the prompt a once-only
-   event rather than a startup ritual. An unreadable pref reads as unanswered
-   deliberately: asking a question that was already answered is a nuisance,
-   where silently indexing on a machine whose answer could not be read is the
-   thing the question exists to prevent. */
-function readSDTSwitch() {
-  try {
-    const value = Zotero.Prefs.get(ENABLED_PREF, true);
-    return typeof value === 'boolean' ? value : null;
-  } catch (_error) { return null; }
-}
+   THE AUTHOR'S RULING OF 2026-09-15 REVERSES 0742 and answers R22's two clauses
+   with two controls, one of them the host's:
 
-/* Guarded like the debug pref's own write. A pref that will not persist leaves
-   the session running on the answer just given — the wrong failure would be
-   refusing to act on an answer the user did give. */
-function writeSDTSwitch(enabled) {
-  try { Zotero.Prefs.set(ENABLED_PREF, !!enabled, true); }
-  catch (_error) { /* The next read falls back to asking again. */ }
-  emit('switch', { enabled: !!enabled });
-}
+   * Pause, for this session -- this checkbox, one click, in the window the user
+     already has open. It ends admissions; the document already handed to
+     Zotero's shared extractor finishes on Zotero's terms.
+   * Stop, durably -- Zotero's own add-on disable. It holds across restarts by
+     construction, and re-implementing a durable stop beside it was the plugin
+     storing state the host already stores.
 
-/* Labelled buttons, because OK/Cancel do not answer the question asked: a
-   reader meeting `launch-question` over OK/Cancel has to work out which of the
-   two means yes. `confirmEx` returns the index of the button pressed, and
-   button 0 is the affirmative one.
+   0742's two objections to add-on disable are still TRUE, and they no longer
+   decide the question: they were fatal while disable was the only durable stop
+   and the routine need -- quiet it, now -- had to travel through it. With a
+   one-click pause in the window, reaching for the durable stop becomes a rare,
+   deliberate act, and a rare deliberate act may cost four clicks and may take
+   the window with it. Removing the UI is the correct behaviour for someone who
+   meant to stop it for good. SPEC.md's R22 passage says which control holds
+   which clause; see also `retireSDTSwitchPref` above for what the preference
+   was and why it is cleared rather than left.
 
-   Three of the four paragraphs are gone: the worker limitation and the disable
-   semantics moved into the dialog's Details layer, where they can be read at
-   any time rather than once, inside the modal least likely to be read at all.
+   What survives of 0742 is the half that worked: one control, in the window,
+   and "paused" as a state the user can see and leave rather than the silence a
+   removed UI leaves behind. */
 
-   The scope paragraph stays (ticket 0717), and stays SECOND, right under the
-   question it qualifies. It is the same composer the tooltip and the dialog
-   heading read, so a reader cannot be given three different answers to what the
-   sitter covers, and it is dropped when nothing can be read — a prompt naming
-   no scope is degraded, one naming a wrong scope is worse. That is also why the
-   question itself no longer says "every library": the scope is a reading taken
-   from Zotero's own records, not a claim this string can make. */
-function askSDTLaunch(win) {
-  const buttons = Services.prompt.BUTTON_POS_0 * Services.prompt.BUTTON_TITLE_IS_STRING +
-    Services.prompt.BUTTON_POS_1 * Services.prompt.BUTTON_TITLE_IS_STRING;
-  const body = [sdtText('launch-question'), describeSDTScope(),
-    ...['launch-conditions', 'launch-details'].map(id => sdtText(id))]
-    .filter(Boolean).join('\n\n');
-  return Services.prompt.confirmEx(win, sdtText('launch-title'), body,
-    buttons, sdtText('launch-yes'), sdtText('launch-no'), null, null, {}) === 0;
+/* The one remaining reader of the retired preference, and it only deletes it.
+
+   Guarded like every other pref access in this file, and tolerant of a host
+   without `clear`: a profile that keeps a dead boolean in about:config is
+   untidy, and a teardown or a startup that throws over one is a defect. Nothing
+   reads the value -- not even to decide whether to clear -- because the value
+   no longer means anything, and reading it would be the first step back to
+   obeying it. */
+function retireSDTSwitchPref() {
+  try { Zotero.Prefs.clear?.(RETIRED_SWITCH_PREF, true); }
+  catch (_error) { /* An unclearable pref is litter, never a failure. */ }
 }
 
 /* Arming and disarming, as the two halves of one switch rather than as
@@ -1156,7 +1179,7 @@ function askSDTLaunch(win) {
 function armSDTSitter() {
   // Ticket 0781: once removal is noticed there is no host left to index for,
   // and re-arming would be exactly the self-healing the ticket rules out --
-  // reachable from the toggle as much as from a stray re-enable.
+  // reachable from the checkbox as much as from a stray re-enable.
   if (!alive || !sitter || pulse || removalNoticed) return;
   sitter.start();
   pulse = timers.setInterval(render, 100);
@@ -1168,10 +1191,13 @@ function armSDTSitter() {
 /* The graceful half, and deliberately the same semantics the 2026-09-05 ruling
    gave add-on disable: `stop()` ends admissions and breaks the census out of
    its loop, and an `ensure()` already handed to the native worker settles on
-   its own. Nothing is cancelled; the sitter simply stops asking.
+   its own. Nothing is cancelled; the sitter simply stops asking. That is not a
+   convenience: a submitted extraction cannot be ended from this side at all,
+   which is what `switch-off-in-flight` tells the reader instead of promising a
+   stop (DESIGN-NOTES open question 4).
 
    `alive` stays true, which is the whole difference from shutdown(): the
-   button and the window remain, so "off" is a state the user can see and
+   checkbox and the window remain, so "paused" is a state the user can see and
    leave, not the silence a removed UI leaves behind. */
 function disarmSDTSitter() {
   // Burned FIRST, before anything can await: a sweep suspended inside `ensure()`
@@ -1185,16 +1211,33 @@ function disarmSDTSitter() {
   render();
 }
 
-/* The dialog's control. It writes the pref FIRST, so a toggle that is followed
-   by a crash still holds across the restart — the persistence is the
-   requirement, the arming is the effect. */
-function toggleSDTSwitch() {
-  // Ticket 0781: the switch is a question about indexing a library that is
+/* The dialog's control, driven by the checkbox's own `checked`.
+
+   It writes NO preference: ticket 0797's ruling is that nothing about the
+   choice is remembered, and the next Zotero start indexes as soon as it can.
+   What it does keep is the journal record. `writeSDTSwitch` used to emit this,
+   and the emission was not incidental to the pref write -- those ring records
+   are how the evening of 2026-09-15 reconstructed two off/on cycles and their
+   `completed: 0` at all. Emitted BEFORE the arm or disarm, so a transition
+   followed by a throw is still in the ring, which is the ordering the pref
+   write had for the analogous reason.
+
+   Toggling off then on still forces a fresh census, and must go on doing so:
+   `stop()` burns the epoch, `start()` sets `reconciliationPending`, and the
+   census that follows is what moves attachments out of `missing-source` once
+   their files have landed. A control that debounced its own transitions would
+   take that away. It is NOT an escape hatch from ticket 0796's drain
+   starvation -- measured, and nothing here is designed as though it were. */
+function toggleSDTSwitch(paused) {
+  // Ticket 0781: the control is a question about indexing a library that is
   // still there to index. Once removal is noticed it stops being live.
   if (removalNoticed) return;
-  const turningOn = !!sitter && sitter.state.phase === 'switched-off';
-  writeSDTSwitch(turningOn);
-  if (turningOn) armSDTSitter(); else disarmSDTSitter();
+  // The argument is the checkbox's own state; the fallback reads the phase, for
+  // a caller that has no widget (the keyboard probe, and any future one).
+  const pausing = paused === undefined
+    ? !!sitter && sitter.state.phase !== 'switched-off' : !!paused;
+  emit('switch', { enabled: !pausing });
+  if (pausing) disarmSDTSitter(); else armSDTSitter();
 }
 
 /* One composer for the coverage percentage, so the toolbar strip and the tooltip
@@ -1738,6 +1781,127 @@ function describeSDTSwitchKind(state) {
   const outstanding = coverage.unindexed + coverage.failed;
   if (coverage.queued > 0) return outstanding > 0 ? 'idle:queued-and-exceptions' : 'idle:queued';
   return outstanding > 0 ? 'idle:exceptions' : 'idle:complete';
+}
+
+
+/* ---- ticket 0797's state table, in one place ----
+
+   The author's ruling of 2026-09-15, as a single composer: which row of the
+   table this render is in, what the box shows, whether the user may touch it,
+   what the line beside it says, and what identity the announcement channel
+   compares. One function, because the four answers have to agree — a box
+   checked by a row whose sentence says indexing is on is the defect the button
+   had, moved to a new widget.
+
+   Checked means NOT indexing. Auto-checked and inert is reserved for the two
+   states where the user's intent cannot change the outcome: boot wait, and a
+   sync in progress. Every other gate the sitter holds itself on — `cpu-busy`,
+   `low-memory`, `low-disk`, `storage-unavailable`, `resources-unavailable`,
+   and `native-worker-busy` — leaves the box UNCHECKED and operable, and the
+   line says that phase. The user has paused nothing there, and checking the
+   box for a transient `cpu-busy` would flicker the control under ordinary
+   load, which is the 10 Hz defect in slower clothes.
+
+   `native-worker-busy` is on that side for the same reasons and by a different
+   route, and this is the correction ticket 0797's own body owed: it is NOT a
+   member of `SDT_BLOCKED_PHASES`. It is a WAIT rather than a block — the phase
+   is emitted at `trace` as `worker-idle-wait`, and `nextSweepDelayMS` gives it
+   the ordinary sweep interval instead of the blocked list's ten-minute retry.
+   Nothing about that changes which side of the box it belongs on, but it does
+   mean membership cannot be the test that puts it there.
+
+   SYNC IS SPECIAL-CASED BY THE CONSTANT, never by membership and never by the
+   string. `SDT_SYNC_PHASE` IS in `SDT_BLOCKED_PHASES` (ticket 0795 put it
+   there, for the retry cadence), so `SDT_BLOCKED_PHASES.includes(phase)` routes
+   it to the wrong row of this table — the one case where the two
+   classifications disagree, and the reason 0795 exported the name at all. */
+function describeSDTPauseControl(state) {
+  // Ticket 0781 wins over every other reading in this row: once this scope has
+  // noticed its own removal, the box describes a sitter that is not being asked
+  // to work and cannot be asked to.
+  if (removalNoticed) {
+    return { checked: true, interactive: false, line: sdtText('vanished-message'),
+      kind: state ? describeSDTSwitchKind(state) : 'booting' };
+  }
+  // Boot wait. No sitter exists to hold a phase, so the absence IS the state.
+  if (!state) {
+    return { checked: true, interactive: false, line: sdtText('switch-boot-wait'),
+      kind: 'booting' };
+  }
+  if (state.phase === SDT_SYNC_PHASE) {
+    // The message id is what ticket 0795 guarantees this table, and reading it
+    // is what keeps the checkbox's line and the toolbar tooltip one sentence
+    // rather than two paraphrases of one fact. No `switch-on-prefix`: indexing
+    // is not on, the machine has ticked the box, and the line says only why.
+    return { checked: true, interactive: false, line: sdtText(SDT_SYNC_PHASE_LABEL),
+      kind: describeSDTSwitchKind(state) };
+  }
+  if (state.phase === 'switched-off') {
+    // The row nobody had written copy for. `disarmSDTSitter` ends admissions and
+    // cancels nothing, and it cannot cancel: `ensure()`'s whole option surface
+    // is `isPriority` and `onProgress`, and from this side a slow tail and a
+    // wedged worker leave the same journal (DESIGN-NOTES open question 4,
+    // ticket 0793). So the line says what is true — the assistant has no way to
+    // end it — and names the durable stop that does work, which is the host's.
+    const inFlight = state.active !== null;
+    return { checked: true, interactive: true,
+      line: inFlight ? sdtText('switch-off-in-flight') : describeSDTSwitchLine(state),
+      kind: inFlight ? 'off:in-flight' : describeSDTSwitchKind(state) };
+  }
+  return { checked: false, interactive: true, line: describeSDTSwitchLine(state),
+    kind: describeSDTSwitchKind(state) };
+}
+
+/* How long this window has been showing the same thing (ticket 0797).
+
+   The author, reading his own panel on 2026-09-15: it showed a plausible steady
+   state while `draining` had held for eight minutes. Nothing on screen said so.
+
+   A RENDER-LOCAL OBSERVATION, and the two designs it is not:
+
+   * `phaseSince` on the scheduler LIES. The abort path deliberately leaves
+     `phase` stale at `extracting`, so a field stamped on every phase write
+     would report the age of a phase the sitter has already left.
+   * A second copy in the journal has an OWNER PROBLEM. `heartbeatTick` already
+     records phase with elapsed every 60 s; a duplicate in the dialog is two
+     measurements of one fact with nothing keeping them in step.
+
+   So the window notes when it first saw the current line and reports the age of
+   ITS OWN observation. It is honest about what it measures, it needs no
+   scheduler change, and it cannot go stale behind an abort — a stale
+   `extracting` that the window has been showing for eight minutes is exactly
+   the reading the author wanted.
+
+   Keyed on the announcement KIND rather than the phase, so an idle count moving
+   from 4 to 5 does not reset an age that has been accumulating, and the age is
+   the age of the sentence the reader is looking at. Per dialog, beside
+   `_sdtAnnounced`'s own bookkeeping, because two windows can have been open for
+   different lengths of time and each may only speak for itself. */
+var SDT_PHASE_AGE_THRESHOLD_MS = 60000;
+function observeSDTPhaseAge(dialog, kind, now) {
+  if (dialog._sdtPhaseKind !== kind) {
+    dialog._sdtPhaseKind = kind;
+    dialog._sdtPhaseSeenAt = now;
+  }
+  return now - dialog._sdtPhaseSeenAt;
+}
+/* The threshold is what makes this a diagnosis rather than noise: "2 s ago"
+   tells a reader nothing he cannot see, "8 min" is the whole finding. One
+   minute, because the shortest interval worth reporting is one the window's own
+   heartbeat has already recorded once, and because the unit below cannot say
+   less than a minute anyway.
+
+   Never rendered into the line the announcer speaks: this composes its own
+   node (`sdt-switch-age`), and `describeSDTPauseControl`'s `kind` stays
+   digits-free, or a duration that ticks every minute is read aloud to a screen
+   reader as though the machine had changed state. */
+function describeSDTPhaseAge(ageMS) {
+  if (!(ageMS >= SDT_PHASE_AGE_THRESHOLD_MS)) return '';
+  const minutes = Math.floor(ageMS / 60000);
+  return sdtText('switch-age', { duration: minutes < 60
+    ? sdtText('unit-minutes', { count: minutes })
+    : sdtText('unit-hours-minutes',
+      { hours: Math.floor(minutes / 60), minutes: minutes % 60 }) });
 }
 
 /* Four segments joined by one em dash.
@@ -2329,8 +2493,48 @@ function render() {
   }
 }
 
+/* The pause row, painted for one window (ticket 0797).
+
+   Extracted from `renderState`'s dialog loop because it is the one part of this
+   window that has something to say during BOOT WAIT, when there is no sitter
+   and every other line in the loop would be reading a state that does not exist
+   yet. Everything it needs is either module state (`removalNoticed`, the text
+   table) or the one argument, which may be null. */
+function renderSDTPauseRow(dialog, doc, state) {
+  const box = doc.getElementById('sdt-switch');
+  if (!box) return;
+  const control = describeSDTPauseControl(state);
+  // The IDL properties, not attributes: `checked` as an attribute is the
+  // DEFAULT checkedness, which a user's own click then diverges from silently.
+  // Written only on a change, like the diagnostics checkbox beneath it, so a
+  // 10 Hz loop does not rewrite the platform's own widget state ten times a
+  // second.
+  if (box.checked !== control.checked) box.checked = control.checked;
+  if (box.disabled !== !control.interactive) box.disabled = !control.interactive;
+  doc.getElementById('sdt-switch-state').textContent = control.line;
+  // Its own node, never `control.line`: the announcer below speaks the line,
+  // and a duration in it would be read aloud as though the machine had changed
+  // state. `kind` is what the announcer compares, and it stays digits-free.
+  doc.getElementById('sdt-switch-age').textContent =
+    describeSDTPhaseAge(observeSDTPhaseAge(dialog, control.kind, monotonic()));
+  announceSDTTransition(dialog, doc, control.line,
+    state ? state.phase : 'booting', control.kind);
+}
+
 function renderState() {
-  if (!alive || !sitter) return;
+  // Ticket 0797. Boot wait is a state this window can render rather than a gap
+  // before it exists, so the pause row is painted ahead of the guard that needs
+  // a live sitter. `booting` and not `!alive` alone: `!alive` is also true after
+  // shutdown(), and a torn-down scope has nothing to promise about starting.
+  if (booting || !alive || !sitter) {
+    if (booting) {
+      for (const dialog of dialogs) {
+        if (dialog.closed) { disarmSDTAnnounceSettle(dialog); dialogs.delete(dialog); continue; }
+        renderSDTPauseRow(dialog, dialog.document, null);
+      }
+    }
+    return;
+  }
   const s = sitter.state;
   const coverage = getSDTCoverage(s);
   for (const button of buttons) {
@@ -2388,32 +2592,7 @@ function renderState() {
     const doc = dialog.document;
     const status = doc.getElementById('sdt-status');
     if (!status) continue;
-    // The switch, reread from the sitter's own phase rather than from the pref:
-    // the two agree, and the phase is what every other line in this window is
-    // drawn from, so a disagreement shows here instead of hiding.
-    const off = s.phase === 'switched-off';
-    // Ticket 0781: once this scope has noticed its own removal, every other
-    // reading in this line is stale -- the switch and the phase both describe
-    // a sitter that is being asked to keep working, and this one no longer is.
-    const switchLine = removalNoticed ? sdtText('vanished-message') : describeSDTSwitchLine(s);
-    doc.getElementById('sdt-switch-state').textContent = switchLine;
-    announceSDTTransition(dialog, doc, switchLine, s.phase, describeSDTSwitchKind(s));
-    doc.getElementById('sdt-switch').textContent =
-      sdtText(off ? 'switch-turn-on' : 'switch-turn-off');
-    // Ticket 0790: the visible label above names the action to take, which
-    // reads fine beside `switchLine`'s sentence stating the current state but
-    // inverts when heard alone -- the click that starts indexing flips this
-    // same label to name the OPPOSITE action in the same instant, so a
-    // listener with no sentence beside the button hears the undo and
-    // reasonably concludes the click did the reverse of what it did.
-    // `aria-label` carries a state-then-action sentence instead: what now
-    // holds, then the way back. Computed from `off` on every render rather
-    // than from "was this click", so it is exactly as true at rest -- tabbed
-    // onto cold -- as it is the instant a click flips it; there is no
-    // separate "just clicked" state to fall out of sync with the phase this
-    // line already reads from.
-    doc.getElementById('sdt-switch').setAttribute('aria-label',
-      sdtText(off ? 'switch-turned-off' : 'switch-turned-on'));
+    renderSDTPauseRow(dialog, doc, s);
     const elapsed = s.active === null ? null : Math.round((monotonic() - s.startedAt) / 1000);
     const silence = s.active === null ? null : Math.round((monotonic() - s.lastProgressAt) / 1000);
     const formatDuration = ms => {
@@ -2704,35 +2883,58 @@ function openDialog(window) {
       }
       body.append(group);
     };
-    /* Layer 1's first line, above every reading: the one switch (ticket 0742).
-       First because it is the answer to the only question a user opens this
-       window in a hurry to ask — how do I stop this — and because R22's "one
-       obvious way" is not obvious three sections down. A native <button>, so
-       keyboard reach and the accessible name come from the platform, exactly as
-       the diagnostics layer's controls do. */
+    /* Layer 1's first line, above every reading: the pause checkbox (tickets
+       0742, 0797). First because it is the answer to the only question a user
+       opens this window in a hurry to ask — how do I stop this — and because
+       R22's "one obvious way" -- its session clause, the one this control
+       answers -- is not obvious three sections down. A native
+       <input type="checkbox"> with a bound <label>, so keyboard reach, the
+       accessible name, the focus ring and the forced-colours rendering all come
+       from the platform, exactly as the diagnostics layer's controls do.
+
+       NO `role="switch"`. Ticket 0792 recommended one while the control was
+       still imagined as a slider; with "Pause indexing" as the label it is a
+       checkbox, and the role would only make a screen reader say "switch" about
+       a thing the label calls a checkbox. */
     const control = element('div', 'sdt-switch-row');
-    // The salient state leads, in reading order, as everywhere else in this
-    // window — but "on" and "off" describe very different lengths of text, and
-    // a button placed right after that text moves sideways every time the
-    // reader clicks it (found live, testing v0.3.15). `space-between` pins the
-    // button to the row's fixed right edge regardless of how long the state
-    // text runs, rather than to wherever that text happens to end.
-    control.style.cssText = 'display: flex; gap: 12px; align-items: center; ' +
-      'justify-content: space-between; margin: 0 0 16px;';
+    /* The row's own geometry, RE-READ rather than inherited from the button it
+       replaces. `space-between` existed because "Turn indexing on" and "Turn
+       indexing off" are different lengths, so a button placed after the state
+       text moved sideways on every click (found live, testing v0.3.15). Neither
+       half of that reasoning survives: the label is the fixed string "Pause
+       indexing" and it LEADS the row, ahead of the text that varies. The
+       control is what the reader came for, so it sits first, and the state text
+       flows after it and wraps where it must. */
+    control.style.cssText = 'display: flex; gap: 8px; align-items: baseline; ' +
+      'margin: 0 0 16px;';
+    const toggle = element('input', 'sdt-switch');
+    toggle.setAttribute('type', 'checkbox');
+    // `element()`'s default styling is written for the prose blocks and carries
+    // `white-space: pre-wrap`; a form control is not prose. The checkbox keeps
+    // its native box, and neither it nor its label may shrink.
+    toggle.style.cssText = 'flex: 0 0 auto;';
+    const toggleLabel = element('label', 'sdt-switch-label');
+    toggleLabel.setAttribute('for', toggle.id);
+    toggleLabel.textContent = sdtText('switch-pause-label');
+    toggleLabel.style.cssText = 'white-space: nowrap; flex: 0 0 auto;';
+    // `change`, not `click`: it fires for the keyboard (Space), for a click on
+    // the bound label, and never for a disabled box — which is what makes the
+    // non-interactive rows of ticket 0797's table inert rather than merely
+    // greyed. The checkbox's own `checked` is what is acted on, so the widget
+    // and the sitter cannot disagree about which way the user just moved it.
+    toggle.addEventListener('change', () => toggleSDTSwitch(toggle.checked));
     const state = element('span', 'sdt-switch-state');
     // The state text is prose and may wrap; `min-width: 0` is what lets a flex
     // child actually shrink to make room instead of forcing the row wider.
     state.style.cssText += 'flex: 1 1 auto; min-width: 0;';
-    const toggle = element('button', 'sdt-switch');
-    toggle.setAttribute('type', 'button');
-    // `element()`'s default styling is written for the prose blocks and
-    // carries `white-space: pre-wrap`, which let the button's own two words
-    // wrap onto two lines and turn it into a square at some widths, a
-    // rectangle at others (found live, testing v0.3.17). A button is not
-    // prose; it keeps its native single-line sizing.
-    toggle.style.cssText = 'white-space: nowrap; flex-shrink: 0;';
-    toggle.addEventListener('click', () => toggleSDTSwitch());
-    control.append(state, toggle);
+    /* Ticket 0797, the author's own reading of 2026-09-15: the window showed a
+       plausible steady state while `draining` had held for eight minutes. Its
+       own node rather than a clause of the state sentence, so a duration that
+       moves never reaches the live region beside it. Dimmed, because it is a
+       qualifier on the line and not a second reading. */
+    const age = element('span', 'sdt-switch-age');
+    age.style.cssText += 'flex: 0 0 auto; color: GrayText;';
+    control.append(toggle, toggleLabel, state, age);
     // The status region, and the only live node in the window (0686 item 1).
     // In the switch row because it speaks the row's own sentence, and so the
     // window's layer order -- which tests/sdt_sitter_dialog.mjs pins -- is
@@ -2971,6 +3173,10 @@ async function initialize(rootURI, token, era = shutdowns) {
   // not: reset here rather than in shutdown(), which the phenomenon this
   // ticket is about never runs.
   removalNoticed = false;
+  // Ticket 0797, and for the same reason as the line above: a fresh activation
+  // is booting again, and shutdown() does not set this -- a torn-down scope is
+  // not a booting one, and the phenomenon 0781 is about never runs shutdown().
+  booting = true;
   // First thing after the host is up, and before any of the work below can throw:
   // a disappearance that leaves no `startup` record happened earlier than this
   // point. It goes through 0689's channel rather than a Zotero.debug() of its own
@@ -3557,23 +3763,29 @@ async function initialize(rootURI, token, era = shutdowns) {
     yield: () => new Promise(resolve => timers.setTimeout(resolve, 0)),
     ensure: (id, onProgress) => Zotero.SDT.ensure(id, { isPriority: false, onProgress }),
   });
-  /* Ask BEFORE arming, which is the ordering the modal always deserved and
-     never had (ticket 0742). What stood here set `alive = true` and installed
-     the toolbar button first, so the button appeared in the window UNDER a
-     modal that was still asking whether the sitter should run at all — the same
-     class of defect ticket 0696 had to guard against, and a promise made to the
-     user before he had answered.
+  /* NOBODY IS ASKED, and nothing is remembered (ticket 0797).
 
-     The prompt is now reached at most once per profile: an answered pref skips
-     it entirely, which is what makes disable/re-enable (ticket 0727 arm 4) and
-     every later restart silent. */
-  let enabled = readSDTSwitch();
-  if (enabled === null) {
-    enabled = askSDTLaunch(win);
-    if (token !== generation) return;
-    writeSDTSwitch(enabled);
-  }
+     "On commence allumé dès que possible" — the author, 2026-09-15. Ticket
+     0742's launch modal and its persisted answer are both gone: the modal's
+     only job was to write a preference that no longer exists, and half of that
+     removal would be worse than none, since dropping the modal while still
+     reading the preference leaves a machine obeying an answer the user can no
+     longer give. So the startup path arms unconditionally the moment indexing
+     is launchable, and the checkbox in the window pauses it for this session.
+
+     What ordering this replaces, and why the old one existed: `alive = true`
+     and the toolbar button used to be installed BEFORE the modal, so the button
+     appeared under a dialog still asking whether the sitter should run at all
+     (defect 6 of ticket 0742). With no modal there is no such window, and
+     nothing between the seal above and the arm below can ask the user anything.
+
+     The retired preference is cleared rather than left behind: see
+     `retireSDTSwitchPref`. */
+  retireSDTSwitchPref();
   alive = true;
+  // Boot wait ends here, and it ends where `alive` begins because those are the
+  // same fact: this is the first instant at which indexing can be launched.
+  booting = false;
   activeToken = token;
   Zotero.SDTPackSitter = { state: sitter.state, inspect, blocked, journal };
   const owner = sitter;
@@ -3587,10 +3799,12 @@ async function initialize(rootURI, token, era = shutdowns) {
       }
     },
   }, ['item', 'file'], 'sdt-pack-sitter');
-  // Off is a state the plugin RUNS in: the button and the window are installed
-  // either way, and they are what make "off" discoverable and reversible
-  // without leaving Zotero's main window.
-  if (enabled) armSDTSitter(); else disarmSDTSitter();
+  // Unconditional (ticket 0797). "Paused" is still a state the plugin RUNS in
+  // -- the toolbar entry and the window stay, which is what makes it
+  // discoverable and reversible without leaving Zotero's main window -- but it
+  // is now only ever reached by the user's own click, never by a remembered
+  // answer, and it does not survive this session.
+  armSDTSitter();
   for (const window of Zotero.getMainWindows()) onMainWindowLoad({ window });
 }
 function shutdown(data, reason) {
@@ -3638,60 +3852,30 @@ function shutdown(data, reason) {
         catch (_error) { /* A diagnostic must never be what stops a teardown. */ }
       }
     }
-    /* Consent withdrawn, on the uninstall reason and on no other. Ruled
-       2026-09-12 on ticket 0772, implemented as ticket 0773's Action 2.
+    /* CONSENT WITHDRAWAL RETIRED with the preference it was written into
+       (ticket 0797). What stood here, and why it no longer has anything to do:
 
-       The switch is the answer to the first-run question, which is the consent
-       record for a background process that reads the whole library. Removing
-       the add-on is the plainest withdrawal of that consent a user can perform,
-       and before this line the answer simply stood: a profile that said yes,
-       removed the add-on and installed it again resumed indexing without being
-       asked.
+       Ruled 2026-09-12 on ticket 0772 and refined 2026-09-13, this wrote
+       `false` over the launch answer on the `uninstall` reason and on no other,
+       because that answer was the consent record for a background process that
+       reads the whole library, and removing the add-on is the plainest
+       withdrawal of it a user can perform. It was guarded on
+       a non-null `readSDTSwitch` so that a profile which had NEVER answered
+       kept its unanswered state instead of having a decline put in its mouth.
 
-       WRITTEN `false`, NOT CLEARED, and the two are different states rather
-       than two spellings of one. `readSDTSwitch` is a tri-state whose `null`
-       means never answered and is the ONLY value that prompts, so clearing it
-       would re-open a question already answered -- the rejected option (1) of
-       0772. `false` starts the next installation in the state the plugin
-       already treats as one it RUNS in: entry and window present, "off" in
-       plain words, reversible at one click.
+       The author's ruling of 2026-09-15 removes the question and the answer
+       both: nothing is remembered, and a reinstall starts indexing as soon as
+       it can, exactly as a restart does. There is no record left to withdraw,
+       and writing one here would be the plugin growing its own durable state
+       back on the very path that used to justify it. The durable stop is now
+       Zotero's add-on disable, which the host holds; a user who removes the
+       add-on has performed it.
 
-       THE REASON GATE IS NOT the certificate writer's a few lines below, and
-       must not be made to match it. That one fires on `disable` AND
-       `uninstall`, because a disable is where its evidence is wanted. Here a
-       disable is the recovery path a user reaches for to quiet a hang, and an
-       app-shutdown is every ordinary quit; withdrawing consent on either would
-       stop indexing on a machine whose owner never asked for that, silently,
-       and it would look exactly like the plugin having decided on its own.
-       Upgrade and downgrade are likewise not removals.
-
-       ONLY A CONSENT THAT WAS GIVEN CAN BE WITHDRAWN, which is why the write
-       is guarded on `readSDTSwitch()` rather than unconditional. Ruled
-       2026-09-13, resolving an ambiguity the first implementation of 0773's
-       Action 2 surfaced: the ruling of 2026-09-12 speaks throughout of a
-       profile that HAD answered and says nothing about one removed before the
-       question was ever put. That state is reachable — an `initialize()` that
-       threw before the modal, or one superseded at the generation check —
-       and it leaves the preference `null`.
-
-       Writing `false` over that `null` would convert "never answered" into
-       "declined". Because `null` is the only value that prompts, it would
-       suppress the first-run question for ever for a user who simply never got
-       round to answering it, and leave them to discover a switch in a window
-       nobody had told them about. Both readings are safe against the thing
-       that matters, since neither indexes without consent; this one is safe
-       without also putting an answer in the user's mouth. So an unanswered
-       profile keeps its `null` and is asked again on a reinstall.
-
-       BEFORE the seal, deliberately. `writeSDTSwitch` emits, and `emit` drops
-       everything once `sealed` is true, so the withdrawal would otherwise be
-       the one switch change that never reached the journal. In front of the
-       shutdown record rather than behind it, which keeps the seal's own
-       invariant -- the shutdown record is last -- while still making the last
-       thing the plugin did readable inside the certificate that carries the
-       ring. `writeSDTSwitch` guards its own write, so a preference that will
-       not persist cannot throw into a teardown that is already unwinding. */
-    if (named === 'uninstall' && readSDTSwitch() !== null) writeSDTSwitch(false);
+       `retireSDTSwitchPref()` on the startup path is what clears the value a
+       previous version left, so an upgraded profile does not keep a boolean in
+       about:config that nothing reads. Kept out of this teardown deliberately:
+       a shutdown already unwinding is the wrong place for tidying, and a
+       profile that is merely being upgraded is not being uninstalled. */
     emit('shutdown', { reason: named });
     sealed = true;
     // The shutdown record is the last thing written, and this is what keeps the
@@ -3771,9 +3955,12 @@ function removeSDTDurableState() {
   for (const path of [cachePath, `${cachePath}.tmp`]) {
     try { Zotero.File.pathToFile(path).remove(false); } catch (_error) { /* Nothing. */ }
   }
-  // Cleared, not written `false`: the debug checkbox is a diagnostics opt-in,
-  // not a first-run answer, and R22's tri-state discipline for ENABLED_PREF
-  // above does not apply to it. Unset reads as off either way.
+  // Cleared, not written `false`: unset reads as off either way, and a
+  // diagnostics opt-in has no third state to preserve. The contrast this
+  // comment used to draw -- against "R22's tri-state discipline for
+  // ENABLED_PREF above" -- is gone with the tri-state itself (ticket 0797):
+  // R22's durable clause is now answered by Zotero's own add-on disable, and
+  // the sitter keeps no preference of its own to clear here.
   try { Zotero.Prefs.clear(DEBUG_PREF, true); } catch (_error) { /* Nothing. */ }
   // DIAGNOSTICS_MARKER is deliberately NOT swept, on the same ruling that spares
   // the certificate (2026-09-12): it is the operator's own request, made before

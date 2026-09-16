@@ -121,12 +121,13 @@ UI_SITES = (
     # (v0.3.18) when three long library names wrapped that heading five
     # lines deep on a narrow window.
     ("getElementById('sdt-scope').textContent", ';'),
-    ('function askSDTLaunch(win) {', '\n}'),
     ('describeError: (info, error) =>', 'reportError:'),
-    # The switch of ticket 0742. Two sites, because the control is built once
-    # and reworded on every redraw, and a literal could arrive at either.
-    ("doc.getElementById('sdt-switch-state').textContent", ';'),
-    ("doc.getElementById('sdt-switch').textContent", ';'),
+    # The pause control of tickets 0742 and 0797. Three sites: the composer that
+    # decides what the row says, the row's own painter, and the label built once
+    # at populate time -- a literal could arrive at any of them.
+    ('function describeSDTPauseControl(state) {', '\n}'),
+    ('function renderSDTPauseRow(dialog, doc, state) {', '\n}'),
+    ("toggleLabel.textContent = ", ';'),
     # The disclosures moved into their own About disclosure (found live,
     # testing v0.3.16), a whole function now rather than a few lines inline —
     # scoped to that function so the site tracks wherever it lives next,
@@ -1004,17 +1005,6 @@ def test_the_scoped_heading_and_its_coverage_figure_cannot_be_separated():
         assert child in built, f'{child} is no longer under the scoped heading'
 
 
-def test_launch_prompt_states_the_library_scope():
-    """Ticket 0717. The prompt asked to index "the whole library" — the singular
-    the census never measured. The question names the plural, and the set itself
-    reaches the reader through describeSDTScope(), so the prompt, the tooltip and
-    the dialog heading cannot name three different scopes."""
-    assert 'whole library' not in messages()['launch-question'], \
-        'the launch prompt still asks about one library'
-    site = _site('function askSDTLaunch(win) {', '\n}')
-    assert 'describeSDTScope(' in site, 'the launch prompt states no library scope'
-
-
 def test_the_library_scope_is_read_from_zoteros_own_records():
     """A prefix that hardcoded "Ma bibliothèque" would pass any wording grep and
     still lie to every reader of a group library, so the assertion is on the
@@ -1048,117 +1038,214 @@ def test_dialog_title_is_the_index_assistant():
         assert 'SDT' not in messages(tag)['dialog-title'], f'{tag}.ftl names the internal build'
 
 
-def test_launch_prompt_title_is_the_index_assistant():
-    assert messages()['launch-title'] == 'Indexing assistant — experimental'
-    for tag in LOCALES:
-        assert 'SDT Pack Sitter' not in messages(tag)['launch-title']
+def test_the_launch_disclosures_are_not_swept_with_the_modal():
+    """Ticket 0797 removed the launch modal and its six message ids.
 
+    `launch-worker` and `launch-disable` are NOT among them: `buildSDTAbout`
+    feeds them, with `about-updates`, to the About panel's disclosures, and they
+    are the two paragraphs a reader who has just ticked "Pause indexing" goes
+    looking for -- that extraction runs on a shared background process, and that
+    pausing stops new attachments while one already under way finishes. A
+    `launch-` prefix sweep would have emptied the About panel of exactly the text
+    this ticket's own label makes relevant.
 
-def test_launch_prompt_body_speaks_of_indexing_not_packs():
-    """Ticket 0742 rewrote the question and moved two of its four paragraphs out.
-
-    Both halves of the old wording were false. "tonight" described a loop that
-    reschedules for as long as Zotero is open, and "the whole library" described
-    a census that walks every attachment Zotero holds — a different set from the
-    library in view, and one the sitter never scoped itself to. The assertions
-    are on their absence rather than on the replacement's exact phrasing: a
-    reworded question is the author's call, a question that lies again is not.
+    Asserted in both directions, because either half alone is satisfiable by
+    doing nothing: the six modal ids are gone from the table, and the two
+    disclosure ids are still in it AND still read at the About site.
     """
     english = messages()
-    question = visible(english['launch-question']).lower()
-    assert 'tonight' not in question, 'the prompt still promises the work ends at dawn'
-    assert 'whole library' not in question, 'the prompt still claims a scope the census has not'
-    assert 'index' in question, 'the prompt no longer says what it is asking to do'
-    # Ticket 0717's scope paragraph survives 0742's rewrite, and moves from the
-    # question's own words into the reading beside it: the set the census covers
-    # is read from Zotero's records by the composer the tooltip and the dialog
-    # heading also use, never asserted by this string.
-    assert 'describeSDTScope()' in _site('function askSDTLaunch(win) {', '\n}'), \
-        'the prompt names no scope at all'
-    assert 'full-text search index' in english['launch-conditions'], \
-        "Zotero's own index must be named apart from the sitter's"
-    assert 'packs SDT' not in ' '.join(visible(v) for v in english.values())
-    # Three paragraphs now, read at the call site in order. The worker and
-    # disable disclosures moved to the dialog's Details layer, where they are
-    # readable at any time instead of once inside a modal — so their absence
-    # HERE is the assertion, and tests/sdt_sitter_dialog.mjs holds the other
-    # half, that they arrive in the window.
-    site = _site('function askSDTLaunch(win) {', '\n}')
-    for name in ('launch-question', 'launch-conditions', 'launch-details',
-                 'launch-yes', 'launch-no'):
-        assert f"'{name}'" in site, f'{name} is no longer part of the launch prompt'
+    for name in ('launch-title', 'launch-question', 'launch-conditions',
+                 'launch-details', 'launch-yes', 'launch-no'):
+        assert name not in english, f'{name} outlived the modal it composed'
+    about = _site('function buildSDTAbout(doc, element) {', '\n}')
     for name in ('launch-worker', 'launch-disable'):
-        assert f"'{name}'" not in site, f'{name} is back inside the modal'
+        assert name in english, f'{name} was swept with the launch- prefix'
+        assert f"'{name}'" in about, f'{name} no longer reaches the About panel'
+    # And the modal itself is gone, not merely unreferenced.
+    source = BOOTSTRAP.read_text(encoding='utf-8')
+    assert 'askSDTLaunch' not in source, 'the launch modal is still built'
+    assert 'confirmEx' not in source, 'the plugin still asks the user a question'
 
 
-def test_the_launch_answer_is_persisted_and_asked_once():
-    """R22's one obvious way, ratified 2026-09-08 (ticket 0742).
+def test_nothing_about_the_pause_is_remembered():
+    """The author's ruling of 2026-09-15, reversing ticket 0742.
 
-    The old prompt fired at every Zotero start because nothing recorded the
-    answer; a decline was session-only, so it satisfied neither of R22's two
-    clauses. What makes the question once-only is the tri-state read: a pref
-    that is neither true nor false is the ONLY state in which it is asked.
+    "Je préfère ne pas avoir d'état donc aucune préférence mémorisée. On
+    commence allumé dès que possible." So there is no tri-state read at
+    startup, no answer written by the control, and no consent withdrawal at
+    teardown: the checkbox pauses for this session and the next Zotero start
+    indexes as soon as it can.
+
+    The preference NAME survives in exactly one place, and it is there to be
+    deleted: a pref written by a previous version and read by none is the
+    invisible state the ruling removes. Asserted on the count, because "the
+    string appears somewhere" would pass against a plugin that still read it.
 
     Read from the source because the alternative is a live Zotero. The driven
-    half — the count of prompts across a restart and a disable/re-enable — is in
-    tests/sdt_sitter_bootstrap.mjs, and neither half stands alone: this one
-    cannot see that the read is reached, that one cannot see the tri-state.
+    half -- that no teardown reason writes it, and that a reinstall indexes --
+    is in tests/sdt_sitter_bootstrap.mjs, and neither half stands alone.
     """
     source = BOOTSTRAP.read_text(encoding='utf-8')
-    assert "var ENABLED_PREF = 'extensions.sdt-pack-sitter.enabled';" in source, \
-        'the switch has no pref, so no answer can hold across a restart'
-    read = _site('function readSDTSwitch() {', '\n}')
-    assert 'ENABLED_PREF' in read and 'Zotero.Prefs.get' in read
-    assert "typeof value === 'boolean' ? value : null" in read, \
-        'the pref is not read tri-state, so "never answered" cannot be told from "no"'
-    write = _site('function writeSDTSwitch(enabled) {', '\n}')
-    assert 'Zotero.Prefs.set' in write and 'ENABLED_PREF' in write
-    # Asked only on the unanswered state, and the answer written straight back.
-    launch = _site('let enabled = readSDTSwitch();', 'alive = true;')
-    assert 'enabled === null' in launch, 'the question is not gated on an unanswered pref'
-    assert 'askSDTLaunch(win)' in launch and 'writeSDTSwitch(enabled)' in launch
+    # The CALL forms, not the bare names: both functions are named in the prose
+    # that records why they went, and a grep that cannot tell a citation from a
+    # call site would have to choose between a false alarm and no comment.
+    assert 'readSDTSwitch()' not in source, 'the startup path still consults a preference'
+    assert 'writeSDTSwitch(' not in source, 'the control still persists its answer'
+    assert 'function readSDTSwitch' not in source and 'function writeSDTSwitch' not in source, \
+        'the retired accessors are still defined'
+    assert 'ENABLED_PREF,' not in source and 'var ENABLED_PREF' not in source, \
+        'the retired preference still has a live name'
+    assert source.count("'extensions.sdt-pack-sitter.enabled'") == 1, \
+        'the retired preference is named somewhere other than its own retirement'
+    retire = _site('function retireSDTSwitchPref() {', '\n}')
+    assert 'Zotero.Prefs.clear' in retire, 'the retired preference is left in the profile'
+    assert 'Zotero.Prefs.get' not in retire, \
+        'the retirement reads the value, which is the first step back to obeying it'
+    # And it runs on the startup path, before the sitter is armed.
+    startup = _site('  retireSDTSwitchPref();', 'armSDTSitter();')
+    assert 'alive = true;' in startup, 'the retirement is not on the startup path'
 
 
-def test_the_question_is_asked_before_the_sitter_is_armed():
-    """Defect 6 of ticket 0742: `alive = true` and the toolbar button were
-    installed BEFORE the modal, so the button appeared under a dialog still
-    asking whether the sitter should run at all — the same class of defect
-    ticket 0696 had to guard against.
+def test_the_startup_path_arms_unconditionally():
+    """Ticket 0797. Nothing between the sitter being built and it being armed
+    may ask the user anything or read an answer: "on commence allumé dès que
+    possible" is a statement about the startup path, not about a default.
 
-    Asserted on the order of three statements in one function, which is what the
-    fix is. The driven half (a hook that reads the window while the modal is up)
-    is in tests/sdt_sitter_bootstrap.mjs.
+    Ticket 0742's defect 6 -- `alive = true` and the toolbar button installed
+    BEFORE the modal, so the button appeared under a dialog still asking whether
+    the sitter should run -- cannot recur, because there is no modal. What
+    replaces that ordering assertion is this: the arm is reached with no branch
+    over it, and boot wait ends exactly where `alive` begins.
     """
-    tail = _site('let enabled = readSDTSwitch();', 'function shutdown(')
-    ask = tail.index('askSDTLaunch(win)')
-    assert ask < tail.index('alive = true;'), 'the sitter is armed before the question'
-    assert ask < tail.index('onMainWindowLoad({ window })'), \
-        'the toolbar button is installed before the question'
+    tail = _site('  retireSDTSwitchPref();', 'function shutdown(')
+    assert 'booting = false;' in tail, 'boot wait never ends, so the control stays inert'
+    assert tail.index('alive = true;') < tail.index('booting = false;'), \
+        'boot wait ends before the plugin is alive'
+    arm = tail.index('armSDTSitter();')
+    assert 'disarmSDTSitter()' not in tail, 'the startup path can still start paused'
+    assert tail[:arm].count('if (enabled') == 0, 'the arm is still gated on an answer'
+    assert tail.index('alive = true;') < arm, 'the sitter is armed before it is alive'
 
 
-def test_off_is_a_state_with_a_label_and_a_control():
-    """"Off" must be discoverable and reversible from the sitter's own surfaces,
-    which declining the old prompt never was: it left the toolbar reading "Index"
-    and pointed the reader at Tools -> Add-ons, four clicks away, where the act
-    of disabling removes the window that would have shown it stopped."""
-    assert 'switched-off' in phase_names(), 'the switch has no phase of its own'
+def test_paused_is_a_state_with_a_label_and_a_control():
+    """"Paused" must be discoverable and reversible from the sitter's own
+    surfaces, which declining the old prompt never was: it left the toolbar
+    reading "Index" and pointed the reader at Tools -> Add-ons, four clicks
+    away, where the act of disabling removes the window that would have shown it
+    stopped. Ticket 0797 keeps that half of 0742 and drops the persistence."""
+    assert 'switched-off' in phase_names(), 'the pause has no phase of its own'
     assert messages()['phase-off'] == 'Indexing off'
     # The toolbar says so rather than showing a coverage figure for a sitter
     # that is not indexing.
     assert "s.phase === 'switched-off'" in _site(*BUTTON_BLOCK), \
-        'the toolbar reads the same label whether indexing is on or off'
+        'the toolbar reads the same label whether indexing is on or paused'
     # And the window carries the way back.
-    toggle = _site('function toggleSDTSwitch() {', '\n}')
-    assert 'writeSDTSwitch(' in toggle, 'the switch does not persist what it was told'
+    toggle = _site('function toggleSDTSwitch(paused) {', '\n}')
+    assert "emit('switch'" in toggle, \
+        'the control leaves no trace, so a post-mortem cannot see its transitions'
     assert 'armSDTSitter()' in toggle and 'disarmSDTSitter()' in toggle
+    assert 'Zotero.Prefs' not in toggle, 'the control still persists its answer'
     # Graceful, exactly as add-on disable is: admissions stop, the file under way
     # finishes, nothing is cancelled.
     disarm = _site('function disarmSDTSitter() {', '\n}')
-    assert 'sitter?.stop()' in disarm, 'turning indexing off does not stop admissions'
+    assert 'sitter?.stop()' in disarm, 'pausing does not stop admissions'
     assert 'alive = false' not in disarm, \
-        'turning indexing off tears the UI down, so "off" stops being discoverable'
+        'pausing tears the UI down, so "paused" stops being discoverable'
 
 
+def test_the_pause_control_is_a_labelled_checkbox_with_no_role():
+    """The widget ticket 0792 deferred and the author decided: a checkbox, with
+    a bound label reading "Pause indexing".
+
+    `role="switch"` is DROPPED. 0792 recommended it while the control was still
+    imagined as a slider; with "Pause indexing" as the label it is a checkbox,
+    and the role would only make a screen reader say "switch" about a thing the
+    label calls a checkbox. Ticket 0790's `aria-label` goes the same way: the
+    defect it patched was a button whose visible text named the inverse action,
+    and a checkbox has no such label.
+    """
+    source = BOOTSTRAP.read_text(encoding='utf-8')
+    assert messages()['switch-pause-label'] == 'Pause indexing'
+    for name in ('switch-turn-on', 'switch-turn-off',
+                 'switch-turned-on', 'switch-turned-off'):
+        assert name not in messages(), f'{name} outlived the button it labelled'
+        assert f"'{name}'" not in source, f'{name} is still read somewhere'
+    build = _site("const toggle = element('input', 'sdt-switch');", 'const state =')
+    assert "setAttribute('type', 'checkbox')" in build, 'the control is not a checkbox'
+    assert "'role'" not in build, 'the checkbox carries an ARIA role'
+    assert "setAttribute('for', toggle.id)" in build, \
+        'the label is not bound, so neither a click on it nor a screen reader reaches it'
+    assert "addEventListener('change'" in build, \
+        "the control listens for clicks, so a disabled box and the keyboard both miss it"
+    # The row's painter never writes an accessible name of its own.
+    row = _site('function renderSDTPauseRow(dialog, doc, state) {', '\n}')
+    assert 'aria-label' not in row, 'the 0790 workaround outlived the button it patched'
+
+
+def test_sync_reaches_the_pause_control_by_name_not_by_membership():
+    """Ticket 0795 put `SDT_SYNC_PHASE` IN `SDT_BLOCKED_PHASES`, for the retry
+    cadence, and said in its own comment that membership is therefore not the
+    test ticket 0797 needs: sync is the one blocked phase that belongs on the
+    CHECKED, non-interactive side of the table, and every other one is unchecked
+    and operable.
+
+    Asserted on the mechanism rather than on the outcome, because the outcome is
+    driven in tests/sdt_sitter_dialog.mjs and the mechanism is what would rot: a
+    composer that reached for `SDT_BLOCKED_PHASES.includes` would be right for
+    five phases and wrong for the sixth, which is the shape of defect a suite
+    that only samples `cpu-busy` never sees.
+    """
+    site = _site('function describeSDTPauseControl(state) {', '\n}')
+    assert 'SDT_SYNC_PHASE' in site, 'the sync phase is not special-cased at all'
+    assert "'sync-in-progress'" not in site, \
+        'the sync phase is matched on its string rather than on the exported constant'
+    assert 'SDT_BLOCKED_PHASES' not in site, \
+        'membership decides the row, which puts sync on the wrong side of the table'
+    # `native-worker-busy` is NOT in SDT_BLOCKED_PHASES -- it is a wait with the
+    # ordinary sweep cadence, not a block with the ten-minute one -- so it is not
+    # named here either, and reaches the unchecked, operable row by falling
+    # through like every other phase.
+    blocked = _site('var SDT_BLOCKED_PHASES = ', ';')
+    assert 'native-worker-busy' not in blocked, \
+        'native-worker-busy joined the blocked list, which changes its retry cadence'
+    assert 'native-worker-busy' not in site, \
+        'native-worker-busy is special-cased, so a transient wait can check the box'
+
+
+def test_the_phase_age_is_render_local_and_digit_free_on_the_announcement():
+    """The author, 2026-09-15: the window showed a plausible steady state while
+    `draining` had held for eight minutes.
+
+    Two designs were rejected and must not come back. A `phaseSince` field on the
+    scheduler LIES, because the abort path deliberately leaves `phase` stale at
+    `extracting`; and the journal already records phase with elapsed every 60 s,
+    so a second copy has an owner problem. What ships is a render-local
+    observation: the window notes when it first saw the current line and reports
+    the age of that observation.
+
+    The threshold is a number that decides something, so it is pinned here and
+    exercised on both sides of its exact value in tests/sdt_sitter_dialog.mjs.
+    """
+    source = BOOTSTRAP.read_text(encoding='utf-8')
+    assert 'var SDT_PHASE_AGE_THRESHOLD_MS = 60000;' in source, \
+        'the threshold moved, or stopped being a named constant'
+    # Asserted where such a field would have to live. bootstrap.js names it in
+    # the prose that records the rejection, which is the point of recording it.
+    assert 'phaseSince' not in SCHEDULER.read_text(encoding='utf-8'), \
+        'the age was stamped on the scheduler after all'
+    observe = _site('function observeSDTPhaseAge(dialog, kind, now) {', '\n}')
+    assert 'dialog._sdtPhaseSeenAt' in observe, 'the observation is not per window'
+    assert 'kind' in observe, \
+        'the observation is keyed on the phase, so an idle count change resets the age'
+    # The announcement identity stays digits-free, and the age is composed into a
+    # node of its own rather than into the line the live region speaks.
+    row = _site('function renderSDTPauseRow(dialog, doc, state) {', '\n}')
+    assert "'sdt-switch-age'" in row, 'the age has no node of its own'
+    age_line = next(line for line in row.splitlines() if 'sdt-switch-age' in line)
+    assert 'announce' not in age_line
+    announce = row[row.index('announceSDTTransition('):]
+    assert 'describeSDTPhaseAge' not in announce, \
+        'a duration that moves reaches the announcement channel'
 def test_global_status_line_names_the_unit_it_counts():
     assert messages()['files-indexed-of'].startswith('Files indexed: ')
     assert messages()['files-indexed-count'].startswith('Files indexed: ')

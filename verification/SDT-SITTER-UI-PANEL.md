@@ -193,3 +193,31 @@ justifies the whole pass.
 Whether the announcements, once 0789 is fixed, are worded usefully enough for a
 blind user to follow a long indexing run. One session with one listener does not
 settle that.
+
+## 2026-09-16 — the widget changed; the readings above are of a control that is gone
+
+Ticket 0797 replaced `#sdt-switch` with an `<input type="checkbox">` and a bound
+`<label>` reading "Pause indexing". Every reading above stands as a record of
+what was measured on the dates it names, and none of it describes the shipped
+control any more:
+
+- The AT-SPI table's `sdt-switch` row reads `push button` / `Turn indexing off`.
+  It is now a check box whose accessible name comes from the bound label and
+  whose state comes from `checked`, not from its name.
+- The two `SPEECH OUTPUT` lines quoting "Turn indexing off/on push button" are
+  of the inverting label that ticket 0790 patched with an `aria-label`. Both the
+  label and the workaround are gone; 0790's defect cannot recur, because a
+  checkbox's name does not name an action.
+- "**The toggle announces the next action**" is therefore closed by removal
+  rather than by a fix.
+
+**What is owed, and is NOT claimed here.** The replacement has not been read in a
+live window. Two readings belong in this file before ticket 0797's own
+verification list is complete, and both need a human at the machine: what Orca
+announces for the checkbox, in each of its checked/unchecked and
+enabled/disabled combinations; and that the native widget survives a
+forced-colours setting, which is one of the reasons the control is a plain
+platform checkbox with no stylesheet and no ARIA role. Ticket 0792's rendering
+claims were all read from source and none was observed; this pass must not
+repeat that, so nothing above has been amended to describe the new control from
+its source.

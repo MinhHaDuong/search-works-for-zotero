@@ -312,13 +312,33 @@ is indexed at all — item changes are not even enqueued — until `startIndexin
 clears it and re-enqueues, cheaply, since already-indexed items are skipped by
 source hash. It carries a second, finer control besides: turning
 `embeddings.indexFulltext` off keeps metadata indexing running while dropping
-attachment work and pruning its chunks. The sitter's switch is the same kind of
-object, persisted the same way, and the two cannot see each other. Each stops
-its own consumer and nothing else; extraction that a reader or the other
-consumer triggers continues either way. There is no way for a user, or for
-either component, to say "stop indexing on this machine" — which is the R22
-question asked of the platform rather than of one plugin, and the answer to it
-is currently a list of switches a user has to know to find.
+attachment work and pruning its chunks.
+
+The sitter's control used to be the same kind of object, persisted the same way.
+Since ticket 0797 it is not, and the difference is worth stating because it is a
+different answer to the same requirement. The sitter's "Pause indexing" checkbox
+is session-scoped and remembers nothing; R22's durable clause is answered by
+Zotero's own add-on disable, which the host already stores. So where #6012 grew
+a preference of its own to hold a stop across a restart, the sitter declined to,
+on the ground that the host was already holding one. Neither design is wrong for
+its component; they are two readings of whose job a durable stop is.
+
+Neither control is a stop for work already submitted, and that is a platform
+fact rather than a choice either of them made: open question 4 below records
+that a submitted extraction cannot be ended from this side at all, and that from
+here a slow tail and a wedged worker leave the same journal. Ticket 0797 is the
+second consumer of that answer. The checkbox ends admissions and cannot end the
+document under way, so the line beside a checked box says exactly that and
+points the reader at the host's add-on disable — it promises no stop the plugin
+cannot perform, which is the one thing the wording had to get right.
+
+What the split costs is unchanged, and is worse for having two shapes: the two
+controls cannot see each other, each stops its own consumer and nothing else,
+and extraction that a reader or the other consumer triggers continues either
+way. There is no way for a user, or for either component, to say "stop indexing
+on this machine" — which is the R22 question asked of the platform rather than
+of one plugin, and the answer to it is currently a list of switches a user has
+to know to find, now in two idioms rather than one.
 
 The model is also not local, and the removal rationale is itself the proof:
 marking full-text content unsynced caused uploads, server reindexing and

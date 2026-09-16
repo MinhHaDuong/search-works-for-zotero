@@ -163,6 +163,11 @@ ui.Zotero = makeZotero();
 ui.journal = ui.createSDTJournal(2000);
 ui.alive = true;
 ui.sealed = false;
+/* Ticket 0797. Boot wait is the interval in which the plugin is loaded and the
+   sitter cannot yet be armed; `initialize()` clears it where it sets `alive`,
+   and this fixture stands in for a started Zotero, so it clears it here for the
+   same reason it sets `alive` itself. The boot-wait arm below sets it back. */
+ui.booting = false;
 /* What `startup()` imports from `resource://gre/modules/Timer.sys.mjs` and binds
    here. The dialog fixture never runs `startup()`, and until ticket 0742 nothing
    in this file needed it — the switch does: turning indexing on arms the sweep
@@ -238,21 +243,22 @@ test('the three layers exist, in order, with diagnostics nested inside details',
   // Nothing sets `open`, which is what makes both closed on first paint.
   assert.equal(layer2.getAttribute('open'), null, 'Details ships expanded');
   assert.equal(layer3.getAttribute('open'), null, 'Technical diagnostics ships expanded');
-  // The stub document has no layout engine, so this cannot see the button
-  // actually hold still — only that the declaration a real browser would obey
-  // is present. `space-between` pins the button to the row's fixed edge
-  // instead of to wherever the state text happens to end, which is what moved
-  // when "on" and "off" describe very different lengths of text (found live,
-  // testing v0.3.15).
-  assert(doc.getElementById('sdt-switch-row').style.cssText.includes('justify-content: space-between'),
-    'the switch button is not pinned to a fixed edge of its row');
+  // The stub document has no layout engine, so this cannot see the row hold
+  // still — only that the declaration a real browser would obey is present.
+  // `space-between` went with the button (ticket 0797): it existed because
+  // "Turn indexing on"/"off" are different lengths, so a button placed after
+  // the state text moved sideways on every click (found live, testing
+  // v0.3.15). Neither half survives — the label is the fixed string "Pause
+  // indexing" and it LEADS the row, ahead of the text that varies.
+  assert(!doc.getElementById('sdt-switch-row').style.cssText.includes('space-between'),
+    'the row still pins a control that no longer moves');
+  assert.equal(doc.getElementById('sdt-switch-row').childNodes[0].id, 'sdt-switch',
+    'the control the reader came for does not lead its own row');
   // `element()`'s default styling carries `white-space: pre-wrap`, meant for
-  // the prose blocks; on the button it let "Turn indexing on"/"off" wrap to a
-  // second line at some widths, turning it into a square (found live, testing
-  // v0.3.17). The button overrides it to a single line; the state text is
-  // free to wrap in its place.
-  assert(doc.getElementById('sdt-switch').style.cssText.includes('white-space: nowrap'),
-    'the switch button can still wrap onto a second line');
+  // the prose blocks; a form control is not prose. The label keeps its native
+  // single line; the state text beside it is free to wrap in its place.
+  assert(doc.getElementById('sdt-switch-label').style.cssText.includes('white-space: nowrap'),
+    'the checkbox label can wrap onto a second line');
   assert(doc.getElementById('sdt-switch-state').style.cssText.includes('min-width: 0'),
     'the state text cannot shrink to make room for the button');
   // Same caveat: this only proves the reservation exists, not that the box
@@ -303,45 +309,6 @@ test('layer 1 still carries progress, and layer 2 still carries the counts', () 
     'the count cell is not right-aligned');
 });
 
-/* Ticket 0742. The switch is layer 1's first control, and "off" is a state the
-   window can both show and leave. A source grep sees the strings; only driving
-   the control shows that clicking it stops the sitter, persists the answer, and
-   redraws the two lines the reader is looking at — and that clicking it again
-   comes back. The order matters to the arms below, so they run as one. */
-test('the switch turns indexing off and on again, persisting each answer', () => {
-  const control = doc.getElementById('sdt-switch');
-  const label = doc.getElementById('sdt-switch-state');
-  assert.equal(control.tagName, 'button', 'the switch is not a native control');
-  assert.equal(control.parentNode.id, 'sdt-switch-row');
-  assert.equal(control.textContent, 'Turn indexing off');
-  // The switch line and the raw "State: {phase}" line merged into one
-  // (found live, testing v0.3.18): the phase now speaks in a sentence, here.
-  // The fixture's sweep indexed all three attachments, so at rest this is the
-  // complete-coverage sentence and not the bare idle one (0686 item 3).
-  assert.equal(label.textContent,
-    'Indexing is on. Everything in view is indexed. New and changed attachments are picked up as they appear.');
-
-  control.fire('click');
-  assert.equal(sitter.state.enabled, false, 'the sitter kept admitting after the switch');
-  assert.equal(sitter.state.phase, 'switched-off');
-  assert.equal(state.prefs.get('extensions.sdt-pack-sitter.enabled'), false,
-    'the answer was not persisted, so it would not hold across a restart');
-  assert.equal(control.textContent, 'Turn indexing on', 'the switch offers no way back');
-  assert.equal(label.textContent,
-    'Indexing is off. Zotero will still index PDFs as you view them.');
-
-  const before = armed.intervals;
-  control.fire('click');
-  assert.equal(sitter.state.enabled, true, 'turning indexing on left the sitter stopped');
-  assert.equal(sitter.state.phase, 'ready');
-  assert.equal(state.prefs.get('extensions.sdt-pack-sitter.enabled'), true);
-  assert.equal(control.textContent, 'Turn indexing off');
-  // The redraw pulse and the heartbeat, armed again. Without this the switch
-  // could flip the pref and the phase and never restart the loop, and every
-  // assertion above would still pass.
-  assert.equal(armed.intervals - before, 2, 'turning indexing on armed no loop');
-});
-
 /* Found live, after PR #481 shipped: turning indexing off mid-census left the
    overall-progress bar animating forever. The 100 ms render loop is cleared by
    the switch, but a native `<progress>` with no `value` attribute is
@@ -354,13 +321,13 @@ test('switching off mid-census freezes the progress bar instead of leaving it an
   sitter.state.scanned = 1;
   sitter.state.total = 3;
   const control = doc.getElementById('sdt-switch');
-  control.fire('click');
+  control.checked = true; control.fire('change');
   assert.equal(sitter.state.phase, 'switched-off');
   const globalProgress = doc.getElementById('sdt-global-progress');
   assert.notEqual(globalProgress.value, undefined,
     'the overall-progress bar has no value attribute after switching off mid-census — ' +
     'indeterminate, so the platform animates it forever with the sitter off');
-  control.fire('click');
+  control.checked = false; control.fire('change');
   assert.equal(sitter.state.phase, 'ready');
   sitter.state.scanned = 3;
   sitter.state.total = 3;
@@ -901,6 +868,15 @@ async function driveReinitialisation() {
   };
   await assert.rejects(ui.initialize(INSTALL_PATH, 0), /halt: after the self-check/);
   ui.Zotero = host;
+  /* Ticket 0797's boot-wait flag, doing exactly its job and therefore needing a
+     restore here. `initialize()` sets it at the top of every activation and
+     clears it where it sets `alive`; this activation halts in between, so it
+     leaves the scope BOOTING -- which is the truth about a plugin whose
+     startup threw, and which holds every window at "checked, inert, Zotero is
+     still starting". The fixture stands in for a started Zotero, so it clears
+     the flag again beside the host it restores. Found by the two tests that
+     went stale-DOM red without it. */
+  ui.booting = false;
 }
 
 await driveReinitialisation();
@@ -994,6 +970,223 @@ test('the Not indexed heading counts attachments, not records without a file', (
     'excluding the group from the total also dropped it from the section');
   sitter.state.censusSnapshot = saved;
   ui.render();
+});
+
+
+/* ---------------------- ticket 0797: the pause checkbox ---------------------- */
+
+/* The author's ruling of 2026-09-15: the on/off button becomes a checkbox
+   labelled "Pause indexing", checked while nothing is being indexed, and
+   non-interactive exactly while the user's choice cannot change the outcome.
+
+   Driven rather than read, because the half a source grep cannot see is which
+   sitter state reaches which row of the table: a checkbox wired to nothing but
+   "is the phase switched-off" passes every assertion about checkedness and
+   misses the entire ruling. The `disabled` arms are what carry it. */
+
+const pauseBox = () => doc.getElementById('sdt-switch');
+const pauseLine = () => doc.getElementById('sdt-switch-state');
+const atPhase = phase => { sitter.state.phase = phase; ui.render(); };
+
+test('the pause control is a checkbox with a bound label, and no ARIA role', () => {
+  const box = pauseBox();
+  assert.equal(box.tagName, 'input', 'the pause control is not a native checkbox');
+  assert.equal(box.getAttribute('type'), 'checkbox');
+  // Ticket 0792 recommended role="switch" while the control was still imagined
+  // as a slider. A control labelled "Pause indexing" IS a checkbox, and the
+  // role would only make a screen reader say "switch" about a thing the label
+  // calls a checkbox.
+  assert.equal(box.getAttribute('role'), null, 'the checkbox carries an ARIA role');
+  const label = doc.getElementById('sdt-switch-label');
+  assert.equal(label.tagName, 'label');
+  assert.equal(label.getAttribute('for'), 'sdt-switch',
+    'the label is not tied to the checkbox, so neither click nor screen reader reaches it');
+  assert.equal(label.textContent, 'Pause indexing',
+    'the label names an action to take rather than the state it holds');
+  // Ticket 0790's aria-label patched a BUTTON whose visible text named the
+  // inverse action. A checkbox has no such label, so the workaround goes with
+  // the defect it patched.
+  assert.equal(box.getAttribute('aria-label'), null,
+    'the 0790 workaround outlived the button it patched');
+});
+
+test('checked means not indexing, unchecked means indexing', () => {
+  atPhase('switched-off');
+  assert.equal(pauseBox().checked, true, 'a paused sitter left the box unchecked');
+  atPhase('census');
+  assert.equal(pauseBox().checked, false, 'an indexing sitter left the box checked');
+});
+
+/* THE CONTROL THAT MATTERS, and both arms have to be shown red before the fix.
+   `cpu-busy` is a phase the user paused nothing to reach: the box is unchecked
+   and stays operable, or the control flickers checked and unchecked under
+   ordinary load, which is the 10 Hz defect in slower clothes. Boot wait is the
+   opposite: checked, and nothing the user does can change it. */
+test('boot wait holds the box checked and inert; a blocked phase does neither', () => {
+  ui.booting = true;
+  ui.render();
+  assert.equal(pauseBox().checked, true, 'boot wait left the box unchecked');
+  assert.equal(pauseBox().disabled, true,
+    'the box is operable before indexing can be launched at all');
+  assert.equal(pauseLine().textContent,
+    'Zotero is still starting. Indexing begins on its own as soon as it can.');
+  ui.booting = false;
+
+  atPhase('cpu-busy');
+  assert.equal(pauseBox().checked, false,
+    'a busy processor checked the box, so the control flickers under ordinary load');
+  assert.equal(pauseBox().disabled, false,
+    'a blocked phase took the control away from the user');
+  assert.equal(pauseLine().textContent, 'Indexing is on. Waiting: processor busy');
+  // Not in SDT_BLOCKED_PHASES, and a wait rather than a block -- it keeps the
+  // fast retry cadence. It lands on this row for the same reason `cpu-busy`
+  // does: the user has paused nothing, and it is transient.
+  atPhase('native-worker-busy');
+  assert.equal(pauseBox().checked, false);
+  assert.equal(pauseBox().disabled, false);
+  assert.equal(pauseLine().textContent, 'Indexing is on. Waiting: native indexing under way');
+});
+
+/* Ticket 0795 landed `SDT_SYNC_PHASE` as a MEMBER of `SDT_BLOCKED_PHASES`, and
+   its own comment says so: membership alone routes it to the wrong row. It is
+   special-cased by the constant, never by the string and never by membership. */
+test('a sync in progress holds the box checked and inert, and says why', () => {
+  atPhase(ui.SDT_SYNC_PHASE);
+  assert.equal(pauseBox().checked, true, 'a sync left the box unchecked');
+  assert.equal(pauseBox().disabled, true,
+    'the user can uncheck a box whose choice cannot change the outcome');
+  // The message id is what ticket 0795 guarantees this table; the sentence is
+  // read from it rather than paraphrased into a second copy.
+  assert.equal(pauseLine().textContent, 'Waiting for sync to finish');
+  assert(!pauseLine().textContent.startsWith('Indexing is on.'),
+    'the checked row still claims indexing is on');
+});
+
+/* The row nobody had written copy for. A submitted extraction cannot be ended
+   from this side at all: `ensure()`'s whole option surface is `isPriority` and
+   `onProgress`, and from here a slow tail and a wedged worker leave the same
+   journal (DESIGN-NOTES open question 4, ticket 0793). So the line says what is
+   true and promises no stop the plugin cannot perform. */
+test('pausing with a document in flight promises no stop the plugin cannot perform', () => {
+  sitter.state.phase = 'switched-off';
+  const saved = sitter.state.active;
+  sitter.state.active = 7;
+  ui.render();
+  const line = pauseLine().textContent;
+  assert.equal(pauseBox().checked, true);
+  assert.equal(pauseBox().disabled, false, 'the user cannot leave a pause they chose');
+  assert(line.includes('no way to end it'),
+    `the in-flight line does not say what the assistant cannot do: ${line}`);
+  assert(!line.includes('then stopping'),
+    'the line promises a stop the plugin cannot perform');
+  // The durable half of R22 is the host's, and this is where the reader meets it.
+  assert(line.includes('Add-ons'), `the line names no durable stop: ${line}`);
+  assert.notEqual(line, ui.SDT_TEXT['switch-off'],
+    'an in-flight pause reads exactly like an idle one');
+  sitter.state.active = saved;
+  sitter.state.phase = 'ready';
+  ui.render();
+});
+
+/* The author, 2026-09-15: the window showed a plausible steady state while
+   `draining` had held for eight minutes. A render-local observation, not a
+   scheduler field -- the abort path deliberately leaves `phase` stale at
+   `extracting`, so a `phaseSince` on the scheduler would lie, and the journal's
+   own 60 s phase record already has an owner.
+
+   The threshold decides something, so it is asserted on its exact value and on
+   one unit either side of it: "2 s ago" is noise, "8 min" is the diagnosis. */
+test('the phase age is shown past the threshold and not before', () => {
+  assert.equal(ui.SDT_PHASE_AGE_THRESHOLD_MS, 60000,
+    'the threshold moved; decide it, do not drift it');
+  /* LITERALS, not `SDT_PHASE_AGE_THRESHOLD_MS - 1`, and this is measured rather
+     than stylistic. An arm written relative to the constant MOVES WITH a
+     mutated constant and passes against it: run against a bootstrap.js mutated
+     to 60001, the relative form of these two lines was green, and only the
+     pinned value above was red. Pinned alone it says the number changed;
+     these two say what the number does. */
+  assert.equal(ui.describeSDTPhaseAge(59999), '',
+    'an age one millisecond under the threshold is shown');
+  assert.equal(ui.describeSDTPhaseAge(60000), 'unchanged for 1 min',
+    'an age exactly at the threshold is withheld');
+  assert.equal(ui.describeSDTPhaseAge(8 * 60000), 'unchanged for 8 min');
+  assert.equal(ui.describeSDTPhaseAge(75 * 60000), 'unchanged for 1 h 15 min');
+});
+
+test('the age is measured per window, from what that window last saw', () => {
+  const age = () => doc.getElementById('sdt-switch-age').textContent;
+  atPhase('draining');
+  assert.equal(age(), '', 'a phase just seen already reports an age');
+  // Backdate what this window remembers seeing, which is exactly what the
+  // observation is: the window's own note of when it first saw this line.
+  dialog._sdtPhaseSeenAt -= 9 * 60000;
+  ui.render();
+  assert.equal(age(), 'unchanged for 9 min', `the window reports no age: ${age()}`);
+  // A different line resets the observation rather than inheriting it.
+  atPhase('census');
+  assert.equal(age(), '', 'the age survived the phase it was measured over');
+  // And it never reaches the announcement channel.
+  assert.equal(doc.getElementById('sdt-announcer').textContent.includes('unchanged for'), false,
+    'a duration that ticks reached the live region');
+  atPhase('ready');
+});
+
+test('the announcement kind stays digits-free while a count moves', () => {
+  const counts = sitter.state.counts;
+  const saved = { ...counts };
+  const totals = { total: sitter.state.total, scanned: sitter.state.scanned,
+    phase: sitter.state.phase, snapshot: sitter.state.censusSnapshot };
+  const kindAt = next => {
+    for (const key of Object.keys(counts)) delete counts[key];
+    Object.assign(counts, next);
+    sitter.state.phase = 'waiting';
+    sitter.state.total = Object.values(next).reduce((a, b) => a + b, 0);
+    sitter.state.scanned = sitter.state.total;
+    sitter.state.censusSnapshot = null;
+    return ui.describeSDTPauseControl(sitter.state).kind;
+  };
+  const one = kindAt({ current: 2, 'missing-pack': 1 });
+  const many = kindAt({ current: 2, 'missing-pack': 7 });
+  assert.equal(one, many, 'the announcement identity moved with the count');
+  assert(!/\d/.test(one), `the announcement kind carries digits: ${one}`);
+  // And the paused kinds, which are new: an in-flight pause is its own state.
+  assert.equal(ui.describeSDTPauseControl({ phase: 'switched-off', active: null }).kind, 'off');
+  assert.equal(ui.describeSDTPauseControl({ phase: 'switched-off', active: 7 }).kind, 'off:in-flight');
+
+  for (const key of Object.keys(counts)) delete counts[key];
+  Object.assign(counts, saved);
+  sitter.state.total = totals.total; sitter.state.scanned = totals.scanned;
+  sitter.state.phase = totals.phase; sitter.state.censusSnapshot = totals.snapshot;
+  ui.render();
+});
+
+/* The control still stops and starts the sitter, and still leaves a trace.
+   `writeSDTSwitch` is gone with the preference, and its `emit('switch', ...)`
+   was not incidental: those ring records are how the evening of 2026-09-15
+   reconstructed two off/on cycles and their `completed: 0`. The emission has to
+   survive the pref write's removal, or the control leaves no trace at all. */
+test('checking the box stops the sitter, unchecking starts it, and both are journalled', () => {
+  const box = pauseBox();
+  const before = armed.intervals;
+  const switches = () => ui.journal.tail().filter(record => record.kind === 'switch');
+  const seen = switches().length;
+
+  box.checked = true;
+  box.fire('change');
+  assert.equal(sitter.state.enabled, false, 'the sitter kept admitting after the box was checked');
+  assert.equal(sitter.state.phase, 'switched-off');
+  assert.equal(switches().length, seen + 1, 'the pause left no record in the ring');
+  assert.equal(switches().at(-1).enabled, false);
+
+  box.checked = false;
+  box.fire('change');
+  assert.equal(sitter.state.enabled, true, 'unchecking the box left the sitter stopped');
+  assert.equal(sitter.state.phase, 'ready');
+  assert.equal(armed.intervals - before, 2, 'unchecking the box armed no loop');
+  assert.equal(switches().at(-1).enabled, true);
+  // Nothing is remembered: no preference is written by either transition.
+  assert.equal(state.prefs.has('extensions.sdt-pack-sitter.enabled'), false,
+    'the control wrote a preference the window never admits to');
 });
 
 console.log(JSON.stringify({ tests: results, result: 'pass' }));

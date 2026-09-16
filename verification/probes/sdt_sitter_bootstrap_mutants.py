@@ -285,10 +285,14 @@ MUTANTS = [
      "  if (now - dialog._sdtLeftAt < SDT_ANNOUNCE_SETTLE_MS) return;\n",
      ""),
     # The region fed the 10 Hz material: the defect that kept this item open.
+    # Re-anchored by ticket 0797: the announcement call moved out of
+    # `renderState`'s dialog loop into `renderSDTPauseRow`, which is the one part
+    # of the window that must render during boot wait.
     ("M33 the progress line reaches the live region",
-     "    announceSDTTransition(dialog, doc, switchLine, s.phase, describeSDTSwitchKind(s));\n",
-     "    announceSDTTransition(dialog, doc, `${switchLine} ${s.progress ?? ''}`, s.phase,\n"
-     "      describeSDTSwitchKind(s));\n"),
+     "  announceSDTTransition(dialog, doc, control.line,\n"
+     "    state ? state.phase : 'booting', control.kind);\n",
+     "  announceSDTTransition(dialog, doc, `${control.line} ${state?.progress ?? ''}`,\n"
+     "    state ? state.phase : 'booting', control.kind);\n"),
     # A live region without its role is a hidden div a screen reader never reads.
     ("M34 the status region loses its role",
      "    announcer.setAttribute('role', 'status');\n",
@@ -342,9 +346,14 @@ MUTANTS = [
      "  const outstanding = coverage.failed;\n"),
     # The region compares the rendered sentence again, so the live denominator
     # moving under ordinary churn is spoken as though it were a change of state.
+    # Re-anchored by ticket 0797, on the same call site as M33. `control.kind` is
+    # the sentence's identity with its digits removed; comparing the sentence
+    # itself puts a moving count on the announcement channel.
     ("M39 the status region compares the sentence, so a count moving is announced",
-     "    announceSDTTransition(dialog, doc, switchLine, s.phase, describeSDTSwitchKind(s));\n",
-     "    announceSDTTransition(dialog, doc, switchLine, s.phase, switchLine);\n"),
+     "  announceSDTTransition(dialog, doc, control.line,\n"
+     "    state ? state.phase : 'booting', control.kind);\n",
+     "  announceSDTTransition(dialog, doc, control.line,\n"
+     "    state ? state.phase : 'booting', control.line);\n"),
     # ---- ticket 0771: the host lifecycle interface --------------------------
     # The defect as it stood: the host hands startup() a reason and the plugin
     # took no second argument, so the ring named every transition out and none in.
@@ -411,40 +420,41 @@ MUTANTS = [
     ("M49 only a disable is certified, so an uninstall leaves nothing",
      "  if (reason !== 'disable' && reason !== 'uninstall' && reason !== 'vanished-without-teardown') return;\n",
      "  if (reason !== 'disable') return;\n"),
-    # ---- consent withdrawal, ticket 0773 Action 2 ----------------------------
-    # One mutant per half, as the ticket asks. M49a is the pre-change state: the
-    # write never happens and a reinstall resumes indexing the whole library
-    # without asking. M49b is the plausible wrong gate — the certificate writer
-    # twenty lines away fires on disable AND uninstall, and copying that here
-    # turns the switch off on every recovery restart, which is both wrong and
-    # invisible to the user who did not ask for it.
-    ("M49a an uninstall does not withdraw the indexing consent",
-     "    if (named === 'uninstall' && readSDTSwitch() !== null) writeSDTSwitch(false);\n",
-     ""),
-    ("M49b a disable withdraws consent too, as the certificate writer's gate does",
-     "    if (named === 'uninstall' && readSDTSwitch() !== null) writeSDTSwitch(false);\n",
-     "    if (named === 'uninstall' || named === 'disable') writeSDTSwitch(false);\n"),
-    # Cleared rather than written false is the rejected option (1) of ticket
-    # 0772: it reads as never-answered and re-asks the first-run question.
-    ("M49c the consent is cleared instead of written off, so a reinstall is asked again",
-     "    if (named === 'uninstall' && readSDTSwitch() !== null) writeSDTSwitch(false);\n",
-     "    if (named === 'uninstall') { try { Zotero.Prefs.clear(ENABLED_PREF, true); } catch (_e) { /* */ } }\n"),
-    # You cannot withdraw a consent that was never given. Ruled 2026-09-13:
-    # dropping the guard writes `false` over the tri-state's `null`, which turns
-    # "never answered" into "declined" and suppresses the first-run question for
-    # ever on a profile that simply never answered it.
-    ("M49e consent is withdrawn from a profile that never gave it",
-     "    if (named === 'uninstall' && readSDTSwitch() !== null) writeSDTSwitch(false);\n",
-     "    if (named === 'uninstall') writeSDTSwitch(false);\n"),
-    # Behind the seal the switch record is dropped by emit(), so the withdrawal
-    # never reaches the journal or the certificate that carries it.
-    ("M49d the withdrawal is written behind the seal, where emit() drops it",
-     "    if (named === 'uninstall' && readSDTSwitch() !== null) writeSDTSwitch(false);\n"
+    # ---- nothing is remembered, ticket 0797 ---------------------------------
+    # These five replace ticket 0773's M49a-e, which mutated the consent
+    # withdrawal `writeSDTSwitch(false)` on the uninstall path. That line is
+    # gone: the author's ruling of 2026-09-15 removes the launch question and
+    # its preference, so there is no consent record for a teardown to withdraw.
+    # What is worth breaking now is the other direction -- a plugin that starts
+    # remembering again, silently, on a machine whose window says nothing about
+    # it.
+    ("M49a the startup path obeys the retired preference again",
+     "  retireSDTSwitchPref();\n",
+     "  const remembered = Zotero.Prefs.get('extensions.sdt-pack-sitter.enabled', true);\n"
+     "  if (remembered === false) { alive = true; booting = false; return; }\n"),
+    ("M49b the retired preference is left in the profile instead of cleared",
+     "  try { Zotero.Prefs.clear?.(RETIRED_SWITCH_PREF, true); }\n",
+     "  try { void RETIRED_SWITCH_PREF; }\n"),
+    ("M49c an uninstall writes the retired preference back",
      "    emit('shutdown', { reason: named });\n"
      "    sealed = true;\n",
+     "    if (named === 'uninstall') { try { Zotero.Prefs.set(RETIRED_SWITCH_PREF, false, true); }\n"
+     "      catch (_e) { /* */ } }\n"
      "    emit('shutdown', { reason: named });\n"
-     "    sealed = true;\n"
-     "    if (named === 'uninstall' && readSDTSwitch() !== null) writeSDTSwitch(false);\n"),
+     "    sealed = true;\n"),
+    # The checkbox's polarity. `checked` means NOT indexing; inverting it is the
+    # one-character change that makes every sentence in the window disagree with
+    # the control above it.
+    ("M49d the checkbox reports the inverse: checked means indexing",
+     "  return { checked: false, interactive: true, line: describeSDTSwitchLine(state),\n",
+     "  return { checked: true, interactive: true, line: describeSDTSwitchLine(state),\n"),
+    # `writeSDTSwitch` used to emit this, and the emission was not incidental to
+    # the pref write: those ring records are the only trace the control leaves,
+    # and they are how the evening of 2026-09-15 reconstructed two off/on cycles
+    # and their `completed: 0` at all.
+    ("M49e the control leaves no record in the ring",
+     "  emit('switch', { enabled: !pausing });\n",
+     ""),
     # The envelope names a reason the ring does not, so the certificate and the
     # records inside it can disagree about what happened.
     ("M50 the certificate reports a reason of its own rather than the one Gecko gave",
@@ -667,18 +677,29 @@ MUTANTS = [
      " once the pulse that used to carry it has stopped",
      "    dialog._sdtLeftAt = now;\n    armSDTAnnounceSettle(dialog);\n    return;\n",
      "    dialog._sdtLeftAt = now; return;\n"),
-    # ---- ticket 0790: the switch's accessible name IS its action ------------
-    # The defect as the author heard it: click the button to turn indexing ON
-    # and the label instantly becomes "Turn indexing off", so a listener with
-    # no aria-label override hears the old, undifferentiated accessible name --
-    # identical to the visible action text -- and concludes the opposite of
-    # what happened. Dropped, the button's accessible name reverts to its
-    # content again, and the state-then-action sentence a screen reader needs
-    # is never attached at all.
-    ("M77 the switch's accessible name reverts to its visible action label, so"
-     " a click still announces the action it undoes rather than the state it produced",
-     "    doc.getElementById('sdt-switch').setAttribute('aria-label',\n"
-     "      sdtText(off ? 'switch-turned-off' : 'switch-turned-on'));\n",
+    # ---- tickets 0790, 0797: the control's accessible name ------------------
+    # 0790's defect, as the author heard it: the switch was a <button> whose
+    # accessible name IS its action, so clicking it to turn indexing ON flipped
+    # the label to "Turn indexing off" in the same instant and a listener
+    # concluded the opposite of what happened. Its `aria-label` workaround went
+    # with the button (0797): a checkbox's `checked` carries the state natively
+    # and its label never inverts, so there is no name to override.
+    #
+    # What replaces that mutant is the property the workaround was standing in
+    # for. Dropped, the box stops reporting its state to the platform at all --
+    # the sentence beside it is still right, and a reader following the control
+    # hears nothing that has changed, which is 0790's own defect in the widget
+    # that was supposed to end it.
+    ("M77 the checkbox stops reporting its state, so the platform and the"
+     " sentence beside it disagree about whether indexing is paused",
+     "  if (box.checked !== control.checked) box.checked = control.checked;\n",
+     ""),
+    # The other half of ticket 0797's table, and the row membership cannot
+    # decide: the box must be inert exactly where the user's choice cannot change
+    # the outcome. Dropped, boot wait and a running sync both offer a control
+    # that does nothing.
+    ("M77a the box stays operable in the states where the choice changes nothing",
+     "  if (box.disabled !== !control.interactive) box.disabled = !control.interactive;\n",
      ""),
     # ---- ticket 0795: the sync pause ---------------------------------------
     # WHAT IS NOT MUTATED HERE, and it is the whole point of the ticket: the

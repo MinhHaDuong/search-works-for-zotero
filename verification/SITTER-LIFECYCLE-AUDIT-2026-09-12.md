@@ -4,6 +4,22 @@
 Zotero. Payload audited: `plugins/sdt-sitter/` at `cef3797` (manifest version
 0.3.43).*
 
+> **Amended 2026-09-16, ticket 0797 — F1 and one residue row are obsolete.**
+> This is a dated reading of a pinned revision and its findings are left
+> standing as written. What has since changed: the author's ruling of
+> 2026-09-15 removed the launch question and the preference that held its
+> answer. There is no indexing consent to survive a removal, so **F1 no longer
+> describes the shipped plugin**; the sitter arms unconditionally on every
+> activation, a checkbox pauses it for that session alone, and R22's durable
+> clause is answered by Zotero's own add-on disable. F1's repair is therefore
+> not owed and must not be implemented from this document. In the residue
+> inventory below, the `extensions.sdt-pack-sitter.enabled` row is likewise
+> retired: the plugin now CLEARS that preference on startup, so an upgraded
+> profile keeps no dead boolean. Every other finding in this audit stands.
+> See `verification/SDT-SITTER-LAUNCH.md` and SPEC.md's R22 sitter passage for
+> the current design; line numbers throughout this file are those of `cef3797`
+> and have all moved.
+
 ## What this settles, and what it only proposes
 
 Three evidence classes, kept apart on purpose, because this repository has

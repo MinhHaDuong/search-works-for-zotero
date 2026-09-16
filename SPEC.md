@@ -2243,41 +2243,47 @@ paused asks). It survives restart by construction, and survives *sideline*
 by being carried into the fresh file. R1-versus-R22 resolves in the user's
 favor, disclosed: "paused since <date>".
 
-For a native SDT pack sitter, R22's one obvious way is the sitter's own
-persisted on/off switch, carried in its window above every reading. A
-preference records the user's answer; the question is asked once per profile,
-on the first activation that finds it unanswered, and never again, so the
-answer holds across a restart and across a disable and re-enable. Off schedules
-no sweep and runs no census, and admits nothing; on is the sitter's ordinary
-behaviour. The switch is a user preference, not an active-job or failure
-ledger. Its "off" is a state the sitter runs in, with its toolbar entry and its
-window still present and saying so, rather than the silence a removed UI
+For a native SDT pack sitter, R22's two clauses are answered by two controls,
+one of which the plugin does not build. The **pause** clause is the sitter's own
+checkbox, labelled "Pause indexing", carried in its window above every reading:
+one click, in the window the user already has open. The **durable** clause is
+Zotero's own plugin disable control, which holds across restarts by
+construction. Re-implementing a durable stop beside it was the plugin storing
+state the host already stores.
+
+Nothing about the pause is remembered. The box is checked and non-interactive
+while indexing cannot be launched at all — while Zotero is still starting, and
+while a sync is in progress — and the line beside it says which of the two
+holds. The moment indexing can be launched it starts, unasked; checking the box
+pauses for that session only, and the next Zotero start indexes again. No
+preference records the choice, no question is asked on first activation, and the
+plugin holds no consent record for a removal to withdraw. Paused schedules no
+sweep, runs no census, and admits nothing; unpaused is the sitter's ordinary
+behaviour. Its "paused" is a state the sitter runs in, with its toolbar entry and
+its window still present and saying so, rather than the silence a removed UI
 leaves. The phases the sitter gates itself on are worded as waiting, never as
-pausing, so on and off name only the user's own switch.
+pausing, so "pause" names only the user's own box.
+
+This REVERSES the design of ticket 0742, which collapsed the launch prompt and
+the pause into one persisted switch and rejected add-on disable for the durable
+role. 0742's two objections to disable are still true and no longer decide the
+question: it lives four clicks away in Tools → Add-ons, and it removes the very
+window that would have shown the sitter stopped. Both were fatal while disable
+was the ONLY durable stop and the routine need — quiet it, now — had to travel
+through it. With a one-click pause in the window, reaching for the durable stop
+becomes a rare, deliberate act; a rare deliberate act may cost four clicks, and
+taking the window with it is the correct behaviour for someone who meant to stop
+indexing for good.
 
 Zotero's plugin disable control keeps its graceful host-level semantics and is
-no longer R22's control for the sitter. Disabling stops further admissions and
-removes the sitter's UI and callbacks. Turning the switch off stops further
-admissions and keeps them. Under either, the attachment already handed to
-Zotero may finish and persist its native pack; neither cancels that work or
-authorizes a queued library-wide drain. This graceful stop does not relax the
-separate obligation to avoid interfering with native work.
-
-Removing the add-on withdraws the consent it was given, and only that (ruled
-2026-09-12, and refined 2026-09-13 on the case the first ruling did not reach).
-Where the first-run question HAD been answered, removal leaves that switch OFF
-rather than unanswered: a profile that reinstalls starts in the state above —
-entry and window present, indexing stopped, reversible at one click — and is
-not asked the question a second time, because withdrawing the add-on does not
-re-open a question already answered.
-
-Where the question had NEVER been answered, removal leaves the preference
-unanswered, and such a profile IS asked on its next activation. A consent that
-was never given cannot be withdrawn, and recording an answer on the user's
-behalf would suppress the question permanently for someone who had simply not
-reached it. This is not an exception to the once-per-profile rule above but an
-instance of it: that rule turns on finding the preference unanswered, not on
-the add-on being newly installed.
+R22's control for the durable clause. Disabling stops further admissions and
+removes the sitter's UI and callbacks. Checking the box stops further admissions
+and keeps them. Under either, the attachment already handed to Zotero may finish
+and persist its native pack; neither cancels that work or authorizes a queued
+library-wide drain. A submitted extraction cannot be ended from the sitter's side
+at all, so the line beside a checked box states that and promises no stop the
+plugin cannot perform. This graceful stop does not relax the separate obligation
+to avoid interfering with native work.
 
 The add-on declares the host versions it runs in, and the declaration is a
 ceiling as well as a floor. A host outside that range leaves the add-on
@@ -2288,12 +2294,13 @@ not produce is a disappearance — the add-on removing itself, file and record,
 the way it was seen to on 2026-09-06 — and the manifest surface that decides
 between those two outcomes is open at the time of writing.
 
-The first-run question states what it asks and no more. It carries labelled
-buttons naming the two answers, promises no end time the loop does not have,
-claims no scope the census does not cover, and is asked before the sitter is
-armed and before its toolbar entry is installed. What the sitter does not
-control, and what turning it off does and does not do, are readable in the
-window's disclosure layer at any time rather than only in that dialog.
+There is no first-run question. Ticket 0742's launch modal asked once per
+profile and wrote the answer to a preference; both are removed with that
+preference (ticket 0797), because a prompt whose only job is to record a choice
+nothing reads has nothing to ask. What the sitter does not control, and what
+pausing it does and does not do, are readable in the window's disclosure layer
+at any time — which is where two of that modal's four paragraphs already lived,
+and is why they survive it.
 
 For experimental overnight operation without competing native work, admission
 requires at least 4 GiB available RAM and 8 GiB free on the native pack's
@@ -2546,9 +2553,13 @@ out regardless. The ring takes every level whatever the preference says.
 
 **Every location the sitter's durable state can occupy** (audit finding F2,
 ticket 0773), so a removal has a declared list to answer to rather than one a
-reader has to rediscover from the source. Two preferences:
-`extensions.sdt-pack-sitter.enabled`, the on/off switch above, and
-`extensions.sdt-pack-sitter.debug` just named. Two files, both under the
+reader has to rediscover from the source. ONE preference,
+`extensions.sdt-pack-sitter.debug`, just named. It used to be two: ticket 0797
+retired `extensions.sdt-pack-sitter.enabled` with the persisted answer it held,
+and the sitter clears it on startup so an upgraded profile keeps no dead
+boolean — a preference written by an earlier build and read by none would look
+like a control in the Config Editor while the window said nothing about it.
+Two files, both under the
 profile's data directory and neither in a plugin-owned subdirectory: the pack
 cache described above (`sdt-sitter-cache.jsonl`) and, on a quit that lands mid
 write, its `.jsonl.tmp` sibling. A fifth location is the death certificate
@@ -2567,9 +2578,11 @@ because the record and the warning are the two things only the live scope can
 ever make, and the switch cannot be turned on after the fact for either.
 Neither adds an egress path: the message points at the existing copy-the-log
 control, and nothing here is sent anywhere. Removing the add-on removes the cache file,
-its `.tmp` sibling if a quit left one, and clears the debug preference; the
-switch is left `false` rather than removed, per its own disposition above, and
-the certificate is the one file a clean uninstall does not take, since it is
+its `.tmp` sibling if a quit left one, and clears the debug preference. Nothing
+is left behind for a reinstall to inherit: since ticket 0797 the sitter holds no
+answer of its own, so a removal has no consent to withdraw and writes no
+preference on the way out. The certificate is the one file a clean uninstall
+does not take, since it is
 the operator's own request made before the event and the only durable record a
 removal will ever leave. Every removal here is best-effort: an unwritable or
 already-gone target is not a teardown failure, and there is no next session to

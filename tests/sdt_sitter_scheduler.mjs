@@ -21,6 +21,13 @@ const bootstrapSource = fs.readFileSync('plugins/sdt-sitter/bootstrap.js', 'utf8
 // would be exercised against a binding the runtime has and the test does not.
 ui.SDT_STATUS_CLASSES = context.SDT_STATUS_CLASSES;
 vm.runInNewContext(bootstrapSource, ui);
+/* Ticket 0797's boot-wait flag. bootstrap.js declares it `true`, and
+   `initialize()` -- which this suite never runs -- is what clears it where it
+   sets `alive`. Every arm below sets `ui.alive` by hand for the same reason, so
+   this is the same stand-in: the scenarios here are about a plugin that has
+   started, and a rendering suite left booting would early-return out of every
+   assertion it makes. */
+ui.booting = false;
 // Ticket 0692: every string below now comes from `locale/fr/sdt-pack-sitter.ftl`
 // rather than from a literal in bootstrap.js, so the French assertions in this
 // file are assertions about the French translation AND about the plugin's own
