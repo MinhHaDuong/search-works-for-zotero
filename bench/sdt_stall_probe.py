@@ -24,11 +24,23 @@ is deliberate that they are two:
        and say whether the process is spinning or idle.
 
     3. `stall_verdict()` is the only place the two meet, and it is the only
-       place a cause is named. With a plateau and a busy worker thread it
-       says slow-tail; with a plateau and a flat one it says wedged; with a
-       plateau and no CPU sample at all it says UNDETERMINED and refuses to
-       guess. `rules/workflow.md` § Diagnosis discipline is the rule: report
-       the observation, hold the cause until it is isolated.
+       place a cause is named. `rules/workflow.md` § Diagnosis discipline is
+       the rule: report the observation, hold the cause until it is isolated.
+
+       SLOW-TAIL when the worker thread holds >= SLOW_CPU_PCT of a core over
+       the sampling window. Otherwise WEDGED requires all of: the whole
+       process under SLOW_CPU_PCT averaged over the window (thread
+       identification is a heuristic and a rotation defeats it); under
+       IO_FLOOR_BYTES read, counting BOTH `read_bytes` (block layer) and
+       `rchar` (syscall layer, the one that moves on already-cached pages);
+       and those counters readable at all. Anything else, including no CPU
+       sample, is UNDETERMINED with the reason in the record.
+
+       The guards read the WINDOW AVERAGE, not the peak: over 480 five-second
+       intervals of a live desktop application one unrelated burst is a
+       near-certainty, and a peak-based veto would make `wedged` nearly
+       unobservable. The peaks and the count of busy intervals are recorded
+       and named in a wedged verdict rather than deciding it.
 
 WHY THE PREDICATE IS TESTED IN BOTH DIRECTIONS. The preserved trace
 (`verification/incidents/0793-2026-09-15-ar6-stall.json`) carries a healthy arm
@@ -94,11 +106,23 @@ DEFAULT_MIN_QUIET_BEATS = 2
 WEDGE_CPU_PCT = 2.0
 SLOW_CPU_PCT = 10.0
 
-#: Bytes read from disk, over the whole sampling window, above which the
-#: process is doing I/O-bound work and a flat CPU reading says nothing. One
-#: megabyte: a genuinely wedged process reads nothing at all, and a worker
-#: pulling pages out of a 242 MB PDF clears this in a second. Below it, ordinary
-#: background noise (a profile write, a log flush) must not veto a wedge.
+#: Bytes read, over the whole sampling window, above which the process is doing
+#: I/O-bound work and a flat CPU reading says nothing. Counted on both layers:
+#: `read_bytes` (block) and `rchar` (syscall), whichever is larger, because a
+#: worker pulling ALREADY-CACHED pages moves only the second. One megabyte: a
+#: genuinely wedged process reads nothing at all, and a worker pulling pages out
+#: of a 242 MB PDF clears this in a second.
+#:
+#: UNSETTLED, and the AR6 run is what settles it. `rchar` is process-wide and
+#: the recipe samples for 2 400 s. An idle Python interpreter accrued 52 517
+#: bytes of `rchar` in 3 s from startup alone -- about 5 % of this floor -- so
+#: over forty minutes a live desktop application's ambient housekeeping may
+#: clear it whatever the worker is doing, and `wedged` would become
+#: unreachable. It fails toward `undetermined`, the tolerated direction, so it
+#: is disclosed rather than pre-emptively tuned on no data. The record carries
+#: the WORKER THREAD's own I/O beside the process-wide figure precisely so that
+#: one run answers this: if the process cleared the floor while the worker
+#: thread read nothing, the floor wants to be thread-scoped.
 IO_FLOOR_BYTES = 1_000_000
 
 
@@ -508,6 +532,13 @@ def worker_cpu(summary: dict, *, comm_hint: str | None = None) -> dict | None:
         "intervalsAboveSlow": summary.get("intervalsAboveSlow"),
         "readBytes": overall.get("readBytes"),
         "rcharBytes": overall.get("rcharBytes"),
+        # The same two counters scoped to the identified worker thread. They do
+        # NOT decide anything today -- the veto is process-wide, deliberately
+        # conservative -- but they are what tells the author, from one AR6 run,
+        # whether the process-wide floor is reachable at all over 2 400 s. See
+        # IO_FLOOR_BYTES.
+        "workerReadBytes": top.get("readBytes"),
+        "workerRcharBytes": top.get("rcharBytes"),
         "threadsExitedInWindow": summary.get("threadsExitedInWindow"),
         "tid": top["tid"],
         "comm": top["comm"],
@@ -620,7 +651,12 @@ def stall_verdict(plateau: dict, cpu: dict | None, *,
                        f"(block layer {read_bytes}, syscall layer {rchar_bytes}, "
                        f"floor {io_floor_bytes}). The process is doing I/O-bound "
                        "work, which looks exactly like a wedge on the CPU "
-                       "channel alone."}
+                       "channel alone. This figure is PROCESS-WIDE; the worker "
+                       f"thread's own share was {cpu.get('workerReadBytes')} "
+                       f"block / {cpu.get('workerRcharBytes')} syscall bytes. If "
+                       "the process cleared the floor while the worker thread "
+                       "read nothing, the floor wants to be thread-scoped "
+                       "(see IO_FLOOR_BYTES)."}
 
     if worker <= wedge_cpu_pct:
         return {**base, "verdict": "wedged",

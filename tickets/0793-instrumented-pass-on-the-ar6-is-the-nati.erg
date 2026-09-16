@@ -11,6 +11,7 @@ Author: haduong
 2026-09-15T22:04Z claude note Instrument built and both control arms asserted: bench/sdt_stall_probe.py, tests/test_sdt_stall_probe.py. Verdict on the preserved trace is undetermined (plateau confirmed, no CPU sample); the AR6 run is still owed and only the author can make it.
 2026-09-15T23:03Z claude note Review round 1 found three blockers in the probe: a thread rotation could report workerPercent 0 on a saturated process (confident false wedge), I/O-bound work was stripped before the verdict saw it, and no test stood on any threshold's exact value. All three fixed; six mutants now caught.
 2026-09-15T23:47Z claude note Review round 2: the I/O veto read only /proc io read_bytes, so a worker pulling already-cached pages still returned wedged at 7.9 MB of real reads. Both read_bytes and rchar are read now. The peak-based contradiction guard from round 1 is reverted to the window average: over 480 intervals a peak veto makes wedged nearly unobservable. Eleven mutants caught.
+2026-09-16T00:36Z claude note Review round 3: no blockers. Docstring reaches --help verbatim and stated the superseded rule; fixed. The rchar floor is process-wide over a 2400 s window and ambient housekeeping may clear it, so the worker thread's own I/O now travels in the record and this run settles whether the floor should be thread-scoped.
 --- body ---
 ## Context
 
@@ -112,7 +113,19 @@ working; (3) those counters must have been **readable at all** — where
 `/proc/<pid>/io` is unavailable the probe refuses a wedge rather than granting
 one on a channel nobody consulted.
 
-One known limit, stated so it is not discovered from the run: the verdict is
+**A second limit, and this run is what settles it.** Reading (2) is
+*process-wide* and the recipe samples for 2 400 s. An idle Python interpreter
+accrued 52 517 bytes of `rchar` in 3 s from startup alone — about 5 % of the
+1 MB floor — so over forty minutes a live Zotero's ambient housekeeping may
+clear that floor whatever the worker is doing, which would make `wedged`
+unreachable. It has not been tuned on no data, because it fails toward
+`undetermined` rather than toward a false verdict. The record carries the
+**worker thread's own** `read_bytes` and `rchar` beside the process-wide
+figures precisely so one run answers it: if the process cleared the floor while
+the worker thread read nothing, the floor should be thread-scoped, and that is
+a one-line change once there is a measurement behind it.
+
+One further known limit, stated so it is not discovered from the run: the verdict is
 decided on the **window average**, not on peaks, because over 480 five-second
 intervals of a live desktop application one unrelated CPU burst is a
 near-certainty and a peak-based veto would make `wedged` almost unreachable.

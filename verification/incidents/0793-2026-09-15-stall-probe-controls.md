@@ -49,6 +49,18 @@ counterexamples rather than as arguments. Each downgrades to `undetermined`:
    consulted, which is the all-clear-versus-could-not-look failure this
    repository keeps meeting. It is refused.
 
+### One thing the AR6 run settles about guard 2 itself
+
+`rchar` is process-wide and the recipe samples for 2 400 s. An idle Python
+interpreter accrued 52 517 bytes of `rchar` in 3 s from startup alone — about
+5 % of the 1 MB floor — so over forty minutes a live Zotero's ambient
+housekeeping may clear the floor whatever the worker is doing, and `wedged`
+would become unreachable. Not tuned on no data: it fails toward `undetermined`,
+the tolerated direction. The record carries the **worker thread's own**
+`read_bytes` and `rchar` beside the process-wide figures, and a `wedged`-vetoing
+verdict names both, so one run answers it. If the process cleared the floor
+while the worker thread read nothing, the floor should be thread-scoped.
+
 ### Why the guards read the window average and not the peak
 
 Round 1 asked for the peak as well, and round 2 measured what that costs: over

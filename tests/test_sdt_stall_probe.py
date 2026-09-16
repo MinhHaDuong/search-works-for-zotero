@@ -44,6 +44,7 @@ from sdt_stall_probe import (  # noqa: E402
     snapshot,
     stall_verdict,
     summarize_cpu,
+    worker_cpu,
 )
 
 INCIDENT = REPO / "verification/incidents/0793-2026-09-15-ar6-stall.json"
@@ -470,6 +471,42 @@ def test_a_thread_that_exited_inside_the_window_is_counted():
 def test_sampler_refuses_a_pid_that_is_not_there():
     with pytest.raises(ProbeError):
         snapshot(2 ** 22 + 7)
+
+
+def test_the_worker_threads_own_io_reaches_the_verdict():
+    """It decides nothing today; the AR6 run is what it is there to settle.
+
+    The process-wide veto may be unreachable over a 2 400 s window if ambient
+    housekeeping clears the floor by itself (see IO_FLOOR_BYTES). Carrying the
+    worker thread's own share is what lets ONE run answer that, instead of
+    tuning the floor now on no data — and it must actually reach a reader, or
+    it is another field computed and never read.
+    """
+    summary = {
+        "intervals": 2, "maxProcessPercent": 1.0, "maxTopThreadPercent": 0.2,
+        "intervalsAboveSlow": 0, "threadsExitedInWindow": 0,
+        "overall": {"processPercent": 1.0, "readBytes": 2_000_000,
+                    "rcharBytes": 2_000_000},
+        "overallTopThread": {"tid": 7, "comm": "DOM Worker", "percent": 0.2,
+                             "readBytes": 0, "rcharBytes": 0},
+    }
+    reading = worker_cpu(summary)
+    assert reading["workerReadBytes"] == 0
+    assert reading["workerRcharBytes"] == 0
+    verdict = stall_verdict(analyse_heartbeats(records()), reading)
+    assert verdict["verdict"] == "undetermined"
+    assert "PROCESS-WIDE" in verdict["why"]
+    assert "thread-scoped" in verdict["why"]
+
+
+def test_the_help_text_states_the_rule_the_code_implements():
+    """`--help` prints the module docstring verbatim (description=__doc__)."""
+    import sdt_stall_probe
+
+    doc = sdt_stall_probe.__doc__
+    assert "WINDOW AVERAGE, not the peak" in doc
+    assert "rchar" in doc and "already-cached" in doc
+    assert "IO_FLOOR_BYTES" in doc
 
 
 @pytest.mark.integration
