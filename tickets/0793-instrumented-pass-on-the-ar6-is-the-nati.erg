@@ -35,7 +35,7 @@ same window.
 
 The sitter does not extract. It calls `Zotero.SDT.ensure(id, {isPriority:false,
 onProgress})` (`plugins/sdt-sitter/bootstrap.js:3433`) and the number it reports
-is the native worker's own. `scheduler.js:301-312` documents that once handed to
+is the native worker's own. `scheduler.js:357-368` documents that once handed to
 the native worker the call cannot be told to stop — which is why the switch had
 to be thrown twice.
 
@@ -43,7 +43,7 @@ to be thrown twice.
 remaining ~10 % (≈ 395 pages) should have taken ~25 s, not ≥ 173 s. Is the
 native worker still advancing — coarse progress granularity, or a genuinely slow
 tail — or is it wedged? Both answers are actionable and they point at different
-fixes. Neither is established, and `scheduler.js:320-325` already warns that
+fixes. Neither is established, and `scheduler.js:376-381` already warns that
 from the sitter's side "a worker that ran out of memory and a photograph that
 holds no text are indistinguishable".
 
@@ -152,9 +152,9 @@ one as sufficient. The wedge control that Johnson cannot be is filed as ticket
   (The line number moved; re-derive by symbol, not by the number written here.)
 - `plugins/sdt-sitter/bootstrap.js:633-646` — `heartbeatTick()`, which computes
   the `elapsedMS` and `sinceProgressMS` the predicate reads.
-- `plugins/sdt-sitter/scheduler.js:276-330` — admit, progress tick, heartbeat,
-  and the comments on uninterruptibility (301-312) and on indistinguishable
-  failures (320-325).
+- `plugins/sdt-sitter/scheduler.js:332-386` — admit, progress tick, heartbeat,
+  and the comments on uninterruptibility (357-368) and on indistinguishable
+  failures (376-381).
 - `plugins/sdt-sitter/DESIGN-NOTES.md`, open question 4 — the same question in
   the project's own ledger; updated by this ticket's work.
 - `bench/sdt_stall_probe.py` — the instrument built for this ticket.
@@ -257,7 +257,7 @@ testing would have found.
   independent reasons:
 
   1. **A duration bound on `host.ensure()` is not implementable from the sitter
-     side.** `scheduler.js:301-312` states it in its own comment — there are no
+     side.** `scheduler.js:357-368` states it in its own comment — there are no
      `enabled` checks from admission to a document's own settlement, and "the
      worker cannot be told to stop". A timer that fires while the call is
      outstanding can change what the sitter *reports*; it cannot stop the work,

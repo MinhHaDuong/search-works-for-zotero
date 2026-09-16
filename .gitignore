@@ -33,13 +33,6 @@ __pycache__/
 !.claude/settings.json
 !.claude/hooks/
 
-# Review-panel scratch. `/review-pr` writes each perspective's report to
-# `.panel/<pr>/` in whatever worktree it runs in, and the durable copy of a
-# review is the one posted on the forge. Untracked and unignored, it sat one
-# `git add -A` away from landing in a sibling's commit — which is how it was
-# found (PR #591, 2026-09-15).
-.panel/
-
 # Credential selection for the review seats. Names a variable, holds no secret —
 # gitignored anyway, because a .env at a repo root must never become committable
 # by someone later putting a value in it.
