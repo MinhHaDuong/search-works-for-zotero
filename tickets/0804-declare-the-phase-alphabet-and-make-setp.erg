@@ -1,0 +1,84 @@
+%erg 0.1
+Title: Declare the phase alphabet and make setPhase total
+Created: 2026-09-16
+Author: MinhHaDuong
+Blocked-by: 0803
+
+--- log ---
+2026-09-16T07:53Z MinhHaDuong created
+
+--- body ---
+
+## Context
+
+Second child of tracker 0801. Starts only once 0803's model has been read and
+accepted, because it implements that model.
+
+## What to build
+
+**One declaration.** Each outer state, inner state and reason carries its axis,
+cadence class, label id (or the deliberate `null` that `ready` and `waiting`
+hold), terminality, and for reasons its presentation class.
+`SDT_PHASE_LABELS` and `SDT_BLOCKED_PHASES` become **projections** of it rather
+than parallel hand-maintained lists — which is what makes the
+`native-worker-busy` misfiling impossible instead of merely absent.
+
+**A total `setPhase`.** Every assignment goes through it; a value outside the
+alphabet is refused and the attempt emitted as a defect record, so "the host
+said a word we do not know" is an observable event rather than a silent state.
+That range check at the point of assignment is the whole reason the funnel is
+worth building.
+
+**Transitions requested everywhere, applied at once, checked at the centre** —
+decided in 0801 with its reasoning; do not re-litigate it into a tick.
+
+## Relevant files
+
+Cite by symbol; the line numbers moved three times in twelve hours.
+`scheduler.js` (ten assignment sites in `pump()` and the sweep's error path),
+`bootstrap.js` (`SDT_PHASE_LABELS`, `SDT_BLOCKED_PHASES`, `blocked()`,
+`nextSweepDelayMS`, `describeSDTSwitchLine`, `describeSDTSwitchKind`,
+`getSDTCoverage`, `toggleSDTSwitch`, `disarmSDTSitter`).
+
+## The traps, all named in 0801 and none optional
+
+- `tests/sdt_sitter_scheduler.mjs` discovers phases **by regex over source**
+  with a `phases.size >= 12` floor. A funnel silently empties two of its three
+  extractors, and the floor is the only thing that would turn that into a
+  failure — re-verify it with a positive control before trusting it. Ticket
+  0802 is the narrow repair of that same scrape; if this lands first, close
+  0802 as superseded.
+- `verification/probes/sdt_sitter_scheduler_mutants.py` anchors on exact
+  assignment text. Establish whether an unmatched anchor fails or passes
+  vacuously — if it passes vacuously that is a finding of its own.
+- `tests/test_sdt_sitter.py` parses the `SDT_PHASE_LABELS` literal as JSON, so
+  a table keyed by axis breaks the parser.
+- `ready` and `waiting` stay distinct: `getSDTCoverage` computes `known` from
+  `phase !== 'ready'`.
+
+## Test
+
+Property tests the declaration makes possible and that cannot be written today:
+for **every** entry, the label resolves, the cadence class is defined, the axis
+is declared. Both derived tables equal their projection — the assertion that
+would have caught `native-worker-busy`. `setPhase` refuses an unknown value and
+emits the record; the control feeds it a plausible-looking unknown reason and
+asserts the record, not merely that nothing crashed.
+
+## Verification
+
+- [ ] The projection assertions fail before the change
+- [ ] The regex floor re-verified with a positive control
+- [ ] The mutant anchors shown to fail, not pass vacuously, when unmatched
+- [ ] `make check`, `make sitter-mutants` green
+
+## Invariants
+
+- No behaviour change: this is an audit surface, not a policy change.
+- 0796's drain budget, 0795's phase and 0797's table keep working unchanged.
+
+## Exit criteria
+
+The alphabet is declared in one place, both derived tables are projections of
+it, and every assignment passes a check that refuses an unknown value and
+reports it.

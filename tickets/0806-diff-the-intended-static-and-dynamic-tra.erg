@@ -1,0 +1,72 @@
+%erg 0.1
+Title: Diff the intended, static and dynamic transition graphs
+Created: 2026-09-16
+Author: MinhHaDuong
+Blocked-by: 0804
+
+--- log ---
+2026-09-16T07:53Z MinhHaDuong created
+
+--- body ---
+
+## Context
+
+Fourth child of tracker 0801, and the reason the funnel of 0804 is worth
+building at all. Its first claimed dividend, `phaseSince`, did not survive
+review — it lies on the abort path, where `phase` is deliberately left stale at
+`extracting`, and it duplicates what the journal already records every sixty
+seconds. **This one survives**: a single passage point is the only place a
+dynamic graph can be obtained without rewriting the code under instrumentation.
+
+The author asked not merely which cells of the axis product are reachable, but
+**what the transition graph should be, and what it is according to the code.**
+
+## The three graphs
+
+1. **Intended** — declared by hand with each edge's condition. A specification.
+2. **Static** — extracted from the code: which `setPhase(to)` calls exist and
+   from which predecessors they are reachable. What the code *can* express.
+3. **Dynamic** — observed: instrument `setPhase`, run the full suite, record
+   every `(from, to)` actually taken. What the code *does*, where tests reach.
+
+## The three differences, each ruled on rather than listed
+
+- **In the code, absent from the spec** — undocumented behaviour. Fix it or
+  write it down. Never leave it.
+- **In the spec, absent from the code** — unimplemented, or dead specification.
+- **Static but never dynamic** — untested **or** unreachable, and the ticket
+  must say **which**. A zero of observation cannot tell those apart; this is
+  the repository's own positive-control rule applied to a graph, and it is the
+  difference that will be tempting to list and skip.
+
+## The artifact
+
+The graph ships **checked in and compared by a test**, not as prose. A drift
+then reddens instead of rotting, which is what line-number citations
+demonstrated three times on 2026-09-15. It is generated, so on a conflict it is
+regenerated rather than hand-merged.
+
+## Test
+
+The comparison test itself, plus its own control: perturb one edge in the
+checked-in artifact and confirm the test fails. A comparison nobody has seen
+fail is not a comparison.
+
+## Verification
+
+- [ ] The three graphs exist, and each difference class has a written ruling
+- [ ] Every "static but never dynamic" edge is classified untested or
+      unreachable, individually
+- [ ] The artifact comparison seen to fail on a perturbed edge
+- [ ] `make check` green
+
+## Invariants
+
+- The dynamic extraction adds no cost to a shipped run — instrumentation is
+  test-only.
+- No behaviour change.
+
+## Exit criteria
+
+Three graphs exist, their differences are ruled on rather than enumerated, and
+the artifact is gated by a test that has been seen to fail.

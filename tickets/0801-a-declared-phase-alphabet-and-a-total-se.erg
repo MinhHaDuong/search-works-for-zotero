@@ -1,0 +1,393 @@
+%erg 0.1
+Title: A declared phase alphabet and a total setPhase, with transition conditions
+Created: 2026-09-16
+Author: MinhHaDuong
+
+--- log ---
+2026-09-16T00:00Z MinhHaDuong created
+
+2026-09-16T05:59Z Decided the tick-versus-everywhere question in the body rather than leaving it to the implementer, on the author's ruling of this date. Transitions are requested everywhere, applied at once, and checked at the centre. The reasoning is that a tick-only model requires the state to be observable and half of this state is positional -- extracting is true because we called ensure(), census because control is inside that loop, and nothing outside the control flow can rediscover where the program is. Deferring also breaks on the fact that the assignment currently carries control flow: state.phase = admissionReason followed by publish() and break is one gesture, so a deferred application leaves the decision to leave the loop still to be taken on the spot, which is a second mechanism doing the first one's job. And what a tick would buy -- one place where a transition happens, hence one place where the relation is checked -- is exactly what the total setPhase already buys, without latency, without flapping, and without requiring the world to be re-observable. The one honest reservation is recorded with it: the reason axis IS observable and nothing re-examines low-disk until the next sweep, but that tick already exists as the sweep and a second cadence would cost the periodic-cost-while-idle that 0795 and 0701 both forbid.
+2026-09-16T06:06Z TWO LEVELS, on the author's reading, and it reshapes this ticket rather than adding to it. Outer -- RUNNING, PAUSED, HELD, BLOCKED, ERROR, ENDING, VANISHED -- and inner -- census, draining, extracting, idle -- each closed. The decisive consequence: the open set stops being states. low-disk, cpu-busy, storage-unavailable and resources-unavailable become the reason carried by the single outer state BLOCKED, so the host's freely-invented vocabulary is a payload rather than an alphabet member, and the scheduler can be exhaustive over its own states without learning bootstrap.js's words. That dissolves the Fable review's objection to a transition graph at its root instead of by the argument this ticket first made against it. HELD and BLOCKED stay distinct on a criterion the author's own checkbox ruling already drew: BLOCKED is cannot, still trying and prevented, hence unchecked and interactive; HELD is could-but-should-not, withdrawn by decision, hence auto-checked and inert. Two findings verified in source rather than assumed: 'disabled' is a teardown transient only, since blocked() returns it when !alive and alive is cleared in shutdown(), so nothing sits in it; and removal ALREADY exists outside the alphabet as removalNoticed, set by checkSDTStillInstalled() and overriding every other reading at render. The strongest argument for the hierarchy is that it is description and not invention -- the code has been forced to grow the second level twice already, once as removalNoticed and once as switched-off occupying a phase slot while toggleSDTSwitch reads it as the switch's polarity. And the flat variable forces a choice between two simultaneously true facts: during a sync beginning mid-document the sitter is held outside and extracting inside, which is why a review warned that writing syncing while state.active is non-null would name a state the machine is not in, and which makes 0797's awkward 'checked, a document still in flight' row simply the combination HELD x extracting.
+2026-09-16T06:14Z Body rewritten on four author rulings, and one correction of mine that is recorded rather than quietly dropped. (1) The two levels are a PRODUCT of orthogonal axes, not a hierarchy, and the code proves it: extracting stays true under DEFERRED, so the inner value is not a child of RUNNING. DEFERRED x extracting, PAUSED x extracting and VANISHED x extracting are all meaningful, which is also what makes 0797's awkward 'checked, a document still in flight' row an ordinary cell rather than a special case. Do not unfold into twenty-four flat names. (2) DEFERRED carries a SET of reasons. Today blocked() returns one string, the first condition matched in its own evaluation order, so the displayed reason is arbitrary among the true ones and lifting the first manufactures a phantom transition to a reason that was true all along. Cost named: blocked() short-circuits today and the full set pays every procfs and storage read, tolerable once per admission and not at an arbitrary cadence. (3) MY CRITERION WAS WRONG and section 1d now says so at length so nobody restores it as a forgotten idea. Separating HELD from BLOCKED on cannot-versus-could-but-should-not does not work: cpu-busy, low-memory and low-disk are all could-but-should-not, only storage-unavailable is a true cannot, and resources-unavailable is could-not-measure. What actually separates them is not a state distinction at all but whether the condition reads to a user as an event with a beginning and an end -- so it becomes a declared presentation class on each reason, and 0797's checkbox reads that field instead of special-casing a phase by literal name. That wart disappears instead of being documented. (4) The exit criteria are now three graphs and their three differences, not 'transitions are declared': the intended graph by hand, the static graph extracted from the setPhase call sites, and the dynamic graph observed by instrumenting setPhase across the suite. An edge in code but not in spec is undocumented behaviour; in spec but not in code is unimplemented or dead; static but never dynamic is untested OR unreachable and the ticket must say WHICH, which is this project's positive-control rule applied to a graph. The graph ships as a checked-in artifact a test compares, so drift reddens instead of rotting the way the line-number citations did three times on 2026-09-15. Recorded with it: dynamic extraction is the funnel's real second dividend, where phaseSince was the first and did not survive review.
+2026-09-16T06:22Z Propagation to the plugin's design document added as an action of this ticket rather than a follow-up, on the author's question of whether such a document exists. It does: plugins/sdt-sitter/DESIGN-NOTES.md, 475 lines and six sections, holding the open-questions ledger. The telling part is what it lacks -- no section on the state model at all, so the one variable that produced three defects in a single night is the one thing the design document never described. The model therefore lands there in this ticket's own PR: the two axes and why they are a product and not a hierarchy, both alphabets, DEFERRED with its reason set and each reason's presentation class, and a POINTER to the checked-in graph artifact rather than a second copy of it. Explicitly NOT before the code: writing it ahead of the implementation would have the document describe a plugin that does not exist, which is the stale-artifact failure this repository keeps meeting, so it ships with the behaviour or not at all. Precedent and register are set by the two entries already made on 2026-09-15 and 16, the drain budget's paragraphs and open question 4's platform half, and question 6 should be re-read against this model rather than left as written. Also noted from /verify-gate round 1, which APPROVED this PR: rtk corrupts bare grep the way it already corrupts git and pytest -- zeroed counts, truncated lines, matches collapsed across files -- and redirecting does not help because the hook rewrites before the shell runs; the gate switched to Python for every source read, and its own first extraction read seven phase-table entries where there are fourteen because the pattern missed unquoted keys, which it caught only by dumping the raw table instead of trusting the count.
+2026-09-16T07:52Z DECOMPOSED into a tracker on the author's ruling of 2026-09-16, with two further rulings recorded in the body. (1) The blast radius is past the threshold -- ten-plus files including the test enumeration, the mutant anchors, the journal schema and an external console contract -- so this becomes a tracker and the work lands as children 0803 to 0806. It stays open until all four close and closes on the integration review, never on the bare event of the last child merging. (2) THE DESIGN DOC GOES FIRST, reversing what an earlier revision of this ticket said. His words: design doc en premier, c'est lui qu'on veut reviewer d'abord. The rule that produced the old sequencing -- do not let the document describe a plugin that does not exist -- is not abandoned but satisfied differently: 0803 writes the section as a design UNDER REVIEW, marked as such, so no reader mistakes it for shipped behaviour. The model is what he wants to argue with, and an implementation reviewed in its place would argue about the model through its consequences. (3) THE JOURNAL BREAKS AND MIGRATES rather than serialising both axes back into one wire string. Separate fields plus a reader mapping old records onto the new shape; the cheaper serialising option is rejected and must not return as a simplification. Child 0805 owns it, and its control is that the reader reproduces the two preserved 2026-09-15 incidents from their original JSON -- a migration that cannot reconstruct a known past reading is not a migration. Also recorded: 0802 is the narrow repair of the same source scrape 0804 removes, so if 0804 lands first, close 0802 as superseded rather than implementing it.
+--- body ---
+
+## Context
+
+Author, 2026-09-16, after a night in which the same defect surfaced three times
+in three disguises: "Je veux les états clairs, et les conditions de transition
+aussi."
+
+The framing he gave it is the right one — code proof, critical infrastructure,
+Ada and Rust. Judged by that standard `state.phase` fails on the first
+criterion: **its alphabet is not declared anywhere, and it is not closed.**
+Two assignment sites copy in, verbatim, whatever string `host.blocked()`
+returned. The scheduler names seven phases and then stores an open set of
+others it has never enumerated.
+
+Three consequences, all observed on 2026-09-15, all the same missing
+exhaustiveness check:
+
+- `SDT_PHASE_LABELS` carries fourteen entries, `SDT_BLOCKED_PHASES` five, and
+  they are maintained in parallel with nothing linking them. `native-worker-busy`
+  sits in the first and not the second — correct, as it happens, since it is a
+  wait and not a block, but nothing in the code says so and ticket 0797's body
+  filed it wrongly on exactly that reading.
+- Ticket 0797's state table has to special-case the sync phase **by literal
+  name**, because membership in `SDT_BLOCKED_PHASES` maps to a different row.
+- `tests/sdt_sitter_scheduler.mjs` discovers the phase set **by regular
+  expression over the source**, with a `phases.size >= 12` floor. Auditing by
+  scraping is what a codebase does when it has no declaration to read.
+
+## What this ticket builds
+
+### 1. One declaration, and everything derives from it
+
+A single frozen table — the alphabet — where each phase carries what is today
+spread across two tables and several `if` chains: its **axis** (activity,
+reason, intent, outcome), its **cadence class**, its **label id** (or the
+deliberate `null` that `ready` and `waiting` carry), and whether it is
+**terminal**.
+
+`SDT_PHASE_LABELS` and `SDT_BLOCKED_PHASES` stop being hand-maintained lists
+and become projections of it. That alone makes the `native-worker-busy` class
+of misfiling impossible rather than merely absent.
+
+### 1b. Two axes whose PRODUCT is the state, not a hierarchy
+
+Outer — **is work being admitted?** `RUNNING`, `PAUSED`, `DEFERRED`, `ERROR`,
+`ENDING`, `VANISHED`. Six.
+
+Inner — **what is in flight?** `census`, `draining`, `extracting`, `idle`. Four.
+
+**They are orthogonal, and the proof is in the code's own behaviour:
+`extracting` stays true under `DEFERRED`.** A sync beginning mid-document
+leaves the sitter deferred on the outside and extracting on the inside. If the
+inner value were a *child* of `RUNNING` it would be undefined there; it is not.
+So the full state is the product of two axes, each varying independently, and
+these combinations are all meaningful: `DEFERRED × extracting` (held, a
+document finishing), `PAUSED × extracting` (0797's "checked, a document still
+in flight" row), `VANISHED × extracting` (removed mid-document), `RUNNING ×
+idle`.
+
+**Do not unfold the product into a flat set.** Twenty-four names would lose the
+independence of the axes and make the alphabet larger rather than smaller,
+which is the error the code already makes in miniature.
+
+Not every cell is reachable — `ERROR × extracting` probably is not, `ENDING ×
+census` probably is. **Enumerating which cells exist is the transition work,
+not a preliminary to it.**
+
+### 1c. `DEFERRED` carries a SET of reasons, and the open set leaves the alphabet
+
+`low-disk`, `cpu-busy`, `low-memory`, `storage-unavailable` and
+`resources-unavailable` are not states. They are the reason carried by
+`DEFERRED`. The vocabulary the host may invent becomes a payload, so the
+scheduler is exhaustive over its own states without ever learning
+`bootstrap.js`'s words — which dissolves the decorrelated review's objection to
+a transition graph at the root rather than by argument.
+
+**Several can hold at once, and today the code cannot say so.** `blocked()`
+returns one string: the first condition that matched, in its own evaluation
+order. If the disk is low and the load is high and a sync is running, the
+reader sees whichever was tested first. That manufactures phantom transitions —
+when the first condition lifts, the phase appears to change to a reason that
+was true all along, and nothing actually moved. A reason *set* makes a real
+transition precise: the outer state changed, or the set changed.
+
+**The cost, named rather than discovered later:** `blocked()` short-circuits
+today, returning on the first refusal and so skipping the expensive procfs and
+storage reads. Computing the full set pays all of them every time. Tolerable
+once per admission; not at an arbitrary cadence.
+
+### 1d. A correction, recorded so it is not restored by someone who thinks it was forgotten
+
+An earlier revision of this ticket separated `HELD` from `BLOCKED` on the
+criterion *cannot* versus *could but should not*. **That criterion is wrong.**
+Checked reason by reason: `cpu-busy` is a load average above the core count —
+indexing is possible, it would merely slow the machine. `low-memory` and
+`low-disk` are the same shape. Only `storage-unavailable` is a true cannot, the
+attachment's directory being absent. And `resources-unavailable` is neither: it
+is "could not measure", which the code refuses out of prudence. So the
+criterion isolates one reason and files `cpu-busy` with sync — it does not
+separate the two.
+
+What actually separates them is **not a state distinction at all**: it is
+whether the condition is legible to the user as an event with a beginning and
+an end. A sync is visible in Zotero's own interface and resolves itself;
+`cpu-busy` is a sample that may clear in seconds and whose display flickers.
+
+So each reason declares a **presentation class**, and 0797's checkbox reads
+that field instead of special-casing a phase by literal name — which was the
+exact wart 0797 had to carry. The wart disappears rather than being documented.
+
+### 1e. The declaration's fields
+
+Each outer state, each inner state, and each reason carries: its **axis**, its
+**cadence class**, its **label id** (or the deliberate `null` that `ready` and
+`waiting` hold), its **terminality**, and for reasons its **presentation
+class**. `SDT_PHASE_LABELS` and `SDT_BLOCKED_PHASES` become projections rather
+than parallel hand-maintained lists — which is what makes the
+`native-worker-busy` class of misfiling impossible instead of merely absent.
+
+### 1f. The evidence that this is description, not invention
+
+The code has already been forced to grow the second axis twice, each time
+because a fact would not fit the flat variable: `removalNoticed`, a separate
+boolean that overrides the phase at render, and `switched-off`, which occupies a
+phase slot while `toggleSDTSwitch` reads it as the switch's polarity — control
+state wearing a phase's clothes.
+
+Two states verified in source rather than assumed. **`ENDING` is a teardown
+transient**: `blocked()` returns `'disabled'` when `!alive`, and `shutdown()`
+clears `alive`, so the value exists only between teardown starting and the pump
+noticing at its next gate — nothing sits in it. **`VANISHED` already exists
+outside the alphabet**, as `removalNoticed`, set by `checkSDTStillInstalled()`.
+
+**What it costs** is the one-way door named below: the journal's `phase` goes
+from one field to two plus a reason set, and every incident JSON under
+`verification/incidents/` is read against the old shape.
+
+### 2. A total `setPhase`
+
+Every assignment goes through one function, and that function is **total**: a
+value outside the alphabet is not written silently. It is refused, and the
+attempt is emitted as a defect record so that "the host said a word we do not
+know" becomes an observable event instead of a silent state. This is a range
+check at the point of assignment, in the Ada sense, and it is the whole reason
+the funnel is worth building — not `phaseSince`, which is a separate matter and
+is addressed below under what this ticket does NOT claim.
+
+### 3. The transition conditions, declared
+
+The author asked for these explicitly, and they are the part with the real
+design risk. A `from × to` relation, each edge carrying the condition that
+licenses it, checked by `setPhase` and enumerable by a test.
+
+The eleven assignment sites today, cited by symbol because the line numbers
+moved three times on 2026-09-15 alone — in `scheduler.js`'s `pump()` unless
+noted:
+
+| from | to | what licenses it |
+|---|---|---|
+| `switched-off` | `ready` | the loop re-entered after a `start()` |
+| any | `census` | a reconciliation is due |
+| `census` | `ready` | the census closed |
+| any | `draining` | the dirty set is non-empty at the drain |
+| any | `waiting` | no admissible candidate, and (since 0796) no backlog |
+| any | *a reason* | `host.blocked()` returned one at candidate gating |
+| any | *an admission reason* | `beforeSubmit` refused |
+| any | `extracting` | a document was admitted |
+| `extracting` | `waiting` | that document settled |
+| any | `error` | the sweep threw |
+| any | `switched-off` | `disarmSDTSitter` in `bootstrap.js` |
+
+Two of these rows are the whole problem in miniature: *a reason* and *an
+admission reason* are not states, they are a diagnosis written into the state
+variable, and they come from a vocabulary the scheduler does not own.
+
+## The objection this ticket must answer, because a decorrelated review raised it
+
+A Fable review of the wider re-architecture argued a transition graph is not
+writable here: the scheduler would have to learn `bootstrap.js`'s `blocked()`
+vocabulary, which is the layering the codebase keeps separate on purpose —
+`SDT_STATUS_CLASSES`'s own comment says its class is "deliberately NOT
+`blocked`" because `host.blocked()` answers a different question.
+
+The answer this ticket proposes, and which the implementer must defend or
+abandon rather than assume: with the alphabet declared in **one place both
+sides read**, the scheduler is not learning the host's words — the two are
+reading a shared declaration. That is a different arrangement from the one the
+review refuted. If, on contact with the code, it turns out the host must be
+free to invent reasons at runtime, then the honest outcome is a **partial**
+relation: edges declared for the closed part, an explicitly wildcarded edge for
+reasons, and the wildcard named as a gap rather than passed off as coverage.
+
+## Decided: requested everywhere, applied at once, checked at the centre
+
+The author asked whether transitions should happen only at a tick or be
+requested from everywhere. It is decided here rather than left open, because an
+implementer who meets the question cold will settle it the other way.
+
+**A tick-only model requires the state to be observable, and half of this state
+is not.** `extracting` is true because we called `ensure()`; `census` because
+control is inside that loop. Those are facts about where the program is, not
+about the world, and nothing outside the control flow can rediscover them. The
+positional phases must be requested from the site that knows the position,
+because no other site does.
+
+**The assignment also carries control flow today**, which is where a deferred
+model breaks. `state.phase = admissionReason; publish(); break;` is one gesture:
+the phase and the decision to leave the loop. Defer the application to a tick
+and the decision to leave must still be taken on the spot — two mechanisms
+where there was one, and the second is a new assignment by another name.
+
+**What a tick would buy is already bought.** Its real prize is one place where
+a transition actually happens, hence one place where the relation is checked.
+`setPhase` gives exactly that, without a tick's latency, without flapping, and
+without requiring the world to be re-observable. The defect was never that
+transitions happened at the wrong moment; it was that they were checked
+nowhere.
+
+So: **sites keep the initiative, because only they know; `setPhase` keeps the
+refusal, because only it knows the alphabet and the relation.**
+
+One honest reservation, and it is the only place the question bites. The reason
+axis IS observable, and while the sitter sits on `low-disk` nothing re-examines
+it until the next sweep — a tick would notice the disk freed. But that tick
+exists: it is the sweep, and `nextSweepDelayMS` schedules it for precisely this.
+A second cadence would cost the periodic-cost-while-idle that 0795's invariants
+and 0701 both forbid. If an implementer believes the sweep's cadence is too
+coarse for some reason, that is a change to `nextSweepDelayMS`, not a new
+clock.
+
+## What this ticket does NOT claim
+
+The same review demolished two payoffs that were originally attached to the
+funnel, and they are not resurrected here:
+
+- **`phaseSince` would lie in the case that matters.** The abort path
+  deliberately leaves `phase` stale at `extracting`, so an age computed at
+  assignment reports the age of a phase the machine has left. And the journal
+  already records `phase` with `elapsedMS` every sixty seconds — both incident
+  files of 2026-09-15 were reconstructed from exactly that. A `phaseSince`
+  field is a second copy of a fact the journal owns.
+- **No tick re-derivation.** Half the reason axis is per-candidate —
+  `storage-unavailable` and `low-disk` read the candidate's own directory — so
+  a tick with no candidate cannot compute it without guessing.
+
+### 4. Propagate the model to the design doc — FIRST, not last
+
+**Reversed by the author on 2026-09-16**: "design doc en premier, c'est lui
+qu'on veut reviewer d'abord." An earlier revision of this ticket said the model
+must not reach `DESIGN-NOTES.md` before the code, on the ground that the
+document would describe a plugin that does not exist. That rule is not
+abandoned, it is satisfied differently: the section is written as a **design
+under review**, marked as such, so no reader can mistake it for shipped
+behaviour. The model is what he wants to argue with; an implementation reviewed
+in its place would be arguing about the model through its consequences.
+
+This is child ticket 0803, and it gates the rest.
+
+## Relevant files
+
+- `plugins/sdt-sitter/scheduler.js` — the ten assignment sites in `pump()` and
+  the sweep's error path; cite by symbol.
+- `plugins/sdt-sitter/bootstrap.js` — `SDT_PHASE_LABELS`, `SDT_BLOCKED_PHASES`,
+  `blocked()`, `nextSweepDelayMS`, `describeSDTSwitchLine`,
+  `describeSDTSwitchKind`, `describeSDTTooltip`, `getSDTCoverage` (reads
+  `ready`), `toggleSDTSwitch` (reads `switched-off`), `disarmSDTSitter`.
+- `tests/sdt_sitter_scheduler.mjs` — **the regex phase discovery and its
+  `phases.size >= 12` floor.** A funnel silently empties two of its three
+  extractors; the floor is the only thing that would turn that into a failure,
+  and it must be re-verified with a positive control before it is trusted.
+- `verification/probes/sdt_sitter_scheduler_mutants.py` — mutants anchored on
+  the exact assignment text. Establish whether an unmatched anchor fails the
+  probe or passes vacuously; if it passes vacuously, that is a finding in its
+  own right.
+- `tests/test_sdt_sitter.py` — parses the `SDT_PHASE_LABELS` literal as JSON, so
+  a table keyed by axis breaks the parser.
+- `tests/sdt_sitter_bootstrap.mjs`, `tests/sdt_sitter_dialog.mjs` — fixtures
+  that set `phase` directly.
+
+## Two one-way doors
+
+- **The journal schema — RULED, 2026-09-16: break and migrate.** The author
+  chose separate fields plus a reader that maps old records onto the new shape,
+  over the cheaper alternative of serialising both axes back into one string on
+  the wire. The more honest structure and the more expensive one; the
+  serialising option is rejected and must not return as a simplification. Child
+  ticket 0805 owns it, and its control is that the reader reproduces the two
+  preserved 2026-09-15 incidents from their original JSON.
+- **`Zotero.SDTPackSitter.state`** is the console surface the author's own live
+  readings went through. Its shape is an external contract now.
+
+## Test
+
+Red first, and the alphabet makes property tests possible where only example
+tests existed:
+
+- For **every** phase in the declared table: its label id resolves, its cadence
+  class is defined, and its axis is one of the declared axes. Today this cannot
+  be written, because there is no table to iterate.
+- `SDT_BLOCKED_PHASES` and `SDT_PHASE_LABELS` each equal their projection of the
+  alphabet — which is the assertion that would have caught the
+  `native-worker-busy` misfiling.
+- `setPhase` refuses a value outside the alphabet and emits the defect record.
+  The control: feed it a plausible-looking unknown reason and assert the record,
+  not merely that nothing crashed.
+- One declared transition and one undeclared one, asserted in both directions.
+
+Every threshold or set boundary introduced gets an assertion on its exact value
+and one a unit off, and the mutant is **run**, not assumed.
+
+## Invariants
+
+- No behaviour change in what the sitter does. This is an audit surface, not a
+  policy change.
+- `ready` and `waiting` stay distinct: `getSDTCoverage` computes `known` from
+  `phase !== 'ready'`, and `ready` is deliberately silent to absorb the
+  per-document admission gap.
+- 0796's drain budget, 0795's phase and 0797's table keep working unchanged.
+- No new periodic cost while idle.
+
+## Decomposition — this ticket is a tracker
+
+Ruled 2026-09-16: the blast radius is past the threshold (ten-plus files
+including the test enumeration, the mutant anchors, the journal schema and an
+external console contract), so this becomes a tracker and the work lands as
+children. It stays open until all four are closed, and closes on the
+integration review, never on the bare event of the last child merging.
+
+- **0803** — write the model into `DESIGN-NOTES.md` for review. **First**, and
+  it gates the others. No code.
+- **0804** — declare the alphabet, make `setPhase` total. `Blocked-by: 0803`.
+- **0805** — the journal's three fields and the reader for old records.
+  `Blocked-by: 0804`. Goes through the one-way door above.
+- **0806** — the intended, static and dynamic graphs, and the ruling on each of
+  their three differences. `Blocked-by: 0804`. This is the funnel's surviving
+  dividend.
+
+Ticket **0802** (the phase enumeration counts a literal inside a comment) is
+the narrow repair of the same scrape 0804 removes: if 0804 lands first, close
+0802 as superseded rather than implementing it.
+
+## Exit criteria
+
+The alphabet is declared in one place; `SDT_PHASE_LABELS` and
+`SDT_BLOCKED_PHASES` are projections of it rather than parallel lists; every
+assignment passes a check that refuses an unknown value and reports it; and a
+test iterates the declaration rather than scraping the source for it.
+
+And the transition work is finished when **three graphs exist and every gap
+between them has been ruled on** — not when the transitions are "declared".
+
+1. **The intended graph**, declared by hand with its conditions. A
+   specification.
+2. **The static graph**, extracted from the code: which `setPhase(to)` calls
+   exist and from which predecessors they are reachable. What the code *can*
+   express.
+3. **The dynamic graph**, observed: instrument `setPhase`, run the full suite,
+   record every `(from → to)` actually taken. What the code *does*, wherever
+   the tests reach.
+
+The three differences each mean something different, and each must be ruled on
+rather than listed:
+
+- **In the code, absent from the spec** — undocumented behaviour. Fix it or
+  write it down; never leave it.
+- **In the spec, absent from the code** — unimplemented, or dead specification.
+- **Static but never dynamic** — untested *or* unreachable, and **the ticket
+  must say which**. A zero of observation cannot tell those apart, which is
+  this project's own positive-control rule applied to a graph.
+
+The graph ships as a **checked-in artifact compared by a test**, not as prose:
+a drift then reddens instead of rotting, which is the failure the line-number
+citations demonstrated three times on 2026-09-15. It is generated, so it is
+regenerated rather than hand-merged on a conflict.
+
+Note that the dynamic extraction is the funnel's real second dividend. The
+first one originally claimed, `phaseSince`, did not survive review; this one
+does, and a single passage point is the only place it can be obtained without
+rewriting the code under instrumentation.

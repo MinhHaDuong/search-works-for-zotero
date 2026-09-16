@@ -1,0 +1,73 @@
+%erg 0.1
+Title: Write the sitter phase model into DESIGN-NOTES for review
+Created: 2026-09-16
+Author: MinhHaDuong
+
+--- log ---
+2026-09-16T07:53Z MinhHaDuong created
+
+--- body ---
+
+## Context
+
+First child of tracker 0801, and **it runs before any code**, on the author's
+ruling of 2026-09-16: "design doc en premier, c'est lui qu'on veut reviewer
+d'abord." The model is the thing he wants to read and argue with; an
+implementation reviewed instead would be arguing about the model through its
+consequences.
+
+This reverses what 0801 said in an earlier revision ("not before the code"),
+and the reason that rule existed is handled by *how* this ticket writes, not by
+delaying it: the section is marked as a **design under review**, not as a
+description of shipped behaviour. A reader must never mistake it for the
+plugin's current state.
+
+## What to write
+
+Into `plugins/sdt-sitter/DESIGN-NOTES.md`, which has 475 lines, six sections,
+the open-questions ledger, and — tellingly — **no section on the state model at
+all**. The one variable that produced three defects in twelve hours is the one
+thing the design document never described.
+
+The content is settled and lives in tracker 0801; do not re-derive it:
+
+- Two axes whose **product** is the state, not a hierarchy. Outer: `RUNNING`,
+  `PAUSED`, `DEFERRED`, `ERROR`, `ENDING`, `VANISHED`. Inner: `census`,
+  `draining`, `extracting`, `idle`. The proof they are orthogonal is that
+  `extracting` stays true under `DEFERRED`.
+- `DEFERRED` carries a **set** of reasons, not one. Today `blocked()` returns
+  the first condition matched in its own evaluation order, so the displayed
+  reason is arbitrary among the true ones and lifting the first manufactures a
+  phantom transition.
+- Each reason declares a **presentation class**: legible to the user as an
+  event with a beginning and an end (a sync), or transient machine noise
+  (`cpu-busy`). That field is what 0797's checkbox reads, instead of
+  special-casing a phase by literal name.
+- Why the product is not unfolded into twenty-four flat names.
+- A **pointer** to the transition-graph artifact of 0806, never a copy of it.
+
+Re-read open question 6 against this model rather than leaving it as written —
+its partial answer was drafted before the axes were distinguished.
+
+## Test
+
+None; this is prose. The gate is the author's reading.
+
+## Verification
+
+- [ ] The section is unmistakably marked as a design under review, not as
+      shipped behaviour — a reader landing on it cold cannot conclude the
+      plugin works this way today
+- [ ] It points at 0806's artifact rather than duplicating it
+- [ ] Open question 6 re-read, and either amended or explicitly left
+- [ ] `make check` green
+
+## Invariants
+
+- No code changes. None.
+- The existing sections and the ledger keep their register.
+
+## Exit criteria
+
+The author has read the model as a document and either accepted it or said what
+to change, before 0804 starts.
