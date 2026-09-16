@@ -2315,6 +2315,22 @@ therefore schedules without regard to available memory or machine load, which is
 a disclosed limitation of an untested platform rather than a claim that it has
 been made safe there.
 
+Admission is also refused while Zotero is synchronising files, and this refusal
+reads the host application rather than the machine. During a bulk file sync
+every attachment not yet downloaded is genuinely absent from disk, so the census
+classifies a library that is only partly present and reclassifies it minutes
+later; the sitter waits instead, and the window states that it is waiting for
+the sync to finish rather than showing a paused count with no reason beside it.
+The retry is the same flat ten-minute interval every other refusal uses, and a
+finished sync is not otherwise signalled to the sitter, so indexing resumes
+within that interval rather than immediately. **Whether the host exposes a
+readable sync state to a bootstrap extension is not yet established** (ticket
+0795): the property the sitter reads has not been observed on a live instance,
+and a host that does not expose it, or exposes it unreadably, is treated as not
+syncing — that is, exactly as before this refusal existed. So this paragraph
+describes a gate that is in the code and may never fire until that reading is
+taken.
+
 The sitter uses Zotero attachment-change notifications to queue affected
 attachments for inspection, coalescing repeated events. It reconciles the library
 on activation while enabled and every 1 hour thereafter to discover changes

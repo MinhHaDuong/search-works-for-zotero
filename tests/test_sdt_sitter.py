@@ -853,9 +853,43 @@ def phase_names() -> set[str]:
     disable/re-enable to launch'`, was retired by ticket 0742 and replaced by
     `'switched-off'`, which reads as an identifier and needs no exemption at all.
     A listed set would still be carrying the dead one.
+
+    A COMPUTED KEY IS RESOLVED, NOT SKIPPED. Ticket 0795's entry is written
+    `[SDT_SYNC_PHASE]:` because ticket 0797 has to name that phase by string and
+    a second copy of the literal is what would drift; a quoted-key regex alone
+    reads such an entry as absent, and this set would shrink by one with nothing
+    saying so. The failure direction is a false RED rather than a false green —
+    an unexempted phase name that reads like a sentence — but a guard that
+    quietly covers less than it says is the shape this file keeps being burned
+    by, so the constant is looked up instead.
     """
     table = _site('var SDT_PHASE_LABELS = {', '};')
-    return {match for match in re.findall(r"^\s*'([^']+)':", table, re.MULTILINE)}
+    names = set(re.findall(r"^\s*'([^']+)':", table, re.MULTILINE))
+    source = BOOTSTRAP.read_text(encoding='utf-8')
+    for identifier in re.findall(r"^\s*\[(\w+)\]:", table, re.MULTILINE):
+        literal = re.search(rf"^var {identifier} = '([^']+)';", source, re.MULTILINE)
+        assert literal, f'computed key {identifier!r} resolves to no top-level literal'
+        names.add(literal.group(1))
+    return names
+
+
+def test_every_named_phase_label_entry_reaches_phase_names():
+    """The guard on the guard above, and the reason it is a test rather than a
+    comment: `phase_names()` feeds a heuristic whose failure is a false RED, so
+    an entry silently dropping out of it costs nothing until the day it does.
+
+    Scoped to the entries `phase_names()` is about: a key that has to be QUOTED
+    or COMPUTED, which is every phase name that is not a bare JavaScript
+    identifier. The seven identifier keys (`ready`, `census`, `draining` …) are
+    single words that no heuristic could read as a sentence and were never in
+    the set. The floor is what keeps the equality from passing on two empty
+    counts, which is how a rewritten table would otherwise read."""
+    table = _site('var SDT_PHASE_LABELS = {', '};')
+    entries = re.findall(r"^\s*(?:'[^']+'|\[\w+\]):", table, re.MULTILINE)
+    assert len(entries) >= 8, \
+        f'the entry regex matched {len(entries)} keys, so this comparison proves nothing'
+    assert len(phase_names()) == len(entries), \
+        'an SDT_PHASE_LABELS entry does not reach phase_names()'
 
 
 def looks_like_a_sentence(text: str) -> bool:
