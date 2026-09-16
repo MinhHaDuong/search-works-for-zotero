@@ -210,7 +210,7 @@ var createSDTSitter = function (host) {
             state.phase = 'draining'; state.draining = dirty.size; publish();
             if (host.emit) host.emit('drain-start', { pending: dirty.size }, 'trace');
           }
-          const drained = dirty.size;
+          const hadBacklog = dirty.size > 0;
           // Ticket 0796, and the two halves are not redundant. The deadline is
           // what returns control to the outer loop under a source that refills
           // `dirty` faster than this retires it -- without it the loop below
@@ -248,17 +248,19 @@ var createSDTSitter = function (host) {
             retired++;
             if (changed) publish();
           }
-          if (drained && current()) {
+          if (hadBacklog && current()) {
             // Ticket 0796 moved both fields off constants the budget made false.
             // `state.draining` used to be zeroed here because the loop above
             // could only exit on an empty set; a budgeted exit leaves a real
             // backlog, and the window's "draining N" line reads this (0759: the
             // totals stay live and disclosed, so it must not read 0 over 6000
-            // outstanding ids). `drained` used to be the backlog at the START of
-            // the pass, which equalled what the pass retired only because the
-            // pass always ran to empty. `retired` is that count directly, so the
-            // record keeps meaning what its name says across a budgeted exit,
-            // and `pending` beside it is what is left for the next pass.
+            // outstanding ids). The record's `drained` used to be fed the backlog
+            // at the START of the pass, which equalled what the pass retired only
+            // because the pass always ran to empty; `retired` is that count
+            // directly, so the field keeps meaning what its name says across a
+            // budgeted exit, and `pending` beside it is what is left for the next
+            // pass. The local that carried it is now `hadBacklog`, which is all
+            // it was ever read for.
             state.draining = dirty.size;
             if (host.emit) host.emit('drain-end', { drained: retired, pending: dirty.size }, 'trace');
           }
@@ -266,8 +268,8 @@ var createSDTSitter = function (host) {
           const candidate = state.pending.find(item => !attempted.has(item.id) ||
             attempted.get(item.id) !== observed.get(item.id)?.identity);
           // Ticket 0796: `continue` while events are still waiting, which is the
-          // rule the resource gate twelve lines below has always applied, for the
-          // same reason. The budgeted drain above can hand this line a real
+          // rule the `host.blocked()` gate below has always applied, for the same
+          // reason. The budgeted drain above can hand this line a real
           // backlog, where before the drain could only exit on an empty set and
           // this `break` was reached with nothing outstanding. Leaving with one
           // is worse than it looks: `nextSweepDelayMS` in bootstrap.js reads
