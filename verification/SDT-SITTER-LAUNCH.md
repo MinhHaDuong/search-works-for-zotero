@@ -93,17 +93,21 @@ reactivation with restored observations and no repeated native extraction.
 `verification/SDT-SITTER-UI-PANEL.md` records the requested independent panel
 verdicts and the remaining accessibility/wording recommendations.
 
-Turn the switch off, in the add-on's own window, to stop further admissions;
+Check "Pause indexing", in the add-on's own window, to stop further admissions;
 disabling the extension in Zotero's add-ons manager does the same and also
 removes the window and the toolbar entry. Under either, the already submitted
-native job can finish and persist its pack. Re-enabling does not ask for
-confirmation again — the persisted answer stands — and reconstructs coverage
-from native caches. Turning the in-window switch back on retains session
-failures; a fresh extension activation creates a new session and can retry them. No unresolved native promise is retried.
+native job can finish and persist its pack. Re-enabling asks for nothing and
+remembers nothing (ticket 0797): it arms, and reconstructs coverage from native
+caches. Unchecking the box within a session retains that session's failures; a
+fresh extension activation creates a new session and can retry them. No
+unresolved native promise is retried.
 
 What the sitter does not control (the shared worker's priority and
-interruptibility) and what stopping it does and does not do are readable in the
-window's Details layer at any time, rather than only in the first-run dialog.
+interruptibility) and what pausing it does and does not do are readable in the
+window's Details layer at any time. That is now the only place they are readable,
+which is a simplification rather than a loss: the two paragraphs concerned were
+already written for that layer and were only ever duplicated into the first-run
+dialog that ticket 0797 removed.
 
 ## Experimental limits
 

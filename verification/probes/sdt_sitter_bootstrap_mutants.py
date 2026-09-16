@@ -442,6 +442,19 @@ MUTANTS = [
      "      catch (_e) { /* */ } }\n"
      "    emit('shutdown', { reason: named });\n"
      "    sealed = true;\n"),
+    # THE ONE THE WHOLE TABLE TURNS ON. Ticket 0795 put `SDT_SYNC_PHASE` IN
+    # `SDT_BLOCKED_PHASES` for the retry cadence, and said in its own comment that
+    # membership is therefore the wrong test for 0797's rows: sync is the single
+    # blocked phase on the CHECKED, inert side, and the other five belong on the
+    # unchecked, operable one. A composer reaching for the list instead of the
+    # constant is right five times and wrong twice -- the shape of defect a suite
+    # that only samples `cpu-busy` never sees. It lives here rather than only in a
+    # merge request's prose, because `make sitter-mutants` is where a claim about
+    # this suite's discrimination has to be re-derivable.
+    ("M49f the pause row is decided by SDT_BLOCKED_PHASES membership rather than by"
+     " the exported sync constant, so every resource wait checks the box",
+     "  if (state.phase === SDT_SYNC_PHASE) {\n",
+     "  if (SDT_BLOCKED_PHASES.includes(state.phase)) {\n"),
     # The checkbox's polarity. `checked` means NOT indexing; inverting it is the
     # one-character change that makes every sentence in the window disagree with
     # the control above it.

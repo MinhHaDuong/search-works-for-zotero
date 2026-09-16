@@ -1820,8 +1820,17 @@ function describeSDTPauseControl(state) {
   // noticed its own removal, the box describes a sitter that is not being asked
   // to work and cannot be asked to.
   if (removalNoticed) {
+    /* `'vanished'`, and NOT `describeSDTSwitchKind(state)`, which is what stood
+       here and what `renderState` passed before this row existed. The kind is
+       the announcement's IDENTITY: a removal does not change the phase, so the
+       kind did not change either, so `announceSDTTransition` compared it against
+       what it had already announced and stayed silent. The window showed
+       `vanished-message` and a screen reader was never told -- which is the one
+       transition 0781 exists to make unmissable, and the one reader who cannot
+       see it on screen. Found by the review of PR 596; pre-existing, and this is
+       the row that owns it. */
     return { checked: true, interactive: false, line: sdtText('vanished-message'),
-      kind: state ? describeSDTSwitchKind(state) : 'booting' };
+      kind: 'vanished' };
   }
   // Boot wait. No sitter exists to hold a phase, so the absence IS the state.
   if (!state) {
@@ -1837,12 +1846,25 @@ function describeSDTPauseControl(state) {
       kind: describeSDTSwitchKind(state) };
   }
   if (state.phase === 'switched-off') {
-    // The row nobody had written copy for. `disarmSDTSitter` ends admissions and
-    // cancels nothing, and it cannot cancel: `ensure()`'s whole option surface
-    // is `isPriority` and `onProgress`, and from this side a slow tail and a
-    // wedged worker leave the same journal (DESIGN-NOTES open question 4,
-    // ticket 0793). So the line says what is true — the assistant has no way to
-    // end it — and names the durable stop that does work, which is the host's.
+    /* The row nobody had written copy for. `disarmSDTSitter` ends admissions and
+       cancels nothing, and it cannot cancel: `ensure()`'s whole option surface is
+       `isPriority` and `onProgress`, the worker's dispatcher has no cancel
+       action, and from this side a slow tail and a wedged worker leave the same
+       journal (DESIGN-NOTES open question 4, settled against the shipped 10.0.2).
+
+       "NO WAY TO END IT" IS LITERAL, not a hedge, and `terminate()` is not a
+       counterexample to it. DESIGN-NOTES records that
+       `Zotero.PDFWorker._worker.terminate()` is reachable from a plugin sandbox
+       and must not be used — but the reason is that it does NOT end the
+       extraction: the parked promise settles only from the `message` listener, so
+       it never settles, `_processingQueue` never returns to false, and the queue
+       shared with full-text indexing never drains again for the life of the
+       process. It converts one stuck job into a stuck queue. So there is no
+       affordance that ends this document, safe or otherwise, and the line does
+       not need to say "no safe way" — which would invite exactly the question
+       whose answer is "and then nothing indexes until you restart Zotero".
+
+       The line names the durable stop that does work, which is the host's. */
     const inFlight = state.active !== null;
     return { checked: true, interactive: true,
       line: inFlight ? sdtText('switch-off-in-flight') : describeSDTSwitchLine(state),

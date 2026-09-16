@@ -1239,4 +1239,35 @@ test('checking the box stops the sitter, unchecking starts it, and both are jour
     'the control wrote a preference the window never admits to');
 });
 
+/* Ticket 0781's removal notice wins over every other reading in the row -- and
+   until the review of PR 596 it did not win for the one reader who cannot see
+   the row. The line was swapped for `vanished-message` and the announcement
+   KIND was left as the phase's, so `announceSDTTransition` compared it against
+   what it had already announced and stayed silent.
+
+   Driven rather than read, because the defect is invisible in the source: both
+   readings are correct-looking calls with correct arguments, and what is wrong
+   is that two of them are equal. The positive control is the first assertion:
+   the kind before the removal has to be something OTHER than 'vanished', or
+   this arm would pass against a composer that returned 'vanished' always. */
+test('a removal is announced, not only displayed', () => {
+  atPhase('census');
+  const before = ui.describeSDTPauseControl(sitter.state);
+  assert.notEqual(before.kind, 'vanished',
+    'the kind was already vanished, so this arm would prove nothing');
+
+  ui.removalNoticed = true;
+  const after = ui.describeSDTPauseControl(sitter.state);
+  assert.equal(after.line, ui.SDT_TEXT['vanished-message'],
+    'the removal notice lost the row');
+  assert.equal(after.checked, true, 'a removed sitter left the box unchecked');
+  assert.equal(after.interactive, false, 'a removed sitter left a live control');
+  assert.notEqual(after.kind, before.kind,
+    'the removal did not change the announcement identity, so it is never spoken');
+  assert.equal(after.kind, 'vanished');
+
+  ui.removalNoticed = false;
+  atPhase('ready');
+});
+
 console.log(JSON.stringify({ tests: results, result: 'pass' }));
