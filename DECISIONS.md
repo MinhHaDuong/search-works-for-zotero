@@ -7677,3 +7677,39 @@ and before any completed census the section says the reading is not finished
 rather than reporting zero obstacles. A subsection whose members name no
 library keeps its heading and loses its selection control, which could only
 ever have failed.
+
+- **Whether the sitter's sync pause covers admission whole or the census
+  alone, and whether an unreadable sync state counts as not syncing (claude,
+  2026-09-16; ticket 0795).** The author asked for the pause himself — *"Pauser
+  quand ça sync ?"*, 2026-09-15 — so that a pause exists is not the question.
+  Two narrower choices are, and v0.4.22 ships both without a ruling, which is
+  why they are filed here rather than in `DECISIONS.md`'s ruled body.
+
+  **Scope.** `syncing()` sits at the top of `blocked()`, so a sync refuses every
+  admission. The alternative the ticket names and does not choose is to pause
+  only the census and let admission keep indexing whatever is already on disk,
+  which keeps the counter moving during the one session — a fresh install's
+  first large sync — where a new user is watching to see whether the plugin is
+  alive. The cost of the coarse rule is exactly that: first value arrives later,
+  and the panel says it is waiting during the session that decides whether the
+  plugin looks alive. The cost of the narrow rule is a second, differently
+  scoped gate to keep consistent with the first, and indexing files that are
+  still arriving, which are re-hashed once they settle. **Recommendation: keep
+  the coarse rule.** It is what was asked for, it is one gate rather than two,
+  and the work it skips is work that would be redone.
+
+  **Fallback.** A host that does not expose the sync state, or throws reading
+  it, is treated as not syncing, so the sitter behaves exactly as it did before
+  the refusal existed. The alternative — refuse when the state cannot be
+  read — makes a sitter that pauses because it cannot tell, which on a host that
+  never exposes the property is a sitter that never runs. **Recommendation:
+  keep the permissive fallback**, which is also what makes the unmeasured
+  property path below safe to ship.
+
+  Both recommendations rest on a reading nobody has taken. The property is
+  `Zotero.Sync.Runner.syncInProgress`, a candidate path, and the ticket carries
+  a two-armed console experiment whose decision rule is that a field is adopted
+  only if it differs between an active sync and rest. Until that reading exists
+  the gate is in the code and cannot fire, so ratifying these two points is not
+  urgent — but SPEC.md §5.2.7 now describes the behaviour, and a described
+  behaviour with no ruling behind it is what this list exists to hold.

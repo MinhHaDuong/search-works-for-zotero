@@ -2323,13 +2323,14 @@ later; the sitter waits instead, and the window states that it is waiting for
 the sync to finish rather than showing a paused count with no reason beside it.
 The retry is the same flat ten-minute interval every other refusal uses, and a
 finished sync is not otherwise signalled to the sitter, so indexing resumes
-within that interval rather than immediately. **Whether the host exposes a
-readable sync state to a bootstrap extension is not yet established** (ticket
-0795): the property the sitter reads has not been observed on a live instance,
-and a host that does not expose it, or exposes it unreadably, is treated as not
-syncing — that is, exactly as before this refusal existed. So this paragraph
-describes a gate that is in the code and may never fire until that reading is
-taken.
+within that interval rather than immediately. Whether the host exposes a
+readable sync state to a bootstrap extension is not established: the property
+the sitter reads has not been observed on a live instance, and a host that does
+not expose it, or exposes it unreadably, is treated as not syncing — the
+behaviour of every version before this refusal existed. Two points are with the
+author on `DECISIONS.md`'s awaiting list (ticket 0795): that the pause covers
+admission whole rather than the census alone, and that an unreadable state
+counts as not syncing.
 
 The sitter uses Zotero attachment-change notifications to queue affected
 attachments for inspection, coalescing repeated events. It reconciles the library
