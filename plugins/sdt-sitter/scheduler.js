@@ -35,6 +35,19 @@ var SDT_STATUS_CLASSES = {
   outOfScope: ['excluded', 'unsupported'],
 };
 
+/* How long one pass of the drain may hold the pump before the candidate search
+   below it gets a turn. Ticket 0796: the loop had no bound at all, so any
+   notification source faster than it held control below it indefinitely and
+   admission was never reached.
+
+   DESIGN-NOTES.md owns every fact about the value and this comment restates
+   none of them: why the bound is wall clock rather than a count of ids -- the
+   thing about this line a later reader is most likely to undo -- how the number
+   is set against bootstrap.js's heartbeat, why it is a cadence knob and not a
+   correctness gate, the incident it answers, and the open question it is an
+   instance of (6, whether the indexing consumers should share one budget). */
+var SDT_DRAIN_BUDGET_MS = 5000;
+
 /* Host-independent admission loop. Native ensure owns extraction and persistence. */
 var createSDTSitter = function (host) {
   // `busy` is on the state rather than a closure variable because the heartbeat
@@ -197,8 +210,22 @@ var createSDTSitter = function (host) {
             state.phase = 'draining'; state.draining = dirty.size; publish();
             if (host.emit) host.emit('drain-start', { pending: dirty.size }, 'trace');
           }
-          const drained = dirty.size;
+          const hadBacklog = dirty.size > 0;
+          // Ticket 0796, and the two halves are not redundant. The deadline is
+          // what returns control to the outer loop under a source that refills
+          // `dirty` faster than this retires it -- without it the loop below
+          // exits only on an empty set, which such a source never allows, and
+          // the candidate search and admission underneath are never reached.
+          // `retired` is what guarantees the converse: the deadline is read
+          // against a clock an `unattached()` slower than the whole budget can
+          // already have run past, so a bare deadline check would break before
+          // retiring anything and the drain would livelock, spending every
+          // outer pass on an id it never removes. At least one id leaves
+          // `dirty` per pass, always; the set still empties, only later.
+          const deadline = host.now() + SDT_DRAIN_BUDGET_MS;
+          let retired = 0;
           while (dirty.size && current()) {
+            if (retired > 0 && host.now() >= deadline) break;
             let changed = false;
             const id = dirty.values().next().value;
             dirty.delete(id); // BEFORE awaits: a new event for this ID survives.
@@ -218,16 +245,45 @@ var createSDTSitter = function (host) {
             }
             if (!current()) { dirty.add(id); return; }
             state.draining = dirty.size;
+            retired++;
             if (changed) publish();
           }
-          if (drained && current()) {
-            state.draining = 0;
-            if (host.emit) host.emit('drain-end', { drained, pending: dirty.size }, 'trace');
+          if (hadBacklog && current()) {
+            // Ticket 0796 moved both fields off constants the budget made false.
+            // `state.draining` used to be zeroed here because the loop above
+            // could only exit on an empty set; a budgeted exit leaves a real
+            // backlog, and the window's "draining N" line reads this (0759: the
+            // totals stay live and disclosed, so it must not read 0 over 6000
+            // outstanding ids). The record's `drained` used to be fed the backlog
+            // at the START of the pass, which equalled what the pass retired only
+            // because the pass always ran to empty; `retired` is that count
+            // directly, so the field keeps meaning what its name says across a
+            // budgeted exit, and `pending` beside it is what is left for the next
+            // pass. The local that carried it is now `hadBacklog`, which is all
+            // it was ever read for.
+            state.draining = dirty.size;
+            if (host.emit) host.emit('drain-end', { drained: retired, pending: dirty.size }, 'trace');
           }
           if (!current()) return;
           const candidate = state.pending.find(item => !attempted.has(item.id) ||
             attempted.get(item.id) !== observed.get(item.id)?.identity);
-          if (!candidate) { state.phase = 'waiting'; break; }
+          // Ticket 0796: `continue` while events are still waiting, which is the
+          // rule the `host.blocked()` gate below has always applied, for the same
+          // reason. The budgeted drain above can hand this line a real
+          // backlog, where before the drain could only exit on an empty set and
+          // this `break` was reached with nothing outstanding. Leaving with one
+          // is worse than it looks: `nextSweepDelayMS` in bootstrap.js reads
+          // `pending.length`, `phase`, `busy` and `nextReconciliationAt` and
+          // never `state.draining`, so with no candidate and no blocked phase its
+          // retry is Infinity and the next sweep is the reconciliation deadline,
+          // up to an hour out; and `wakeSDTSitter()` does not cover it either,
+          // since it returns early while `busy` -- exactly when these
+          // notifications arrived. The drain retires at least one id per pass, so
+          // this terminates as soon as the source does.
+          if (!candidate) {
+            if (dirty.size) continue;
+            state.phase = 'waiting'; break;
+          }
           const id = candidate.id;
           let before = observed.get(id);
           const gated = before;

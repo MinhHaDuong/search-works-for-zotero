@@ -178,6 +178,29 @@ MUTANTS = [
     ('M18 current external packs remain masked by session failure',
      '  const classify = info => SDT_STATUS_CLASSES.queued.includes(info.status) &&',
      '  const classify = info =>'),
+    # Ticket 0796's defect, restored in one edit: the drain runs to an empty set
+    # again instead of to a budget. It is the mutant this probe most needed, and
+    # the one that best shows why a probe is worth running -- every assertion in
+    # the suite except the one the ticket added stays green under it, because
+    # `pump()` still returns, `dirty` still empties, the phase still moves and
+    # every count still sums. What it costs is that admission is not reached
+    # while a source keeps feeding, which is silence, not a failure.
+    ('M35 the drain runs to an empty set again, so a live source starves admission',
+     '            if (retired > 0 && host.now() >= deadline) break;\n',
+     ''),
+    # The other half of ticket 0796, and the hazard the first half introduced: a
+    # budgeted drain can reach the candidate search with a real backlog, where the
+    # unbounded one could not. Leaving on it is invisible to the host --
+    # `nextSweepDelayMS` reads `pending.length` and never `state.draining` -- so
+    # the sweep ends and nothing brings it back inside the reconciliation
+    # interval. Every count still sums and `pump()` still returns; what is lost is
+    # a notification nobody reads for an hour.
+    ('M36 a budgeted drain leaves on an empty candidate queue with events outstanding',
+     '          if (!candidate) {\n'
+     '            if (dirty.size) continue;\n'
+     "            state.phase = 'waiting'; break;\n"
+     '          }',
+     "          if (!candidate) { state.phase = 'waiting'; break; }"),
 ]
 
 
