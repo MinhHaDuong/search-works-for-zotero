@@ -1,0 +1,188 @@
+%erg 0.1
+Title: A declared phase alphabet and a total setPhase, with transition conditions
+Created: 2026-09-16
+Author: MinhHaDuong
+
+--- log ---
+2026-09-16T00:00Z MinhHaDuong created
+
+--- body ---
+
+## Context
+
+Author, 2026-09-16, after a night in which the same defect surfaced three times
+in three disguises: "Je veux les états clairs, et les conditions de transition
+aussi."
+
+The framing he gave it is the right one — code proof, critical infrastructure,
+Ada and Rust. Judged by that standard `state.phase` fails on the first
+criterion: **its alphabet is not declared anywhere, and it is not closed.**
+Two assignment sites copy in, verbatim, whatever string `host.blocked()`
+returned. The scheduler names seven phases and then stores an open set of
+others it has never enumerated.
+
+Three consequences, all observed on 2026-09-15, all the same missing
+exhaustiveness check:
+
+- `SDT_PHASE_LABELS` carries fourteen entries, `SDT_BLOCKED_PHASES` five, and
+  they are maintained in parallel with nothing linking them. `native-worker-busy`
+  sits in the first and not the second — correct, as it happens, since it is a
+  wait and not a block, but nothing in the code says so and ticket 0797's body
+  filed it wrongly on exactly that reading.
+- Ticket 0797's state table has to special-case the sync phase **by literal
+  name**, because membership in `SDT_BLOCKED_PHASES` maps to a different row.
+- `tests/sdt_sitter_scheduler.mjs` discovers the phase set **by regular
+  expression over the source**, with a `phases.size >= 12` floor. Auditing by
+  scraping is what a codebase does when it has no declaration to read.
+
+## What this ticket builds
+
+### 1. One declaration, and everything derives from it
+
+A single frozen table — the alphabet — where each phase carries what is today
+spread across two tables and several `if` chains: its **axis** (activity,
+reason, intent, outcome), its **cadence class**, its **label id** (or the
+deliberate `null` that `ready` and `waiting` carry), and whether it is
+**terminal**.
+
+`SDT_PHASE_LABELS` and `SDT_BLOCKED_PHASES` stop being hand-maintained lists
+and become projections of it. That alone makes the `native-worker-busy` class
+of misfiling impossible rather than merely absent.
+
+### 2. A total `setPhase`
+
+Every assignment goes through one function, and that function is **total**: a
+value outside the alphabet is not written silently. It is refused, and the
+attempt is emitted as a defect record so that "the host said a word we do not
+know" becomes an observable event instead of a silent state. This is a range
+check at the point of assignment, in the Ada sense, and it is the whole reason
+the funnel is worth building — not `phaseSince`, which is a separate matter and
+is addressed below under what this ticket does NOT claim.
+
+### 3. The transition conditions, declared
+
+The author asked for these explicitly, and they are the part with the real
+design risk. A `from × to` relation, each edge carrying the condition that
+licenses it, checked by `setPhase` and enumerable by a test.
+
+The eleven assignment sites today, cited by symbol because the line numbers
+moved three times on 2026-09-15 alone — in `scheduler.js`'s `pump()` unless
+noted:
+
+| from | to | what licenses it |
+|---|---|---|
+| `switched-off` | `ready` | the loop re-entered after a `start()` |
+| any | `census` | a reconciliation is due |
+| `census` | `ready` | the census closed |
+| any | `draining` | the dirty set is non-empty at the drain |
+| any | `waiting` | no admissible candidate, and (since 0796) no backlog |
+| any | *a reason* | `host.blocked()` returned one at candidate gating |
+| any | *an admission reason* | `beforeSubmit` refused |
+| any | `extracting` | a document was admitted |
+| `extracting` | `waiting` | that document settled |
+| any | `error` | the sweep threw |
+| any | `switched-off` | `disarmSDTSitter` in `bootstrap.js` |
+
+Two of these rows are the whole problem in miniature: *a reason* and *an
+admission reason* are not states, they are a diagnosis written into the state
+variable, and they come from a vocabulary the scheduler does not own.
+
+## The objection this ticket must answer, because a decorrelated review raised it
+
+A Fable review of the wider re-architecture argued a transition graph is not
+writable here: the scheduler would have to learn `bootstrap.js`'s `blocked()`
+vocabulary, which is the layering the codebase keeps separate on purpose —
+`SDT_STATUS_CLASSES`'s own comment says its class is "deliberately NOT
+`blocked`" because `host.blocked()` answers a different question.
+
+The answer this ticket proposes, and which the implementer must defend or
+abandon rather than assume: with the alphabet declared in **one place both
+sides read**, the scheduler is not learning the host's words — the two are
+reading a shared declaration. That is a different arrangement from the one the
+review refuted. If, on contact with the code, it turns out the host must be
+free to invent reasons at runtime, then the honest outcome is a **partial**
+relation: edges declared for the closed part, an explicitly wildcarded edge for
+reasons, and the wildcard named as a gap rather than passed off as coverage.
+
+## What this ticket does NOT claim
+
+The same review demolished two payoffs that were originally attached to the
+funnel, and they are not resurrected here:
+
+- **`phaseSince` would lie in the case that matters.** The abort path
+  deliberately leaves `phase` stale at `extracting`, so an age computed at
+  assignment reports the age of a phase the machine has left. And the journal
+  already records `phase` with `elapsedMS` every sixty seconds — both incident
+  files of 2026-09-15 were reconstructed from exactly that. A `phaseSince`
+  field is a second copy of a fact the journal owns.
+- **No tick re-derivation.** Half the reason axis is per-candidate —
+  `storage-unavailable` and `low-disk` read the candidate's own directory — so
+  a tick with no candidate cannot compute it without guessing.
+
+## Relevant files
+
+- `plugins/sdt-sitter/scheduler.js` — the ten assignment sites in `pump()` and
+  the sweep's error path; cite by symbol.
+- `plugins/sdt-sitter/bootstrap.js` — `SDT_PHASE_LABELS`, `SDT_BLOCKED_PHASES`,
+  `blocked()`, `nextSweepDelayMS`, `describeSDTSwitchLine`,
+  `describeSDTSwitchKind`, `describeSDTTooltip`, `getSDTCoverage` (reads
+  `ready`), `toggleSDTSwitch` (reads `switched-off`), `disarmSDTSitter`.
+- `tests/sdt_sitter_scheduler.mjs` — **the regex phase discovery and its
+  `phases.size >= 12` floor.** A funnel silently empties two of its three
+  extractors; the floor is the only thing that would turn that into a failure,
+  and it must be re-verified with a positive control before it is trusted.
+- `verification/probes/sdt_sitter_scheduler_mutants.py` — mutants anchored on
+  the exact assignment text. Establish whether an unmatched anchor fails the
+  probe or passes vacuously; if it passes vacuously, that is a finding in its
+  own right.
+- `tests/test_sdt_sitter.py` — parses the `SDT_PHASE_LABELS` literal as JSON, so
+  a table keyed by axis breaks the parser.
+- `tests/sdt_sitter_bootstrap.mjs`, `tests/sdt_sitter_dialog.mjs` — fixtures
+  that set `phase` directly.
+
+## Two one-way doors
+
+- **The journal schema.** `heartbeat.phase`, `announce phase=` and
+  `sweep-end.phase` are read by `bench/sdt_stall_probe.py`, the phase probes,
+  and every incident JSON under `verification/incidents/`. A two-field record
+  makes past incidents incomparable with future ones. Decide explicitly, and if
+  the record changes, say how an old incident is still readable.
+- **`Zotero.SDTPackSitter.state`** is the console surface the author's own live
+  readings went through. Its shape is an external contract now.
+
+## Test
+
+Red first, and the alphabet makes property tests possible where only example
+tests existed:
+
+- For **every** phase in the declared table: its label id resolves, its cadence
+  class is defined, and its axis is one of the declared axes. Today this cannot
+  be written, because there is no table to iterate.
+- `SDT_BLOCKED_PHASES` and `SDT_PHASE_LABELS` each equal their projection of the
+  alphabet — which is the assertion that would have caught the
+  `native-worker-busy` misfiling.
+- `setPhase` refuses a value outside the alphabet and emits the defect record.
+  The control: feed it a plausible-looking unknown reason and assert the record,
+  not merely that nothing crashed.
+- One declared transition and one undeclared one, asserted in both directions.
+
+Every threshold or set boundary introduced gets an assertion on its exact value
+and one a unit off, and the mutant is **run**, not assumed.
+
+## Invariants
+
+- No behaviour change in what the sitter does. This is an audit surface, not a
+  policy change.
+- `ready` and `waiting` stay distinct: `getSDTCoverage` computes `known` from
+  `phase !== 'ready'`, and `ready` is deliberately silent to absorb the
+  per-document admission gap.
+- 0796's drain budget, 0795's phase and 0797's table keep working unchanged.
+- No new periodic cost while idle.
+
+## Exit criteria
+
+The set of phases is declared in one place, both derived tables are projections
+of it rather than parallel lists, every assignment passes a check that refuses
+an unknown value and reports it, and the transitions are declared with their
+conditions — completely, or partially with the wildcard named as a gap. A test
+iterates the declaration rather than scraping the source for it.
