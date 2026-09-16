@@ -588,3 +588,7 @@ def test_a_backward_wall_step_is_not_read_as_a_quiet_beat():
     assert backward["quietBeats"] == 0
     assert backward["quietBeats"] == monotonic["quietBeats"]
     assert backward["corroborated"] is not True
+    # The twelfth threshold, on the boundary the other eleven already stand on:
+    # two beats stamped at the same instant are a zero-length interval, which is
+    # judgeable by nothing. `wall < 0` would let it through and answer 2 here.
+    assert analyse_heartbeats(_three_beats(1060000))["quietBeats"] == 0
