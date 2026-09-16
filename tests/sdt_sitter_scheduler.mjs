@@ -1528,6 +1528,50 @@ await test('a budgeted drain never leaves behind a backlog nothing will wake it 
   assert.equal(fed, FEED, 'the sweep left the notification source unread');
   assert.equal(f.api.state.counts.current, FEED + 2, 'the drain did not observe every fed id');
 });
+await test('a sync in progress refuses admission, backs off to the idle cadence, and says why', async () => {
+  /* Ticket 0795. The policy half, and the only half any suite can reach.
+
+     `host.blocked` is an honest fake here: the scheduler's contract is that it
+     answers with a phase string or null, and every one of the five existing
+     blocked phases is tested through exactly this seam. What is NOT tested
+     anywhere, and deliberately so, is the one line in `bootstrap.js` that
+     DECIDES to return this string — `Zotero.Sync.Runner.syncInProgress` is a
+     candidate property path that has never been read on a live host, in either
+     arm. Faking that shape in `tests/sdt_sitter_zotero_mock.mjs` would make the
+     mock assert this session's guess about the platform, which is the exact
+     failure the `LINK_MODE_LINKED_FILE` guard in `bootstrap.js` records: a host
+     API the harness published in a shape the real Zotero does not use, and
+     every fixture read as a linked file until a real host disagreed. So the
+     predicate stays uncovered, and 0795 stays open, until the author's
+     two-armed console reading exists. */
+  const f = fixture();
+  f.host.blocked = async () => ui.SDT_SYNC_PHASE;
+  await f.api.sweep();
+  assert.equal(f.calls.length, 0, 'the sitter indexed files while Zotero was still fetching them');
+  assert.equal(f.api.state.phase, ui.SDT_SYNC_PHASE);
+  // The backoff is bought by ONE thing: membership in SDT_BLOCKED_PHASES, which
+  // `nextSweepDelayMS` already reads. Both sides of that boundary are asserted,
+  // because a phase on the list and a phase off it give the same green suite if
+  // only the blocked side is checked — and the off-list arm is what ticket
+  // 0745's mechanism actually rests on.
+  assert(ui.SDT_BLOCKED_PHASES.includes(ui.SDT_SYNC_PHASE),
+    'the sync phase is not in SDT_BLOCKED_PHASES, so it would poll at the active cadence');
+  assert.equal(ui.nextSweepDelayMS(f.api.state), 10 * 60 * 1000);
+  assert.equal(ui.nextSweepDelayMS({ ...f.api.state, phase: 'sync-in-progress-but-not-the-phase' }),
+    30000, 'the control arm did not read the active cadence, so the assertion above proves nothing');
+  // 0759's ruling, and the half that makes this a disclosed pause rather than a
+  // frozen window: the phase carries a decided label, and its wording is the one
+  // ticket 0797's state table reuses verbatim.
+  assert.equal(ui.SDT_PHASE_LABELS[ui.SDT_SYNC_PHASE], ui.SDT_SYNC_PHASE_LABEL);
+  assert.equal(ui.sdtText(ui.SDT_SYNC_PHASE_LABEL), 'Waiting for sync to finish');
+  // And it resumes on its own once the sync is over, with no wake signal: the
+  // flat 10-minute idle poll every other blocked phase already pays is what ends
+  // this pause. Nothing observes a sync-completion notification, because whether
+  // Zotero's Notifier carries one is exactly as unmeasured as the key above.
+  f.host.blocked = async () => null;
+  await f.api.sweep();
+  assert.equal(f.calls.length, 2, 'the sitter never resumed once the sync ended');
+});
 await test('events arriving during a refused resource read update coverage before the pump sleeps', async () => {
   const f = fixture(); let reads = 0;
   f.host.blocked = async () => {
@@ -1560,7 +1604,18 @@ const phases = new Set([
   ...literals(bootstrapSource, /sitter\.state\.phase = '([^']+)'/g),
 ]);
 // Guard the extraction itself: a regex that matched nothing would pass vacuously.
-assert(phases.size >= 12, `phase enumeration failed: ${[...phases].join(' | ')}`);
+assert(phases.size >= 13, `phase enumeration failed: ${[...phases].join(' | ')}`);
+// Ticket 0795, and the reason `SDT_SYNC_PHASE` is worth exporting at all: ticket
+// 0797 must special-case this phase BY NAME (its state table puts sync on the
+// checked, non-interactive side, where every other blocked phase is unchecked and
+// interactive), so it reuses this constant rather than authoring a second copy of
+// the string. `blocked()` returns the literal — the enumeration above reads
+// literals, and a phase that reached it through an identifier would drop out of
+// the "every phase has a decided tooltip" check below without anything saying so.
+// This assertion is what keeps the literal and the exported constant the same
+// string, which is the whole guarantee 0797 is being given.
+assert(phases.has(ui.SDT_SYNC_PHASE),
+  `blocked() never returns SDT_SYNC_PHASE ('${ui.SDT_SYNC_PHASE}'): ${[...phases].join(' | ')}`);
 for (const phase of phases) {
   assert(phase in ui.SDT_PHASE_LABELS, `phase '${phase}' has no decided tooltip`);
 }
