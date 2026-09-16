@@ -7685,18 +7685,44 @@ ever have failed.
   Two narrower choices are, and v0.4.22 ships both without a ruling, which is
   why they are filed here rather than in `DECISIONS.md`'s ruled body.
 
-  **Scope.** `syncing()` sits at the top of `blocked()`, so a sync refuses every
-  admission. The alternative the ticket names and does not choose is to pause
+  **Scope, sharpened by the review of PR 592.** `syncing()` sits at the top of
+  `blocked()`, so a sync refuses every admission — but `host.blocked()` has one
+  call site and it sits BELOW the pump's no-candidate guard, and a
+  not-yet-downloaded attachment classifies `missing-source`, which is in
+  `SDT_STATUS_CLASSES.failed` and never becomes a candidate. So the refusal
+  holds whenever a sync coexists with something indexable (the observed
+  incident, `pending: 44`) and is a no-op when the sync is all that is
+  outstanding, where there was nothing to admit in any case. What that second
+  case loses is not admission but 0759's DISCLOSURE: the panel shows a count and
+  no reason for it, which is the defect the ticket was filed on. Closing it
+  requires pausing the census, which is exactly the alternative below — so the
+  scope question and the disclosure gap are one decision, not two.
+
+  The alternative the ticket names and does not choose is to pause
   only the census and let admission keep indexing whatever is already on disk,
   which keeps the counter moving during the one session — a fresh install's
   first large sync — where a new user is watching to see whether the plugin is
-  alive. The cost of the coarse rule is exactly that: first value arrives later,
-  and the panel says it is waiting during the session that decides whether the
-  plugin looks alive. The cost of the narrow rule is a second, differently
-  scoped gate to keep consistent with the first, and indexing files that are
-  still arriving, which are re-hashed once they settle. **Recommendation: keep
-  the coarse rule.** It is what was asked for, it is one gate rather than two,
-  and the work it skips is work that would be redone.
+  alive. That session is also precisely the one where the gate as placed is a
+  no-op, so the narrow rule is not merely an alternative to the coarse one here:
+  it is the only one of the two that says anything at all in that session.
+
+  The cost of the coarse rule is that first value arrives later, and — where the
+  gate is reached at all — the panel says it is waiting during the session that
+  decides whether the plugin looks alive. The cost of the narrow rule is a
+  second, differently scoped gate to keep consistent with the first, and
+  indexing files that are still arriving, which are re-hashed once they settle.
+
+  **Recommendation, revised by the finding above: keep the coarse rule AND add
+  the census pause, rather than choosing between them.** The first version of
+  this entry recommended the coarse rule alone on the ground that it is one gate
+  rather than two; that argument survives, but it was written believing the
+  coarse rule covered the fresh-install session, and it does not. The two rules
+  answer different halves — admission is what the coarse rule stops, the census
+  is what produces the misleading account, and 0759 makes disclosing the reason
+  mandatory rather than optional. Shipping only the first leaves the ticket's
+  own headline defect standing in the session it was filed about. If only one
+  can be had, the census pause is the one that closes the defect; the admission
+  gate is nearly free and already written, so the honest answer is both.
 
   **Fallback.** A host that does not expose the sync state, or throws reading
   it, is treated as not syncing, so the sitter behaves exactly as it did before
@@ -7710,6 +7736,6 @@ ever have failed.
   `Zotero.Sync.Runner.syncInProgress`, a candidate path, and the ticket carries
   a two-armed console experiment whose decision rule is that a field is adopted
   only if it differs between an active sync and rest. Until that reading exists
-  the gate is in the code and cannot fire, so ratifying these two points is not
+  the gate is in the code and cannot fire, so ratifying these points is not
   urgent — but SPEC.md §5.2.7 now describes the behaviour, and a described
   behaviour with no ruling behind it is what this list exists to hold.

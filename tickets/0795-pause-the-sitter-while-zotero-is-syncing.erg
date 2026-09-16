@@ -13,6 +13,7 @@ Author: MinhHaDuong
 2026-09-16T02:00Z claude note v0.4.21 ships the mechanism and NOT the measurement. One named predicate syncing() beside workerBusy() in blocked(), called above the procfs and storage costs; SDT_SYNC_PHASE / SDT_SYNC_PHASE_LABEL exported for ticket 0797, which must special-case this phase by name because its state table puts sync on the checked, non-interactive side while every other blocked phase is unchecked and interactive; label wording 'Waiting for sync to finish', quoted verbatim from 0797's table. Backoff is free: SDT_BLOCKED_PHASES membership is all nextSweepDelayMS reads, no new branch. Policy tested through host.blocked in tests/sdt_sitter_scheduler.mjs, both sides of the membership boundary, with mutants M78 (entry reverted), M79 (label dropped), M80 (label reworded) all caught. Nothing added to tests/sdt_sitter_zotero_mock.mjs and the syncing() body stays untested by any suite, on purpose. Action 4 NOT done and reframed: wake-on-sync-completion assumes Zotero's Notifier carries a sync lifecycle signal, a SECOND unmeasured platform contract the ticket did not flag as one; no observer was speculatively registered, the flat 10-minute idle poll ships instead, and the question is folded into the same live sitting as the first reading.
 2026-09-16T03:34Z claude note Correction to the previous entry's version: the payload shipped as 0.4.22, not 0.4.21. The pre-PR adherence gate asked for three more edits — SPEC.md's admission paragraph now names this sixth gate and says in writing that its host contract is unmeasured, STATE.md was still on 0.4.20, and one comment in bootstrap.js held a third copy of the label wording — and bench/check_sitter_version.py hashes the delivered payload, so the comment-only edit alone obliges its own number. The body above is restamped; this log line is the append-only record that 0.4.21 named an earlier payload on this branch.
 2026-09-16T04:01Z claude note The pre-PR adherence gate's third round caught what the two before it did not: SPEC.md described the pause as settled system behaviour while DECISIONS.md held no ruling for it. Two narrower choices ship in 0.4.22 unruled and are now filed under DECISIONS.md's Awaiting ratification, with a recommendation each and the author's own 19:46Z request cited for the part that is not in question — whether the pause covers admission whole or the census alone, and whether an unreadable sync state counts as not syncing. SPEC.md's paragraph points at that list in the repository's own idiom and no longer narrates itself. Neither is urgent while the gate cannot fire, but a described behaviour with no ruling behind it is exactly what the list is for.
+2026-09-16T05:23Z claude note Review round 1 on PR 592 found the gate's reach, and it is a real qualification rather than a defect: host.blocked() has one call site and it sits below the pump's no-candidate guard, while a not-yet-downloaded attachment classifies missing-source, which is in SDT_STATUS_CLASSES.failed and never becomes a candidate. So the refusal holds whenever a sync coexists with something indexable — the observed incident, pending 44 — and is a no-op when the sync is all that is outstanding, where there was nothing to admit. Admission loses nothing there; 0759's disclosure does, which is the second and heavier of the two costs in this ticket's Context. Closing it needs the census paused too, the alternative the Decision section names and declines, so the scope question and this gap are one decision: the DECISIONS.md awaiting entry's recommendation is revised from 'the coarse rule alone' to 'both', SPEC.md now states the boundary instead of the disclosure unconditionally, and the ticket carries the gap under its own heading. Also corrected from the same round: the label is a sentence-cased PARAPHRASE of 0797's table row, not a verbatim quote, and nothing mechanical compares the two — what 0797 is guaranteed is the message id. Payload 0.4.23; the comment-only edits oblige their own number.
 --- body ---
 ## Context
 
@@ -61,7 +62,7 @@ has already been burned once: the `LINK_MODE_LINKED_FILE` guard in `inspect()`
 is written against an assumed host contract that made every attachment read as a
 linked file. A phase that cannot fire, or that fires always, is worse than no phase.
 
-**This is exactly why v0.4.22 ships the phase and NOT a measurement.** The
+**This is exactly why v0.4.23 ships the phase and NOT a measurement.** The
 `syncing()` predicate is one named function whose body is the whole of the
 unmeasured contract; the policy it feeds is tested through `host.blocked`, a
 contract this repository owns. Nothing was added to
@@ -116,7 +117,7 @@ contract this repository owns. Nothing was added to
    ticket proposes: behave exactly as today. A sitter that pauses because it
    cannot tell is a sitter that never runs.
 3. Add the phase, its label, and its entry in `SDT_BLOCKED_PHASES`.
-   **Done, v0.4.22.** `SDT_SYNC_PHASE` / `SDT_SYNC_PHASE_LABEL`, the
+   **Done, v0.4.23.** `SDT_SYNC_PHASE` / `SDT_SYNC_PHASE_LABEL`, the
    `SDT_BLOCKED_PHASES` entry, the `SDT_TEXT` wording, and a `syncing()`
    predicate beside `workerBusy()` in `blocked()`. The predicate body is the
    only unmeasured line and is uncovered by design — see the experiment below.
@@ -132,6 +133,36 @@ contract this repository owns. Nothing was added to
    which ends the pause on its own and is already correct, only slower. The
    question is folded into the same live sitting as the first reading, so one
    session settles both.
+
+## Where the shipped gate does NOT reach, found by the review of PR 592
+
+`host.blocked()` has exactly one call site, in `scheduler.js`'s pump, and it
+sits **below** the no-candidate guard. `state.pending` is built only from
+`SDT_STATUS_CLASSES.queued`, and a not-yet-downloaded attachment classifies
+`missing-source`, which is in `failed`. So with an empty candidate queue the
+pump breaks on `waiting` and `syncing()` is never called at all.
+
+Consequences, stated rather than glossed:
+
+- The refusal **holds** whenever a sync coexists with something indexable —
+  which is the incident this ticket was filed on (`pending: 44`), and the steady
+  state of any library that already has files on disk.
+- It is a **no-op** when the sync is all that is outstanding, most sharply on a
+  fresh install's first large sync. Nothing is lost there in admission terms:
+  there was nothing to admit. What is lost is 0759's disclosure — the panel
+  shows a full categorical breakdown with no reason beside it, which is
+  *precisely* the second and heavier of the two costs in the Context section
+  above.
+- Closing that needs the census paused too, which is the alternative the
+  "Decision for the author" section below names and does not choose. So the
+  scope question and this gap are one decision, not two, and both are with the
+  author on `DECISIONS.md`'s awaiting list, where the recommendation was revised
+  on this finding from "the coarse rule alone" to "both".
+
+This is **not** a defect in what shipped — refusing an admission that was never
+going to happen costs nothing — but it does mean **0795's headline complaint is
+not yet closed**, and the ticket says so here rather than letting a merged PR
+imply otherwise.
 
 ## The experiment, for the author, in one sitting
 
@@ -186,7 +217,7 @@ differently: every fixture read as a linked file and the defect was invisible
 until a real host disagreed. Shape the mock from the step-1 output, not from
 what the API ought to look like.
 
-**What v0.4.22 actually shipped, and what it deliberately left uncovered.** The
+**What v0.4.23 actually shipped, and what it deliberately left uncovered.** The
 red step is `a sync in progress refuses admission, backs off to the idle
 cadence, and says why` in `tests/sdt_sitter_scheduler.mjs`, driving
 `host.blocked` — the same honest fake the five existing phases use. It asserts
@@ -228,15 +259,15 @@ counter moving at the price of a second, narrower rule. Not chosen here.
       Until it exists, `syncing()` reads a candidate path and the phase can
       never fire, which is the honest state and not a silent one.
 - [x] The phase ships with a label, or the ticket closes with the measured
-      reason it cannot — v0.4.22: `phase-sync-in-progress`, "Waiting for sync to
+      reason it cannot — v0.4.23: `phase-sync-in-progress`, "Waiting for sync to
       finish", mutants M79 and M80
 - [x] Red-first test in the scheduler suite, reverting the entry reproduces the
-      active cadence — v0.4.22: the scheduler test named above, plus mutant M78,
+      active cadence — v0.4.23: the scheduler test named above, plus mutant M78,
       which IS the reverted entry and is caught
 - [ ] Sync completion wakes the sitter without waiting out the idle interval
       — **OPEN and reframed.** This rests on a second unmeasured platform
       contract (does Zotero's Notifier carry a sync lifecycle signal?), folded
-      into the same experiment. v0.4.22 ships the flat 10-minute idle poll,
+      into the same experiment. v0.4.23 ships the flat 10-minute idle poll,
       which ends the pause on its own.
 - [x] Three reads of `state.draining` on a live syncing instance, recorded in
       `verification/incidents/0795-2026-09-15-drain-during-sync.md`: falling
@@ -246,4 +277,4 @@ counter moving at the price of a second, narrower rule. Not chosen here.
       merged 2026-09-15 and bounded the drain, which is also what makes this
       ticket's check reachable at all (before it, `blocked()` was not called
       once in eight minutes during the captured incident).
-- [ ] `make check` passes — green for v0.4.22; re-run when the reading lands
+- [ ] `make check` passes — green for v0.4.23; re-run when the reading lands

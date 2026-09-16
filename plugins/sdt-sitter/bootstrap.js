@@ -733,11 +733,20 @@ function noticeSDTRemoval(addon) {
    the unchecked, interactive side. So `SDT_BLOCKED_PHASES.includes(phase)` is
    NOT the logic 0797 needs: it has to special-case this one phase by name, and
    the two things it must name are exactly these — the phase string and the
-   message id whose `SDT_TEXT` wording its table quotes. That wording is NOT
-   repeated here: the table above is its one home, the wording note beside it
-   says why it is phrased as it is, and a third copy in this comment is exactly
-   the drift the paragraph below is about. Exported as constants so 0797 reuses
-   the strings instead of writing a second copy nothing keeps in step. */
+   message id whose `SDT_TEXT` wording its table paraphrases. That wording is
+   NOT repeated here: the table above is its one home, the wording note beside
+   it says why it is phrased as it is, and a third copy in this comment is
+   exactly the drift the paragraph below is about. Exported as constants so 0797
+   reuses the strings instead of writing a second copy nothing keeps in step.
+
+   PARAPHRASES, not quotes, and the review of PR 592 was right to catch the
+   overclaim. 0797's table row reads `why: waiting for sync to finish`, lower
+   case and with the column's own `why:` prefix; this label is that sentence,
+   sentence-cased. Nothing mechanical compares the two — the mutant M80 that
+   reddens on a reword compares this table to an assertion in
+   tests/sdt_sitter_scheduler.mjs, which is the repository's own copy and not
+   0797's. What is guaranteed to 0797 is the message ID, which is what it should
+   read; the sentence is a matter for whoever implements that table. */
 var SDT_SYNC_PHASE = 'sync-in-progress';
 var SDT_SYNC_PHASE_LABEL = 'phase-sync-in-progress';
 
@@ -3419,9 +3428,34 @@ async function initialize(rootURI, token, era = shutdowns) {
     if (!alive) return 'disabled';
     if (workerBusy()) return 'native-worker-busy';
     // Above the procfs reads and the storage walk on purpose: during a bulk file
-    // sync every not-yet-downloaded attachment classifies as `missing-source`,
-    // so this is the phase that fires most often and it must be the cheapest
+    // sync this is the phase most likely to answer, so it must be the cheapest
     // thing that can refuse. Two property reads, no I/O, no library query.
+    //
+    // WHAT THIS GATE DOES NOT REACH, found by the review of PR 592 and confirmed
+    // in scheduler.js before it was written here. `host.blocked()` has one call
+    // site, and it sits BELOW the no-candidate guard: with `state.pending` empty
+    // the pump breaks on 'waiting' and this function is never called. A
+    // not-yet-downloaded attachment classifies `missing-source`, which is in
+    // `SDT_STATUS_CLASSES.failed` and not in `queued`, so it never becomes a
+    // candidate. The refusal therefore holds whenever a sync coexists with
+    // something indexable — the observed incident, `pending: 44` — and is a
+    // no-op when the sync is ALL that is outstanding, where there was nothing to
+    // admit anyway. What is lost in that second case is not admission but the
+    // DISCLOSURE half of 0759: the panel shows a count and no reason. Closing
+    // that needs the census paused too, which ticket 0795's "Decision for the
+    // author" names and does not choose, so it is with the author on
+    // DECISIONS.md's awaiting list rather than decided here.
+    //
+    // The literal, not `SDT_SYNC_PHASE`: tests/sdt_sitter_scheduler.mjs
+    // enumerates the phases by matching every returned string literal across
+    // this function, and a phase reaching it through an identifier drops
+    // silently out of the "every phase has a decided tooltip" check. An
+    // assertion there ties this literal back to the exported constant.
+    //
+    // That enumeration reads the SOURCE, comments included, so a comment in this
+    // function that spells out the pattern it matches becomes a phantom phase
+    // with no tooltip and reddens the suite. Writing one is how this paragraph
+    // came to be here.
     if (syncing()) return 'sync-in-progress';
     try {
       if (readsProcfs()) {

@@ -2319,18 +2319,23 @@ Admission is also refused while Zotero is synchronising files, and this refusal
 reads the host application rather than the machine. During a bulk file sync
 every attachment not yet downloaded is genuinely absent from disk, so the census
 classifies a library that is only partly present and reclassifies it minutes
-later; the sitter waits instead, and the window states that it is waiting for
-the sync to finish rather than showing a paused count with no reason beside it.
-The retry is the same flat ten-minute interval every other refusal uses, and a
-finished sync is not otherwise signalled to the sitter, so indexing resumes
-within that interval rather than immediately. Whether the host exposes a
-readable sync state to a bootstrap extension is not established: the property
-the sitter reads has not been observed on a live instance, and a host that does
-not expose it, or exposes it unreadably, is treated as not syncing — the
-behaviour of every version before this refusal existed. Two points are with the
-author on `DECISIONS.md`'s awaiting list (ticket 0795): that the pause covers
-admission whole rather than the census alone, and that an unreadable state
-counts as not syncing.
+later; the sitter waits instead rather than indexing files that are still
+arriving. The refusal is a gate on admission, so it is reached only while
+something is admissible: an attachment whose file has not arrived is not a
+candidate, and a library where the sync is all that is outstanding has nothing
+to admit and reports the ordinary idle state. Where the gate is reached, the
+window states that it is waiting for the sync to finish rather than showing a
+paused count with no reason beside it. The retry is the same flat ten-minute
+interval every other refusal uses, and a finished sync is not otherwise
+signalled to the sitter, so indexing resumes within that interval rather than
+immediately. Whether the host exposes a readable sync state to a bootstrap
+extension is not established: the property the sitter reads has not been
+observed on a live instance, and a host that does not expose it, or exposes it
+unreadably, is treated as not syncing — the behaviour of every version before
+this refusal existed. Three points are with the author on `DECISIONS.md`'s
+awaiting list (ticket 0795): that the pause covers admission whole rather than
+the census alone, that it therefore leaves the all-missing case undisclosed,
+and that an unreadable state counts as not syncing.
 
 The sitter uses Zotero attachment-change notifications to queue affected
 attachments for inspection, coalescing repeated events. It reconciles the library
