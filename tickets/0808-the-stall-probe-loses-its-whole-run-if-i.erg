@@ -1,0 +1,104 @@
+%erg 0.1
+Title: The stall probe loses its whole run if it is stopped
+Created: 2026-09-16
+Author: MinhHaDuong
+
+--- log ---
+2026-09-16T11:08Z MinhHaDuong created
+
+--- body ---
+## Context
+
+`bench/sdt_stall_probe.py` writes its result exactly once, after the sampling
+loop has returned:
+
+```python
+if args.json_out:
+    args.json_out.write_text(text + "\n", encoding="utf-8")
+    print(f"wrote {args.json_out}")
+```
+
+There is no `signal` handler anywhere in the module, and no incremental write.
+A `SIGINT` or `SIGTERM` therefore destroys the entire run — every sample taken
+so far, not merely the remainder.
+
+The loop itself is well behaved and must be preserved: it stops when the
+deadline passes **and** when the target dies (`except ProbeError: break`), which
+is what let the 2026-09-16 AR6 run write its JSON at all. The defect is only in
+what happens when the *operator* stops it.
+
+**No data was actually lost on 2026-09-16.** The probe exited on its own when
+Zotero quit. What the defect cost was different and worth naming precisely: the
+probe had been launched with `--seconds 2400` against a window that turned out
+to be mis-aimed — sampling began twenty seconds after the document settled — and
+it could not be stopped and relaunched, because stopping it would have thrown
+away the samples already taken. An instrument that cannot be interrupted cannot
+be re-aimed, so a long run started on a wrong guess has to be waited out. That
+is the cost, and it is recurring rather than hypothetical: these runs are
+launched against live author activity that cannot be replayed.
+
+## Relevant files
+
+- `bench/sdt_stall_probe.py` — `main()` holds the single write; `sample()` (the
+  `while True` loop with the `ProbeError` break) holds the interruption point.
+- `verification/incidents/0793-2026-09-16-ar6-completed-run.md` — the run that
+  exposed it, and the reason the window matters.
+
+## Actions
+
+1. Install handlers for `SIGINT` and `SIGTERM` that request a stop rather than
+   raising: set a flag the sampling loop checks alongside its deadline, so the
+   loop returns normally and `main()` falls through to its existing summary and
+   write path unchanged.
+2. Keep both existing exits intact — deadline reached, and target died. The
+   new stop is a third reason to leave the loop, not a replacement.
+3. Report the stop reason in the JSON (`_run.stoppedBy`: `deadline`,
+   `processGone`, `signal`) so a partial run is never mistaken for a complete
+   one by a later reader. A truncated window that does not say it was truncated
+   is the same class of defect as an all-clear indistinguishable from "I could
+   not look".
+4. Leave a second signal unhandled: if the operator insists, the default
+   disposition should still kill it. Do not trap so thoroughly that the process
+   becomes unkillable without `SIGKILL`.
+
+## Test
+
+Red first, and the control is the point. Launch the probe against a
+deliberately long-lived target (`sleep 300`) with `--json-out`, wait for at
+least two intervals, send `SIGTERM`, then assert:
+
+- the JSON file exists,
+- it parses,
+- it contains the samples taken before the signal,
+- `_run.stoppedBy == "signal"`.
+
+Run that test against the **unfixed** module first and watch it fail on the
+first assertion — the file must be absent. A test that passes before the fix
+proves nothing about it.
+
+## Verification
+
+- [ ] `grep -n 'signal' bench/sdt_stall_probe.py` returns the handler
+      installation (it returns nothing today — that is the positive control for
+      this box).
+- [ ] The new test fails on the pre-fix module at the "file exists" assertion,
+      and passes after.
+- [ ] A normal completed run still reports `_run.stoppedBy == "deadline"`, and a
+      run whose target dies still reports `processGone`.
+- [ ] `make check-fast` passes.
+
+## Invariants
+
+- The sampling loop's existing exits — deadline, and `ProbeError` when the
+  target dies — keep working unchanged.
+- The summary and band logic (`slowCpuPct`, `intervalsAboveSlow`) is untouched;
+  this ticket moves no threshold and changes no verdict.
+- A partial run must be distinguishable from a complete one by reading the JSON
+  alone, with no reference to how it was launched.
+
+## Exit criteria
+
+- The probe, stopped by a signal after at least two intervals, leaves a valid
+  JSON holding the samples it took and saying it was cut short.
+- The red test above is committed, and its pre-fix failure is recorded in the
+  PR body rather than asserted.
