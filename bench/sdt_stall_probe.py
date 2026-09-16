@@ -232,7 +232,18 @@ def analyse_heartbeats(records, *, item_id=None, quiet_ms=DEFAULT_QUIET_MS,
         at_new, at_old = _ms(newer.get("at")), _ms(older.get("at"))
         if None in (since_new, since_old, at_new, at_old):
             break
-        if since_new - since_old >= (at_new - at_old) - slack_ms:
+        wall = at_new - at_old
+        # A wall clock that steps backward makes the delta rule vacuous. The
+        # right-hand side goes negative, so ANY positive tick age satisfies it
+        # and a beat that did receive a tick is counted as quiet -- which moves
+        # `quietBeats`, `quietSpan` and `corroborated` in the direction of FALSE
+        # corroboration, the one direction this reading must never fail in. The
+        # interval cannot be judged, so it is not judged: this fails toward "I
+        # could not look", like every other unreadable input in this module.
+        # Ticket 0793, found by review and reproduced three rounds running.
+        if wall <= 0:
+            break
+        if since_new - since_old >= wall - slack_ms:
             quiet_beats += 1
         else:
             break

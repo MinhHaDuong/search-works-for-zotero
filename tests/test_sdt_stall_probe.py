@@ -552,3 +552,39 @@ def test_the_committed_incident_still_carries_both_arms():
     beats = [r for r in records() if r.get("kind") == "heartbeat"]
     assert [b["sinceProgressMS"] for b in beats] == [5818, 5200, 52637, 112652, 172724]
     assert [b["progress"] for b in beats] == [69, 88, 90, 90, 90]
+
+
+# --- a wall clock that steps backward must not manufacture corroboration ----
+
+def _three_beats(third_at):
+    """Three beats whose tick ages grow by 100 ms across the last interval.
+
+    Under a forward wall clock that is emphatically NOT quiet: 100 ms of tick
+    age across a 60 s interval means a tick landed. The only variable is where
+    the third beat claims to sit in time.
+    """
+    return [{"at": at, "kind": "heartbeat", "id": 1, "phase": "extracting",
+             "progress": 90, "sinceProgressMS": since}
+            for at, since in ((1000000, 0), (1060000, 60000), (third_at, 60100))]
+
+
+def test_a_backward_wall_step_is_not_read_as_a_quiet_beat():
+    """Ticket 0793, found by review and reproduced three rounds running.
+
+    The delta rule compares tick-age growth against wall-clock growth. When the
+    wall steps BACKWARD the right-hand side goes negative and any positive age
+    growth satisfies it, so a beat that did receive a tick is counted as quiet.
+    That moves quietBeats, quietSpan and corroborated toward FALSE corroboration
+    -- the one direction the corroborating reading must never fail in.
+
+    The two arms are the control: the same tick ages, judged under a wall that
+    steps back 7 s and under one that advances 60 s, must reach the SAME answer,
+    because the tick ages alone already say a tick landed. Before the fix the
+    backward arm answered quiet and the monotonic arm did not.
+    """
+    backward = analyse_heartbeats(_three_beats(1053000))
+    monotonic = analyse_heartbeats(_three_beats(1120000))
+    assert monotonic["quietBeats"] == 0
+    assert backward["quietBeats"] == 0
+    assert backward["quietBeats"] == monotonic["quietBeats"]
+    assert backward["corroborated"] is not True
