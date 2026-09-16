@@ -107,6 +107,65 @@ dominating, and not evidence that it does. Isolating the share is 0679's own
 acceptance work ("count operations while independently scaling blocks and
 bibliography runs"), not something this run settles.
 
+## There is no progress beat in the reference phase, by construction
+
+Read from the shipped worker rather than from the audit's prose
+(`resource/document-worker/worker.js`, Zotero 10.0.2, 168 885 lines). The whole
+SDT extraction path invokes `onProgress` at exactly five sites:
+
+| Line | Emission |
+|---|---|
+| 168567 | `onProgress(0)` |
+| 156406 | `reportPageProgress(onProgress, 0, pageCount)` → 5 |
+| 156542 | `reportPageProgress(…)` in the page loop → up to 90 |
+| 168576 | `onProgress(95)` |
+| 168581 | `onProgress(100)` |
+
+The page loop owns 5 → 90 and nothing else:
+
+```js
+progress = 5 + (85 * pagesProcessed / pageCount);
+```
+
+Every other `onProgress` in the file (86386, 118842, 118876, 119042, 121377,
+123295 …) belongs to PDF.js's network *download* reporter, shape
+`{ loaded, total }` — a different mechanism, not this one. Between the last page
+and `onProgress(95)` there is not one call. The 248 s gap is guaranteed by the
+code, not an accident of this document.
+
+Two facts decide what could be done about it:
+
+1. **The callback is in lexical scope where the silence happens.**
+   `getFullStructure` takes `const onProgress = options.onProgress` and holds it
+   for the whole function; `getStructuredDocumentText` holds its own reporter
+   closure. A beat in the citation/reference stages would be a local change, not
+   a plumbing job.
+2. **The 90–95 band holds four integers, and the reporter dedupes.**
+   `createProgressReporter` does `progress = Math.round(Number(progress))` and
+   `if (progress <= lastProgress) return;`, so a stage cannot beat in place: 91,
+   92, 93, 94 is the entire budget for a 248 s stage. A real heartbeat wants its
+   own message, not the progress channel. Any upstream ask should say this
+   rather than request "more progress events".
+
+The `isReferenceBlock` scan ticket 0679 names is present verbatim in shipped
+10.0.2 — the linear walk over `referenceIndex.runs` precedes the Set lookup, and
+it is called per block:
+
+```js
+function isReferenceBlock(referenceIndex, blockRef) {
+	if (!Array.isArray(blockRef)) return false;
+	for (const run of referenceIndex.runs) {
+		if (blockRef[0] === run.ref[0]) return true;
+	}
+	return referenceIndex.referenceBlocks.has(reference_getBlockRefKey(blockRef));
+}
+```
+
+Note this is the **bundled** artifact, not upstream source: names like
+`reference_getBlockRefKey` and `citation_refs_getWords` carry a bundler's
+per-module prefix. Locating the real upstream file is unfinished work and the
+first blocker for any patch.
+
 ## Consequence for the wedge predicate
 
 A healthy AR6 finalisation is **248 seconds of zero progress at exactly 90**.
