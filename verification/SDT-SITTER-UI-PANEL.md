@@ -212,12 +212,27 @@ control any more:
   rather than by a fix.
 
 **What is owed, and is NOT claimed here.** The replacement has not been read in a
-live window. Two readings belong in this file before ticket 0797's own
-verification list is complete, and both need a human at the machine: what Orca
-announces for the checkbox, in each of its checked/unchecked and
-enabled/disabled combinations; and that the native widget survives a
-forced-colours setting, which is one of the reasons the control is a plain
-platform checkbox with no stylesheet and no ARIA role. Ticket 0792's rendering
-claims were all read from source and none was observed; this pass must not
-repeat that, so nothing above has been amended to describe the new control from
-its source.
+live window. THREE readings belong in this file before ticket 0797's own
+verification list is complete, and all three need a human at the machine:
+
+1. What Orca announces for the checkbox, in each of its checked/unchecked and
+   enabled/disabled combinations.
+2. That the native widget survives a forced-colours setting, which is one of the
+   reasons the control is a plain platform checkbox with no stylesheet and no
+   ARIA role.
+3. **That the removal notice is now SPOKEN, which is new.** Until the review of
+   PR 596 the `vanished` transition reached `sdt-announcer` and was never read:
+   the announcement's identity was computed from the phase, a removal does not
+   change the phase, so `announceSDTTransition` compared it against what it had
+   already announced and stayed silent. The window showed `vanished-message` and
+   the one reader who cannot see the window was told nothing. The fix puts a
+   value on this `aria-live` channel that has never been on it before, and the
+   only claim made from source is that the region is now written. Whether Orca
+   reads a ~60-word sentence usefully, and whether it arrives after
+   `SDT_ANNOUNCE_SETTLE_MS` on a window whose 100 ms pulse the removal has just
+   stopped (ticket 0789's one-shot timer is what should carry it), are readings,
+   not deductions.
+
+Ticket 0792's rendering claims were all read from source and none was observed;
+this pass must not repeat that, so nothing above has been amended to describe
+the new control from its source.
