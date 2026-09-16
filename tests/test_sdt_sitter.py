@@ -1235,8 +1235,15 @@ def test_the_phase_age_is_render_local_and_digit_free_on_the_announcement():
         'the age was stamped on the scheduler after all'
     observe = _site('function observeSDTPhaseAge(dialog, kind, now) {', '\n}')
     assert 'dialog._sdtPhaseSeenAt' in observe, 'the observation is not per window'
-    assert 'kind' in observe, \
-        'the observation is keyed on the phase, so an idle count change resets the age'
+    # NOT `'kind' in observe`. `_site` returns a slice that INCLUDES its start
+    # anchor, and the anchor is the signature, which carries the word `kind` --
+    # so that assertion is true of a gutted function body and says nothing. The
+    # needle has to be something only the body can contain. (The driven half,
+    # which is what actually pins the behaviour, is 'the age survives a count
+    # change but not a phase change' in tests/sdt_sitter_dialog.mjs.)
+    assert 'dialog._sdtPhaseKind !== kind' in observe, \
+        'the observation is keyed on something other than the digits-free kind, ' \
+        'so an idle count change resets the age'
     # The announcement identity stays digits-free, and the age is composed into a
     # node of its own rather than into the line the live region speaks.
     row = _site('function renderSDTPauseRow(dialog, doc, state) {', '\n}')

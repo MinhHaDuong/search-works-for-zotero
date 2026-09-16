@@ -7739,3 +7739,85 @@ ever have failed.
   the gate is in the code and cannot fire, so ratifying these points is not
   urgent — but SPEC.md §5.2.7 now describes the behaviour, and a described
   behaviour with no ruling behind it is what this list exists to hold.
+
+**2026-09-15 — RATIFIED: R22's two clauses are answered by two controls, and
+the sitter remembers nothing.** This SUPERSEDES the 2026-09-08 ratification
+above ("the sitter's own persisted switch becomes R22's 'one obvious way',
+replacing add-on disable") and, with it, ticket 0742's design. Ticket 0797
+carries the implementation; the author ruled in three messages, quoted verbatim
+because the third discards the mechanism the first two were arguing about.
+
+**The widget, and the label.** Asked whether a ticket existed for the on/off
+button and shown ticket 0792's deferred section:
+
+> J'en ai marre du bouton. C'est un checkbox "Pause indexing". Qui commence
+> checked, et devient contrôlable quand l'indexing peut être lancé (boot wait,
+> sync). Quand il est auto-checked, ça dit pourquoi. Quand il est unchecked, ça
+> dit la phase.
+
+So the widget is a checkbox and the label is a STATE, not an action. Two of
+0792's own conclusions are corrected rather than confirmed: Pause/Play was
+rejected there and is now the author's chosen word, which turns "extraction
+cannot be paused once a file has started" from a veto into a constraint on one
+string; and 0792's recommended `role="switch"` is DROPPED, because a control
+labelled "Pause indexing" is a checkbox and saying so is free.
+
+**The persistence.** Put the two readings the ticket had derived — the pref
+survives and the box reflects it, or the box starts checked every session — he
+answered with a third:
+
+> Je préfère ne pas avoir d'état donc aucune préférence mémorisée. D'ailleurs
+> ce n'est marqué nulle part "Préférence mémorisée". On commence allumé dès que
+> possible.
+
+So there is no remembered answer at all. The box is checked and inert while
+indexing cannot be launched; the moment it can be, indexing STARTS, unasked;
+checking the box pauses for that session only. His second sentence was checked
+rather than accepted, and the exception argues for the ruling: exactly one
+string claimed persistence, `launch-details` ("This answer is remembered."),
+and it lived in a modal shown at most once per profile and deliberately never
+seen again — the only statement of the memory sat on the one surface designed
+never to return, while the window the user actually consults said nothing.
+
+**The consequence, and the reason this entry supersedes rather than amends.**
+A session-scoped pause contradicts R22's second clause in as many words: the
+stop "MUST hold across restarts", because work that resumes after a reboot "was
+never stopped, only interrupted". Shown that, he answered:
+
+> Zotero a un bouton pour désactiver un plugin.
+
+That resolves it better than weakening the requirement, and **R22 is not
+weakened**. Its two clauses are answered by two controls, one of them the
+host's: the checkbox is the pause, for this session, one click in the window the
+user already has open; Zotero's own add-on disable is the stop that lasts, by
+construction, and re-implementing a durable stop beside it was the plugin
+storing state the host already stores.
+
+**What this costs, stated rather than dropped.** Ticket 0742 considered add-on
+disable for exactly this role and rejected it, and the reasons are still TRUE:
+it lives four clicks away in Tools → Add-ons, and it removes the very window
+that would have shown the sitter stopped. What changed is their weight. They
+were fatal while disable was the ONLY durable stop and the routine need — quiet
+it, now — had to travel through it. With a one-click pause in the window,
+reaching for the durable stop becomes a rare, deliberate act; a rare deliberate
+act may cost four clicks, and taking the window with it is the correct
+behaviour for someone who meant to stop indexing for good.
+
+**Scope, so a later reader knows what moved.** SPEC.md's R22 requirement text
+is untouched. Its sitter passage is rewritten, including the sentence that is
+the exact inverse of this ruling ("Zotero's plugin disable control … is no
+longer R22's control for the sitter"), the once-per-profile paragraph, the
+first-run-question paragraph, and both removal-consent paragraphs — the
+2026-09-12/13 rulings on ticket 0772 that had an uninstall withdraw the launch
+answer. Those are not overruled on their merits; they governed a consent record
+that no longer exists, and there is nothing left for a removal to withdraw.
+`extensions.sdt-pack-sitter.enabled` is cleared on startup rather than left
+unread, and comes off SPEC's residue inventory.
+
+**One safety property was dissolved deliberately, and it is recorded here so it
+is a decision rather than an oversight.** `readSDTSwitch`'s tri-state returned
+`null` for an UNREADABLE preference as well as an unanswered one, so a machine
+whose answer could not be read asked rather than indexing silently. Under this
+ruling indexing unasked is the intended default, so the guard has nothing left
+to protect. Nothing else about admission, thresholds, or what gets extracted
+changes.

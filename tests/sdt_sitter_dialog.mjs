@@ -1131,6 +1131,56 @@ test('the age is measured per window, from what that window last saw', () => {
   atPhase('ready');
 });
 
+/* The keying, driven. `observeSDTPhaseAge` is keyed on the announcement KIND and
+   not on the rendered line, so an idle count moving from one figure to another
+   must not reset an age that has been accumulating -- which is exactly the
+   reading the author wanted, since a window that has been saying the same thing
+   for eight minutes is the finding.
+
+   This arm exists because the source-level assertion in tests/test_sdt_sitter.py
+   cannot reach it: `_site` includes its own start anchor, the anchor is the
+   signature, and the signature carries the word `kind`. Keying the call site on
+   `control.line` instead passed all three node suites before this arm was
+   written. */
+test('the age survives a count change but not a phase change', () => {
+  const age = () => doc.getElementById('sdt-switch-age').textContent;
+  const counts = sitter.state.counts;
+  const saved = { ...counts };
+  const totals = { total: sitter.state.total, scanned: sitter.state.scanned,
+    phase: sitter.state.phase, snapshot: sitter.state.censusSnapshot };
+  const at = next => {
+    for (const key of Object.keys(counts)) delete counts[key];
+    Object.assign(counts, next);
+    sitter.state.phase = 'waiting';
+    sitter.state.total = Object.values(next).reduce((a, b) => a + b, 0);
+    sitter.state.scanned = sitter.state.total;
+    sitter.state.censusSnapshot = null;
+    ui.render();
+  };
+
+  at({ current: 2, 'missing-pack': 1 });
+  assert.equal(age(), '', 'a line just seen already reports an age');
+  dialog._sdtPhaseSeenAt -= 7 * 60000;
+  ui.render();
+  assert.equal(age(), 'unchanged for 7 min');
+  // The count moves; the SENTENCE moves with it, and the age must not.
+  const before = pauseLine().textContent;
+  at({ current: 2, 'missing-pack': 5 });
+  assert.notEqual(pauseLine().textContent, before,
+    'the count did not move, so this arm would prove nothing');
+  assert.equal(age(), 'unchanged for 7 min',
+    'a moving count reset an age that had been accumulating');
+  // A real change of state does reset it.
+  atPhase('census');
+  assert.equal(age(), '', 'the age survived the state it was measured over');
+
+  for (const key of Object.keys(counts)) delete counts[key];
+  Object.assign(counts, saved);
+  sitter.state.total = totals.total; sitter.state.scanned = totals.scanned;
+  sitter.state.phase = totals.phase; sitter.state.censusSnapshot = totals.snapshot;
+  ui.render();
+});
+
 test('the announcement kind stays digits-free while a count moves', () => {
   const counts = sitter.state.counts;
   const saved = { ...counts };
