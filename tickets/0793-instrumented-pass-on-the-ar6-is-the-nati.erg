@@ -81,7 +81,7 @@ Start Zotero on `~/data/Zotero-fresh` with the sitter installed and the AR6
 (`storage/AI6DJUTA/`, 3 949 pages, 242 MB) in the queue, note its PID, and from a
 second terminal run
 `python3 bench/sdt_stall_probe.py --pid <PID> --seconds 2400 --interval 5
---version 0.4.17 --zotero 10.0.2 --json-out verification/incidents/0793-<date>-ar6-run.json`,
+--version 0.4.20 --zotero 10.0.2 --json-out verification/incidents/0793-<date>-ar6-run.json`,
 then leave the window alone — do **not** throw the switch, do **not** uninstall
 — until the sampler exits, which is at least thirty minutes past the moment the
 progress bar stops moving. Quit Zotero normally afterwards, copy
