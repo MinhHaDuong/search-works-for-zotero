@@ -380,6 +380,60 @@ The questions we could not answer from outside, in the order they cost us most:
    the sitter cannot bound `ensure()`; the only move available to it is to
    announce the plateau, which is what 0793's exit criteria were corrected to
    say.
+
+   **The platform half is now settled, against the shipped 10.0.2**
+   (`~/.local/Zotero_linux-x86_64/app/omni.ja`, BuildID 20260909184950), read
+   on 2026-09-16. No affordance exists, and the obvious workaround is worse
+   than doing nothing.
+
+   `Zotero.SDT.ensure()`'s whole option surface is `isPriority` and
+   `onProgress`; `setTimeout`, `Promise.race`, `AbortController` and
+   `AbortSignal` appear zero times in `sdt.js` and `pdfWorker/manager.js`. The
+   worker's dispatcher accepts twelve actions and none of them cancels. The
+   `isPriority` note above is confirmed rather than assumed: `_processQueue`
+   has already shifted the running item off `_queue` before awaiting it, so
+   priority can only reorder jobs that have not started. And extraction runs
+   inside the worker's single `self.onmessage`, with the block-seg ONNX models
+   executing as WASM on that same thread because `manager.js` never sets
+   `nativeONNX` — so a cancel message could not be dequeued by the thread that
+   would have to act on it, even if one existed.
+
+   `Zotero.PDFWorker._worker.terminate()` IS reachable — plugins get a
+   system-principal sandbox with `Worker` injected, and `PDFWorker` is a plain
+   instance with plain underscore fields. It must not be used. The parked
+   promise settles only from the `message` listener (the `error` listener just
+   logs), so it never settles; `_processingQueue` therefore never returns to
+   `false`, and the queue never drains again for the life of the process —
+   the same queue full-text indexing, annotation import and the recognizer all
+   share. One stuck job becomes a stuck queue. The cache is safe either way:
+   the pack is written atomically in the parent, after the bytes return.
+
+   There is no watchdog anywhere in the worker path. `fulltext.js`'s stall
+   detector (three non-decreasing passes, 1 s apart) watches database queue
+   counts and sits one frame above a hang it cannot observe: its `maxTime` is a
+   slice budget checked BETWEEN items, never evaluated if the worker hangs
+   under the await, which also strands `_indexingInProgress` at true.
+
+   The strongest evidence that this is an omission rather than a design is at
+   `pdfWorker/manager.js`, where upstream wrote worker recycling at the right
+   hook point and shipped it commented out: `this._processingQueue = false;`
+   followed by `// this._worker.terminate();` and `// this._worker = null;`.
+
+   So detection is supported and intervention is not: `onProgress` is strictly
+   monotonic, so "stopped progressing" is measurable to the tick, with nothing
+   to do about it. **What an upstream request would have to ask for**, in one
+   sentence: an abort signal threaded from `ensure()` through `_enqueue`/
+   `_query` into the worker's extraction loop, plus a supervisor that on abort,
+   worker error or a per-job deadline rejects every parked promise, resets
+   `_processingQueue` and recycles the worker — that is, uncomment those two
+   lines and give the recycle a policy. Not filed: the author owns anything
+   sent upstream in his name, and 0793's run decides whether the case is a
+   wedge at all.
+
+   One thing the source read could NOT settle: whether Gecko's `terminate()`
+   preempts a worker blocked inside a long synchronous WASM call, or only takes
+   effect at the next interrupt point. That is a platform question and needs an
+   experiment, not more reading.
 5. Is the singleton serial worker meant to stay one as per-document cost rises,
    and if a bounded pool were considered, which invariants would it have to keep?
 6. Should the several indexing consumers share one resource budget rather than
