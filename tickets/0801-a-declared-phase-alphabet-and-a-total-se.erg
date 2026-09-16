@@ -6,6 +6,7 @@ Author: MinhHaDuong
 --- log ---
 2026-09-16T00:00Z MinhHaDuong created
 
+2026-09-16T05:59Z Decided the tick-versus-everywhere question in the body rather than leaving it to the implementer, on the author's ruling of this date. Transitions are requested everywhere, applied at once, and checked at the centre. The reasoning is that a tick-only model requires the state to be observable and half of this state is positional -- extracting is true because we called ensure(), census because control is inside that loop, and nothing outside the control flow can rediscover where the program is. Deferring also breaks on the fact that the assignment currently carries control flow: state.phase = admissionReason followed by publish() and break is one gesture, so a deferred application leaves the decision to leave the loop still to be taken on the spot, which is a second mechanism doing the first one's job. And what a tick would buy -- one place where a transition happens, hence one place where the relation is checked -- is exactly what the total setPhase already buys, without latency, without flapping, and without requiring the world to be re-observable. The one honest reservation is recorded with it: the reason axis IS observable and nothing re-examines low-disk until the next sweep, but that tick already exists as the sweep and a second cadence would cost the periodic-cost-while-idle that 0795 and 0701 both forbid.
 --- body ---
 
 ## Context
@@ -103,6 +104,44 @@ review refuted. If, on contact with the code, it turns out the host must be
 free to invent reasons at runtime, then the honest outcome is a **partial**
 relation: edges declared for the closed part, an explicitly wildcarded edge for
 reasons, and the wildcard named as a gap rather than passed off as coverage.
+
+## Decided: requested everywhere, applied at once, checked at the centre
+
+The author asked whether transitions should happen only at a tick or be
+requested from everywhere. It is decided here rather than left open, because an
+implementer who meets the question cold will settle it the other way.
+
+**A tick-only model requires the state to be observable, and half of this state
+is not.** `extracting` is true because we called `ensure()`; `census` because
+control is inside that loop. Those are facts about where the program is, not
+about the world, and nothing outside the control flow can rediscover them. The
+positional phases must be requested from the site that knows the position,
+because no other site does.
+
+**The assignment also carries control flow today**, which is where a deferred
+model breaks. `state.phase = admissionReason; publish(); break;` is one gesture:
+the phase and the decision to leave the loop. Defer the application to a tick
+and the decision to leave must still be taken on the spot — two mechanisms
+where there was one, and the second is a new assignment by another name.
+
+**What a tick would buy is already bought.** Its real prize is one place where
+a transition actually happens, hence one place where the relation is checked.
+`setPhase` gives exactly that, without a tick's latency, without flapping, and
+without requiring the world to be re-observable. The defect was never that
+transitions happened at the wrong moment; it was that they were checked
+nowhere.
+
+So: **sites keep the initiative, because only they know; `setPhase` keeps the
+refusal, because only it knows the alphabet and the relation.**
+
+One honest reservation, and it is the only place the question bites. The reason
+axis IS observable, and while the sitter sits on `low-disk` nothing re-examines
+it until the next sweep — a tick would notice the disk freed. But that tick
+exists: it is the sweep, and `nextSweepDelayMS` schedules it for precisely this.
+A second cadence would cost the periodic-cost-while-idle that 0795's invariants
+and 0701 both forbid. If an implementer believes the sweep's cadence is too
+coarse for some reason, that is a change to `nextSweepDelayMS`, not a new
+clock.
 
 ## What this ticket does NOT claim
 
