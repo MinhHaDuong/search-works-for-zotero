@@ -7,6 +7,7 @@ Author: MinhHaDuong
 2026-09-16T00:00Z MinhHaDuong created
 
 2026-09-16T05:59Z Decided the tick-versus-everywhere question in the body rather than leaving it to the implementer, on the author's ruling of this date. Transitions are requested everywhere, applied at once, and checked at the centre. The reasoning is that a tick-only model requires the state to be observable and half of this state is positional -- extracting is true because we called ensure(), census because control is inside that loop, and nothing outside the control flow can rediscover where the program is. Deferring also breaks on the fact that the assignment currently carries control flow: state.phase = admissionReason followed by publish() and break is one gesture, so a deferred application leaves the decision to leave the loop still to be taken on the spot, which is a second mechanism doing the first one's job. And what a tick would buy -- one place where a transition happens, hence one place where the relation is checked -- is exactly what the total setPhase already buys, without latency, without flapping, and without requiring the world to be re-observable. The one honest reservation is recorded with it: the reason axis IS observable and nothing re-examines low-disk until the next sweep, but that tick already exists as the sweep and a second cadence would cost the periodic-cost-while-idle that 0795 and 0701 both forbid.
+2026-09-16T06:06Z TWO LEVELS, on the author's reading, and it reshapes this ticket rather than adding to it. Outer -- RUNNING, PAUSED, HELD, BLOCKED, ERROR, ENDING, VANISHED -- and inner -- census, draining, extracting, idle -- each closed. The decisive consequence: the open set stops being states. low-disk, cpu-busy, storage-unavailable and resources-unavailable become the reason carried by the single outer state BLOCKED, so the host's freely-invented vocabulary is a payload rather than an alphabet member, and the scheduler can be exhaustive over its own states without learning bootstrap.js's words. That dissolves the Fable review's objection to a transition graph at its root instead of by the argument this ticket first made against it. HELD and BLOCKED stay distinct on a criterion the author's own checkbox ruling already drew: BLOCKED is cannot, still trying and prevented, hence unchecked and interactive; HELD is could-but-should-not, withdrawn by decision, hence auto-checked and inert. Two findings verified in source rather than assumed: 'disabled' is a teardown transient only, since blocked() returns it when !alive and alive is cleared in shutdown(), so nothing sits in it; and removal ALREADY exists outside the alphabet as removalNoticed, set by checkSDTStillInstalled() and overriding every other reading at render. The strongest argument for the hierarchy is that it is description and not invention -- the code has been forced to grow the second level twice already, once as removalNoticed and once as switched-off occupying a phase slot while toggleSDTSwitch reads it as the switch's polarity. And the flat variable forces a choice between two simultaneously true facts: during a sync beginning mid-document the sitter is held outside and extracting inside, which is why a review warned that writing syncing while state.active is non-null would name a state the machine is not in, and which makes 0797's awkward 'checked, a document still in flight' row simply the combination HELD x extracting.
 --- body ---
 
 ## Context
@@ -49,6 +50,71 @@ deliberate `null` that `ready` and `waiting` carry), and whether it is
 `SDT_PHASE_LABELS` and `SDT_BLOCKED_PHASES` stop being hand-maintained lists
 and become projections of it. That alone makes the `native-worker-busy` class
 of misfiling impossible rather than merely absent.
+
+### 1b. The alphabet is two closed alphabets, not one open list
+
+The author's reading, and it is what makes the rest tractable. The states are
+two levels, and each level is **closed**:
+
+**Outer — is it working?** `RUNNING`, `PAUSED`, `HELD`, `BLOCKED`, `ERROR`,
+`ENDING`, `VANISHED`. Seven, complete, because the question they answer is
+binary refined rather than open.
+
+**Inner — what is it doing?** `census`, `draining`, `extracting`, `idle`. Four,
+meaningful only under `RUNNING`.
+
+**The open set stops being states.** `low-disk`, `cpu-busy`,
+`storage-unavailable`, `resources-unavailable` are not phases: they are the
+*reason* carried by the single outer state `BLOCKED`. The vocabulary the host
+is free to invent becomes a payload, not a member of the alphabet — so the
+scheduler can be exhaustive over its own states without ever learning
+`bootstrap.js`'s words. That dissolves the decorrelated review's objection to a
+transition graph at the root, rather than by the argument this ticket first
+offered against it.
+
+**HELD and BLOCKED are not the same, and the author's own ruling drew the
+line.** `BLOCKED` is *cannot*: it is trying and prevented. `HELD` is *could,
+but should not*: during a file sync the work is possible and would be wasted,
+so the sitter withdraws by decision. That is the same frontier as 0797's
+checkbox rule — `HELD` is auto-checked and inert because the sitter has left
+the field, `BLOCKED` stays unchecked and interactive because it is still trying
+and failing.
+
+**`ENDING` is a teardown transient, not a resting state.** `blocked()` returns
+`'disabled'` when `!alive`, and `alive` is set false in `shutdown()`, so the
+value exists only in the window between teardown starting and the pump noticing
+at its next gate. Modelling it as a state the sitter sits in would be false.
+
+**`VANISHED` already exists, outside the alphabet.** Removal is carried by
+`removalNoticed`, a module variable set by `checkSDTStillInstalled()`, and it
+already overrides every other reading at render:
+`removalNoticed ? sdtText('vanished-message') : describeSDTSwitchLine(s)`.
+
+### 1c. The evidence that this is description, not invention
+
+**The code has already been forced to grow the second level twice**, each time
+because an outer-level fact would not fit in the flat variable:
+
+- `removalNoticed` — a separate boolean that wins over the phase at display.
+- `switched-off` — occupies a phase slot while being read as the switch's
+  polarity by `toggleSDTSwitch` (`turningOn = phase === 'switched-off'`), which
+  is control state wearing a phase's clothes.
+
+And the flat variable forces a choice between two facts that are both true.
+During a sync that begins mid-document the sitter is **held** on the outside and
+**extracting** on the inside; one slot can hold only one of them. That is
+exactly why a decorrelated review warned that writing `syncing` while
+`state.active !== null` would have the window name a state the machine is not
+in. Two levels have no such conflict, and 0797's awkward table row "checked, a
+document still in flight" stops being a special case: it is the combination
+`HELD` × `extracting`. The checkbox reads the outer level; the line beside it
+reads the inner one — which is the structure that table already had, without
+the code carrying it.
+
+**What it costs** is the one-way door this ticket already names: the journal's
+`phase` goes from one field to two, and every incident JSON under
+`verification/incidents/` is read against the old shape. That is the real
+arbitration, not the difficulty of the code.
 
 ### 2. A total `setPhase`
 
