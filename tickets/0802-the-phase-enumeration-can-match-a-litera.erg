@@ -1,0 +1,81 @@
+%erg 0.1
+Title: The phase enumeration can match a literal inside a comment
+Created: 2026-09-16
+Author: MinhHaDuong
+
+--- log ---
+2026-09-16T06:00Z MinhHaDuong created
+
+--- body ---
+
+## Context
+
+Asked for by review round 2 of PR 592 and never filed; `/verify-gate` round 1
+caught the omission. Filed here so the finding is not lost with the branch.
+
+`tests/sdt_sitter_scheduler.mjs` does not read the phase set from a
+declaration — none exists — so it discovers it by regular expression over the
+source of `scheduler.js` and `bootstrap.js`, and guards the result with a
+`phases.size >= 12` floor.
+
+A regex over source cannot tell code from prose. A phase name written inside a
+comment is matched exactly as a phase name written in an assignment, so the
+enumeration can count a string that no code path can ever produce, and the
+floor is satisfied by the wrong thing.
+
+## Why it is worth a ticket rather than a shrug
+
+The failure is silent and it is in the *auditing* layer, which is the layer
+whose whole job is to be noisy. A test that over-counts passes; the floor was
+put there precisely to catch an under-count, so nothing is watching the other
+direction.
+
+It also compounds: PR 592 had to repair this regex once already, because
+0795's computed phase key silently dropped out of a pattern that expected
+quoted keys. Two defects in one enumeration in one branch is a shape, not an
+accident.
+
+## Relationship to ticket 0801
+
+0801 replaces the enumeration with a declared alphabet, which removes the class
+entirely. **This ticket is not a substitute for it and must not be used as
+one.** It is the narrow repair for as long as the scrape is what the suite
+relies on — and 0801 itself names this regex as something that must be
+re-verified with a positive control before it is trusted, because a `setPhase`
+funnel silently empties two of its three extractors.
+
+If 0801 lands first, close this as superseded rather than implementing it.
+
+## Relevant files
+
+- `tests/sdt_sitter_scheduler.mjs` — the three extractors and the
+  `phases.size >= 12` floor.
+- `plugins/sdt-sitter/scheduler.js`, `plugins/sdt-sitter/bootstrap.js` — the
+  scraped sources; every phase name in a comment in either is a false match
+  waiting to happen.
+
+## Test
+
+Red first, and the control is the whole point: add a comment containing a
+plausible phase-name literal that no code produces, and assert the enumeration
+does **not** count it. Against today's extractors that assertion fails, which
+is the red step. Then assert the floor still fires when a real phase is
+removed, so the repair has not simply made the test blind in the other
+direction.
+
+## Verification
+
+- [ ] The comment-literal assertion fails before the fix, with the output recorded
+- [ ] The floor still fails when a genuine phase is deleted — run it, do not assume
+- [ ] `make check` green
+
+## Invariants
+
+- The enumeration keeps failing when a phase is added without a label, which is
+  what it exists for.
+
+## Exit criteria
+
+A phase name appearing only in a comment is not counted, and both directions of
+the enumeration — over-count and under-count — have an assertion that has been
+seen to fail.

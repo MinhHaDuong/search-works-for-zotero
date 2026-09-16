@@ -3393,9 +3393,12 @@ async function initialize(rootURI, token, era = shutdowns) {
   /* Ticket 0795. THE ONE LINE IN THIS FILE THAT HAS NEVER BEEN MEASURED, and
      everything the pending live reading can change is inside this body.
 
-     `Zotero.Sync.Runner.syncInProgress` is a CANDIDATE property path. Nobody has
-     read it from a live Zotero window, in either arm, and until somebody does it
-     is not known whether it exists, whether it is truthy during a bulk file sync,
+     `Zotero.Sync.Runner.syncInProgress` is a CANDIDATE property path. That the
+     path EXISTS is not the open part: `bench/zotero-fulltext-plugin/bootstrap.js`
+     takes `Zotero.Sync.Runner` and reads `.syncInProgress` off it, so somebody
+     writing against Zotero believed in it. Nothing in this repository exercises
+     that plugin, though, so no VALUE has been observed. What stays unmeasured is
+     therefore the part that decides: whether it is truthy during a bulk file sync,
      or — the failure mode that matters most — whether it reads the SAME in both
      states, which would disqualify it outright rather than being a result to
      work around. The ticket carries the two-armed experiment and the decision

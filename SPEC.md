@@ -2332,10 +2332,11 @@ immediately. Whether the host exposes a readable sync state to a bootstrap
 extension is not established: the property the sitter reads has not been
 observed on a live instance, and a host that does not expose it, or exposes it
 unreadably, is treated as not syncing — the behaviour of every version before
-this refusal existed. Three points are with the author on `DECISIONS.md`'s
+this refusal existed. Two points are with the author on `DECISIONS.md`'s
 awaiting list (ticket 0795): that the pause covers admission whole rather than
-the census alone, that it therefore leaves the all-missing case undisclosed,
-and that an unreadable state counts as not syncing.
+the census alone — which is the same decision as leaving the all-missing case
+undisclosed, and not a second one, since closing that gap requires pausing the
+census — and that an unreadable state counts as not syncing.
 
 The sitter uses Zotero attachment-change notifications to queue affected
 attachments for inspection, coalescing repeated events. It reconciles the library
