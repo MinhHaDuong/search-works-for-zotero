@@ -1,0 +1,27 @@
+{
+  "_note": "Journal tail captured by the author from a live 0.4.26 run, AR6 (Climate Change 2021), 2026-09-16. The `notIndexed` census the same journal carried is omitted here: it is library state, not evidence for this ticket.",
+  "version": "0.4.26",
+  "zoteroVersion": "10.0.2",
+  "nativeVersions": {
+    "SDT_SCHEMA_VERSION": "1.2.0",
+    "SDT_PACK_VERSION": 1,
+    "SDT_PROCESSOR_VERSIONS": { "pdf": 14, "epub": 2, "snapshot": 1 }
+  },
+  "records": [
+    { "at": 1789554963799, "kind": "heartbeat", "id": 11940, "phase": "extracting", "progress": 76, "elapsedMS": 161611, "sinceProgressMS": 852, "pending": 10494 },
+    { "at": 1789555012700, "kind": "progress", "id": 11940, "progress": 89 },
+    { "at": 1789555014377, "kind": "progress", "id": 11940, "progress": 90 },
+    { "at": 1789555023819, "kind": "heartbeat", "id": 11940, "phase": "extracting", "progress": 90, "elapsedMS": 221631, "sinceProgressMS": 9442, "pending": 10494 },
+    { "at": 1789555083819, "kind": "heartbeat", "id": 11940, "phase": "extracting", "progress": 90, "elapsedMS": 281631, "sinceProgressMS": 69442, "pending": 10494 },
+    { "at": 1789555143882, "kind": "heartbeat", "id": 11940, "phase": "extracting", "progress": 90, "elapsedMS": 341694, "sinceProgressMS": 129505, "pending": 10494 },
+    { "at": 1789555203883, "kind": "heartbeat", "id": 11940, "phase": "extracting", "progress": 90, "elapsedMS": 401695, "sinceProgressMS": 189506, "pending": 10494 },
+    { "at": 1789555262807, "kind": "progress", "id": 11940, "progress": 95 },
+    { "at": 1789555263960, "kind": "heartbeat", "id": 11940, "phase": "extracting", "progress": 95, "elapsedMS": 461772, "sinceProgressMS": 1153, "pending": 10494 },
+    { "at": 1789555272919, "kind": "progress", "id": 11940, "progress": 100 },
+    { "at": 1789555273011, "kind": "settle", "id": 11940, "ok": true, "ms": 469472 },
+    { "at": 1789555273056, "kind": "drain-start", "pending": 281 },
+    { "at": 1789555279037, "kind": "drain-end", "drained": 5, "pending": 276 },
+    { "at": 1789555279083, "kind": "admit", "id": 11941, "sourceBytes": 590183, "pages": null },
+    { "at": 1789555279283, "kind": "settle", "id": 11941, "ok": true, "ms": 168 }
+  ]
+}

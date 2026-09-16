@@ -1,0 +1,506 @@
+{
+  "ok": true,
+  "phases": {
+    "sampling": {
+      "pid": 3859611,
+      "requestedSeconds": 2400.0,
+      "intervalS": 5.0,
+      "intervals": 33,
+      "windowS": 165.17510450491682,
+      "overall": {
+        "elapsedS": 165.17510450491682,
+        "processPercent": 71.07003222541059,
+        "rssBytes": 1280704512,
+        "rssDeltaBytes": -3796000768,
+        "readBytes": 3878912,
+        "rcharBytes": 81532778
+      },
+      "overallTopThread": {
+        "tid": 3859611,
+        "comm": "zotero-bin",
+        "percent": 49.432388884954214,
+        "bornInWindow": false,
+        "readBytes": 3878912,
+        "rcharBytes": 53508179
+      },
+      "threadsExitedInWindow": 3,
+      "maxProcessPercent": 150.06304211017354,
+      "minProcessPercent": 0.0,
+      "maxTopThreadPercent": 99.09313835486638,
+      "intervalsAboveSlow": 18,
+      "slowCpuPct": 10.0,
+      "perInterval": [
+        {
+          "elapsedS": 5.005759199848399,
+          "processPercent": 131.84813205157536,
+          "rssBytes": 4796239872,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 60.13073901140028,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 102654
+          }
+        },
+        {
+          "elapsedS": 5.004563345108181,
+          "processPercent": 150.06304211017354,
+          "rssBytes": 1763028992,
+          "readBytes": 315392,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 96.71173419617043,
+            "bornInWindow": false,
+            "readBytes": 315392,
+            "rcharBytes": 1359827
+          }
+        },
+        {
+          "elapsedS": 5.00520919309929,
+          "processPercent": 143.85013137765912,
+          "rssBytes": 1701048320,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 90.50570765844385,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 1920533
+          }
+        },
+        {
+          "elapsedS": 5.0056989069562405,
+          "processPercent": 129.05290789709244,
+          "rssBytes": 1526263808,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 98.8872901069052,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 179322
+          }
+        },
+        {
+          "elapsedS": 5.005760221974924,
+          "processPercent": 133.44626397955068,
+          "rssBytes": 1641324544,
+          "readBytes": 978944,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 92.49344344690414,
+            "bornInWindow": false,
+            "readBytes": 978944,
+            "rcharBytes": 2219978
+          }
+        },
+        {
+          "elapsedS": 5.006460990989581,
+          "processPercent": 128.4340377678453,
+          "rssBytes": 1611268096,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 99.07197936679823,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 1786163
+          }
+        },
+        {
+          "elapsedS": 5.005603120895103,
+          "processPercent": 136.04754183512324,
+          "rssBytes": 1719123968,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 94.89365987031357,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 31005574
+          }
+        },
+        {
+          "elapsedS": 5.005794780096039,
+          "processPercent": 131.84719489985514,
+          "rssBytes": 1622261760,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 98.88539617489135,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 936158
+          }
+        },
+        {
+          "elapsedS": 5.00507624889724,
+          "processPercent": 131.86612294776063,
+          "rssBytes": 1600978944,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 96.10243202708008,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 171028
+          }
+        },
+        {
+          "elapsedS": 5.004925534129143,
+          "processPercent": 129.67225897256552,
+          "rssBytes": 1579372544,
+          "readBytes": 262144,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 98.90257040280422,
+            "bornInWindow": false,
+            "readBytes": 262144,
+            "rcharBytes": 895610
+          }
+        },
+        {
+          "elapsedS": 5.005060032941401,
+          "processPercent": 137.06129306841657,
+          "rssBytes": 1711087616,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 93.90496755416295,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 2044390
+          }
+        },
+        {
+          "elapsedS": 5.00539198005572,
+          "processPercent": 127.8621140062792,
+          "rssBytes": 1577259008,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 99.09313835486638,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 4418769
+          }
+        },
+        {
+          "elapsedS": 5.005241523962468,
+          "processPercent": 138.65464766834776,
+          "rssBytes": 1798426624,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 91.90365695596537,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 171473
+          }
+        },
+        {
+          "elapsedS": 5.005020637065172,
+          "processPercent": 132.86658501970544,
+          "rssBytes": 1659670528,
+          "readBytes": 245760,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 98.30129297698508,
+            "bornInWindow": false,
+            "readBytes": 245760,
+            "rcharBytes": 1181258
+          }
+        },
+        {
+          "elapsedS": 5.005059033865109,
+          "processPercent": 131.0673851320012,
+          "rssBytes": 1547620352,
+          "readBytes": 319488,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 98.5003366921899,
+            "bornInWindow": false,
+            "readBytes": 319488,
+            "rcharBytes": 1239015
+          }
+        },
+        {
+          "elapsedS": 5.006577778141946,
+          "processPercent": 147.4060791029773,
+          "rssBytes": 1762697216,
+          "readBytes": 1757184,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 87.48490873591336,
+            "bornInWindow": false,
+            "readBytes": 1757184,
+            "rcharBytes": 3651489
+          }
+        },
+        {
+          "elapsedS": 5.005178786814213,
+          "processPercent": 125.47004347865081,
+          "rssBytes": 1516146688,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 93.30336035753173,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 181623
+          }
+        },
+        {
+          "elapsedS": 5.005019586067647,
+          "processPercent": 1.598395343400735,
+          "rssBytes": 1518886912,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 0.7991976717003675,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 183
+          }
+        },
+        {
+          "elapsedS": 5.005358793074265,
+          "processPercent": 48.1483965412156,
+          "rssBytes": 1603047424,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 36.56081563088155,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 42823
+          }
+        },
+        {
+          "elapsedS": 5.005304486025125,
+          "processPercent": 4.994701135525386,
+          "rssBytes": 1450496000,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 3.3963967721572628,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 204
+          }
+        },
+        {
+          "elapsedS": 5.004814375890419,
+          "processPercent": 3.996152204234698,
+          "rssBytes": 1284554752,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859716,
+            "comm": "TaskCon~ller #0",
+            "percent": 1.5984608816938792,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 0
+          }
+        },
+        {
+          "elapsedS": 5.005155722144991,
+          "processPercent": 0.0,
+          "rssBytes": 1284554752,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 0.0,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 0
+          }
+        },
+        {
+          "elapsedS": 5.004940507933497,
+          "processPercent": 0.0,
+          "rssBytes": 1282490368,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 0.19980257475885416,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 17
+          }
+        },
+        {
+          "elapsedS": 5.004745102953166,
+          "processPercent": 0.0,
+          "rssBytes": 1282490368,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 0.0,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 0
+          }
+        },
+        {
+          "elapsedS": 5.005277578951791,
+          "processPercent": 0.0,
+          "rssBytes": 1281433600,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 0.0,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 14
+          }
+        },
+        {
+          "elapsedS": 5.0046994430013,
+          "processPercent": 0.0,
+          "rssBytes": 1280909312,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 0.0,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 16
+          }
+        },
+        {
+          "elapsedS": 5.00512140407227,
+          "processPercent": 0.0,
+          "rssBytes": 1280647168,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 0.0,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 7
+          }
+        },
+        {
+          "elapsedS": 5.004896701080725,
+          "processPercent": 0.0,
+          "rssBytes": 1280647168,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 0.0,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 0
+          }
+        },
+        {
+          "elapsedS": 5.005354784894735,
+          "processPercent": 0.0,
+          "rssBytes": 1280647168,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 0.0,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 0
+          }
+        },
+        {
+          "elapsedS": 5.005640164017677,
+          "processPercent": 0.0,
+          "rssBytes": 1280647168,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 0.0,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 2
+          }
+        },
+        {
+          "elapsedS": 5.005334533052519,
+          "processPercent": 0.0,
+          "rssBytes": 1280647168,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 0.0,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 0
+          }
+        },
+        {
+          "elapsedS": 5.0055804119911045,
+          "processPercent": 0.0,
+          "rssBytes": 1280704512,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 0.0,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 7
+          }
+        },
+        {
+          "elapsedS": 5.0054795949254185,
+          "processPercent": 0.0,
+          "rssBytes": 1280704512,
+          "readBytes": 0,
+          "topThread": {
+            "tid": 3859611,
+            "comm": "zotero-bin",
+            "percent": 0.0,
+            "bornInWindow": false,
+            "readBytes": 0,
+            "rcharBytes": 0
+          }
+        }
+      ]
+    }
+  },
+  "_run": {
+    "version": "0.4.26",
+    "zotero": "10.0.2",
+    "host": "padme",
+    "when": "2026-09-16T10:44Z",
+    "script": "bench/sdt_stall_probe.py",
+    "fixture": null
+  }
+}

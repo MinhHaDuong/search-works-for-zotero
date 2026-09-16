@@ -17,6 +17,35 @@ enforced the separation was retired on its record of zero catches
 (DECISIONS.md, 2026-09-01); the rule binds exactly as before, kept by
 the reader.
 
+## Which upstream this governs
+
+**Every bound below governs the zoteus relationship, and only it.** The
+increment train names the code root outright —
+`/home/user/oscardvs/zoteus/src/features/search/` — and the bounds were
+measured against that maintainer: he reads issues, he rules on them, and twice
+he built the design item himself rather than take a patch. The two-PR cap, the
+contained-PR budget, the three-week sunset and the PR/issue asymmetry are all
+answers to *that* terrain.
+
+**Zotero is a different upstream and this file does not bind it.** Author's
+ruling, 2026-09-16: Zotero is a large project whose maintainer works as a
+manager, not as an implementer of other people's design asks. The asymmetry
+above inverts there. Against oscardvs, a design-sized item goes as an issue
+because he will build it; against Zotero, an issue asking for a design is the
+shape that gets nothing — two threads filed 2026-09-14 (forum 133758 and
+133759) had drawn no reply by 2026-09-16, and the ruling that followed was to
+carry code instead.
+
+So for Zotero: **ship a patch, not a request**, including for items this file
+would have classed as design-sized. That is not an exception to the asymmetry;
+it is the asymmetry being a fact about one maintainer rather than a rule about
+upstreams. Nothing here caps Zotero volume, and no sunset runs against it —
+those bounds exist to ration one person's attention, and were never measured
+on this one.
+
+What does carry across, because it is ours rather than theirs: never put our
+internal governance into upstream text, and gates stay repo-side.
+
 ## Where the rulings themselves live
 
 This document owns process rules **going forward**. It does not own the record.
