@@ -10,6 +10,7 @@ Author: MinhHaDuong
 2026-09-16T06:06Z TWO LEVELS, on the author's reading, and it reshapes this ticket rather than adding to it. Outer -- RUNNING, PAUSED, HELD, BLOCKED, ERROR, ENDING, VANISHED -- and inner -- census, draining, extracting, idle -- each closed. The decisive consequence: the open set stops being states. low-disk, cpu-busy, storage-unavailable and resources-unavailable become the reason carried by the single outer state BLOCKED, so the host's freely-invented vocabulary is a payload rather than an alphabet member, and the scheduler can be exhaustive over its own states without learning bootstrap.js's words. That dissolves the Fable review's objection to a transition graph at its root instead of by the argument this ticket first made against it. HELD and BLOCKED stay distinct on a criterion the author's own checkbox ruling already drew: BLOCKED is cannot, still trying and prevented, hence unchecked and interactive; HELD is could-but-should-not, withdrawn by decision, hence auto-checked and inert. Two findings verified in source rather than assumed: 'disabled' is a teardown transient only, since blocked() returns it when !alive and alive is cleared in shutdown(), so nothing sits in it; and removal ALREADY exists outside the alphabet as removalNoticed, set by checkSDTStillInstalled() and overriding every other reading at render. The strongest argument for the hierarchy is that it is description and not invention -- the code has been forced to grow the second level twice already, once as removalNoticed and once as switched-off occupying a phase slot while toggleSDTSwitch reads it as the switch's polarity. And the flat variable forces a choice between two simultaneously true facts: during a sync beginning mid-document the sitter is held outside and extracting inside, which is why a review warned that writing syncing while state.active is non-null would name a state the machine is not in, and which makes 0797's awkward 'checked, a document still in flight' row simply the combination HELD x extracting.
 2026-09-16T06:14Z Body rewritten on four author rulings, and one correction of mine that is recorded rather than quietly dropped. (1) The two levels are a PRODUCT of orthogonal axes, not a hierarchy, and the code proves it: extracting stays true under DEFERRED, so the inner value is not a child of RUNNING. DEFERRED x extracting, PAUSED x extracting and VANISHED x extracting are all meaningful, which is also what makes 0797's awkward 'checked, a document still in flight' row an ordinary cell rather than a special case. Do not unfold into twenty-four flat names. (2) DEFERRED carries a SET of reasons. Today blocked() returns one string, the first condition matched in its own evaluation order, so the displayed reason is arbitrary among the true ones and lifting the first manufactures a phantom transition to a reason that was true all along. Cost named: blocked() short-circuits today and the full set pays every procfs and storage read, tolerable once per admission and not at an arbitrary cadence. (3) MY CRITERION WAS WRONG and section 1d now says so at length so nobody restores it as a forgotten idea. Separating HELD from BLOCKED on cannot-versus-could-but-should-not does not work: cpu-busy, low-memory and low-disk are all could-but-should-not, only storage-unavailable is a true cannot, and resources-unavailable is could-not-measure. What actually separates them is not a state distinction at all but whether the condition reads to a user as an event with a beginning and an end -- so it becomes a declared presentation class on each reason, and 0797's checkbox reads that field instead of special-casing a phase by literal name. That wart disappears instead of being documented. (4) The exit criteria are now three graphs and their three differences, not 'transitions are declared': the intended graph by hand, the static graph extracted from the setPhase call sites, and the dynamic graph observed by instrumenting setPhase across the suite. An edge in code but not in spec is undocumented behaviour; in spec but not in code is unimplemented or dead; static but never dynamic is untested OR unreachable and the ticket must say WHICH, which is this project's positive-control rule applied to a graph. The graph ships as a checked-in artifact a test compares, so drift reddens instead of rotting the way the line-number citations did three times on 2026-09-15. Recorded with it: dynamic extraction is the funnel's real second dividend, where phaseSince was the first and did not survive review.
 2026-09-16T06:22Z Propagation to the plugin's design document added as an action of this ticket rather than a follow-up, on the author's question of whether such a document exists. It does: plugins/sdt-sitter/DESIGN-NOTES.md, 475 lines and six sections, holding the open-questions ledger. The telling part is what it lacks -- no section on the state model at all, so the one variable that produced three defects in a single night is the one thing the design document never described. The model therefore lands there in this ticket's own PR: the two axes and why they are a product and not a hierarchy, both alphabets, DEFERRED with its reason set and each reason's presentation class, and a POINTER to the checked-in graph artifact rather than a second copy of it. Explicitly NOT before the code: writing it ahead of the implementation would have the document describe a plugin that does not exist, which is the stale-artifact failure this repository keeps meeting, so it ships with the behaviour or not at all. Precedent and register are set by the two entries already made on 2026-09-15 and 16, the drain budget's paragraphs and open question 4's platform half, and question 6 should be re-read against this model rather than left as written. Also noted from /verify-gate round 1, which APPROVED this PR: rtk corrupts bare grep the way it already corrupts git and pytest -- zeroed counts, truncated lines, matches collapsed across files -- and redirecting does not help because the hook rewrites before the shell runs; the gate switched to Python for every source read, and its own first extraction read seven phase-table entries where there are fourteen because the pattern missed unquoted keys, which it caught only by dumping the raw table instead of trusting the count.
+2026-09-16T07:52Z DECOMPOSED into a tracker on the author's ruling of 2026-09-16, with two further rulings recorded in the body. (1) The blast radius is past the threshold -- ten-plus files including the test enumeration, the mutant anchors, the journal schema and an external console contract -- so this becomes a tracker and the work lands as children 0803 to 0806. It stays open until all four close and closes on the integration review, never on the bare event of the last child merging. (2) THE DESIGN DOC GOES FIRST, reversing what an earlier revision of this ticket said. His words: design doc en premier, c'est lui qu'on veut reviewer d'abord. The rule that produced the old sequencing -- do not let the document describe a plugin that does not exist -- is not abandoned but satisfied differently: 0803 writes the section as a design UNDER REVIEW, marked as such, so no reader mistakes it for shipped behaviour. The model is what he wants to argue with, and an implementation reviewed in its place would argue about the model through its consequences. (3) THE JOURNAL BREAKS AND MIGRATES rather than serialising both axes back into one wire string. Separate fields plus a reader mapping old records onto the new shape; the cheaper serialising option is rejected and must not return as a simplification. Child 0805 owns it, and its control is that the reader reproduces the two preserved 2026-09-15 incidents from their original JSON -- a migration that cannot reconstruct a known past reading is not a migration. Also recorded: 0802 is the narrow repair of the same source scrape 0804 removes, so if 0804 lands first, close 0802 as superseded rather than implementing it.
 --- body ---
 
 ## Context
@@ -256,31 +257,18 @@ funnel, and they are not resurrected here:
   `storage-unavailable` and `low-disk` read the candidate's own directory — so
   a tick with no candidate cannot compute it without guessing.
 
-### 4. Propagate the model to the design doc, in this ticket's own PR
+### 4. Propagate the model to the design doc — FIRST, not last
 
-`plugins/sdt-sitter/DESIGN-NOTES.md` is the plugin's design document — 475
-lines, six sections, and the home of the open-questions ledger. **It carries no
-section on the state model at all.** It describes the eager scheduler, the
-concurrency model and the controls Zotero removed, and says nothing about the
-variable that produced three defects in one night. What is described nowhere is
-what drifts.
+**Reversed by the author on 2026-09-16**: "design doc en premier, c'est lui
+qu'on veut reviewer d'abord." An earlier revision of this ticket said the model
+must not reach `DESIGN-NOTES.md` before the code, on the ground that the
+document would describe a plugin that does not exist. That rule is not
+abandoned, it is satisfied differently: the section is written as a **design
+under review**, marked as such, so no reader can mistake it for shipped
+behaviour. The model is what he wants to argue with; an implementation reviewed
+in its place would be arguing about the model through its consequences.
 
-So the model lands there as part of this work, not as a follow-up: the two
-axes and why they are a product rather than a hierarchy, the outer and inner
-alphabets, `DEFERRED` carrying a reason set with each reason's presentation
-class, and a pointer to the checked-in graph artifact rather than a copy of it
-— one fact, one owner.
-
-Two entries already added on 2026-09-15/16 set the precedent and the register
-to match: `SDT_DRAIN_BUDGET_MS`'s three paragraphs before the ledger, and open
-question 4's platform half. Question 6, on whether the indexing consumers
-should share one budget, is answered in part there already and should be
-re-read against this model rather than left as written.
-
-**Not before the code.** Writing the model into the design doc ahead of the
-implementation would make the document describe a plugin that does not exist,
-which is the stale-artifact-reads-as-live failure this repository keeps
-meeting. It ships in the same PR as the behaviour, or not at all.
+This is child ticket 0803, and it gates the rest.
 
 ## Relevant files
 
@@ -305,11 +293,13 @@ meeting. It ships in the same PR as the behaviour, or not at all.
 
 ## Two one-way doors
 
-- **The journal schema.** `heartbeat.phase`, `announce phase=` and
-  `sweep-end.phase` are read by `bench/sdt_stall_probe.py`, the phase probes,
-  and every incident JSON under `verification/incidents/`. A two-field record
-  makes past incidents incomparable with future ones. Decide explicitly, and if
-  the record changes, say how an old incident is still readable.
+- **The journal schema — RULED, 2026-09-16: break and migrate.** The author
+  chose separate fields plus a reader that maps old records onto the new shape,
+  over the cheaper alternative of serialising both axes back into one string on
+  the wire. The more honest structure and the more expensive one; the
+  serialising option is rejected and must not return as a simplification. Child
+  ticket 0805 owns it, and its control is that the reader reproduces the two
+  preserved 2026-09-15 incidents from their original JSON.
 - **`Zotero.SDTPackSitter.state`** is the console surface the author's own live
   readings went through. Its shape is an external contract now.
 
@@ -341,6 +331,27 @@ and one a unit off, and the mutant is **run**, not assumed.
   per-document admission gap.
 - 0796's drain budget, 0795's phase and 0797's table keep working unchanged.
 - No new periodic cost while idle.
+
+## Decomposition — this ticket is a tracker
+
+Ruled 2026-09-16: the blast radius is past the threshold (ten-plus files
+including the test enumeration, the mutant anchors, the journal schema and an
+external console contract), so this becomes a tracker and the work lands as
+children. It stays open until all four are closed, and closes on the
+integration review, never on the bare event of the last child merging.
+
+- **0803** — write the model into `DESIGN-NOTES.md` for review. **First**, and
+  it gates the others. No code.
+- **0804** — declare the alphabet, make `setPhase` total. `Blocked-by: 0803`.
+- **0805** — the journal's three fields and the reader for old records.
+  `Blocked-by: 0804`. Goes through the one-way door above.
+- **0806** — the intended, static and dynamic graphs, and the ruling on each of
+  their three differences. `Blocked-by: 0804`. This is the funnel's surviving
+  dividend.
+
+Ticket **0802** (the phase enumeration counts a literal inside a comment) is
+the narrow repair of the same scrape 0804 removes: if 0804 lands first, close
+0802 as superseded rather than implementing it.
 
 ## Exit criteria
 

@@ -1,0 +1,73 @@
+%erg 0.1
+Title: The journal carries outer, inner and reasons, with a reader for old records
+Created: 2026-09-16
+Author: MinhHaDuong
+Blocked-by: 0804
+
+--- log ---
+2026-09-16T07:53Z MinhHaDuong created
+
+--- body ---
+
+## Context
+
+Third child of tracker 0801, and the one that goes through a one-way door.
+
+The author ruled on 2026-09-16, choosing break-and-migrate over serialising the
+two axes back into a single string: **the journal carries the outer state, the
+inner state and the reason set as separate fields, and a reader maps old
+records onto the new shape** so past incidents stay comparable.
+
+That is the more honest structure and it is the more expensive one. The
+alternative — keeping one field on the wire while the code carries two axes —
+was rejected. Do not re-introduce it as a simplification.
+
+## What the door opens onto
+
+`heartbeat.phase`, `announce phase=` and `sweep-end.phase` are read by
+`bench/sdt_stall_probe.py`, the phase probes, **every incident JSON under
+`verification/incidents/`**, and `Zotero.SDTPackSitter.state`, which became an
+external contract the day the author's live console readings went through it.
+
+Two incidents of 2026-09-15 were reconstructed entirely from these records.
+If a future reader cannot compare them against a new run, the repository loses
+its only worked examples of the defect class it is built around.
+
+## What to build
+
+- The record's new shape, and the emitters that write it.
+- **A reader that maps old records to it** — `draining` becomes
+  `RUNNING/draining`, a blocked-phase string becomes
+  `DEFERRED` plus that reason, and so on for every value the old vocabulary
+  could hold. The mapping is the deliverable, not a detail of it.
+- The consumers updated to read through it.
+
+## Test
+
+The control is the whole ticket: **run the new reader over the two committed
+incident files of 2026-09-15 and assert the reconstruction matches what those
+incidents are documented to show** — the drain plateau, `completed: 0`, the
+frozen progress at 90. A reader that cannot reproduce a known past reading is
+not a migration, and a test written only against synthetic new-shape records
+would pass while proving nothing about the door.
+
+Second: an old value the mapping does NOT cover must be refused loudly, not
+silently defaulted — the same discipline `setPhase` gets in 0804.
+
+## Verification
+
+- [ ] The reader reproduces both 2026-09-15 incidents from their committed JSON
+- [ ] An unmapped old value is refused, with the refusal asserted
+- [ ] `Zotero.SDTPackSitter.state`'s change is written down where a console
+      reader will meet it, since the author reads it by hand
+- [ ] `make check` green
+
+## Invariants
+
+- No incident file is rewritten. They are evidence; the reader adapts to them.
+- `bench/sdt_stall_probe.py` keeps working on both shapes.
+
+## Exit criteria
+
+The journal carries the three fields, and a reader demonstrably reconstructs
+the two preserved incidents from their original records.
