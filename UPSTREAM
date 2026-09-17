@@ -2,16 +2,21 @@
 UPSTREAM_REPOSITORY=https://github.com/oscardvs/zoteus.git
 FORK_REPOSITORY=https://github.com/MinhHaDuong/zoteus.git
 UPSTREAM_BRANCH=main
-# The reviewed SHA is `main` one README-only commit past the v1.16.0 tag
-# (`910310b`). The release closed six issues filed from here in one evening —
-# #61 library routing, #63 census-cursor catch-up, #64 item-key bibliographies,
-# #65 candidate-pool exhaustion, #66 the security policy, #62 the per-OS `.mcpb`
-# bundles — and merged our PR #60 (vitest temp-directory teardown). The source
-# range therefore touches library routing, the index manager, the candidate
-# pool and the bundle build; it is not a documentation release. Ticket 0738.
-UPSTREAM_REVIEWED_SHA=446766320867f1a0a2c6c55ab63b3df734a05c69
-UPSTREAM_REVIEWED_VERSION=v1.16.0
-UPSTREAM_REVIEWED_DATE=2026-09-08
+# The reviewed SHA is the v1.20.2 tag itself, which is also `main`'s tip on the
+# day of the read (2026-09-17). Six releases past v1.16.0 (v1.17.0 to v1.20.2),
+# 73 commits, 53 watched files +5406/-611: a keyed attachment map with bounded
+# recovery and a `fulltextPartial` status flag (#78, #67), a pending-cloud-write
+# overlay on the library router with four newly routed reads (#64, #74, #80, #81),
+# stock exports through the router (#75), `outputSchema` on every tool (v1.20.0),
+# the `zotero_pdf_images` tool, a single pdfjs import site (`pdfjs-loader.ts`,
+# the #62 failure class), `pdfjs-dist` pinned exactly (#69), `writeMeta` merging
+# and `refreshFromStore` so two processes stop clobbering each other's stamp
+# (#68), and the semantic-mode refusal from our PR #73. Not a documentation
+# release. `verification/UPSTREAM-1.20.2-REVIEW.md` is the delta review and
+# `verification/UPSTREAM-1.20.2-REREAD.md` the row re-read.
+UPSTREAM_REVIEWED_SHA=c386e835a2ef90b539b611168130c8540cd55fe5
+UPSTREAM_REVIEWED_VERSION=v1.20.2
+UPSTREAM_REVIEWED_DATE=2026-09-16
 # The index schema generation the bench drivers target: upstream's `SCHEMA_VERSION` in
 # `src/features/search/sqlite-index.ts`, mirrored in `bench/index_schema.mjs` and stamped
 # into the current-generation fixture by `bench/fixtures/make_index_fixture.mjs`. It was 1
