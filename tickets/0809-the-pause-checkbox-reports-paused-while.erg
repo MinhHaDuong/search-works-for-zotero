@@ -2,10 +2,12 @@
 Title: The pause checkbox reports paused while the sitter keeps admitting
 Created: 2026-09-16
 Author: MinhHaDuong
+Closed: works-for-me: the author pauses the sitter live and it stops; the acceptance step 3 counted completions, not admissions. Nothing kept from the executor's worktree.
 
 --- log ---
 2026-09-16T11:41Z MinhHaDuong created
 
+2026-09-17T07:40Z MinhHaDuong closed — works-for-me: the author pauses the sitter live and it stops; the acceptance step 3 counted completions, not admissions. Nothing kept from the executor's worktree.
 --- body ---
 ## Context
 
