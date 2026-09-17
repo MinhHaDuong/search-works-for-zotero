@@ -1,6 +1,6 @@
 # STATE — Search Works for Zotero
 
-*Live handoff. Updated 2026-09-16 (sitter 0.4.26, acceptance FAIL 11:38Z). Ownership: [AGENTS.md](AGENTS.md).*
+*Live handoff. Updated 2026-09-17 (sitter 0.4.26, acceptance FAIL 11:38Z). Ownership: [AGENTS.md](AGENTS.md).*
 
 ## North Star
 
@@ -31,7 +31,7 @@ proposition, [SPEC.md](SPEC.md) the design.
 Open here: 0774, 0786, **0808** (the stall probe loses its run if stopped), 0727's guard 2 —
 unbuilt: a check that cannot fire must not ship. Gaps: R10 (0660–0664), R13 (0650–0652), R15
 (0654–0657), R22 (0643, 0665), fixtures 0602, 0623, 0658. #6012 train (0754–0757) and **0794**
-unstarted. Hygiene: 23 branches unmerged, 8 worktrees dirty.
+unstarted. Hygiene: 6 branches unmerged, 9 worktrees dirty.
 
 ## Basic state
 
