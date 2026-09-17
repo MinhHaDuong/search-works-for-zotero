@@ -1027,7 +1027,7 @@ superseded.
 Seven facts about upstream shaped the design below. They were read at v1.7.0
 (`c5d25aa`), where all seven were exact; five have since been repaired, four
 of those by the maintainer acting on this repository's own filings. They are
-therefore stated against the reviewed baseline `4467663` (v1.16.0), because a
+therefore stated against the reviewed baseline `c386e83` (v1.20.2), because a
 reader takes a premise as current unless told otherwise. Every line number
 below was re-read there rather than carried: successive diffs moved most of
 them, which is the reason a
@@ -1035,16 +1035,16 @@ citation is re-opened at each bump instead of retyped.
 
 Still true there. `DEFAULT_FULLTEXT_MAX_CHARS = 40_000`
 (`fulltext-source.ts:11`) truncates the 44,9 MB living example roughly
-1 100-fold — the one citation the bump left where it was, in the one file the
-release did not touch. Changing embedder drops every vector at open
-(`dropStaleVectors` → `clearVectors()`, `index-manager.ts:672`).
-`clearStore()` sits in the build path (`index-manager.ts:881`).
+1 100-fold — the one citation the bump left where it was, though #78 rewrote
+the rest of that file around it. Changing embedder drops every vector at open
+(`dropStaleVectors` → `clearVectors()`, `index-manager.ts:734`).
+`clearStore()` sits in the build path (`index-manager.ts:992`).
 
 Repaired since. The query tokenizer folds Unicode — `normalizeForSearch` then
 `/[\p{L}\p{N}]+/gu` (`tokenize.ts:221`, `4f61b2a`, v1.7.2). `busy_timeout` is
 set to 10 s on both the writable handle and the read-only probe
-(`sqlite-index.ts:499` and `:590`, `80f8aa0`, v1.7.1). `SCHEMA_VERSION` is read
-before any DDL, through `reconcileSchema()` (`sqlite-index.ts:585`, `fd51659`,
+(`sqlite-index.ts:527` and `:618`, `80f8aa0`, v1.7.1). `SCHEMA_VERSION` is read
+before any DDL, through `reconcileSchema()` (`sqlite-index.ts:613`, `fd51659`,
 v1.9.0). Builds no longer crawl `top:true` alone: a second pass indexes child
 notes and annotations, on by default (`own-words-source.ts:145`, `d8266f7`,
 v1.11.0). The fifth is this repository's own, merged as PR #46 and #47 in
@@ -1057,7 +1057,29 @@ each repaired premise is unchanged; none may be cited as a live defect.
 v1.15.0 adds a persisted pause flag that gates build, refresh, update and
 semantic auto-build while leaving the committed index searchable; `resume`
 only clears that hold. Local embedding inference also moves to a worker thread,
-with a warned in-thread fallback when a worker cannot start. Those mechanisms
+with a warned in-thread fallback when a worker cannot start.
+
+v1.17.0–v1.20.2 move four of these premises further, none of them back.
+The full-text attachment map is rebuilt around keyed `?itemKey=` batches of 50
+with bounded recovery — 3 attempts per batch, 3 sweeps, and a persisted
+`fulltextPartial` flag that withholds the build cursor while the map is
+incomplete (#78, `fulltext-source.ts:25`, `:28`, `:38`;
+`index-manager.ts:118`, `:304`). `textFor` now throws on a read failure or on a
+miss under an incomplete map instead of silently returning nothing, and a
+failed read keeps the item's body text through `fulltextRecords()` →
+`restorePassages()` while the library version stamp is withheld on
+`fulltextGap`, so the next update retries rather than recording a gap as
+coverage (#67, `fulltext-source.ts:321`, `:345`; `index-manager.ts:2844`,
+`:2863`, `:2016`). Two processes on one index file no longer clobber each
+other's stamp: `writeMeta()` merges rather than rewrites, leaving untouched
+keys alone and logging a divergence once per key, and `refreshFromStore()`
+re-reads the file when `PRAGMA data_version` says another process committed,
+before `updateBlocker` decides anything (#68, `sqlite-index.ts:1197`, `:1227`,
+`:1240`). The router gains a pending-cloud-write overlay: a write is noted
+against a library slot, and a read is held off the desktop until
+`desktopHasCaughtUp` clears it, while `servesLocally` ignores the override so a
+crawl never flips backend mid-build (#80/#81, `library-router.ts:153`, `:185`,
+`:203`, and `router/pending-writes.ts`). Those mechanisms
 improve the current target but do not satisfy this design's full R22 or R32
 contract without the acceptance work named by ticket 0665.
 
@@ -1588,11 +1610,12 @@ reacting to degradation before an error, since the serving process is
 Zotero's own. Upstream's #39 answered the same pressure differently, and not
 with a fallback: it sets the crawl's concurrency from whichever API serves it,
 2 for the desktop app against 4 for the cloud, and backs off to one on
-degradation (`c859407`, and re-read at `4467663` where the rule has moved out
-of the router into `limits.ts:69` and `build.ts:631-633`, unchanged in
-substance; the earlier `build.ts:617-620` was wrong on content, not merely
-stale — at `5a81cee` those lines already held the embed-batch dials and the
-rule sat at `627-629`). That is not adopted (ticket 0505). The stage keeps its key: `text_hash` (§5.2.1) is computed over the
+degradation (`c859407`, and re-read at `c386e83` where the rule has moved out
+of the router into `limits.ts:69` and `build.ts:656-658`, unchanged in
+substance; an earlier citation to build.ts lines 617–620 was wrong on content,
+not merely stale — at `5a81cee` those lines already held the embed-batch dials
+and the rule sat at lines 627–629, and at `c386e83` they hold the own-words
+source. Those two numbers are history, not anchors). That is not adopted (ticket 0505). The stage keeps its key: `text_hash` (§5.2.1) is computed over the
 stream as it passes, so nothing has to hold the document to identify it.
 Three things per library.
 
@@ -2125,9 +2148,16 @@ and execution provider. A remote result can inform the UI but never substitutes
 for this local gate. A vector passes the normalization arm when its L2 norm is
 finite and `|norm - 1| ≤ 0,00001`.
 
-Second, #6012-style library calibration (mean centering, noise floor = p99,9 of
+Second, library calibration (mean centering, noise floor = p99,9 of
 unrelated pairs, ceiling = median of matched pairs, reject bad models outright)
-remains deferred. One item's title and abstract form a matched
+remains deferred. Mean centering is zoteus's own mechanism, live in the binary
+codes (`sqlite-index.ts:216-222` and `sampleMean()` at `:1998`), and it is not
+cited here as a Zotero-core pattern: upstream withdrew its
+`zotero/zotero#6012 modelCalibration.meanVector` citation from that comment as
+unsourceable (`3a1e942`, v1.17.0), so nothing below rests on it. The withdrawal is
+partial: the same claim still stands, unwithdrawn, on `packCode()`'s docstring
+(`sqlite-index.ts:2298-2302`), so a reader of the code will meet it once more.
+One item's title and abstract form a matched
 pair, cross-item pairs are unrelated, and the private library is the corpus.
 Those texts and scores never enter a shared attestation. An optional,
 content-free compatibility attestation may report only pass/fail, exact entry
@@ -2617,7 +2647,7 @@ survives even if it is built upstream instead.
 **R23 — upgrade and downgrade.** The open protocol: read
 `meta.schemaVersion` before any DDL or write (upstream's own rule since
 `fd51659`, v1.9.0: `reconcileSchema()` reads the stamp through a read-only
-probe at `sqlite-index.ts:585`, before the `INSERT OR REPLACE` in
+probe at `sqlite-index.ts:613`, before the `INSERT OR REPLACE` in
 `createSchema` can re-stamp a file written by a newer build. That ordering
 defect is fixed upstream; the protocol below is what the fix leaves open). A
 newer file → sideline (never delete), fresh build, notice. Only the
@@ -3619,16 +3649,21 @@ which that section rules out. The default path sends nothing.
 
 **Read-transport fallback, a narrower and separate gap.** The two paths above
 are the only ones R10 counts, and both stay accurate. Item-metadata reads —
-`getItem`, `getItemChildren`, `listCollections`, and since v1.16.0's #64 also
-`exportItems` and `getBibliography` — are a different surface: the
+`getItem`, `getItemChildren`, `listCollections`, since v1.16.0's #64 also
+`exportItems` and `getBibliography`, and since v1.18.0's #74 (on #64's
+precedent) `listTags`, `versions`, `deleted` and `listSearches` as well;
+v1.17.0's #75 additionally routes the stock `zotero_export` formats through
+`router.exportItems`, so a stock export is now one of these reads rather than
+an unconditional cloud call — are a different surface: the
 router prefers the local Zotero API and falls back to the cloud Web API when
 the local one is unreachable, a rule that predates this design's review and is
 not gated on a per-call opt-in. It cannot fire without a cloud API key already
 configured. A keyless install fails such a read, but it fails *at the server*:
 there is no pre-flight refusal in the code, so the request is dispatched to
-`api.zotero.org` under user id 0 and rejected there (`library-router.ts:72`
-for the address and `:80-81` for the routing, re-read at `b0e0bc8`; the file
-moved to `src/router/` and the line numbers with it, the rule unchanged). No library content crosses, which is the substantive point; a
+`api.zotero.org` under user id 0 and rejected there (`library-router.ts:84`
+for the address and `:92-93` for the routing, re-read at `c386e83`; the file
+moved to `src/router/` and the line numbers have moved again with every bump,
+the rule unchanged). No library content crosses, which is the substantive point; a
 request does reach `api.zotero.org`. Where a key is configured, the
 fallback is silent — nothing asks again at the moment it fires. It does not reach an index build: a build pins
 its transport once and fails rather than re-routing, so no passage or

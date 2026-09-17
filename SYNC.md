@@ -1,4 +1,24 @@
-# SYNC — the fork against upstream v1.16.0
+# SYNC — the fork against upstream v1.20.2
+
+Updated 2026-09-17 — **re-baselined to v1.20.2** (`c386e83`, the tag and
+`main`'s tip, 2026-09-16). Six releases in nine days, 73 commits, none of them a
+documentation release. Every item ticket 0739 filed is built: #67 (`d916aa1`, a
+failed body read withholds the item stamp and keeps the prior text), #68
+(`484257c`, `meta` writes merge and `refreshFromStore()` re-reads before an
+update decides), #69 (`b899aa5`, `pdfjs-dist` pinned exactly at 5.6.205), #70
+(`408512e`, the CPAL attribution line), #71 (`1233cb0`,
+`ZOTEUS_CONFIRM_BULK_WRITES` and a `provenance` marker on library content); and
+our PRs #72 (`050c320`, vector-code invalidation) and #73 (`987d072` +
+`1278091`, `mode:"semantic"` refuses without vectors) are in `main` rebased
+under new SHAs with identical code. #75 is built too (`9f32cc4`, v1.17.0): the
+paragraph below saying "no PR submitted" is the reading of its own date. The
+largest thread is again not ours: #78 (`8e8e700`, `0c4ba3b`, `2bddf4c`) rebuilds
+the full-text attachment map in keyed batches with bounded recovery and a
+persisted `fulltextPartial`, and #64/#74/#80/#81 put every routed read behind a
+pending-cloud-write overlay. Index schema stays generation 2.
+`verification/UPSTREAM-1.20.2-REVIEW.md` is the delta review,
+`verification/UPSTREAM-1.20.2-REREAD.md` the row re-read, and
+`bench/results/smoke-1.20.2/` the smoke and acceptance artifacts.
 
 Updated 2026-09-07 — upstream issues #61–#66 filed after revalidation on
 `5a81cee`. Ticket [0736](tickets/0736-file-six-upstream-zoteus-issues-and-rela.erg)
@@ -7,7 +27,10 @@ owns the verified URLs, public evidence and substantive-response follow-through.
 Updated 2026-09-08 — export follow-up [#75](https://github.com/oscardvs/zoteus/issues/75)
 filed at the author's request after read-only local exploration, following the
 maintainer's invitation on #64. Ticket 0761 owns the probe, sanitized evidence,
-filed body and verified public URL. Open at filing; no PR submitted.
+filed body and verified public URL. Open at filing; no PR submitted — and
+**built by the maintainer nine days later** (`9f32cc4`, v1.17.0: stock
+exports go `ctx.web.exportItems` → `ctx.router.exportItems`; see the
+2026-09-17 note above).
 
 *Written 2026-08-26 against upstream `edf2748` (v1.7.0); updated 2026-08-27
 against `309204b` (v1.8.0); updated 2026-08-28 against `bb414df`
@@ -478,10 +501,11 @@ backend's upstream name — and `--backend` refuses anything outside
 value to `auto` and the harness would silently measure it.* The database path
 agrees (`search-index.sqlite` beside the JSON) so `--data-dir` needs nothing.
 
-**Status, 2026-09-07** (one table; earlier states are in git history).
+**Status, 2026-09-17** (one table; earlier states are in git history).
 
 | | |
 |---|---|
+| upstream v1.20.2 | **reviewed at `c386e83`, 2026-09-17, the v1.20.2 tag itself and `main`'s tip.** `4467663..c386e83` is 73 commits over 170 files, +15978/−903, of which the watched surface is 53 files, +5406/−611; index schema stays generation 2 with two new `meta` keys (`fulltextPartial`, `fulltextRecoveryAttempts`). What moved that this repository reasons about: the full-text attachment map (#78) is rebuilt in `itemKey=` batches of 50 with 3 attempts and 3 sweeps, a map that never reached the end sets `incomplete` and a persisted `fulltextPartial`, the build cursor is withheld over an incomplete map and recovery is bounded at 3; a failed body read throws and the item stamp is withheld while the prior passages are kept (#67); `writeMeta` merges and `refreshFromStore()` re-reads on `PRAGMA data_version` before `updateBlocker` decides (#68); every routed read goes through `route()` with a pending-cloud-write overlay, four reads newly routed and stock exports through `router.exportItems` (#64, #74, #75, #80, #81); every tool declares an `outputSchema` and per-argument descriptions (v1.20.0), which is what exposed #83; `zotero_pdf_images` is the 31st tool; `pdfjs-dist` is pinned exactly and imported at one site that masks `process.type` under Electron (#69, #62's class); `mode:"semantic"` refuses without vectors (our #73). Ticket-side: nothing closes, since every resolved item was filed by a ticket that closed on the filing; 0560, 0035, 0019, 0754, 0734, 0614, 0613 and 0757 carry re-triage notes. Smoke re-run on this build over the Web API, 5 of 5 (`bench/results/smoke-1.20.2/checks.json`); acceptance under the account posture 4 pass, 1 fail (R10-no-egress: 4 DNS lookups to the local stub resolver, zero off-machine attempts, the server log showing the local embedder trying to fetch its model on a fresh data directory), 1 not-offered, 6 not-run (`acceptance-zoteus.json`). `verification/UPSTREAM-1.20.2-REVIEW.md` and `-REREAD.md` own the evidence |
 | upstream v1.15.0 | **reviewed at `main` tip `5a81cee`, 2026-09-07, two registry-only commits past release `037bba8`**. The `34d6c26..5a81cee` range is 26 commits over 47 files, +1519/-292; index schema stays generation 2. Release notes name our uninstall documentation (PR #55) and durable pause (PR #57), both merged 2026-09-06. The full source range also contains citation style/locale forwarding with renamed-style fallback (PR #58), local embedding inference in a worker thread plus optional `ZOTEUS_LOG_FILE` output (PR #59), registry title/website metadata and an Open Plugins manifest. Ticket 0735 re-read only the requirements invalidated by those mechanisms; `verification/UPSTREAM-1.15.0-REREAD.md` owns the evidence and explicitly does not carry v1.14 measurements across changed paths. |
 | PR #19 accent fold | **merged** 2026-08-27 as `4f61b2a` (squash, authorship + co-author trailer preserved, zero maintainer edits); shipped in v1.7.2, credited "thanks @MinhHaDuong" |
 | PR #20 corrupt index | **merged** 2026-08-27 as `6e4637b`, same form; final head `331b037` (rebased onto v1.7.1's `busy_timeout` work — supersedes the `dd1605a` recorded earlier) |

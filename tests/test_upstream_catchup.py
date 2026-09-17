@@ -303,8 +303,10 @@ def test_citations_in_reads_the_real_spec_md():
     found = uc.citations_in(spec)
     # Both samples are re-pointed whenever a baseline bump moves the anchor they
     # name: ticket 0738 moved them from `index-manager.ts:641` and
-    # `build.ts:617-620`, which is the churn this fixture is meant to survive.
+    # `build.ts:617-620`, and the v1.20.2 bump moved them again from
+    # `index-manager.ts:672` and `build.ts:631-633` — the churn this fixture is
+    # meant to survive.
     # A single line and a range, because the parser handles the two differently.
-    assert ("index-manager.ts", 672, 672) in found
-    assert ("build.ts", 631, 633) in found
+    assert ("index-manager.ts", 734, 734) in found
+    assert ("build.ts", 656, 658) in found
     assert len(found) >= 15
