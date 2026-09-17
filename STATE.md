@@ -1,6 +1,6 @@
 # STATE — Search Works for Zotero
 
-*Live handoff. Updated 2026-09-17 (sitter 0.4.26, acceptance FAIL 11:38Z). Ownership: [AGENTS.md](AGENTS.md).*
+*Live handoff. Updated 2026-09-17 (sitter 0.4.26, 0809 closed works-for-me). Ownership: [AGENTS.md](AGENTS.md).*
 
 ## North Star
 
@@ -10,9 +10,10 @@ proposition, [SPEC.md](SPEC.md) the design.
 
 ## Current Goals
 
-- **The release is blocked: acceptance FAILS on 0.4.26** (`45da9ac9`) — the pause checkbox
-  reports "Indexing is off" while the sitter completes all four fixture documents. **0809** is
-  the one thing left; last PASS is 0.4.15, so the regression sits in 0.4.16–0.4.26.
+- **0809 closed works-for-me** (author, 2026-09-17): the pause stops the sitter in a live
+  session. The 0.4.26 acceptance FAIL at step 3 (`45da9ac9`) counted completions, not
+  admissions; the script still reads that way, so a rerun still FAILs. The last recorded PASS
+  is 0.4.15. The executor's rework of step 3 was discarded, nothing kept.
 - **The critical path is down to 0795.** The chain rested on "the sitter indexes nothing"; the
   2026-09-16 live run killed all four symptoms (`admit 11940`, `drain-end drained 5`, two
   `settle ok`). **0796 and 0797 closed.** **0795**: detection is one unmeasured path.
@@ -22,7 +23,7 @@ proposition, [SPEC.md](SPEC.md) the design.
 - **Zotero gets patches, not forum threads** (author, 2026-09-16). `GOVERNANCE.md` is
   zoteus-only. Convert **0679**, **0727** (133758), **0787** (133759) to PRs. Blocker for
   all three: the shipped `worker.js` is a bundle, upstream source not located.
-- After 0809, the retag is **author's hands, in order**: build, GPG-sign, publish the `.xpi`,
+- The retag is **author's hands, in order**: build, GPG-sign, publish the `.xpi`,
   then ONE commit adding BOTH `tag` and `update_link`. v0.4.10 is sixteen versions behind.
 - Release the Multilingual test library and questions + grader as public Challenge.
 
