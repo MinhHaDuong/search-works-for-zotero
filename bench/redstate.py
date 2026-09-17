@@ -287,11 +287,15 @@ ARMS: tuple[Arm, ...] = (
         target_lanes=MUST_LANES,
         target_mechanisms=("*",),
         patches=(
-            (_QUERY_MANAGER, "    const pool = limit * 3;", "    const pool = 1000000; // redstate arm A"),
+            # Re-pinned at c386e83 (v1.20.2): #65 (v1.16.0) made the pool a widening loop, so the
+            # anchor is now `let`, and the fused list is built inside the loop. A pool of 1e6 is
+            # clamped to the passage count by the loop's own `pool >= total` exit, which is the
+            # whole-matching-set widening this arm means.
+            (_QUERY_MANAGER, "    let pool = limit * 3;", "    let pool = 1000000; // redstate arm A"),
             (
                 _QUERY_MANAGER,
-                "    const fused = rrf([keyword, vector]);",
-                "    const fused = redstateShuffle(rrf([keyword, vector]), q); // redstate arm A",
+                "      const hits = this.distinctHits(rrf([keyword, vector]), limit, q, highDf, passages);",
+                "      const hits = this.distinctHits(redstateShuffle(rrf([keyword, vector]), q), limit, q, highDf, passages); // redstate arm A",
             ),
             (_QUERY_MANAGER, "function rrf(", _SHUFFLE_HELPER + "\nfunction rrf("),
         ),
