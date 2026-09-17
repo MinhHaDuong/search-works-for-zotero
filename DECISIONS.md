@@ -7821,3 +7821,46 @@ whose answer could not be read asked rather than indexing silently. Under this
 ruling indexing unasked is the intended default, so the guard has nothing left
 to protect. Nothing else about admission, thresholds, or what gets extracted
 changes.
+
+**2026-09-17 — v1.20.2 is re-baselined on the whole six-release range, and the
+row re-read is now the record because the README standing report no longer
+exists.** The reviewed tip moves from `4467663` (v1.16.0+1) to `c386e83`, the
+v1.20.2 tag and `main`'s tip on the day of the read: 73 commits, 53 watched
+files, +5406/−611. The range is not ours and not a documentation release. It
+rebuilds the full-text attachment map (#78: keyed batches, bounded recovery, a
+persisted `fulltextPartial`), makes a failed body read withhold the item stamp
+rather than continue (#67), merges `meta` writes and re-reads the store before
+an update decides it is stale (#68), overlays pending cloud writes on the
+library router with four newly routed reads (#64, #74, #80, #81), routes stock
+exports (#75), declares an `outputSchema` on every tool, adds `zotero_pdf_images`
+(31 tools), pins `pdfjs-dist` exactly behind one import site (#69, the #62
+failure class), and carries our PRs #72 and #73 rebased in under new SHAs. Index
+schema generation stays 2; the two new `meta` keys need no bump. Evidence:
+`verification/UPSTREAM-1.20.2-REVIEW.md` (the delta) and
+`verification/UPSTREAM-1.20.2-REREAD.md` (the rows).
+
+The recipe printed by `make upstream-rebaseline` still asks for README rows,
+bars and tallies to be re-read. Those were deleted on 2026-09-04 (entry above,
+"the README stops tracking completed design work"), and `check_progress` has
+run in its deliverables mode since, so `make check` no longer fails when the
+baseline moves. The nineteen rows the recipe names were re-read all the same,
+against the diff and the checkout, and the REREAD file carries each row's
+previous and current verdict. No delivered verdict moves. Where evidence moves:
+the four smoke-backed rows (R6, R10, R15, R23) are re-measured on a 1.20.2
+build over the Web API (`bench/results/smoke-1.20.2/checks.json`, 5 of 5 pass,
+provenance beside it); the acceptance layer ran under the account posture and
+keeps R13's both-answer clause green, R10's no-egress clause red on DNS lookups
+alone with zero off-machine attempts, and every counter-dependent clause
+`not-run`. R3 and R13's duplicate-work clause therefore stay `code`, for want of
+counters upstream and not for want of a run. A restamped copy of this build's
+own index walked the schema ladder; that is a positive control on the ladder,
+not a v1.12-era artifact, and the provenance file says so.
+
+Two corrections fall out. Upstream withdrew its `zotero/zotero#6012
+modelCalibration.meanVector` citation from the code-mean comment (`3a1e942`,
+v1.17.0) as unsourceable, and SPEC no longer sources mean centering to #6012;
+the same claim still stands on `packCode()`'s docstring, so the withdrawal is
+partial. And `SYNC.md`'s "Open at filing; no PR submitted" on #75 was stale by
+nine days: the maintainer built it in `9f32cc4` (v1.17.0), as he built every
+item 0739 filed (#67–#71). Nothing closes on this entry; the re-triage notes
+sit on the tickets. This is a baseline ruling, not permission to post upstream.

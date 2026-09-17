@@ -20,6 +20,7 @@ Blocked-by: 0576
 2026-09-02T10:47Z claude note BLOCKED-BY 0576 AND 0577, the two things DECISIONS.md 2026-09-02 demotes from ruling to probe 'both before 0566 commits the boundary'. This ticket's own 05:41Z entry listed THREE and they are not the ruling's two: (a) the Electron spawn probe is one of them, now 0576; the ceiling sized for two resident generations is the other and was MISSING from that list, now 0577; (b) the fresh-install bootstrap and (c) the worker heap limit are RULINGS in the same entry, not probes -- (b) is Action 7 here and (c) belongs to 0554, which owns the worker. Also Blocked-by 0575: this assembly's acceptance run must produce vectors, the worker holds no model and never spawns the service, so the boundary has to exist for the run to end with a populated sidecar
 2026-09-02T19:00Z claude note 0576's portable-arm result is in: verification/ELECTRON-SPAWN-0576.md — the Electron spawn works under ELECTRON_RUN_AS_NODE=1 on this harness, but the binding arm (real Claude Desktop) is still NOT-RUN, so the boundary this ticket assembles is not yet committable on this evidence alone
 2026-09-03T05:30Z Minh Ha-Duong note blocker 0577 closed — Blocked-by removed.
+2026-09-17T08:09Z MinhHaDuong note rebaseline v1.20.2 (c386e83): the reviewed span 4467663..c386e83 rewrites config.ts, index.ts and server.ts that this ticket cites; re-read against verification/UPSTREAM-1.20.2-REVIEW.md § 2, no exit criterion moves and no line cited here was re-pinned; re-derive any file:line before arguing from it
 --- body ---
 
 ## Context

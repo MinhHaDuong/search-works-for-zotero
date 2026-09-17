@@ -6,6 +6,7 @@ Author: MinhHaDuong
 --- log ---
 2026-09-02T18:52Z MinhHaDuong created
 
+2026-09-17T08:09Z MinhHaDuong note rebaseline v1.20.2 (c386e83): the reviewed span 4467663..c386e83 rewrites server.ts that this ticket cites; re-read against verification/UPSTREAM-1.20.2-REVIEW.md § 2, no exit criterion moves and no line cited here was re-pinned; re-derive any file:line before arguing from it
 --- body ---
 ## Context
 

@@ -18,6 +18,7 @@ Blocked-by: 0666
 2026-09-04T10:12Z codex note BLOCKED-BY 0649 ADDED, author directive. The current R3 arms prove local reported recomputation at one fixture size but do not compare fixed changes across library sizes or account for library-sized verification/scanning outside *.done counters; 0649 owns the scaled acceptance arm and target result.
 2026-09-04T10:12Z codex note BLOCKED-BY 0666 ADDED: the R23 assertion currently uses forged stamps on current-layout databases and accepts any nonempty hits, so it cannot distinguish authentic cross-version continuity from fallback, partial loss, or silent same-path rebuild
 2026-09-04T12:10Z codex note BLOCKED-BY 0650 ADDED from Terra review on PR 353: goal 2 includes R13, so the rung cannot close while the R13 acceptance-fidelity master remains open
+2026-09-17T08:09Z MinhHaDuong note rebaseline v1.20.2 (c386e83): #68 (sqlite-index.ts writeMeta/readDataVersion/refreshFromStore) repairs R13's stamp-clobber hazard between two processes on one data dir, as recorded on 0035. Every goal-2 checkbox still needs the work.stage.trigger.outcome counters and the span adds none (no hit in the watched surface), so R3 and R13's cells stay not-run; the acceptance run at bench/results/smoke-1.20.2/acceptance-zoteus.json says so per check. Pause-versus-crash resume untouched. No checkbox moves
 --- body ---
 ## Context
 

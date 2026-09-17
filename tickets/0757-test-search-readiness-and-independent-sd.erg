@@ -8,6 +8,7 @@ Author: Codex
 
 2026-09-08T21:30Z Codex note Filed readiness and independent-preparation comparison; implementation redesign remains outside this measurement ticket.
 2026-09-08T21:32Z Codex note Existing conductor and embedding work owns missing integration; readiness probes must reuse it and do not authorize a second sitter implementation.
+2026-09-17T08:09Z MinhHaDuong note rebaseline v1.20.2 (c386e83): the TOUCHED this log recorded at 357ad1f now has a reviewed SHA, c386e835a2ef90b539b611168130c8540cd55fe5. #78's mechanism in fulltext-source.ts: the attachment map rebuilds in itemKey= batches of 50 (KEY_BATCH :25) with 3 attempts (:28) and 3 sweeps (:38), absorb() guards double counting, and a map that never reached the end sets incomplete on the source and fulltextPartial in status instead of claiming completion, which is the readiness distinction this ticket's fixture is to detect. The fixture and the sitter-versus-cold comparison remain to be built and run
 --- body ---
 ## Context
 

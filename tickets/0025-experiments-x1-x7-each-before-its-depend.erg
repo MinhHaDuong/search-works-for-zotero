@@ -50,6 +50,7 @@ Author: claude
 2026-09-02T15:48Z codex note author chose X1 option 3: 1-bit leads but remains provisional until scan-plus-rerank runs on the specified 650k substrate
 2026-09-02T16:04Z codex note X6 live positive control fired through the Zotero plugin: a nonzero user-library full-text version became 0 and a group-library 0 remained 0; ticket 0592 owns the sweep
 2026-09-03T15:33Z claude note 0028 closed 2026-09-03 (seg/1 code-complete: interface, primary-class signals, dictionary special case, embed-cap guard). Its exit criterion naming X5 was descoped -- X5 scoring seg/1 against embedded outlines, per class, remains this ticket's own open work; nothing here changed
+2026-09-17T08:09Z MinhHaDuong note rebaseline v1.20.2 (c386e83): the reviewed span 4467663..c386e83 rewrites build.ts, fulltext-source.ts, index-manager.ts and sqlite-index.ts that this ticket cites; re-read against verification/UPSTREAM-1.20.2-REVIEW.md § 2, no exit criterion moves and no line cited here was re-pinned; re-derive any file:line before arguing from it
 --- body ---
 ## Context
 GOVERNANCE.md's increment train, item 7, and SPEC.md §5.3. Each experiment runs BEFORE its dependent and
