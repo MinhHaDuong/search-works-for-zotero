@@ -36,6 +36,6 @@ unstarted. Hygiene: 6 branches unmerged, 9 worktrees dirty.
 
 ## Basic state
 
-Reviewed upstream: **v1.16.0+1** at `4467663` (0738). Requirements: **24 ratified**. Tickets:
+Reviewed upstream: **v1.20.2** at `c386e83` (2026-09-17, no ticket; `verification/UPSTREAM-1.20.2-REREAD.md`). Requirements: **24 ratified**. Tickets:
 `erg ready tickets/`. In flight: `gh pr list`. Hand-maintained (`## Basic state`, not
 `## Status`), so `refresh-STATE.py` exits 2 by design.
