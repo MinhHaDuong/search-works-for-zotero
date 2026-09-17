@@ -7,6 +7,7 @@ Author: codex
 2026-09-05T20:04Z codex created
 
 2026-09-05T20:05Z codex note Requested by the author after the SDT parallelism discussion. Read the fork search build source, SYNC Zotero rows and current Zotero PDFWorker manager before filing. The manager still has a singleton serial queue. make upstream-catchup completed with TOUCHED for zoteus; Zotero implementation must be pinned afresh before coding. Scope is a bounded SDT Web Worker pool with native-Zotero resource and fidelity measurements; worker-count suggestions remain experiment candidates.
+2026-09-17T08:09Z MinhHaDuong note rebaseline v1.20.2 (c386e83): the reviewed span 4467663..c386e83 rewrites build.ts that this ticket cites; re-read against verification/UPSTREAM-1.20.2-REVIEW.md § 2, no exit criterion moves and no line cited here was re-pinned; re-derive any file:line before arguing from it
 --- body ---
 ## Context
 

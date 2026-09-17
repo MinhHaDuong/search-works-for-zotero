@@ -11,6 +11,7 @@ Blocked-by: 0557
 
 2026-09-03T09:48Z claude note the substrate already exists, so this child starts further along than the tracker assumed. `fork/src/features/fulltext/pdf-locate.ts` (2026-08-31, shipped upstream in v1.9.0 as `87e06c0`) already drives `pdfjs-dist` over a document's text runs and reads font ascent and descent from `textContent.styles` -- the font-size and position signal this ticket's heuristic is specified over. What is missing is the heuristic itself, not the access to the data it reads.
 
+2026-09-17T08:09Z MinhHaDuong note rebaseline v1.20.2 (c386e83): the reviewed span 4467663..c386e83 rewrites pdf-locate.ts (pageHeights() added, pdfjs import via loadPdfjs()) that this ticket cites; re-read against verification/UPSTREAM-1.20.2-REVIEW.md § 2, no exit criterion moves and no line cited here was re-pinned; re-derive any file:line before arguing from it
 --- body ---
 ## Context
 

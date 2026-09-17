@@ -16,6 +16,7 @@ Author: claude
 
 2026-09-03T15:32Z MinhHaDuong note blocker 0028 closed — Blocked-by removed.
 2026-09-06T21:28Z note tier 0's provenance moves with ticket 0572's re-cut of 2026-09-06: the pack's block types and page anchors now reach the segmenter through ticket 0726's plugin endpoint, not through a zoteus-side read of .zotero-sdt-cache. The ladder itself is unchanged -- 0558, 0560 and 0561 keep their scope, and this tracker's invariant that seg/1 is never degraded is unaffected -- but the tier-0 signal is now gated on a contract the author writes rather than on a binary format we parse.
+2026-09-17T08:09Z MinhHaDuong note rebaseline v1.20.2 (c386e83): the reviewed span 4467663..c386e83 rewrites annotate.ts that this ticket cites; re-read against verification/UPSTREAM-1.20.2-REVIEW.md § 2, no exit criterion moves and no line cited here was re-pinned; re-derive any file:line before arguing from it
 --- body ---
 ## Context
 
