@@ -1,0 +1,30 @@
+%erg 0.1
+Title: Follow Zotero Add-ons PR 6054 to resolution
+Created: 2026-09-22
+Author: codex
+
+--- log ---
+2026-09-22T10:32Z codex created
+
+--- body ---
+## Scope
+
+Follow [zotero/zotero#6054](https://github.com/zotero/zotero/pull/6054)
+after submission by ticket 0727. Read the PR page for maintainer response and
+CI, make requested changes on the fork branch, and record the upstream outcome.
+`SYNC.md` owns the live status; this ticket owns the work and its evidence.
+
+## Remaining verification from 0727
+
+- Run Remove → install replacement through a real Zotero Add-ons window, with
+  the pending removal present, and observe whether the new add-on survives.
+- Run the control: a genuinely pending removal still completes when the window
+  closes. The submitted module test passed; the real UI path has not run.
+- Record any version uplift or changed Firefox `addon-list.mjs` patch anchors.
+
+## Exit criteria
+
+The PR has an upstream disposition, requested revisions are resolved, and the
+real UI arm and control have results or specific not-run reasons. If merged,
+confirm the behavior in an upstream build before closing. Local sitter guards
+are tracked separately in 0814.

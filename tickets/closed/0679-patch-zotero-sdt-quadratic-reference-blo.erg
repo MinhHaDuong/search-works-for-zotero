@@ -2,6 +2,7 @@
 Title: Patch Zotero SDT quadratic reference-block membership scan
 Created: 2026-09-05
 Author: codex
+Closed: Patch submitted as zotero/document-worker#33; follow-through and remaining verification moved to 0811
 
 --- log ---
 2026-09-05T20:27Z codex created
@@ -9,6 +10,8 @@ Author: codex
 2026-09-05T20:40Z codex note Created local Zotero document-worker patch ticket with exact-function operation-count evidence and semantic-equivalence acceptance criteria; no upstream filing.
 2026-09-16T10:49Z claude note Second independent confirmation on AR6 2026-09-16: 248.4 s of silent citation stage at progress 90 on a far larger bibliography than the Palgrave subsets. Share of the membership scan still not isolated. See verification/incidents/0793-2026-09-16-ar6-completed-run.md
 2026-09-16T11:00Z claude note Author ruling 2026-09-16: this goes upstream as a Zotero PR, not a forum thread. GOVERNANCE bounds scope to zoteus only and do not bind Zotero (see its new scope section). Blocker before any patch: worker.js as shipped is a bundle, the upstream source file hosting isReferenceBlock is not yet located.
+2026-09-22T10:33Z codex note Zotero document-worker PR #33 filed and reviewed on its current head; upstream reaction and remaining differential/measurement checks transferred to 0811.
+2026-09-22T10:33Z MinhHaDuong closed — Patch submitted as zotero/document-worker#33; follow-through and remaining verification moved to 0811
 --- body ---
 ## Scope
 

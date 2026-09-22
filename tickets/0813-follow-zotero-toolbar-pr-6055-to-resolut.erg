@@ -1,0 +1,29 @@
+%erg 0.1
+Title: Follow Zotero toolbar PR 6055 to resolution
+Created: 2026-09-22
+Author: codex
+
+--- log ---
+2026-09-22T10:32Z codex created
+
+--- body ---
+## Scope
+
+Follow [zotero/zotero#6055](https://github.com/zotero/zotero/pull/6055)
+after submission by ticket 0787. Read the PR page for maintainer response and
+CI, make requested changes on the fork branch, and record the upstream outcome.
+`SYNC.md` owns the live status; this ticket owns the work and its evidence.
+
+## Remaining verification from 0787
+
+- Run the added `zoteroPaneTest.js` case in a built Zotero; only syntax was
+  checked before filing.
+- On a focused window, use real Tab and Shift+Tab keypresses to show the
+  plugin-contributed button is reached, then update
+  `plugins/sdt-sitter/RELEASE-NOTES.md` from that observation.
+
+## Exit criteria
+
+The PR has an upstream disposition, requested revisions are resolved, and the
+focused-window reading is recorded. If merged, confirm the route in an
+upstream build before closing.

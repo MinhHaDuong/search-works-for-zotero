@@ -1,0 +1,29 @@
+%erg 0.1
+Title: Finish local sitter disappearance safeguards
+Created: 2026-09-22
+Author: codex
+
+--- log ---
+2026-09-22T10:32Z codex created
+
+--- body ---
+## Scope
+
+Carry ticket 0727's local work that is independent of Zotero PR #6054.
+The PR outcome and real Add-ons UI control belong to 0812.
+
+## Work
+
+- Measure whether `pendingOperations` and `PENDING_UNINSTALL` remain visible
+  after a same-session replacement through the Add-ons window. Only if that
+  state can be observed in time, build and test a startup warning before the
+  queued deletion; do not ship a guard that cannot fire.
+- Resolve the two local defects 0727 logged on 2026-09-14: an unshowable
+  `confirmEx` read as consent, and a stale removed-instance window after a
+  healthy reinstall. Give each a reproducible control before changing code.
+
+## Exit criteria
+
+Each local safeguard has a measured verdict and any necessary fix has a
+positive and negative control. The ticket records why a proposed guard is
+infeasible if the required host state is not observable.

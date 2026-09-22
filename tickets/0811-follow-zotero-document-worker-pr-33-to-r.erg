@@ -1,0 +1,31 @@
+%erg 0.1
+Title: Follow Zotero document-worker PR 33 to resolution
+Created: 2026-09-22
+Author: codex
+
+--- log ---
+2026-09-22T10:32Z codex created
+
+--- body ---
+## Scope
+
+Follow [zotero/document-worker#33](https://github.com/zotero/document-worker/pull/33)
+after submission by ticket 0679. Read the PR page for maintainer response and
+CI, make requested changes on the fork branch, and record the upstream outcome.
+`SYNC.md` owns the live status; this ticket owns the work and its evidence.
+
+## Remaining verification from 0679
+
+- Extend differential tests to malformed references, empty indexes and index
+  construction/mutation; the submitted focused test covers normal roots,
+  nested blocks and NaN.
+- Count work while varying both bibliography runs and eligible blocks, then
+  compare decoded native packs on identical fixtures and measure citation-stage
+  time without claiming a whole-pipeline bound.
+- Run the document-worker suite when its dependencies are available.
+
+## Exit criteria
+
+The PR has an upstream disposition, requested revisions are resolved, and the
+verification above has a recorded result or a specific, honest not-run reason.
+If merged, confirm the fix in the upstream head or release before closing.

@@ -2,6 +2,7 @@
 Title: The sitter uninstalls itself: update_url advertises zero versions
 Created: 2026-09-06
 Author: sim
+Closed: Patch submitted as zotero/zotero#6054; upstream follow-through moved to 0812 and local safeguards to 0814
 
 --- log ---
 2026-09-06T21:42Z sim created
@@ -53,6 +54,8 @@ Author: sim
 2026-09-14T19:29Z claude note REPORTED UPSTREAM by the author, in his own name: https://forums.zotero.org/discussion/133758/installing-a-plugin-while-its-removal-is-still-pending-deletes-the-new-copy . The draft is plugins/sdt-sitter/UPSTREAM-REPORTS.md and the release notes now link the thread rather than merely claiming a report was filed. It carries the steps, the 50 ms disk trace and the add-on manager's own log, and -- deliberately -- the NEGATIVE result as well: bench/sitter_pending_uninstall_arm.py drives the same sequence over the AddonManager API with the pending state confirmed present and does not reproduce it, which is what localises the fault to the Plugins window rather than the API. A reader who tried only the API path and saw it work would otherwise dismiss the report. What stays open here is ours, not theirs: the defect itself is Zotero's, and this ticket's own remaining work is the two guards' successors -- guard 2 (warn at startup, before the deletion) is unbuilt because whether pendingOperations & PENDING_UNINSTALL survives the install on the UI path is unmeasured, and a check that cannot fire must not ship.
 2026-09-14T19:47Z claude note CORRECTION TO THE 19:29Z ENTRY ABOVE, which names plugins/sdt-sitter/UPSTREAM-REPORTS.md as the draft's home. The author ruled at 19:47Z that it leaves the repo, on the same reading that removed the two announcement drafts: outward communications he sends in his own name are not deliverables of this project. The log is append-only so the earlier line stands as written and this one corrects it. The record that matters was never the draft anyway -- it is the two threads themselves, 133758 and 133759, linked from RELEASE-NOTES.md, and the evidence they rest on, which is in verification/incidents/ and in this ticket. The removed file is recoverable from history at 7d80db99 if the exact wording submitted is ever wanted.
 2026-09-16T11:00Z claude note Author ruling 2026-09-16: forum thread 133758 drew no reply in two days, so convert it to a Zotero PR. It is the strongest of the three as a patch: contained defect, reproduction, disk trace, and a negative control localising the fault to the Plugins window rather than the AddonManager API. Not started, by the author's instruction.
+2026-09-22T10:33Z codex note Zotero PR #6054 filed and reviewed on its current head; upstream disposition and real Add-ons UI control transferred to 0812, local safeguards to 0814.
+2026-09-22T10:33Z MinhHaDuong closed — Patch submitted as zotero/zotero#6054; upstream follow-through moved to 0812 and local safeguards to 0814
 --- body ---
 ## Context
 

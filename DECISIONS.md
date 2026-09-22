@@ -7864,3 +7864,11 @@ partial. And `SYNC.md`'s "Open at filing; no PR submitted" on #75 was stale by
 nine days: the maintainer built it in `9f32cc4` (v1.17.0), as he built every
 item 0739 filed (#67–#71). Nothing closes on this entry; the re-triage notes
 sit on the tickets. This is a baseline ruling, not permission to post upstream.
+
+**2026-09-22 — Separate Zotero patch submission from upstream follow-through.**
+The author ruled that the three tickets which brought patches to Zotero close
+when their PRs are filed and reviewed. New tickets own maintainer response,
+revisions, upstream disposition and post-merge verification; `SYNC.md` owns the
+live upstream snapshot. Unfinished tests and the sitter's local safeguards move
+to those tickets before the originals close. A submitted patch is not recorded
+as a merged or verified fix.

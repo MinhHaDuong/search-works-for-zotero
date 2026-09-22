@@ -1,5 +1,14 @@
 # SYNC — the fork against upstream v1.20.2
 
+Updated 2026-09-22 — three Zotero patches are open upstream:
+[document-worker #33](https://github.com/zotero/document-worker/pull/33),
+[zotero #6054](https://github.com/zotero/zotero/pull/6054), and
+[zotero #6055](https://github.com/zotero/zotero/pull/6055). Each has an
+internal review and a Claude Opus review on its current head, recorded as
+COMMENTED by the author's GitHub account. No maintainer response, formal
+approval, CI check or merge is recorded on their pages. Tickets 0811–0813 own
+follow-through; 0814 owns the sitter's remaining local safeguards.
+
 Updated 2026-09-22 — Zotero 10.0.3 (released 2026-09-17) passed the live
 SDT Pack Sitter 0.4.26 smoke test on a separate, fresh profile. Its native SDT
 version constants match 10.0.2. Evidence and scope:
