@@ -371,15 +371,42 @@ and hide where it belongs. The test for which kind a constant is: whether
 anything outside the component could have an opinion about its value.
 
 Its value is chosen against a different neighbour entirely. Wall clock rather
-than a count of ids, because what it bounds is a library-wide query whose cost
-scales with the library and not with the backlog, and the same count is a
-different duration on a library of 700 and one of 10 000. Five seconds, an order
-of magnitude under `bootstrap.js`'s 60 s heartbeat, so no drain pass can span a
-heartbeat: a stretch of work no periodic record could see the inside of was the
-whole visibility failure in the incident. The number is a cadence knob and not a
-correctness gate — any positive budget restores the property, because what
-admission needs is control reaching the end of the loop, not `dirty` being
-empty.
+than a count of ids, because what it bounds is work whose cost does not scale
+with the backlog, and the same count is a different duration on a library of 700
+and one of 10 000. Five seconds, an order of magnitude under `bootstrap.js`'s
+60 s heartbeat, so no drain pass can span a heartbeat: a stretch of work no
+periodic record could see the inside of was the whole visibility failure in the
+incident. The number is a cadence knob and not a correctness gate — any positive
+budget restores the property, because what admission needs is control reaching
+the end of the loop, not `dirty` being empty.
+
+Ticket 0810 removed the per-id library-wide query the budget was first measured
+against, and left the budget where it is. The no-attachment view is now held as
+a map by itemID between censuses: a drain pass re-reads `numFileAttachments()`
+for the records its events actually named and the old and new parents of every
+attachment they touched, each read once per published generation however many
+events in it name the record, so the cost scales with the events rather than
+with the library size times the dirty-id count. The coalescing unit is the
+generation and not the pass: a drain pass retires ids that arrived after it
+started, so a record named again later is named by an event that may have moved
+its membership, and a pass-wide dedupe published one attachment leaving a parent
+without ever seeing the next one join it. The read happens before the publish that carries
+the classification which caused it, not after the loop: `collectSDTNotIndexed`
+reads `censusSnapshot.unattached` on every render, so a generation holding new
+classifications beside the previous view is a stale count on screen, not an
+internal detail. The full walk stays where it was correct
+— the initial census and the hourly reconciliation — and one further
+reconciliation is requested, never a targeted re-walk, when an event names an id
+that is gone and that nothing in this module ever placed under a parent. That is
+the only case a targeted refresh cannot answer, and a full census is already the
+mechanism for it.
+
+This does not make the budget redundant. What a drain pass now pays per id is an
+inspection — a `getAsync`, a stat, possibly an MD5 — which a bulk file sync
+still produces faster than the loop retires it, so the starvation guard 0796
+added is answering a different question from the cost 0810 removed. The
+wall-clock choice survives for the same reason: an inspection's duration is a
+property of the file, not of the backlog.
 
 The questions we could not answer from outside, in the order they cost us most:
 

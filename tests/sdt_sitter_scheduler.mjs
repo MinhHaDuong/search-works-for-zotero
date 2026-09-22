@@ -42,6 +42,15 @@ function fixture() {
     blocked: async () => null, yield: async () => {}, now: () => ++clock,
     changed: state => updates.push(JSON.stringify(state)),
     ensure: async (id, progress) => { calls.push(id); progress(90); cached.add(id); return true; },
+    /* Ticket 0810's two new host seams, at the host-level shape this file tests
+       and no deeper: `affected` answers with the id itself, which is what the
+       scheduler assumed before the seam existed, and `refreshUnattached` answers
+       with the view it was handed nothing to change. bootstrap.js's real
+       implementations, and the read counts that make the refresh worth having,
+       are pinned in tests/sdt_sitter_bootstrap.mjs against the Zotero mock —
+       a second copy of that logic here would test this file's guess about it. */
+    affected: async id => [id],
+    refreshUnattached: async () => ({ list: [], reconcile: false }),
   };
   const api = context.createSDTSitter(host);
   return { api, host, cached, calls, updates };
@@ -1429,7 +1438,14 @@ await test('the census label does not outlive the census, and the drain names it
   const f = fixture(); const records = []; const atGate = []; const atDrain = [];
   f.host.emit = (kind, data) => records.push({ kind, ...data });
   f.host.blocked = async () => { atGate.push(f.api.state.phase); return null; };
-  f.host.unattached = async () => { atDrain.push(f.api.state.phase); return []; };
+  /* Ticket 0810 removed the per-id `unattached()` walk this probe used to sit
+     on. `refreshUnattached` is not its replacement here: it runs only when a
+     retired id named a candidate nothing had named yet, which this fixture's
+     host never does. `affected` is called once per retired dirty id and nowhere
+     else, so it is the call that means "the drain is running" and nothing
+     weaker. */
+  const affected = f.host.affected;
+  f.host.affected = async id => { atDrain.push(f.api.state.phase); return affected(id); };
   await f.api.sweep();
   assert(atGate.length > 0, 'the gate never ran, so this proves nothing');
   assert(!atGate.includes('census'),
@@ -1445,6 +1461,139 @@ await test('the census label does not outlive the census, and the drain names it
   assert.equal(drain[0].pending, 1);
   assert.equal(drain[1].drained, 1);
 });
+await test('every generation a drain pass publishes carries a no-attachment view covering what it classified', async () => {
+  /* Ticket 0810, and the defect the first cut of it shipped: the refresh ran
+     once AFTER the drain loop, so every intermediate publish() carried the
+     previous generation's no-attachment view beside this generation's
+     classifications. `collectSDTNotIndexed` in bootstrap.js reads
+     `censusSnapshot.unattached` on every render, so a stale intermediate
+     generation is observable and not merely internal, which is what exit
+     criterion 2 ("agree in each published generation") forbids. */
+  const f = fixture();
+  const parent = id => 900 + (id - 10);
+  const view = new Map(); const asked = [];
+  f.host.parentOf = id => (id >= 11 ? parent(id) : undefined);
+  f.host.inspect = async id => (id >= 11
+    ? { status: 'missing-pack', identity: String(id) }
+    : { status: 'current', identity: String(id) });
+  f.host.refreshUnattached = async candidates => {
+    for (const candidate of candidates) { asked.push(candidate); view.set(candidate, { itemID: candidate }); }
+    return { list: [...view.values()], reconcile: false };
+  };
+  const generations = [];
+  const changed = f.host.changed;
+  f.host.changed = state => {
+    if (state.censusSnapshot) generations.push({
+      classified: state.censusSnapshot.members.filter(member => member.id >= 11).map(member => member.id),
+      listed: state.censusSnapshot.unattached.map(row => row.itemID) });
+    return changed(state);
+  };
+  await f.api.sweep();
+  generations.length = 0;
+  f.api.invalidate([11, 12, 13]);
+  await f.api.pump();
+
+  assert(generations.length >= 3,
+    `the drain published ${generations.length} generations, so this proves nothing about intermediate ones`);
+  for (const generation of generations) {
+    for (const id of generation.classified)
+      assert(generation.listed.includes(parent(id)),
+        `a generation classifying ${generation.classified.join(', ')} listed ` +
+        `${generation.listed.join(', ') || 'nothing'}: the parent of ${id} was ` +
+        'missing from the view published beside it');
+  }
+  // The agreement is not bought back with re-reads: each parent is asked for
+  // exactly once across the whole pass, which is the scaling claim.
+  assert.deepEqual(asked, [901, 902, 903],
+    `the refresh asked for ${asked.join(', ')} where each parent should be asked once`);
+});
+
+await test('an affected id nothing names asks for reconciliation although a sibling named a parent', async () => {
+  /* One dirty id expands to two affected ids: one gone and never tracked, one
+     ordinary. The gone one is covered by nothing -- no child names it, and
+     Zotero cannot say where it hung from -- so the pass must fall back to the
+     full reconciliation the ticket allows. Before this fix `placed` and
+     `unplaceable` were one pair of flags shared by every affected id of the
+     dirty id, so the sibling's parent set `placed` and suppressed the
+     reconciliation the gone one needed. */
+  const f = fixture();
+  let censuses = 0;
+  const list = f.host.list;
+  f.host.list = async () => { censuses++; return list(); };
+  f.host.affected = async id => (id === 50 ? [50, 51] : [id]);
+  f.host.parentOf = id => (id === 51 ? 777 : undefined);
+  f.host.inspect = async id => (id === 50
+    ? { status: 'excluded', absent: true }
+    : { status: 'missing-pack', identity: String(id) });
+  f.host.refreshUnattached = async () => ({ list: [], reconcile: false });
+  await f.api.sweep();
+  const before = censuses;
+  f.api.invalidate([50]);
+  await f.api.pump();
+  assert.equal(censuses - before, 1,
+    `an id nothing could name ran ${censuses - before} reconciliations where ` +
+    "the sibling's parent had covered it");
+});
+
+await test('a record whose membership moves twice in one drain pass is read again for the second move', async () => {
+  /* The defect a pass-wide coalescing set shipped, and the reason the unit is
+     the published generation and not the pass. Two attachments swap parents
+     while the drain is running -- which is ordinary, since a drain pass retires
+     ids that arrived after it started. X leaves P in the first generation, so P
+     is read at the instant it holds nothing and is published as having no file.
+     Y joins P in the second. Deduped across the pass, P is never read again and
+     the drain ends with the view still saying P has no file over P's new file;
+     both records are readable throughout, which is exactly the case exit
+     criterion 2 covers. */
+  const f = fixture();
+  const parentOf = new Map([[11, 500], [12, 501]]);
+  const moves = new Map([[11, 501], [12, 500]]);
+  const view = new Map();
+  f.host.parentOf = id => parentOf.get(id);
+  f.host.affected = async id => [id];
+  f.host.inspect = async id => {
+    if (!moves.has(id)) return { status: 'current', identity: String(id) };
+    // Reparenting the attachment IS the membership change; it lands as the
+    // drain reaches the id, not before the pass.
+    parentOf.set(id, moves.get(id));
+    return { status: 'missing-pack', identity: String(id), parentItemID: moves.get(id) };
+  };
+  f.host.refreshUnattached = async candidates => {
+    for (const candidate of candidates) {
+      const files = [...parentOf.values()].filter(parent => parent === candidate).length;
+      if (files) view.delete(candidate); else view.set(candidate, { itemID: candidate });
+    }
+    return { list: [...view.values()].sort((a, b) => a.itemID - b.itemID) };
+  };
+  await f.api.sweep();
+  f.api.invalidate([11, 12]);
+  await f.api.pump();
+  const listed = f.api.state.censusSnapshot.unattached.map(row => row.itemID);
+  assert.deepEqual(listed, [],
+    `the drain ended with ${listed.join(', ')} listed as holding no file, after the pass gave each one a file`);
+});
+
+await test('a parent Zotero reports as false is no parent at all', async () => {
+  /* Zotero's `_getParentID()` answers `false` for "no parent", documented in
+     its own `dataObject.js`, so `?? null` never normalizes it and a candidate
+     set that takes it at face value hands `false` to `getAsync`. Item ids are
+     positive integers, which is why one falsiness test covers `false`, `null`
+     and `undefined` together. */
+  const f = fixture();
+  const handed = [];
+  f.host.parentOf = () => false;
+  f.host.affected = async id => [id];
+  f.host.inspect = async id => ({ status: 'missing-pack', identity: String(id), parentItemID: false });
+  f.host.refreshUnattached = async candidates => {
+    handed.push(...candidates); return { list: [] };
+  };
+  await f.api.sweep();
+  f.api.invalidate([11]);
+  await f.api.pump();
+  assert(!handed.some(candidate => candidate === false || candidate === null || candidate === undefined),
+    `the refresh was handed ${handed.map(String).join(', ')}, which names no record`);
+});
+
 await test('a sustained notification source cannot starve admission', async () => {
   /* Ticket 0796. The drain ran `while (dirty.size && current())` with no
      per-iteration bound while paying a library-wide `unattached()` every turn, so
@@ -1476,13 +1625,23 @@ await test('a sustained notification source cannot starve admission', async () =
     admittedAtFed ??= fed; pendingAtAdmission ??= f.api.state.pending.length;
     return ensure(id, progress);
   };
-  // One call carries both halves of the live shape: the drain's own per-iteration
-  // cost, which is what the budget is spent on, and a notification landing while
-  // that query runs, which is what refills `dirty` behind it.
-  f.host.unattached = async () => {
+  /* One call carries both halves of the live shape: the drain's own
+     per-iteration cost, which is what the budget is spent on, and a
+     notification landing while that work runs, which is what refills `dirty`
+     behind it.
+
+     Ticket 0810 moved the hook from `unattached` to `affected`. `unattached()`
+     is no longer called once per retired id — that per-id library-wide walk is
+     the cost 0810 removed — so a feed still attached to it would inject
+     nothing, the source would never outrun the drain, and this test would pass
+     by exercising no sustained pressure at all. `affected` is called exactly
+     once per retired dirty id, before and after 0810 alike, so the pressure the
+     budget is asserted against is unchanged; only its attachment point moved. */
+  const affected = f.host.affected;
+  f.host.affected = async id => {
     now += STEP_MS;
     if (fed < FEED) f.api.invalidate([1000 + fed++]);
-    return [];
+    return affected(id);
   };
   f.api.invalidate([1]);
   await f.api.pump();
@@ -1522,10 +1681,13 @@ await test('a budgeted drain never leaves behind a backlog nothing will wake it 
   const inspect = f.host.inspect;
   f.host.inspect = async id =>
     (id >= 1000 ? { status: 'current', identity: String(id) } : inspect(id));
-  f.host.unattached = async () => {
+  // Ticket 0810: the same move of the feed's attachment point as the test above,
+  // and for the same reason.
+  const affected = f.host.affected;
+  f.host.affected = async id => {
     now += STEP_MS;
     if (fed < FEED) f.api.invalidate([1000 + fed++]);
-    return [];
+    return affected(id);
   };
   f.api.invalidate([1]);
   await f.api.pump();

@@ -203,9 +203,12 @@ var createSDTSitter = function (host) {
             // silent by design and the transition hold absorbs it.
             state.phase = 'ready'; publish();
           }
-          // Ticket 0792: the drain is the one post-census stretch that is
-          // long on its own account -- a library-wide `unattached()` per id --
-          // so it gets a name and two records, where it had neither.
+          // Ticket 0792: the drain is the one post-census stretch that is long
+          // on its own account, so it gets a name and two records, where it had
+          // neither. What made it long was a library-wide `unattached()` per id;
+          // ticket 0810 replaced that with one targeted refresh per pass, and
+          // the drain is still the stretch a bulk sync fills, one inspection per
+          // notified id.
           if (dirty.size && current()) {
             state.phase = 'draining'; state.draining = dirty.size; publish();
             if (host.emit) host.emit('drain-start', { pending: dirty.size }, 'trace');
@@ -224,6 +227,28 @@ var createSDTSitter = function (host) {
           // `dirty` per pass, always; the set still empties, only later.
           const deadline = host.now() + SDT_DRAIN_BUDGET_MS;
           let retired = 0;
+          /* Ticket 0810. The no-attachment view is refreshed from the records
+             this pass could have changed — the record an event named, and the
+             old and new parent of every attachment it touched — and never from
+             a library-wide walk, which is the cost ticket 0796's budget could
+             bound but not remove.
+
+             The coalescing unit is the published generation, which is one
+             retired id. Within it a record named twice is read once; across
+             generations it is read again, because the event that names it the
+             second time is exactly the kind that may have changed its
+             membership — an attachment leaves P, the generation publishes, and
+             another joins P later in the same pass. Deduping across the whole
+             pass suppressed that second read and published "P has no file" over
+             P's new file. What the reads still never scale with is the library:
+             they are the records the events themselves named, summed over the
+             generations that named them.
+
+             Publishing the view only after the loop was cheaper by nothing and
+             left each intermediate generation quoting a stale view to
+             `collectSDTNotIndexed`, which reads `censusSnapshot.unattached` on
+             every render. */
+          let reconcileNeeded = false;
           while (dirty.size && current()) {
             if (retired > 0 && host.now() >= deadline) break;
             let changed = false;
@@ -231,16 +256,50 @@ var createSDTSitter = function (host) {
             dirty.delete(id); // BEFORE awaits: a new event for this ID survives.
             const ids = host.affected ? await host.affected(id) : [id];
             if (!current()) { dirty.add(id); return; }
+            // Fully determined by `ids` before the loop runs.
+            const sawSelf = ids.has ? ids.has(id) : Array.from(ids).includes(id);
+            /* What this generation has to read. A falsy candidate is no id:
+               Zotero's own `_getParentID()` answers `false` for "no parent",
+               and item ids are positive integers, so one test covers `false`,
+               `null` and `undefined` alike. */
+            const candidates = new Set();
+            const consider = candidate => { if (candidate) candidates.add(candidate); };
+            // Per affected id, never shared across them: a sibling's parent
+            // says nothing about whether THIS id is covered, and a flag hoisted
+            // out of the loop let one suppress the other's reconciliation.
+            const unplaceable = new Set();
             for (const affected of ids) {
+              // Before inspect(), never after: inspect() is what overwrites the
+              // parent map, so a read taken afterwards can no longer name the
+              // parent an attachment has just left.
+              const previousParent = host.parentOf ? host.parentOf(affected) : undefined;
               const info = await inspect(affected);
               if (!current()) { dirty.add(id); return; }
               record(affected, info); changed = true;
+              consider(previousParent);
+              consider(info.parentItemID);
+              // Neither this module's map nor Zotero can say anything about an
+              // id that is gone and was never tracked. It may still be covered
+              // — by a child that names it as a parent — so the verdict waits
+              // until every affected id has had its say.
+              if (previousParent === undefined && info.absent) unplaceable.add(affected);
             }
-            // A bibliographic-record notification can have no attachment IDs at
-            // all. It still changes the separate no-attachment view, which must
-            // publish in the same generation as any attachment updates.
-            if (host.unattached) {
-              state.unattached = await host.unattached();
+            // A bibliographic-record notification carries no attachment ids of
+            // its own: `affected()` answers with its children, and the record
+            // the event named is then the candidate whose membership may have
+            // moved.
+            if (!sawSelf) consider(id);
+            /* An erased record IS covered when the children that still name it
+               put it in the candidate set; what nothing names, no targeted read
+               can reach, so ask for the one full reconciliation the ticket
+               allows rather than claim the view is current. Membership of the
+               candidate set is the whole test, which is why it is asked after
+               the loop and per affected id. */
+            for (const orphan of unplaceable) if (!candidates.has(orphan)) reconcileNeeded = true;
+            if (candidates.size && host.refreshUnattached) {
+              const { list } = await host.refreshUnattached(candidates);
+              if (!current()) { dirty.add(id); return; }
+              if (Array.isArray(list)) state.unattached = list;
               changed = true;
             }
             if (!current()) { dirty.add(id); return; }
@@ -248,6 +307,7 @@ var createSDTSitter = function (host) {
             retired++;
             if (changed) publish();
           }
+          if (reconcileNeeded) reconciliationPending = true;
           if (hadBacklog && current()) {
             // Ticket 0796 moved both fields off constants the budget made false.
             // `state.draining` used to be zeroed here because the loop above
@@ -264,6 +324,14 @@ var createSDTSitter = function (host) {
             state.draining = dirty.size;
             if (host.emit) host.emit('drain-end', { drained: retired, pending: dirty.size }, 'trace');
           }
+          /* Ticket 0810. An unresolvable event asked for a full reconciliation,
+             and the census that answers it sits at the TOP of this loop — while
+             the candidate search below exits by `break` as soon as the queue is
+             empty. Returning to the top now is what makes the fallback a repair
+             rather than a note left for the hourly deadline. The flag is cleared
+             by the census itself, and the drain retired every id before it, so
+             this is one extra turn and not a cycle. */
+          if (reconciliationPending && current()) continue;
           if (!current()) return;
           const candidate = state.pending.find(item => !attempted.has(item.id) ||
             attempted.get(item.id) !== observed.get(item.id)?.identity);

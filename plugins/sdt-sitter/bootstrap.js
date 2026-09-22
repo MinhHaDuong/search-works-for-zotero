@@ -3280,6 +3280,24 @@ async function initialize(rootURI, token, era = shutdowns) {
   emit('cache-load', { records: Object.keys(raw.records).length });
   let seen = null;
   const children = new Map(), parents = new Map();
+  /* Ticket 0810. The no-attachment view, held by itemID between censuses so a
+     notification can re-evaluate the few records it touches instead of walking
+     the library again. `unattached()` below is the only thing that replaces
+     this map outright; `refreshUnattached()` is the only thing that patches it.
+     A read that fails patches nothing — retaining a stale entry is recoverable
+     at the next census, inventing an absence is an obstacle the author acts on. */
+  let noAttachment = new Map();
+  /* The view's published order, memoized. By itemID, because that is the order
+     the full walk publishes (`ORDER BY itemID`) and the view must not reorder
+     itself depending on which records a notification happened to touch — a
+     patched map is in insertion order, which is the history of this session's
+     notifications. Sorting it on every targeted refresh cost the whole view's
+     n log n per retired id, on a drain pass that retires thousands and reads
+     five records: null means the map moved, and nothing but a real mutation
+     sets it. */
+  let ordered = null;
+  const unattachedView = () =>
+    (ordered ||= [...noAttachment.values()].sort((a, b) => a.itemID - b.itemID));
   let compact = true;
   // Latched exactly as render()'s guard is, and for the same reason: saveCache
   // runs once at the end of the census and again after every settled duration,
@@ -3343,8 +3361,23 @@ async function initialize(rootURI, token, era = shutdowns) {
   // regular records without a file attachment explain a useful absence, but do
   // not belong in attachment coverage. `numFileAttachments()` excludes notes
   // and URL-only attachments by Zotero's own file-attachment predicate.
+  // The membership rule and the row shape, stated once for the full walk and
+  // the targeted refresh below: what counts as a bibliographic record without
+  // a file must not drift between the two paths that publish the same view.
+  const isBibliographicRecord = item =>
+    Boolean(item) && !item.deleted && typeof item.isRegularItem === 'function' && item.isRegularItem();
+  const hasFileAttachment = async item => {
+    if (typeof item.loadData === 'function') await item.loadData(['childItems']);
+    return typeof item.numFileAttachments !== 'function' || item.numFileAttachments() !== 0;
+  };
+  const unattachedRow = async (id, item) => {
+    const title = await getItemTitle(item);
+    return { itemID: id, libraryID: item.libraryID, key: item.key,
+      title: title || sdtText('file-number', { id }), parentTitle: null };
+  };
   const unattached = async () => {
     const result = [];
+    let walked = false;
     try {
       const ids = await Zotero.DB.columnQueryAsync(
         'SELECT itemID FROM items WHERE itemID NOT IN (SELECT itemID FROM deletedItems) ORDER BY itemID');
@@ -3355,22 +3388,53 @@ async function initialize(rootURI, token, era = shutdowns) {
         // records.
         await new Promise(resolve => timers.setTimeout(resolve, 0));
         const item = await Zotero.Items.getAsync(id);
-        if (!item || item.deleted || typeof item.isRegularItem !== 'function' || !item.isRegularItem()) continue;
-        try {
-          if (typeof item.loadData === 'function') await item.loadData(['childItems']);
-          if (typeof item.numFileAttachments !== 'function' || item.numFileAttachments() !== 0) continue;
-        } catch (_error) { continue; }
-        const title = await getItemTitle(item);
-        result.push({ itemID: id, libraryID: item.libraryID, key: item.key,
-          title: title || sdtText('file-number', { id }), parentTitle: null });
+        if (!isBibliographicRecord(item)) continue;
+        try { if (await hasFileAttachment(item)) continue; } catch (_error) { continue; }
+        result.push(await unattachedRow(id, item));
       }
+      walked = true;
     } catch (error) {
       // This auxiliary view is never allowed to stop attachment indexing. Its
       // next reconciliation retries the read, while the journal retains only a
       // safe error class.
       emit('unattached-read-error', { error: classifyError(error) }, 'error');
     }
+    // Only a walk that finished may declare the whole view; a partial one would
+    // publish every record it never reached as having a file.
+    if (walked) { noAttachment = new Map(result.map(row => [row.itemID, row])); ordered = null; }
     return result;
+  };
+
+  /* The incremental half of the view above. `candidates` are the itemIDs whose
+     `numFileAttachments()` membership a drain pass may have changed — the
+     records an event named and the old and new parents of every attachment it
+     touched, already deduplicated by the scheduler.
+
+     Returns the whole view, not a diff: the map IS the view, so the caller
+     assigns what it gets and no two places have to agree on how to apply a
+     patch. Whether a candidate that resolves to nothing needs a full census is
+     the scheduler's call and not this function's — it is the only side that
+     knows whether anything else in the generation named that id. */
+  const refreshUnattached = async candidates => {
+    for (const id of candidates) {
+      try {
+        const item = await Zotero.Items.getAsync(id);
+        if (!isBibliographicRecord(item) || await hasFileAttachment(item)) {
+          // Only a delete that removed something changes the view.
+          if (noAttachment.delete(id)) ordered = null;
+          continue;
+        }
+        noAttachment.set(id, await unattachedRow(id, item)); ordered = null;
+      } catch (error) {
+        /* Retain whatever this record's last known membership was: a read that
+           failed says nothing about whether the record has a file, and both
+           answers it could be guessed into are wrong in a way the author sees.
+           A distinct event name from `unattached-read-error` so the journal
+           tells a failed targeted refresh apart from a failed full walk. */
+        emit('unattached-refresh-error', { error: classifyError(error) }, 'error');
+      }
+    }
+    return { list: unattachedView() };
   };
 
   const blockHasSDTText = block => {
@@ -3503,7 +3567,11 @@ async function initialize(rootURI, token, era = shutdowns) {
     } catch (_error) { /* Treat an unreadable link mode as the storage-neutral case. */ }
     const label = title || filename || sdtText('file-number', { id });
     const descriptor = { itemID: id, libraryID: item.libraryID, key: item.key,
-      title: label, parentTitle: parentTitle || null, filename, linked };
+      title: label, parentTitle: parentTitle || null, filename, linked,
+      // Ticket 0810: the NEW parent, read off the call the scheduler already
+      // makes. The old one is `parentOf()` below, which must be read before
+      // this function runs — it is this function that overwrites it.
+      parentItemID: item.parentItemID ?? null };
     const processor = item.isPDFAttachment() ? 'pdf' : item.isEPUBAttachment() ? 'epub' : item.isSnapshotAttachment() ? 'snapshot' : null;
     if (!processor) return { status: 'unsupported', ...descriptor, reason: 'no-extractor' };
     const cacheKey = `${item.libraryID}/${item.key}`;
@@ -3753,6 +3821,12 @@ async function initialize(rootURI, token, era = shutdowns) {
       return Zotero.DB.columnQueryAsync('SELECT itemID FROM itemAttachments ORDER BY itemID');
     },
     unattached,
+    refreshUnattached,
+    /* The parent this module last observed for an attachment, which Zotero may
+       no longer be able to supply: a deleted or moved child does not name where
+       it came from. Read it BEFORE `inspect()` runs for the same id — `inspect`
+       mutates `parents` on its way to an answer. */
+    parentOf: id => parents.get(id),
     // Parent erasure may report only the parent; retain previously observed
     // child IDs as well as the current DB membership. Never await this inside
     // notify(): item notifications can run within the transaction we query.
