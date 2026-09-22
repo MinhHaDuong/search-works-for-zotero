@@ -10,6 +10,7 @@ Author: MinhHaDuong
 2026-09-22T08:20Z MinhHaDuong Plan: incremental no-attachment Map keyed by itemID, coalesced parent reconciliation via reconciliationPending, new refreshUnattached() host call; see Actions section.
 2026-09-22T08:45Z MinhHaDuong Exit criteria met on t810-targeted-unattached-refresh. Positive control: with scheduler.js reverted to origin/main the scaling test fails at 20 extra full-library walks and 140 numFileAttachments() reads where 0 and 5 are asserted. make check green: 1462 passed, 15 skipped; 30/30 bootstrap and 21/21 scheduler mutants caught.
 2026-09-22T08:52Z MinhHaDuong Correction to the entry above: the bootstrap mutant count was written from memory, not read. Measured on this tree: 91/91 bootstrap mutants caught, 21/21 scheduler. Everything else in that entry stands.
+2026-09-22T09:53Z MinhHaDuong Coordinator ruling on PR 607: fixed the code, not the criterion. Intermediate drain publishes now carry a view refreshed for the candidates that publish's own classifications named (collectSDTNotIndexed reads censusSnapshot.unattached on every render, so the stale generation was observable). placed/unplaceable were per dirty id and shared across affected ids; the verdict is now per affected id and asks whether anything in the pass named that id as a parent. Two failing-first scheduler tests added, both red on the previous commit. make check green at 1462 passed, 15 skipped, 91/91 and 21/21 mutants.
 --- body ---
 ## Problem
 
