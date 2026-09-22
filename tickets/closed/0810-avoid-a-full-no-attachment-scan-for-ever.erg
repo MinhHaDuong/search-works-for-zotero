@@ -15,6 +15,7 @@ Closed: autoclosed — PR #607
 2026-09-22T10:36Z MinhHaDuong bump verify-reroll — round 1: exit criterion 2 (targeted refresh's seen-Set coalescing loses a second, same-pass membership flip -- confirmed reproducible against unmodified scheduler.js, false positive in published no-attachment view)
 2026-09-22T10:56Z MinhHaDuong Round 2: coalescing unit moved from the drain pass to the published generation (B1), the view's sort memoized behind a mutation flag instead of running per refresh (S1), and a falsy parent -- Zotero answers false for none -- filtered in consider() (B2). Read count for the 20-event burst is now 20, not 5: the burst's five parents are each named by four events, so the coordinator's premise that they are mentioned once each did not hold. The test now asserts library-independence directly, running the same burst over a 7-record and a 45-record library and requiring equal counts.
 2026-09-22T11:12Z MinhHaDuong closed — autoclosed — PR #607
+2026-09-22T11:23Z MinhHaDuong bump circuit-breaker — execute agent died with the previous session; WIP (8 files) salvaged and pushed on t810-targeted-unattached-refresh at b337533e; finisher relaunched on that branch (re-landed: original line sat on the abandoned ticket/0810-targeted-unattached-refresh branch)
 --- body ---
 ## Problem
 
