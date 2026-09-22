@@ -319,7 +319,15 @@ export function createHarness(options = {}) {
     // `blockReads` — the walk finished either way. Whether the catalogue was
     // consulted at all is the only observable that separates a verdict the
     // module stopped short of from one it went on to compute.
-    catalogReads: [] };
+    catalogReads: [],
+    /* Ticket 0810. Two counters that measure COST rather than intent, so a
+       no-attachment refresh that merely renames the full walk cannot pass the
+       scaling test. `unattachedWalk` is incremented in the one DB branch only
+       `unattached()`'s `SELECT itemID FROM items` reaches, so it counts
+       library-wide walks whatever the function calling them is called;
+       `numFileAttachments` counts the ticket's own membership primitive, so it
+       counts the reads a targeted refresh is supposed to avoid. */
+    unattachedWalk: 0, numFileAttachments: 0 };
   const observers = new Map(); let observerSequence = 0;
 
   // Two clocks, moving independently. `mono` is what ChromeUtils.now() answers
@@ -390,6 +398,10 @@ export function createHarness(options = {}) {
   const regularItem = row => ({
     id: row.id, key: row.key, libraryID: row.libraryID, deleted: row.deleted,
     isRegularItem: () => true, loadData: async () => {},
+    /* Zotero's own items answer this; the mock's regular records did not, and a
+       notification naming one directly reached `affected()`'s `isAttachment()`
+       and threw. Nothing before ticket 0810 notified on a bibliographic record. */
+    isAttachment: () => false,
     /* Derived, where it used to be a constant `0`. A constant answers "this
        record has no file" for every record in the fixture, so the whole
        no-attachment view was a list the fixture declared rather than one the
@@ -399,9 +411,12 @@ export function createHarness(options = {}) {
        trashed child likewise. Every pre-existing fixture keeps its old answer:
        nothing in them names a bibliographic record as a parent, so no child is
        ever counted. */
-    numFileAttachments: () => [...library.values()].filter(child =>
-      parentOf(child) === row.id && !child.deleted
-      && !child.notAnAttachment && !child.urlOnly).length,
+    numFileAttachments: () => {
+      calls.numFileAttachments++;
+      return [...library.values()].filter(child =>
+        parentOf(child) === row.id && !child.deleted
+        && !child.notAnAttachment && !child.urlOnly).length;
+    },
     getField: () => row.title, getDisplayTitle: () => row.title,
   });
 
@@ -610,6 +625,14 @@ export function createHarness(options = {}) {
     Items: {
       getAsync: async id => {
         calls.inspect.push(id);
+        /* A record Zotero cannot read right now, which is a different fact from
+           a record that is gone: the sibling of `linkModeUnreadable` above, one
+           level up. Ticket 0810 needs it because a targeted membership refresh
+           must retain the last known membership for such a record rather than
+           invent an absence, and nothing here could make a whole item read
+           fail. */
+        if (library.get(id)?.unreadable || bibliographic.get(id)?.unreadable)
+          throw new Error('the item cannot be read');
         const row = library.get(id);
         if (row) return item(row);
         const record = bibliographic.get(id);
@@ -622,7 +645,7 @@ export function createHarness(options = {}) {
       columnQueryAsync: async (sql, params) => {
         if (params) { calls.affected.push(params[0]); return [...library.values()]
           .filter(row => parentOf(row) === params[0]).map(row => row.id); }
-        if (sql.includes('FROM items')) return [...bibliographic.keys()];
+        if (sql.includes('FROM items')) { calls.unattachedWalk++; return [...bibliographic.keys()]; }
         calls.list++; return [...library.keys()];
       },
       valueQueryAsync: async (_sql, [id]) => library.get(id).pages,
@@ -866,7 +889,7 @@ export function createHarness(options = {}) {
   }
 
   return {
-    context, Zotero, files, timers, calls, windows, library, observers,
+    context, Zotero, files, timers, calls, windows, library, bibliographic, observers,
     notify(event, type, ids) { for (const { observer, types } of observers.values())
       if (types.includes(type)) observer.notify(event, type, ids, {}); },
     clock, advance, quiet, turn, persistPack, debugged, logged,
