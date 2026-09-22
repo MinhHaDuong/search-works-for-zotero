@@ -8,6 +8,7 @@ Author: MinhHaDuong
 
 2026-09-22T07:58Z MinhHaDuong note Raid found two gaps: unknown former parents need a coalesced reconciliation, and the 0796 sustained-feed test must move off the per-ID unattached hook. Exit criteria now pin both and count underlying reads.
 2026-09-22T08:20Z MinhHaDuong Plan: incremental no-attachment Map keyed by itemID, coalesced parent reconciliation via reconciliationPending, new refreshUnattached() host call; see Actions section.
+2026-09-22T08:34Z MinhHaDuong bump circuit-breaker — execute agent died with the previous session; WIP (8 files) salvaged and pushed on t810-targeted-unattached-refresh at b337533e; finisher relaunched on that branch
 --- body ---
 ## Problem
 
