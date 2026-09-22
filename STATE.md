@@ -19,17 +19,17 @@ proposition, [SPEC.md](SPEC.md) the design.
   `settle ok`). **0796 and 0797 closed.** **0795**: detection is one unmeasured path.
 - **0793: the AR6 plateau is SLOW, not wedged.** 248 s at 90, then 95, `settle ok` at 469 s —
   the citation/reference stage, silent by construction (five `onProgress` sites; the page loop
-  owns 5→90). Waits on the author's decision to announce the tail. Suspect: **0679**.
+  owns 5→90). Waits on the author's decision to announce the tail. Suspect: **0811**.
 - **Zotero gets patches, not forum threads** (author, 2026-09-16). `GOVERNANCE.md` is
-  zoteus-only. Convert **0679**, **0727** (133758), **0787** (133759) to PRs. Blocker for
-  all three: the shipped `worker.js` is a bundle, upstream source not located.
+  zoteus-only. The three patches are filed — document-worker#33, zotero#6054, zotero#6055 —
+  and followed by **0811**, **0812**, **0813**; [SYNC.md](SYNC.md) owns their live status.
 - The retag is **author's hands, in order**: build, GPG-sign, publish the `.xpi`,
   then ONE commit adding BOTH `tag` and `update_link`. v0.4.10 is sixteen versions behind.
 - Release the Multilingual test library and questions + grader as public Challenge.
 
 ## Handoff
 
-Open here: 0774, 0786, **0808** (the stall probe loses its run if stopped), 0727's guard 2 —
+Open here: 0774, 0786, **0808** (the stall probe loses its run if stopped), 0814's guard 2 —
 unbuilt: a check that cannot fire must not ship. Gaps: R10 (0660–0664), R13 (0650–0652), R15
 (0654–0657), R22 (0643, 0665), fixtures 0602, 0623, 0658. #6012 train (0754–0757) and **0794**
 unstarted. Hygiene: 6 branches unmerged, 9 worktrees dirty.

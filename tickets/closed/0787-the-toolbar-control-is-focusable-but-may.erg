@@ -2,6 +2,8 @@
 Title: The toolbar control is focusable but may not be in Zotero's tab route
 Created: 2026-09-14
 Author: claude
+Closed: Patch submitted as zotero/zotero#6055; upstream follow-through and keyboard verification moved to 0813
+Superseded-by: 0813
 
 --- log ---
 2026-09-14T05:30Z claude created
@@ -13,6 +15,8 @@ Author: claude
 
 2026-09-14T19:29Z claude note REPORTED UPSTREAM by the author, in his own name: https://forums.zotero.org/discussion/133759/plugin-toolbar-buttons-are-still-outside-the-keyboard-navigation-chain , filed as a follow-up to forum discussion 97505 rather than as a new claim -- dstillman wrote there on 2023-02-23 that 'In Zotero 6.0.22, available now, all toolbar buttons are accessible via the keyboard', which is true of the NATIVE buttons and leaves plugin-contributed ones outside. The mechanism in the report was verified against zoteroPane.js in the shipped omni.ja rather than taken from this ticket: setUpKeyboardNavigation() builds each actionsMap as a `let` inside its own keydown callback, moveFocus looks up actionsMap[event.target.id] and then falls back over event.target.classList, and all nineteen top-level keys are Zotero's own element ids or specific Zotero classes (zotero-tb-add, zotero-tb-sync, search-input, tag-selector-list and so on). The classList fallback looked at first like a way in for a plugin and is not, because no generic 'a toolbar button' key exists -- so the report ASKS for a hook (a recognised class, or a registration call) instead of asserting the case is hopeless, and offers to test a patch. The author's ruling of 2026-09-14 stands unchanged: asking a user to learn a shortcut is not a solution, and nothing is worked around on our side.
 2026-09-16T11:00Z claude note Author ruling 2026-09-16: forum thread 133759 drew no reply, convert to a Zotero PR. This one asked for a hook rather than carrying one, which GOVERNANCE would have called design-sized; that rule is zoteus-shaped and does not reach Zotero, so the PR must propose the minimal API itself (a recognised class, or a registration call) against setUpKeyboardNavigation in zoteroPane.js. Not started, by the author's instruction.
+2026-09-22T10:33Z codex note Zotero PR #6055 filed and reviewed on its current head; upstream disposition and focused-window keyboard verification transferred to 0813.
+2026-09-22T10:33Z MinhHaDuong closed — Patch submitted as zotero/zotero#6055; upstream follow-through and keyboard verification moved to 0813
 --- body ---
 ## Context
 
