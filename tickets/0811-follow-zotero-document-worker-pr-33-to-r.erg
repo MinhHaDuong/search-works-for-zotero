@@ -6,6 +6,8 @@ Author: codex
 --- log ---
 2026-09-22T10:32Z codex created
 
+2026-09-22T14:33Z sim bump verify-reroll — round 1: E4 incomplete — 0811 dropped 0679's phase-isolation item and excluding-creation-date qualifier, 0812/0813 omitted their PRs' review findings, STATE.md still described closed tickets as open
+2026-09-22T14:33Z sim note restored two verification items 0679's Evidence and acceptance block carried and the handoff dropped: the excluding-creation-date qualifier on the native-pack comparison, and isolating the membership scan's share of total citation time (0679's phase measurements demonstrate the scan, not its share). Re-read 0679's block item by item; the rest is either done or already here.
 --- body ---
 ## Scope
 
@@ -20,8 +22,11 @@ CI, make requested changes on the fork branch, and record the upstream outcome.
   construction/mutation; the submitted focused test covers normal roots,
   nested blocks and NaN.
 - Count work while varying both bibliography runs and eligible blocks, then
-  compare decoded native packs on identical fixtures and measure citation-stage
-  time without claiming a whole-pipeline bound.
+  compare decoded native packs on identical fixtures, excluding creation date,
+  and measure citation-stage time without claiming a whole-pipeline bound.
+- Isolate the membership scan's share of total citation time. 0679's phase
+  measurements (`verification/SDT-PALGRAVE-PHASES.md`) demonstrate the scan;
+  they do not isolate its share.
 - Run the document-worker suite when its dependencies are available.
 
 ## Exit criteria

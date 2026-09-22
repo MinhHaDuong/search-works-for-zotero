@@ -6,6 +6,7 @@ Author: codex
 --- log ---
 2026-09-22T10:32Z codex created
 
+2026-09-22T14:33Z sim note transcribed the review findings already on zotero/zotero#6054 into the body, so they survive independently of the PR page: the second review's APPROVED verdict and its five non-blocking findings, notably that the test suite is real but unreachable with no CI wiring. Attribution stated as SYNC.md states it — both reviews posted by the author's own GitHub account, recorded as COMMENTED, not an upstream verdict.
 --- body ---
 ## Scope
 
@@ -21,6 +22,40 @@ CI, make requested changes on the fork branch, and record the upstream outcome.
 - Run the control: a genuinely pending removal still completes when the window
   closes. The submitted module test passed; the real UI path has not run.
 - Record any version uplift or changed Firefox `addon-list.mjs` patch anchors.
+
+## Review findings already on the PR page
+
+Every review on zotero/zotero#6054 was posted by the author's own GitHub
+account — internal reviews and Claude Opus reviews — and each is recorded as
+COMMENTED, not as an upstream verdict. No maintainer response, formal approval,
+CI check or merge is recorded on the page. `SYNC.md` says the same.
+
+The second review (submitted at `2fe028c`) reads "## Verdict: APPROVED", with
+five findings it marked "(none blocking)", headings and key sentences verbatim:
+
+1. "`return` inside the teardown loop abandons the rest of the snapshot." On
+   reconnect mid-loop the remaining entries are "neither finalized nor still in
+   the set"; `continue` "would not depend on it."
+2. "The correctness of the guard rests on `AddonWrapper` identity, and its
+   failure mode is silent." "no test here can catch it, since the tests hand
+   back the same object by construction."
+3. "`disconnectedCallback` is now async and nothing awaits it, so a rejection is
+   unhandled."
+4. "Test coverage: the suite is real but unreachable." "`app/scripts/tests/` is
+   new and holds only this file; there is no npm script, no CI step, and the
+   test needs an argument pointing at a file extracted from a built `omni.ja`.
+   It will not run unless someone remembers to run it, so it cannot protect the
+   next uplift — the `replace_line` abort is doing that work." Two gaps named
+   inside the suite: no case with more than one add-on in the snapshot, and no
+   case where `getAddonByID` resolves to `null`/`undefined` or rejects.
+5. "Minor, build-script robustness." `remove_line` and `replace_line` act on
+   every matching line, so a future second occurrence "changes more than
+   intended and stays silent about it."
+
+Later reviews on the same page, same account, move past it: one at `c1bf7a4`
+(BLOCKED, on a stale pending-uninstall wrapper restored after a replacement) and
+a re-review at `66c1f8a` (APPROVED). The findings above are carried so they
+survive the PR page, not as the page's current disposition.
 
 ## Exit criteria
 

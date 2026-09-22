@@ -3,6 +3,8 @@ Title: The sitter uninstalls itself: update_url advertises zero versions
 Created: 2026-09-06
 Author: sim
 Closed: Patch submitted as zotero/zotero#6054; upstream follow-through moved to 0812 and local safeguards to 0814
+Superseded-by: 0812
+Superseded-by: 0814
 
 --- log ---
 2026-09-06T21:42Z sim created

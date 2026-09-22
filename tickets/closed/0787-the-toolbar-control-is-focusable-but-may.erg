@@ -3,6 +3,7 @@ Title: The toolbar control is focusable but may not be in Zotero's tab route
 Created: 2026-09-14
 Author: claude
 Closed: Patch submitted as zotero/zotero#6055; upstream follow-through and keyboard verification moved to 0813
+Superseded-by: 0813
 
 --- log ---
 2026-09-14T05:30Z claude created

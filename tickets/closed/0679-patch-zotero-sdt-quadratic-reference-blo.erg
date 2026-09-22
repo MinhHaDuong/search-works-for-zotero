@@ -3,6 +3,7 @@ Title: Patch Zotero SDT quadratic reference-block membership scan
 Created: 2026-09-05
 Author: codex
 Closed: Patch submitted as zotero/document-worker#33; follow-through and remaining verification moved to 0811
+Superseded-by: 0811
 
 --- log ---
 2026-09-05T20:27Z codex created
