@@ -2232,7 +2232,12 @@ await test('notifier bursts inspect only affected attachments and quiet time doe
   h.calls.inspect.length = 0;
   h.notify('modify', 'item', [1]); h.notify('modify', 'item', [1]); h.notify('download', 'file', 1);
   await h.quiet();
-  assert.deepEqual(h.calls.inspect, [1, 1, 1001]);
+  // The trailing 1001 is ticket 0810's targeted refresh: a notification naming a
+  // bibliographic record carries no attachment ids of its own, so that record is
+  // itself the candidate whose file membership may have changed. One read, for
+  // the one record the event named — the point of the ticket is that it is not a
+  // walk.
+  assert.deepEqual(h.calls.inspect, [1, 1, 1001, 1001]);
   assert.equal(h.calls.list, 1); assert.equal(h.calls.hash.length, read);
   blocked = false; await h.nextSweep(); assert.deepEqual(h.calls.ensure, [1, 2]);
   assert.equal(h.calls.list, 1);
@@ -3241,6 +3246,176 @@ await test('an attachment moved between parents leaves one record in the no-atta
   const dialog = [...h.context.dialogs][0];
   const notIndexed = dialog.document.getElementById('sdt-not-indexed');
   assert.match(notIndexed.textContent, /Entries without any attached file \(2\)/);
+});
+
+await test('a burst of attachment notifications refreshes the no-attachment view without re-walking the library', async () => {
+  /* Ticket 0810, and the red step it was written against: the drain called
+     `host.unattached()` once per RETIRED DIRTY ID, and every one of those calls
+     walked the whole library and read `numFileAttachments()` for every
+     bibliographic record in it. Twenty notifications over five records cost
+     twenty walks and 140 membership reads where five reads answer the question.
+
+     Both counters are asserted deliberately. The walk counter alone would pass
+     a fix that renames the walk or splits it into per-parent calls that still
+     touch every record; the membership counter alone would pass a fix that
+     keeps one walk per drain pass. Together they pin the claim the ticket
+     actually makes — that the cost scales with the distinct affected records,
+     not with the library size times the dirty-id count. */
+  const owners = [600, 601, 602, 603, 604];
+  const attachments = [];
+  owners.forEach((parentItemID, index) => {
+    for (let n = 0; n < 4; n++) {
+      const id = index * 4 + n + 1;
+      attachments.push(pdf(id, `FILE${String(id).padStart(4, '0')}`, { pack: {}, parentItemID }));
+    }
+  });
+  const h = createHarness({ attachments, unattached: [
+    ...owners.map(id => ({ id, key: `HASFILE${id}`, title: `Record ${id}` })),
+    // Bare records hold the view up: a targeted refresh never looks at them, so
+    // an implementation that rebuilds the list from its candidates alone loses
+    // them here.
+    { id: 700, key: 'NOFILE700', title: 'Reference without a file' },
+    { id: 701, key: 'NOFILE701', title: 'A second reference without a file' },
+  ] });
+  await h.start();
+  const listed = () => [...h.context.sitter.state.censusSnapshot.unattached].map(row => row.key);
+  assert.deepEqual(listed(), ['NOFILE700', 'NOFILE701'],
+    'the fixture did not start from the view this test is about');
+  const walks = h.calls.unattachedWalk, reads = h.calls.numFileAttachments, lists = h.calls.list;
+  assert.equal(walks, 1, 'the initial census did not take the one full walk it is entitled to');
+
+  h.notify('modify', 'item', attachments.map(row => row.id));
+  await h.quiet();
+
+  assert.equal(h.calls.unattachedWalk, walks,
+    `ordinary dirty notifications took ${h.calls.unattachedWalk - walks} further full-library walks`);
+  assert.equal(h.calls.list, lists, 'the drain ran a full census, so nothing here tests the dirty path');
+  assert.equal(h.calls.numFileAttachments - reads, owners.length,
+    `membership was read ${h.calls.numFileAttachments - reads} times for ${owners.length} affected records`);
+  assert.deepEqual(listed(), ['NOFILE700', 'NOFILE701'],
+    'the targeted refresh lost records it never had cause to look at');
+});
+
+/* The targeted no-attachment refresh, one membership transition per arm.
+   Ticket 0810. The fixture is the reparenting test's, plus `Parent D`, a record
+   with no children at all: every arm below turns on one record crossing into or
+   out of the view while the others hold still, which a view rebuilt from its
+   candidates alone cannot reproduce. */
+const unattachedFixture = () => ({
+  attachments: [
+    pdf(1, 'AAAA1111', { pack: {}, parentItemID: 500 }),
+    { id: 2, key: 'NOTE2222', kind: 'note', notAnAttachment: true, missingSource: true,
+      parentItemID: 502, title: 'A note', sourceBytes: 0, pages: null },
+    { id: 3, key: 'LINK3333', kind: 'url', urlOnly: true, missingSource: true,
+      parentItemID: 502, title: 'A link with no file', sourceBytes: 0, pages: null },
+  ],
+  unattached: [
+    { id: 500, key: 'PARENTA', title: 'Parent A' },
+    { id: 501, key: 'PARENTB', title: 'Parent B' },
+    { id: 502, key: 'PARENTC', title: 'Parent C' },
+    { id: 503, key: 'PARENTD', title: 'Parent D' },
+  ],
+});
+const unattachedTitles = h => [...h.context.sitter.state.censusSnapshot.unattached].map(row => row.title);
+
+await test('a record gaining its only file attachment leaves the no-attachment view without a census', async () => {
+  const h = createHarness(unattachedFixture());
+  await h.start();
+  assert.deepEqual(unattachedTitles(h), ['Parent B', 'Parent C', 'Parent D']);
+  h.library.get(1).parentItemID = 503;
+  h.notify('modify', 'item', [1]);
+  await h.quiet();
+  assert.equal(h.calls.list, 1, 'the move ran a full census, so nothing here tests the targeted path');
+  assert.equal(h.calls.unattachedWalk, 1, 'the move re-walked the library');
+  assert.deepEqual(unattachedTitles(h), ['Parent A', 'Parent B', 'Parent C'],
+    'the record that gained the file stayed listed, or the one that lost it never appeared');
+});
+
+await test('a record losing its only file attachment enters the no-attachment view without a census', async () => {
+  const h = createHarness(unattachedFixture());
+  await h.start();
+  h.library.get(1).deleted = true;
+  h.notify('trash', 'item', [1]);
+  await h.quiet();
+  assert.equal(h.calls.list, 1);
+  assert.equal(h.calls.unattachedWalk, 1);
+  assert.deepEqual(unattachedTitles(h), ['Parent A', 'Parent B', 'Parent C', 'Parent D'],
+    'trashing the only file attachment left its record outside the view');
+  // The old parent came from the module's own map. A trashed attachment still
+  // names it through Zotero, but an erased one would not, and the map is what
+  // makes the two behave alike.
+  assert.equal(h.context.sitter.state.censusSnapshot.members.find(member => member.id === 1).status,
+    'excluded');
+});
+
+await test('notes, links and a childless record notified directly change no membership and run no census', async () => {
+  const h = createHarness(unattachedFixture());
+  await h.start();
+  const listed = unattachedTitles(h);
+  const reads = h.calls.numFileAttachments;
+  // A note, a URL-only attachment, and a bibliographic record with no children
+  // at all. None of the three is a file, so none of them moves anything.
+  h.notify('modify', 'item', [2]); await h.quiet();
+  h.notify('modify', 'item', [3]); await h.quiet();
+  h.notify('modify', 'item', [503]); await h.quiet();
+  assert.equal(h.calls.list, 1, 'an event that changes nothing ran a full census');
+  assert.equal(h.calls.unattachedWalk, 1, 'an event that changes nothing re-walked the library');
+  assert.deepEqual(unattachedTitles(h), listed,
+    'a note, a link or a childless record was read as changing file membership');
+  // Bounded, not merely unchanged: three events touch at most the records they
+  // name. A view rebuilt from a walk would read every record in the fixture on
+  // each of them.
+  assert(h.calls.numFileAttachments - reads <= 3,
+    `three membership-free events cost ${h.calls.numFileAttachments - reads} membership reads`);
+});
+
+await test('a record that cannot be read keeps its last known membership, reports a class, and the next census repairs it', async () => {
+  /* Both halves of the ticket's error rule in one run: the refresh may not
+     invent an absence out of a failed read, and the view it therefore leaves
+     stale is not stale forever. The failure is deliberately put on the record
+     the event made WRONG — Parent A has just lost its only file — so a retained
+     entry is visibly the old answer rather than the new one. */
+  const h = createHarness(unattachedFixture());
+  await h.start();
+  h.bibliographic.get(500).unreadable = true;
+  h.library.get(1).parentItemID = 503;
+  h.notify('modify', 'item', [1]);
+  await h.quiet();
+  const errors = h.records('unattached-refresh-error');
+  assert.equal(errors.length, 1, 'a failed targeted read left no trace');
+  assert.equal(errors[0].error, 'Error', 'the journal carried something other than an error class');
+  assert.equal(errors[0].level, 'error');
+  assert(!JSON.stringify(errors[0]).includes('cannot be read'),
+    'a raw platform message reached the journal');
+  assert.deepEqual(unattachedTitles(h), ['Parent B', 'Parent C'],
+    'the unreadable record was invented into or out of the view instead of being left alone');
+  assert.equal(h.calls.list, 1, 'a failed read escalated straight to a census');
+
+  h.bibliographic.get(500).unreadable = false;
+  await h.nextSweep();
+  assert.equal(h.calls.list, 2, 'the reconciliation never ran');
+  assert.deepEqual(unattachedTitles(h), ['Parent A', 'Parent B', 'Parent C'],
+    'the full census did not repair the membership the targeted refresh could not read');
+});
+
+await test('an event whose former parent is unknown asks for one reconciliation, however many arrive together', async () => {
+  /* The one case a targeted refresh cannot answer: neither the module's parent
+     map nor Zotero can say what the event's subject hung from, so no candidate
+     set covers it. The fallback is the full census that already exists — and it
+     is one census for the whole drain pass, not one per id, which is the
+     property that keeps the fallback from undoing the ticket. */
+  const h = createHarness(unattachedFixture());
+  await h.start();
+  assert.equal(h.calls.list, 1);
+  h.notify('modify', 'item', [999999]);
+  await h.quiet();
+  assert.equal(h.calls.list, 2, 'an unresolvable event left the view claiming to be current');
+  assert.deepEqual(unattachedTitles(h), ['Parent B', 'Parent C', 'Parent D'],
+    'the reconciliation changed a view nothing had changed');
+  h.notify('modify', 'item', [999998, 999997, 999996]);
+  await h.quiet();
+  assert.equal(h.calls.list, 3,
+    `three unresolvable events in one drain pass ran ${h.calls.list - 2} censuses`);
 });
 
 await test('the Show in Zotero control selects the whole group, drops what is gone, and never throws', async () => {

@@ -42,6 +42,15 @@ function fixture() {
     blocked: async () => null, yield: async () => {}, now: () => ++clock,
     changed: state => updates.push(JSON.stringify(state)),
     ensure: async (id, progress) => { calls.push(id); progress(90); cached.add(id); return true; },
+    /* Ticket 0810's two new host seams, at the host-level shape this file tests
+       and no deeper: `affected` answers with the id itself, which is what the
+       scheduler assumed before the seam existed, and `refreshUnattached` answers
+       with the view it was handed nothing to change. bootstrap.js's real
+       implementations, and the read counts that make the refresh worth having,
+       are pinned in tests/sdt_sitter_bootstrap.mjs against the Zotero mock —
+       a second copy of that logic here would test this file's guess about it. */
+    affected: async id => [id],
+    refreshUnattached: async () => ({ list: [], reconcile: false }),
   };
   const api = context.createSDTSitter(host);
   return { api, host, cached, calls, updates };
@@ -1429,7 +1438,10 @@ await test('the census label does not outlive the census, and the drain names it
   const f = fixture(); const records = []; const atGate = []; const atDrain = [];
   f.host.emit = (kind, data) => records.push({ kind, ...data });
   f.host.blocked = async () => { atGate.push(f.api.state.phase); return null; };
-  f.host.unattached = async () => { atDrain.push(f.api.state.phase); return []; };
+  // Ticket 0810 moved the drain's no-attachment work from a per-id
+  // `unattached()` walk to one `refreshUnattached()` per pass; the phase this
+  // test is about is read off whichever call the drain actually makes.
+  f.host.refreshUnattached = async () => { atDrain.push(f.api.state.phase); return { list: [], reconcile: false }; };
   await f.api.sweep();
   assert(atGate.length > 0, 'the gate never ran, so this proves nothing');
   assert(!atGate.includes('census'),
@@ -1476,13 +1488,23 @@ await test('a sustained notification source cannot starve admission', async () =
     admittedAtFed ??= fed; pendingAtAdmission ??= f.api.state.pending.length;
     return ensure(id, progress);
   };
-  // One call carries both halves of the live shape: the drain's own per-iteration
-  // cost, which is what the budget is spent on, and a notification landing while
-  // that query runs, which is what refills `dirty` behind it.
-  f.host.unattached = async () => {
+  /* One call carries both halves of the live shape: the drain's own
+     per-iteration cost, which is what the budget is spent on, and a
+     notification landing while that work runs, which is what refills `dirty`
+     behind it.
+
+     Ticket 0810 moved the hook from `unattached` to `affected`. `unattached()`
+     is no longer called once per retired id — that per-id library-wide walk is
+     the cost 0810 removed — so a feed still attached to it would inject
+     nothing, the source would never outrun the drain, and this test would pass
+     by exercising no sustained pressure at all. `affected` is called exactly
+     once per retired dirty id, before and after 0810 alike, so the pressure the
+     budget is asserted against is unchanged; only its attachment point moved. */
+  const affected = f.host.affected;
+  f.host.affected = async id => {
     now += STEP_MS;
     if (fed < FEED) f.api.invalidate([1000 + fed++]);
-    return [];
+    return affected(id);
   };
   f.api.invalidate([1]);
   await f.api.pump();
@@ -1522,10 +1544,13 @@ await test('a budgeted drain never leaves behind a backlog nothing will wake it 
   const inspect = f.host.inspect;
   f.host.inspect = async id =>
     (id >= 1000 ? { status: 'current', identity: String(id) } : inspect(id));
-  f.host.unattached = async () => {
+  // Ticket 0810: the same move of the feed's attachment point as the test above,
+  // and for the same reason.
+  const affected = f.host.affected;
+  f.host.affected = async id => {
     now += STEP_MS;
     if (fed < FEED) f.api.invalidate([1000 + fed++]);
-    return [];
+    return affected(id);
   };
   f.api.invalidate([1]);
   await f.api.pump();
