@@ -3253,47 +3253,60 @@ await test('a burst of attachment notifications refreshes the no-attachment view
      `host.unattached()` once per RETIRED DIRTY ID, and every one of those calls
      walked the whole library and read `numFileAttachments()` for every
      bibliographic record in it. Twenty notifications over five records cost
-     twenty walks and 140 membership reads where five reads answer the question.
+     twenty walks and 140 membership reads.
 
-     Both counters are asserted deliberately. The walk counter alone would pass
-     a fix that renames the walk or splits it into per-parent calls that still
-     touch every record; the membership counter alone would pass a fix that
-     keeps one walk per drain pass. Together they pin the claim the ticket
-     actually makes — that the cost scales with the distinct affected records,
-     not with the library size times the dirty-id count. */
-  const owners = [600, 601, 602, 603, 604];
-  const attachments = [];
-  owners.forEach((parentItemID, index) => {
-    for (let n = 0; n < 4; n++) {
-      const id = index * 4 + n + 1;
-      attachments.push(pdf(id, `FILE${String(id).padStart(4, '0')}`, { pack: {}, parentItemID }));
-    }
-  });
-  const h = createHarness({ attachments, unattached: [
-    ...owners.map(id => ({ id, key: `HASFILE${id}`, title: `Record ${id}` })),
+     What the ticket claims is that the reads stop scaling with the LIBRARY, not
+     that they stop scaling with the events: a record named by a later
+     generation is read again, because the event that names it is the kind that
+     may have moved its membership. So the same burst is run twice over
+     fixtures differing only in how many untouched records the library holds,
+     and the two read counts must be equal — which no full walk can satisfy,
+     whatever it is named or however it is split. The walk counter is asserted
+     beside it because a walk that stopped reading membership would otherwise
+     go unnoticed. */
+  const burst = async filler => {
+    const owners = [600, 601, 602, 603, 604];
+    const attachments = [];
+    owners.forEach((parentItemID, index) => {
+      for (let n = 0; n < 4; n++) {
+        const id = index * 4 + n + 1;
+        attachments.push(pdf(id, `FILE${String(id).padStart(4, '0')}`, { pack: {}, parentItemID }));
+      }
+    });
     // Bare records hold the view up: a targeted refresh never looks at them, so
     // an implementation that rebuilds the list from its candidates alone loses
-    // them here.
-    { id: 700, key: 'NOFILE700', title: 'Reference without a file' },
-    { id: 701, key: 'NOFILE701', title: 'A second reference without a file' },
-  ] });
-  await h.start();
-  const listed = () => [...h.context.sitter.state.censusSnapshot.unattached].map(row => row.key);
-  assert.deepEqual(listed(), ['NOFILE700', 'NOFILE701'],
-    'the fixture did not start from the view this test is about');
-  const walks = h.calls.unattachedWalk, reads = h.calls.numFileAttachments, lists = h.calls.list;
-  assert.equal(walks, 1, 'the initial census did not take the one full walk it is entitled to');
+    // them here — and they are the library this test grows to prove the reads
+    // do not follow it.
+    const bare = [];
+    for (let n = 0; n < filler; n++)
+      bare.push({ id: 700 + n, key: `NOFILE${700 + n}`, title: `Reference ${700 + n} without a file` });
+    const h = createHarness({ attachments, unattached: [
+      ...owners.map(id => ({ id, key: `HASFILE${id}`, title: `Record ${id}` })), ...bare] });
+    await h.start();
+    const listed = () => [...h.context.sitter.state.censusSnapshot.unattached].map(row => row.key);
+    assert.deepEqual(listed(), bare.map(row => row.key),
+      'the fixture did not start from the view this test is about');
+    const walks = h.calls.unattachedWalk, reads = h.calls.numFileAttachments, lists = h.calls.list;
+    assert.equal(walks, 1, 'the initial census did not take the one full walk it is entitled to');
 
-  h.notify('modify', 'item', attachments.map(row => row.id));
-  await h.quiet();
+    h.notify('modify', 'item', attachments.map(row => row.id));
+    await h.quiet();
 
-  assert.equal(h.calls.unattachedWalk, walks,
-    `ordinary dirty notifications took ${h.calls.unattachedWalk - walks} further full-library walks`);
-  assert.equal(h.calls.list, lists, 'the drain ran a full census, so nothing here tests the dirty path');
-  assert.equal(h.calls.numFileAttachments - reads, owners.length,
-    `membership was read ${h.calls.numFileAttachments - reads} times for ${owners.length} affected records`);
-  assert.deepEqual(listed(), ['NOFILE700', 'NOFILE701'],
-    'the targeted refresh lost records it never had cause to look at');
+    assert.equal(h.calls.unattachedWalk, walks,
+      `ordinary dirty notifications took ${h.calls.unattachedWalk - walks} further full-library walks`);
+    assert.equal(h.calls.list, lists, 'the drain ran a full census, so nothing here tests the dirty path');
+    assert.deepEqual(listed(), bare.map(row => row.key),
+      'the targeted refresh lost records it never had cause to look at');
+    return h.calls.numFileAttachments - reads;
+  };
+
+  const small = await burst(2), large = await burst(40);
+  assert.equal(small, large,
+    `the same burst cost ${small} membership reads on a 7-record library and ${large} on a 45-record one`);
+  // Named too, so a change in what a generation reads is a decision someone
+  // takes rather than a number that drifts: twenty attachments, each naming its
+  // own parent, in twenty generations.
+  assert.equal(small, 20, `the burst cost ${small} membership reads where each of the 20 events names one record`);
 });
 
 /* The targeted no-attachment refresh, one membership transition per arm.

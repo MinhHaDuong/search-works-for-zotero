@@ -1535,6 +1535,65 @@ await test('an affected id nothing names asks for reconciliation although a sibl
     "the sibling's parent had covered it");
 });
 
+await test('a record whose membership moves twice in one drain pass is read again for the second move', async () => {
+  /* The defect a pass-wide coalescing set shipped, and the reason the unit is
+     the published generation and not the pass. Two attachments swap parents
+     while the drain is running -- which is ordinary, since a drain pass retires
+     ids that arrived after it started. X leaves P in the first generation, so P
+     is read at the instant it holds nothing and is published as having no file.
+     Y joins P in the second. Deduped across the pass, P is never read again and
+     the drain ends with the view still saying P has no file over P's new file;
+     both records are readable throughout, which is exactly the case exit
+     criterion 2 covers. */
+  const f = fixture();
+  const parentOf = new Map([[11, 500], [12, 501]]);
+  const moves = new Map([[11, 501], [12, 500]]);
+  const view = new Map();
+  f.host.parentOf = id => parentOf.get(id);
+  f.host.affected = async id => [id];
+  f.host.inspect = async id => {
+    if (!moves.has(id)) return { status: 'current', identity: String(id) };
+    // Reparenting the attachment IS the membership change; it lands as the
+    // drain reaches the id, not before the pass.
+    parentOf.set(id, moves.get(id));
+    return { status: 'missing-pack', identity: String(id), parentItemID: moves.get(id) };
+  };
+  f.host.refreshUnattached = async candidates => {
+    for (const candidate of candidates) {
+      const files = [...parentOf.values()].filter(parent => parent === candidate).length;
+      if (files) view.delete(candidate); else view.set(candidate, { itemID: candidate });
+    }
+    return { list: [...view.values()].sort((a, b) => a.itemID - b.itemID) };
+  };
+  await f.api.sweep();
+  f.api.invalidate([11, 12]);
+  await f.api.pump();
+  const listed = f.api.state.censusSnapshot.unattached.map(row => row.itemID);
+  assert.deepEqual(listed, [],
+    `the drain ended with ${listed.join(', ')} listed as holding no file, after the pass gave each one a file`);
+});
+
+await test('a parent Zotero reports as false is no parent at all', async () => {
+  /* Zotero's `_getParentID()` answers `false` for "no parent", documented in
+     its own `dataObject.js`, so `?? null` never normalizes it and a candidate
+     set that takes it at face value hands `false` to `getAsync`. Item ids are
+     positive integers, which is why one falsiness test covers `false`, `null`
+     and `undefined` together. */
+  const f = fixture();
+  const handed = [];
+  f.host.parentOf = () => false;
+  f.host.affected = async id => [id];
+  f.host.inspect = async id => ({ status: 'missing-pack', identity: String(id), parentItemID: false });
+  f.host.refreshUnattached = async candidates => {
+    handed.push(...candidates); return { list: [] };
+  };
+  await f.api.sweep();
+  f.api.invalidate([11]);
+  await f.api.pump();
+  assert(!handed.some(candidate => candidate === false || candidate === null || candidate === undefined),
+    `the refresh was handed ${handed.map(String).join(', ')}, which names no record`);
+});
+
 await test('a sustained notification source cannot starve admission', async () => {
   /* Ticket 0796. The drain ran `while (dirty.size && current())` with no
      per-iteration bound while paying a library-wide `unattached()` every turn, so

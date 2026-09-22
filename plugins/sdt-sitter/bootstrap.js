@@ -3287,6 +3287,17 @@ async function initialize(rootURI, token, era = shutdowns) {
      A read that fails patches nothing — retaining a stale entry is recoverable
      at the next census, inventing an absence is an obstacle the author acts on. */
   let noAttachment = new Map();
+  /* The view's published order, memoized. By itemID, because that is the order
+     the full walk publishes (`ORDER BY itemID`) and the view must not reorder
+     itself depending on which records a notification happened to touch — a
+     patched map is in insertion order, which is the history of this session's
+     notifications. Sorting it on every targeted refresh cost the whole view's
+     n log n per retired id, on a drain pass that retires thousands and reads
+     five records: null means the map moved, and nothing but a real mutation
+     sets it. */
+  let ordered = null;
+  const unattachedView = () =>
+    (ordered ||= [...noAttachment.values()].sort((a, b) => a.itemID - b.itemID));
   let compact = true;
   // Latched exactly as render()'s guard is, and for the same reason: saveCache
   // runs once at the end of the census and again after every settled duration,
@@ -3390,7 +3401,7 @@ async function initialize(rootURI, token, era = shutdowns) {
     }
     // Only a walk that finished may declare the whole view; a partial one would
     // publish every record it never reached as having a file.
-    if (walked) noAttachment = new Map(result.map(row => [row.itemID, row]));
+    if (walked) { noAttachment = new Map(result.map(row => [row.itemID, row])); ordered = null; }
     return result;
   };
 
@@ -3401,17 +3412,19 @@ async function initialize(rootURI, token, era = shutdowns) {
 
      Returns the whole view, not a diff: the map IS the view, so the caller
      assigns what it gets and no two places have to agree on how to apply a
-     patch. `reconcile` asks for one full census when a candidate cannot be
-     resolved to a record at all, which is the only case a targeted refresh
-     cannot answer. */
+     patch. Whether a candidate that resolves to nothing needs a full census is
+     the scheduler's call and not this function's — it is the only side that
+     knows whether anything else in the generation named that id. */
   const refreshUnattached = async candidates => {
-    let reconcile = false;
-    for (const id of candidates || []) {
-      if (id === undefined || id === null) { reconcile = true; continue; }
+    for (const id of candidates) {
       try {
         const item = await Zotero.Items.getAsync(id);
-        if (!isBibliographicRecord(item) || await hasFileAttachment(item)) { noAttachment.delete(id); continue; }
-        noAttachment.set(id, await unattachedRow(id, item));
+        if (!isBibliographicRecord(item) || await hasFileAttachment(item)) {
+          // Only a delete that removed something changes the view.
+          if (noAttachment.delete(id)) ordered = null;
+          continue;
+        }
+        noAttachment.set(id, await unattachedRow(id, item)); ordered = null;
       } catch (error) {
         /* Retain whatever this record's last known membership was: a read that
            failed says nothing about whether the record has a file, and both
@@ -3421,11 +3434,7 @@ async function initialize(rootURI, token, era = shutdowns) {
         emit('unattached-refresh-error', { error: classifyError(error) }, 'error');
       }
     }
-    /* By itemID, because that is the order the full walk publishes
-       (`ORDER BY itemID`) and the view must not reorder itself depending on
-       which records a notification happened to touch. A patched map is in
-       insertion order, which is the history of this session's notifications. */
-    return { list: [...noAttachment.values()].sort((a, b) => a.itemID - b.itemID), reconcile };
+    return { list: unattachedView() };
   };
 
   const blockHasSDTText = block => {

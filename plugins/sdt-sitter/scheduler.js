@@ -233,16 +233,21 @@ var createSDTSitter = function (host) {
              a library-wide walk, which is the cost ticket 0796's budget could
              bound but not remove.
 
-             `seen` is the coalescing mechanism and it spans the whole pass: a
-             parent named by fifty dirty ids is read once, the first time it is
-             named. What is refreshed per retired id is only what that id added,
-             so every publish() below carries a no-attachment view covering
-             every classification published with it, while the reads still
-             scale with the distinct affected records. Publishing the view only
-             after the loop was cheaper by nothing and left each intermediate
-             generation quoting a stale view to `collectSDTNotIndexed`, which
-             reads `censusSnapshot.unattached` on every render. */
-          const seen = new Set();
+             The coalescing unit is the published generation, which is one
+             retired id. Within it a record named twice is read once; across
+             generations it is read again, because the event that names it the
+             second time is exactly the kind that may have changed its
+             membership — an attachment leaves P, the generation publishes, and
+             another joins P later in the same pass. Deduping across the whole
+             pass suppressed that second read and published "P has no file" over
+             P's new file. What the reads still never scale with is the library:
+             they are the records the events themselves named, summed over the
+             generations that named them.
+
+             Publishing the view only after the loop was cheaper by nothing and
+             left each intermediate generation quoting a stale view to
+             `collectSDTNotIndexed`, which reads `censusSnapshot.unattached` on
+             every render. */
           let reconcileNeeded = false;
           while (dirty.size && current()) {
             if (retired > 0 && host.now() >= deadline) break;
@@ -252,15 +257,13 @@ var createSDTSitter = function (host) {
             const ids = host.affected ? await host.affected(id) : [id];
             if (!current()) { dirty.add(id); return; }
             // Fully determined by `ids` before the loop runs.
-            const sawSelf = Array.from(ids).includes(id);
-            // Candidates this id is the first to name. `seen` dedupes across
-            // the whole pass; `fresh` is what still has to be read.
-            const fresh = new Set();
-            const consider = candidate => {
-              if (candidate === undefined || candidate === null) return;
-              if (seen.has(candidate)) return;
-              seen.add(candidate); fresh.add(candidate);
-            };
+            const sawSelf = ids.has ? ids.has(id) : Array.from(ids).includes(id);
+            /* What this generation has to read. A falsy candidate is no id:
+               Zotero's own `_getParentID()` answers `false` for "no parent",
+               and item ids are positive integers, so one test covers `false`,
+               `null` and `undefined` alike. */
+            const candidates = new Set();
+            const consider = candidate => { if (candidate) candidates.add(candidate); };
             // Per affected id, never shared across them: a sibling's parent
             // says nothing about whether THIS id is covered, and a flag hoisted
             // out of the loop let one suppress the other's reconciliation.
@@ -292,12 +295,11 @@ var createSDTSitter = function (host) {
                allows rather than claim the view is current. Membership of the
                candidate set is the whole test, which is why it is asked after
                the loop and per affected id. */
-            for (const orphan of unplaceable) if (!seen.has(orphan)) reconcileNeeded = true;
-            if (fresh.size && host.refreshUnattached) {
-              const { list, reconcile } = await host.refreshUnattached(fresh);
+            for (const orphan of unplaceable) if (!candidates.has(orphan)) reconcileNeeded = true;
+            if (candidates.size && host.refreshUnattached) {
+              const { list } = await host.refreshUnattached(candidates);
               if (!current()) { dirty.add(id); return; }
-              if (Array.isArray(list)) state.unattached = list.slice();
-              if (reconcile) reconcileNeeded = true;
+              if (Array.isArray(list)) state.unattached = list;
               changed = true;
             }
             if (!current()) { dirty.add(id); return; }
