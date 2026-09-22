@@ -7872,3 +7872,17 @@ revisions, upstream disposition and post-merge verification; `SYNC.md` owns the
 live upstream snapshot. Unfinished tests and the sitter's local safeguards move
 to those tickets before the originals close. A submitted patch is not recorded
 as a merged or verified fix.
+
+**2026-09-22 — Scope of the entry above.** The ruling names three tickets and
+no others: 0679 (the document-worker reference scan, now
+zotero/document-worker#33, followed by 0811), 0727 (the pending-removal
+deletion in the Add-ons window, now zotero/zotero#6054, followed by 0812 for the
+patch and 0814 for the sitter's local safeguards) and 0787 (toolbar buttons
+outside the keyboard route, now zotero/zotero#6055, followed by 0813). It is a
+ruling about those three closures, not a standing policy for the next patch;
+a fourth patch to Zotero gets its own ruling. "Reviewed" in the entry above
+means the internal and Claude Opus reviews recorded as COMMENTED on each PR
+page under the author's account — no maintainer had responded when the tickets
+closed, and `SYNC.md` says so. Appended after PR #608's review asked whether
+the entry, read cold, could pass for general policy; the author asked for the
+update on the same day.
