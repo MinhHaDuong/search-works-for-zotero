@@ -1,5 +1,10 @@
 # SYNC — the fork against upstream v1.20.2
 
+Updated 2026-09-22 — Zotero 10.0.3 (released 2026-09-17) passed the live
+SDT Pack Sitter 0.4.26 smoke test on a separate, fresh profile. Its native SDT
+version constants match 10.0.2. Evidence and scope:
+[`verification/SDT-SITTER-ZOTERO-10.0.3.md`](verification/SDT-SITTER-ZOTERO-10.0.3.md).
+
 Updated 2026-09-17 — **re-baselined to v1.20.2** (`c386e83`, the tag and
 `main`'s tip, 2026-09-16). Six releases in nine days, 73 commits, none of them a
 documentation release. Every item ticket 0739 filed is built: #67 (`d916aa1`, a

@@ -1,0 +1,16 @@
+2026-09-22T06:40:34Z smoke starting: zotero=/tmp/zotero-10.0.3-test/Zotero_linux-x86_64/zotero port=6214 work_dir=/tmp/sdt-sitter-10.0.3-live
+2026-09-22T06:40:34Z smoke built XPI at /tmp/sdt-sitter-10.0.3-live/sdt-sitter-smoke.xpi
+2026-09-22T06:40:34Z smoke fixture: 3 Menagerie document(s) from /home/haduong/data/menagerie-package: ['vn-decision-11-2017-qdttg-solar-fit-en-pdf.pdf', 'hal-04826774-lich-su-sach-nam-ky-pdf.pdf', 'hal-04332519-economies-of-scale-pdf.pdf']
+2026-09-22T06:40:34Z smoke fixture written at /tmp/sdt-sitter-10.0.3-live/fixture/smoke.ris
+2026-09-22T06:40:34Z smoke profile=/tmp/sdt-sitter-10.0.3-live/profile requested data dir=/tmp/sdt-sitter-10.0.3-live/data
+2026-09-22T06:40:34Z smoke launched zotero pid=31490
+2026-09-22T06:40:35Z smoke installed: {'ok': True, 'id': 'sdt-pack-sitter@search-works-for-zotero.invalid', 'version': '0.4.26'}
+2026-09-22T06:40:38Z smoke armed: {'ok': True, 'dataDir': '/tmp/sdt-sitter-10.0.3-live/data', 'mainWindows': 1, 'handle': True, 'phase': 'waiting', 'scanned': 0, 'total': 0, 'cacheWritten': True}
+2026-09-22T06:40:38Z smoke data directory confirmed: /tmp/sdt-sitter-10.0.3-live/data
+2026-09-22T06:40:42Z smoke fixture imported: {'ok': True, 'items': 3, 'attachments': 3, 'missing': 0}
+2026-09-22T06:40:42Z smoke post-import liveness: {'ok': True, 'dataDir': '/tmp/sdt-sitter-10.0.3-live/data', 'mainWindows': 1, 'handle': True, 'phase': 'extracting', 'scanned': 3, 'total': 3, 'cacheWritten': True}
+2026-09-22T06:40:42Z smoke cache confirmed on disk: /tmp/sdt-sitter-10.0.3-live/data/sdt-sitter-cache.jsonl
+2026-09-22T06:40:43Z smoke 3 cache records read; versions={'SDT_SCHEMA_VERSION': '1.2.0', 'SDT_PACK_VERSION': 1, 'SDT_PROCESSOR_VERSIONS': {'pdf': 14, 'epub': 2, 'snapshot': 1}}
+2026-09-22T06:40:43Z smoke 3 SDT packs verified against fixture MD5; processors=[('pdf', 14)]
+2026-09-22T06:40:43Z smoke PASS
+2026-09-22T06:40:43Z smoke terminating zotero pid=31490
