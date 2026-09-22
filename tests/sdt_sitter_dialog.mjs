@@ -228,7 +228,8 @@ test('the three layers exist, in order, with diagnostics nested inside details',
   // sections down, and a reader who opens this window in a hurry opens it to
   // stop the thing. Progress still leads everything that is a READING.
   assert.deepEqual(top,
-    ['sdt-switch-row', 'sdt-global-section', 'sdt-document-section', 'sdt-details'],
+    ['sdt-switch-row', 'sdt-global-section', 'sdt-document-section', 'sdt-details',
+      'sdt-switch-status-row'],
     'primary progress no longer leads the window');
   assert(layer2 && layer3, 'a disclosure layer is missing');
   assert.equal(layer3.parentNode, layer2,
@@ -243,24 +244,26 @@ test('the three layers exist, in order, with diagnostics nested inside details',
   // Nothing sets `open`, which is what makes both closed on first paint.
   assert.equal(layer2.getAttribute('open'), null, 'Details ships expanded');
   assert.equal(layer3.getAttribute('open'), null, 'Technical diagnostics ships expanded');
-  // The stub document has no layout engine, so this cannot see the row hold
-  // still — only that the declaration a real browser would obey is present.
-  // `space-between` went with the button (ticket 0797): it existed because
-  // "Turn indexing on"/"off" are different lengths, so a button placed after
-  // the state text moved sideways on every click (found live, testing
-  // v0.3.15). Neither half survives — the label is the fixed string "Pause
-  // indexing" and it LEADS the row, ahead of the text that varies.
-  assert(!doc.getElementById('sdt-switch-row').style.cssText.includes('space-between'),
-    'the row still pins a control that no longer moves');
-  assert.equal(doc.getElementById('sdt-switch-row').childNodes[0].id, 'sdt-switch',
-    'the control the reader came for does not lead its own row');
-  // `element()`'s default styling carries `white-space: pre-wrap`, meant for
-  // the prose blocks; a form control is not prose. The label keeps its native
-  // single line; the state text beside it is free to wrap in its place.
+  // The stub document has no layout engine. Assert the two block rows and
+  // their order, so the checkbox and state cannot return to one flex line.
+  const pause = doc.getElementById('sdt-switch-row');
+  const choice = doc.getElementById('sdt-switch-choice');
+  const status = doc.getElementById('sdt-switch-status-row');
+  assert.equal(status.parentNode, doc.body,
+    'the indexing state still sits beside the pause control');
+  assert.equal(doc.body.childNodes.at(-1), status,
+    'the indexing state is not the last row of the window');
+  assert(status.style.cssText.includes('position: sticky') &&
+    status.style.cssText.includes('bottom: 0'),
+  'the bottom status row disappears as the window scrolls');
+  assert.equal(pause.childNodes[0], choice);
+  assert.deepEqual(choice.childNodes.map(node => node.id),
+    ['sdt-switch', 'sdt-switch-label']);
+  assert.deepEqual(status.childNodes.map(node => node.id),
+    ['sdt-switch-state', 'sdt-switch-age']);
+  // The checkbox label remains on one line; the status may wrap below it.
   assert(doc.getElementById('sdt-switch-label').style.cssText.includes('white-space: nowrap'),
     'the checkbox label can wrap onto a second line');
-  assert(doc.getElementById('sdt-switch-state').style.cssText.includes('min-width: 0'),
-    'the state text cannot shrink to make room for the button');
   // Same caveat: this only proves the reservation exists, not that the box
   // stops visibly collapsing between files — the defect this line guards
   // against (found live, testing v0.3.15).

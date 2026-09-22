@@ -2882,7 +2882,8 @@ function openDialog(window) {
     body.replaceChildren();
     // A bare chrome about:blank window does not inherit Zotero's opaque surface.
     doc.documentElement.style.cssText = 'background: Canvas; color: CanvasText; color-scheme: light dark; min-height: 100%;';
-    body.style.cssText = 'background: Canvas; color: CanvasText; margin: 0; padding: 16px; box-sizing: border-box; min-height: 100vh; font: menu;';
+    body.style.cssText = 'background: Canvas; color: CanvasText; margin: 0; padding: 16px; ' +
+      'box-sizing: border-box; min-height: 100vh; display: flex; flex-direction: column; font: menu;';
     const element = (tag, id) => {
       const node = doc.createElementNS('http://www.w3.org/1999/xhtml', tag);
       node.id = id;
@@ -2919,16 +2920,12 @@ function openDialog(window) {
        checkbox, and the role would only make a screen reader say "switch" about
        a thing the label calls a checkbox. */
     const control = element('div', 'sdt-switch-row');
-    /* The row's own geometry, RE-READ rather than inherited from the button it
-       replaces. `space-between` existed because "Turn indexing on" and "Turn
-       indexing off" are different lengths, so a button placed after the state
-       text moved sideways on every click (found live, testing v0.3.15). Neither
-       half of that reasoning survives: the label is the fixed string "Pause
-       indexing" and it LEADS the row, ahead of the text that varies. The
-       control is what the reader came for, so it sits first, and the state text
-       flows after it and wraps where it must. */
-    control.style.cssText = 'display: flex; gap: 8px; align-items: baseline; ' +
-      'margin: 0 0 16px;';
+    /* Keep the action at the top and the current state in the footer below.
+       Putting "Pause indexing" beside "Indexing is on" reads as one
+       contradictory instruction when the box is unchecked. */
+    control.style.cssText = 'margin: 0 0 16px;';
+    const choice = element('div', 'sdt-switch-choice');
+    choice.style.cssText = 'display: flex; gap: 8px; align-items: baseline;';
     const toggle = element('input', 'sdt-switch');
     toggle.setAttribute('type', 'checkbox');
     // `element()`'s default styling is written for the prose blocks and carries
@@ -2945,18 +2942,21 @@ function openDialog(window) {
     // greyed. The checkbox's own `checked` is what is acted on, so the widget
     // and the sitter cannot disagree about which way the user just moved it.
     toggle.addEventListener('change', () => toggleSDTSwitch(toggle.checked));
+    choice.append(toggle, toggleLabel);
+    const statusRow = element('div', 'sdt-switch-status-row');
+    statusRow.style.cssText = 'position: sticky; bottom: 0; background: Canvas; ' +
+      'border-top: 1px solid GrayText; padding: 8px 0; margin-top: auto;';
     const state = element('span', 'sdt-switch-state');
-    // The state text is prose and may wrap; `min-width: 0` is what lets a flex
-    // child actually shrink to make room instead of forcing the row wider.
-    state.style.cssText += 'flex: 1 1 auto; min-width: 0;';
+    // The state text is prose and may wrap without sharing the checkbox's row.
     /* Ticket 0797, the author's own reading of 2026-09-15: the window showed a
        plausible steady state while `draining` had held for eight minutes. Its
        own node rather than a clause of the state sentence, so a duration that
        moves never reaches the live region beside it. Dimmed, because it is a
        qualifier on the line and not a second reading. */
     const age = element('span', 'sdt-switch-age');
-    age.style.cssText += 'flex: 0 0 auto; color: GrayText;';
-    control.append(toggle, toggleLabel, state, age);
+    age.style.cssText += 'margin-left: 8px; color: GrayText;';
+    statusRow.append(state, age);
+    control.append(choice);
     // The status region, and the only live node in the window (0686 item 1).
     // In the switch row because it speaks the row's own sentence, and so the
     // window's layer order -- which tests/sdt_sitter_dialog.mjs pins -- is
@@ -3029,6 +3029,7 @@ function openDialog(window) {
     details.append(buildSDTAbout(doc, element));
     details.append(buildSDTDiagnostics(doc, element));
     body.append(details);
+    body.append(statusRow);
     dialogs.add(dialog); render();
     try {
       const stats = await Zotero.Fulltext.getIndexStats();
