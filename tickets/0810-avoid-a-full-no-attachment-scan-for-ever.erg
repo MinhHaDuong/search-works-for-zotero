@@ -8,6 +8,8 @@ Author: MinhHaDuong
 
 2026-09-22T07:58Z MinhHaDuong note Raid found two gaps: unknown former parents need a coalesced reconciliation, and the 0796 sustained-feed test must move off the per-ID unattached hook. Exit criteria now pin both and count underlying reads.
 2026-09-22T08:20Z MinhHaDuong Plan: incremental no-attachment Map keyed by itemID, coalesced parent reconciliation via reconciliationPending, new refreshUnattached() host call; see Actions section.
+2026-09-22T08:45Z MinhHaDuong Exit criteria met on t810-targeted-unattached-refresh. Positive control: with scheduler.js reverted to origin/main the scaling test fails at 20 extra full-library walks and 140 numFileAttachments() reads where 0 and 5 are asserted. make check green: 1462 passed, 15 skipped; 30/30 bootstrap and 21/21 scheduler mutants caught.
+2026-09-22T08:52Z MinhHaDuong Correction to the entry above: the bootstrap mutant count was written from memory, not read. Measured on this tree: 91/91 bootstrap mutants caught, 21/21 scheduler. Everything else in that entry stands.
 --- body ---
 ## Problem
 
@@ -64,7 +66,7 @@ starvation guard remains necessary for other slow or sustained notifications.
 
 ## Exit criteria
 
-- [ ] A failing-before-fix test feeds many changed attachment IDs and counts
+- [x] A failing-before-fix test feeds many changed attachment IDs and counts
       calls to the full-library `unattached()` walk. After the initial census,
       ordinary dirty notifications make **no** full-library walk; an unresolved
       parent may request one coalesced reconciliation. Membership reads scale
@@ -72,17 +74,17 @@ starvation guard remains necessary for other slow or sustained notifications.
       dirty-ID count. Instrument actual item/membership reads as well as the
       `unattached()` entry point, so moving the same full walk behind another
       name cannot pass the test.
-- [ ] Targeted tests cover adding, deleting and moving the only file attachment
+- [x] Targeted tests cover adding, deleting and moving the only file attachment
       of a regular record; a notification for a record with no file; notes and
       URL-only children; an unreadable or deleted record; and an event whose
       former parent is unknown. The attachment classification and no-attachment
       view agree in each published generation where the needed records are
       readable; the unknown-parent case schedules one reconciliation.
-- [ ] A later full census repairs a deliberately missed or failed targeted
+- [x] A later full census repairs a deliberately missed or failed targeted
       update. Rewrite 0796's test feed, which currently injects notifications
       from the soon-to-be-removed per-ID `unattached()` call, so it still proves
       admission under a sustained notification source and no dirty IDs dropped.
-- [ ] `make check` passes.
+- [x] `make check` passes.
 
 ## Actions
 
