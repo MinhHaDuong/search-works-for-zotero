@@ -3350,6 +3350,20 @@ async function initialize(rootURI, token, era = shutdowns) {
   // regular records without a file attachment explain a useful absence, but do
   // not belong in attachment coverage. `numFileAttachments()` excludes notes
   // and URL-only attachments by Zotero's own file-attachment predicate.
+  // The membership rule and the row shape, stated once for the full walk and
+  // the targeted refresh below: what counts as a bibliographic record without
+  // a file must not drift between the two paths that publish the same view.
+  const isBibliographicRecord = item =>
+    Boolean(item) && !item.deleted && typeof item.isRegularItem === 'function' && item.isRegularItem();
+  const hasFileAttachment = async item => {
+    if (typeof item.loadData === 'function') await item.loadData(['childItems']);
+    return typeof item.numFileAttachments !== 'function' || item.numFileAttachments() !== 0;
+  };
+  const unattachedRow = async (id, item) => {
+    const title = await getItemTitle(item);
+    return { itemID: id, libraryID: item.libraryID, key: item.key,
+      title: title || sdtText('file-number', { id }), parentTitle: null };
+  };
   const unattached = async () => {
     const result = [];
     let walked = false;
@@ -3363,14 +3377,9 @@ async function initialize(rootURI, token, era = shutdowns) {
         // records.
         await new Promise(resolve => timers.setTimeout(resolve, 0));
         const item = await Zotero.Items.getAsync(id);
-        if (!item || item.deleted || typeof item.isRegularItem !== 'function' || !item.isRegularItem()) continue;
-        try {
-          if (typeof item.loadData === 'function') await item.loadData(['childItems']);
-          if (typeof item.numFileAttachments !== 'function' || item.numFileAttachments() !== 0) continue;
-        } catch (_error) { continue; }
-        const title = await getItemTitle(item);
-        result.push({ itemID: id, libraryID: item.libraryID, key: item.key,
-          title: title || sdtText('file-number', { id }), parentTitle: null });
+        if (!isBibliographicRecord(item)) continue;
+        try { if (await hasFileAttachment(item)) continue; } catch (_error) { continue; }
+        result.push(await unattachedRow(id, item));
       }
       walked = true;
     } catch (error) {
@@ -3401,16 +3410,8 @@ async function initialize(rootURI, token, era = shutdowns) {
       if (id === undefined || id === null) { reconcile = true; continue; }
       try {
         const item = await Zotero.Items.getAsync(id);
-        if (!item || item.deleted || typeof item.isRegularItem !== 'function' || !item.isRegularItem()) {
-          noAttachment.delete(id); continue;
-        }
-        if (typeof item.loadData === 'function') await item.loadData(['childItems']);
-        if (typeof item.numFileAttachments !== 'function' || item.numFileAttachments() !== 0) {
-          noAttachment.delete(id); continue;
-        }
-        const title = await getItemTitle(item);
-        noAttachment.set(id, { itemID: id, libraryID: item.libraryID, key: item.key,
-          title: title || sdtText('file-number', { id }), parentTitle: null });
+        if (!isBibliographicRecord(item) || await hasFileAttachment(item)) { noAttachment.delete(id); continue; }
+        noAttachment.set(id, await unattachedRow(id, item));
       } catch (error) {
         /* Retain whatever this record's last known membership was: a read that
            failed says nothing about whether the record has a file, and both

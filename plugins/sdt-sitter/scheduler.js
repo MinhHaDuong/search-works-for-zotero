@@ -246,9 +246,9 @@ var createSDTSitter = function (host) {
             dirty.delete(id); // BEFORE awaits: a new event for this ID survives.
             const ids = host.affected ? await host.affected(id) : [id];
             if (!current()) { dirty.add(id); return; }
-            let sawSelf = false, placed = false, unplaceable = false;
+            const sawSelf = Array.from(ids).includes(id);
+            let placed = false, unplaceable = false;
             for (const affected of ids) {
-              if (affected === id) sawSelf = true;
               // Before inspect(), never after: inspect() is what overwrites the
               // parent map, so a read taken afterwards can no longer name the
               // parent an attachment has just left.
