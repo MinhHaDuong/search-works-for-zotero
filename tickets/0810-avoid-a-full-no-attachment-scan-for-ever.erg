@@ -7,6 +7,7 @@ Author: MinhHaDuong
 2026-09-22T07:51Z MinhHaDuong created
 
 2026-09-22T07:58Z MinhHaDuong note Raid found two gaps: unknown former parents need a coalesced reconciliation, and the 0796 sustained-feed test must move off the per-ID unattached hook. Exit criteria now pin both and count underlying reads.
+2026-09-22T08:20Z MinhHaDuong Plan: incremental no-attachment Map keyed by itemID, coalesced parent reconciliation via reconciliationPending, new refreshUnattached() host call; see Actions section.
 --- body ---
 ## Problem
 
@@ -82,3 +83,316 @@ starvation guard remains necessary for other slow or sustained notifications.
       from the soon-to-be-removed per-ID `unattached()` call, so it still proves
       admission under a sustained notification source and no dirty IDs dropped.
 - [ ] `make check` passes.
+
+## Actions
+
+Read this whole section before touching code; it names the concrete shapes so
+the exit criteria can be met without re-deriving the design. Line numbers are
+as of the pre-fix tree (2026-09-22) and will drift — treat them as a starting
+point, not a guarantee.
+
+### 1. Data structure: an incremental no-attachment Map, keyed by itemID
+
+`bootstrap.js` currently has `unattached()` (~3346) return a fresh array on
+every call and keep no state between calls. Give it a module-level `Map`
+beside `children`/`parents` (declared at ~3281):
+
+```js
+let noAttachment = new Map(); // itemID -> { itemID, libraryID, key, title, parentTitle }
+```
+
+`unattached()` keeps doing the full walk, but on success it also rebuilds
+`noAttachment` wholesale from the rows it just computed
+(`noAttachment = new Map(result.map(row => [row.itemID, row]))`) before
+returning `result`. This is the only place the Map is replaced outright; every
+other write to it is the incremental patch below. On a read error it leaves
+`noAttachment` untouched (same "never invent an absence" rule as the rest of
+this ticket) and still returns `result` (currently `[]` on error — unchanged).
+
+Add a new host function, e.g. `refreshUnattached(candidates)`, where
+`candidates` is an iterable of itemIDs of *regular* records whose
+`numFileAttachments()` membership may have changed. For each id:
+- look it up with `Zotero.Items.getAsync`; if it is gone, not regular, or
+  deleted, delete it from `noAttachment` (it cannot be a bibliographic record
+  with no file if it does not exist as one);
+- otherwise call `numFileAttachments()` (after `loadData(['childItems'])`,
+  matching `unattached()`'s own sequence at ~3358) and set-or-delete the Map
+  entry accordingly, building the row with the same shape `unattached()` uses
+  (`title: title || sdtText('file-number', { id })`, `parentTitle: null`);
+- wrap the read in try/catch. On a read failure: do **not** touch the Map
+  entry for that id (retain last known membership) and call
+  `emit('unattached-refresh-error', { error: classifyError(error) }, 'error')`
+  — same pattern as the existing `unattached-read-error` emit at ~3371, new
+  event name so a test can tell the two apart.
+
+Return `{ list: [...noAttachment.values()], reconcile }` where `reconcile` is
+explained in §3. `scheduler.js` assigns `state.unattached = list` directly —
+no separate array-diffing needed, the Map already is the source of truth.
+
+### 2. Coalescing mechanism: dedupe candidates within one drain pass
+
+Do **not** call `refreshUnattached` once per retired dirty id (that is the
+per-id shape the old `host.unattached()` call had, and reproducing it at a
+different name would still cost O(dirty-ID count), just cheaper per call). In
+`scheduler.js`'s drain loop (~209-251), the inner
+`while (dirty.size && current())` loop is one "drain pass" — bounded by
+`SDT_DRAIN_BUDGET_MS`, exited either on an empty `dirty` set or the deadline.
+
+- Before the inner `while`, declare `const candidateParents = new Set();` and
+  `let reconcileNeeded = false;` (both local to the pass — a fresh pass starts
+  fresh; there is no cross-pass state here, the Map in bootstrap.js is the
+  cross-pass state).
+- Inside the loop, for each attachment id returned by `host.affected(id)`
+  (~232), **before** calling `inspect(affected)`, capture its recorded old
+  parent via a new small host accessor (see below), then after `inspect`
+  returns, read the new parent off the returned info (see §1's `inspect`
+  change below) and add both (when known) to `candidateParents`. The `Set`
+  itself is the dedupe: a parent touched by five different dirty ids in the
+  same pass is one entry.
+- After the inner `while` loop exits (whether by exhaustion or budget), if
+  `candidateParents.size || reconcileNeeded`, call
+  `const { list, reconcile } = await host.refreshUnattached(candidateParents);`
+  once, set `state.unattached = list`, and if `reconcile` (or
+  `reconcileNeeded`) set the existing `reconciliationPending = true` (see §3).
+  Then `publish()` once more so this generation carries both the last
+  retired id's attachment status (already recorded via `record()` inside the
+  loop) and the refreshed no-attachment view together, per the Change
+  section's "publish together" requirement. This replaces the current
+  `if (host.unattached) { state.unattached = await host.unattached(); ... }`
+  block (~242-245), which is deleted entirely from the inner loop.
+- New host accessor for the pre-inspect old parent, exposed alongside
+  `affected`/`inspect` in the `sitter = createSDTSitter({...})` call (~3739):
+  `parentOf: id => parents.has(id) ? parents.get(id) : undefined`. This must
+  be read **before** `inspect()` runs for that same id in the same iteration
+  — `inspect()` (~3469) already captures `previousParent` internally via
+  `parents.get(id)` at line 3471, then mutates/deletes the map before
+  returning, so a scheduler-side read taken after `inspect()` would see the
+  post-mutation state and could no longer name the old parent. This is
+  exactly the hazard the Change section's "Remember the old parent before
+  inspection changes the parent map" sentence names.
+- Extend `inspect()`'s returned `descriptor` (~3505) with one new field,
+  `parentItemID: item.parentItemID ?? null`, so the scheduler can read the
+  *new* parent off the same call it already makes, instead of adding a second
+  host round-trip. The early-return branches (`excluded`/`absent`, no `item`)
+  are unaffected — there is no live parent to report there, which is fine:
+  the pre-inspect `parentOf(id)` already covered the old-parent side for
+  exactly that case.
+
+### 3. Unknown-former-parent fallback: a boolean flag consumed at next `pump()`
+
+`scheduler.js` already has `reconciliationPending` (~110, set `true` by
+`start()` and by the hourly `nextReconciliationAt` check at ~150-151) driving
+a full census at the top of `pump()`'s outer `while` loop. Reuse it rather
+than inventing a second mechanism — it is already coalesced by construction
+(a boolean set `true` twice is still just `true`, and it is already checked
+once at the top of the very loop the drain pass sits inside, so a flag raised
+during a drain pass is consumed by a full census before that same `pump()`
+call returns).
+
+Concretely: in the per-id loop of §2, when the pre-inspect `parentOf(affected)`
+returns `undefined` (never tracked) **and** the post-inspect `info.absent` is
+true (the item is gone and cannot supply a live parent either), set
+`reconcileNeeded = true` for this pass instead of adding anything to
+`candidateParents` for that id — there is nothing to check. Also thread the
+Map-side signal in §1's `refreshUnattached`: if a caller passes it a
+sentinel/`undefined` candidate (defensive; should not happen given the above)
+it should also report `reconcile: true` rather than throwing. After the pass,
+`scheduler.js` sets `reconciliationPending = true` when either source signals
+it, which the outer loop's existing `if (reconciliationPending) { ... }`
+branch (~154) turns into a full `host.list()` + `host.unattached()` census —
+the same path `start()` and the hourly interval already use, so no new
+"partial reconciliation" code path is needed.
+
+Do not set `reconciliationPending` unconditionally on every drain pass, and
+do not make the coalesced reconciliation a *targeted* re-walk of only the
+unknown id — the ticket is explicit that the fallback is "one full
+reconciliation", and the existing mechanism already is one.
+
+### 4. Read/error-safety guarantee
+
+Two failure points, both already have a home:
+- `refreshUnattached`'s per-candidate try/catch (§1): a record that cannot be
+  read keeps its last Map entry (no delete, no phantom add) and emits
+  `unattached-refresh-error` with `classifyError(error)` — never let the
+  catch block guess membership.
+- `inspect()`'s existing `inspection-error` path (bootstrap.js ~3510-3516 and
+  scheduler.js's `inspect` wrapper ~104-112) is unchanged; it already returns
+  a safe error class and keeps the attachment's last known status via
+  `record()`'s "no change on absence of new info" behaviour. Nothing new is
+  needed there — cite it in the targeted test (§6) rather than re-implement it.
+
+### 5. First failing test (exit criterion 1)
+
+This needs the *real* `bootstrap.js` + `Zotero` mock
+(`tests/sdt_sitter_zotero_mock.mjs`), not the host-level fixture in
+`tests/sdt_sitter_scheduler.mjs` — the scaling claim is about actual
+`numFileAttachments()`/`Zotero.Items.getAsync` reads, which only exist behind
+the real `unattached()`/`inspect()` implementations bootstrap.js supplies.
+The scheduler-level fixture mocks `host.unattached` as an opaque function and
+cannot distinguish "walked the whole library" from "checked five records" —
+using it here would let a renamed-but-still-O(n) implementation pass.
+
+Add two counters to `tests/sdt_sitter_zotero_mock.mjs`'s `calls` object
+(~313-323), since neither exists today and both are load-bearing for "moving
+the same full walk behind another name cannot pass":
+- `calls.unattachedWalk` (or similar), incremented in `DB.columnQueryAsync`'s
+  existing `if (sql.includes('FROM items')) return [...bibliographic.keys()];`
+  branch (~622) — that branch is reached *only* by `unattached()`'s own
+  `SELECT itemID FROM items ...` query (~3350), so it is a direct, hard-to-fake
+  proxy for "a full-library walk ran," independent of what the walk is named.
+- `calls.numFileAttachments` (or `membershipReads`), incremented inside
+  `regularItem(row).numFileAttachments` (~381-384) every time it is invoked —
+  this is the ticket's own chosen membership primitive ("Use Zotero's
+  `numFileAttachments()` as the membership rule"), so counting its calls
+  measures the real cost regardless of which function calls it.
+
+Test (`tests/sdt_sitter_bootstrap.mjs`), new case:
+
+- Build a harness with several distinct regular records in `unattached`
+  (some via `pdf()` attachments giving them a file, some bare so they start
+  in the no-attachment view) such that a handful of attachments share a
+  small number of distinct parents — e.g. 5 parents, 4 attachments each = 20
+  attachments.
+- `await h.start()`; record `const baselineWalks = h.calls.unattachedWalk;`
+  (should be 1) and `const baselineReads = h.calls.numFileAttachments;`.
+- Fire many dirty notifications that only touch those 20 attachments —
+  `h.notify('modify', 'item', [id])` repeated, or a loop over all 20 ids, to
+  simulate "many changed attachment IDs" — then `await h.quiet();`.
+- Assert `h.calls.unattachedWalk === baselineWalks` (no additional
+  full-library walk for ordinary dirty notifications).
+- Assert `h.calls.numFileAttachments - baselineReads === 5` (or `<= 5`; scales
+  with the 5 distinct parents, not the 20 dirty ids or the library size) —
+  this is the assertion a same-cost-different-name implementation cannot
+  satisfy, since it forces the read count down to the distinct-parent count.
+- Assert `h.calls.list === 1` (no extra full census either).
+
+Against the current, unfixed code this fails hard: today's drain loop calls
+`host.unattached()` once per *retired dirty id* (20 times, not 1), and each
+call re-walks the whole library and re-reads `numFileAttachments()` for every
+regular record in the harness, not just the 5 touched ones — both counters
+blow past the asserted bounds. That is the red step; write it before any
+production-code change.
+
+### 6. Other targeted tests (exit criterion 2) — concrete scenarios
+
+All in `tests/sdt_sitter_bootstrap.mjs`, near the existing "unattached
+records..." (~2298) and "an attachment moved between parents..." (~3198)
+tests; reuse `pdf()`/`h.library.get(id).parentItemID = ...`/`h.notify(...)`
+idioms already established there.
+
+- **Moving the only file attachment** — already covered by the existing,
+  pinned reparenting test (~3198); do not duplicate, just make sure it still
+  passes unmodified (it is one of the exit criteria's explicit anchors).
+- **Adding the only file attachment** — start a parent with only a note/link
+  child (so it begins in the no-attachment view, as `Parent C` does in the
+  reparenting fixture), then reparent an existing file-bearing pdf attachment
+  onto it (`h.library.get(pdfId).parentItemID = parentId; h.notify('modify',
+  'item', [pdfId]); await h.quiet();`) and assert the parent leaves
+  `censusSnapshot.unattached`.
+- **Deleting the only file attachment** — start a parent with one pdf
+  attachment and no other children; `h.library.get(pdfId).deleted = true;
+  h.notify('trash', 'item', [pdfId]);` `await h.quiet();`; assert the parent
+  enters `censusSnapshot.unattached`.
+- **A notification for a record with no file** — notify directly on a
+  bibliographic record id that is already in `unattached` and has no
+  children at all (e.g. `h.notify('modify', 'item', [parentIdWithNoChildren])`);
+  assert it stays listed and no full census ran (`h.calls.list` unchanged).
+- **Notes and URL-only children** — reuse the existing fixture shape (Parent
+  C in the reparenting test already has a note + a link-only child and no
+  file); add a standalone assertion (or extend that test) that notifying on
+  the note or the link directly (`h.notify('modify', 'item', [noteId])`)
+  leaves the parent in `unattached` and does not misclassify the note/link
+  itself as a file.
+- **An unreadable or deleted record** — this needs a new mock capability:
+  `tests/sdt_sitter_zotero_mock.mjs` has no existing way to make
+  `Zotero.Items.getAsync` throw for a specific id (compare the existing
+  `linkModeUnreadable`/`isLinuxThrows` per-scenario throw flags elsewhere in
+  the same file). Add a row-level flag, e.g. `unreadable: true`, and make
+  `Items.getAsync` throw for that id. Test: notify on an attachment whose
+  parent is flagged unreadable; assert the parent's *previous* membership is
+  retained in `censusSnapshot.unattached` (not deleted, not invented), and
+  that an `unattached-refresh-error` (§4) was emitted with a safe
+  `classifyError` value — assert on the emitted event's shape, never on the
+  raw error message (this project's `classifyError` discipline, see
+  `bootstrap.js` ~641-663).
+- **An event whose former parent is unknown** — notify on an itemID that was
+  never part of the harness's library at all (so `Items.getAsync` returns
+  `null` and `parents.get(id)` was never set): `h.notify('modify', 'item',
+  [999999]); await h.quiet();`. Assert `h.calls.list` increased by exactly 1
+  over its pre-notify value (the coalesced full reconciliation, §3 — consumed
+  within the same `pump()` call per the outer-loop mechanics, so it shows up
+  before `quiet()` resolves) and that firing several such unknown ids in one
+  drain pass still only adds 1 to `h.calls.list`, not one per id
+  (coalescing, §2/§3).
+
+### 7. Rewriting the 0796 sustained-feed test (exit criterion 3)
+
+`tests/sdt_sitter_scheduler.mjs`'s `'a sustained notification source cannot
+starve admission'` test (~1448-1499) currently hooks `f.host.unattached`
+(~1478-1483) to do two things on every drain-loop iteration: advance the fake
+clock by `STEP_MS` (simulating the per-iteration cost the budget is spent
+against) and inject a new dirty id (`f.api.invalidate([1000 + fed++])`) to
+keep proving the source outruns the drain. Once `host.unattached()` is no
+longer called once per retired id (§2), this hook point disappears and the
+test would silently stop exercising sustained pressure at all (it would still
+"pass" by doing nothing, which is exactly the false-green shape
+`workflow.md`'s diagnosis-discipline section warns about).
+
+Replace the hook with `f.host.affected`, which — unlike `unattached()` — is
+still called exactly once per retired dirty id unconditionally, both before
+and after this ticket's change (it is not being touched by the redesign;
+§1/§2 only change what happens *after* `affected`/`inspect` run). Rewrite:
+
+```js
+const affected = f.host.affected;
+f.host.affected = async id => {
+  now += STEP_MS;
+  if (fed < FEED) f.api.invalidate([1000 + fed++]);
+  return affected(id);
+};
+```
+
+Keep every existing assertion (`fed === FEED`, `state.draining === 0`,
+`admittedAtFed !== null && admittedAtFed < FEED`, `pendingAtAdmission > 2`) —
+they test the drain budget and admission-starvation guarantee, which this
+ticket does not change. The rewrite only needs to move *where* the
+clock-advance-and-refeed side effect is attached, from a call this ticket
+removes to one the redesign does not touch. If `f.host.parentOf` or
+`f.host.refreshUnattached` end up added to the scheduler-level fixture too
+(only if the scheduler test needs them to avoid throwing — check whether
+`createSDTSitter` calls them unconditionally or guards with
+`host.parentOf ? ... : ...` the way it already does for `host.unattached ?`),
+stub them minimally (e.g. `parentOf: () => undefined, refreshUnattached:
+async () => ({ list: [], reconcile: false })`) so the fixture stays a
+host-level shape check, not a second copy of bootstrap.js's logic.
+
+### 8. Risk flags
+
+- **YAGNI/premature abstraction**: do not build a generic "reactive
+  dependency graph" or a pub/sub layer between `parents`/`children` and the
+  no-attachment Map — the ticket's actual shape is one Map, one refresh
+  function taking a small candidate set, and one boolean reconciliation flag
+  that already exists. Resist generalizing `refreshUnattached` to also drive
+  attachment-status recomputation (that is `record()`'s job already and is
+  out of scope — the Change section says this ticket "changes the update
+  mechanism, not the definition of attachment coverage").
+- **Tautological-test risk**: the naive version of exit criterion 1's test —
+  asserting only that `host.unattached()`/the walk function is called once —
+  would pass a fix that renames the walk or splits it into N per-parent
+  calls that still touch the whole library. That is why §5 requires the
+  `numFileAttachments()` call-count assertion scaled to distinct parents, not
+  just an entry-point call count. Before trusting the test, run it against a
+  deliberately wrong "fix" (e.g., one that keeps calling the full
+  `unattached()` walk but only once per drain *pass* instead of once per
+  drained id) and confirm it still fails — that specific wrong fix is the
+  closest plausible near-miss and the one most likely to be implemented by
+  accident.
+- **Publish-timing risk**: confirm the single post-loop `publish()` in §2
+  does not regress the existing "attachment classification and no-attachment
+  view agree in each published generation" guarantee the reparenting test
+  pins — that test's `await h.quiet()` only reads the final settled state,
+  so an implementation that publishes attachment changes eagerly per id and
+  the no-attachment refresh once at the end of the pass is still correct as
+  long as nothing reads `censusSnapshot` *between* those publishes and acts
+  on it as final. Nothing in this codebase currently does, but this is worth
+  a one-line note in the eventual PR description if the assumption changes.
