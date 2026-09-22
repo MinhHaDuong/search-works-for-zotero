@@ -384,9 +384,13 @@ Ticket 0810 removed the per-id library-wide query the budget was first measured
 against, and left the budget where it is. The no-attachment view is now held as
 a map by itemID between censuses: a drain pass re-reads `numFileAttachments()`
 for the records its events actually named and the old and new parents of every
-attachment they touched, coalesced into one `refreshUnattached()` call per pass,
-so the cost scales with the distinct affected records rather than with the
-library size times the dirty-id count. The full walk stays where it was correct
+attachment they touched, each read once per pass however many events name it, so
+the cost scales with the distinct affected records rather than with the library
+size times the dirty-id count. The read happens before the publish that carries
+the classification which caused it, not after the loop: `collectSDTNotIndexed`
+reads `censusSnapshot.unattached` on every render, so a generation holding new
+classifications beside the previous view is a stale count on screen, not an
+internal detail. The full walk stays where it was correct
 — the initial census and the hourly reconciliation — and one further
 reconciliation is requested, never a targeted re-walk, when an event names an id
 that is gone and that nothing in this module ever placed under a parent. That is

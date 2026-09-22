@@ -227,17 +227,22 @@ var createSDTSitter = function (host) {
           // `dirty` per pass, always; the set still empties, only later.
           const deadline = host.now() + SDT_DRAIN_BUDGET_MS;
           let retired = 0;
-          /* Ticket 0810. The no-attachment view is refreshed ONCE per drain
-             pass, over the union of the records this pass could have changed —
-             the record an event named, and the old and new parent of every
-             attachment it touched. Both locals are per-pass on purpose: the
-             durable state is the host's own map, and a `Set` is the whole
-             coalescing mechanism, so a parent named by fifty dirty ids costs
-             one membership read.
+          /* Ticket 0810. The no-attachment view is refreshed from the records
+             this pass could have changed — the record an event named, and the
+             old and new parent of every attachment it touched — and never from
+             a library-wide walk, which is the cost ticket 0796's budget could
+             bound but not remove.
 
-             It used to be a library-wide `unattached()` per retired id, which
-             is the cost ticket 0796's budget could bound but not remove. */
-          const candidateParents = new Set();
+             `seen` is the coalescing mechanism and it spans the whole pass: a
+             parent named by fifty dirty ids is read once, the first time it is
+             named. What is refreshed per retired id is only what that id added,
+             so every publish() below carries a no-attachment view covering
+             every classification published with it, while the reads still
+             scale with the distinct affected records. Publishing the view only
+             after the loop was cheaper by nothing and left each intermediate
+             generation quoting a stale view to `collectSDTNotIndexed`, which
+             reads `censusSnapshot.unattached` on every render. */
+          const seen = new Set();
           let reconcileNeeded = false;
           while (dirty.size && current()) {
             if (retired > 0 && host.now() >= deadline) break;
@@ -246,8 +251,20 @@ var createSDTSitter = function (host) {
             dirty.delete(id); // BEFORE awaits: a new event for this ID survives.
             const ids = host.affected ? await host.affected(id) : [id];
             if (!current()) { dirty.add(id); return; }
+            // Fully determined by `ids` before the loop runs.
             const sawSelf = Array.from(ids).includes(id);
-            let placed = false, unplaceable = false;
+            // Candidates this id is the first to name. `seen` dedupes across
+            // the whole pass; `fresh` is what still has to be read.
+            const fresh = new Set();
+            const consider = candidate => {
+              if (candidate === undefined || candidate === null) return;
+              if (seen.has(candidate)) return;
+              seen.add(candidate); fresh.add(candidate);
+            };
+            // Per affected id, never shared across them: a sibling's parent
+            // says nothing about whether THIS id is covered, and a flag hoisted
+            // out of the loop let one suppress the other's reconciliation.
+            const unplaceable = new Set();
             for (const affected of ids) {
               // Before inspect(), never after: inspect() is what overwrites the
               // parent map, so a read taken afterwards can no longer name the
@@ -256,42 +273,39 @@ var createSDTSitter = function (host) {
               const info = await inspect(affected);
               if (!current()) { dirty.add(id); return; }
               record(affected, info); changed = true;
+              consider(previousParent);
+              consider(info.parentItemID);
               // Neither this module's map nor Zotero can say anything about an
-              // id that is gone and was never tracked.
-              if (previousParent === undefined && info.absent) { unplaceable = true; continue; }
-              if (previousParent !== undefined && previousParent !== null) {
-                candidateParents.add(previousParent); placed = true;
-              }
-              if (info.parentItemID) { candidateParents.add(info.parentItemID); placed = true; }
+              // id that is gone and was never tracked. It may still be covered
+              // — by a child that names it as a parent — so the verdict waits
+              // until every affected id has had its say.
+              if (previousParent === undefined && info.absent) unplaceable.add(affected);
             }
             // A bibliographic-record notification carries no attachment ids of
-            // its own — `affected()` answers with its children, and the record
+            // its own: `affected()` answers with its children, and the record
             // the event named is then the candidate whose membership may have
-            // moved. When it IS among them, an erased record is placed by the
-            // children that still name it, and only an event that placed
-            // nothing at all is genuinely unresolvable: there, no candidate set
-            // covers whatever parent the vanished id used to hang from, so ask
-            // for the one full reconciliation the ticket allows rather than
-            // claim the view is current.
-            if (!sawSelf) candidateParents.add(id);
-            else if (unplaceable && !placed) reconcileNeeded = true;
+            // moved.
+            if (!sawSelf) consider(id);
+            /* An erased record IS covered when the children that still name it
+               put it in the candidate set; what nothing names, no targeted read
+               can reach, so ask for the one full reconciliation the ticket
+               allows rather than claim the view is current. Membership of the
+               candidate set is the whole test, which is why it is asked after
+               the loop and per affected id. */
+            for (const orphan of unplaceable) if (!seen.has(orphan)) reconcileNeeded = true;
+            if (fresh.size && host.refreshUnattached) {
+              const { list, reconcile } = await host.refreshUnattached(fresh);
+              if (!current()) { dirty.add(id); return; }
+              if (Array.isArray(list)) state.unattached = list.slice();
+              if (reconcile) reconcileNeeded = true;
+              changed = true;
+            }
             if (!current()) { dirty.add(id); return; }
             state.draining = dirty.size;
             retired++;
             if (changed) publish();
           }
-          /* One refresh, one publication, after the pass. The no-attachment view
-             must reach the window in the same generation as the attachment
-             statuses this pass recorded, which is what this final publish()
-             buys; nothing reads `censusSnapshot` between the two, so the
-             per-id publishes above are a live count, not a settled claim. */
-          if (retired > 0 && host.refreshUnattached) {
-            const { list, reconcile } = await host.refreshUnattached(candidateParents);
-            if (!current()) return;
-            if (Array.isArray(list)) state.unattached = list.slice();
-            if (reconcile || reconcileNeeded) reconciliationPending = true;
-            publish();
-          } else if (reconcileNeeded) reconciliationPending = true;
+          if (reconcileNeeded) reconciliationPending = true;
           if (hadBacklog && current()) {
             // Ticket 0796 moved both fields off constants the budget made false.
             // `state.draining` used to be zeroed here because the loop above
