@@ -3,6 +3,7 @@ Title: Validate the sitter's census and extraction against the real Menagerie
 Created: 2026-09-06
 Author: claude
 Blocked-by: 0732
+Closed: autoclosed — PR #624
 
 --- log ---
 2026-09-06T00:00Z claude created
@@ -12,6 +13,7 @@ Blocked-by: 0732
 2026-09-07T04:18Z claude note CANNOT START TONIGHT, and the reason is a machine fact, not a scheduling choice. This ticket's work runs the sitter's census and extraction against the live Menagerie, which needs a Zotero serving the local API on padme -- doudou's Zotero and its port 23119 are out of bounds while another session verifies a plugin in that profile. Measured on padme read-only at 2026-09-07T04:05Z: the repo is present, ~/data/golden-fixture-cache is present, ~/data/golden-replay-index is ABSENT, nothing is listening on 127.0.0.1:23119 (ss -ltn), the local API answers curl exit 7 connection refused, and no process comm matches zot or sitter. Positive control, because a nil probe and a blind probe look alike: the same two probes on doudou, where Zotero is running, return LISTEN 127.0.0.1:23119 and the comms zotero and zotero-bin. So padme's zeros are absence, not blindness. No sitter run is in flight there either, so the wait the author's order describes has nothing to wait for. Second, independent blocker: this ticket's Blocked-by names 0732, which is still open -- PR #433 landed the embedder in the run identity, but the paired re-run that discharges 0732 is blocked on the same absent Zotero. UNBLOCKING CONDITION: Zotero desktop running on padme and answering on 23119. Starting it is the author's call, not an agent's: it syncs his real library, and five users were logged in on that machine at the time of this probe
 
 2026-09-23T19:23Z sim note closed by PR #624 (0821): the whole-corpus run accounts for all 114 attachments with the integrity check green (verification/menagerie/0821-whole-corpus-green-2026-09-23.json); the #624 review checked this ticket's three exit boxes against it and found all three hold. Not done, and not an exit box: reconciling against Zotero's own log, which the Work section names; no run collected that log.
+2026-09-23T19:40Z sim closed — autoclosed — PR #624
 --- body ---
 ## Context
 
