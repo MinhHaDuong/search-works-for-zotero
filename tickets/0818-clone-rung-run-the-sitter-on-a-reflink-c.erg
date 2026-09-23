@@ -2,7 +2,6 @@
 Title: Clone rung: run the sitter on a reflink copy of the author's library
 Created: 2026-09-23
 Author: claude
-Blocked-by: 0816
 
 --- log ---
 2026-09-23T08:15Z claude created
@@ -10,6 +9,7 @@ Blocked-by: 0816
 2026-09-23T08:53Z sim note raid 2026-09-23 Imagine + Blind-Spot: is-Zotero-running by bare process name plus lock; same-filesystem and free-space preflight; WAL-on-quit control; settle by sitter state held across polls with the stall probe alongside; red-first test added. Blocked-by 0820 (record directory renamed).
 2026-09-23T09:06Z sim note raid 2026-09-23 Plan: file:line plan and first tests appended; Phase 4 cross-ticket scan found no registry needing a coordination PR
 2026-09-23T10:12Z sim note blocker 0820 closed — Blocked-by removed.
+2026-09-23T11:11Z sim note blocker 0816 closed — Blocked-by removed.
 --- body ---
 ## Context
 
