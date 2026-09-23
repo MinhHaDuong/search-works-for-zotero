@@ -11,6 +11,7 @@ Blocked-by: 0794
 --- log ---
 2026-09-23T08:15Z claude created
 
+2026-09-23T08:53Z sim note raid 2026-09-23: 0817 split into 0820/0821/0822; record path now named by the rung, after 0820's rename.
 --- body ---
 ## Context
 
@@ -23,7 +24,8 @@ rung real.
 ## Children
 
 - 0816 — the integrity check, rung 2 and up
-- 0817 — the Menagerie rung, lifecycle folded into its scenario
+- 0817 — the Menagerie rung, lifecycle folded into its scenario (itself a
+  tracker: 0820 rename, 0821 whole corpus, 0822 lifecycle)
 - 0818 — the clone rung
 - 0819 — the bar for rung 3 and above
 - 0794 — the two wild documents the Menagerie lacks, without which rung 3 is
@@ -32,6 +34,6 @@ rung real.
 ## Exit criteria
 
 Every child closed, and one build — the first after the children land — has
-climbed rungs 1 to 4 with each verdict recorded under `verification/acceptance/`
+climbed rungs 1 to 4 with each verdict recorded in the rung record directory
 and the integrity check green at each rung that has one. Integration review per
 the tracker rule before closing.

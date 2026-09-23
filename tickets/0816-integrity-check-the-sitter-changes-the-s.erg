@@ -2,11 +2,13 @@
 Title: Integrity check: the sitter changes the SDT cache and nothing else
 Created: 2026-09-23
 Author: claude
+Blocked-by: 0820
 
 --- log ---
 2026-09-23T08:15Z claude created
 
 2026-09-23T08:25Z sim note Review of PR #613 (CHANGES REQUESTED) found the write inventory incomplete: sdt-sitter-last-shutdown.json via Zotero.File.putContents, and the snapshot missing the data-directory root. Body and TESTING.md corrected in the same PR.
+2026-09-23T08:53Z sim note raid 2026-09-23 Imagine: mechanism rewritten (every *.sqlite incl. fulltext.sqlite; plain mode=ro on the WAL database, never immutable; housekeeping-file exclusions; disappearance permitted; row-count deltas, no predicted-row engine); two red controls added. Blocked-by 0820 so the rename lands first (Blind-Spot finding 2).
 --- body ---
 ## Context
 
@@ -34,23 +36,43 @@ and is this ticket's first measurement, not an assumption.
 
 ## Actions
 
-1. A snapshot function over a Zotero data directory: `zotero.sqlite` dumped
-   table by table as row content (opened read-only, on a copy if Zotero holds
-   it), plus a hash of every file in the directory tree, the root included.
-2. A diff that fails on anything outside the permitted set, and, for a
-   scenario that edits the library itself, asserts the difference is exactly
-   those edits.
+1. `bench/sitter_integrity.py`, narrow on purpose — `snapshot(data_dir)`,
+   `diff(before, after)`, `assert_permitted(diff, permitted,
+   expected_library_delta=None)` — for the sitter's own drivers only, no CLI,
+   no generic Zotero-directory tool. Nothing in `bench/` does this today.
+   - Dump **every** `*.sqlite` in the data directory, `fulltext.sqlite`
+     included: Zotero 10 (userdata step 127) moved the keyword index there,
+     and whether `ensure()` touches it is this ticket's open question.
+   - `zotero.sqlite` is WAL-mode. Open it with a plain `mode=ro` URI on the
+     live path; **never** `immutable=1` (the `bench/library_census.py`
+     pattern hides un-checkpointed WAL rows — a false PASS) and never a
+     main-file-only copy. Prove the read with a positive control: an
+     uncheckpointed row must show in the snapshot.
+   - Hash every other file in the tree, root included, excluding Zotero's own
+     housekeeping churn: `*.sqlite-wal`, `*.sqlite-shm`, `*.sqlite.tmp-wal`,
+     `*.sqlite*.bak` (precedent: `bench/smoke_upstream.py`).
+2. The diff fails on any change outside the permitted set, and the set allows
+   **disappearance** as well as appearance: `bootstrap.js` removes
+   `sdt-sitter-cache.jsonl` on uninstall. Where the scenario edits the library
+   (import, erase one item or attachment, re-attach), assert per-table
+   row-count deltas on an allow-listed set of tables, matching the counts the
+   driver already tracks; with no declared edit in flight, the SQLite diff must
+   be empty. No predicted-row engine.
 3. Measure on a clean-room run what `ensure()` writes besides the pack; any
    extra writes are reported to the author before they join the permitted set.
+   Snapshot only when the run has quiesced.
 4. Wire it into both drivers.
 
 ## Test
 
-Red first: a deliberately bad payload (adds a tag; touches a file beside a
-pack) must fail the check; the unmodified build must pass it.
+Red first, and each control named in the record: a payload that adds a tag; one
+that writes one row to `zotero.sqlite` directly; one that leaves a stray file at
+the data-directory root; one that touches a file beside a pack. Each must fail
+the check; the unmodified build must pass it.
 
 ## Exit criteria
 
 - The check runs in rungs 2 and 3 and reports its verdict in the run record.
 - Its red control is recorded, with the bad payload named.
-- The permitted set is written in `TESTING.md` exactly as measured.
+- The permitted set is written in `TESTING.md` exactly as measured, the
+  excluded housekeeping files included, each with its reason.

@@ -1,0 +1,46 @@
+%erg 0.1
+Title: Fold lifecycle into the Menagerie rung: replace, disable and re-enable, restart
+Created: 2026-09-23
+Author: claude
+Blocked-by: 0820
+Blocked-by: 0816
+Blocked-by: 0821
+
+--- log ---
+2026-09-23T08:51Z claude created
+
+2026-09-23T08:53Z sim note filed by the raid of 2026-09-23 as a child of 0817
+--- body ---
+## Context
+
+Child of 0817. The author folded lifecycle testing into the Menagerie rung
+(2026-09-23); the volume rig that hunted the disappearance is retired with
+0778 and 0782, and the disappearance itself is Zotero's (zotero/zotero#6054).
+
+## Actions
+
+1. Replace the add-on while extraction runs (`install_or_replace_code`, after a
+   warm-up so the sitter is busy), then assert no attachment regresses to
+   `queued` because of the replace.
+2. Disable and re-enable: import `disable_enable_code()` and `liveness_code()`
+   from `bench/sitter_volume_experiment.py`, as the driver already imports its
+   siblings from there.
+3. Restart Zotero: compose `stop_zotero` + `launch_zotero` +
+   `connect_resilient` as the driver already does. Do **not** import the rig's
+   `restart_zotero()` — it is a closure inside `main()`.
+4. After **every** restart, re-run the clean-room check that Zotero opened the
+   throwaway data directory (the driver does it once, after install) — 0782's
+   hazard, reintroduced by any restart.
+5. Resume means: pack count and per-attachment hash set identical before the
+   stop and after the post-restart settle.
+6. 0816's integrity check spans the whole scenario.
+
+## Test
+
+Each step red first on a payload built to fail it (e.g. a replace that
+re-queues finished work; a restart that lands in the wrong data directory).
+
+## Exit criteria
+
+The three lifecycle steps run inside the rung-3 scenario, each with its red
+control recorded, and the integrity check green across them.

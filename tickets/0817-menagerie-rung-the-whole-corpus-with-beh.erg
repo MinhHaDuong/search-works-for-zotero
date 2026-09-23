@@ -1,12 +1,16 @@
 %erg 0.1
-Title: Menagerie rung: the whole corpus with behaviour and lifecycle folded in
+Title: Tracker: the Menagerie rung, whole corpus with lifecycle folded in
 Created: 2026-09-23
 Author: claude
 Blocked-by: 0816
+Blocked-by: 0820
+Blocked-by: 0821
+Blocked-by: 0822
 
 --- log ---
 2026-09-23T08:15Z claude created
 
+2026-09-23T08:53Z sim note raid 2026-09-23 Imagine: split into tracker + children 0820 (rename), 0821 (whole corpus), 0822 (lifecycle); exit criteria carried over unchanged. Four failure surfaces in one ticket was the monster shape.
 --- body ---
 ## Context
 
@@ -16,24 +20,20 @@ layer, and merged "full Menagerie" with "wild documents": the corpus is where
 the wild beasts belong. It is not to be called "acceptance": acceptance is the
 author's own use (rung 5).
 
-Today `bench/sitter_acceptance.py` runs its nine steps on four documents.
+Split by the raid of 2026-09-23 (Imagine pass): as one ticket it bundled four
+failure surfaces — scale, three lifecycle mechanisms, a completeness assertion,
+a rename — so a failure two hours into a 114-document run would not say which
+change broke it. The ruling fixes the *shipped test*: one scenario, one rung. The
+children converge on that one script; this tracker holds the one recorded run.
 
-## Actions
+## Children
 
-1. Run the scenario over the whole Menagerie package (114 attachments today),
-   so pause lands mid-document on a long book, not only before the first one.
-2. Add to the scenario: replace the add-on under a running extraction, disable
-   and re-enable, restart Zotero, then verify the census resumes and nothing is
-   lost or duplicated.
-3. Every eligible attachment ends with a pack or a named reason in the record.
-4. Rename the driver and its record directory away from "acceptance", in one
-   sweep with every reference.
-
-## Test
-
-Each new step first shown red on a payload built to fail it.
+- 0820 — rename the driver and its records away from "acceptance" (first)
+- 0821 — the whole Menagerie, every attachment a pack or a named reason
+- 0822 — lifecycle in the scenario: replace, disable and re-enable, restart
 
 ## Exit criteria
 
-A recorded pass on the whole Menagerie with the integrity check (0816) green.
-Once 0794 lands, the pass includes its two documents.
+A recorded pass on the whole Menagerie with the integrity check (0816) green,
+exercising the lifecycle steps in the one converged script. Once 0794 lands,
+the pass includes its two documents. Integration review per the tracker rule.
