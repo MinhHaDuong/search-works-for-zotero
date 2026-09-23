@@ -2217,6 +2217,33 @@ await test('a blocked phase names its refusal, the numbers and the way back, not
     'the blocked branch swallowed the genuine between-documents gap');
 });
 
+/* Review of PR #623 (red team): an item edit while blocked wakes the sitter
+   with a sweep due at once, but the line kept the blocked loop's ten-minute
+   promise until that sweep finished. The line must not name a wait that is
+   no longer scheduled. */
+await test('a wake while blocked does not keep promising the ten-minute retry', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')] });
+  await harness.start();
+  const window = harness.windows[0];
+  harness.context.openDialog(window);
+  await harness.turn();
+  const doc = window.dialogs[0].document;
+  const sitter = harness.context.sitter;
+  harness.context.admission = { at: harness.context.monotonic(), load: 7.84, cpus: 8 };
+  sitter.state.phase = 'cpu-busy';
+  sitter.state.active = null;
+  sitter.state.busy = false;
+  sitter.state.pending = [{ id: 2, title: null, parentTitle: null }];
+  harness.context.nextSweepAt = harness.context.monotonic() + harness.context.IDLE_SWEEP_INTERVAL_MS;
+  harness.context.render();
+  assert.match(doc.getElementById('sdt-document-status').textContent, /10 min/,
+    'control: before the wake the line names the blocked loop\'s wait');
+  harness.context.wakeSDTSitter();
+  harness.context.render();
+  const line = doc.getElementById('sdt-document-status').textContent;
+  assert.ok(!/10 min/.test(line), `the line still promises the ten-minute retry after a wake:\n${line}`);
+});
+
 /* PASS / FAIL / NOT-RUN, rather than a boolean. A guard that greens because it
  * found nothing to check is the failure this repository keeps meeting, so the
  * empty set gets a verdict of its own and the caller has to say what it does

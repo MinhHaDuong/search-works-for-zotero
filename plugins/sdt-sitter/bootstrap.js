@@ -841,6 +841,8 @@ function wakeSDTSitter() {
   if (!alive || !sitter?.state.enabled || sitter.state.busy) return;
   timers.clearTimeout(timer);
   timer = timers.setTimeout(createSDTSweepLoop(activeToken, sweepGeneration), 0);
+  // The sweep is due now; the dialog must not keep the old wait (PR #623 review).
+  try { nextSweepAt = monotonic(); } catch (_error) { nextSweepAt = null; }
 }
 
 /* Ticket 0696. One toast when a sweep actually did something, and nothing at all
@@ -1207,6 +1209,7 @@ function armSDTSitter() {
   pulse = timers.setInterval(render, 100);
   heartbeat = timers.setInterval(heartbeatTick, 60000);
   timer = timers.setTimeout(createSDTSweepLoop(activeToken, sweepGeneration), 0);
+  try { nextSweepAt = monotonic(); } catch (_error) { nextSweepAt = null; }
   render();
 }
 
