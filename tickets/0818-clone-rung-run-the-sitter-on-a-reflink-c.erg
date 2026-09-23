@@ -3,10 +3,12 @@ Title: Clone rung: run the sitter on a reflink copy of the author's library
 Created: 2026-09-23
 Author: claude
 Blocked-by: 0816
+Blocked-by: 0820
 
 --- log ---
 2026-09-23T08:15Z claude created
 
+2026-09-23T08:53Z sim note raid 2026-09-23 Imagine + Blind-Spot: is-Zotero-running by bare process name plus lock; same-filesystem and free-space preflight; WAL-on-quit control; settle by sitter state held across polls with the stall probe alongside; red-first test added. Blocked-by 0820 (record directory renamed).
 --- body ---
 ## Context
 
@@ -19,12 +21,35 @@ there.
 
 ## Actions
 
-1. A recipe that copies the data directory with Zotero closed, so the SQLite
-   files are consistent, and refuses when Zotero is running.
-2. Run the sitter on the copy in a clean-room profile until the census settles,
-   with the integrity check (0816) against the copy's own before-snapshot.
-3. Record the verdict under `verification/acceptance/`.
-4. The same recipe takes the pre-install snapshot for rung 5.
+1. A recipe that copies the data directory with Zotero closed, and refuses when
+   it is running. Nothing in `bench/` checks this today. Detect by bare process
+   name (`ps -eo comm=`), never `pgrep -f`, which matched its own command line
+   in an earlier probe here; cross-check a lock file (the profile's
+   `.parentlock`; whether the data directory has its own lock is to be
+   established at execution). Before copying: source and destination on the
+   same btrfs filesystem, and free space above a modest floor (a reflink needs
+   little up front; 93 GB free on 2026-09-23 at 95 % use). Copy with
+   `cp -a --reflink=always`, which fails loudly rather than falling back to a
+   full byte copy. The whole tree is copied for referential integrity:
+   `zotero.sqlite` references every attachment, so a partial copy would show
+   Zotero missing files.
+2. WAL control, before trusting the copy: after Zotero quits, record whether
+   `zotero.sqlite-wal` is empty, and confirm 0816's snapshot reads the copy
+   identically either way. Whether Zotero checkpoints on quit is not
+   established anywhere in this repo; if it does not, `TESTING.md` says so.
+3. Run the sitter on the copy in a clean-room profile until the census
+   settles, with 0816's integrity check against the copy's own before-snapshot.
+   Settled means `Zotero.SDTPackSitter.state` shows `pending == 0` with the
+   phase out of census and draining, held across several polls; run
+   `bench/sdt_stall_probe.py` alongside so a run that never settles is
+   reported as wedged (0793's discriminator), not as a blind timeout.
+4. Record the verdict in the rung record directory (renamed by 0820).
+5. The same recipe takes the pre-install snapshot for rung 5.
+
+## Test
+
+Red first: the recipe run with Zotero deliberately left running must refuse;
+pointed at a path that cannot reflink, it must fail rather than full-copy.
 
 ## Exit criteria
 

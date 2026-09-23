@@ -1,0 +1,40 @@
+%erg 0.1
+Title: Widen the Menagerie rung to the whole corpus, every attachment accounted for
+Created: 2026-09-23
+Author: claude
+Blocked-by: 0820
+Blocked-by: 0816
+
+--- log ---
+2026-09-23T08:51Z claude created
+
+2026-09-23T08:53Z sim note filed by the raid of 2026-09-23 as a child of 0817
+--- body ---
+## Context
+
+Child of 0817. The rung-3 driver runs its scenario on four Menagerie documents
+(`--fixture-documents`). The rung is the whole corpus — 114 attachments today,
+two more when 0794 lands (not blocked on it).
+
+## Actions
+
+1. Import the full Menagerie package; no truncation.
+2. After the run settles, read every attachment's status through
+   `Zotero.SDTPackSitter.inspect(id)` (`scheduler.js` status classes; exposed
+   in `bootstrap.js`) and assert none is left `queued`: each ends `indexed` or
+   `unindexed` (a pack) or `failed` / `outOfScope` (a named reason), recorded
+   per attachment. No new sitter-side plumbing.
+3. Replace the four-document timeouts with named, documented ones sized for
+   the whole corpus (the 900 s index default was tuned for four small files);
+   a run that times out says so rather than reading as a sitter failure.
+4. Run 0816's integrity check over the run.
+
+## Test
+
+Red first: a payload that leaves one attachment `queued` after settling must
+fail the completeness assertion.
+
+## Exit criteria
+
+A recorded whole-Menagerie run with every attachment accounted for and the
+integrity check green.
