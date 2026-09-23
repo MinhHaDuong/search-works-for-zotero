@@ -17,6 +17,14 @@
         "lint", "figures", "names", "progress", "tickets", "ticket-logs",
         "sitter-version", "sitter-mutants"
       ]
+    },
+    {
+      "paths": ["SPEC.md", "bench/*.md", "plugins/**"],
+      "targets": ["models"]
+    },
+    {
+      "paths": ["SPEC.md", "README.md", "STATE.md", "bench/*.md", "plugins/**"],
+      "targets": ["check-fast"]
     }
   ]
 }

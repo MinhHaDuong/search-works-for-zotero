@@ -81,7 +81,8 @@ once, in `SPEC.md` §1. Read it there rather than here.
 - **Run `make check-diff` before any commit and quote its `selected:` and
   `skipped:` lines in the PR description.** The tracked `.idh-checks.json`
   maps documentation, evidence, and tickets to the targets they can affect;
-  plugin changes add the sitter gates. Any unmapped path runs the full
+  SPEC and plugin documentation add the model and test gates, and plugin
+  changes add the sitter gates. Any unmapped path runs the full
   `make check`. A scoped pass does not claim that the full gate passed. The
   Makefile's targets are what actually run; any list of guards in prose drifts.
   The figure guard
@@ -188,13 +189,14 @@ channel existed and was simply not used.
   finished lane does not queue behind an unfinished one, and overnight that is
   the difference between a lane's work landing and a lane's work waiting for
   someone to wake up. The review this repository has instead of continuous
-  integration is the merge itself: `make check` runs where a lane runs it, so
+  integration is the merge itself: `make check-diff` runs where a lane runs it, so
   the coordinator reads the gates the page quotes rather than re-running them.
 - **A merge moves every other open branch's base, so it is announced.** This is
   the cost of merging as they arrive, and it falls on the coordinator to pay:
   tell the live lanes that `main` has moved. Each one re-merges it, re-runs
-  `make check` at the new base, and re-quotes its gates on its own page. A gate
-  reading is true only of the base it was taken at — an unannounced merge turns
+  `make check-diff` at the new base, and re-quotes `selected:` and `skipped:`
+  on its own page. A gate reading is true only of the base it was taken at —
+  an unannounced merge turns
   a green page stale without touching it, and the page still reads green.
 - **The occasion, kept because the rule is easier to follow with it.** On
   2026-09-03 the lane holding #232 and #235 corrected the defect each was
@@ -254,7 +256,7 @@ branch, the SHA and the measurements throughout.
   surfaces remain historical evidence and keep their grade; do not reproduce
   them merely because the version label moved. If a materially affected probe
   cannot run on an admissible substrate, say so and downgrade only the claim
-  that depended on it. `make check` remains the pre-commit repository gate;
+  that depended on it. `make check-diff` remains the pre-commit repository gate;
   this rule concerns measurement campaigns and target acceptance runs, not the
   lightweight consistency and unit-test gate.
   `make upstream-checkout` recreates the git-ignored `fork/` at the reviewed
