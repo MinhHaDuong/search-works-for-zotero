@@ -12,12 +12,12 @@
       ],
       "files": {
         "sdt-sitter-cache.jsonl": "appear",
-        "storage/6XG3F76R/.zotero-ft-cache": "appear",
-        "storage/6XG3F76R/.zotero-sdt-cache": "appear",
-        "storage/MMRT9D32/.zotero-ft-cache": "appear",
-        "storage/MMRT9D32/.zotero-sdt-cache": "appear",
-        "storage/TUTV8TX8/.zotero-ft-cache": "appear",
-        "storage/TUTV8TX8/.zotero-sdt-cache": "appear"
+        "storage/3JYIU9HC/.zotero-ft-cache": "appear",
+        "storage/3JYIU9HC/.zotero-sdt-cache": "appear",
+        "storage/HUQIRI88/.zotero-ft-cache": "appear",
+        "storage/HUQIRI88/.zotero-sdt-cache": "appear",
+        "storage/MTED9Z6T/.zotero-ft-cache": "appear",
+        "storage/MTED9Z6T/.zotero-sdt-cache": "appear"
       },
       "tables": {
         "fulltext.sqlite:fulltextContent_data": {
@@ -77,6 +77,7 @@
           "after": 1
         }
       },
+      "housekeeping": {},
       "declared": {
         "tables": {
           "zotero.sqlite:items": 6,

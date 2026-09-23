@@ -8,10 +8,10 @@
       "violations": [],
       "files": {
         "sdt-sitter-cache.jsonl": "appear",
-        "storage/5IUUSISP/.zotero-ft-cache": "appear",
-        "storage/E4MXSVZD/.zotero-ft-cache": "appear",
-        "storage/PJXPJRCL/.zotero-ft-cache": "appear",
-        "storage/RH93HSY4/.zotero-ft-cache": "appear"
+        "storage/AR6JZMZ7/.zotero-ft-cache": "appear",
+        "storage/DECW7R4T/.zotero-ft-cache": "appear",
+        "storage/GT9GIYJ4/.zotero-ft-cache": "appear",
+        "storage/HXJTLNCV/.zotero-ft-cache": "appear"
       },
       "tables": {
         "fulltext.sqlite:fulltextContent_data": {
@@ -63,6 +63,7 @@
           "after": 1
         }
       },
+      "housekeeping": {},
       "declared": {
         "tables": {
           "zotero.sqlite:items": 8,
@@ -91,12 +92,13 @@
       "violations": [],
       "files": {
         "sdt-sitter-cache.jsonl": "change",
-        "storage/5IUUSISP/.zotero-sdt-cache": "appear",
-        "storage/E4MXSVZD/.zotero-sdt-cache": "appear",
-        "storage/PJXPJRCL/.zotero-sdt-cache": "appear",
-        "storage/RH93HSY4/.zotero-sdt-cache": "appear"
+        "storage/AR6JZMZ7/.zotero-sdt-cache": "appear",
+        "storage/DECW7R4T/.zotero-sdt-cache": "appear",
+        "storage/GT9GIYJ4/.zotero-sdt-cache": "appear",
+        "storage/HXJTLNCV/.zotero-sdt-cache": "appear"
       },
       "tables": {},
+      "housekeeping": {},
       "declared": null
     },
     {
@@ -105,6 +107,7 @@
       "violations": [],
       "files": {},
       "tables": {},
+      "housekeeping": {},
       "declared": null
     },
     {
@@ -112,8 +115,8 @@
       "verdict": "PASS",
       "violations": [],
       "files": {
-        "storage/5IUUSISP/.zotero-ft-cache": "disappear",
-        "storage/5IUUSISP/.zotero-sdt-cache": "disappear"
+        "storage/AR6JZMZ7/.zotero-ft-cache": "disappear",
+        "storage/AR6JZMZ7/.zotero-sdt-cache": "disappear"
       },
       "tables": {
         "fulltext.sqlite:fulltextContent_data": {
@@ -153,6 +156,7 @@
           "after": 1
         }
       },
+      "housekeeping": {},
       "declared": {
         "tables": {
           "zotero.sqlite:items": -1,
@@ -167,7 +171,7 @@
           "fulltext.sqlite:fulltextIndexState": null
         },
         "files": {
-          "storage/5IUUSISP/*": [
+          "storage/AR6JZMZ7/*": [
             "disappear"
           ]
         }
@@ -179,14 +183,14 @@
       "violations": [],
       "files": {
         "sdt-sitter-cache.jsonl": "change",
-        "storage/DJ2PJI7S/.zotero-ft-cache": "appear",
-        "storage/DJ2PJI7S/.zotero-sdt-cache": "appear",
-        "storage/DJ2PJI7S/restore-5IUUSISP.pdf": "appear"
+        "storage/A4XZ3Q3D/.zotero-ft-cache": "appear",
+        "storage/A4XZ3Q3D/.zotero-sdt-cache": "appear",
+        "storage/A4XZ3Q3D/restore-AR6JZMZ7.pdf": "appear"
       },
       "tables": {
         "fulltext.sqlite:fulltextContent_data": {
           "before": 21,
-          "after": 32
+          "after": 22
         },
         "fulltext.sqlite:fulltextContent_docsize": {
           "before": 3,
@@ -194,7 +198,7 @@
         },
         "fulltext.sqlite:fulltextContent_idx": {
           "before": 18,
-          "after": 29
+          "after": 19
         },
         "fulltext.sqlite:fulltextIndexState": {
           "before": 3,
@@ -221,6 +225,7 @@
           "after": 1
         }
       },
+      "housekeeping": {},
       "declared": {
         "tables": {
           "zotero.sqlite:items": 1,
@@ -235,7 +240,7 @@
           "fulltext.sqlite:fulltextIndexState": null
         },
         "files": {
-          "storage/*/restore-5IUUSISP.pdf": [
+          "storage/*/restore-AR6JZMZ7.pdf": [
             "appear"
           ],
           "storage/*/.zotero-ft-cache": [
@@ -250,6 +255,7 @@
       "violations": [],
       "files": {},
       "tables": {},
+      "housekeeping": {},
       "declared": null
     },
     {
@@ -258,14 +264,14 @@
       "violations": [],
       "files": {
         "sdt-sitter-cache.jsonl": "change",
-        "storage/DJ2PJI7S/.zotero-ft-cache": "disappear",
-        "storage/DJ2PJI7S/.zotero-sdt-cache": "disappear",
-        "storage/DJ2PJI7S/restore-5IUUSISP.pdf": "disappear"
+        "storage/A4XZ3Q3D/.zotero-ft-cache": "disappear",
+        "storage/A4XZ3Q3D/.zotero-sdt-cache": "disappear",
+        "storage/A4XZ3Q3D/restore-AR6JZMZ7.pdf": "disappear"
       },
       "tables": {
         "fulltext.sqlite:fulltextContent_data": {
-          "before": 32,
-          "after": 33
+          "before": 22,
+          "after": 23
         },
         "fulltext.sqlite:fulltextContent_docsize": {
           "before": 4,
@@ -304,6 +310,7 @@
           "after": 3
         }
       },
+      "housekeeping": {},
       "declared": {
         "tables": {
           "zotero.sqlite:items": -2,
@@ -319,7 +326,7 @@
           "zotero.sqlite:itemCreators": null
         },
         "files": {
-          "storage/DJ2PJI7S/*": [
+          "storage/A4XZ3Q3D/*": [
             "disappear"
           ]
         }
@@ -331,22 +338,22 @@
       "violations": [],
       "files": {
         "sdt-sitter-cache.jsonl": "change",
-        "storage/YE3TB8L8/.zotero-ft-cache": "appear",
-        "storage/YE3TB8L8/.zotero-sdt-cache": "appear",
-        "storage/YE3TB8L8/restore-DJ2PJI7S.pdf": "appear"
+        "storage/2XJVZ8N4/.zotero-ft-cache": "appear",
+        "storage/2XJVZ8N4/.zotero-sdt-cache": "appear",
+        "storage/2XJVZ8N4/restore-A4XZ3Q3D.pdf": "appear"
       },
       "tables": {
         "fulltext.sqlite:fulltextContent_data": {
-          "before": 33,
-          "after": 44
+          "before": 23,
+          "after": 24
         },
         "fulltext.sqlite:fulltextContent_docsize": {
           "before": 3,
           "after": 4
         },
         "fulltext.sqlite:fulltextContent_idx": {
-          "before": 29,
-          "after": 40
+          "before": 19,
+          "after": 20
         },
         "fulltext.sqlite:fulltextIndexState": {
           "before": 3,
@@ -377,6 +384,7 @@
           "after": 1
         }
       },
+      "housekeeping": {},
       "declared": {
         "tables": {
           "zotero.sqlite:items": 1,
@@ -391,7 +399,7 @@
           "fulltext.sqlite:fulltextIndexState": null
         },
         "files": {
-          "storage/*/restore-DJ2PJI7S.pdf": [
+          "storage/*/restore-A4XZ3Q3D.pdf": [
             "appear"
           ],
           "storage/*/.zotero-ft-cache": [
@@ -406,6 +414,7 @@
       "violations": [],
       "files": {},
       "tables": {},
+      "housekeeping": {},
       "declared": null
     },
     {
@@ -416,6 +425,7 @@
         "sdt-sitter-cache.jsonl": "disappear"
       },
       "tables": {},
+      "housekeeping": {},
       "declared": null
     }
   ]

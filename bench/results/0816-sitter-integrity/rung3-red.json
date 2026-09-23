@@ -9,10 +9,10 @@
       "violations": [],
       "files": {
         "sdt-sitter-cache.jsonl": "appear",
-        "storage/2C3J4TQR/.zotero-ft-cache": "appear",
-        "storage/3YTD4UPJ/.zotero-ft-cache": "appear",
-        "storage/8WBQJ6KY/.zotero-ft-cache": "appear",
-        "storage/JC6DUXDP/.zotero-ft-cache": "appear"
+        "storage/4BUQGIXX/.zotero-ft-cache": "appear",
+        "storage/GRM96CBX/.zotero-ft-cache": "appear",
+        "storage/MFXSFDXV/.zotero-ft-cache": "appear",
+        "storage/Z3WLNVEZ/.zotero-ft-cache": "appear"
       },
       "tables": {
         "fulltext.sqlite:fulltextContent_data": {
@@ -64,6 +64,7 @@
           "after": 1
         }
       },
+      "housekeeping": {},
       "declared": {
         "tables": {
           "zotero.sqlite:items": 8,
@@ -97,10 +98,10 @@
       ],
       "files": {
         "sdt-sitter-cache.jsonl": "change",
-        "storage/2C3J4TQR/.zotero-sdt-cache": "appear",
-        "storage/3YTD4UPJ/.zotero-sdt-cache": "appear",
-        "storage/8WBQJ6KY/.zotero-sdt-cache": "appear",
-        "storage/JC6DUXDP/.zotero-sdt-cache": "appear"
+        "storage/4BUQGIXX/.zotero-sdt-cache": "appear",
+        "storage/GRM96CBX/.zotero-sdt-cache": "appear",
+        "storage/MFXSFDXV/.zotero-sdt-cache": "appear",
+        "storage/Z3WLNVEZ/.zotero-sdt-cache": "appear"
       },
       "tables": {
         "zotero.sqlite:itemTags": {
@@ -120,6 +121,7 @@
           "after": 1
         }
       },
+      "housekeeping": {},
       "declared": null
     }
   ]
