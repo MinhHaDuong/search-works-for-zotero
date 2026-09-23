@@ -232,9 +232,16 @@ def read_pack_metadata(path: Path) -> dict:
         if len(raw) < 16:
             continue
         try:
-            return json.loads(raw)
+            parsed = json.loads(raw)
         except ValueError:
             continue
+        # The metadata section is an object. The first whole-Menagerie run
+        # (ticket 0821) met a pack where an earlier offset inflated to a bare
+        # run of digits -- valid JSON, an int -- and the caller crashed on
+        # `.get`. A stream that is not an object is not the section; keep
+        # scanning.
+        if isinstance(parsed, dict):
+            return parsed
     raise SmokeFailure(
         f"{path} carries the SDT magic but no readable metadata section was "
         f"found in its first {SDT_SCAN_LIMIT} bytes ({len(blob)} bytes total). If Zotero "

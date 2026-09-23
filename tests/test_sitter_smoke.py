@@ -151,6 +151,19 @@ def test_read_pack_metadata_round_trips_a_real_shaped_container(tmp_path):
     assert meta["processor"] == {"type": "pdf", "version": 3}
 
 
+def test_read_pack_metadata_skips_a_stream_that_is_not_an_object(tmp_path):
+    # Ticket 0821's whole-Menagerie run: an earlier offset inflated to a run of
+    # digits, valid JSON but an int, and the caller crashed on `.get`.
+    def deflate(data):
+        c = zlib.compressobj(9, zlib.DEFLATED, -15)
+        return c.compress(data) + c.flush()
+    meta = {"source": {"hash": FIXTURE_MD5}, "processor": {"type": "pdf", "version": 3}}
+    pack = tmp_path / ".zotero-sdt-cache"
+    pack.write_bytes(SDT_MAGIC + deflate(b"12345678901234567890")
+                     + deflate(json.dumps(meta).encode()))
+    assert read_pack_metadata(pack) == meta
+
+
 def test_read_pack_metadata_refuses_a_file_without_the_magic(tmp_path):
     pack = tmp_path / ".zotero-sdt-cache"
     pack.write_bytes(b"GARBAGE" + _pack_bytes()[7:])
