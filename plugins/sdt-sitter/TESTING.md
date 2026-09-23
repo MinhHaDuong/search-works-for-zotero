@@ -8,7 +8,7 @@ below the last runs outside the author's Zotero. The ruling is `DECISIONS.md`
 |---|---|---|---|
 | 1. Unit | none | every commit | `make check` |
 | 2. Smoke | three Menagerie documents, clean room | every change | `bench/sitter_smoke_test.py` |
-| 3. Menagerie | the whole Menagerie, clean room | every build meant for the author | `bench/sitter_menagerie_test.py`, widened by 0817 |
+| 3. Menagerie | the whole Menagerie, clean room | every build meant for the author | `bench/sitter_menagerie_test.py`: every file, every attachment accounted for (0821) |
 | 4. Clone | a reflink copy of the author's library | every live install | 0818 |
 | 5. Dogfood | the author's own Zotero | before any release | the author |
 
