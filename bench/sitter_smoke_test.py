@@ -161,7 +161,7 @@ def read_pack_metadata(path: Path) -> dict:
     if not blob.startswith(SDT_MAGIC):
         raise SmokeFailure(
             f"{path} does not carry the SDT magic; first bytes {blob[:8]!r}")
-    # 128 was too small, found by the acceptance run on 2026-09-14: a Menagerie
+    # 128 was too small, found by the rung-3 Menagerie run on 2026-09-14: a Menagerie
     # PDF carrying rich document properties (Title, Author, Subject, Keywords)
     # lengthens the header ahead of the metadata, which sat at offset 232 --
     # outside the window, and reported as "no readable metadata section" on a

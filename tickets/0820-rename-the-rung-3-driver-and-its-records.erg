@@ -10,6 +10,7 @@ Author: claude
 2026-09-23T09:06Z sim note raid 2026-09-23 Plan: file:line plan and first tests appended; Phase 4 cross-ticket scan found no registry needing a coordination PR
 2026-09-23T09:12Z sim note driver and records moved, live references swept, guard tests/test_rung3_driver_name.py red (8 hits) before the sweep, green after
 2026-09-23T09:30Z sim bump circuit-breaker — execute agent (a748323a8eb926fd2) ran 17 min with no push while renaming bench/sitter_acceptance.py and sweeping references; WIP salvaged (commit 90a0709) and pushed, agent killed, finisher relaunched on this branch
+2026-09-23T09:44Z sim note finisher: salvaged rename verified against the Plan (new names, test_sdt_stall_probe.py path, bench/acceptance/ untouched); guard re-shown red on origin/main 63c6c3f (8 hits) and green on the branch; one leftover driver-naming comment in bench/sitter_smoke_test.py:164 swept; make check green
 --- body ---
 ## Context
 
