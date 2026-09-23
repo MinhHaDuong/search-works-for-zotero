@@ -214,7 +214,9 @@ def _dump_database(path: Path) -> tuple[dict, dict | None]:
         shutil.copyfile(path, copy)
         wal = path.with_name(path.name + "-wal")
         wal_blob = None
-        if wal.exists():
+        # A regular file only: a FIFO under the WAL's name would block or
+        # raise here, and the walk records it by kind instead.
+        if wal.exists() and stat.S_ISREG(os.lstat(wal).st_mode):
             copy_wal = copy.with_name(copy.name + "-wal")
             shutil.copyfile(wal, copy_wal)
             wal_blob = copy_wal.read_bytes()
@@ -243,7 +245,7 @@ def _dump_database(path: Path) -> tuple[dict, dict | None]:
 
 def snapshot(data_dir: Path) -> dict:
     """{"sqlite": {rel: {table: {rows, hash}}}, "wal": {rel: {frames, chunks}},
-    "files": {rel: sha256 | kind}, "housekeeping": {rel: sha256}}.
+    "files": {rel: sha256 | kind}, "housekeeping": {rel: sha256}, "dirs": [rel]}.
 
     Every `*.sqlite` is read by content, every other regular file by hash,
     the root included. Zotero's housekeeping files (`EXCLUDED`) are hashed
@@ -254,16 +256,20 @@ def snapshot(data_dir: Path) -> dict:
     directories and does not descend it, so it would otherwise go unrecorded.
     """
     data_dir = Path(data_dir)
-    out = {"sqlite": {}, "wal": {}, "files": {}, "housekeeping": {}}
+    out = {"sqlite": {}, "wal": {}, "files": {}, "housekeeping": {}, "dirs": []}
     # onerror raises: by default the walk skips a directory it cannot list --
     # one removed mid-walk, say -- and the snapshot would read short in silence.
     for root, dirs, files in os.walk(data_dir, onerror=_raise):
         dirs.sort()
         for name in dirs:
             path = Path(root) / name
+            rel = path.relative_to(data_dir).as_posix()
             if path.is_symlink():
-                out["files"][path.relative_to(data_dir).as_posix()] = (
-                    "symlink:" + os.readlink(path))
+                out["files"][rel] = "symlink:" + os.readlink(path)
+            else:
+                # Kept to catch a file turning into a directory; a directory
+                # appearing on its own is not judged (review of PR #618, round 3).
+                out["dirs"].append(rel)
         siblings = set(files)
         # Named like Zotero's churn beside a database: judged after the pass,
         # once that database's schema has been read.
@@ -350,7 +356,8 @@ WAL_TAIL = "write past the last committed frame"
 @dataclass
 class Diff:
     #: rel -> "appear" | "change" | "disappear", suffixed " as symlink" (fifo,
-    #: socket) when either side is not a regular file, or WAL_TAIL
+    #: socket) when either side is not a regular file; "change as directory"
+    #: when a file and a directory traded places; or WAL_TAIL
     files: dict
     #: "<db>:<table>" -> {"before": rows, "after": rows}
     tables: dict
@@ -394,6 +401,12 @@ def _actions(before: dict, after: dict) -> dict:
 
 def diff(before: dict, after: dict) -> Diff:
     files = _actions(before["files"], after["files"])
+    # A file replaced by a directory, or the reverse, is not the disappearance
+    # or appearance the allow-list may permit at that name.
+    before_dirs, after_dirs = set(before.get("dirs", [])), set(after.get("dirs", []))
+    for rel in (set(before["files"]) & after_dirs) | (set(after["files"]) & before_dirs):
+        if " as " not in files.get(rel, ""):  # "as symlink" already says more
+            files[rel] = "change as directory"
     tables = {}
     for db in sorted(set(before["sqlite"]) | set(after["sqlite"])):
         b, a = before["sqlite"].get(db, {}), after["sqlite"].get(db, {})

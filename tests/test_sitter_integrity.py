@@ -729,3 +729,40 @@ def test_red_a_backup_with_a_header_and_a_garbage_body(tmp_path):
     before = si.snapshot(data)
     (data / "zotero.sqlite.3.bak").write_bytes(b"SQLite format 3\x00" + b"\xff" * 5000)
     assert verdict(before, si.snapshot(data)) == ["zotero.sqlite.3.bak: appear is not permitted"]
+
+
+# --------------------------------------------------------------------------
+# review round 3 (PR #618, comment tier): the WAL path's own FIFO guard, and
+# a directory standing where a file was allowed to vanish
+# --------------------------------------------------------------------------
+
+def test_red_a_fifo_named_as_the_wal_is_recorded_not_opened(tmp_path):
+    """The database's copy read `<db>-wal` with no type check, bypassing the
+    walk's own refusal to open a FIFO."""
+    import os
+    data = make_data_dir(tmp_path)
+    before = si.snapshot(data)
+    os.mkfifo(data / "zotero.sqlite-wal")
+    assert verdict(before, si.snapshot(data)) == [
+        "zotero.sqlite-wal: appear as fifo is not permitted"]
+
+
+def test_red_a_directory_where_the_cache_was_allowed_to_vanish(tmp_path):
+    """The cache may disappear; a directory in its place is not a disappearance."""
+    data = make_data_dir(tmp_path)
+    sitter_ran(data)
+    before = si.snapshot(data)
+    (data / "sdt-sitter-cache.jsonl").unlink()
+    (data / "sdt-sitter-cache.jsonl").mkdir()
+    assert verdict(before, si.snapshot(data)) == [
+        "sdt-sitter-cache.jsonl: change as directory is not permitted"]
+
+
+def test_a_new_storage_directory_alone_is_not_a_change(tmp_path):
+    """Directories are recorded to catch a file turning into one, not to judge
+    the storage directories Zotero makes for every pack."""
+    data = make_data_dir(tmp_path)
+    before = si.snapshot(data)
+    (data / "storage" / "CCCC3333").mkdir()
+    (data / "storage" / "CCCC3333" / ".zotero-sdt-cache").write_bytes(b"pack")
+    assert verdict(before, si.snapshot(data)) == []

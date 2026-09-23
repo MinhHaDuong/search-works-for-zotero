@@ -54,7 +54,10 @@ like one.
 | `<db>.bak`, `<db>.<n>.bak` | Zotero's rotating automatic backups (`db.js`); must be an SQLite database with its database's own schema |
 
 A symlink, FIFO or socket never counts as a permitted write, even at a
-permitted name: a symlink where the pack may appear is not the pack.
+permitted name: a symlink where the pack may appear is not the pack. Nor
+does a directory standing where a file was allowed to vanish. A directory
+appearing on its own, such as the storage directory Zotero makes for each
+pack, is not judged.
 
 No `-shm` is excluded. Zotero 10 on Linux keeps the WAL index in its own
 memory, and no measured run left one, so a `-shm` appearing is not Zotero's
