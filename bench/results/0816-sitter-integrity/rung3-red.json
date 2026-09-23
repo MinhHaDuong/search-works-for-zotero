@@ -1,0 +1,128 @@
+{
+  "driver": "bench/sitter_menagerie_test.py --xpi",
+  "payload": "red control: plugins/sdt-sitter/ built by bench/build_sdt_sitter.py in a scratch tree with one change to bootstrap.js -- the scheduler's ensure() wrapped so that after Zotero.SDT.ensure() resolves it runs item.addTag('sdt-sitter-red-control'); await item.saveTx(); on the attachment just prepared",
+  "exit": 1,
+  "integrity": [
+    {
+      "segment": "install+pause+import",
+      "verdict": "PASS",
+      "violations": [],
+      "files": {
+        "sdt-sitter-cache.jsonl": "appear",
+        "storage/4BUQGIXX/.zotero-ft-cache": "appear",
+        "storage/GRM96CBX/.zotero-ft-cache": "appear",
+        "storage/MFXSFDXV/.zotero-ft-cache": "appear",
+        "storage/Z3WLNVEZ/.zotero-ft-cache": "appear"
+      },
+      "tables": {
+        "fulltext.sqlite:fulltextContent_data": {
+          "before": 2,
+          "after": 20
+        },
+        "fulltext.sqlite:fulltextContent_docsize": {
+          "before": 0,
+          "after": 4
+        },
+        "fulltext.sqlite:fulltextContent_idx": {
+          "before": 0,
+          "after": 18
+        },
+        "fulltext.sqlite:fulltextIndexState": {
+          "before": 0,
+          "after": 4
+        },
+        "zotero.sqlite:creators": {
+          "before": 0,
+          "after": 1
+        },
+        "zotero.sqlite:fulltextItems": {
+          "before": 0,
+          "after": 4
+        },
+        "zotero.sqlite:itemAttachments": {
+          "before": 0,
+          "after": 4
+        },
+        "zotero.sqlite:itemCreators": {
+          "before": 0,
+          "after": 4
+        },
+        "zotero.sqlite:itemData": {
+          "before": 0,
+          "after": 12
+        },
+        "zotero.sqlite:itemDataValues": {
+          "before": 0,
+          "after": 6
+        },
+        "zotero.sqlite:items": {
+          "before": 0,
+          "after": 8
+        },
+        "zotero.sqlite:libraries": {
+          "before": 1,
+          "after": 1
+        }
+      },
+      "housekeeping": {},
+      "declared": {
+        "tables": {
+          "zotero.sqlite:items": 8,
+          "zotero.sqlite:itemAttachments": 4,
+          "zotero.sqlite:itemData": null,
+          "zotero.sqlite:itemDataValues": null,
+          "zotero.sqlite:creators": null,
+          "zotero.sqlite:itemCreators": null,
+          "zotero.sqlite:libraries": null,
+          "zotero.sqlite:fulltextItems": null,
+          "fulltext.sqlite:fulltextContent_data": null,
+          "fulltext.sqlite:fulltextContent_docsize": null,
+          "fulltext.sqlite:fulltextContent_idx": null,
+          "fulltext.sqlite:fulltextIndexState": null
+        },
+        "files": {
+          "storage/*/.zotero-ft-cache": [
+            "appear"
+          ]
+        }
+      }
+    },
+    {
+      "segment": "resume+index",
+      "verdict": "FAIL",
+      "violations": [
+        "zotero.sqlite:itemTags: changed with no declared edit (rows 0 -> 4)",
+        "zotero.sqlite:items: changed with no declared edit (rows 8 -> 8)",
+        "zotero.sqlite:libraries: changed with no declared edit (rows 1 -> 1)",
+        "zotero.sqlite:tags: changed with no declared edit (rows 0 -> 1)"
+      ],
+      "files": {
+        "sdt-sitter-cache.jsonl": "change",
+        "storage/4BUQGIXX/.zotero-sdt-cache": "appear",
+        "storage/GRM96CBX/.zotero-sdt-cache": "appear",
+        "storage/MFXSFDXV/.zotero-sdt-cache": "appear",
+        "storage/Z3WLNVEZ/.zotero-sdt-cache": "appear"
+      },
+      "tables": {
+        "zotero.sqlite:itemTags": {
+          "before": 0,
+          "after": 4
+        },
+        "zotero.sqlite:items": {
+          "before": 8,
+          "after": 8
+        },
+        "zotero.sqlite:libraries": {
+          "before": 1,
+          "after": 1
+        },
+        "zotero.sqlite:tags": {
+          "before": 0,
+          "after": 1
+        }
+      },
+      "housekeeping": {},
+      "declared": null
+    }
+  ]
+}

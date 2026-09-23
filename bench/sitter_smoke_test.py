@@ -26,6 +26,15 @@ does not close 0782 -- that ticket is about the volume rig's own log line and
 mechanism, not this script -- but the hazard is the same one, and a smoke test
 run repeatedly and unattended cannot be the second place it is left open.
 
+## The integrity check, ticket 0816
+
+The sitter promises to change the SDT cache and nothing else
+(`plugins/sdt-sitter/TESTING.md`). A settled snapshot of the data directory is
+taken before install and again after preparation, with Zotero still running,
+and `bench/sitter_integrity.py` fails the run on any difference outside the
+permitted set, the fixture import declared as the scenario's own edit. The
+verdict is logged and carried in the outcome under `integrity`.
+
 ## Exit codes -- this repo's convention (`make golden-run`, `sitter-verify-install`)
 
   0  PASS -- the sitter armed, censused the fixture, and wrote its cache.
@@ -84,6 +93,7 @@ from sitter_volume_experiment import (  # noqa: E402
     liveness_code,
     wait_for_port,
 )
+import sitter_integrity as integrity  # noqa: E402
 from sitter_watch import Log, connect_resilient, refuse_dot_log  # noqa: E402
 from zotero_rdp_client import RDPConnectionClosed, RDPTimeout  # noqa: E402
 
@@ -99,6 +109,48 @@ class NotRunError(Exception):
 
 class SmokeFailure(Exception):
     """A real defect, observed against a live Zotero."""
+
+
+#: Zotero's data layer, settled. The debugger port answers long before the
+#: schema exists, and the integrity baseline has to be taken after Zotero has
+#: finished creating its own data directory, or its first-run writes land in
+#: the diff and are charged to the sitter (ticket 0816).
+ZOTERO_READY = """
+(async function() {
+  try {
+    await Zotero.initializationPromise;
+    await Zotero.Schema.schemaUpdatePromise;
+    return JSON.stringify({ok: true, dataDir: Zotero.DataDirectory.dir});
+  } catch (e) { return JSON.stringify({ok: false, reason: String(e)}); }
+})()
+"""
+
+
+def integrity_baseline(client, data_dir: Path, eval_timeout: float, log,
+                       failure=SmokeFailure) -> integrity.Ledger:
+    """Wait for Zotero's data layer, then take the integrity baseline over
+    `data_dir` -- before the sitter exists in the profile, so everything that
+    changes afterwards is either a declared edit or the sitter's."""
+    ready = eval_action(client, ZOTERO_READY, max(eval_timeout, 120.0), log,
+                        "zotero ready")
+    if not ready.get("ok"):
+        raise NotRunError(f"Zotero's data layer never came up: {ready}")
+    ledger = integrity.Ledger(data_dir, log.write)
+    try:
+        ledger.start()
+    except integrity.NotQuiesced as exc:
+        raise failure(f"integrity baseline: {exc}") from exc
+    return ledger
+
+
+def integrity_segment(ledger: integrity.Ledger, name: str, edit=None,
+                      failure=SmokeFailure) -> dict:
+    """Close one integrity segment; a violation is the run's FAIL, and the
+    record of it stays in `ledger.records` either way."""
+    try:
+        return ledger.segment(name, edit)
+    except (integrity.IntegrityViolation, integrity.NotQuiesced) as exc:
+        raise failure(f"integrity {exc}") from exc
 
 
 def build_xpi(out_path: Path) -> None:
@@ -471,6 +523,9 @@ def _run_smoke(args, log: Log) -> dict:
         except RuntimeError as exc:
             raise NotRunError(f"could not attach over RDP: {exc}") from exc
 
+        ledger = integrity_baseline(client, requested_data_dir, args.eval_timeout, log)
+        args.integrity_records = ledger.records
+
         result = eval_action(client, install_or_replace_code(xpi_path), args.eval_timeout,
                              log, "install")
         if not result.get("ok"):
@@ -530,10 +585,18 @@ def _run_smoke(args, log: Log) -> dict:
             actual_data_dir, fixture_dir, cache_path, prepared,
             time.monotonic() + args.census_timeout, log)
 
+        # One segment: install, import, preparation. The import is the
+        # scenario's own edit and is declared; everything else must be the
+        # SDT cache. Taken with Zotero still running. What this segment cannot
+        # tell apart is an index write the sitter caused from the one the
+        # import did -- rung 3's edit-free indexing segment is what can.
+        integrity_segment(ledger, "install+import+prepare", integrity.import_edit(
+            imported["items"], imported["attachments"]))
+
         log.write("smoke PASS")
         return {"ok": True, "dataDir": str(actual_data_dir), "liveness": censused,
                "imported": imported, "cache": cache, "packs": packs,
-               "fixture": fixture_kind}
+               "fixture": fixture_kind, "integrity": ledger.records}
     finally:
         if client is not None:
             try:
@@ -582,6 +645,7 @@ def main(argv=None) -> int:
                         help="where to write the timestamped log (default: "
                              "<work-dir>/smoke-log.txt)")
     args = parser.parse_args(argv)
+    args.integrity_records = []
 
     args.zotero_bin = Path(args.zotero_bin)
     own_work_dir = args.work_dir is None
@@ -606,11 +670,15 @@ def main(argv=None) -> int:
     except NotRunError as exc:
         print(f"NOT-RUN: {exc}", file=sys.stderr)
         return NOT_RUN
-    except SmokeFailure as exc:
-        print(f"FAIL: {exc}", file=sys.stderr)
-        return FAIL
     except Exception as exc:  # noqa: BLE001 -- an unattended smoke test logs its own crash
-        print(f"FAIL (unexpected {type(exc).__name__}): {exc}", file=sys.stderr)
+        known = isinstance(exc, SmokeFailure)
+        print(f"FAIL: {exc}" if known else f"FAIL (unexpected {type(exc).__name__}): {exc}",
+              file=sys.stderr)
+        # A failed run still carries every integrity segment it closed, the
+        # failing one included, whatever ended it: the record names the write.
+        if args.integrity_records:
+            print(json.dumps({"ok": False, "error": str(exc),
+                              "integrity": args.integrity_records}, indent=2))
         return FAIL
     finally:
         if own_work_dir and not args.keep:

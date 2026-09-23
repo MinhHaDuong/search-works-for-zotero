@@ -1,0 +1,436 @@
+{
+  "driver": "bench/sitter_menagerie_test.py",
+  "payload": "unmodified build",
+  "run": {
+    "host": "padme (Zotero 10.0.3, Xvfb :99; doudou's load held the sitter's cpu gate)",
+    "commit": "e29dc26",
+    "date": "2026-09-23"
+  },
+  "integrity": [
+    {
+      "segment": "install+pause+import",
+      "verdict": "PASS",
+      "violations": [],
+      "files": {
+        "sdt-sitter-cache.jsonl": "appear",
+        "storage/2INGK2K8/.zotero-ft-cache": "appear",
+        "storage/IKWL2JBI/.zotero-ft-cache": "appear",
+        "storage/Q95BREXW/.zotero-ft-cache": "appear",
+        "storage/WV2JTV6N/.zotero-ft-cache": "appear"
+      },
+      "tables": {
+        "fulltext.sqlite:fulltextContent_data": {
+          "before": 2,
+          "after": 20
+        },
+        "fulltext.sqlite:fulltextContent_docsize": {
+          "before": 0,
+          "after": 4
+        },
+        "fulltext.sqlite:fulltextContent_idx": {
+          "before": 0,
+          "after": 18
+        },
+        "fulltext.sqlite:fulltextIndexState": {
+          "before": 0,
+          "after": 4
+        },
+        "zotero.sqlite:creators": {
+          "before": 0,
+          "after": 1
+        },
+        "zotero.sqlite:fulltextItems": {
+          "before": 0,
+          "after": 4
+        },
+        "zotero.sqlite:itemAttachments": {
+          "before": 0,
+          "after": 4
+        },
+        "zotero.sqlite:itemCreators": {
+          "before": 0,
+          "after": 4
+        },
+        "zotero.sqlite:itemData": {
+          "before": 0,
+          "after": 12
+        },
+        "zotero.sqlite:itemDataValues": {
+          "before": 0,
+          "after": 6
+        },
+        "zotero.sqlite:items": {
+          "before": 0,
+          "after": 8
+        },
+        "zotero.sqlite:libraries": {
+          "before": 1,
+          "after": 1
+        }
+      },
+      "housekeeping": {},
+      "declared": {
+        "tables": {
+          "zotero.sqlite:items": 8,
+          "zotero.sqlite:itemAttachments": 4,
+          "zotero.sqlite:itemData": null,
+          "zotero.sqlite:itemDataValues": null,
+          "zotero.sqlite:creators": null,
+          "zotero.sqlite:itemCreators": null,
+          "zotero.sqlite:libraries": null,
+          "zotero.sqlite:fulltextItems": null,
+          "fulltext.sqlite:fulltextContent_data": null,
+          "fulltext.sqlite:fulltextContent_docsize": null,
+          "fulltext.sqlite:fulltextContent_idx": null,
+          "fulltext.sqlite:fulltextIndexState": null
+        },
+        "files": {
+          "storage/*/.zotero-ft-cache": [
+            "appear"
+          ]
+        }
+      }
+    },
+    {
+      "segment": "resume+index",
+      "verdict": "PASS",
+      "violations": [],
+      "files": {
+        "sdt-sitter-cache.jsonl": "change",
+        "storage/2INGK2K8/.zotero-sdt-cache": "appear",
+        "storage/IKWL2JBI/.zotero-sdt-cache": "appear",
+        "storage/Q95BREXW/.zotero-sdt-cache": "appear",
+        "storage/WV2JTV6N/.zotero-sdt-cache": "appear"
+      },
+      "tables": {},
+      "housekeeping": {},
+      "declared": null
+    },
+    {
+      "segment": "before attachment erase",
+      "verdict": "PASS",
+      "violations": [],
+      "files": {},
+      "tables": {},
+      "housekeeping": {},
+      "declared": null
+    },
+    {
+      "segment": "attachment erase",
+      "verdict": "PASS",
+      "violations": [],
+      "files": {
+        "storage/2INGK2K8/.zotero-ft-cache": "disappear",
+        "storage/2INGK2K8/.zotero-sdt-cache": "disappear"
+      },
+      "tables": {
+        "fulltext.sqlite:fulltextContent_data": {
+          "before": 20,
+          "after": 21
+        },
+        "fulltext.sqlite:fulltextContent_docsize": {
+          "before": 4,
+          "after": 3
+        },
+        "fulltext.sqlite:fulltextIndexState": {
+          "before": 4,
+          "after": 3
+        },
+        "zotero.sqlite:fulltextItems": {
+          "before": 4,
+          "after": 3
+        },
+        "zotero.sqlite:itemAttachments": {
+          "before": 4,
+          "after": 3
+        },
+        "zotero.sqlite:itemData": {
+          "before": 12,
+          "after": 11
+        },
+        "zotero.sqlite:items": {
+          "before": 8,
+          "after": 7
+        },
+        "zotero.sqlite:libraries": {
+          "before": 1,
+          "after": 1
+        },
+        "zotero.sqlite:syncDeleteLog": {
+          "before": 0,
+          "after": 1
+        }
+      },
+      "housekeeping": {},
+      "declared": {
+        "tables": {
+          "zotero.sqlite:items": -1,
+          "zotero.sqlite:itemAttachments": -1,
+          "zotero.sqlite:itemData": null,
+          "zotero.sqlite:libraries": null,
+          "zotero.sqlite:syncDeleteLog": null,
+          "zotero.sqlite:fulltextItems": null,
+          "fulltext.sqlite:fulltextContent_data": null,
+          "fulltext.sqlite:fulltextContent_docsize": null,
+          "fulltext.sqlite:fulltextContent_idx": null,
+          "fulltext.sqlite:fulltextIndexState": null
+        },
+        "files": {
+          "storage/2INGK2K8/*": [
+            "disappear"
+          ]
+        }
+      }
+    },
+    {
+      "segment": "attachment re-attach",
+      "verdict": "PASS",
+      "violations": [],
+      "files": {
+        "sdt-sitter-cache.jsonl": "change",
+        "storage/Q6WL572F/.zotero-ft-cache": "appear",
+        "storage/Q6WL572F/.zotero-sdt-cache": "appear",
+        "storage/Q6WL572F/restore-2INGK2K8.pdf": "appear"
+      },
+      "tables": {
+        "fulltext.sqlite:fulltextContent_data": {
+          "before": 21,
+          "after": 24
+        },
+        "fulltext.sqlite:fulltextContent_docsize": {
+          "before": 3,
+          "after": 4
+        },
+        "fulltext.sqlite:fulltextContent_idx": {
+          "before": 18,
+          "after": 21
+        },
+        "fulltext.sqlite:fulltextIndexState": {
+          "before": 3,
+          "after": 4
+        },
+        "zotero.sqlite:fulltextItems": {
+          "before": 3,
+          "after": 4
+        },
+        "zotero.sqlite:itemAttachments": {
+          "before": 3,
+          "after": 4
+        },
+        "zotero.sqlite:itemData": {
+          "before": 11,
+          "after": 12
+        },
+        "zotero.sqlite:items": {
+          "before": 7,
+          "after": 8
+        },
+        "zotero.sqlite:libraries": {
+          "before": 1,
+          "after": 1
+        }
+      },
+      "housekeeping": {},
+      "declared": {
+        "tables": {
+          "zotero.sqlite:items": 1,
+          "zotero.sqlite:itemAttachments": 1,
+          "zotero.sqlite:itemData": null,
+          "zotero.sqlite:itemDataValues": null,
+          "zotero.sqlite:libraries": null,
+          "zotero.sqlite:fulltextItems": null,
+          "fulltext.sqlite:fulltextContent_data": null,
+          "fulltext.sqlite:fulltextContent_docsize": null,
+          "fulltext.sqlite:fulltextContent_idx": null,
+          "fulltext.sqlite:fulltextIndexState": null
+        },
+        "files": {
+          "storage/*/restore-2INGK2K8.pdf": [
+            "appear"
+          ],
+          "storage/*/.zotero-ft-cache": [
+            "appear"
+          ]
+        }
+      }
+    },
+    {
+      "segment": "before item erase",
+      "verdict": "PASS",
+      "violations": [],
+      "files": {},
+      "tables": {},
+      "housekeeping": {},
+      "declared": null
+    },
+    {
+      "segment": "item erase",
+      "verdict": "PASS",
+      "violations": [],
+      "files": {
+        "sdt-sitter-cache.jsonl": "change",
+        "storage/IKWL2JBI/.zotero-ft-cache": "disappear",
+        "storage/IKWL2JBI/.zotero-sdt-cache": "disappear"
+      },
+      "tables": {
+        "fulltext.sqlite:fulltextContent_data": {
+          "before": 24,
+          "after": 25
+        },
+        "fulltext.sqlite:fulltextContent_docsize": {
+          "before": 4,
+          "after": 3
+        },
+        "fulltext.sqlite:fulltextIndexState": {
+          "before": 4,
+          "after": 3
+        },
+        "zotero.sqlite:fulltextItems": {
+          "before": 4,
+          "after": 3
+        },
+        "zotero.sqlite:itemAttachments": {
+          "before": 4,
+          "after": 3
+        },
+        "zotero.sqlite:itemCreators": {
+          "before": 4,
+          "after": 3
+        },
+        "zotero.sqlite:itemData": {
+          "before": 12,
+          "after": 9
+        },
+        "zotero.sqlite:items": {
+          "before": 8,
+          "after": 6
+        },
+        "zotero.sqlite:libraries": {
+          "before": 1,
+          "after": 1
+        },
+        "zotero.sqlite:syncDeleteLog": {
+          "before": 1,
+          "after": 3
+        }
+      },
+      "housekeeping": {},
+      "declared": {
+        "tables": {
+          "zotero.sqlite:items": -2,
+          "zotero.sqlite:itemAttachments": -1,
+          "zotero.sqlite:itemData": null,
+          "zotero.sqlite:libraries": null,
+          "zotero.sqlite:syncDeleteLog": null,
+          "zotero.sqlite:fulltextItems": null,
+          "fulltext.sqlite:fulltextContent_data": null,
+          "fulltext.sqlite:fulltextContent_docsize": null,
+          "fulltext.sqlite:fulltextContent_idx": null,
+          "fulltext.sqlite:fulltextIndexState": null,
+          "zotero.sqlite:itemCreators": null
+        },
+        "files": {
+          "storage/IKWL2JBI/*": [
+            "disappear"
+          ]
+        }
+      }
+    },
+    {
+      "segment": "item re-attach",
+      "verdict": "PASS",
+      "violations": [],
+      "files": {
+        "sdt-sitter-cache.jsonl": "change",
+        "storage/DJACU8CS/.zotero-ft-cache": "appear",
+        "storage/DJACU8CS/.zotero-sdt-cache": "appear",
+        "storage/DJACU8CS/restore-IKWL2JBI.pdf": "appear"
+      },
+      "tables": {
+        "fulltext.sqlite:fulltextContent_data": {
+          "before": 25,
+          "after": 26
+        },
+        "fulltext.sqlite:fulltextContent_docsize": {
+          "before": 3,
+          "after": 4
+        },
+        "fulltext.sqlite:fulltextContent_idx": {
+          "before": 21,
+          "after": 22
+        },
+        "fulltext.sqlite:fulltextIndexState": {
+          "before": 3,
+          "after": 4
+        },
+        "zotero.sqlite:fulltextItems": {
+          "before": 3,
+          "after": 4
+        },
+        "zotero.sqlite:itemAttachments": {
+          "before": 3,
+          "after": 4
+        },
+        "zotero.sqlite:itemData": {
+          "before": 9,
+          "after": 10
+        },
+        "zotero.sqlite:itemDataValues": {
+          "before": 6,
+          "after": 7
+        },
+        "zotero.sqlite:items": {
+          "before": 6,
+          "after": 7
+        },
+        "zotero.sqlite:libraries": {
+          "before": 1,
+          "after": 1
+        }
+      },
+      "housekeeping": {},
+      "declared": {
+        "tables": {
+          "zotero.sqlite:items": 1,
+          "zotero.sqlite:itemAttachments": 1,
+          "zotero.sqlite:itemData": null,
+          "zotero.sqlite:itemDataValues": null,
+          "zotero.sqlite:libraries": null,
+          "zotero.sqlite:fulltextItems": null,
+          "fulltext.sqlite:fulltextContent_data": null,
+          "fulltext.sqlite:fulltextContent_docsize": null,
+          "fulltext.sqlite:fulltextContent_idx": null,
+          "fulltext.sqlite:fulltextIndexState": null
+        },
+        "files": {
+          "storage/*/restore-IKWL2JBI.pdf": [
+            "appear"
+          ],
+          "storage/*/.zotero-ft-cache": [
+            "appear"
+          ]
+        }
+      }
+    },
+    {
+      "segment": "before uninstall",
+      "verdict": "PASS",
+      "violations": [],
+      "files": {},
+      "tables": {},
+      "housekeeping": {},
+      "declared": null
+    },
+    {
+      "segment": "uninstall",
+      "verdict": "PASS",
+      "violations": [],
+      "files": {
+        "sdt-sitter-cache.jsonl": "disappear"
+      },
+      "tables": {},
+      "housekeeping": {},
+      "declared": null
+    }
+  ]
+}
