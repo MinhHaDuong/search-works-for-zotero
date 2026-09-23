@@ -69,6 +69,7 @@ import json
 import hashlib
 import os
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
@@ -213,6 +214,22 @@ def read_pack_metadata(path: Path) -> dict:
     if not blob.startswith(SDT_MAGIC):
         raise SmokeFailure(
             f"{path} does not carry the SDT magic; first bytes {blob[:8]!r}")
+    # The header's own word first (ticket 0821). The whole-Menagerie run met a
+    # 30 MB pack whose metadata sat at byte 25 896, past any scan window, and
+    # in all 46 packs of that run the section sat exactly where the header
+    # says: `16 + a`, `b` bytes long, for the first two uint32 after the
+    # version block, inflating with nothing left over. Tried first and never
+    # trusted alone: a pack that does not parse there falls through to the
+    # scan below, so a layout change is still a scan, not a false "missing".
+    if len(blob) >= 24:
+        span, length = struct.unpack_from("<II", blob, 12)
+        start = 16 + span
+        try:
+            parsed = json.loads(zlib.decompressobj(-15).decompress(blob[start:start + length]))
+        except (zlib.error, ValueError):
+            parsed = None
+        if isinstance(parsed, dict):
+            return parsed
     # 128 was too small, found by the rung-3 Menagerie run on 2026-09-14: a Menagerie
     # PDF carrying rich document properties (Title, Author, Subject, Keywords)
     # lengthens the header ahead of the metadata, which sat at offset 232 --
