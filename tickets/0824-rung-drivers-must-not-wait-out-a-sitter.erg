@@ -1,0 +1,59 @@
+%erg 0.1
+Title: Rung drivers must not wait out a sitter refusal
+Created: 2026-09-23
+Author: sim
+
+--- log ---
+2026-09-23T14:19Z sim created
+
+--- body ---
+## Context
+
+Author, 2026-09-23: "the test should not block on that." A rung-3 run of the
+0816 branch (work dir on the `/tmp` tmpfs, 7,8 GiB free) sat for its whole
+index timeout while the sitter refused admission — `low-disk`, then
+`cpu-busy` — retrying every 10 min. Neither `bench/sitter_smoke_test.py` nor
+`bench/sitter_menagerie_test.py` knows the blocked phases exist: they wait on
+completion, so a refusal reads as a timeout, and a timeout reads as a sitter
+failure. A refusal is the sitter working as designed on a host that cannot
+run the test.
+
+## Actions
+
+1. Preflight, before install: free space at the work directory against the
+   sitter's disk floor plus a margin, and load against the core count. Refuse
+   to start with a named reason ("work dir on <fs>: 7,8 GiB free, sitter needs
+   8 GiB") rather than launch a run that cannot proceed. Read the floor from
+   the plugin source or its exposed state, never a second literal.
+2. During a run, every wait on the sitter also watches its phase: a phase in
+   `SDT_BLOCKED_PHASES` ends the wait at once — after at most one forced
+   retry (switch off/on) for a transient gate like `cpu-busy` — and the run
+   exits NOT-RUN (environment), not FAIL, recording the gate and the
+   admission readings (`describeSDTAdmission`'s fields) in the run record.
+3. Keep the arena off the `/tmp` tmpfs by default. It is 12 GiB here, so
+   against the sitter's 8 GiB floor a rung arena on `/tmp` works only while
+   everything else on it stays under 4 GiB; on 2026-09-23 the 0816 lane's own
+   ~20 kept run directories (1,3 GiB) and other sessions' scratch took it past
+   that. `bench/sitter_smoke_test.py` defaults `--work-dir` to a bare
+   `tempfile.mkdtemp()` (`/tmp`); `bench/sitter_menagerie_test.py` requires one
+   and the lanes pass their scratchpad, also on `/tmp`. Default both under the
+   `$ACCEPTANCE_ARENA` layout (on `~/data`), whose retention (0720) bounds it.
+4. Both drivers, through one shared helper; 0818 (clone rung) and 0821
+   (whole-corpus waits) use the same helper when they land.
+
+## Test
+
+Red first, with a faked state stream: a `low-disk` phase with work pending
+must end the wait within one poll and yield NOT-RUN naming the gate; a
+completing stream must still PASS; a preflight with free space below the
+floor must refuse before any Zotero launch.
+
+## Exit criteria
+
+- A refused run exits NOT-RUN within a poll or a forced retry, with gate and
+  readings recorded, never at the index timeout.
+- The preflight refuses a work directory below the disk floor.
+- Neither driver's default arena is on the `/tmp` tmpfs.
+- Unit tests above, red before and green after.
+
+Related: 0823 (the dialog side of the same refusal); consumers 0818, 0821.
