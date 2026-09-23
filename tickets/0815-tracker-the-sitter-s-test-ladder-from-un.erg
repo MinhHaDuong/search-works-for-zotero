@@ -1,0 +1,37 @@
+%erg 0.1
+Title: Tracker: the sitter's test ladder, from unit to dogfood
+Created: 2026-09-23
+Author: claude
+Blocked-by: 0816
+Blocked-by: 0817
+Blocked-by: 0818
+Blocked-by: 0819
+Blocked-by: 0794
+
+--- log ---
+2026-09-23T08:15Z claude created
+
+--- body ---
+## Context
+
+Author's ruling 2026-09-23 (`DECISIONS.md`): a sitter build climbs five rungs —
+unit, smoke, Menagerie, clone, dogfood — and is released only after the author
+has used it himself. The ladder itself is written once, in
+`plugins/sdt-sitter/TESTING.md`; this ticket tracks the work that makes each
+rung real.
+
+## Children
+
+- 0816 — the integrity check, rung 2 and up
+- 0817 — the Menagerie rung, lifecycle folded into its scenario
+- 0818 — the clone rung
+- 0819 — the bar for rung 3 and above
+- 0794 — the two wild documents the Menagerie lacks, without which rung 3 is
+  not the wild rung the ruling makes it
+
+## Exit criteria
+
+Every child closed, and one build — the first after the children land — has
+climbed rungs 1 to 4 with each verdict recorded under `verification/acceptance/`
+and the integrity check green at each rung that has one. Integration review per
+the tracker rule before closing.

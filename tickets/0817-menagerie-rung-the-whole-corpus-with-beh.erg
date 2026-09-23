@@ -1,0 +1,39 @@
+%erg 0.1
+Title: Menagerie rung: the whole corpus with behaviour and lifecycle folded in
+Created: 2026-09-23
+Author: claude
+Blocked-by: 0816
+
+--- log ---
+2026-09-23T08:15Z claude created
+
+--- body ---
+## Context
+
+Rung 3 of the ladder (`plugins/sdt-sitter/TESTING.md`, ruling 2026-09-23). The
+author folded lifecycle testing into this rung rather than keeping it as a
+layer, and merged "full Menagerie" with "wild documents": the corpus is where
+the wild beasts belong. It is not to be called "acceptance": acceptance is the
+author's own use (rung 5).
+
+Today `bench/sitter_acceptance.py` runs its nine steps on four documents.
+
+## Actions
+
+1. Run the scenario over the whole Menagerie package (114 attachments today),
+   so pause lands mid-document on a long book, not only before the first one.
+2. Add to the scenario: replace the add-on under a running extraction, disable
+   and re-enable, restart Zotero, then verify the census resumes and nothing is
+   lost or duplicated.
+3. Every eligible attachment ends with a pack or a named reason in the record.
+4. Rename the driver and its record directory away from "acceptance", in one
+   sweep with every reference.
+
+## Test
+
+Each new step first shown red on a payload built to fail it.
+
+## Exit criteria
+
+A recorded pass on the whole Menagerie with the integrity check (0816) green.
+Once 0794 lands, the pass includes its two documents.

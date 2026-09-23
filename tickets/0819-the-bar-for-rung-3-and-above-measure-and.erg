@@ -1,0 +1,33 @@
+%erg 0.1
+Title: The bar for rung 3 and above: measure and propose Excellence, Integrity, Care
+Created: 2026-09-23
+Author: claude
+Blocked-by: 0817
+
+--- log ---
+2026-09-23T08:15Z claude created
+
+--- body ---
+## Context
+
+The author asked for a higher bar at rung 3 and above, read through his values:
+Excellence, Integrity, Care (2026-09-23). The criteria are named in
+`plugins/sdt-sitter/TESTING.md`; the numbers are not, and `SPEC.md` owns every
+design number, so they are measured here and ratified before they bind.
+
+## Actions
+
+Measure on the Menagerie rung, then propose to the author:
+
+- Excellence: coverage (pack or named reason for every eligible attachment),
+  consecutive passes required, time budget per rung.
+- Integrity: cache records matching packs on disk, no uninstall residue, pause
+  holding mid-document, each assertion seen red.
+- Care: longest interface freeze, CPU and memory ceilings, status text true and
+  readable by a screen reader (0807), a reason given when the cache empties
+  (0774), the user told during a long silent stage (0793).
+
+## Exit criteria
+
+The proposed numbers, each with its measurement, ruled by the author in
+`DECISIONS.md` and written into `SPEC.md`.

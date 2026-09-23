@@ -7886,3 +7886,23 @@ page under the author's account — no maintainer had responded when the tickets
 closed, and `SYNC.md` says so. Appended after PR #608's review asked whether
 the entry, read cold, could pass for general policy; the author asked for the
 update on the same day.
+
+**2026-09-23 — The sitter's test ladder, and dogfood before release.** The
+author ruled how a sitter build climbs toward his library. Five rungs, in
+order, a failure stopping the climb: unit, smoke, Menagerie, clone, dogfood.
+Every rung below dogfood runs in a clean room — fresh profile, throwaway data
+directory — and the author installs on his live Zotero only after the clone
+rung, a run on a copy of his own library, has passed: every live install,
+release or not ("my data = caution"). A build is released only after he has
+used it himself. From the smoke rung up, each run checks that the sitter kept
+its promise to change the SDT cache and nothing else in the library. The
+Menagerie rung is not called acceptance, since acceptance is the author's own
+use; it is the whole corpus, wild documents included, because the Menagerie is
+where the wild beasts belong, so size and wildness are one rung. Lifecycle
+testing folds into that rung's scenario rather than standing as a layer: the
+disappearance the volume rig hunted is Zotero's, with the fix filed as
+zotero/zotero#6054, and tickets 0778 and 0782 close as moot. The bar for the
+Menagerie rung and above reads his values — Excellence, Integrity, Care — as
+measured criteria whose numbers are proposed and ruled before `SPEC.md` holds
+them. The ladder is written once, in `plugins/sdt-sitter/TESTING.md`; tracker
+0815 holds the work.
