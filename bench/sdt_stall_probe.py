@@ -692,16 +692,16 @@ def stall_verdict(plateau: dict, cpu: dict | None, *,
 
 
 # --------------------------------------------------------------------------
-# 4. the record -- sitter_acceptance.py's phase dict, extended
+# 4. the record -- sitter_menagerie_test.py's phase dict, extended
 # --------------------------------------------------------------------------
 
 def build_record(*, ok: bool, phases: dict, run: dict | None = None) -> dict:
-    """The acceptance harness's shape, not a new one (ticket 0793 says so).
+    """The rung-3 driver's shape, not a new one (ticket 0793 says so).
 
-    `verification/acceptance/0.4.15-2026-09-14.json` is the reference: a top
+    `verification/menagerie/0.4.15-2026-09-14.json` is the reference: a top
     level `ok`, a `phases` dict keyed by step, and a `_run` block naming the
     version, the host and the script. Keeping the shape means one reader, one
-    set of tooling, and a stall record that sits beside an acceptance record
+    set of tooling, and a stall record that sits beside a rung-3 record
     without either needing a special case.
     """
     meta = {

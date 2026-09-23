@@ -3,7 +3,6 @@ Title: Tracker: the Menagerie rung, whole corpus with lifecycle folded in
 Created: 2026-09-23
 Author: claude
 Blocked-by: 0816
-Blocked-by: 0820
 Blocked-by: 0821
 Blocked-by: 0822
 
@@ -11,6 +10,7 @@ Blocked-by: 0822
 2026-09-23T08:15Z claude created
 
 2026-09-23T08:53Z sim note raid 2026-09-23 Imagine: split into tracker + children 0820 (rename), 0821 (whole corpus), 0822 (lifecycle); exit criteria carried over unchanged. Four failure surfaces in one ticket was the monster shape.
+2026-09-23T10:12Z sim note blocker 0820 closed — Blocked-by removed.
 --- body ---
 ## Context
 

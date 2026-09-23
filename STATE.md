@@ -12,8 +12,8 @@ proposition, [SPEC.md](SPEC.md) the design.
 
 - **0810 closed** (PR #607): sitter 0.4.31 refreshes the no-attachment view per generation, not
   per changed item. **0809 closed works-for-me** (2026-09-17): the pause stops the sitter live; the
-  acceptance script FAILED step 3 on 0.4.26 at `45da9ac9`, then PASSED all nine steps at `58aff58b`
-  (`verification/acceptance/0.4.26-2026-09-17.json`); the cause of the difference is not established.
+  rung-3 Menagerie test FAILED step 3 on 0.4.26 at `45da9ac9`, then PASSED all nine steps at `58aff58b`
+  (`verification/menagerie/0.4.26-2026-09-17.json`); the cause of the difference is not established.
 - **The critical path is down to 0795.** The chain rested on "the sitter indexes nothing"; the
   2026-09-16 live run killed all four symptoms (`admit 11940`, `drain-end drained 5`, two
   `settle ok`). **0796 and 0797 closed.** **0795**: detection is one unmeasured path.

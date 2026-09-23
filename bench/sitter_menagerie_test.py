@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The sitter's acceptance run: the author's own script, end to end.
+"""Rung 3 of the sitter's test ladder: the whole Menagerie, end to end.
 
 `bench/sitter_smoke_test.py` stays what it is -- short and fast, run on every
 change. This is the long one, run before a release, and it goes where the smoke
@@ -70,7 +70,7 @@ from sitter_volume_experiment import (  # noqa: E402
 from sitter_watch import Log, connect_resilient  # noqa: E402
 
 
-class AcceptanceFailure(Exception):
+class MenagerieFailure(Exception):
     """A real defect, observed against a live Zotero."""
 
 
@@ -242,10 +242,10 @@ def wait_for_pack_count(data_dir: Path, want: int, deadline: float, log: Log,
     while time.monotonic() < deadline:
         last = packs_on_disk(data_dir)
         if len(last) == want:
-            log.write(f"acceptance {what}: {want} pack(s) on disk")
+            log.write(f"menagerie {what}: {want} pack(s) on disk")
             return last
         time.sleep(2.0)
-    raise AcceptanceFailure(
+    raise MenagerieFailure(
         f"{what}: waited for {want} pack(s) and the disk still shows "
         f"{len(last or {})} after the deadline. Present: {sorted((last or {}))}")
 
@@ -259,7 +259,7 @@ class Run:
     def ev(self, code, what, timeout=None):
         out = eval_action(self.client, code, timeout or self.timeout, self.log, what)
         if not out.get("ok"):
-            raise AcceptanceFailure(f"{what} failed: {out}")
+            raise MenagerieFailure(f"{what} failed: {out}")
         return out
 
     def state(self):
@@ -289,14 +289,14 @@ def import_with_retry(run: Run, ris: Path, args, log: Log) -> dict:
         if out.get("ok"):
             return out
         if out.get("reason") != "no-translator":
-            raise AcceptanceFailure(f"the fixture would not import: {out}")
+            raise MenagerieFailure(f"the fixture would not import: {out}")
         if time.monotonic() >= deadline:
             raise NotRunError(
                 f"Zotero never installed an RIS translator within "
                 f"{args.translator_timeout}s on this fresh profile, so the "
                 "fixture could not be imported. Nothing about the sitter was "
                 "tested; this is a setup failure, not a defect.")
-        log.write("acceptance translators not ready yet; waiting")
+        log.write("menagerie translators not ready yet; waiting")
         time.sleep(5.0)
 
 
@@ -314,26 +314,26 @@ def phase_pause(run: Run, args, log: Log) -> dict:
     run.ev(OPEN_PANEL, "open panel")
     time.sleep(2.0)
     before = run.ev(READ_SWITCH, "read switch")
-    log.write(f"acceptance switch before: {before}")
+    log.write(f"menagerie switch before: {before}")
 
     started = run.state()
     if not started["enabled"]:
-        raise AcceptanceFailure(
+        raise MenagerieFailure(
             f"the sitter was already off before the pause step: {started}")
 
     run.ev(CLICK_SWITCH, "click switch off")
     time.sleep(3.0)
     paused = run.state()
     if paused["enabled"]:
-        raise AcceptanceFailure(f"clicking the switch did not turn it off: {paused}")
+        raise MenagerieFailure(f"clicking the switch did not turn it off: {paused}")
     after = run.ev(READ_SWITCH, "read switch off")
-    log.write(f"acceptance switch after off: {after}")
+    log.write(f"menagerie switch after off: {after}")
     return {"before": before, "after": after, "completed_at_pause": paused["completed"]}
 
 
 def phase_verify_paused(run: Run, data_dir: Path, args, log: Log, mark: int) -> dict:
     """Step 3, second half: nothing was indexed while the switch was off."""
-    log.write(f"acceptance holding {args.pause_hold}s with work outstanding")
+    log.write(f"menagerie holding {args.pause_hold}s with work outstanding")
     time.sleep(args.pause_hold)
     held = run.state()
     packs = packs_on_disk(data_dir)
@@ -341,14 +341,14 @@ def phase_verify_paused(run: Run, data_dir: Path, args, log: Log, mark: int) -> 
     # finish -- that is the ruling, not a defect -- so one completion is
     # tolerated and a second is the failure. Here there was none under way.
     if held["completed"] > mark + 1:
-        raise AcceptanceFailure(
+        raise MenagerieFailure(
             f"the sitter kept admitting work while paused: completed went "
             f"{mark} -> {held['completed']} over {args.pause_hold}s")
     if len(packs) > mark + 1:
-        raise AcceptanceFailure(
+        raise MenagerieFailure(
             f"packs appeared on disk while paused: {len(packs)} present, "
             f"{mark} expected")
-    log.write(f"acceptance pause verified: completed {mark} -> {held['completed']}, "
+    log.write(f"menagerie pause verified: completed {mark} -> {held['completed']}, "
               f"{len(packs)} pack(s) on disk")
     return {"completed": held["completed"], "packs": len(packs)}
 
@@ -359,8 +359,8 @@ def phase_resume(run: Run, log: Log) -> dict:
     time.sleep(3.0)
     resumed = run.state()
     if not resumed["enabled"]:
-        raise AcceptanceFailure(f"clicking the switch did not turn it back on: {resumed}")
-    log.write("acceptance resumed")
+        raise MenagerieFailure(f"clicking the switch did not turn it back on: {resumed}")
+    log.write("menagerie resumed")
     return resumed
 
 
@@ -371,23 +371,23 @@ def phase_invalidation(run: Run, data_dir: Path, fixture_dir: Path, log: Log,
     listing = run.ev(ATTACHMENTS, f"list attachments before {what} delete", timeout=90)
     rows = [r for r in listing["attachments"] if r.get("path")]
     if not rows:
-        raise AcceptanceFailure("no attachment with a file on disk to delete")
+        raise MenagerieFailure("no attachment with a file on disk to delete")
     victim = rows[0]
     before = packs_on_disk(data_dir)
-    log.write(f"acceptance {what} victim={victim['key']} packs_before={len(before)}")
+    log.write(f"menagerie {what} victim={victim['key']} packs_before={len(before)}")
     if victim["key"] not in before:
-        raise AcceptanceFailure(
+        raise MenagerieFailure(
             f"the attachment chosen to delete has no pack to lose "
             f"({victim['key']} not in {sorted(before)}) -- the arm would pass "
             "by having nothing to observe")
     lost_hash = before[victim["key"]]
     source = Path(victim["path"])
     if not source.exists():
-        raise AcceptanceFailure(f"{source} is gone before the step began")
+        raise MenagerieFailure(f"{source} is gone before the step began")
     kept = source.read_bytes()
     digest = hashlib.md5(kept).hexdigest()
     if digest != lost_hash:
-        raise AcceptanceFailure(
+        raise MenagerieFailure(
             f"the pack for {victim['key']} names source hash {lost_hash!r} but "
             f"the file on disk is {digest!r} -- the pack does not belong to it")
 
@@ -398,7 +398,7 @@ def phase_invalidation(run: Run, data_dir: Path, fixture_dir: Path, log: Log,
                                 time.monotonic() + args.invalidation_timeout,
                                 log, f"{what} deleted")
     if victim["key"] in after:
-        raise AcceptanceFailure(
+        raise MenagerieFailure(
             f"the count fell but {victim['key']}'s own pack is still there")
 
     # Put it back and bound the return. `restore_timeout` defaults to 60 s
@@ -407,13 +407,13 @@ def phase_invalidation(run: Run, data_dir: Path, fixture_dir: Path, log: Log,
     scratch.write_bytes(kept)
     parent = None if whole_item else victim["parentID"]
     added = run.ev(attach_code(parent, str(scratch)), f"re-add {what}", timeout=90)
-    log.write(f"acceptance re-added as {added}")
+    log.write(f"menagerie re-added as {added}")
 
     back = wait_for_pack_count(data_dir, len(before),
                                time.monotonic() + args.restore_timeout,
                                log, f"{what} restored")
     if digest not in set(back.values()):
-        raise AcceptanceFailure(
+        raise MenagerieFailure(
             f"a pack came back but none names the restored file's hash {digest!r}; "
             f"packs now name {sorted(set(back.values()))}")
     return {"what": what, "key": victim["key"], "hash": digest,
@@ -453,7 +453,7 @@ def phase_uninstall(run: Run, data_dir: Path, profile: Path, log: Log, args) -> 
     """
     cleared = run.ev(CLEAR_DIAGNOSTICS, "withdraw the diagnostics opt-in")
     if cleared.get("debugAfterClear"):
-        raise AcceptanceFailure(
+        raise MenagerieFailure(
             f"the diagnostics pref would not clear: {cleared}. The arm below "
             "would then pass or fail for the wrong reason.")
     stale = data_dir / "sdt-sitter-last-shutdown.json"
@@ -461,7 +461,7 @@ def phase_uninstall(run: Run, data_dir: Path, profile: Path, log: Log, args) -> 
         # Nothing in this run has disabled or uninstalled yet, so a certificate
         # here would be from a shutdown that never happened -- refuse rather
         # than quietly delete evidence the next assertion depends on.
-        raise AcceptanceFailure(
+        raise MenagerieFailure(
             f"a certificate already exists at {stale} before the uninstall step; "
             "the arm cannot tell a surviving one from a newly written one")
     run.ev(uninstall_code("sdt-pack-sitter@search-works-for-zotero.invalid"),
@@ -477,22 +477,22 @@ def phase_uninstall(run: Run, data_dir: Path, profile: Path, log: Log, args) -> 
                     / "sdt-pack-sitter@search-works-for-zotero.invalid.xpi").exists(),
         }
         if not any(residue.values()):
-            log.write("acceptance uninstall left nothing behind")
+            log.write("menagerie uninstall left nothing behind")
             return {"residue": residue, "clean": True}
         time.sleep(2.0)
-    raise AcceptanceFailure(
+    raise MenagerieFailure(
         f"state survived the uninstall with diagnostics withdrawn: {residue}")
 
 
-def run_acceptance(args) -> dict:
-    log = Log(args.work_dir / "acceptance.log")
+def run_menagerie(args) -> dict:
+    log = Log(args.work_dir / "menagerie.log")
     binary = find_zotero_bin(args.zotero_bin)
     app_ini = binary.parent / "app" / "application.ini"
 
-    xpi = args.xpi or (args.work_dir / "sitter-acceptance.xpi")
+    xpi = args.xpi or (args.work_dir / "sitter-menagerie.xpi")
     if args.xpi is None:
         build_xpi(xpi)
-    log.write(f"acceptance payload {xpi}")
+    log.write(f"menagerie payload {xpi}")
 
     fixture_dir = args.work_dir / "fixture"
     fixture_dir.mkdir(parents=True)
@@ -502,7 +502,7 @@ def run_acceptance(args) -> dict:
             f"no Menagerie package at {args.menagerie}; this run is about real "
             "documents with distinct hashes and will not fall back")
     ris = write_menagerie_subset(fixture_dir, documents)
-    log.write(f"acceptance fixture: {[d.name for d in documents]}")
+    log.write(f"menagerie fixture: {[d.name for d in documents]}")
 
     profile, requested = setup_profile(args.work_dir, args.port)
     proc, stdout_log = launch_zotero(binary, app_ini, profile, args.port,
@@ -528,11 +528,11 @@ def run_acceptance(args) -> dict:
             # itself plus whether an old build's preference is still lying around.
             probe = eval_action(client, SWITCH_PROBE, args.eval_timeout, log,
                                 "switch state")
-            log.write(f"acceptance arm failed; switch state reads {probe}")
+            log.write(f"menagerie arm failed; switch state reads {probe}")
             raise
         data_dir = Path(live["dataDir"]).resolve()
         if data_dir != requested.resolve():
-            raise AcceptanceFailure(
+            raise MenagerieFailure(
                 f"REFUSING to import: Zotero opened {data_dir}, not the pinned "
                 f"{requested.resolve()}. Nothing was imported.")
         phases["install"] = {"installed": installed, "dataDir": str(data_dir)}
@@ -563,7 +563,7 @@ def run_acceptance(args) -> dict:
             run, data_dir, fixture_dir, log, args, whole_item=True)
 
         phases["uninstall"] = phase_uninstall(run, data_dir, profile, log, args)
-        log.write("acceptance PASS")
+        log.write("menagerie PASS")
         return {"ok": True, "phases": phases}
     finally:
         if client is not None:
@@ -605,14 +605,14 @@ def main(argv=None) -> int:
 
     args.work_dir.mkdir(parents=True, exist_ok=True)
     try:
-        result = run_acceptance(args)
+        result = run_menagerie(args)
     except NotRunError as exc:
         print(f"NOT-RUN: {exc}")
         return 2
-    except (AcceptanceFailure, SmokeFailure) as exc:
+    except (MenagerieFailure, SmokeFailure) as exc:
         print(f"FAIL: {exc}")
         return 1
-    print("\n================ ACCEPTANCE: PASS ================")
+    print("\n================ MENAGERIE: PASS ================")
     for name, payload in result["phases"].items():
         print(f"  {name}")
         print(f"      {json.dumps(payload)[:160]}")

@@ -17,6 +17,7 @@ Author: haduong
 2026-09-16T07:52Z UPSTREAM FILING DEFERRED TO THE RUN, author's ruling 2026-09-16. The platform half is settled -- no abort affordance exists in Zotero 10.0.2 and terminate() is worse than inaction -- and the request that would be filed is written out in DESIGN-NOTES open question 4. It is NOT sent until this ticket's AR6 pass returns a verdict: if the plateau is a slow tail there is no wedge to cancel and the request loses its force, and if it is a wedge the filing carries a measurement rather than a source reading. The cost of waiting is a few days on an already-slow upstream cycle; the cost of not waiting is a feature request whose motivating case may not exist.
 2026-09-16T10:47Z claude note AR6 reached 100 in a live 0.4.26 run: SLOW, not wedged. 248.4 s at progress 90, then 95 at +10.1 s, settle ok at 469472 ms. Reading, CPU probe and the 90/95 UI finding in verification/incidents/0793-2026-09-16-ar6-completed-run.md
 2026-09-16T10:49Z claude note The 90 plateau is the citation and reference-application stage, already mapped by 0676 on 2026-09-05 as a healthy long progress gap. Open patch ticket for the quadratic scan inside it is 0679.
+2026-09-23T09:12Z sim note 0820 renamed the rung-3 driver to bench/sitter_menagerie_test.py and its records to verification/menagerie/; body paths updated
 --- body ---
 ## Context
 
@@ -164,9 +165,9 @@ one as sufficient. The wedge control that Johnson cannot be is filed as ticket
   the project's own ledger; updated by this ticket's work.
 - `bench/sdt_stall_probe.py` — the instrument built for this ticket.
 - `tests/test_sdt_stall_probe.py` — its controls, both arms.
-- `bench/sitter_acceptance.py` — the existing acceptance driver; the run harness
+- `bench/sitter_menagerie_test.py` — the existing rung-3 driver; the run harness
   to extend rather than improvise.
-- `verification/acceptance/0.4.15-2026-09-14.json` — the record shape to follow;
+- `verification/menagerie/0.4.15-2026-09-14.json` — the record shape to follow;
   `build_record()` in the probe emits it.
 - `~/data/Zotero-fresh/storage/AI6DJUTA/` — the document. Not in the repo, not
   redistributable (IPCC permits excerpts, not whole reports).
@@ -228,7 +229,7 @@ testing would have found.
       one call, one set of thresholds (`tests/test_sdt_stall_probe.py`)
 - [x] The sampler separates a spinning process from a sleeping one, validated
       offline before ever being pointed at Zotero (100.0 % vs 0.0 %)
-- [x] The record follows `bench/sitter_acceptance.py`'s phase-dict shape
+- [x] The record follows `bench/sitter_menagerie_test.py`'s phase-dict shape
 - [ ] CPU/RSS/IO series captured for the full AR6 attempt, worker thread separable
 - [ ] Plateau observed for ≥ 30 min, or broken by a tick — with the timestamp either way
 - [ ] `.zotero-sdt-cache` presence in `storage/AI6DJUTA/` recorded at the end

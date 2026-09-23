@@ -529,11 +529,11 @@ def test_summarize_cpu_folds_a_series():
 
 
 # --------------------------------------------------------------------------
-# the record shape: sitter_acceptance.py's phase dict, extended, not replaced
+# the record shape: sitter_menagerie_test.py's phase dict, extended, not replaced
 # --------------------------------------------------------------------------
 
-def test_record_shape_follows_the_acceptance_pattern():
-    shape = json.loads((REPO / "verification/acceptance/0.4.15-2026-09-14.json")
+def test_record_shape_follows_the_rung3_pattern():
+    shape = json.loads((REPO / "verification/menagerie/0.4.15-2026-09-14.json")
                        .read_text(encoding="utf-8"))
     record = build_record(
         ok=True,
