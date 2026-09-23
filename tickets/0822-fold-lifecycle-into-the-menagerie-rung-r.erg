@@ -10,6 +10,7 @@ Blocked-by: 0821
 2026-09-23T08:51Z claude created
 
 2026-09-23T08:53Z sim note filed by the raid of 2026-09-23 as a child of 0817
+2026-09-23T09:06Z sim note raid 2026-09-23 Plan: file:line plan and first tests appended; Phase 4 cross-ticket scan found no registry needing a coordination PR
 --- body ---
 ## Context
 
@@ -44,3 +45,27 @@ re-queues finished work; a restart that lands in the wrong data directory).
 
 The three lifecycle steps run inside the rung-3 scenario, each with its red
 control recorded, and the integrity check green across them.
+
+## Plan (raid 2026-09-23)
+
+- Import `disable_enable_code`, `liveness_code`, `ADDON_ID` from
+  `bench/sitter_volume_experiment.py` beside the existing imports; never
+  `restart_zotero` (a closure in `main()`) — a guard test asserts it.
+- Restart helper in the driver: `stop_zotero` → `launch_zotero` →
+  `wait_for_port` → `connect_resilient` → `poll_until_armed`, then
+  `assert_pinned_data_dir(live, requested)`, factored out of today's single
+  check after install so it runs after every restart.
+- Resume invariant: `packs_on_disk(data_dir)` dict equality before the stop and
+  after the post-restart settle (count and per-attachment hash together; a
+  swapped pack passes a count-only check). Same dict comparison for the
+  replace step, never the sitter's own counters.
+- Every settle waits on a predicate to a deadline, never a single read after a
+  sleep (the 0785 lesson in `wait_for_preparation`).
+- Red controls: replace with a mutant bootstrap that drops the cache on
+  activation (pattern: `verification/probes/sdt_sitter_bootstrap_mutants.py`);
+  a zero-length disabled hold must be reported as unproven, not passed; a
+  `prefs.js` dataDir rewritten between stop and relaunch must trip
+  `assert_pinned_data_dir` (0782's bug); one pack deleted between stop and
+  restart must trip the resume check.
+- Unit tests: `assert_pinned_data_dir` and the resume comparator as pure
+  functions; the no-`restart_zotero`-import guard.
