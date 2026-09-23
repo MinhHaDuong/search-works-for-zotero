@@ -2,7 +2,7 @@
 
 The sitter's resource gate refuses admission on a host that cannot take the
 work -- `low-disk`, `cpu-busy`, and the rest of `SDT_BLOCKED_PHASES` in
-`plugins/sdt-sitter/bootstrap.js` -- and retries every ten minutes. A rung
+`plugins/sdt-sitter/bootstrap.js` -- and retries on its own schedule. A rung
 driver that waits only on completion reads that as a timeout, and a timeout as
 a sitter failure. So the three rung drivers (`sitter_smoke_test.py`,
 `sitter_menagerie_test.py`, `sitter_clone_rung.py`) share this module:
@@ -15,7 +15,7 @@ a sitter failure. So the three rung drivers (`sitter_smoke_test.py`,
   a `NotRunError`, so each driver exits NOT-RUN -- after at most one forced
   retry (switch off, then on) for a transient gate. The record names the gate
   and the readings the gate took (`admission`, the variable
-  `describeSDTAdmission` renders), read out of the add-on's own scope.
+  `describeSDTAdmission` renders), read out of the add-on's own sandbox.
 - `arena_work_dir()`, the default work directory: under `$ACCEPTANCE_ARENA`
   (on `~/data`), never `/tmp`, bounded by the acceptance layer's retention.
 
@@ -40,7 +40,6 @@ sys.path.insert(0, str(REPO / "bench"))
 from acceptance.run import DEFAULT_KEEP_RUNS, in_progress_marker, retain  # noqa: E402
 
 BOOTSTRAP = REPO / "plugins" / "sdt-sitter" / "bootstrap.js"
-MANIFEST = REPO / "plugins" / "sdt-sitter" / "manifest.json"
 
 #: Headroom over the sitter's floor that the preflight asks for, so a run does
 #: not start a hair above the floor and cross it with its own fixture and packs.
@@ -88,12 +87,6 @@ def plugin_constants(source: str | None = None) -> dict:
         else:
             raise ValueError(f"SDT_BLOCKED_PHASES names {ident}, which is not declared")
     return {"blocked_phases": phases, "min_free_disk": _product(floor.group(1))}
-
-
-def addon_id() -> str:
-    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-    return manifest["applications"]["zotero"]["id"] if "applications" in manifest \
-        else manifest["browser_specific_settings"]["zotero"]["id"]
 
 
 def gib(n: float) -> str:
@@ -172,13 +165,15 @@ STATE = """
 })()
 """
 
-#: The add-on's bootstrap scope, where `admission`, `nextSweepAt` and the
-#: switch live as top-level `var`s (bootstrap.js says why they are `var`).
-_SCOPE = f"""
-    const {{XPIProvider}} = ChromeUtils.importESModule(
-      "resource://gre/modules/addons/XPIProvider.sys.mjs");
-    const entry = XPIProvider.activeAddons.get({json.dumps(addon_id())});
-    const scope = entry && entry.scope;
+#: The add-on's bootstrap sandbox, where `admission`, `nextSweepAt` and the
+#: switch live as top-level bindings (bootstrap.js says why they are `var`).
+#: Zotero keeps plugin sandboxes in a private map (`Zotero.Plugins`), and
+#: XPIProvider's scope for this add-on holds only `{extension}` -- both read on
+#: Zotero 10.0.3, 2026-09-24. The handle's own `inspect` was defined in that
+#: sandbox, so its global IS the sandbox: that is the way in.
+_SCOPE = """
+    const handle = Zotero.SDTPackSitter;
+    const scope = handle && handle.inspect ? Cu.getGlobalForObject(handle.inspect) : null;
 """
 
 READ_ADMISSION_MARK = "/* read-admission */"
