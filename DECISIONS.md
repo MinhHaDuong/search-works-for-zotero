@@ -7913,8 +7913,10 @@ rulings on the check ticket 0816 built, the same evening. First, the two files
 temporary `sdt-sitter-cache.jsonl.tmp` and the shutdown record
 `sdt-sitter-last-shutdown.json` — are not permitted until a run measures them,
 and a run that writes either fails. Second, a zero-byte `<db>.tmp-wal` beside
-its own database is Zotero's housekeeping, recorded but not judged: every
-whole-Menagerie run of ticket 0821 met one, written beside Zotero's automatic
-`.bak` some minutes in, and zero bytes carry nothing. A non-empty `.tmp-wal`
+its own database is Zotero's housekeeping, recorded but not judged, whether or
+not a `.bak` sits beside it. Every whole-Menagerie run of ticket 0821 met one,
+written beside Zotero's automatic `.bak` some minutes in; that is where it was
+measured, not a condition of the ruling, and zero bytes carry nothing. A
+non-empty `.tmp-wal`
 must still begin with the WAL magic. `plugins/sdt-sitter/TESTING.md` states the
 resulting set.
