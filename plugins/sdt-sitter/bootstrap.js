@@ -56,6 +56,11 @@ var environment = {}, admission = null;
 // cannot run the loop at all — and a loop nothing runs is where 0696's
 // cross-generation defect hid from two suites at once, past a green mutation.
 var timer, pulse, heartbeat, timers, notifierID;
+// Ticket 0823: when the pending sweep is due, on the monotonic clock, so a
+// refused admission can say when the sitter will look again. Written wherever
+// the sweep loop schedules `timer`, cleared where the switch clears it; null
+// means no sweep is scheduled, and the line then names no time at all.
+var nextSweepAt = null;
 // `var`, not `const`: ticket 0730 found that loading this file twice into one
 // scope throws `Identifier '...' has already been declared` on the first
 // `const`/`let` binding it reaches — a redeclaration `var` tolerates. Whether
@@ -469,6 +474,18 @@ var SDT_TEXT = {
     "finish-tomorrow": "tomorrow {time}",
     "active-none": "No indexing under way",
     "active-preparing": "Preparing the next attachment…",
+    "refusal-disk": "{available} free on {directory}; needs {threshold}.",
+    "refusal-memory": "{available} of memory available; needs {threshold}.",
+    "refusal-load": "Processor load {load} on {cpus} cores; needs to be below {cpus}.",
+    "refusal-storage": "The attachment folder {directory} is missing or cannot be written to.",
+    "refusal-resources": "The assistant could not read the free memory, processor load or disk space; the error is in Technical diagnostics.",
+    "refusal-fix-disk": "Free some space on that disk.",
+    "refusal-fix-memory": "Closing other programs frees memory.",
+    "refusal-fix-load": "This clears when the other work on this computer finishes.",
+    "refusal-fix-storage": "Check that the drive holding the Zotero data directory is connected and writable.",
+    "refusal-retry-at": "The assistant checks again on its own in about {duration}.",
+    "refusal-retry": "The assistant checks again on its own at its next pass.",
+    "refusal-retry-now": "To check now, tick \u201cPause indexing\u201d and untick it: the assistant rescans the library, then checks again.",
     "active-census": "Scanning the library — {scanned} of {total} ({progress} %)",
     "active-census-unknown": "Scanning the library…",
     "active-draining": "Checking changed attachments — {count} left",
@@ -989,7 +1006,12 @@ function createSDTSweepLoop(token, sweepToken) {
     } finally {
       if (current()) {
         timers.clearTimeout(timer);
-        timer = timers.setTimeout(sweep, nextSweepDelayMS(owner.state));
+        const delay = nextSweepDelayMS(owner.state);
+        timer = timers.setTimeout(sweep, delay);
+        // After the reschedule and guarded: this is a diagnostic for the
+        // dialog, and a throwing clock must not be what stops the loop.
+        try { nextSweepAt = Number.isFinite(delay) ? monotonic() + delay : null; }
+        catch (_error) { nextSweepAt = null; }
       }
     }
   };
@@ -1206,6 +1228,7 @@ function disarmSDTSitter() {
   ++sweepGeneration;
   if (timers) { timers.clearTimeout(timer); timers.clearInterval(pulse); timers.clearInterval(heartbeat); }
   timer = pulse = heartbeat = undefined;
+  nextSweepAt = null;
   sitter?.stop();
   if (sitter) sitter.state.phase = 'switched-off';
   render();
@@ -2032,6 +2055,63 @@ function describeSDTAdmission() {
   ].filter(Boolean).join('\n');
 }
 
+/* Ticket 0823, the author's ruling of 2026-09-23: "The user should be told the
+   issue -- and how to restart after fixing it." A rung-3 run sat for minutes on
+   the `active-preparing` line while this gate refused admission on
+   `low-disk`, then `cpu-busy`, and read as a hang. The readings that explained
+   it were written only into the closed diagnostics layer above.
+
+   Up to five lines, in the order a reader needs them: the phase label (the same
+   sentence the tooltip uses, so the two cannot disagree), the refusing gate's
+   reading beside its threshold and where it was taken, what would clear it,
+   when the sitter looks again, and how to make it look now. Only the refusing
+   gate's reading: the others passed or were never reached, and showing them
+   here would leave the reader to work out which number mattered.
+
+   THE WAY BACK, verified against the code rather than assumed. Unticking the
+   pause box runs `armSDTSitter()`: `start()` sets `reconciliationPending` and
+   a sweep is scheduled at 0 ms, so the pump runs a census and then calls
+   `host.blocked()` on the first candidate -- a fresh admission check, for every
+   phase that reaches `blocked()`, after a rescan whose length is the library's.
+   A blocked sitter is idle between sweeps (the pump breaks on a refusal), so
+   `busy` cannot hold the new pump off. The one exception is the sync phase: the
+   pause box is checked and inert there (ticket 0797), so the line does not
+   offer a control the reader cannot use, and the next pass is the only way
+   back. The time is `nextSweepAt`, the sweep loop's own schedule; a
+   notification can wake the sitter sooner, hence "about". */
+function describeSDTRefusal(phase) {
+  const reading = admission || {};
+  const label = SDT_PHASE_LABELS[phase];
+  const known = value => value !== undefined && value !== null;
+  let measured = '', fix = '';
+  if (phase === 'low-disk') {
+    measured = known(reading.diskAvailableBytes) ? sdtText('refusal-disk', {
+      available: formatSDTBytes(reading.diskAvailableBytes),
+      directory: reading.directory ?? sdtText('unknown-value'),
+      threshold: formatSDTBytes(MIN_FREE_DISK) }) : '';
+    fix = sdtText('refusal-fix-disk');
+  } else if (phase === 'low-memory') {
+    measured = known(reading.memoryAvailableBytes) ? sdtText('refusal-memory', {
+      available: formatSDTBytes(reading.memoryAvailableBytes),
+      threshold: formatSDTBytes(MIN_FREE_MEMORY) }) : '';
+    fix = sdtText('refusal-fix-memory');
+  } else if (phase === 'cpu-busy') {
+    measured = known(reading.load) && known(reading.cpus) ? sdtText('refusal-load', {
+      load: sdtNumber(reading.load, { maximumFractionDigits: 2 }), cpus: reading.cpus }) : '';
+    fix = sdtText('refusal-fix-load');
+  } else if (phase === 'storage-unavailable') {
+    measured = known(reading.directory)
+      ? sdtText('refusal-storage', { directory: reading.directory }) : '';
+    fix = sdtText('refusal-fix-storage');
+  } else if (phase === 'resources-unavailable') {
+    measured = sdtText('refusal-resources');
+  }
+  const retry = nextSweepAt === null ? sdtText('refusal-retry')
+    : sdtText('refusal-retry-at', { duration: formatSDTAge(nextSweepAt - monotonic()) });
+  return [label && sdtText(label), measured, fix, retry,
+    phase === SDT_SYNC_PHASE ? '' : sdtText('refusal-retry-now')].filter(Boolean).join('\n');
+}
+
 /* The ring, rendered whole rather than field by field, and unlike the clipboard
    copy below it is NOT scrubbed: this is the author's own screen, reading his
    own machine, and the panel prints the install path two lines above anyway.
@@ -2708,6 +2788,11 @@ function renderState() {
         : sdtText('active-census-unknown'))
       : s.phase === 'draining'
       ? sdtText('active-draining', { count: s.draining ?? 0 })
+      // Ticket 0823: a refused admission is not a preparation either. The phase
+      // decides before `pending` is read, as it does for the census and the
+      // drain, and the line says what refused, by how much, and the way back.
+      : SDT_BLOCKED_PHASES.includes(s.phase)
+      ? describeSDTRefusal(s.phase)
       : s.active === null
       ? (s.pending && s.pending.length > 0 ? sdtText('active-preparing') : sdtText('active-none'))
       : sdtText('active-file', { file: describeSDTActiveFile(s),
@@ -3783,12 +3868,17 @@ async function initialize(rootURI, token, era = shutdowns) {
         // would read as a measurement of an empty machine.
         admission = { at: monotonic() };
       }
+      // Ticket 0823: where the disk was measured, for the line that tells the
+      // reader why admission was refused. Overwritten by the ancestor actually
+      // stat'ed below, so a refusal names the directory it measured.
+      admission.directory = info.directory;
       let directory = info.directory;
       while (!(await IOUtils.exists(directory))) {
         const parent = PathUtils.parent(directory);
         if (parent === directory) return 'storage-unavailable';
         directory = parent;
       }
+      admission.directory = directory;
       const file = Zotero.File.pathToFile(directory);
       if (!file.isWritable()) return 'storage-unavailable';
       admission.diskAvailableBytes = file.diskSpaceAvailable;
