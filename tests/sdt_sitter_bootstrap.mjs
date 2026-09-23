@@ -2155,6 +2155,95 @@ await test('the active-file box reports census progress, not a phantom preparati
     'the census branch swallowed the genuine between-documents gap');
 });
 
+/* Ticket 0823, the author's ruling of 2026-09-23: "The user should be told the
+   issue -- and how to restart after fixing it." A rung-3 run sat for minutes on
+   "Preparing the next attachment…" while the gate refused admission on
+   `low-disk` (7.8 GiB free, floor 8 GiB) and then `cpu-busy` (load 7.84 on 8
+   cores), and read as a hang. The phase decides the line first, as 0791 and
+   0792 ruled for the census and the drain: in every blocked phase the primary
+   view names the refusing gate, its reading and threshold, and the way back.
+
+   The readings are asserted in `sdt-document-status`, which sits in the
+   "Current activity" section, and the diagnostics disclosure is left CLOSED:
+   `sdt-admission` is only written while it is open, so a pass here cannot be
+   borrowed from the layer the ticket says nobody reads. */
+await test('a blocked phase names its refusal, the numbers and the way back, not "preparing"', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')] });
+  await harness.start();
+  const window = harness.windows[0];
+  harness.context.openDialog(window);
+  await harness.turn();
+  const doc = window.dialogs[0].document;
+  const sitter = harness.context.sitter;
+  const GiB = 1024 ** 3;
+  assert.equal(doc.getElementById('sdt-tech-details').open, false,
+    'the diagnostics layer must stay closed for this test to mean anything');
+
+  const expected = {
+    'low-disk': ['disk space', '7.8 GiB free on /data/storage/AAAA1111', 'needs 8.0 GiB'],
+    'low-memory': ['memory', '2.5 GiB of memory available', 'needs 4.0 GiB'],
+    'cpu-busy': ['processor', 'load 7.84 on 8 cores', 'below 8'],
+    'storage-unavailable': ['/data/storage/AAAA1111'],
+    'resources-unavailable': ['Technical diagnostics'],
+    [harness.context.SDT_SYNC_PHASE]: ['sync'],
+  };
+  assert.deepEqual(Object.keys(expected).sort(), [...harness.context.SDT_BLOCKED_PHASES].sort(),
+    'a blocked phase was added without a decided refusal line');
+  for (const phase of harness.context.SDT_BLOCKED_PHASES) {
+    harness.context.admission = { at: harness.context.monotonic(), memoryAvailableBytes: 2.5 * GiB,
+      load: 7.84, cpus: 8, diskAvailableBytes: 7.8 * GiB, directory: '/data/storage/AAAA1111' };
+    sitter.state.phase = phase;
+    sitter.state.active = null;
+    sitter.state.pending = [{ id: 2, title: null, parentTitle: null }];
+    harness.context.render();
+    const line = doc.getElementById('sdt-document-status').textContent;
+    assert.ok(!line.includes('Preparing the next attachment'),
+      `${phase}: a refused admission was rendered as a preparation -- the reading of a hang`);
+    for (const fragment of expected[phase]) {
+      assert.ok(line.includes(fragment), `${phase}: the primary view lacks "${fragment}":\n${line}`);
+    }
+    assert.match(line, /checks again/, `${phase}: nothing says the assistant will look again:\n${line}`);
+    // The pause box is inert during a sync (ticket 0797), so off-and-on is
+    // no way back there and the line must not offer it.
+    if (phase === harness.context.SDT_SYNC_PHASE) {
+      assert.ok(!line.includes('Pause indexing'), `${phase}: offered an inert control:\n${line}`);
+    } else {
+      assert.ok(line.includes('Pause indexing'), `${phase}: no way to retry now:\n${line}`);
+    }
+  }
+  sitter.state.phase = 'waiting';
+  harness.context.render();
+  assert.equal(doc.getElementById('sdt-document-status').textContent, 'Preparing the next attachment…',
+    'the blocked branch swallowed the genuine between-documents gap');
+});
+
+/* Review of PR #623 (red team): an item edit while blocked wakes the sitter
+   with a sweep due at once, but the line kept the blocked loop's ten-minute
+   promise until that sweep finished. The line must not name a wait that is
+   no longer scheduled. */
+await test('a wake while blocked does not keep promising the ten-minute retry', async () => {
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222')] });
+  await harness.start();
+  const window = harness.windows[0];
+  harness.context.openDialog(window);
+  await harness.turn();
+  const doc = window.dialogs[0].document;
+  const sitter = harness.context.sitter;
+  harness.context.admission = { at: harness.context.monotonic(), load: 7.84, cpus: 8 };
+  sitter.state.phase = 'cpu-busy';
+  sitter.state.active = null;
+  sitter.state.busy = false;
+  sitter.state.pending = [{ id: 2, title: null, parentTitle: null }];
+  harness.context.nextSweepAt = harness.context.monotonic() + harness.context.IDLE_SWEEP_INTERVAL_MS;
+  harness.context.render();
+  assert.match(doc.getElementById('sdt-document-status').textContent, /10 min/,
+    'control: before the wake the line names the blocked loop\'s wait');
+  harness.context.wakeSDTSitter();
+  harness.context.render();
+  const line = doc.getElementById('sdt-document-status').textContent;
+  assert.ok(!/10 min/.test(line), `the line still promises the ten-minute retry after a wake:\n${line}`);
+});
+
 /* PASS / FAIL / NOT-RUN, rather than a boolean. A guard that greens because it
  * found nothing to check is the failure this repository keeps meeting, so the
  * empty set gets a verdict of its own and the caller has to say what it does
