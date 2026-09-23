@@ -2,6 +2,7 @@
 Title: Prove the golden-fixture harness against a real multi-document, multi-language injection
 Created: 2026-09-04
 Author: claude
+Closed: autoclosed — PR #622
 
 --- log ---
 2026-09-04T05:18Z claude created
@@ -20,6 +21,7 @@ Author: claude
 2026-09-06T12:48Z claude note CORRECTION to the previous entry's last clause: padme's prefs.js is NOT byte-identical after the headless run. The diff, read after stopping the client: Zotero's own housekeeping timers advanced (app.update.lastUpdateTime.*, idle.lastDailyNotification, privacy.purge_trackers.last_purge) and the three one-shot flags extensions.zotero.purge.creators/items/tags were consumed at startup -- Zotero's routine purge of orphaned creator/item/tag rows, run once and cleared. No fulltext preference appeared, no data-directory preference changed. The 'no item write' clause stands: the plugin's reindex was the only write asked of Zotero. The headless client was stopped cleanly (profile lock gone), the padme worktree returned to t0632-golden-fixture-harness-verify at e6c0f27, and this session's temp files under /tmp were removed; ~/data/golden-fixture-cache (478 MB, 17 match) is kept on both machines as the durable fetch cache
 2026-09-17T08:09Z MinhHaDuong note rebaseline v1.20.2 (c386e83): the reviewed span 4467663..c386e83 rewrites fulltext-source.ts that this ticket cites; re-read against verification/UPSTREAM-1.20.2-REVIEW.md § 2, no exit criterion moves and no line cited here was re-pinned; re-derive any file:line before arguing from it
 2026-09-23T16:55Z sim note stale sweep 2026-09-23: done. Every exit box ticked; the two fixture defects it waited on are fixed by PR #409 (493ea13) and bench/fixtures/export/manifest.json now carries known_defects: [].
+2026-09-23T17:00Z sim closed — autoclosed — PR #622
 --- body ---
 ## Context
 
