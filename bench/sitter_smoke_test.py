@@ -69,6 +69,7 @@ import json
 import hashlib
 import os
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
@@ -213,6 +214,22 @@ def read_pack_metadata(path: Path) -> dict:
     if not blob.startswith(SDT_MAGIC):
         raise SmokeFailure(
             f"{path} does not carry the SDT magic; first bytes {blob[:8]!r}")
+    # The header's own word first (ticket 0821). The whole-Menagerie run met a
+    # 30 MB pack whose metadata sat at byte 25 896, past any scan window, and
+    # in all 46 packs of that run the section sat exactly where the header
+    # says: `16 + a`, `b` bytes long, for the first two uint32 after the
+    # version block, inflating with nothing left over. Tried first and never
+    # trusted alone: a pack that does not parse there falls through to the
+    # scan below, so a layout change is still a scan, not a false "missing".
+    if len(blob) >= 24:
+        span, length = struct.unpack_from("<II", blob, 12)
+        start = 16 + span
+        try:
+            parsed = json.loads(zlib.decompressobj(-15).decompress(blob[start:start + length]))
+        except (zlib.error, ValueError):
+            parsed = None
+        if isinstance(parsed, dict):
+            return parsed
     # 128 was too small, found by the rung-3 Menagerie run on 2026-09-14: a Menagerie
     # PDF carrying rich document properties (Title, Author, Subject, Keywords)
     # lengthens the header ahead of the metadata, which sat at offset 232 --
@@ -232,9 +249,16 @@ def read_pack_metadata(path: Path) -> dict:
         if len(raw) < 16:
             continue
         try:
-            return json.loads(raw)
+            parsed = json.loads(raw)
         except ValueError:
             continue
+        # The metadata section is an object. The first whole-Menagerie run
+        # (ticket 0821) met a pack where an earlier offset inflated to a bare
+        # run of digits -- valid JSON, an int -- and the caller crashed on
+        # `.get`. A stream that is not an object is not the section; keep
+        # scanning.
+        if isinstance(parsed, dict):
+            return parsed
     raise SmokeFailure(
         f"{path} carries the SDT magic but no readable metadata section was "
         f"found in its first {SDT_SCAN_LIMIT} bytes ({len(blob)} bytes total). If Zotero "
@@ -267,12 +291,15 @@ def check_packs(data_dir: Path, fixture_dir: Path, expected: int, log) -> dict:
             f"{expected} -- one per imported attachment. Found: "
             f"{[x.parent.name for x in packs]}")
 
+    # Every file, not only `*.pdf`: rung 3 hands Zotero EPUBs too, and a pack
+    # naming one must match it (ticket 0821). The smoke fixture holds PDFs only,
+    # so its set is unchanged.
     fixture_hashes = {
         hashlib.md5(f.read_bytes()).hexdigest()
-        for f in sorted((fixture_dir / "attachments").glob("*.pdf"))
+        for f in sorted((fixture_dir / "attachments").iterdir()) if f.is_file()
     }
     if not fixture_hashes:
-        raise SmokeFailure(f"no fixture PDFs under {fixture_dir / 'attachments'}")
+        raise SmokeFailure(f"no fixture files under {fixture_dir / 'attachments'}")
 
     processors = set()
     for pack in packs:

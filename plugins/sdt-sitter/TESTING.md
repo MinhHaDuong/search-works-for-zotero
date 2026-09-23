@@ -8,7 +8,7 @@ below the last runs outside the author's Zotero. The ruling is `DECISIONS.md`
 |---|---|---|---|
 | 1. Unit | none | every commit | `make check` |
 | 2. Smoke | three Menagerie documents, clean room | every change | `bench/sitter_smoke_test.py` |
-| 3. Menagerie | the whole Menagerie, clean room | every build meant for the author | `bench/sitter_menagerie_test.py`, widened by 0817 |
+| 3. Menagerie | the whole Menagerie, clean room | every build meant for the author | `bench/sitter_menagerie_test.py`: every file, every attachment accounted for (0821) |
 | 4. Clone | a reflink copy of the author's library | every live install | 0818 |
 | 5. Dogfood | the author's own Zotero | before any release | the author |
 
@@ -54,7 +54,7 @@ like one.
 | Name | Why |
 |---|---|
 | `<db>-wal` | not hashed whole: its committed frames are read through the copy, and Zotero's idle handler vacuums and truncates it with no logical change. The frames past the last committed one are compared byte for byte instead, so a write there still fails |
-| `<db>.tmp-wal` | the WAL of the temporary copy Zotero's backup writes; must begin with the WAL magic |
+| `<db>.tmp-wal` | the WAL of the temporary copy Zotero's backup writes; must be empty (measured beside every automatic backup in the whole-Menagerie runs, admitted by the author 2026-09-23) or begin with the WAL magic |
 | `<db>.bak`, `<db>.<n>.bak` | Zotero's rotating automatic backups (`db.js`); must be an SQLite database with its database's own schema |
 
 A symlink, FIFO or socket never counts as a permitted write, even at a

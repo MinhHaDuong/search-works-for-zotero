@@ -85,7 +85,8 @@ EXCLUDED = {
                 "checked byte for byte instead of hashed whole, since Zotero "
                 "truncates the WAL at idle with no logical change",
     "<db>.tmp-wal": "the WAL of the temporary copy Zotero's backup writes; "
-                    "must begin with the WAL magic",
+                    "must be empty (measured beside every automatic backup) "
+                    "or begin with the WAL magic",
     "<db>.bak, <db>.<n>.bak": "Zotero's rotating automatic backups; must be an "
                               "SQLite database with its database's own schema",
 }
@@ -163,7 +164,9 @@ def _is_housekeeping(path: Path, kind: str, db_schema: dict | None) -> bool:
     with open(path, "rb") as f:
         head = f.read(len(_SQLITE_HEADER))
     if kind == ".tmp-wal":
-        return head[:4] in _WAL_MAGICS
+        # Empty is admitted (author, 2026-09-23): Zotero's backup leaves one
+        # beside every `.bak` it writes, and zero bytes can carry nothing.
+        return head == b"" or head[:4] in _WAL_MAGICS
     return (head == _SQLITE_HEADER and db_schema is not None
             and _schema(path) == db_schema)
 
@@ -506,11 +509,19 @@ def record(segment: str, d: Diff, edit: LibraryEdit | None = None) -> dict:
 #: `fulltextContent_*` tables are one FTS5 index's shadow tables, whose rows
 #: move with its segment merges rather than per document, so they are allowed
 #: as a unit: `_idx` was measured moving on import and re-attach, not on erase.
+#: The three `fulltextContentCJK_*` tables are the same index's CJK twin: four
+#: Latin-script PDFs never touched them, and ticket 0821's first wider import
+#: (50 Menagerie files, the sitter paused, no pack written) moved all three.
+#: They belong to a declared library edit only; the edit-free segment still
+#: fails on any change to them.
 _INDEXING_TABLES = {
     "fulltextItems": None,
     "fulltext.sqlite:fulltextContent_data": None,
     "fulltext.sqlite:fulltextContent_docsize": None,
     "fulltext.sqlite:fulltextContent_idx": None,
+    "fulltext.sqlite:fulltextContentCJK_data": None,
+    "fulltext.sqlite:fulltextContentCJK_docsize": None,
+    "fulltext.sqlite:fulltextContentCJK_idx": None,
     "fulltext.sqlite:fulltextIndexState": None,
 }
 
