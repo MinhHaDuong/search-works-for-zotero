@@ -27,6 +27,14 @@ WHAT 6 AND 8 ARE FOR. Coverage that only ever grows is easy; the hard half is a
 library that shrinks. Both cycles assert in both directions, and both bound the
 return at 60 s, because "eventually" is not a guarantee anybody can rely on.
 
+AND THROUGHOUT, NOTHING ELSE CHANGES (ticket 0816). A settled snapshot of the
+data directory is taken before install, and every step above closes an
+integrity segment against it -- the import, the resume, each erase and each
+re-attach on its own, the uninstall -- so one edit cannot cancel another in the
+diff. Resume-to-indexed holds no library edit, so it is where a write by
+`ensure()` beyond the pack would show. The verdicts go in the run record under
+`integrity`, a failed run's included.
+
 Nothing here touches a real library: a fresh profile (refused if it already has
 a prefs.js) and a data directory pinned beside it, re-read from the running
 Zotero before anything is imported -- ticket 0782's refusal, kept.
@@ -54,12 +62,15 @@ from sitter_smoke_test import (  # noqa: E402
     build_xpi,
     check_packs,
     find_zotero_bin,
+    integrity_baseline,
+    integrity_segment,
     launch_zotero,
     poll_until_armed,
     read_pack_metadata,
     setup_profile,
     stop_zotero,
 )
+import sitter_integrity as integrity  # noqa: E402
 from sitter_volume_experiment import (  # noqa: E402
     eval_action,
     import_menagerie_code,
@@ -365,9 +376,15 @@ def phase_resume(run: Run, log: Log) -> dict:
 
 
 def phase_invalidation(run: Run, data_dir: Path, fixture_dir: Path, log: Log,
-                       args, *, whole_item: bool) -> dict:
-    """Steps 6-7 and 8. Delete, watch the pack go; restore, watch it return."""
+                       args, *, whole_item: bool, ledger: integrity.Ledger) -> dict:
+    """Steps 6-7 and 8. Delete, watch the pack go; restore, watch it return.
+
+    The integrity check closes a segment after the erase and another after
+    the re-attach, each against its own declared edit, so the two edits
+    cannot cancel out in one diff (ticket 0816).
+    """
     what = "item" if whole_item else "attachment"
+    integrity_segment(ledger, f"before {what} erase", failure=MenagerieFailure)
     listing = run.ev(ATTACHMENTS, f"list attachments before {what} delete", timeout=90)
     rows = [r for r in listing["attachments"] if r.get("path")]
     if not rows:
@@ -401,6 +418,14 @@ def phase_invalidation(run: Run, data_dir: Path, fixture_dir: Path, log: Log,
         raise MenagerieFailure(
             f"the count fell but {victim['key']}'s own pack is still there")
 
+    # Erasing a parent erases every attachment under it, not only the victim.
+    erased = ([r["key"] for r in listing["attachments"]
+               if r.get("parentID") == target] if target != victim["id"]
+              else [victim["key"]])
+    integrity_segment(ledger, f"{what} erase", integrity.erase_edit(
+        erased, parents=0 if target == victim["id"] else 1),
+        failure=MenagerieFailure)
+
     # Put it back and bound the return. `restore_timeout` defaults to 60 s
     # because that is the promise: within a minute, not eventually.
     scratch = fixture_dir / f"restore-{victim['key']}.pdf"
@@ -416,6 +441,8 @@ def phase_invalidation(run: Run, data_dir: Path, fixture_dir: Path, log: Log,
         raise MenagerieFailure(
             f"a pack came back but none names the restored file's hash {digest!r}; "
             f"packs now name {sorted(set(back.values()))}")
+    integrity_segment(ledger, f"{what} re-attach", integrity.attach_edit(scratch.name),
+                      failure=MenagerieFailure)
     return {"what": what, "key": victim["key"], "hash": digest,
             "packs_before": len(before), "packs_after_delete": len(after),
             "packs_after_restore": len(back)}
@@ -434,7 +461,8 @@ CLEAR_DIAGNOSTICS = """
 """
 
 
-def phase_uninstall(run: Run, data_dir: Path, profile: Path, log: Log, args) -> dict:
+def phase_uninstall(run: Run, data_dir: Path, profile: Path, log: Log, args,
+                    ledger: integrity.Ledger) -> dict:
     """Step 9. Removed means removed -- in the configuration a release ships.
 
     THE FIRST VERSION OF THIS ASSERTED THE WRONG THING and the run caught it: it
@@ -464,6 +492,7 @@ def phase_uninstall(run: Run, data_dir: Path, profile: Path, log: Log, args) -> 
         raise MenagerieFailure(
             f"a certificate already exists at {stale} before the uninstall step; "
             "the arm cannot tell a surviving one from a newly written one")
+    integrity_segment(ledger, "before uninstall", failure=MenagerieFailure)
     run.ev(uninstall_code("sdt-pack-sitter@search-works-for-zotero.invalid"),
            "uninstall")
     deadline = time.monotonic() + args.uninstall_timeout
@@ -478,6 +507,9 @@ def phase_uninstall(run: Run, data_dir: Path, profile: Path, log: Log, args) -> 
         }
         if not any(residue.values()):
             log.write("menagerie uninstall left nothing behind")
+            # The last snapshot, with Zotero still running: an uninstall is no
+            # library edit, so only the sitter's own files may have moved.
+            integrity_segment(ledger, "uninstall", failure=MenagerieFailure)
             return {"residue": residue, "clean": True}
         time.sleep(2.0)
     raise MenagerieFailure(
@@ -513,6 +545,11 @@ def run_menagerie(args) -> dict:
         wait_for_port("127.0.0.1", args.port, time.monotonic() + 90)
         client = connect_resilient("127.0.0.1", args.port, args.eval_timeout, log)
         run = Run(client, log, args.eval_timeout)
+
+        # The integrity baseline, before the sitter exists in this profile.
+        ledger = integrity_baseline(client, requested, args.eval_timeout, log,
+                                    failure=MenagerieFailure)
+        args.integrity_records = ledger.records
 
         installed = run.ev(install_or_replace_code(xpi), "install")
         try:
@@ -551,20 +588,31 @@ def run_menagerie(args) -> dict:
         phases["import"] = imported
 
         phases["paused_verified"] = phase_verify_paused(run, data_dir, args, log, mark)
+        # Closed while the switch is still off, so the import's own writes --
+        # Zotero indexes what it is handed -- are charged to the declared edit
+        # and cannot hide inside the indexing segment that follows.
+        integrity_segment(ledger, "install+pause+import", integrity.import_edit(
+            imported["items"], imported["attachments"]), failure=MenagerieFailure)
         phases["resume"] = phase_resume(run, log)
 
         wait_for_pack_count(data_dir, prepared,
                             time.monotonic() + args.index_timeout, log, "indexed")
         phases["packs"] = check_packs(data_dir, fixture_dir, prepared, log)
 
-        phases["attachment_cycle"] = phase_invalidation(
-            run, data_dir, fixture_dir, log, args, whole_item=False)
-        phases["item_cycle"] = phase_invalidation(
-            run, data_dir, fixture_dir, log, args, whole_item=True)
+        # Resume to indexed is the segment with no library edit in it: the
+        # import closed its own segment above, so whatever changes here is the
+        # sitter's, and only the SDT cache may. This is the segment that says
+        # whether ensure() writes anything besides the pack.
+        integrity_segment(ledger, "resume+index", failure=MenagerieFailure)
 
-        phases["uninstall"] = phase_uninstall(run, data_dir, profile, log, args)
+        phases["attachment_cycle"] = phase_invalidation(
+            run, data_dir, fixture_dir, log, args, whole_item=False, ledger=ledger)
+        phases["item_cycle"] = phase_invalidation(
+            run, data_dir, fixture_dir, log, args, whole_item=True, ledger=ledger)
+
+        phases["uninstall"] = phase_uninstall(run, data_dir, profile, log, args, ledger)
         log.write("menagerie PASS")
-        return {"ok": True, "phases": phases}
+        return {"ok": True, "phases": phases, "integrity": ledger.records}
     finally:
         if client is not None:
             try:
@@ -604,6 +652,7 @@ def main(argv=None) -> int:
     args = ap.parse_args(argv)
 
     args.work_dir.mkdir(parents=True, exist_ok=True)
+    args.integrity_records = []
     try:
         result = run_menagerie(args)
     except NotRunError as exc:
@@ -611,11 +660,20 @@ def main(argv=None) -> int:
         return 2
     except (MenagerieFailure, SmokeFailure) as exc:
         print(f"FAIL: {exc}")
+        # A failed run still carries every integrity segment it closed, the
+        # failing one included: the record is what names the bad write.
+        if args.json_out:
+            args.json_out.write_text(json.dumps(
+                {"ok": False, "error": str(exc), "integrity": args.integrity_records},
+                indent=2), encoding="utf-8")
+            print(f"\nwrote {args.json_out}")
         return 1
     print("\n================ MENAGERIE: PASS ================")
     for name, payload in result["phases"].items():
         print(f"  {name}")
         print(f"      {json.dumps(payload)[:160]}")
+    for rec in result["integrity"]:
+        print(f"  integrity {rec['segment']}: {rec['verdict']}")
     if args.json_out:
         args.json_out.write_text(json.dumps(result, indent=2), encoding="utf-8")
         print(f"\nwrote {args.json_out}")
