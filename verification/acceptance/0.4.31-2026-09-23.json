@@ -1,0 +1,94 @@
+{
+ "ok": true,
+ "_run": {
+  "version": "0.4.31",
+  "zotero": "10.0.3 (build 20260917164854, /opt/zotero7)",
+  "host": "doudou",
+  "when": "2026-09-23T07:46Z",
+  "main": "9b866f8",
+  "script": "bench/sitter_acceptance.py",
+  "fixture": "four Menagerie documents, smallest-first, distinct hashes",
+  "note": "Clean room: fresh profile and throwaway data directory under the session scratchpad, headless under xvfb-run; the Menagerie package rebuilt the same morning with make menagerie-package (114 attachments verified). The companion smoke run (bench/sitter_smoke_test.py, three Menagerie documents) also PASSED: bench/results/sdt-sitter-0.4.31/smoke-log.txt. Not exercised: an existing library, an in-place Zotero update."
+ },
+ "phases": {
+  "install": {
+   "installed": {
+    "ok": true,
+    "id": "sdt-pack-sitter@search-works-for-zotero.invalid",
+    "version": "0.4.31"
+   },
+   "dataDir": "$SCRATCH/acc-0.4.31/data"
+  },
+  "pause": {
+   "before": {
+    "ok": true,
+    "label": "",
+    "ariaLabel": null,
+    "state": "Indexing is on. Nothing to index right now."
+   },
+   "after": {
+    "ok": true,
+    "label": "",
+    "ariaLabel": null,
+    "state": "Indexing is off. Zotero will still index PDFs as you view them."
+   },
+   "completed_at_pause": 0
+  },
+  "import": {
+   "ok": true,
+   "items": 4,
+   "attachments": 4,
+   "missing": 0
+  },
+  "paused_verified": {
+   "completed": 0,
+   "packs": 0
+  },
+  "resume": {
+   "ok": true,
+   "enabled": true,
+   "busy": true,
+   "phase": "extracting",
+   "active": 8,
+   "scanned": 4,
+   "total": 4,
+   "completed": 3,
+   "failed": 0,
+   "pending": 1
+  },
+  "packs": {
+   "count": 4,
+   "processors": [
+    {
+     "type": "pdf",
+     "version": 14
+    }
+   ]
+  },
+  "attachment_cycle": {
+   "what": "attachment",
+   "key": "3A3IX2BK",
+   "hash": "c6f65ea4a433854dd7cbb6508506a16a",
+   "packs_before": 4,
+   "packs_after_delete": 3,
+   "packs_after_restore": 4
+  },
+  "item_cycle": {
+   "what": "item",
+   "key": "BCERB62E",
+   "hash": "8aeb0502f31aa3e47db6d84cccd629e0",
+   "packs_before": 4,
+   "packs_after_delete": 3,
+   "packs_after_restore": 4
+  },
+  "uninstall": {
+   "residue": {
+    "cache": false,
+    "cache_tmp": false,
+    "certificate": false,
+    "xpi": false
+   },
+   "clean": true
+  }
+ }
+}
