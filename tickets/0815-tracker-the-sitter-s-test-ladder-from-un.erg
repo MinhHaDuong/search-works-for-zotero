@@ -3,7 +3,6 @@ Title: Tracker: the sitter's test ladder, from unit to dogfood
 Created: 2026-09-23
 Author: claude
 Blocked-by: 0817
-Blocked-by: 0818
 Blocked-by: 0819
 Blocked-by: 0794
 
@@ -13,6 +12,7 @@ Blocked-by: 0794
 2026-09-23T08:53Z sim note raid 2026-09-23: 0817 split into 0820/0821/0822; record path now named by the rung, after 0820's rename.
 2026-09-23T10:12Z sim note raid 2026-09-23 checkpoint: 0820 merged (#616); 0816, 0818, 0821, 0822 planned and waiting for the next raid. Forked review skills now pinned to sonnet in the harness (#968), live once ~/.claude main is synced.
 2026-09-23T11:11Z sim note blocker 0816 closed — Blocked-by removed.
+2026-09-23T23:35Z sim note blocker 0818 closed — Blocked-by removed.
 --- body ---
 ## Context
 
