@@ -470,7 +470,7 @@ def sweep(run, args, log: Log) -> list[dict]:
     behind. A second `queued` is the finding.
     """
     def once():
-        out = run.ev(SWEEP, "sweep every attachment", timeout=args.sweep_timeout)
+        out = run.ev_long(SWEEP, "sweep every attachment", timeout=args.sweep_timeout)
         rows = []
         for r in out["rows"]:
             status = effective_status(r["raw"], r["scheduler"])
@@ -499,6 +499,37 @@ class Run:
 
     def state(self):
         return self.ev(STATE, "state")
+
+    #: Characters fetched per eval. The debugger hands back a result over
+    #: 10 000 characters as a `longString` actor rather than the string, which
+    #: the shared client does not follow; the whole-corpus sweep crossed it at
+    #: 50 files (ticket 0821's first red run). Each page is JSON-escaped on the
+    #: way back, so it stays well under the limit even for non-Latin titles.
+    PAGE = 2000
+
+    def ev_long(self, code, what, timeout=None):
+        """`ev()` for a result of any length: park it in the chrome process,
+        then read it back page by page."""
+        size = self.ev(f"""
+(async function() {{
+  try {{
+    const out = await ({code.strip()});
+    Zotero.__sdtRung3Out = out;
+    return JSON.stringify({{ok: true, length: out.length}});
+  }} catch (e) {{ return JSON.stringify({{ok: false, reason: String(e)}}); }}
+}})()
+""", f"{what} (park)", timeout)["length"]
+        pages = []
+        for start in range(0, size, self.PAGE):
+            pages.append(self.ev(
+                f"JSON.stringify({{ok: true, page: Zotero.__sdtRung3Out"
+                f".substr({start}, {self.PAGE})}})", f"{what} (page {start})")["page"])
+        self.ev("(delete Zotero.__sdtRung3Out, JSON.stringify({ok: true}))",
+                f"{what} (release)")
+        out = json.loads("".join(pages))
+        if not out.get("ok"):
+            raise MenagerieFailure(f"{what} failed: {out}")
+        return out
 
 
 def import_with_retry(run: Run, ris: Path, args, log: Log) -> dict:
@@ -609,7 +640,7 @@ def phase_invalidation(run: Run, data_dir: Path, fixture_dir: Path, log: Log,
     """
     what = "item" if whole_item else "attachment"
     integrity_segment(ledger, f"before {what} erase", failure=MenagerieFailure)
-    listing = run.ev(ATTACHMENTS, f"list attachments before {what} delete", timeout=90)
+    listing = run.ev_long(ATTACHMENTS, f"list attachments before {what} delete", timeout=90)
     before = packs_on_disk(data_dir)
     victim = pick_victim(listing["attachments"], before)
     if victim is None:
