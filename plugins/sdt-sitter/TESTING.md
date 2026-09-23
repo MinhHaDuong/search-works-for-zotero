@@ -54,7 +54,7 @@ like one.
 | Name | Why |
 |---|---|
 | `<db>-wal` | not hashed whole: its committed frames are read through the copy, and Zotero's idle handler vacuums and truncates it with no logical change. The frames past the last committed one are compared byte for byte instead, so a write there still fails |
-| `<db>.tmp-wal` | the WAL of the temporary copy Zotero's backup writes; must begin with the WAL magic |
+| `<db>.tmp-wal` | the WAL of the temporary copy Zotero's backup writes; must be empty (measured beside every automatic backup in the whole-Menagerie runs, admitted by the author 2026-09-23) or begin with the WAL magic |
 | `<db>.bak`, `<db>.<n>.bak` | Zotero's rotating automatic backups (`db.js`); must be an SQLite database with its database's own schema |
 
 A symlink, FIFO or socket never counts as a permitted write, even at a

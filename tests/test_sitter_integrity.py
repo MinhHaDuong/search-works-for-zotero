@@ -637,6 +637,26 @@ def test_red_a_tmp_wal_name_that_is_not_a_wal(tmp_path):
         "zotero.sqlite.tmp-wal: appear is not permitted"]
 
 
+def test_an_empty_tmp_wal_beside_a_backup_is_housekeeping(tmp_path):
+    """Measured in every whole-Menagerie run (0821): Zotero's automatic backup
+    writes `<db>.bak` and a zero-byte `<db>.tmp-wal` beside it."""
+    data = make_data_dir(tmp_path)
+    before = si.snapshot(data)
+    (data / "zotero.sqlite.bak").write_bytes((data / "zotero.sqlite").read_bytes())
+    (data / "zotero.sqlite.tmp-wal").write_bytes(b"")
+    d = si.diff(before, si.snapshot(data))
+    assert si.check(d) == []
+    assert d.housekeeping == {"zotero.sqlite.bak": "appear", "zotero.sqlite.tmp-wal": "appear"}
+
+
+def test_red_a_one_byte_tmp_wal_is_not_empty(tmp_path):
+    data = make_data_dir(tmp_path)
+    before = si.snapshot(data)
+    (data / "zotero.sqlite.tmp-wal").write_bytes(b"\x00")
+    assert verdict(before, si.snapshot(data)) == [
+        "zotero.sqlite.tmp-wal: appear is not permitted"]
+
+
 def test_red_a_shm_file_zotero_on_linux_never_writes(tmp_path):
     """Measured: Zotero 10 on Linux keeps the WAL index in its heap, and no run
     left a `-shm`; one appearing is not Zotero's churn."""
