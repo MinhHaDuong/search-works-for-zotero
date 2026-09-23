@@ -6,6 +6,7 @@ Author: claude
 --- log ---
 2026-09-23T08:15Z claude created
 
+2026-09-23T08:25Z sim note Review of PR #613 (CHANGES REQUESTED) found the write inventory incomplete: sdt-sitter-last-shutdown.json via Zotero.File.putContents, and the snapshot missing the data-directory root. Body and TESTING.md corrected in the same PR.
 --- body ---
 ## Context
 
@@ -14,8 +15,13 @@ checked it. The author asked for the check at every rung from 2 up
 (2026-09-23, `DECISIONS.md`).
 
 What the code writes, read from `plugins/sdt-sitter/bootstrap.js` at `9aca794`:
-its own `sdt-sitter-cache.jsonl` in the data directory (the one `IOUtils.write`),
-one debug preference, and no `Zotero.DB` write. What it causes Zotero to write
+its own `sdt-sitter-cache.jsonl` in the data directory (`IOUtils.write`, with a
+`.tmp` beside it while compacting), `sdt-sitter-last-shutdown.json` in the data
+directory when diagnostics are on (`writeSDTDeathCertificate`,
+`Zotero.File.putContents`; the rung-3 driver turns diagnostics on), one debug
+preference in the profile, and no `Zotero.DB` write. The first reading missed
+the shutdown file: a grep for one write API does not inventory the others,
+which is why the measured diff, not the code read, decides the set. What it causes Zotero to write
 through `Zotero.SDT.ensure()` is the `.zotero-sdt-cache` pack; whether `ensure()`
 touches anything else (the full-text tables, `.zotero-ft-cache`) is not known
 and is this ticket's first measurement, not an assumption.
@@ -30,7 +36,7 @@ and is this ticket's first measurement, not an assumption.
 
 1. A snapshot function over a Zotero data directory: `zotero.sqlite` dumped
    table by table as row content (opened read-only, on a copy if Zotero holds
-   it), plus a hash of every file under `storage/`.
+   it), plus a hash of every file in the directory tree, the root included.
 2. A diff that fails on anything outside the permitted set, and, for a
    scenario that edits the library itself, asserts the difference is exactly
    those edits.

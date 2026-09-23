@@ -16,13 +16,17 @@ below the last runs outside the author's Zotero. The ruling is `DECISIONS.md`
 run's own log confirming Zotero opened that directory and not the author's.
 
 **Integrity, from rung 2 up.** The sitter promises to change the SDT cache and
-nothing else. Each rung compares the library before and after — every table of
-`zotero.sqlite` by row content, every file under `storage/` by hash — and
-fails on any difference outside the permitted set: the `.zotero-sdt-cache`
-packs Zotero writes when the sitter calls `Zotero.SDT.ensure()`, and the
-sitter's own `sdt-sitter-cache.jsonl`. Where the scenario itself edits the
-library, the difference must be exactly those edits. Ticket 0816 builds the
-check and shows it red on a build that breaks the promise.
+nothing else. Each rung compares the data directory before and after — every
+table of `zotero.sqlite` by row content, every file in the directory tree by
+hash, the root included — and fails on any difference outside the permitted
+set. The set is whatever ticket 0816 measures and the author accepts; read
+from the code at `9aca794` it holds the `.zotero-sdt-cache` packs Zotero
+writes when the sitter calls `Zotero.SDT.ensure()`, the sitter's own
+`sdt-sitter-cache.jsonl` (and its `.tmp` during compaction), and
+`sdt-sitter-last-shutdown.json`, written at shutdown when diagnostics are on.
+Where the scenario itself edits the library, the difference must be exactly
+those edits. 0816 also shows the check red on a build that breaks the
+promise.
 
 **Rung 3 is the whole Menagerie, wild documents included.** The corpus is
 where the extremes belong — the plates volume and the 3 666-page EIS arrive
