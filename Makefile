@@ -321,7 +321,8 @@ SITTER_SMOKE_ZOTERO ?= $(HOME)/.local/Zotero_linux-x86_64/zotero
 # Exit codes: 0 pass, 1 a real defect (the sitter never armed, the data
 # directory did not match what was requested, an assertion after import came
 # back wrong), 3 NOT-RUN -- no Zotero binary, no display, the XPI would not
-# build, or RDP never connected -- never conflated with 0.
+# build, RDP never connected, or the sitter's gate refused admission on this
+# host (ticket 0824) -- never conflated with 0.
 #
 #   DISPLAY=:1 make sitter-smoke SITTER_SMOKE_ZOTERO=~/.local/Zotero_linux-x86_64/zotero
 sitter-smoke:

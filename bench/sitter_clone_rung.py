@@ -28,9 +28,16 @@ before-snapshot:
 Refuses to run on a data directory any local Zotero profile is pinned to: the
 author's live library is never this driver's target.
 
+Refuses, too, a host the sitter's own gate would refuse (ticket 0824): a
+preflight before launch against the plugin's disk floor and the core count,
+and on every settle poll a refusal with work pending ends the run NOT-RUN,
+the gate and its readings in the record, instead of running out
+`--settle-timeout` as a census that never settled.
+
 Exit codes, this repo's convention: 0 PASS (settled, both segments clean);
 1 FAIL (a violation, a census that never settled, or the wrong data directory
-opened); 2 usage; 3 NOT-RUN (no Zotero, no display, no RDP).
+opened); 2 usage; 3 NOT-RUN (no Zotero, no display, no RDP, or the sitter's
+gate refusing admission on this host).
 """
 
 import argparse
@@ -49,7 +56,14 @@ sys.path.insert(0, str(REPO / "bench"))
 
 import sdt_stall_probe as stall  # noqa: E402
 import sitter_integrity as integrity  # noqa: E402
-from sitter_menagerie_test import STATE  # noqa: E402
+from sitter_refusal import (  # noqa: E402
+    DEFAULT_DISK_MARGIN,
+    STATE,
+    SitterRefused,
+    arena_work_dir,
+    guard_for,
+    preflight,
+)
 from sitter_smoke_test import (  # noqa: E402
     FAIL,
     NOT_RUN,
@@ -152,10 +166,11 @@ class Sampler:
                 "worker": stall.worker_cpu(summary)}
 
 
-def wait_for_settle(client, log, args, sampler: Sampler) -> dict:
+def wait_for_settle(client, log, args, sampler: Sampler, guard=None) -> dict:
     """Poll the sitter's state until `settled()` holds for `settle_polls`
     consecutive reads, or the deadline passes. Keeps a trace of every read
-    whose phase or pending count changed."""
+    whose phase or pending count changed. `guard` raises `SitterRefused` on
+    the poll that sees the gate refuse with work pending (ticket 0824)."""
     started = time.monotonic()
     deadline = started + args.settle_timeout
     trace, streak, last_key, state = [], 0, None, {}
@@ -163,6 +178,8 @@ def wait_for_settle(client, log, args, sampler: Sampler) -> dict:
     while True:
         state = eval_action(client, STATE, args.eval_timeout, log, "state")
         polls += 1
+        if guard is not None and state.get("ok"):
+            guard.check(state)
         key = (state.get("phase"), state.get("pending"), state.get("busy"))
         elapsed = round(time.monotonic() - started)
         if key != last_key or polls % 20 == 0:
@@ -214,6 +231,8 @@ def run_clone(args, log: Log) -> dict:
                            f"{pinned[str(data_dir)]} -- this driver runs on a copy only")
     if not (data_dir / "zotero.sqlite").is_file():
         raise NotRunError(f"{data_dir} holds no zotero.sqlite")
+    # The sitter measures disk where the copy's attachments live (ticket 0824).
+    log.write(f"clone preflight: {preflight(data_dir, margin=args.disk_margin)}")
 
     binary = find_zotero_bin(args.zotero_bin)
     app_ini = binary.parent / "app" / "application.ini"
@@ -281,7 +300,8 @@ def run_clone(args, log: Log) -> dict:
 
         sampler = Sampler(proc.pid, window=args.cpu_window)
         sampler.thread.start()
-        out["settle"] = wait_for_settle(client, log, args, sampler)
+        guard = guard_for(client, log, data_dir / "storage", args.eval_timeout)
+        out["settle"] = wait_for_settle(client, log, args, sampler, guard=guard)
         sampler.stop.set()
         log.write(f"clone settle: settled={out['settle']['settled']} "
                   f"seconds={out['settle']['seconds']} final={out['settle']['final']}")
@@ -380,8 +400,14 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--data-dir", type=Path, required=True,
                         help="the COPY to run on (bench/sitter_clone_data.py made it)")
-    parser.add_argument("--work-dir", type=Path, required=True,
-                        help="a fresh directory for the profile, XPI and logs")
+    parser.add_argument("--work-dir", type=Path, default=None,
+                        help="a fresh directory for the profile, XPI and logs "
+                             "(default: a fresh run directory under "
+                             "$ACCEPTANCE_ARENA/sitter-clone, on ~/data and "
+                             "never /tmp, ticket 0824)")
+    parser.add_argument("--disk-margin", type=int, default=DEFAULT_DISK_MARGIN,
+                        help="bytes the preflight asks for above the sitter's own "
+                             "disk floor, which is read from the plugin")
     parser.add_argument("--record", type=Path, default=None,
                         help="where to write the run record (JSON)")
     parser.add_argument("--clone-record", type=Path, default=None,
@@ -407,7 +433,14 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
     args.zotero_bin = Path(args.zotero_bin)
     args.integrity_records = []
+    if args.work_dir is None:
+        with arena_work_dir("clone") as work_dir:
+            args.work_dir = work_dir
+            return _main(args)
+    return _main(args)
 
+
+def _main(args) -> int:
     args.work_dir.mkdir(parents=True, exist_ok=True)
     if any(args.work_dir.iterdir()):
         print(f"--work-dir {args.work_dir} is not empty", file=sys.stderr)
@@ -426,6 +459,9 @@ def main(argv=None) -> int:
         code = PASS if outcome["ok"] else FAIL
     except NotRunError as exc:
         outcome, code = {"ok": False, "error": f"NOT-RUN: {exc}"}, NOT_RUN
+        if isinstance(exc, SitterRefused):
+            # The gate and its readings are the record (ticket 0824).
+            outcome.update(refusal=exc.record, integrity=args.integrity_records)
     except Exception as exc:  # noqa: BLE001 -- an unattended run records its own crash
         outcome = {"ok": False, "error": f"{type(exc).__name__}: {exc}",
                    "integrity": args.integrity_records}

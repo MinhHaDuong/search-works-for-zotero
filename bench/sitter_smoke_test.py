@@ -44,8 +44,9 @@ verdict is logged and carried in the outcome under `integrity`.
      0784's log) is required to produce at least once.
   2  usage error (bad arguments).
   3  NOT-RUN -- could not look: no Zotero binary at `--zotero-bin`, no display,
-     the XPI would not build, the debugger port never came up, or RDP never
-     connected. Never conflated with 0: a gate whose all-clear cannot be told
+     the XPI would not build, the debugger port never came up, RDP never
+     connected, or the sitter's resource gate refuses admission on this host
+     (ticket 0824: the preflight before launch, the guard on every wait). Never conflated with 0: a gate whose all-clear cannot be told
      from its could-not-look is not a gate (AGENTS.md, `tickets/AGENTS.md`).
 
 ## What is reused, and what this file adds
@@ -72,7 +73,6 @@ import shutil
 import struct
 import subprocess
 import sys
-import tempfile
 import time
 import zlib
 from pathlib import Path
@@ -95,6 +95,15 @@ from sitter_volume_experiment import (  # noqa: E402
     wait_for_port,
 )
 import sitter_integrity as integrity  # noqa: E402
+from sitter_refusal import (  # noqa: E402
+    DEFAULT_DISK_MARGIN,
+    STATE,
+    NotRunError,
+    SitterRefused,
+    arena_work_dir,
+    guard_for,
+    preflight,
+)
 from sitter_watch import Log, connect_resilient, refuse_dot_log  # noqa: E402
 from zotero_rdp_client import RDPConnectionClosed, RDPTimeout  # noqa: E402
 
@@ -102,10 +111,6 @@ NOT_RUN = 3
 FAIL = 1
 PASS = 0
 USAGE = 2
-
-
-class NotRunError(Exception):
-    """Could not look: environment/setup, never the add-on's own behaviour."""
 
 
 class SmokeFailure(Exception):
@@ -372,7 +377,8 @@ def check_cache_rows(cache_path: Path, expected: int, log) -> dict:
 
 
 def wait_for_preparation(data_dir: Path, fixture_dir: Path, cache_path: Path,
-                         expected: int, deadline: float, log) -> tuple[dict, dict]:
+                         expected: int, deadline: float, log,
+                         watch=None) -> tuple[dict, dict]:
     """Poll the on-disk artefacts until every document is prepared, or give up.
 
     Reading these once was enough while the fixture was three generated
@@ -387,8 +393,14 @@ def wait_for_preparation(data_dir: Path, fixture_dir: Path, cache_path: Path,
     its phase, on the same principle as every other check here: what reaches
     disk is the claim worth testing. On timeout the LAST failure is re-raised,
     so the message names what was actually missing rather than "timed out".
+
+    `watch`, called once per poll, is the sitter-refusal guard (ticket 0824):
+    a refused admission raises `SitterRefused` there, NOT-RUN, instead of
+    reading as preparation that never finished.
     """
     while True:
+        if watch is not None:
+            watch()
         try:
             cache = check_cache_rows(cache_path, expected, log)
             packs = check_packs(data_dir, fixture_dir, expected, log)
@@ -506,6 +518,9 @@ def run_smoke(args) -> dict:
 def _run_smoke(args, log: Log) -> dict:
     log.write(f"smoke starting: zotero={args.zotero_bin} port={args.port} "
               f"work_dir={args.work_dir}")
+    # Ticket 0824: a host the sitter's gate would refuse is refused here,
+    # before anything is built or launched. The data dir goes under work_dir.
+    log.write(f"smoke preflight: {preflight(args.work_dir, margin=args.disk_margin)}")
 
     binary = find_zotero_bin(args.zotero_bin)
     app_ini = binary.parent / "app" / "application.ini"
@@ -623,9 +638,16 @@ def _run_smoke(args, log: Log) -> dict:
         # passed it (ticket 0785). Both reads below are on-disk, independent of
         # anything the add-on reported about itself.
         prepared = imported["attachments"] - imported["missing"]
+        guard = guard_for(client, log, actual_data_dir / "storage", args.eval_timeout)
+
+        def watch():
+            state = eval_action(client, STATE, args.eval_timeout, log, "state")
+            if state.get("ok"):
+                guard.check(state)
+
         cache, packs = wait_for_preparation(
             actual_data_dir, fixture_dir, cache_path, prepared,
-            time.monotonic() + args.census_timeout, log)
+            time.monotonic() + args.census_timeout, log, watch=watch)
 
         # One segment: install, import, preparation. The import is the
         # scenario's own edit and is declared; everything else must be the
@@ -657,8 +679,13 @@ def main(argv=None) -> int:
                         help="the Zotero launcher script, not zotero-bin itself")
     parser.add_argument("--work-dir", type=Path, default=None,
                         help="base dir for the throwaway profile/data/fixture/log "
-                             "(default: a fresh mkdtemp, removed after the run "
-                             "unless --keep is given)")
+                             "(default: a fresh run directory under "
+                             "$ACCEPTANCE_ARENA/sitter-smoke, on ~/data and never "
+                             "/tmp (ticket 0824), removed after the run unless "
+                             "--keep is given)")
+    parser.add_argument("--disk-margin", type=int, default=DEFAULT_DISK_MARGIN,
+                        help="bytes the preflight asks for above the sitter's own "
+                             "disk floor, which is read from the plugin")
     parser.add_argument("--keep", action="store_true",
                         help="keep --work-dir after the run instead of removing it")
     parser.add_argument("--xpi", type=Path, default=None,
@@ -690,10 +717,15 @@ def main(argv=None) -> int:
     args.integrity_records = []
 
     args.zotero_bin = Path(args.zotero_bin)
-    own_work_dir = args.work_dir is None
-    if own_work_dir:
-        args.work_dir = Path(tempfile.mkdtemp(prefix="sdt-sitter-smoke-"))
-    else:
+    if args.work_dir is None:
+        with arena_work_dir("smoke") as work_dir:
+            args.work_dir = work_dir
+            return _main(args, own_work_dir=True)
+    return _main(args, own_work_dir=False)
+
+
+def _main(args, *, own_work_dir: bool) -> int:
+    if not own_work_dir:
         args.work_dir.mkdir(parents=True, exist_ok=True)
         if any(args.work_dir.iterdir()):
             print(f"--work-dir {args.work_dir} is not empty; pass a fresh directory",
@@ -711,6 +743,10 @@ def main(argv=None) -> int:
         return PASS
     except NotRunError as exc:
         print(f"NOT-RUN: {exc}", file=sys.stderr)
+        if isinstance(exc, SitterRefused):
+            # The refusal's gate and readings are the run record (ticket 0824).
+            print(json.dumps({"ok": False, "not_run": True, "refusal": exc.record,
+                              "integrity": args.integrity_records}, indent=2))
         return NOT_RUN
     except Exception as exc:  # noqa: BLE001 -- an unattended smoke test logs its own crash
         known = isinstance(exc, SmokeFailure)

@@ -82,6 +82,14 @@ from sitter_smoke_test import (  # noqa: E402
     stop_zotero,
 )
 import sitter_integrity as integrity  # noqa: E402
+from sitter_refusal import (  # noqa: E402
+    DEFAULT_DISK_MARGIN,
+    STATE,
+    SitterRefused,
+    arena_work_dir,
+    guard_for,
+    preflight,
+)
 from sitter_volume_experiment import (  # noqa: E402
     eval_action,
     import_menagerie_code,
@@ -90,6 +98,10 @@ from sitter_volume_experiment import (  # noqa: E402
     wait_for_port,
 )
 from sitter_watch import Log, connect_resilient  # noqa: E402
+
+
+#: This driver's NOT-RUN exit code, as it has always been; TIMEOUT is 3.
+NOT_RUN_EXIT = 2
 
 
 class MenagerieFailure(Exception):
@@ -189,17 +201,8 @@ def pick_victim(rows: list[dict], packs: dict) -> dict | None:
 # chrome-side probes
 # --------------------------------------------------------------------------
 
-STATE = """
-(function() {
-  try {
-    const s = Zotero.SDTPackSitter && Zotero.SDTPackSitter.state;
-    if (!s) return JSON.stringify({ok: false, reason: "no-handle"});
-    return JSON.stringify({ok: true, enabled: !!s.enabled, busy: !!s.busy,
-      phase: s.phase, active: s.active, scanned: s.scanned, total: s.total,
-      completed: s.completed, failed: s.failed, pending: s.pending.length});
-  } catch (e) { return JSON.stringify({ok: false, reason: String(e)}); }
-})()
-"""
+# `STATE`, the probe every wait polls, lives in `sitter_refusal` since ticket
+# 0824, beside the guard that reads its `phase`.
 
 #: Open the panel the way a user does -- the toolbar button's own command --
 #: rather than by calling openDialog(), which is not reachable from here anyway
@@ -407,9 +410,13 @@ def packs_on_disk(data_dir: Path) -> dict:
 
 
 def wait_for_pack_count(data_dir: Path, want: int, deadline: float, log: Log,
-                        what: str) -> dict:
+                        what: str, watch=None) -> dict:
+    """`watch`, once per poll, is the refusal guard (ticket 0824): a pack that
+    never returns because the gate refused is NOT-RUN, not a FAIL."""
     last = None
     while time.monotonic() < deadline:
+        if watch is not None:
+            watch()
         last = packs_on_disk(data_dir)
         if len(last) == want:
             log.write(f"menagerie {what}: {want} pack(s) on disk")
@@ -420,7 +427,7 @@ def wait_for_pack_count(data_dir: Path, want: int, deadline: float, log: Log,
         f"{len(last or {})} after the deadline. Present: {sorted((last or {}))}")
 
 
-def wait_settled(run, args, log: Log, expected: int) -> dict:
+def wait_settled(run, args, log: Log, expected: int, guard=None) -> dict:
     """Wait until the sitter has nothing left to do, or has stopped doing it.
 
     Two endings, both handed on to the sweep, which is what judges them:
@@ -432,6 +439,11 @@ def wait_settled(run, args, log: Log, expected: int) -> dict:
     where a timeout is not. Only a run still making progress at
     `index_timeout` is a RungTimeout. `expected` is the attachment count
     listed from the package.
+
+    A third ending, REFUSED (ticket 0824): `guard` sees the sitter's gate
+    refuse admission with work pending and raises `SitterRefused` on that
+    poll -- NOT-RUN, the host's verdict -- rather than letting the refusal
+    read as a stall or run out the deadline.
     """
     started = time.monotonic()
     deadline = started + args.index_timeout
@@ -439,6 +451,8 @@ def wait_settled(run, args, log: Log, expected: int) -> dict:
     while True:
         s = run.state()
         polls += 1
+        if guard is not None:
+            guard.check(s)
         key = (s["completed"], s["failed"], s["pending"], s["total"], s["active"])
         if key != last_key or s["busy"]:
             last_key, quiet_since = key, time.monotonic()
@@ -631,7 +645,8 @@ def phase_resume(run: Run, log: Log) -> dict:
 
 
 def phase_invalidation(run: Run, data_dir: Path, fixture_dir: Path, log: Log,
-                       args, *, whole_item: bool, ledger: integrity.Ledger) -> dict:
+                       args, *, whole_item: bool, ledger: integrity.Ledger,
+                       guard=None) -> dict:
     """Steps 6-7 and 8. Delete, watch the pack go; restore, watch it return.
 
     The integrity check closes a segment after the erase and another after
@@ -639,6 +654,7 @@ def phase_invalidation(run: Run, data_dir: Path, fixture_dir: Path, log: Log,
     cannot cancel out in one diff (ticket 0816).
     """
     what = "item" if whole_item else "attachment"
+    watch = (lambda: guard.check(run.state())) if guard is not None else None
     integrity_segment(ledger, f"before {what} erase", failure=MenagerieFailure)
     listing = run.ev_long(ATTACHMENTS, f"list attachments before {what} delete", timeout=90)
     before = packs_on_disk(data_dir)
@@ -667,7 +683,7 @@ def phase_invalidation(run: Run, data_dir: Path, fixture_dir: Path, log: Log,
 
     after = wait_for_pack_count(data_dir, len(before) - 1,
                                 time.monotonic() + args.invalidation_timeout,
-                                log, f"{what} deleted")
+                                log, f"{what} deleted", watch=watch)
     if victim["key"] in after:
         raise MenagerieFailure(
             f"the count fell but {victim['key']}'s own pack is still there")
@@ -690,7 +706,7 @@ def phase_invalidation(run: Run, data_dir: Path, fixture_dir: Path, log: Log,
 
     back = wait_for_pack_count(data_dir, len(before),
                                time.monotonic() + args.restore_timeout,
-                               log, f"{what} restored")
+                               log, f"{what} restored", watch=watch)
     if digest not in set(back.values()):
         raise MenagerieFailure(
             f"a pack came back but none names the restored file's hash {digest!r}; "
@@ -790,6 +806,9 @@ def _timing(t: dict) -> dict:
 
 def run_menagerie(args) -> dict:
     log = Log(args.work_dir / "menagerie.log")
+    # Ticket 0824: a host the sitter's gate would refuse is refused before
+    # anything is built, copied or launched. The data dir goes under work_dir.
+    log.write(f"menagerie preflight: {preflight(args.work_dir, margin=args.disk_margin)}")
     binary = find_zotero_bin(args.zotero_bin)
     app_ini = binary.parent / "app" / "application.ini"
 
@@ -854,6 +873,7 @@ def run_menagerie(args) -> dict:
                 f"REFUSING to import: Zotero opened {data_dir}, not the pinned "
                 f"{requested.resolve()}. Nothing was imported.")
         phases["install"] = {"installed": installed, "dataDir": str(data_dir)}
+        guard = guard_for(client, log, data_dir / "storage", args.eval_timeout)
 
         # OFF FIRST, then import: the work has to be created during the pause
         # for the pause to be observable at all.
@@ -885,7 +905,7 @@ def run_menagerie(args) -> dict:
         phases["resume"] = phase_resume(run, log)
         timing["resumed"] = time.time()
 
-        phases["settle"] = wait_settled(run, args, log, expected)
+        phases["settle"] = wait_settled(run, args, log, expected, guard=guard)
         timing["settled"] = time.time()
         rows = sweep(run, args, log)
         args.attachment_records = rows
@@ -905,9 +925,11 @@ def run_menagerie(args) -> dict:
         integrity_segment(ledger, "resume+index", failure=MenagerieFailure)
 
         phases["attachment_cycle"] = phase_invalidation(
-            run, data_dir, fixture_dir, log, args, whole_item=False, ledger=ledger)
+            run, data_dir, fixture_dir, log, args, whole_item=False, ledger=ledger,
+            guard=guard)
         phases["item_cycle"] = phase_invalidation(
-            run, data_dir, fixture_dir, log, args, whole_item=True, ledger=ledger)
+            run, data_dir, fixture_dir, log, args, whole_item=True, ledger=ledger,
+            guard=guard)
 
         phases["uninstall"] = phase_uninstall(run, data_dir, profile, log, args, ledger)
         log.write("menagerie PASS")
@@ -927,8 +949,14 @@ def run_menagerie(args) -> dict:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--work-dir", type=Path, required=True,
-                    help="a fresh directory; the profile and data dir are made under it")
+    ap.add_argument("--work-dir", type=Path, default=None,
+                    help="a fresh directory; the profile and data dir are made "
+                         "under it (default: a fresh run directory under "
+                         "$ACCEPTANCE_ARENA/sitter-menagerie, on ~/data and "
+                         "never /tmp, ticket 0824)")
+    ap.add_argument("--disk-margin", type=int, default=DEFAULT_DISK_MARGIN,
+                    help="bytes the preflight asks for above the sitter's own "
+                         "disk floor, which is read from the plugin")
     ap.add_argument("--xpi", type=Path, help="payload; built from the tree if omitted")
     ap.add_argument("--zotero-bin", type=Path,
                     default=Path("/home/haduong/.local/bin/zotero"))
@@ -979,7 +1007,14 @@ def main(argv=None) -> int:
     ap.add_argument("--uninstall-timeout", type=float, default=60.0)
     ap.add_argument("--json-out", type=Path)
     args = ap.parse_args(argv)
+    if args.work_dir is None:
+        with arena_work_dir("menagerie") as work_dir:
+            args.work_dir = work_dir
+            return _main(args)
+    return _main(args)
 
+
+def _main(args) -> int:
     args.work_dir.mkdir(parents=True, exist_ok=True)
     args.integrity_records = []
     args.attachment_records = []
@@ -988,7 +1023,14 @@ def main(argv=None) -> int:
         result = run_menagerie(args)
     except NotRunError as exc:
         print(f"NOT-RUN: {exc}")
-        return 2
+        if args.json_out:
+            # A refusal's gate and readings are the record (ticket 0824).
+            args.json_out.write_text(json.dumps(
+                {"ok": False, "not_run": True, "error": str(exc),
+                 "refusal": exc.record if isinstance(exc, SitterRefused) else None,
+                 "integrity": args.integrity_records}, indent=2), encoding="utf-8")
+            print(f"\nwrote {args.json_out}")
+        return NOT_RUN_EXIT
     except RungTimeout as exc:
         print(f"TIMEOUT: {exc}")
         if args.json_out:
