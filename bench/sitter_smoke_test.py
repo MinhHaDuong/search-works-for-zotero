@@ -430,6 +430,21 @@ def setup_profile(work_dir: Path, port: int) -> tuple[Path, Path]:
     return profile, data_dir
 
 
+def setup_profile_existing_data(work_dir: Path, data_dir: Path) -> Path:
+    """A fresh profile pinned to an already-populated data directory -- the
+    clone rung's copy of a real library (ticket 0818). The profile is new and
+    refused if present; the data directory must already hold a library, and
+    is never created here. Same pins as `setup_profile`."""
+    if not (data_dir / "zotero.sqlite").is_file():
+        raise FileNotFoundError(f"{data_dir} holds no zotero.sqlite")
+    profile = work_dir / "profile"
+    profile.mkdir(parents=True)
+    prefs = SEED_PREFS.replace("{data_dir}", str(data_dir))
+    prefs += 'user_pref("extensions.zotero.useDataDir", true);\n'
+    (profile / "prefs.js").write_text(prefs, encoding="utf-8")
+    return profile
+
+
 def launch_zotero(binary: Path, app_ini: Path, profile: Path, port: int,
                   stdout_log_path: Path):
     env = {

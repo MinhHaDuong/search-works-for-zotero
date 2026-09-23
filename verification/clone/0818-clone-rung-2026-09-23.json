@@ -1,0 +1,509 @@
+{
+ "ok": true,
+ "_run": {
+  "version": "0.4.31",
+  "host": "padme",
+  "when": "2026-09-23T17:24Z",
+  "wall_seconds": 21439,
+  "main": "cb29b8be",
+  "script": "bench/sitter_clone_rung.py",
+  "zotero_bin": "/home/haduong/.local/Zotero_linux-x86_64/zotero",
+  "note": "Rung 4 on padme (Zotero 10.0.3, Xvfb :98, 24 cores shared with other jobs). The sitter ran on a reflink sibling (/home/haduong/data/clone-rung/2026-09-23/run) of the transferred copy (/home/haduong/data/clone-rung/2026-09-23/Zotero), itself rsynced from doudou's cp -a --reflink=always of /home/haduong/data/Zotero taken at 16:05 UTC with no zotero-bin listed."
+ },
+ "clone": {
+  "source": "/home/haduong/data/clone-rung/2026-09-23/Zotero",
+  "dest": "/home/haduong/data/clone-rung/2026-09-23/run",
+  "argv": [
+   "cp",
+   "-a",
+   "--reflink=always",
+   "/home/haduong/data/clone-rung/2026-09-23/Zotero",
+   "/home/haduong/data/clone-rung/2026-09-23/run"
+  ],
+  "seconds": 16.4,
+  "files": 225278,
+  "bytes": 48399543702,
+  "wal_bytes": 0,
+  "free_gb_before": 518.8,
+  "locks": [
+   {
+    "profile": "/home/haduong/.zotero/zotero/e8mz6uxw.default",
+    "pid": 44777,
+    "live": false
+   }
+  ],
+  "when": "2026-09-23T17:24Z"
+ },
+ "dataDir": "/home/haduong/data/clone-rung/2026-09-23/run",
+ "sidecars_before_launch": {
+  "zotero.sqlite-shm": 32768,
+  "zotero.sqlite-wal": 0
+ },
+ "pre_launch_snapshot_s": 105,
+ "baseline_snapshot_s": 223,
+ "startup": {
+  "files": {
+   "storage/*/.zotero-ft-cache: appear": 101,
+   "storage/*/.zotero-ft-cache: change": 3,
+   "storage/*/.zotero-ft-unprocessed: disappear": 104
+  },
+  "tables": {
+   "fulltext.sqlite:fulltextContentCJK_data": {
+    "before": 123,
+    "after": 206
+   },
+   "fulltext.sqlite:fulltextContentCJK_docsize": {
+    "before": 397,
+    "after": 405
+   },
+   "fulltext.sqlite:fulltextContentCJK_idx": {
+    "before": 121,
+    "after": 204
+   },
+   "fulltext.sqlite:fulltextContent_data": {
+    "before": 73761,
+    "after": 76121
+   },
+   "fulltext.sqlite:fulltextContent_docsize": {
+    "before": 13236,
+    "after": 13337
+   },
+   "fulltext.sqlite:fulltextContent_idx": {
+    "before": 28502,
+    "after": 29172
+   },
+   "zotero.sqlite:fulltextItems": {
+    "before": 14366,
+    "after": 14366
+   },
+   "zotero.sqlite:version": {
+    "before": 14,
+    "after": 14
+   }
+  },
+  "housekeeping": {},
+  "note": "Zotero's own start-up on a fresh profile; recorded, not judged"
+ },
+ "installed": {
+  "ok": true,
+  "id": "sdt-pack-sitter@search-works-for-zotero.invalid",
+  "version": "0.4.31"
+ },
+ "armed": {
+  "ok": true,
+  "dataDir": "/home/haduong/data/clone-rung/2026-09-23/run",
+  "mainWindows": 1,
+  "handle": true,
+  "phase": "census",
+  "scanned": 0,
+  "total": 0,
+  "cacheWritten": true
+ },
+ "settle": {
+  "settled": true,
+  "seconds": 20910,
+  "polls": 1394,
+  "final": {
+   "ok": true,
+   "enabled": true,
+   "busy": false,
+   "phase": "waiting",
+   "active": null,
+   "scanned": 16853,
+   "total": 16853,
+   "completed": 8103,
+   "failed": 391,
+   "pending": 0
+  },
+  "trace": [
+   {
+    "t": 0,
+    "phase": "census",
+    "busy": true,
+    "pending": 0,
+    "scanned": 0,
+    "total": 0,
+    "completed": 0,
+    "failed": 0
+   },
+   {
+    "t": 691,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 7875,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 248,
+    "failed": 371
+   },
+   {
+    "t": 1306,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 7632,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 490,
+    "failed": 372
+   },
+   {
+    "t": 1876,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 7369,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 753,
+    "failed": 372
+   },
+   {
+    "t": 2477,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 7113,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 1008,
+    "failed": 373
+   },
+   {
+    "t": 3063,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 6739,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 1382,
+    "failed": 373
+   },
+   {
+    "t": 3649,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 6502,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 1617,
+    "failed": 375
+   },
+   {
+    "t": 4235,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 6247,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 1872,
+    "failed": 375
+   },
+   {
+    "t": 4955,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 6089,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 2029,
+    "failed": 376
+   },
+   {
+    "t": 5826,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 5926,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 2192,
+    "failed": 376
+   },
+   {
+    "t": 7266,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 5730,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 2388,
+    "failed": 376
+   },
+   {
+    "t": 8347,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 5563,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 2555,
+    "failed": 376
+   },
+   {
+    "t": 9172,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 5322,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 2795,
+    "failed": 377
+   },
+   {
+    "t": 9728,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 5029,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 3088,
+    "failed": 377
+   },
+   {
+    "t": 10343,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 4740,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 3376,
+    "failed": 378
+   },
+   {
+    "t": 11004,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 4343,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 3772,
+    "failed": 379
+   },
+   {
+    "t": 11604,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 4028,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 4086,
+    "failed": 380
+   },
+   {
+    "t": 12175,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 3745,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 4368,
+    "failed": 381
+   },
+   {
+    "t": 12805,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 3461,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 4652,
+    "failed": 381
+   },
+   {
+    "t": 13420,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 3191,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 4921,
+    "failed": 382
+   },
+   {
+    "t": 13991,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 2755,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 5355,
+    "failed": 384
+   },
+   {
+    "t": 14591,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 2390,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 5720,
+    "failed": 384
+   },
+   {
+    "t": 15207,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 2171,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 5938,
+    "failed": 385
+   },
+   {
+    "t": 16407,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 1889,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 6220,
+    "failed": 385
+   },
+   {
+    "t": 17203,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 1570,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 6539,
+    "failed": 385
+   },
+   {
+    "t": 17788,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 1180,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 6929,
+    "failed": 385
+   },
+   {
+    "t": 18464,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 891,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 7217,
+    "failed": 386
+   },
+   {
+    "t": 19019,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 512,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 7595,
+    "failed": 387
+   },
+   {
+    "t": 19634,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 194,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 7911,
+    "failed": 389
+   },
+   {
+    "t": 20745,
+    "phase": "extracting",
+    "busy": true,
+    "pending": 18,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 8085,
+    "failed": 391
+   },
+   {
+    "t": 20865,
+    "phase": "waiting",
+    "busy": false,
+    "pending": 0,
+    "scanned": 16853,
+    "total": 16853,
+    "completed": 8103,
+    "failed": 391
+   }
+  ],
+  "cpu": {
+   "ok": true,
+   "pid": 391394,
+   "intervals": 120,
+   "windowS": 600.6534547269985,
+   "overall": {
+    "elapsedS": 600.6534547269985,
+    "processPercent": 106.85862121474447,
+    "rssBytes": 2902401024,
+    "rssDeltaBytes": -1176547328,
+    "readBytes": 275582976,
+    "rcharBytes": 2607379176
+   },
+   "overallTopThread": {
+    "tid": 396048,
+    "comm": "DOM Worker",
+    "percent": 88.56687592711657,
+    "bornInWindow": false,
+    "readBytes": 0,
+    "rcharBytes": 0
+   },
+   "threadsExitedInWindow": 0,
+   "maxProcessPercent": 164.24020679398882,
+   "minProcessPercent": 0.3995306221557561,
+   "maxTopThreadPercent": 100.09848790084055,
+   "intervalsAboveSlow": 110,
+   "slowCpuPct": 10.0,
+   "worker": {
+    "workerPercent": 88.56687592711657,
+    "processPercent": 106.85862121474447,
+    "maxProcessPercent": 164.24020679398882,
+    "maxTopThreadPercent": 100.09848790084055,
+    "intervals": 120,
+    "intervalsAboveSlow": 110,
+    "readBytes": 275582976,
+    "rcharBytes": 2607379176,
+    "workerReadBytes": 0,
+    "workerRcharBytes": 0,
+    "threadsExitedInWindow": 0,
+    "tid": 396048,
+    "comm": "DOM Worker",
+    "how": "busiest thread over the whole sampling window"
+   }
+  },
+  "trace_note": "every 37th of 1082 trace points, and the last"
+ },
+ "quit": "graceful ({'ok': True, 'note': 'connection closed on quit: connection closed while reading a packet header'})",
+ "sidecars_after_quit": {
+  "zotero.sqlite-shm": 32768,
+  "zotero.sqlite-wal": 0
+ },
+ "integrity": [
+  {
+   "segment": "census",
+   "verdict": "PASS",
+   "violations": [],
+   "files": {
+    "sdt-sitter-cache.jsonl: change": 1,
+    "storage/*/.zotero-sdt-cache: appear": 68,
+    "storage/*/.zotero-sdt-cache: change": 8035
+   },
+   "tables": {},
+   "housekeeping": {
+    "zotero.sqlite.1.bak: change": 1,
+    "zotero.sqlite.bak: change": 1
+   },
+   "declared": null
+  },
+  {
+   "segment": "quit",
+   "verdict": "PASS",
+   "violations": [],
+   "files": {},
+   "tables": {},
+   "housekeeping": {},
+   "declared": null
+  }
+ ],
+ "problems": []
+}

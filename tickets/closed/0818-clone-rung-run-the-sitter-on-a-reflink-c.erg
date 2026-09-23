@@ -2,6 +2,7 @@
 Title: Clone rung: run the sitter on a reflink copy of the author's library
 Created: 2026-09-23
 Author: claude
+Closed: autoclosed — PR #625
 
 --- log ---
 2026-09-23T08:15Z claude created
@@ -10,6 +11,9 @@ Author: claude
 2026-09-23T09:06Z sim note raid 2026-09-23 Plan: file:line plan and first tests appended; Phase 4 cross-ticket scan found no registry needing a coordination PR
 2026-09-23T10:12Z sim note blocker 0820 closed — Blocked-by removed.
 2026-09-23T11:11Z sim note blocker 0816 closed — Blocked-by removed.
+2026-09-23T23:23Z sim note clone-rung run on padme, launched at cb29b8b (Zotero 10.0.3, Xvfb :98), on a reflink sibling of the transferred copy: exit 0, 21 439 s wall; settled after 20 910 s with 16 853 of 16 853 scanned, completed 8 103, failed 391, pending 0; integrity census PASS (68 packs appear, 8 035 change, the cache changes, the two .bak rotate as housekeeping) and quit PASS; graceful quit. zotero.sqlite-wal 0 B before launch and after quit; zotero.sqlite-shm 32 768 B before and after, unchanged. dataDir read live was the copy. Record: verification/clone/0818-clone-rung-2026-09-23.json (folded by --summarize; the raw 612 KB run.json stays on padme).
+2026-09-23T23:23Z sim note lifecycle of the copies: doudou ~/data/clone-rung/2026-09-23/Zotero and padme ~/data/clone-rung/2026-09-23/{Zotero,run,work,dry,records} are deleted once PR #625 merges; the raw record goes with them. Open finding, not an exit criterion: 391 attachments ended failed and 8 035 existing packs were rewritten on first run, cause of either not established.
+2026-09-23T23:35Z sim closed — autoclosed — PR #625
 --- body ---
 ## Context
 
