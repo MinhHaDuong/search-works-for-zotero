@@ -110,12 +110,19 @@ def test_an_unchanged_directory_diffs_empty(tmp_path):
     assert si.diff(si.snapshot(data), si.snapshot(data)).empty
 
 
+#: The first four bytes of a WAL file (big-endian checksum variant).
+WAL_MAGIC = b"\x37\x7f\x06\x83"
+
+
 def test_the_housekeeping_files_are_excluded(tmp_path):
+    """Zotero's own names, beside their database, each with its own header:
+    `db.js` rotates backups as `<db>.bak` and `<db>.<n>.bak`."""
     data = make_data_dir(tmp_path)
     before = si.snapshot(data)
-    for name in ("zotero.sqlite-wal", "zotero.sqlite-shm", "zotero.sqlite.tmp-wal",
-                 "zotero.sqlite.bak", "zotero.sqlite.1.bak"):
-        (data / name).write_bytes(b"churn")
+    backup = (data / "zotero.sqlite").read_bytes()
+    (data / "zotero.sqlite.bak").write_bytes(backup)
+    (data / "zotero.sqlite.12.bak").write_bytes(backup)
+    (data / "zotero.sqlite.tmp-wal").write_bytes(WAL_MAGIC + b"\x00" * 28)
     assert si.diff(before, si.snapshot(data)).empty
 
 
@@ -570,7 +577,7 @@ def test_red_a_housekeeping_name_away_from_its_database(tmp_path):
     data = make_data_dir(tmp_path)
     before = si.snapshot(data)
     (data / "storage" / "AAAA1111" / "exfil.sqlite-evil.bak").write_bytes(b"x")
-    (data / "zotero.sqlite.bak").write_bytes(b"backup")
+    (data / "zotero.sqlite.bak").write_bytes((data / "zotero.sqlite").read_bytes())
     assert verdict(before, si.snapshot(data)) == [
         "storage/AAAA1111/exfil.sqlite-evil.bak: appear is not permitted"]
 
@@ -589,3 +596,67 @@ def test_settled_snapshot_retries_a_read_torn_by_a_vanishing_file(tmp_path, monk
     monkeypatch.setattr(si, "snapshot", flaky)
     assert si.settled_snapshot(data, settle=0, timeout=60, sleep=lambda _s: None) == real(data)
     assert len(calls) >= 3
+
+
+# --------------------------------------------------------------------------
+# review round 2 (PR #618): an excluded name must be what Zotero writes
+# --------------------------------------------------------------------------
+
+def test_red_an_open_wildcard_backup_name_beside_the_database(tmp_path):
+    """`*.sqlite*.bak` let any `zotero.sqlite-<anything>.bak` hide beside the
+    one database that is always there; Zotero only writes `.bak`, `.<n>.bak`."""
+    data = make_data_dir(tmp_path)
+    before = si.snapshot(data)
+    (data / "zotero.sqlite-EXFIL.bak").write_bytes((data / "zotero.sqlite").read_bytes())
+    assert verdict(before, si.snapshot(data)) == [
+        "zotero.sqlite-EXFIL.bak: appear is not permitted"]
+
+
+def test_red_a_backup_name_that_is_not_a_database(tmp_path):
+    data = make_data_dir(tmp_path)
+    before = si.snapshot(data)
+    (data / "zotero.sqlite.bak").write_bytes(b"ARBITRARY PAYLOAD" * 100)
+    assert verdict(before, si.snapshot(data)) == [
+        "zotero.sqlite.bak: appear is not permitted"]
+
+
+def test_red_a_tmp_wal_name_that_is_not_a_wal(tmp_path):
+    data = make_data_dir(tmp_path)
+    before = si.snapshot(data)
+    (data / "zotero.sqlite.tmp-wal").write_bytes(b"ARBITRARY PAYLOAD" * 100)
+    assert verdict(before, si.snapshot(data)) == [
+        "zotero.sqlite.tmp-wal: appear is not permitted"]
+
+
+def test_red_a_shm_file_zotero_on_linux_never_writes(tmp_path):
+    """Measured: Zotero 10 on Linux keeps the WAL index in its heap, and no run
+    left a `-shm`; one appearing is not Zotero's churn."""
+    data = make_data_dir(tmp_path)
+    before = si.snapshot(data)
+    (data / "zotero.sqlite-shm").write_bytes(b"\x00" * 32768)
+    assert verdict(before, si.snapshot(data)) == [
+        "zotero.sqlite-shm: appear is not permitted"]
+
+
+def test_a_directory_vanishing_mid_walk_raises_rather_than_reads_short(tmp_path, monkeypatch):
+    """os.walk skips an unlistable directory silently unless told otherwise, and
+    a snapshot missing a subtree would compare as a disappearance or not at all."""
+    import os
+    data = make_data_dir(tmp_path)
+    real = os.scandir
+
+    def scandir(path="."):
+        if str(path).endswith("AAAA1111"):
+            raise FileNotFoundError(path)
+        return real(path)
+
+    monkeypatch.setattr(os, "scandir", scandir)
+    with pytest.raises(FileNotFoundError):
+        si.snapshot(data)
+
+
+def test_a_dangling_symlink_is_recorded(tmp_path):
+    data = make_data_dir(tmp_path)
+    before = si.snapshot(data)
+    (data / "storage" / "ZZZZ9999").symlink_to(tmp_path / "nowhere", target_is_directory=True)
+    assert verdict(before, si.snapshot(data)) == ["storage/ZZZZ9999: appear is not permitted"]

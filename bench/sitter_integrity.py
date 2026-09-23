@@ -59,6 +59,7 @@ and any bytes past its declared page count are still unread: see TESTING.md.
 import fnmatch
 import hashlib
 import os
+import re
 import shutil
 import sqlite3
 import stat
@@ -67,20 +68,29 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
-#: Zotero's own churn, never the sitter's, and never evidence either way. Each
-#: is a view of a database that is itself read by content, or a backup Zotero
-#: rotates on its own schedule (precedent: `bench/smoke_upstream.py`). A name
-#: is excluded only beside its own database -- `zotero.sqlite.bak` next to
-#: `zotero.sqlite` -- never because a stray file elsewhere shares the suffix.
+#: Zotero's own churn, never the sitter's, and kept out of the file hashes.
+#: `<db>` is a `*.sqlite` present in the same directory: a name is excluded
+#: only beside its own database, never because a stray file elsewhere shares
+#: the suffix. The names are the ones Zotero writes (`db.js`: backups rotate as
+#: `<db>.bak` and `<db>.<n>.bak`), and a backup or a WAL must also begin with
+#: its format's header -- otherwise it is an ordinary file and compared like
+#: one. Beyond name and header, an excluded file's content is not compared
+#: (review of PR #618, round 2). No `-shm` is excluded: Zotero 10 on Linux keeps
+#: the WAL index in its heap, and no measured run left one.
 EXCLUDED = {
-    "*.sqlite-wal": "the WAL of a database read by content; its committed "
-                    "frames are read through the copy, and the frames past them "
-                    "are checked byte for byte instead of hashed whole, since "
-                    "Zotero truncates the WAL at idle with no logical change",
-    "*.sqlite-shm": "SQLite's shared-memory index for a WAL; derived state",
-    "*.sqlite.tmp-wal": "a transient WAL beside a database copy Zotero makes",
-    "*.sqlite*.bak": "Zotero's rotating automatic database backups",
+    "<db>-wal": "the WAL of a database read by content; its committed frames "
+                "are read through the copy, and the frames past them are "
+                "checked byte for byte instead of hashed whole, since Zotero "
+                "truncates the WAL at idle with no logical change",
+    "<db>.tmp-wal": "the WAL of the temporary copy Zotero's backup writes; "
+                    "must begin with the WAL magic",
+    "<db>.bak, <db>.<n>.bak": "Zotero's rotating automatic backups; must begin "
+                              "with the SQLite database header",
 }
+
+_HOUSEKEEPING = re.compile(r"^(?P<db>.+\.sqlite)(?P<kind>-wal|\.tmp-wal|\.bak|\.\d+\.bak)$")
+_SQLITE_HEADER = b"SQLite format 3\x00"
+_WAL_MAGICS = (b"\x37\x7f\x06\x82", b"\x37\x7f\x06\x83")
 
 #: What the sitter may do to the data directory, glob -> actions. `*` matches
 #: within one path segment only. Read from `plugins/sdt-sitter/bootstrap.js`
@@ -129,12 +139,21 @@ class LibraryEdit:
 # snapshot
 # --------------------------------------------------------------------------
 
-def _excluded(name: str, siblings: set[str]) -> bool:
-    """Housekeeping churn, and only beside the database it belongs to."""
-    if not any(fnmatch.fnmatchcase(name, pat) for pat in EXCLUDED):
+def _excluded(path: Path, siblings: set[str]) -> bool:
+    """Housekeeping churn: Zotero's name for it, beside its own database, and
+    for a backup or a temporary WAL, its format's header. `path` is a regular
+    file; the caller has already refused to open anything else."""
+    match = _HOUSEKEEPING.match(path.name)
+    if not match or match["db"] not in siblings:
         return False
-    stem = name[:name.index(".sqlite") + len(".sqlite")]
-    return stem != name and stem in siblings
+    kind = match["kind"]
+    if kind == "-wal":
+        return True
+    with open(path, "rb") as f:
+        head = f.read(len(_SQLITE_HEADER))
+    if kind == ".tmp-wal":
+        return head[:4] in _WAL_MAGICS
+    return head == _SQLITE_HEADER
 
 
 def _file_digest(path: Path) -> str:
@@ -222,7 +241,9 @@ def snapshot(data_dir: Path) -> dict:
     """
     data_dir = Path(data_dir)
     out = {"sqlite": {}, "wal": {}, "files": {}}
-    for root, dirs, files in os.walk(data_dir):
+    # onerror raises: by default the walk skips a directory it cannot list --
+    # one removed mid-walk, say -- and the snapshot would read short in silence.
+    for root, dirs, files in os.walk(data_dir, onerror=_raise):
         dirs.sort()
         for name in dirs:
             path = Path(root) / name
@@ -231,11 +252,11 @@ def snapshot(data_dir: Path) -> dict:
                     "symlink:" + os.readlink(path))
         siblings = set(files)
         for name in sorted(files):
-            if _excluded(name, siblings):
-                continue
             path = Path(root) / name
             rel = path.relative_to(data_dir).as_posix()
             mode = os.lstat(path).st_mode
+            if stat.S_ISREG(mode) and _excluded(path, siblings):
+                continue
             if stat.S_ISLNK(mode):
                 out["files"][rel] = "symlink:" + os.readlink(path)
             elif stat.S_ISFIFO(mode):
@@ -249,6 +270,10 @@ def snapshot(data_dir: Path) -> dict:
             else:
                 out["files"][rel] = _file_digest(path)
     return out
+
+
+def _raise(error: OSError) -> None:
+    raise error
 
 
 def _read(data_dir: Path) -> tuple[dict | None, str | None]:

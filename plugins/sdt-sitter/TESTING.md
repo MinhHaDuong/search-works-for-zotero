@@ -40,16 +40,22 @@ Nothing else. `ensure()` was measured writing no table of `zotero.sqlite` or
 `fulltext.sqlite` and no file but the pack: no `.zotero-ft-cache`, no index
 row. Both databases stay in no allow-list, so a change to either fails closed.
 
-Excluded from the comparison, as Zotero's own churn and never evidence, and
-only beside the database they belong to (`zotero.sqlite.bak` next to
-`zotero.sqlite`; the same suffix anywhere else is an ordinary file):
+Excluded from the file hashes, as Zotero's own churn. `<db>` is a `*.sqlite`
+in the same directory: a name counts only beside its own database, only in
+the form Zotero writes it, and a backup or temporary WAL only if it begins
+with its format's header. Anything else is an ordinary file. Beyond name and
+header, an excluded file's content is not compared.
 
-| Pattern | Why |
+| Name | Why |
 |---|---|
-| `*.sqlite-wal` | not hashed whole: its committed frames are read through the copy, and Zotero's idle handler vacuums and truncates it with no logical change. The frames past the last committed one are compared byte for byte instead, so a write there still fails |
-| `*.sqlite-shm` | SQLite's shared-memory index of a WAL; derived state |
-| `*.sqlite.tmp-wal` | a transient WAL beside a database copy Zotero makes |
-| `*.sqlite*.bak` | Zotero's rotating automatic database backups |
+| `<db>-wal` | not hashed whole: its committed frames are read through the copy, and Zotero's idle handler vacuums and truncates it with no logical change. The frames past the last committed one are compared byte for byte instead, so a write there still fails |
+| `<db>.tmp-wal` | the WAL of the temporary copy Zotero's backup writes; must begin with the WAL magic |
+| `<db>.bak`, `<db>.<n>.bak` | Zotero's rotating automatic backups (`db.js`); must begin with the SQLite database header |
+
+No `-shm` is excluded. Zotero 10 on Linux keeps the WAL index in its own
+memory, and no measured run left one, so a `-shm` appearing is not Zotero's
+churn. A run on a platform where Zotero opens the database non-exclusively
+(macOS) would need this revisited.
 
 Where the scenario itself edits the library — the import, erasing an
 attachment or a whole item, re-attaching the file — the edit is declared
@@ -86,8 +92,10 @@ and `itemTags`; the unmodified build passes both. The run records are in
 `bench/results/0816-sitter-integrity/`. The unit suite (`tests/test_sitter_integrity.py`) holds the
 same check red on a tag write, a direct `UPDATE` of one row, a stray file at
 the root, and a file touched beside a pack, and since review, on bytes
-appended to a WAL past its last committed frame and on a storage directory
-swapped for a symlink inside a declared erase.
+appended to a WAL past its last committed frame, on a storage directory
+swapped for a symlink inside a declared erase, and on a file hiding under a
+housekeeping-like name: one Zotero never writes, or a backup or temporary WAL
+without its format's header.
 
 **Rung 3 is the whole Menagerie, wild documents included.** The corpus is
 where the extremes belong — the plates volume and the 3 666-page EIS arrive

@@ -670,16 +670,15 @@ def main(argv=None) -> int:
     except NotRunError as exc:
         print(f"NOT-RUN: {exc}", file=sys.stderr)
         return NOT_RUN
-    except SmokeFailure as exc:
-        print(f"FAIL: {exc}", file=sys.stderr)
+    except Exception as exc:  # noqa: BLE001 -- an unattended smoke test logs its own crash
+        known = isinstance(exc, SmokeFailure)
+        print(f"FAIL: {exc}" if known else f"FAIL (unexpected {type(exc).__name__}): {exc}",
+              file=sys.stderr)
         # A failed run still carries every integrity segment it closed, the
-        # failing one included: the record is what names the bad write.
+        # failing one included, whatever ended it: the record names the write.
         if args.integrity_records:
             print(json.dumps({"ok": False, "error": str(exc),
                               "integrity": args.integrity_records}, indent=2))
-        return FAIL
-    except Exception as exc:  # noqa: BLE001 -- an unattended smoke test logs its own crash
-        print(f"FAIL (unexpected {type(exc).__name__}): {exc}", file=sys.stderr)
         return FAIL
     finally:
         if own_work_dir and not args.keep:
