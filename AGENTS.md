@@ -85,7 +85,8 @@ once, in `SPEC.md` §1. Read it there rather than here.
   changes add the sitter gates. Any unmapped path runs the full
   `make check`. A scoped pass does not claim that the full gate passed. The
   Makefile's targets are what actually run; any list of guards in prose drifts.
-  The figure guard
+  The 2026-09-23 cold full-gate pilot took 889.80 seconds; the bounded raid
+  allowance is declared in `.idh-checks.json`. The figure guard
   (`bench/check_figures.py`) is load-bearing: every measurement quoted in
   prose is declared there with an anchor, so when you quote a number from
   `bench/results/`, declare it, and when you re-measure, the guard names every
