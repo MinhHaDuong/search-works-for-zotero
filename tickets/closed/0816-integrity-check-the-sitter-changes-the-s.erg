@@ -22,6 +22,7 @@ Closed: integrity check runs in rungs 2 and 3, measured permitted set in TESTING
 2026-09-23T14:01Z sim note Review round 3 (local reports: red team comment, regression approve; not on the page when this lane acted): two comment-tier gaps fixed -- a FIFO under <db>-wal is recorded by kind instead of crashing the database copy, and a directory standing where a file was allowed to vanish reads 'change as directory' instead of a permitted disappearance. Evidence regenerated at the final commit.
 2026-09-23T14:50Z sim bump verify-reroll -- /verify-gate round 1 on PR #618 bounced on process, not correctness: no round-3 review verdict on the page, and the live evidence predates c6bd0a0 (two reruns died on host load). Line owed by the gate, which could not push to the branch under review.
 2026-09-23T14:50Z sim note author 2026-09-23: sdt-sitter-cache.jsonl.tmp and sdt-sitter-last-shutdown.json dropped from PERMITTED until a run measures them; a run writing either fails closed. Live rerun of rungs 2 and 3 moved to padme (doudou load at the sitter's cpu gate).
+2026-09-23T15:09Z sim note live rerun at e29dc26 on padme (Xvfb :99, Zotero 10.0.3): rung 2 and rung 3 both exit 0, all 11 integrity segments PASS with no violations and no housekeeping; neither dropped file appeared. rung2-green.json and rung3-green.json replaced; the red records stand from b624d2d.
 --- body ---
 ## Context
 

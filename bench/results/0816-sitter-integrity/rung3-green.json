@@ -1,6 +1,11 @@
 {
   "driver": "bench/sitter_menagerie_test.py",
   "payload": "unmodified build",
+  "run": {
+    "host": "padme (Zotero 10.0.3, Xvfb :99; doudou's load held the sitter's cpu gate)",
+    "commit": "e29dc26",
+    "date": "2026-09-23"
+  },
   "integrity": [
     {
       "segment": "install+pause+import",
@@ -8,10 +13,10 @@
       "violations": [],
       "files": {
         "sdt-sitter-cache.jsonl": "appear",
-        "storage/AR6JZMZ7/.zotero-ft-cache": "appear",
-        "storage/DECW7R4T/.zotero-ft-cache": "appear",
-        "storage/GT9GIYJ4/.zotero-ft-cache": "appear",
-        "storage/HXJTLNCV/.zotero-ft-cache": "appear"
+        "storage/2INGK2K8/.zotero-ft-cache": "appear",
+        "storage/IKWL2JBI/.zotero-ft-cache": "appear",
+        "storage/Q95BREXW/.zotero-ft-cache": "appear",
+        "storage/WV2JTV6N/.zotero-ft-cache": "appear"
       },
       "tables": {
         "fulltext.sqlite:fulltextContent_data": {
@@ -92,10 +97,10 @@
       "violations": [],
       "files": {
         "sdt-sitter-cache.jsonl": "change",
-        "storage/AR6JZMZ7/.zotero-sdt-cache": "appear",
-        "storage/DECW7R4T/.zotero-sdt-cache": "appear",
-        "storage/GT9GIYJ4/.zotero-sdt-cache": "appear",
-        "storage/HXJTLNCV/.zotero-sdt-cache": "appear"
+        "storage/2INGK2K8/.zotero-sdt-cache": "appear",
+        "storage/IKWL2JBI/.zotero-sdt-cache": "appear",
+        "storage/Q95BREXW/.zotero-sdt-cache": "appear",
+        "storage/WV2JTV6N/.zotero-sdt-cache": "appear"
       },
       "tables": {},
       "housekeeping": {},
@@ -115,8 +120,8 @@
       "verdict": "PASS",
       "violations": [],
       "files": {
-        "storage/AR6JZMZ7/.zotero-ft-cache": "disappear",
-        "storage/AR6JZMZ7/.zotero-sdt-cache": "disappear"
+        "storage/2INGK2K8/.zotero-ft-cache": "disappear",
+        "storage/2INGK2K8/.zotero-sdt-cache": "disappear"
       },
       "tables": {
         "fulltext.sqlite:fulltextContent_data": {
@@ -171,7 +176,7 @@
           "fulltext.sqlite:fulltextIndexState": null
         },
         "files": {
-          "storage/AR6JZMZ7/*": [
+          "storage/2INGK2K8/*": [
             "disappear"
           ]
         }
@@ -183,14 +188,14 @@
       "violations": [],
       "files": {
         "sdt-sitter-cache.jsonl": "change",
-        "storage/A4XZ3Q3D/.zotero-ft-cache": "appear",
-        "storage/A4XZ3Q3D/.zotero-sdt-cache": "appear",
-        "storage/A4XZ3Q3D/restore-AR6JZMZ7.pdf": "appear"
+        "storage/Q6WL572F/.zotero-ft-cache": "appear",
+        "storage/Q6WL572F/.zotero-sdt-cache": "appear",
+        "storage/Q6WL572F/restore-2INGK2K8.pdf": "appear"
       },
       "tables": {
         "fulltext.sqlite:fulltextContent_data": {
           "before": 21,
-          "after": 22
+          "after": 24
         },
         "fulltext.sqlite:fulltextContent_docsize": {
           "before": 3,
@@ -198,7 +203,7 @@
         },
         "fulltext.sqlite:fulltextContent_idx": {
           "before": 18,
-          "after": 19
+          "after": 21
         },
         "fulltext.sqlite:fulltextIndexState": {
           "before": 3,
@@ -240,7 +245,7 @@
           "fulltext.sqlite:fulltextIndexState": null
         },
         "files": {
-          "storage/*/restore-AR6JZMZ7.pdf": [
+          "storage/*/restore-2INGK2K8.pdf": [
             "appear"
           ],
           "storage/*/.zotero-ft-cache": [
@@ -264,14 +269,13 @@
       "violations": [],
       "files": {
         "sdt-sitter-cache.jsonl": "change",
-        "storage/A4XZ3Q3D/.zotero-ft-cache": "disappear",
-        "storage/A4XZ3Q3D/.zotero-sdt-cache": "disappear",
-        "storage/A4XZ3Q3D/restore-AR6JZMZ7.pdf": "disappear"
+        "storage/IKWL2JBI/.zotero-ft-cache": "disappear",
+        "storage/IKWL2JBI/.zotero-sdt-cache": "disappear"
       },
       "tables": {
         "fulltext.sqlite:fulltextContent_data": {
-          "before": 22,
-          "after": 23
+          "before": 24,
+          "after": 25
         },
         "fulltext.sqlite:fulltextContent_docsize": {
           "before": 4,
@@ -326,7 +330,7 @@
           "zotero.sqlite:itemCreators": null
         },
         "files": {
-          "storage/A4XZ3Q3D/*": [
+          "storage/IKWL2JBI/*": [
             "disappear"
           ]
         }
@@ -338,22 +342,22 @@
       "violations": [],
       "files": {
         "sdt-sitter-cache.jsonl": "change",
-        "storage/2XJVZ8N4/.zotero-ft-cache": "appear",
-        "storage/2XJVZ8N4/.zotero-sdt-cache": "appear",
-        "storage/2XJVZ8N4/restore-A4XZ3Q3D.pdf": "appear"
+        "storage/DJACU8CS/.zotero-ft-cache": "appear",
+        "storage/DJACU8CS/.zotero-sdt-cache": "appear",
+        "storage/DJACU8CS/restore-IKWL2JBI.pdf": "appear"
       },
       "tables": {
         "fulltext.sqlite:fulltextContent_data": {
-          "before": 23,
-          "after": 24
+          "before": 25,
+          "after": 26
         },
         "fulltext.sqlite:fulltextContent_docsize": {
           "before": 3,
           "after": 4
         },
         "fulltext.sqlite:fulltextContent_idx": {
-          "before": 19,
-          "after": 20
+          "before": 21,
+          "after": 22
         },
         "fulltext.sqlite:fulltextIndexState": {
           "before": 3,
@@ -399,7 +403,7 @@
           "fulltext.sqlite:fulltextIndexState": null
         },
         "files": {
-          "storage/*/restore-A4XZ3Q3D.pdf": [
+          "storage/*/restore-IKWL2JBI.pdf": [
             "appear"
           ],
           "storage/*/.zotero-ft-cache": [
