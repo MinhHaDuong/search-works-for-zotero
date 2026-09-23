@@ -506,11 +506,19 @@ def record(segment: str, d: Diff, edit: LibraryEdit | None = None) -> dict:
 #: `fulltextContent_*` tables are one FTS5 index's shadow tables, whose rows
 #: move with its segment merges rather than per document, so they are allowed
 #: as a unit: `_idx` was measured moving on import and re-attach, not on erase.
+#: The three `fulltextContentCJK_*` tables are the same index's CJK twin: four
+#: Latin-script PDFs never touched them, and ticket 0821's first wider import
+#: (50 Menagerie files, the sitter paused, no pack written) moved all three.
+#: They belong to a declared library edit only; the edit-free segment still
+#: fails on any change to them.
 _INDEXING_TABLES = {
     "fulltextItems": None,
     "fulltext.sqlite:fulltextContent_data": None,
     "fulltext.sqlite:fulltextContent_docsize": None,
     "fulltext.sqlite:fulltextContent_idx": None,
+    "fulltext.sqlite:fulltextContentCJK_data": None,
+    "fulltext.sqlite:fulltextContentCJK_docsize": None,
+    "fulltext.sqlite:fulltextContentCJK_idx": None,
     "fulltext.sqlite:fulltextIndexState": None,
 }
 

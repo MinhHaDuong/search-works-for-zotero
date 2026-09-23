@@ -911,7 +911,7 @@ def main(argv=None) -> int:
     # The whole-corpus deadlines (ticket 0821). The 900 s index default was
     # tuned for four small PDFs. The one measured extraction rate
     # (verification/SDT-CAPS-0483.md: about 5 pages/s, one PDF) puts the
-    # package's 572 MB of PDF and EPUB near two hours -- DERIVED, NOT MEASURED
+    # package's 572 MiB of PDF and EPUB near two hours -- DERIVED, NOT MEASURED
     # -- so the default is half as long again, and the run record's `timing`
     # carries the first measured figure. Outliving it while still progressing
     # is a TIMEOUT, not a FAIL.
