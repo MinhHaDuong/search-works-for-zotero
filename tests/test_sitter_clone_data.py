@@ -295,3 +295,21 @@ def test_the_driver_refuses_a_data_directory_a_profile_is_pinned_to(tmp_path):
     Args.profiles = profiles
     with pytest.raises(rung.CloneFailure, match="REFUSING"):
         rung.run_clone(Args, log=None)
+
+
+def test_the_driver_refuses_zotero_s_default_data_directory_with_no_pref(tmp_path):
+    """Review of PR #625 (red team): a profile with no dataDir pref opens
+    Zotero's default directory, which no prefs.js scan can see."""
+    live = _library(tmp_path)
+    profiles = tmp_path / "profiles"
+    (profiles / "abcd.default").mkdir(parents=True)
+    (profiles / "abcd.default" / "prefs.js").write_text("", encoding="utf-8")
+
+    class Args:
+        data_dir = live
+        default_data_dir = live
+        integrity_records: list = []
+
+    Args.profiles = profiles
+    with pytest.raises(rung.CloneFailure, match="REFUSING.*default data directory"):
+        rung.run_clone(Args, log=None)

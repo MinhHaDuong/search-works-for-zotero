@@ -64,6 +64,7 @@ from sitter_smoke_test import (  # noqa: E402
     setup_profile_existing_data,
     stop_zotero,
 )
+from sitter_clone_data import DEFAULT_PROFILES  # noqa: E402
 from sitter_volume_experiment import (  # noqa: E402
     eval_action,
     install_or_replace_code,
@@ -91,9 +92,18 @@ class CloneFailure(Exception):
     """A real defect or a finding, observed against a live Zotero."""
 
 
-def pinned_data_dirs(profiles_root: Path) -> dict:
-    """{resolved data dir: profile} for every local profile's dataDir pref."""
+#: Where Zotero keeps its data when no profile pins one. A profile without a
+#: dataDir pref opens this directory, so no prefs.js scan can see it (review of
+#: PR #625).
+ZOTERO_DEFAULT_DATA_DIR = Path.home() / "Zotero"
+
+
+def pinned_data_dirs(profiles_root: Path, default_dir: Path | None = None) -> dict:
+    """{resolved data dir: profile} for every local profile's dataDir pref,
+    plus Zotero's implicit default when `default_dir` is given."""
     out = {}
+    if default_dir is not None:
+        out[str(default_dir.resolve())] = "Zotero's default data directory"
     if not profiles_root.is_dir():
         return out
     for prefs in sorted(profiles_root.glob("*/prefs.js")):
@@ -197,9 +207,10 @@ def _record_segment(ledger_records: list, name: str, before: dict, after: dict) 
 
 def run_clone(args, log: Log) -> dict:
     data_dir = args.data_dir.resolve()
-    pinned = pinned_data_dirs(args.profiles)
+    pinned = pinned_data_dirs(args.profiles,
+                              getattr(args, "default_data_dir", ZOTERO_DEFAULT_DATA_DIR))
     if str(data_dir) in pinned:
-        raise CloneFailure(f"REFUSING: {data_dir} is the data directory of profile "
+        raise CloneFailure(f"REFUSING: {data_dir} is the data directory of "
                            f"{pinned[str(data_dir)]} -- this driver runs on a copy only")
     if not (data_dir / "zotero.sqlite").is_file():
         raise NotRunError(f"{data_dir} holds no zotero.sqlite")
@@ -380,7 +391,7 @@ def main(argv=None) -> int:
     parser.add_argument("--zotero-bin",
                         default=str(Path.home() / ".local" / "Zotero_linux-x86_64" / "zotero"))
     parser.add_argument("--xpi", type=Path, default=None)
-    parser.add_argument("--profiles", type=Path, default=Path.home() / ".zotero" / "zotero",
+    parser.add_argument("--profiles", type=Path, default=DEFAULT_PROFILES,
                         help="local profiles whose pinned data directories are refused")
     parser.add_argument("--port", type=int, default=6118)
     parser.add_argument("--eval-timeout", type=float, default=30.0)
