@@ -1,0 +1,50 @@
+%erg 0.1
+Title: Integrity check: the sitter changes the SDT cache and nothing else
+Created: 2026-09-23
+Author: claude
+
+--- log ---
+2026-09-23T08:15Z claude created
+
+--- body ---
+## Context
+
+The sitter promises to change the SDT cache and nothing else; no test has ever
+checked it. The author asked for the check at every rung from 2 up
+(2026-09-23, `DECISIONS.md`).
+
+What the code writes, read from `plugins/sdt-sitter/bootstrap.js` at `9aca794`:
+its own `sdt-sitter-cache.jsonl` in the data directory (the one `IOUtils.write`),
+one debug preference, and no `Zotero.DB` write. What it causes Zotero to write
+through `Zotero.SDT.ensure()` is the `.zotero-sdt-cache` pack; whether `ensure()`
+touches anything else (the full-text tables, `.zotero-ft-cache`) is not known
+and is this ticket's first measurement, not an assumption.
+
+## Relevant files
+
+- `bench/sitter_smoke_test.py`, `bench/sitter_acceptance.py` — the rung-2 and
+  rung-3 drivers the check plugs into
+- `plugins/sdt-sitter/TESTING.md` — the ladder, which states the promise
+
+## Actions
+
+1. A snapshot function over a Zotero data directory: `zotero.sqlite` dumped
+   table by table as row content (opened read-only, on a copy if Zotero holds
+   it), plus a hash of every file under `storage/`.
+2. A diff that fails on anything outside the permitted set, and, for a
+   scenario that edits the library itself, asserts the difference is exactly
+   those edits.
+3. Measure on a clean-room run what `ensure()` writes besides the pack; any
+   extra writes are reported to the author before they join the permitted set.
+4. Wire it into both drivers.
+
+## Test
+
+Red first: a deliberately bad payload (adds a tag; touches a file beside a
+pack) must fail the check; the unmodified build must pass it.
+
+## Exit criteria
+
+- The check runs in rungs 2 and 3 and reports its verdict in the run record.
+- Its red control is recorded, with the bad payload named.
+- The permitted set is written in `TESTING.md` exactly as measured.

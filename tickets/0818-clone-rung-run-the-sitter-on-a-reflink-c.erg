@@ -1,0 +1,32 @@
+%erg 0.1
+Title: Clone rung: run the sitter on a reflink copy of the author's library
+Created: 2026-09-23
+Author: claude
+Blocked-by: 0816
+
+--- log ---
+2026-09-23T08:15Z claude created
+
+--- body ---
+## Context
+
+Rung 4 of the ladder, required before every live install, release or not
+(author, 2026-09-23: "my data = caution"). The author's data directory is
+46 GB on btrfs, so a reflink copy (`cp -a --reflink=always`) is near-instant
+and shares blocks until written. It is the wildest library there is: the 3 853
+packless PDFs (0728), the AR6 stall (0793) and both disappearances happened
+there.
+
+## Actions
+
+1. A recipe that copies the data directory with Zotero closed, so the SQLite
+   files are consistent, and refuses when Zotero is running.
+2. Run the sitter on the copy in a clean-room profile until the census settles,
+   with the integrity check (0816) against the copy's own before-snapshot.
+3. Record the verdict under `verification/acceptance/`.
+4. The same recipe takes the pre-install snapshot for rung 5.
+
+## Exit criteria
+
+One recorded clone-rung run on the author's copy, integrity green, and the
+copy removed afterwards — or kept with a line naming when it goes.

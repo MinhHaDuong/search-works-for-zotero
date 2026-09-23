@@ -2,12 +2,14 @@
 Title: The volume rig proves nothing about a sitter that never became alive
 Created: 2026-09-12
 Author: claude
+Closed: Moot, author's ruling 2026-09-23: the disappearance is Zotero's (fix filed as zotero/zotero#6054) and lifecycle testing folds into the Menagerie rung (0817); the volume rig is not a rung
 
 --- log ---
 2026-09-12T09:02Z claude created
 
 2026-09-12T09:07Z claude note filed from the lifecycle audit (F10). Bears on STATE.md's handoff: the remaining volume budget would measure host bookkeeping alone unless the rig gains a liveness reading
 2026-09-22T10:33Z MinhHaDuong note blocker 0727 closed — Blocked-by removed.
+2026-09-23T08:16Z sim closed — Moot, author's ruling 2026-09-23: the disappearance is Zotero's (fix filed as zotero/zotero#6054) and lifecycle testing folds into the Menagerie rung (0817); the volume rig is not a rung
 --- body ---
 
 ## Context
