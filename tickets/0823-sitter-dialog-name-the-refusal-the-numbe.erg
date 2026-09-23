@@ -1,0 +1,62 @@
+%erg 0.1
+Title: Sitter dialog: name the refusal, the numbers, and how to resume
+Created: 2026-09-23
+Author: sim
+
+--- log ---
+2026-09-23T14:19Z sim created
+
+--- body ---
+## Context
+
+Author, 2026-09-23, watching a rung-3 run: the dialog sat on "Preparing the
+next attachment…" for minutes, and read as a hang. The sitter was refusing
+admission — `low-disk` at 16:05 (7,8 GiB free on the tmpfs holding the data
+directory, floor 8 GiB), then `cpu-busy` at 16:15 (load 7,84 on 8 cores) — and
+retrying only every `IDLE_SWEEP_INTERVAL_MS` (10 min). Ruling: "The user should
+be told the issue — and how to restart after fixing it."
+
+What the dialog shows today, read from `plugins/sdt-sitter/bootstrap.js`:
+
+- The phase line does say "Waiting: not enough disk space" / "Waiting:
+  processor busy" (`phase-*` strings, ~:392).
+- The document-status line contradicts it: with `state.active === null` and
+  work pending it falls through to `active-preparing` whatever the phase
+  (~:2712). Same class as 0791 and 0792 — the phase must decide first — and
+  those two tickets did not cover the blocked phases.
+- The readings that explain the refusal (free disk against the floor, load
+  against the core count, free memory) are rendered by
+  `describeSDTAdmission()` into `sdt-admission`, which sits in the collapsed
+  technical-diagnostics layer (~:2322), not in the primary view.
+- Nothing says when the sitter will look again, or that turning indexing off
+  and on re-runs admission at once (the switch starts a sweep — observed in
+  the same run's log: `switch {"enabled":true}` → `sweep-start`).
+
+## Actions
+
+1. In every phase of `SDT_BLOCKED_PHASES`, the document-status line names the
+   refusal instead of "Preparing…"; `active-preparing` is reserved for a phase
+   that is actually about to admit.
+2. The primary view carries, for the refusing gate only: the reading, the
+   threshold, and where it was measured (the directory, for disk), e.g.
+   "7,8 GiB free on <dir>; needs 8 GiB."
+3. It says how to resume: what to fix, that the sitter retries on its own at
+   the next check (and roughly when), and that turning indexing off and on
+   retries now. Verify at execution that the off/on retry is true for every
+   blocked phase before the text promises it.
+4. Wording through the existing `.ftl`/`sdtText` path, like its siblings.
+
+## Test
+
+Red first: a render test that puts the state in each blocked phase with work
+pending and asserts the status line is not `active-preparing`, and that the
+refusing gate's reading and threshold appear outside the diagnostics layer.
+
+## Exit criteria
+
+- No blocked phase shows "Preparing the next attachment…".
+- The primary view names the gate, its reading and threshold, and how to
+  resume, for each blocked phase.
+- The render test is red on the current build and green after.
+
+Related: 0824 (the drivers must not wait out the same refusal).
