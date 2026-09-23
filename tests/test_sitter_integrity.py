@@ -123,7 +123,11 @@ def test_the_housekeeping_files_are_excluded(tmp_path):
     (data / "zotero.sqlite.bak").write_bytes(backup)
     (data / "zotero.sqlite.12.bak").write_bytes(backup)
     (data / "zotero.sqlite.tmp-wal").write_bytes(WAL_MAGIC + b"\x00" * 28)
-    assert si.diff(before, si.snapshot(data)).empty
+    d = si.diff(before, si.snapshot(data))
+    assert d.empty and si.check(d) == []
+    # Excluded from the verdict, never from the record (review round 3).
+    assert d.housekeeping == {"zotero.sqlite.12.bak": "appear", "zotero.sqlite.bak": "appear",
+                              "zotero.sqlite.tmp-wal": "appear"}
 
 
 def test_the_cache_may_disappear_on_uninstall(tmp_path):
@@ -568,7 +572,7 @@ def test_red_a_directory_swapped_for_a_symlink_inside_a_declared_erase(tmp_path)
     edit = si.LibraryEdit(tables={"items": -1, "itemAttachments": -1},
                           files={"storage/AAAA1111/*": {"disappear"}})
     assert verdict(before, si.snapshot(data), edit=edit) == [
-        "storage/AAAA1111: appear is not permitted"]
+        "storage/AAAA1111: appear as symlink is not permitted"]
 
 
 def test_red_a_housekeeping_name_away_from_its_database(tmp_path):
@@ -659,4 +663,69 @@ def test_a_dangling_symlink_is_recorded(tmp_path):
     data = make_data_dir(tmp_path)
     before = si.snapshot(data)
     (data / "storage" / "ZZZZ9999").symlink_to(tmp_path / "nowhere", target_is_directory=True)
-    assert verdict(before, si.snapshot(data)) == ["storage/ZZZZ9999: appear is not permitted"]
+    assert verdict(before, si.snapshot(data)) == ["storage/ZZZZ9999: appear as symlink is not permitted"]
+
+
+# --------------------------------------------------------------------------
+# review round 3 (PR #618): a permitted name must still be a regular file,
+# and an excluded one must still be recorded
+# --------------------------------------------------------------------------
+
+def test_red_a_symlink_where_a_pack_may_appear(tmp_path):
+    data = make_data_dir(tmp_path)
+    before = si.snapshot(data)
+    (tmp_path / "elsewhere.bin").write_bytes(b"x")
+    (data / "storage" / "AAAA1111" / ".zotero-sdt-cache").symlink_to(tmp_path / "elsewhere.bin")
+    assert verdict(before, si.snapshot(data)) == [
+        "storage/AAAA1111/.zotero-sdt-cache: appear as symlink is not permitted"]
+
+
+def test_red_the_cache_swapped_for_a_symlink(tmp_path):
+    data = make_data_dir(tmp_path)
+    sitter_ran(data)
+    before = si.snapshot(data)
+    (data / "sdt-sitter-cache.jsonl").unlink()
+    (data / "sdt-sitter-cache.jsonl").symlink_to(tmp_path / "anywhere")
+    assert verdict(before, si.snapshot(data)) == [
+        "sdt-sitter-cache.jsonl: change as symlink is not permitted"]
+
+
+def test_red_a_fifo_where_the_cache_may_appear(tmp_path):
+    import os
+    data = make_data_dir(tmp_path)
+    before = si.snapshot(data)
+    os.mkfifo(data / "sdt-sitter-cache.jsonl")
+    assert verdict(before, si.snapshot(data)) == [
+        "sdt-sitter-cache.jsonl: appear as fifo is not permitted"]
+
+
+def test_a_rewritten_backup_body_is_recorded(tmp_path):
+    """A name and header that pass let the file out of the verdict, not out of
+    the record: a body rewritten between segments shows as a change."""
+    data = make_data_dir(tmp_path)
+    (data / "zotero.sqlite.bak").write_bytes((data / "zotero.sqlite").read_bytes())
+    before = si.snapshot(data)
+    con = sqlite3.connect(data / "zotero.sqlite.bak")
+    con.execute("INSERT INTO tags VALUES (99, 'hidden in the backup')")
+    con.commit()
+    con.close()
+    d = si.diff(before, si.snapshot(data))
+    assert si.check(d) == []
+    assert d.housekeeping == {"zotero.sqlite.bak": "change"}
+    assert si.record("seg", d)["housekeeping"] == {"zotero.sqlite.bak": "change"}
+
+
+def test_red_a_backup_that_is_another_databases(tmp_path):
+    """Cross-database disguise: a real SQLite file, but not a backup of the
+    database it is named after -- its schema says so."""
+    data = make_data_dir(tmp_path)
+    before = si.snapshot(data)
+    (data / "zotero.sqlite.bak").write_bytes((data / "fulltext.sqlite").read_bytes())
+    assert verdict(before, si.snapshot(data)) == ["zotero.sqlite.bak: appear is not permitted"]
+
+
+def test_red_a_backup_with_a_header_and_a_garbage_body(tmp_path):
+    data = make_data_dir(tmp_path)
+    before = si.snapshot(data)
+    (data / "zotero.sqlite.3.bak").write_bytes(b"SQLite format 3\x00" + b"\xff" * 5000)
+    assert verdict(before, si.snapshot(data)) == ["zotero.sqlite.3.bak: appear is not permitted"]

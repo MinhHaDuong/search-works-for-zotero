@@ -40,17 +40,21 @@ Nothing else. `ensure()` was measured writing no table of `zotero.sqlite` or
 `fulltext.sqlite` and no file but the pack: no `.zotero-ft-cache`, no index
 row. Both databases stay in no allow-list, so a change to either fails closed.
 
-Excluded from the file hashes, as Zotero's own churn. `<db>` is a `*.sqlite`
-in the same directory: a name counts only beside its own database, only in
-the form Zotero writes it, and a backup or temporary WAL only if it begins
-with its format's header. Anything else is an ordinary file. Beyond name and
-header, an excluded file's content is not compared.
+Excluded from the verdict, as Zotero's own churn, but not from the record:
+each is hashed, and any change to one is listed in the segment's record under
+`housekeeping`. `<db>` is a `*.sqlite` in the same directory. A name counts
+only beside its own database, only in the form Zotero writes it, and only if
+the file is what the name says. Anything else is an ordinary file and judged
+like one.
 
 | Name | Why |
 |---|---|
 | `<db>-wal` | not hashed whole: its committed frames are read through the copy, and Zotero's idle handler vacuums and truncates it with no logical change. The frames past the last committed one are compared byte for byte instead, so a write there still fails |
 | `<db>.tmp-wal` | the WAL of the temporary copy Zotero's backup writes; must begin with the WAL magic |
-| `<db>.bak`, `<db>.<n>.bak` | Zotero's rotating automatic backups (`db.js`); must begin with the SQLite database header |
+| `<db>.bak`, `<db>.<n>.bak` | Zotero's rotating automatic backups (`db.js`); must be an SQLite database with its database's own schema |
+
+A symlink, FIFO or socket never counts as a permitted write, even at a
+permitted name: a symlink where the pack may appear is not the pack.
 
 No `-shm` is excluded. Zotero 10 on Linux keeps the WAL index in its own
 memory, and no measured run left one, so a `-shm` appearing is not Zotero's
@@ -94,8 +98,10 @@ same check red on a tag write, a direct `UPDATE` of one row, a stray file at
 the root, and a file touched beside a pack, and since review, on bytes
 appended to a WAL past its last committed frame, on a storage directory
 swapped for a symlink inside a declared erase, and on a file hiding under a
-housekeeping-like name: one Zotero never writes, or a backup or temporary WAL
-without its format's header.
+housekeeping-like name: one Zotero never writes, a temporary WAL without the
+WAL magic, a backup that is not a database, or another database's file posing
+as a backup. A symlink or FIFO at a permitted name fails too, and a backup
+rewritten between segments shows in the record.
 
 **Rung 3 is the whole Menagerie, wild documents included.** The corpus is
 where the extremes belong — the plates volume and the 3 666-page EIS arrive

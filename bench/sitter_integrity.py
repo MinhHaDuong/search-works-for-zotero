@@ -10,8 +10,9 @@ else: no CLI, no generic Zotero-directory tool. Three steps, each a function --
     assert_permitted(diff(before, after), edit=LibraryEdit(...))
 
 `plugins/sdt-sitter/TESTING.md` states the permitted set and the excluded
-housekeeping files, each with its reason; `PERMITTED` and `EXCLUDED` below are
-the executable copy of that statement and must agree with it.
+housekeeping files, each with its reason, and must agree with this module:
+`PERMITTED` is what `check()` consumes; `EXCLUDED` describes, for the record,
+what `_HOUSEKEEPING` and `_is_housekeeping()` admit.
 
 ## How the databases are read, and why not the obvious way
 
@@ -68,15 +69,16 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
-#: Zotero's own churn, never the sitter's, and kept out of the file hashes.
+#: Zotero's own churn, never the sitter's, and kept out of the verdict -- not
+#: out of the record: each is hashed into the snapshot's `housekeeping` map and
+#: any change to it is listed in the run record (review of PR #618, round 3).
 #: `<db>` is a `*.sqlite` present in the same directory: a name is excluded
 #: only beside its own database, never because a stray file elsewhere shares
 #: the suffix. The names are the ones Zotero writes (`db.js`: backups rotate as
-#: `<db>.bak` and `<db>.<n>.bak`), and a backup or a WAL must also begin with
-#: its format's header -- otherwise it is an ordinary file and compared like
-#: one. Beyond name and header, an excluded file's content is not compared
-#: (review of PR #618, round 2). No `-shm` is excluded: Zotero 10 on Linux keeps
-#: the WAL index in its heap, and no measured run left one.
+#: `<db>.bak` and `<db>.<n>.bak`), and each must be what its name says --
+#: otherwise it is an ordinary file and judged like one. No `-shm` is
+#: excluded: Zotero 10 on Linux keeps the WAL index in its heap, and no
+#: measured run left one.
 EXCLUDED = {
     "<db>-wal": "the WAL of a database read by content; its committed frames "
                 "are read through the copy, and the frames past them are "
@@ -84,8 +86,8 @@ EXCLUDED = {
                 "truncates the WAL at idle with no logical change",
     "<db>.tmp-wal": "the WAL of the temporary copy Zotero's backup writes; "
                     "must begin with the WAL magic",
-    "<db>.bak, <db>.<n>.bak": "Zotero's rotating automatic backups; must begin "
-                              "with the SQLite database header",
+    "<db>.bak, <db>.<n>.bak": "Zotero's rotating automatic backups; must be an "
+                              "SQLite database with its database's own schema",
 }
 
 _HOUSEKEEPING = re.compile(r"^(?P<db>.+\.sqlite)(?P<kind>-wal|\.tmp-wal|\.bak|\.\d+\.bak)$")
@@ -139,21 +141,32 @@ class LibraryEdit:
 # snapshot
 # --------------------------------------------------------------------------
 
-def _excluded(path: Path, siblings: set[str]) -> bool:
-    """Housekeeping churn: Zotero's name for it, beside its own database, and
-    for a backup or a temporary WAL, its format's header. `path` is a regular
-    file; the caller has already refused to open anything else."""
-    match = _HOUSEKEEPING.match(path.name)
-    if not match or match["db"] not in siblings:
-        return False
-    kind = match["kind"]
-    if kind == "-wal":
-        return True
+def _schema(path: Path) -> dict | None:
+    """The `sqlite_master` summary of a database file, or None if it is not one."""
+    with tempfile.TemporaryDirectory(prefix="sitter-integrity-") as tmp:
+        copy = Path(tmp) / "db.sqlite"
+        shutil.copyfile(path, copy)
+        try:
+            con = sqlite3.connect(copy)
+            try:
+                return _table_summary(con, "SELECT type, name, tbl_name, sql FROM sqlite_master")
+            finally:
+                con.close()
+        except sqlite3.DatabaseError:
+            return None
+
+
+def _is_housekeeping(path: Path, kind: str, db_schema: dict | None) -> bool:
+    """Whether a file already named like Zotero's churn, beside its database,
+    is what that name says: a temporary WAL begins with the WAL magic; a backup
+    is an SQLite database carrying its database's own schema, so neither a
+    header on a payload nor another database's file passes for one."""
     with open(path, "rb") as f:
         head = f.read(len(_SQLITE_HEADER))
     if kind == ".tmp-wal":
         return head[:4] in _WAL_MAGICS
-    return head == _SQLITE_HEADER
+    return (head == _SQLITE_HEADER and db_schema is not None
+            and _schema(path) == db_schema)
 
 
 def _file_digest(path: Path) -> str:
@@ -230,17 +243,18 @@ def _dump_database(path: Path) -> tuple[dict, dict | None]:
 
 def snapshot(data_dir: Path) -> dict:
     """{"sqlite": {rel: {table: {rows, hash}}}, "wal": {rel: {frames, chunks}},
-    "files": {rel: sha256 | kind}}.
+    "files": {rel: sha256 | kind}, "housekeeping": {rel: sha256}}.
 
     Every `*.sqlite` is read by content, every other regular file by hash,
-    the root included, `EXCLUDED` aside. A FIFO or socket is recorded by kind
-    and never opened -- Zotero keeps integration pipes under the data
-    directory, and opening one blocks -- and a symlink by its target, a
-    symlinked directory included: the walk lists one among directories and
-    does not descend it, so it would otherwise go unrecorded.
+    the root included. Zotero's housekeeping files (`EXCLUDED`) are hashed
+    into their own map -- out of the verdict, never out of the record. A FIFO
+    or socket is recorded by kind and never opened -- Zotero keeps integration
+    pipes under the data directory, and opening one blocks -- and a symlink by
+    its target, a symlinked directory included: the walk lists one among
+    directories and does not descend it, so it would otherwise go unrecorded.
     """
     data_dir = Path(data_dir)
-    out = {"sqlite": {}, "wal": {}, "files": {}}
+    out = {"sqlite": {}, "wal": {}, "files": {}, "housekeeping": {}}
     # onerror raises: by default the walk skips a directory it cannot list --
     # one removed mid-walk, say -- and the snapshot would read short in silence.
     for root, dirs, files in os.walk(data_dir, onerror=_raise):
@@ -251,13 +265,17 @@ def snapshot(data_dir: Path) -> dict:
                 out["files"][path.relative_to(data_dir).as_posix()] = (
                     "symlink:" + os.readlink(path))
         siblings = set(files)
+        # Named like Zotero's churn beside a database: judged after the pass,
+        # once that database's schema has been read.
+        deferred = []
         for name in sorted(files):
             path = Path(root) / name
             rel = path.relative_to(data_dir).as_posix()
             mode = os.lstat(path).st_mode
-            if stat.S_ISREG(mode) and _excluded(path, siblings):
-                continue
-            if stat.S_ISLNK(mode):
+            match = _HOUSEKEEPING.match(name) if stat.S_ISREG(mode) else None
+            if match and match["db"] in siblings:
+                deferred.append((path, rel, match))
+            elif stat.S_ISLNK(mode):
                 out["files"][rel] = "symlink:" + os.readlink(path)
             elif stat.S_ISFIFO(mode):
                 out["files"][rel] = "fifo"
@@ -269,6 +287,14 @@ def snapshot(data_dir: Path) -> dict:
                     out["wal"][rel] = layout
             else:
                 out["files"][rel] = _file_digest(path)
+        for path, rel, match in deferred:
+            if match["kind"] == "-wal":
+                continue  # read through its database's copy, frame by frame
+            db_rel = rel[:len(rel) - len(path.name)] + match["db"]
+            db_schema = out["sqlite"].get(db_rel, {}).get("sqlite_master")
+            kind = ".tmp-wal" if match["kind"] == ".tmp-wal" else ".bak"
+            target = "housekeeping" if _is_housekeeping(path, kind, db_schema) else "files"
+            out[target][rel] = _file_digest(path)
     return out
 
 
@@ -323,10 +349,13 @@ WAL_TAIL = "write past the last committed frame"
 
 @dataclass
 class Diff:
-    #: rel -> "appear" | "change" | "disappear" | WAL_TAIL
+    #: rel -> "appear" | "change" | "disappear", suffixed " as symlink" (fifo,
+    #: socket) when either side is not a regular file, or WAL_TAIL
     files: dict
     #: "<db>:<table>" -> {"before": rows, "after": rows}
     tables: dict
+    #: rel -> action, for Zotero's housekeeping files: recorded, never judged
+    housekeeping: dict = field(default_factory=dict)
 
     @property
     def empty(self) -> bool:
@@ -341,12 +370,30 @@ def _action(before, after) -> str | None:
     return "change" if before != after else None
 
 
-def diff(before: dict, after: dict) -> Diff:
-    files = {}
-    for rel in sorted(set(before["files"]) | set(after["files"])):
-        action = _action(before["files"].get(rel), after["files"].get(rel))
+def _special(entry: str | None) -> str | None:
+    """The kind of a non-regular entry, or None for a regular file or absence."""
+    if entry is None:
+        return None
+    if entry.startswith("symlink:"):
+        return "symlink"
+    return entry if entry in ("fifo", "socket") else None
+
+
+def _actions(before: dict, after: dict) -> dict:
+    out = {}
+    for rel in sorted(set(before) | set(after)):
+        b, a = before.get(rel), after.get(rel)
+        action = _action(b, a)
         if action:
-            files[rel] = action
+            # A non-regular entry never matches an allow-list: a symlink landing
+            # on the pack's name is not the pack (review of PR #618, round 3).
+            kind = _special(a) or _special(b)
+            out[rel] = f"{action} as {kind}" if kind else action
+    return out
+
+
+def diff(before: dict, after: dict) -> Diff:
+    files = _actions(before["files"], after["files"])
     tables = {}
     for db in sorted(set(before["sqlite"]) | set(after["sqlite"])):
         b, a = before["sqlite"].get(db, {}), after["sqlite"].get(db, {})
@@ -361,7 +408,8 @@ def diff(before: dict, after: dict) -> Diff:
             if k >= len(old) or old[k] != layout["chunks"][k]:
                 files[f"{db}-wal"] = WAL_TAIL
                 break
-    return Diff(files=files, tables=tables)
+    return Diff(files=files, tables=tables, housekeeping=_actions(
+        before.get("housekeeping", {}), after.get("housekeeping", {})))
 
 
 # --------------------------------------------------------------------------
@@ -422,6 +470,7 @@ def record(segment: str, d: Diff, edit: LibraryEdit | None = None) -> dict:
     problems = check(d, edit)
     return {"segment": segment, "verdict": "FAIL" if problems else "PASS",
             "violations": problems, "files": d.files, "tables": d.tables,
+            "housekeeping": d.housekeeping,
             "declared": None if edit is None else {
                 # Qualified like the diff's own keys, "<db>:<table>".
                 "tables": {_qualified(k): v for k, v in edit.tables.items()},
@@ -520,7 +569,8 @@ class Ledger:
         self.records.append(rec)
         self.last = after
         self.log(f"integrity {name}: {rec['verdict']} files={rec['files']} "
-                 f"tables={sorted(rec['tables'])} violations={rec['violations']}")
+                 f"tables={sorted(rec['tables'])} housekeeping={rec['housekeeping']} "
+                 f"violations={rec['violations']}")
         if rec["violations"]:
             raise IntegrityViolation(f"{name}: " + "; ".join(rec["violations"]))
         return rec
