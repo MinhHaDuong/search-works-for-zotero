@@ -16,7 +16,9 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate schema-gate sitter-version sitter-mutants sitter-install sitter-verify-install sitter-smoke golden golden-run menagerie-ris menagerie-package test-fork
+.PHONY: check check-diff check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate schema-gate sitter-version sitter-mutants sitter-install sitter-verify-install sitter-smoke golden golden-run menagerie-ris menagerie-package test-fork
+
+IDH_HOME ?= $(HOME)/.claude
 
 # Where the acceptance layer's arenas live: outside the repository, because the
 # residue sweep fills them with a target's derived state and bench/ is scanned
@@ -135,6 +137,7 @@ FORK_TEST_TMPDIR ?= $(HOME)/data/fork-test-tmp
 
 help:
 	@echo "make check       — everything: lint, figures, tests"
+	@echo "make check-diff  — selected targets for the branch diff; always reports skipped targets"
 	@echo "make check-fast  — the tests alone"
 	@echo "make deps        — the gate's dependencies are declared, present and used"
 	@echo "make lint        — ruff over the harness"
@@ -163,6 +166,10 @@ help:
 	@echo "make test-fork   — the fork suite with TMPDIR off the /tmp tmpfs (FORK_TEST_TMPDIR, ticket 0714)"
 
 check: deps lint figures models names progress tickets ticket-logs sitter-version sitter-mutants check-fast
+
+# The map is conservative: an unlisted path selects the full `check` target.
+check-diff:
+	python3 "$(IDH_HOME)/scripts/scoped-check.py"
 
 check-fast:
 	python3 -m pytest tests/ -q

@@ -78,8 +78,13 @@ once, in `SPEC.md` §1. Read it there rather than here.
 
 ## Conventions
 
-- **`make check` green before any commit.** The Makefile's `check` target is
-  what actually runs; any list of guards in prose drifts. The figure guard
+- **Run `make check-diff` before any commit and quote its `selected:` and
+  `skipped:` lines in the PR description.** The tracked `.idh-checks.json`
+  maps documentation, evidence, and tickets to the targets they can affect;
+  plugin changes add the sitter gates. Any unmapped path runs the full
+  `make check`. A scoped pass does not claim that the full gate passed. The
+  Makefile's targets are what actually run; any list of guards in prose drifts.
+  The figure guard
   (`bench/check_figures.py`) is load-bearing: every measurement quoted in
   prose is declared there with an anchor, so when you quote a number from
   `bench/results/`, declare it, and when you re-measure, the guard names every

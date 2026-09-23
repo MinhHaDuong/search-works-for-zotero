@@ -1,0 +1,22 @@
+{
+  "default_branch": "main",
+  "gate_max_seconds": 3600,
+  "full_target": "check",
+  "targets": [
+    "deps", "lint", "figures", "models", "names", "progress",
+    "tickets", "ticket-logs", "sitter-version", "sitter-mutants", "check-fast"
+  ],
+  "rules": [
+    {
+      "paths": ["*.md", "tickets/**", "bench/results/**"],
+      "targets": ["lint", "figures", "names", "progress", "tickets", "ticket-logs"]
+    },
+    {
+      "paths": ["plugins/**/*.md", "plugins/**/manifest.json", "plugins/**/update.json"],
+      "targets": [
+        "lint", "figures", "names", "progress", "tickets", "ticket-logs",
+        "sitter-version", "sitter-mutants"
+      ]
+    }
+  ]
+}
