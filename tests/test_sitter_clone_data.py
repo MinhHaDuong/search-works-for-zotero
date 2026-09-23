@@ -262,6 +262,23 @@ def test_settled_needs_an_empty_queue_out_of_the_working_phases(state, want):
     assert rung.settled(state) is want
 
 
+def test_the_summary_folds_files_by_pattern_and_keeps_violations_whole():
+    raw = {"integrity": [{
+        "segment": "census", "verdict": "FAIL",
+        "violations": ["storage/AB/stray: appear is not permitted"],
+        "files": {"storage/AB/.zotero-sdt-cache": "appear",
+                  "storage/CD/.zotero-sdt-cache": "appear",
+                  "storage/AB/stray": "appear",
+                  "sdt-sitter-cache.jsonl": "change"},
+        "tables": {}, "housekeeping": {}}]}
+    seg = rung.summarize_record(raw)["integrity"][0]
+    assert seg["files"] == {"sdt-sitter-cache.jsonl: change": 1,
+                            "storage/*/.zotero-sdt-cache: appear": 2,
+                            "storage/*/stray: appear": 1}
+    assert seg["violations"] == ["storage/AB/stray: appear is not permitted"]
+    assert len(raw["integrity"][0]["files"]) == 4  # the raw record is untouched
+
+
 def test_the_driver_refuses_a_data_directory_a_profile_is_pinned_to(tmp_path):
     live = _library(tmp_path)
     profiles = tmp_path / "profiles"

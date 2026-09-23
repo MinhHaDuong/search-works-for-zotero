@@ -316,6 +316,39 @@ def run_clone(args, log: Log) -> dict:
         stdout_log.close()
 
 
+def _pattern(rel: str) -> str:
+    """`storage/<KEY>/<name>` folded to `storage/*/<name>`, for counting."""
+    parts = rel.split("/")
+    return "/".join(["storage", "*", *parts[2:]]) if len(parts) > 2 and parts[0] == "storage" else rel
+
+
+def _fold(files: dict) -> dict:
+    counts: dict = {}
+    for rel, action in files.items():
+        key = f"{_pattern(rel)}: {action}"
+        counts[key] = counts.get(key, 0) + 1
+    return dict(sorted(counts.items()))
+
+
+def summarize_record(raw: dict) -> dict:
+    """The run record with every per-file map folded to counts by pattern and
+    action. Violations stay listed in full: they are the verdict. The raw
+    record is kept beside it."""
+    out = json.loads(json.dumps(raw))
+    for seg in out.get("integrity") or []:
+        seg["files"] = _fold(seg["files"])
+        seg["housekeeping"] = _fold(seg["housekeeping"])
+    if isinstance(out.get("startup"), dict):
+        out["startup"]["files"] = _fold(out["startup"]["files"])
+    settle = out.get("settle") or {}
+    if len(settle.get("trace", [])) > 40:
+        trace = settle["trace"]
+        step = len(trace) // 30 + 1
+        settle["trace"] = trace[::step] + [trace[-1]]
+        settle["trace_note"] = f"every {step}th of {len(trace)} trace points, and the last"
+    return out
+
+
 def _git_head() -> str | None:
     out = subprocess.run(["git", "-C", str(REPO), "rev-parse", "--short", "HEAD"],
                          capture_output=True, text=True, check=False)
@@ -323,6 +356,16 @@ def _git_head() -> str | None:
 
 
 def main(argv=None) -> int:
+    if argv is None:
+        argv = sys.argv[1:]
+    if argv[:1] == ["--summarize"]:
+        if len(argv) != 3:
+            print("usage: --summarize RAW.json OUT.json", file=sys.stderr)
+            return USAGE
+        raw = json.loads(Path(argv[1]).read_text(encoding="utf-8"))
+        Path(argv[2]).write_text(json.dumps(summarize_record(raw), indent=1) + "\n",
+                                 encoding="utf-8")
+        return PASS
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--data-dir", type=Path, required=True,
                         help="the COPY to run on (bench/sitter_clone_data.py made it)")
