@@ -241,13 +241,21 @@ def test_setup_profile_existing_data_refuses_an_empty_directory(tmp_path):
 # --------------------------------------------------------------------------
 
 
+_DONE = {"scanned": 225, "total": 225}
+
+
 @pytest.mark.parametrize("state, want", [
-    ({"ok": True, "pending": 0, "busy": False, "phase": "idle"}, True),
-    ({"ok": True, "pending": 0, "busy": False, "phase": "census"}, False),
-    ({"ok": True, "pending": 0, "busy": False, "phase": "draining"}, False),
-    ({"ok": True, "pending": 0, "busy": False, "phase": "extracting"}, False),
-    ({"ok": True, "pending": 3, "busy": False, "phase": "idle"}, False),
-    ({"ok": True, "pending": 0, "busy": True, "phase": "idle"}, False),
+    ({"ok": True, "pending": 0, "busy": False, "phase": "waiting", **_DONE}, True),
+    ({"ok": True, "pending": 0, "busy": False, "phase": "census", **_DONE}, False),
+    ({"ok": True, "pending": 0, "busy": False, "phase": "draining", **_DONE}, False),
+    ({"ok": True, "pending": 0, "busy": False, "phase": "extracting", **_DONE}, False),
+    ({"ok": True, "pending": 3, "busy": False, "phase": "waiting", **_DONE}, False),
+    ({"ok": True, "pending": 0, "busy": True, "phase": "waiting", **_DONE}, False),
+    # Armed on the copy's inherited cache before the census began.
+    ({"ok": True, "pending": 0, "busy": False, "phase": "waiting",
+      "scanned": 0, "total": 0}, False),
+    ({"ok": True, "pending": 0, "busy": False, "phase": "waiting",
+      "scanned": 10, "total": 225}, False),
     ({"ok": False, "reason": "no-handle"}, False),
 ])
 def test_settled_needs_an_empty_queue_out_of_the_working_phases(state, want):

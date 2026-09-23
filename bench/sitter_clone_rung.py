@@ -103,9 +103,14 @@ def pinned_data_dirs(profiles_root: Path) -> dict:
 
 
 def settled(state: dict) -> bool:
-    """One read of the sitter's state says the census is done."""
+    """One read of the sitter's state says the census is done. The census
+    must also have covered the library (`scanned >= total > 0`): a copy
+    carries the live sitter's cache, so the sitter arms on it before its
+    census has begun, and an idle read then is not a settled one."""
+    total, scanned = state.get("total") or 0, state.get("scanned") or 0
     return (bool(state.get("ok")) and state.get("pending") == 0
-            and not state.get("busy") and state.get("phase") not in WORKING_PHASES)
+            and not state.get("busy") and state.get("phase") not in WORKING_PHASES
+            and total > 0 and scanned >= total)
 
 
 class Sampler:
