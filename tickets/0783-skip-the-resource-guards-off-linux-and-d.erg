@@ -8,6 +8,7 @@ Author: claude
 2026-09-13T10:48Z claude note Ruled by the author on 2026-09-13, during the 0.4.0 release pass: "Disclose and skip resource guards on unsupported platform." Filed as the implementing ticket; the ruling itself belongs in DECISIONS.md.
 
 2026-09-13T12:40Z claude note Action 5 ruled 2026-09-13: no manifest.json platform restriction, disclosure only (DECISIONS.md) — guards skipped so the add-on is expected to function off Linux; restricting installation would block that.
+2026-09-23T16:55Z sim note stale sweep 2026-09-23: done. PR #544 merged (43fe6a8, on main): guards skipped off Linux (plugins/sdt-sitter/bootstrap.js ~:166), disclosure at plugins/sdt-sitter/RELEASE-NOTES.md:50, Action 5 ruled disclosure-only in this log 2026-09-13.
 --- body ---
 ## Context
 
