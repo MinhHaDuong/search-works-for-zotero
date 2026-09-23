@@ -9,6 +9,8 @@ Blocked-by: 0816
 2026-09-23T08:51Z claude created
 
 2026-09-23T08:53Z sim note filed by the raid of 2026-09-23 as a child of 0817
+2026-09-23T09:06Z sim note raid 2026-09-23 Plan: file:line plan and first tests appended; Phase 4 cross-ticket scan found no registry needing a coordination PR
+2026-09-23T09:06Z sim note raid 2026-09-23 Phase 4: pick_menagerie_documents is shared with the smoke rung; widening its default would feed the smoke test HTML with no pack, so the widening is a parameter
 --- body ---
 ## Context
 
@@ -38,3 +40,34 @@ fail the completeness assertion.
 
 A recorded whole-Menagerie run with every attachment accounted for and the
 integrity check green.
+
+## Plan (raid 2026-09-23)
+
+- **Two truncations**: `--fixture-documents` (default 4) and
+  `pick_menagerie_documents()`'s `*.pdf` glob (`bench/fixtures/smoke_library.py:89`).
+  The package holds 44 PDF + 2 EPUB of 114; the other 68 are html, txt, xlsx,
+  zip, jpg, docx, wikitext, tgz, djvu. Lift both for this rung. **Keep the
+  smoke rung's selection unchanged**: it calls the same function, and smallest
+  files of any type would hand it HTML with no pack. Add a parameter (e.g.
+  `suffixes=None` meaning all) rather than changing the default.
+- Expected count from an independent listing of `attachments/`, read at run
+  time; never hardcoded.
+- Name the import timeout (`--import-timeout`; today an unnamed 180 s in
+  `import_with_retry`). Size `--index-timeout` from the one measured rate
+  (`verification/SDT-CAPS-0483.md`: ~5 pages/s, one PDF) — about 2 h for the
+  572 MB of PDF and EPUB, **derived, not measured**; set a generous default and
+  say so in its comment. The first real run records its wall time.
+- Completeness in two steps: wait on the sitter `state` until
+  `pending` is empty and not busy (the scheduler's own list already reclassifies
+  a document it gave up on as `failed-session`, which raw `inspect()` cannot
+  see); then sweep every attachment with `Zotero.SDTPackSitter.inspect(id)`
+  (extend the `ATTACHMENTS` eval), classify against an embedded copy of
+  `SDT_STATUS_CLASSES`, re-poll once any still `queued`, record
+  `{id, key, status, class}` for all, fail on any left `queued`.
+- Tests: `pick_menagerie_documents` returns every file with suffixes=None and
+  PDFs only by default; a guard that the embedded status classes match
+  `plugins/sdt-sitter/scheduler.js` verbatim; the classifier fails on a
+  `queued` entry and passes on the other four classes.
+- Live red: pin `Zotero.PDFWorker._processingQueue = true` over the debugger
+  channel before the last attachment is admitted, so it stays genuinely
+  `queued`; no plugin edit.

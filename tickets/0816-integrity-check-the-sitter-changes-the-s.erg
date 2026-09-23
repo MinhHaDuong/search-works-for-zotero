@@ -9,6 +9,7 @@ Blocked-by: 0820
 
 2026-09-23T08:25Z sim note Review of PR #613 (CHANGES REQUESTED) found the write inventory incomplete: sdt-sitter-last-shutdown.json via Zotero.File.putContents, and the snapshot missing the data-directory root. Body and TESTING.md corrected in the same PR.
 2026-09-23T08:53Z sim note raid 2026-09-23 Imagine: mechanism rewritten (every *.sqlite incl. fulltext.sqlite; plain mode=ro on the WAL database, never immutable; housekeeping-file exclusions; disappearance permitted; row-count deltas, no predicted-row engine); two red controls added. Blocked-by 0820 so the rename lands first (Blind-Spot finding 2).
+2026-09-23T09:06Z sim note raid 2026-09-23 Plan: file:line plan and first tests appended; Phase 4 cross-ticket scan found no registry needing a coordination PR
 --- body ---
 ## Context
 
@@ -76,3 +77,33 @@ the check; the unmodified build must pass it.
 - Its red control is recorded, with the bad payload named.
 - The permitted set is written in `TESTING.md` exactly as measured, the
   excluded housekeeping files included, each with its reason.
+
+## Plan (raid 2026-09-23)
+
+- `bench/sitter_integrity.py`, stdlib only: `snapshot(data_dir)` →
+  `{"sqlite": {rel: {table: {rowcount, content_hash}}}, "files": {rel: sha256}}`,
+  where `content_hash` hashes each row's repr, sorted, so an in-place `UPDATE`
+  is caught, not only inserts; `diff(before, after)`;
+  `assert_permitted(diff, PERMITTED, expected_library_delta)` raising
+  `IntegrityViolation`. Stream rows with a cursor, never `fetchall()`.
+- `PERMITTED` as globs with actions: `storage/*/.zotero-sdt-cache`
+  {appear, change}; `sdt-sitter-cache.jsonl` {appear, change, disappear};
+  `sdt-sitter-cache.jsonl.tmp` {appear, disappear};
+  `sdt-sitter-last-shutdown.json` {appear, change}. `fulltext.sqlite` is in no
+  allow-list until measured: fail-closed.
+- Call sites (line numbers at `fa32491`, pre-rename): smoke driver — before
+  install (~:472) and after `wait_for_preparation` (~:529); rung-3 driver —
+  before install (~:517), after initial packs (~:558), **inside**
+  `phase_invalidation` after erase (~:395) and after re-attach (~:409), so the
+  two edits cannot cancel out, and around uninstall (~:565). The final snapshot
+  is taken while Zotero is still running.
+- Tests in `tests/test_sitter_integrity.py` over synthetic data dirs: fulltext
+  change caught; uncheckpointed WAL row visible; a hand-built `immutable=1`
+  reader shown to miss it; tag row, direct `UPDATE`, root stray file, file
+  beside a pack each caught; permitted pack write passes; cache disappearance
+  permitted, pack disappearance without a declared edit caught; wrong declared
+  delta caught; undeclared table change during a declared edit caught.
+- Live red control: a perturbed copy of the plugin built with
+  `bench/build_sdt_sitter.py` and passed through the drivers' `--xpi`.
+- Expect the first live run to surface Zotero's own housekeeping writes to
+  `zotero.sqlite`; report them to the author before any joins the set.

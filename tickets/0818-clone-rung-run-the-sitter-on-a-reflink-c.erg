@@ -9,6 +9,7 @@ Blocked-by: 0820
 2026-09-23T08:15Z claude created
 
 2026-09-23T08:53Z sim note raid 2026-09-23 Imagine + Blind-Spot: is-Zotero-running by bare process name plus lock; same-filesystem and free-space preflight; WAL-on-quit control; settle by sitter state held across polls with the stall probe alongside; red-first test added. Blocked-by 0820 (record directory renamed).
+2026-09-23T09:06Z sim note raid 2026-09-23 Plan: file:line plan and first tests appended; Phase 4 cross-ticket scan found no registry needing a coordination PR
 --- body ---
 ## Context
 
@@ -55,3 +56,29 @@ pointed at a path that cannot reflink, it must fail rather than full-copy.
 
 One recorded clone-rung run on the author's copy, integrity green, and the
 copy removed afterwards — or kept with a line naming when it goes.
+
+## Plan (raid 2026-09-23)
+
+- Recon (2026-09-23): the data directory has **no lock of its own**; the
+  profile `~/.zotero/zotero/qr3b6poy.default/` carries `.parentlock` and a
+  `lock` symlink that are **stale** with no Zotero running. The process list
+  (`ps -eo comm=`, matching `zotero-bin` as `find_zotero_bin` does) decides;
+  the lock is a cross-check, never sufficient alone. `zotero.sqlite-wal` is 0 B
+  at rest; `fulltext.sqlite` 315 MB beside it; source and `~/data` on the same
+  btrfs, 93 GB free.
+- `bench/sitter_clone_data.py --source --dest [--min-free-gb]`: same-device
+  check (`st_dev`), free-space floor, `cp -a --reflink=always`. Copies live
+  under `~/data/clone-rung/<date>/` with a lifecycle line in the run record.
+- A small `setup_profile_existing_data()` beside `setup_profile` in the smoke
+  driver: a fresh profile pointed at the populated copy; `setup_profile`
+  itself unchanged.
+- Clean-room check via `liveness_code()`'s `dataDir`, as the rung-3 driver
+  does after install.
+- Settle: poll the sitter `state` (`pending == 0`, phase not census/draining)
+  for N consecutive reads; `bench/sdt_stall_probe.py --pid … --json-out …`
+  alongside.
+- Tests in `tests/test_sitter_clone_data.py`: refusal with a faked process
+  listing, **asserting the exact argv `["ps", "-eo", "comm="]`** so a
+  regression to `pgrep -f` fails; refusal on a live lock independently;
+  reflink failure raises and writes nothing, **asserting `--reflink=always` in
+  the argv** so `=auto` (which silently full-copies) fails.

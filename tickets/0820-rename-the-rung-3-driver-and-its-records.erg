@@ -7,6 +7,7 @@ Author: claude
 2026-09-23T08:51Z claude created
 
 2026-09-23T08:53Z sim note filed by the raid of 2026-09-23 as a child of 0817
+2026-09-23T09:06Z sim note raid 2026-09-23 Plan: file:line plan and first tests appended; Phase 4 cross-ticket scan found no registry needing a coordination PR
 --- body ---
 ## Context
 
@@ -35,3 +36,32 @@ still names the old path; shown red before the sweep.
 
 No live reference to the old names; `make check` green; the moved records
 still resolve from `TESTING.md`.
+
+## Plan (raid 2026-09-23)
+
+- Names: `bench/sitter_acceptance.py` → `bench/sitter_menagerie_test.py`
+  (the rung-2 sibling is `sitter_smoke_test.py`); `verification/acceptance/` →
+  `verification/menagerie/`. Inside the driver too: the banner, log prefix,
+  `AcceptanceFailure`, `run_acceptance`, default `acceptance.log` and
+  `sitter-acceptance.xpi` names — a renamed script that prints "ACCEPTANCE"
+  contradicts the ruling.
+- Live references to sweep (at `fa32491`): `plugins/sdt-sitter/TESTING.md:11`,
+  `STATE.md:15-16`, `bench/sdt_stall_probe.py:695-704`,
+  `tests/test_sdt_stall_probe.py:532-536`, `tickets/0793:167,169,231`,
+  `tickets/0816:33`.
+- **`tests/test_sdt_stall_probe.py:536` hardcodes
+  `verification/acceptance/0.4.15-2026-09-14.json`**: it changes in the same
+  commit as the `git mv`, or `make check` goes red.
+- Leave as history: `DECISIONS.md`, `tickets/closed/`, the records' own
+  `"script"` fields, dated reports (`verification/SDT-SITTER-ZOTERO-10.0.3.md`,
+  `verification/SITTER-0.4.0-PRERELEASE-TEST.md`). The 10.0.3 report's relative
+  link to the moved record will break; say so in the PR body.
+- **Do not touch the unrelated acceptance layer** (`bench/acceptance/`,
+  `ACCEPTANCE_ARENA`, `tests/test_acceptance_*.py`): target the two literal
+  paths, never the bare word.
+- Test: a guard over `bench/**/*.py`, `tests/**/*.py`, `Makefile`,
+  `plugins/sdt-sitter/TESTING.md`, `STATE.md` and the flat `tickets/*.erg`
+  (not `tickets/closed/`) that fails on either literal old path, shown red
+  before the sweep; plus a one-off check that no bare "acceptance" naming this
+  driver remains in `STATE.md`, `bench/sdt_stall_probe.py`,
+  `tests/test_sdt_stall_probe.py`.
