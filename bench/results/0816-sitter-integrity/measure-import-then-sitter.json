@@ -3,9 +3,9 @@
   "what": "clean room, Zotero 10.0.3: three Menagerie documents imported with NO sitter installed, settled snapshot; then the sitter installed and left to prepare them, settled snapshot; then uninstalled with diagnostics withdrawn",
   "import_only": {
     "files": {
-      "storage/5LBC4C3L/.zotero-ft-cache": "appear",
-      "storage/A6HWVZ7W/.zotero-ft-cache": "appear",
-      "storage/RUXAD6QD/.zotero-ft-cache": "appear"
+      "storage/CHDL52AV/.zotero-ft-cache": "appear",
+      "storage/T2TGMFGC/.zotero-ft-cache": "appear",
+      "storage/VE8KU6FP/.zotero-ft-cache": "appear"
     },
     "tables": {
       "fulltext.sqlite:fulltextContent_data": {
@@ -61,9 +61,9 @@
   "sitter_only": {
     "files": {
       "sdt-sitter-cache.jsonl": "appear",
-      "storage/5LBC4C3L/.zotero-sdt-cache": "appear",
-      "storage/A6HWVZ7W/.zotero-sdt-cache": "appear",
-      "storage/RUXAD6QD/.zotero-sdt-cache": "appear"
+      "storage/CHDL52AV/.zotero-sdt-cache": "appear",
+      "storage/T2TGMFGC/.zotero-sdt-cache": "appear",
+      "storage/VE8KU6FP/.zotero-sdt-cache": "appear"
     },
     "tables": {}
   },
