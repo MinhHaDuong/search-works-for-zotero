@@ -1,0 +1,123 @@
+{
+  "probe": "verification/probes/sitter_integrity_import_then_sitter.py",
+  "what": "clean room, Zotero 10.0.3: three Menagerie documents imported with NO sitter installed, settled snapshot; then the sitter installed and left to prepare them, settled snapshot; then uninstalled with diagnostics withdrawn",
+  "import_only": {
+    "files": {
+      "storage/5LBC4C3L/.zotero-ft-cache": "appear",
+      "storage/A6HWVZ7W/.zotero-ft-cache": "appear",
+      "storage/RUXAD6QD/.zotero-ft-cache": "appear"
+    },
+    "tables": {
+      "fulltext.sqlite:fulltextContent_data": {
+        "before": 2,
+        "after": 9
+      },
+      "fulltext.sqlite:fulltextContent_docsize": {
+        "before": 0,
+        "after": 3
+      },
+      "fulltext.sqlite:fulltextContent_idx": {
+        "before": 0,
+        "after": 7
+      },
+      "fulltext.sqlite:fulltextIndexState": {
+        "before": 0,
+        "after": 3
+      },
+      "zotero.sqlite:creators": {
+        "before": 0,
+        "after": 1
+      },
+      "zotero.sqlite:fulltextItems": {
+        "before": 0,
+        "after": 3
+      },
+      "zotero.sqlite:itemAttachments": {
+        "before": 0,
+        "after": 3
+      },
+      "zotero.sqlite:itemCreators": {
+        "before": 0,
+        "after": 3
+      },
+      "zotero.sqlite:itemData": {
+        "before": 0,
+        "after": 9
+      },
+      "zotero.sqlite:itemDataValues": {
+        "before": 0,
+        "after": 5
+      },
+      "zotero.sqlite:items": {
+        "before": 0,
+        "after": 6
+      },
+      "zotero.sqlite:libraries": {
+        "before": 1,
+        "after": 1
+      }
+    }
+  },
+  "sitter_only": {
+    "files": {
+      "sdt-sitter-cache.jsonl": "appear",
+      "storage/5LBC4C3L/.zotero-sdt-cache": "appear",
+      "storage/A6HWVZ7W/.zotero-sdt-cache": "appear",
+      "storage/RUXAD6QD/.zotero-sdt-cache": "appear"
+    },
+    "tables": {}
+  },
+  "sitter_only_violations": [],
+  "uninstall": {
+    "files": {
+      "sdt-sitter-cache.jsonl": "disappear"
+    },
+    "tables": {}
+  },
+  "uninstall_violations": [],
+  "live_reads": {
+    "live_reads_start": {
+      "mode_ro": {
+        "error": "database is locked"
+      },
+      "immutable": {
+        "items": 0
+      },
+      "copy": {
+        "items": 0
+      },
+      "wal_bytes": 22134632,
+      "shm_exists": false,
+      "fulltext_mode_ro": "error: database is locked"
+    },
+    "live_reads_after_import": {
+      "mode_ro": {
+        "error": "database is locked"
+      },
+      "immutable": {
+        "items": 0
+      },
+      "copy": {
+        "items": 6
+      },
+      "wal_bytes": 26102464,
+      "shm_exists": false,
+      "fulltext_mode_ro": "error: database is locked"
+    },
+    "live_reads_end": {
+      "mode_ro": {
+        "error": "database is locked"
+      },
+      "immutable": {
+        "items": 0
+      },
+      "copy": {
+        "items": 6
+      },
+      "wal_bytes": 26102464,
+      "shm_exists": false,
+      "fulltext_mode_ro": "error: database is locked"
+    }
+  },
+  "live_reads_note": "mode_ro = plain read-only open of the live zotero.sqlite; immutable = mode=ro&immutable=1; copy = bench/sitter_integrity.py's main+WAL copy"
+}

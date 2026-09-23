@@ -16,17 +16,71 @@ below the last runs outside the author's Zotero. The ruling is `DECISIONS.md`
 run's own log confirming Zotero opened that directory and not the author's.
 
 **Integrity, from rung 2 up.** The sitter promises to change the SDT cache and
-nothing else. Each rung compares the data directory before and after — every
-table of `zotero.sqlite` by row content, every file in the directory tree by
-hash, the root included — and fails on any difference outside the permitted
-set. The set is whatever ticket 0816 measures and the author accepts; read
-from the code at `9aca794` it holds the `.zotero-sdt-cache` packs Zotero
-writes when the sitter calls `Zotero.SDT.ensure()`, the sitter's own
-`sdt-sitter-cache.jsonl` (and its `.tmp` during compaction), and
-`sdt-sitter-last-shutdown.json`, written at shutdown when diagnostics are on.
-Where the scenario itself edits the library, the difference must be exactly
-those edits. 0816 also shows the check red on a build that breaks the
-promise.
+nothing else. Each rung compares the data directory across segments of its
+run — every table of every `*.sqlite` by row count and row content, every
+other file in the tree by hash, the root included — and fails on any
+difference outside the permitted set. The instrument is
+`bench/sitter_integrity.py`; each segment's verdict is logged and carried in
+the driver's run record. Rung 2 closes one segment (install, import,
+preparation); rung 3 closes ten, and one of them — resume to indexed — holds
+no library edit at all, so it alone says whether `Zotero.SDT.ensure()` writes
+anything besides the pack.
+
+The permitted set, as measured by ticket 0816 on Zotero 10.0.3 (a run with the
+import done before the sitter was installed, then rung 3 end to end):
+
+| Path | May | Why |
+|---|---|---|
+| `storage/*/.zotero-sdt-cache` | appear, change | the pack Zotero writes when the sitter calls `ensure()` — measured |
+| `sdt-sitter-cache.jsonl` | appear, change, disappear | the sitter's own cache; `bootstrap.js` removes it on uninstall — measured |
+| `sdt-sitter-cache.jsonl.tmp` | appear, disappear | beside the cache while it is compacted — from the code; no snapshot caught one |
+| `sdt-sitter-last-shutdown.json` | appear, change | the shutdown record when diagnostics are on — from the code; no measured segment spans a shutdown with diagnostics on |
+
+Nothing else. `ensure()` was measured writing no table of `zotero.sqlite` or
+`fulltext.sqlite` and no file but the pack: no `.zotero-ft-cache`, no index
+row. Both databases stay in no allow-list, so a change to either fails closed.
+
+Excluded from the comparison, as Zotero's own churn and never evidence:
+
+| Pattern | Why |
+|---|---|
+| `*.sqlite-wal` | the WAL of a database read by content; its committed frames are read through the copy, its bytes move on every checkpoint |
+| `*.sqlite-shm` | SQLite's shared-memory index of a WAL; derived state |
+| `*.sqlite.tmp-wal` | a transient WAL beside a database copy Zotero makes |
+| `*.sqlite*.bak` | Zotero's rotating automatic database backups |
+
+Where the scenario itself edits the library — the import, erasing an
+attachment or a whole item, re-attaching the file — the edit is declared
+before its segment is checked. The tables whose row count the driver tracks
+(`items`, `itemAttachments`) must move by exactly that count; the other tables
+the edit was measured to write may change, uncounted; every other table must
+not. Zotero indexes a document it is handed or loses, so the full-text tables
+and the `.zotero-ft-cache` beside each attachment belong to the edit. The
+per-edit table lists live in `bench/sitter_integrity.py` beside the functions
+that declare them. The limit this buys: inside a declared edit, a table the
+edit may touch is not read row by row, so a write there that keeps the counts
+right would pass. Rung 2 runs the import with the sitter live, so its one
+segment cannot tell an index write the sitter caused from the import's own;
+rung 3's edit-free segment is what can.
+
+**How the databases are read.** Zotero 10 on Linux holds `zotero.sqlite`
+under an exclusive lock for the life of its connection, with the WAL index in
+its own memory and no `-shm`, and `fulltext.sqlite` with it. A plain
+read-only open of the live file is refused for as long as Zotero runs, and an
+`immutable=1` open answers without error while reading the main file alone —
+in the measured run it saw none of the library, all of which was still in the
+WAL. So each database is copied with its `-wal` and the copy is opened, which
+replays every committed frame; each snapshot is taken only once two
+consecutive reads agree, so a copy torn by a write in flight is never
+compared.
+
+**Red control.** A payload built from `plugins/sdt-sitter/` with one change —
+after every `ensure()`, tag the attachment `sdt-sitter-red-control` — passed
+through each driver's `--xpi`, fails the check at both rungs, naming `tags`
+and `itemTags`; the unmodified build passes both. The run records are in
+`bench/results/0816-sitter-integrity/`. The unit suite (`tests/test_sitter_integrity.py`) holds the
+same check red on a tag write, a direct `UPDATE` of one row, a stray file at
+the root, and a file touched beside a pack.
 
 **Rung 3 is the whole Menagerie, wild documents included.** The corpus is
 where the extremes belong — the plates volume and the 3 666-page EIS arrive
