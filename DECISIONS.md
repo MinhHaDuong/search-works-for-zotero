@@ -7906,3 +7906,15 @@ Menagerie rung and above reads his values — Excellence, Integrity, Care — as
 measured criteria whose numbers are proposed and ruled before `SPEC.md` holds
 them. The ladder is written once, in `plugins/sdt-sitter/TESTING.md`; tracker
 0815 holds the work.
+
+**2026-09-23 — The integrity check permits only what a run has measured.** Two
+rulings on the check ticket 0816 built, the same evening. First, the two files
+`bootstrap.js` can write but no run had produced — the cache's compaction
+temporary `sdt-sitter-cache.jsonl.tmp` and the shutdown record
+`sdt-sitter-last-shutdown.json` — are not permitted until a run measures them,
+and a run that writes either fails. Second, a zero-byte `<db>.tmp-wal` beside
+its own database is Zotero's housekeeping, recorded but not judged: every
+whole-Menagerie run of ticket 0821 met one, written beside Zotero's automatic
+`.bak` some minutes in, and zero bytes carry nothing. A non-empty `.tmp-wal`
+must still begin with the WAL magic. `plugins/sdt-sitter/TESTING.md` states the
+resulting set.
