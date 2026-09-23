@@ -658,8 +658,12 @@ def main(argv=None) -> int:
     except NotRunError as exc:
         print(f"NOT-RUN: {exc}")
         return 2
-    except (MenagerieFailure, SmokeFailure) as exc:
-        print(f"FAIL: {exc}")
+    except Exception as exc:  # noqa: BLE001 -- MenagerieFailure, SmokeFailure, or a crash
+        # The catch-all is the smoke driver's: an unattended run reports its
+        # own crash -- a filesystem race inside a snapshot included -- as a
+        # FAIL with its evidence, not as a traceback that drops the records.
+        known = isinstance(exc, (MenagerieFailure, SmokeFailure))
+        print(f"FAIL: {exc}" if known else f"FAIL (unexpected {type(exc).__name__}): {exc}")
         # A failed run still carries every integrity segment it closed, the
         # failing one included: the record is what names the bad write.
         if args.json_out:

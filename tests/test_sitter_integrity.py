@@ -477,3 +477,115 @@ def test_the_record_qualifies_declared_tables_like_the_diff(tmp_path):
     rec = si.record("import", si.diff(snap, snap), edit=si.import_edit(1, 1))
     assert all(":" in name for name in rec["declared"]["tables"])
     assert rec["declared"]["tables"]["zotero.sqlite:items"] == 2
+
+
+# --------------------------------------------------------------------------
+# review round 1 (PR #618): bytes no reader reads, and paths the walk skipped
+# --------------------------------------------------------------------------
+
+def test_red_bytes_appended_to_the_wal_past_its_last_frame(tmp_path):
+    """SQLite stops at the first invalid frame, so the SQL layer never sees
+    them, and the file layer excluded the WAL by name: a blind spot."""
+    data = make_data_dir(tmp_path)
+    writer = zotero_writer(data / "zotero.sqlite")
+    try:
+        writer.execute("INSERT INTO tags VALUES (7, 'x')")
+        before = si.snapshot(data)
+        with open(data / "zotero.sqlite-wal", "ab") as f:
+            f.write(b"payload" * 700)
+        assert verdict(before, si.snapshot(data)) == [
+            "zotero.sqlite-wal: write past the last committed frame is not permitted"]
+    finally:
+        writer.close()
+
+
+def test_a_committed_wal_write_under_a_declared_edit_passes(tmp_path):
+    data = make_data_dir(tmp_path)
+    writer = zotero_writer(data / "zotero.sqlite")
+    try:
+        writer.execute("INSERT INTO tags VALUES (7, 'x')")
+        before = si.snapshot(data)
+        writer.execute("INSERT INTO tags VALUES (8, 'y')")
+        assert verdict(before, si.snapshot(data), edit=si.LibraryEdit(tables={"tags": 1})) == []
+    finally:
+        writer.close()
+
+
+def test_a_wal_reset_over_stale_frames_passes(tmp_path):
+    """After a RESTART checkpoint SQLite writes from the top again and leaves
+    the old frames behind, unread and unchanged: legitimate."""
+    data = make_data_dir(tmp_path)
+    writer = zotero_writer(data / "zotero.sqlite")
+    try:
+        for n in range(40):
+            writer.execute("INSERT INTO tags VALUES (?, ?)", (100 + n, "z" * 2000))
+        before = si.snapshot(data)
+        writer.execute("PRAGMA wal_checkpoint(RESTART)")
+        writer.execute("INSERT INTO tags VALUES (9, 'after reset')")
+        after = si.snapshot(data)
+        layout = after["wal"]["zotero.sqlite"]
+        assert layout["frames"] < before["wal"]["zotero.sqlite"]["frames"]
+        # Not vacuous: stale frames really do sit past the committed ones.
+        assert len(layout["chunks"]) > layout["frames"] + 1
+        assert verdict(before, after, edit=si.LibraryEdit(tables={"tags": 1})) == []
+    finally:
+        writer.close()
+
+
+def test_zoteros_idle_truncate_checkpoint_passes(tmp_path):
+    """Zotero's idle handler runs `PRAGMA wal_checkpoint(TRUNCATE)` (db.js):
+    the WAL empties with no change to the content."""
+    data = make_data_dir(tmp_path)
+    writer = zotero_writer(data / "zotero.sqlite")
+    try:
+        writer.execute("INSERT INTO tags VALUES (7, 'x')")
+        before = si.snapshot(data)
+        writer.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        assert (data / "zotero.sqlite-wal").stat().st_size == 0
+        assert verdict(before, si.snapshot(data)) == []
+    finally:
+        writer.close()
+
+
+def test_red_a_directory_swapped_for_a_symlink_inside_a_declared_erase(tmp_path):
+    """The walk lists a symlinked directory among directories, never files."""
+    data = make_data_dir(tmp_path)
+    sitter_ran(data)
+    before = si.snapshot(data)
+    erase_attachment(data, "AAAA1111", 2)
+    (data / "storage" / "AAAA1111").rmdir()
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    (elsewhere / "payload.bin").write_bytes(b"x")
+    (data / "storage" / "AAAA1111").symlink_to(elsewhere, target_is_directory=True)
+    edit = si.LibraryEdit(tables={"items": -1, "itemAttachments": -1},
+                          files={"storage/AAAA1111/*": {"disappear"}})
+    assert verdict(before, si.snapshot(data), edit=edit) == [
+        "storage/AAAA1111: appear is not permitted"]
+
+
+def test_red_a_housekeeping_name_away_from_its_database(tmp_path):
+    """The exclusions cover Zotero's churn beside a database, not any file
+    that happens to share the suffix."""
+    data = make_data_dir(tmp_path)
+    before = si.snapshot(data)
+    (data / "storage" / "AAAA1111" / "exfil.sqlite-evil.bak").write_bytes(b"x")
+    (data / "zotero.sqlite.bak").write_bytes(b"backup")
+    assert verdict(before, si.snapshot(data)) == [
+        "storage/AAAA1111/exfil.sqlite-evil.bak: appear is not permitted"]
+
+
+def test_settled_snapshot_retries_a_read_torn_by_a_vanishing_file(tmp_path, monkeypatch):
+    data = make_data_dir(tmp_path)
+    real = si.snapshot
+    calls = []
+
+    def flaky(d):
+        calls.append(1)
+        if len(calls) == 2:
+            raise FileNotFoundError("vanished mid-walk")
+        return real(d)
+
+    monkeypatch.setattr(si, "snapshot", flaky)
+    assert si.settled_snapshot(data, settle=0, timeout=60, sleep=lambda _s: None) == real(data)
+    assert len(calls) >= 3

@@ -40,11 +40,13 @@ Nothing else. `ensure()` was measured writing no table of `zotero.sqlite` or
 `fulltext.sqlite` and no file but the pack: no `.zotero-ft-cache`, no index
 row. Both databases stay in no allow-list, so a change to either fails closed.
 
-Excluded from the comparison, as Zotero's own churn and never evidence:
+Excluded from the comparison, as Zotero's own churn and never evidence, and
+only beside the database they belong to (`zotero.sqlite.bak` next to
+`zotero.sqlite`; the same suffix anywhere else is an ordinary file):
 
 | Pattern | Why |
 |---|---|
-| `*.sqlite-wal` | the WAL of a database read by content; its committed frames are read through the copy, its bytes move on every checkpoint |
+| `*.sqlite-wal` | not hashed whole: its committed frames are read through the copy, and Zotero's idle handler vacuums and truncates it with no logical change. The frames past the last committed one are compared byte for byte instead, so a write there still fails |
 | `*.sqlite-shm` | SQLite's shared-memory index of a WAL; derived state |
 | `*.sqlite.tmp-wal` | a transient WAL beside a database copy Zotero makes |
 | `*.sqlite*.bak` | Zotero's rotating automatic database backups |
@@ -61,7 +63,10 @@ that declare them. The limit this buys: inside a declared edit, a table the
 edit may touch is not read row by row, so a write there that keeps the counts
 right would pass. Rung 2 runs the import with the sitter live, so its one
 segment cannot tell an index write the sitter caused from the import's own;
-rung 3's edit-free segment is what can.
+rung 3's edit-free segment is what can. And a database is read through
+SQLite, so the bytes SQLite never reads in the main file — its free pages,
+anything past its declared page count — are outside the check; hashing the
+file whole instead would fail on every idle vacuum.
 
 **How the databases are read.** Zotero 10 on Linux holds `zotero.sqlite`
 under an exclusive lock for the life of its connection, with the WAL index in
@@ -80,7 +85,9 @@ through each driver's `--xpi`, fails the check at both rungs, naming `tags`
 and `itemTags`; the unmodified build passes both. The run records are in
 `bench/results/0816-sitter-integrity/`. The unit suite (`tests/test_sitter_integrity.py`) holds the
 same check red on a tag write, a direct `UPDATE` of one row, a stray file at
-the root, and a file touched beside a pack.
+the root, and a file touched beside a pack, and since review, on bytes
+appended to a WAL past its last committed frame and on a storage directory
+swapped for a symlink inside a declared erase.
 
 **Rung 3 is the whole Menagerie, wild documents included.** The corpus is
 where the extremes belong — the plates volume and the 3 666-page EIS arrive

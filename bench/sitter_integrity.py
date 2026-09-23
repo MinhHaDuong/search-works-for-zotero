@@ -41,6 +41,19 @@ hash (the sum, modulo 2**256, of one SHA-256 per row), streamed off a cursor:
 an in-place `UPDATE` changes the hash with the count unchanged, and nothing is
 held in memory but the running sum. `sqlite_master` is hashed the same way, so
 a new index or table with no rows is still a change.
+
+## The bytes SQLite does not read
+
+Reading through SQLite sees only what SQLite reads. In the WAL, that stops at
+the last committed frame: anything written past it is invisible to the content
+layer, and hashing the whole WAL instead would go red every time Zotero idles,
+since its idle handler vacuums and truncates the WAL with no logical change
+(`db.js`, `observe('idle')`). So the WAL is kept as one hash per frame, SQLite's
+own recovery on the copy says how many frames it replayed, and every frame past
+those must be byte-identical to what sat at the same offset before. A reset
+over stale frames and a truncation both pass; bytes appended or rewritten past
+the last committed frame do not (review of PR #618). The main file's free pages
+and any bytes past its declared page count are still unread: see TESTING.md.
 """
 
 import fnmatch
@@ -56,11 +69,14 @@ from pathlib import Path
 
 #: Zotero's own churn, never the sitter's, and never evidence either way. Each
 #: is a view of a database that is itself read by content, or a backup Zotero
-#: rotates on its own schedule (precedent: `bench/smoke_upstream.py`).
+#: rotates on its own schedule (precedent: `bench/smoke_upstream.py`). A name
+#: is excluded only beside its own database -- `zotero.sqlite.bak` next to
+#: `zotero.sqlite` -- never because a stray file elsewhere shares the suffix.
 EXCLUDED = {
-    "*.sqlite-wal": "the WAL of a database read by content; its bytes move on "
-                    "every checkpoint with no logical change, and its committed "
-                    "frames are read through the copy",
+    "*.sqlite-wal": "the WAL of a database read by content; its committed "
+                    "frames are read through the copy, and the frames past them "
+                    "are checked byte for byte instead of hashed whole, since "
+                    "Zotero truncates the WAL at idle with no logical change",
     "*.sqlite-shm": "SQLite's shared-memory index for a WAL; derived state",
     "*.sqlite.tmp-wal": "a transient WAL beside a database copy Zotero makes",
     "*.sqlite*.bak": "Zotero's rotating automatic database backups",
@@ -113,8 +129,12 @@ class LibraryEdit:
 # snapshot
 # --------------------------------------------------------------------------
 
-def _excluded(name: str) -> bool:
-    return any(fnmatch.fnmatchcase(name, pat) for pat in EXCLUDED)
+def _excluded(name: str, siblings: set[str]) -> bool:
+    """Housekeeping churn, and only beside the database it belongs to."""
+    if not any(fnmatch.fnmatchcase(name, pat) for pat in EXCLUDED):
+        return False
+    stem = name[:name.index(".sqlite") + len(".sqlite")]
+    return stem != name and stem in siblings
 
 
 def _file_digest(path: Path) -> str:
@@ -137,14 +157,35 @@ def _table_summary(con: sqlite3.Connection, sql: str) -> dict:
     return {"rows": rows, "hash": f"{acc:064x}"}
 
 
-def _dump_database(path: Path) -> dict:
-    """{table: {rows, hash}} for one database, read through a private copy."""
+#: A WAL starts with a 32-byte header; each frame is a 24-byte header and a page.
+_WAL_HEADER = 32
+_FRAME_HEADER = 24
+
+
+def _wal_chunks(blob: bytes) -> list[str]:
+    """One SHA-256 for the header, then one per frame-sized chunk, the last
+    one possibly short. Frame k (1-based) is chunk k."""
+    if len(blob) < _WAL_HEADER:
+        return [hashlib.sha256(blob).hexdigest()] if blob else []
+    page_size = int.from_bytes(blob[8:12], "big") or 65536
+    step = _FRAME_HEADER + page_size
+    chunks = [hashlib.sha256(blob[:_WAL_HEADER]).hexdigest()]
+    for start in range(_WAL_HEADER, len(blob), step):
+        chunks.append(hashlib.sha256(blob[start:start + step]).hexdigest())
+    return chunks
+
+
+def _dump_database(path: Path) -> tuple[dict, dict | None]:
+    """({table: {rows, hash}}, WAL layout or None), read through a private copy."""
     with tempfile.TemporaryDirectory(prefix="sitter-integrity-") as tmp:
         copy = Path(tmp) / "db.sqlite"
         shutil.copyfile(path, copy)
         wal = path.with_name(path.name + "-wal")
+        wal_blob = None
         if wal.exists():
-            shutil.copyfile(wal, copy.with_name(copy.name + "-wal"))
+            copy_wal = copy.with_name(copy.name + "-wal")
+            shutil.copyfile(wal, copy_wal)
+            wal_blob = copy_wal.read_bytes()
         con = sqlite3.connect(copy)
         try:
             tables = {"sqlite_master": _table_summary(
@@ -156,25 +197,41 @@ def _dump_database(path: Path) -> dict:
                     # own; the module itself may not be compiled in here.
                     continue
                 tables[name] = _table_summary(con, f"SELECT * FROM {_quote(name)}")
-            return tables
+            layout = None
+            if wal_blob is not None:
+                # SQLite's own recovery decides which frames count: the second
+                # field is the number of frames in the WAL it replayed, up to
+                # the last committed one; -1 when the copy is not in WAL mode.
+                frames = con.execute("PRAGMA wal_checkpoint(PASSIVE)").fetchone()[1]
+                layout = {"frames": max(frames, 0), "chunks": _wal_chunks(wal_blob)}
+            return tables, layout
         finally:
             con.close()
 
 
 def snapshot(data_dir: Path) -> dict:
-    """{"sqlite": {rel: {table: {rows, hash}}}, "files": {rel: sha256 | kind}}.
+    """{"sqlite": {rel: {table: {rows, hash}}}, "wal": {rel: {frames, chunks}},
+    "files": {rel: sha256 | kind}}.
 
     Every `*.sqlite` is read by content, every other regular file by hash,
     the root included, `EXCLUDED` aside. A FIFO or socket is recorded by kind
     and never opened -- Zotero keeps integration pipes under the data
-    directory, and opening one blocks -- and a symlink by its target.
+    directory, and opening one blocks -- and a symlink by its target, a
+    symlinked directory included: the walk lists one among directories and
+    does not descend it, so it would otherwise go unrecorded.
     """
     data_dir = Path(data_dir)
-    out = {"sqlite": {}, "files": {}}
+    out = {"sqlite": {}, "wal": {}, "files": {}}
     for root, dirs, files in os.walk(data_dir):
         dirs.sort()
+        for name in dirs:
+            path = Path(root) / name
+            if path.is_symlink():
+                out["files"][path.relative_to(data_dir).as_posix()] = (
+                    "symlink:" + os.readlink(path))
+        siblings = set(files)
         for name in sorted(files):
-            if _excluded(name):
+            if _excluded(name, siblings):
                 continue
             path = Path(root) / name
             rel = path.relative_to(data_dir).as_posix()
@@ -186,10 +243,22 @@ def snapshot(data_dir: Path) -> dict:
             elif stat.S_ISSOCK(mode):
                 out["files"][rel] = "socket"
             elif name.endswith(".sqlite"):
-                out["sqlite"][rel] = _dump_database(path)
+                out["sqlite"][rel], layout = _dump_database(path)
+                if layout is not None:
+                    out["wal"][rel] = layout
             else:
                 out["files"][rel] = _file_digest(path)
     return out
+
+
+def _read(data_dir: Path) -> tuple[dict | None, str | None]:
+    """A snapshot, or None and why, when a file vanished mid-walk or a copy
+    tore badly enough that SQLite would not open it -- both are a directory
+    still moving, not a verdict."""
+    try:
+        return snapshot(data_dir), None
+    except (FileNotFoundError, sqlite3.DatabaseError) as exc:
+        return None, f"{type(exc).__name__}: {exc}"
 
 
 def settled_snapshot(data_dir: Path, *, settle: float = 5.0, timeout: float = 180.0,
@@ -201,13 +270,16 @@ def settled_snapshot(data_dir: Path, *, settle: float = 5.0, timeout: float = 18
     NotQuiesced, naming what kept moving, when no two reads agree in `timeout`.
     """
     deadline = time.monotonic() + timeout
-    previous = snapshot(data_dir)
+    previous, why = _read(data_dir)
     while True:
         sleep(settle)
-        current = snapshot(data_dir)
-        if current == previous:
+        current, why = _read(data_dir)
+        if current is not None and current == previous:
             return current
         if time.monotonic() >= deadline:
+            if current is None or previous is None:
+                raise NotQuiesced(f"{data_dir} could not be read whole after "
+                                  f"{timeout:.0f}s: {why}")
             moving = diff(previous, current)
             raise NotQuiesced(
                 f"{data_dir} still changing after {timeout:.0f}s: "
@@ -219,9 +291,14 @@ def settled_snapshot(data_dir: Path, *, settle: float = 5.0, timeout: float = 18
 # diff
 # --------------------------------------------------------------------------
 
+#: The file action for bytes past a WAL's last committed frame that were not
+#: there before: read by no layer, so never permitted.
+WAL_TAIL = "write past the last committed frame"
+
+
 @dataclass
 class Diff:
-    #: rel -> "appear" | "change" | "disappear"
+    #: rel -> "appear" | "change" | "disappear" | WAL_TAIL
     files: dict
     #: "<db>:<table>" -> {"before": rows, "after": rows}
     tables: dict
@@ -253,6 +330,12 @@ def diff(before: dict, after: dict) -> Diff:
                 tables[f"{db}:{table}"] = {
                     "before": (b.get(table) or {}).get("rows", 0),
                     "after": (a.get(table) or {}).get("rows", 0)}
+    for db, layout in after.get("wal", {}).items():
+        old = before.get("wal", {}).get(db, {}).get("chunks", [])
+        for k in range(layout["frames"] + 1, len(layout["chunks"])):
+            if k >= len(old) or old[k] != layout["chunks"][k]:
+                files[f"{db}-wal"] = WAL_TAIL
+                break
     return Diff(files=files, tables=tables)
 
 
@@ -277,12 +360,13 @@ def _qualified(name: str) -> str:
     return name if ":" in name else f"{MAIN_DB}:{name}"
 
 
-def check(d: Diff, permitted: dict = PERMITTED, edit: LibraryEdit | None = None) -> list[str]:
-    """Every change outside the permitted set, one line each; [] is a PASS."""
+def check(d: Diff, edit: LibraryEdit | None = None) -> list[str]:
+    """Every change outside PERMITTED and the declared edit, one line each;
+    [] is a PASS."""
     edit = edit or LibraryEdit()
     problems = []
     for rel, action in d.files.items():
-        if not _allowed(rel, action, permitted, edit.files):
+        if not _allowed(rel, action, PERMITTED, edit.files):
             problems.append(f"{rel}: {action} is not permitted")
     declared = {_qualified(k): v for k, v in edit.tables.items()}
     for name, rows in d.tables.items():
@@ -302,17 +386,15 @@ def check(d: Diff, permitted: dict = PERMITTED, edit: LibraryEdit | None = None)
     return problems
 
 
-def assert_permitted(d: Diff, permitted: dict = PERMITTED,
-                     edit: LibraryEdit | None = None) -> None:
-    problems = check(d, permitted, edit)
+def assert_permitted(d: Diff, edit: LibraryEdit | None = None) -> None:
+    problems = check(d, edit)
     if problems:
         raise IntegrityViolation("; ".join(problems))
 
 
-def record(segment: str, d: Diff, permitted: dict = PERMITTED,
-           edit: LibraryEdit | None = None) -> dict:
+def record(segment: str, d: Diff, edit: LibraryEdit | None = None) -> dict:
     """The verdict as a run record carries it: what changed and whether it may."""
-    problems = check(d, permitted, edit)
+    problems = check(d, edit)
     return {"segment": segment, "verdict": "FAIL" if problems else "PASS",
             "violations": problems, "files": d.files, "tables": d.tables,
             "declared": None if edit is None else {
