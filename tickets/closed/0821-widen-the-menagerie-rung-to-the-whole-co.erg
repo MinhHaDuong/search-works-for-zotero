@@ -2,6 +2,7 @@
 Title: Widen the Menagerie rung to the whole corpus, every attachment accounted for
 Created: 2026-09-23
 Author: claude
+Closed: autoclosed — PR #624
 
 --- log ---
 2026-09-23T08:51Z claude created
@@ -11,6 +12,12 @@ Author: claude
 2026-09-23T09:06Z sim note raid 2026-09-23 Phase 4: pick_menagerie_documents is shared with the smoke rung; widening its default would feed the smoke test HTML with no pack, so the widening is a parameter
 2026-09-23T10:12Z sim note blocker 0820 closed — Blocked-by removed.
 2026-09-23T11:11Z sim note blocker 0816 closed — Blocked-by removed.
+2026-09-23T17:38Z sim note live runs on padme (Zotero 10.0.3, Xvfb :99), branch t0821-menagerie-whole-corpus. Red control at fed31330: 50 smallest files, --red-hold-last, FAIL as intended with 1 left queued after settling: HYBVX2KY=missing-pack (verification/menagerie/0821-red-hold-last-2026-09-23.json). Whole corpus at 9870eb95: all 114 accounted for (43 current, 3 empty-pack, 68 unsupported no-extractor, 0 queued, 0 failed), 46 packs verified, resume to drained 380 s, 496 s wall; integrity resume+index FAIL on a zero-byte zotero.sqlite.tmp-wal from Zotero's own automatic backup, deterministic at about 6,5 min in three runs; left failing, a ruling on the .tmp-wal exclusion is needed (verification/menagerie/0821-whole-corpus-2026-09-23.json). Arenas ~/data/acceptance-arena/0821/ on padme, deletable once the PR merges or closes.
+2026-09-23T18:56Z sim note author ruling 2026-09-23: a zero-byte <db>.tmp-wal beside its database is housekeeping (recorded, not judged); a non-empty one still needs the WAL magic. Measured in all three whole-corpus runs, written beside Zotero's automatic .bak about 6,5 min in.
+2026-09-23T19:16Z sim note whole-corpus run at 8a65994 on padme (Zotero 10.0.3, Xvfb): exit 0, 658 s wall; 114/114 accounted (indexed 43, unindexed 3, outOfScope 68, failed 0, queued 0); all 10 integrity segments PASS, resume+index recording zotero.sqlite.bak and the empty zotero.sqlite.tmp-wal as housekeeping. Record: verification/menagerie/0821-whole-corpus-green-2026-09-23.json. The earlier 0821-whole-corpus-2026-09-23.json stays as the failing run that surfaced the tmp-wal.
+2026-09-23T19:28Z sim bump verify-reroll — round 1: red-team verifiable-high finding unresolved — the empty .tmp-wal housekeeping exemption in bench/sitter_integrity.py does not require a sibling .bak in the same segment, wider than the DECISIONS.md ruling and PR's own narrative
+2026-09-23T19:39Z sim note author re-ruled 2026-09-23, asked after /verify-gate round 2 ESCALATE on #624: 'Should the check also require a .bak beside it, or not?' Answer, the option he chose: 'No .bak required' -- 'What the code does now. I log your answer, in your words, on 0821 and on the PR, and merge #624 on your ruling.'
+2026-09-23T19:40Z sim closed — autoclosed — PR #624
 --- body ---
 ## Context
 

@@ -35,6 +35,17 @@ diff. Resume-to-indexed holds no library edit, so it is where a write by
 `ensure()` beyond the pack would show. The verdicts go in the run record under
 `integrity`, a failed run's included.
 
+THE WHOLE CORPUS, EVERY ATTACHMENT ACCOUNTED FOR (ticket 0821). Every file in
+the package's `attachments/` is imported -- not only the PDFs, and not a
+smallest-first handful -- and the expected count is read off that directory at
+run time, never written down here. Once the sitter settles, every attachment's
+status is read back through `Zotero.SDTPackSitter.inspect(id)` and classed
+against the scheduler's own `SDT_STATUS_CLASSES`: each must end indexed or
+unindexed (a pack) or failed / outOfScope (a named reason). One left `queued`,
+or a status in no class, fails the run; the per-attachment record is kept
+either way. A run that outlives its index deadline while still making
+progress says TIMEOUT, not FAIL: the deadline is derived, not measured.
+
 Nothing here touches a real library: a fresh profile (refused if it already has
 a prefs.js) and a data directory pinned beside it, re-read from the running
 Zotero before anything is imported -- ticket 0782's refusal, kept.
@@ -83,6 +94,95 @@ from sitter_watch import Log, connect_resilient  # noqa: E402
 
 class MenagerieFailure(Exception):
     """A real defect, observed against a live Zotero."""
+
+
+class RungTimeout(Exception):
+    """The run outlived a deadline while the sitter was still making progress.
+
+    Distinct from MenagerieFailure on purpose: the whole-corpus deadlines are
+    derived, not measured, so running out of one says the deadline was short,
+    not that the sitter is wrong."""
+
+
+#: A verbatim copy of `SDT_STATUS_CLASSES` in `plugins/sdt-sitter/scheduler.js`
+#: -- the one owner of the status vocabulary. Copied rather than read at run
+#: time so the classifier is the same object the unit tests exercise, and held
+#: to the source by `tests/test_sitter_menagerie.py`, which fails on any drift.
+SDT_STATUS_CLASSES = {
+    "indexed": ["current"],
+    "unindexed": ["empty-pack"],
+    "failed": ["failed-session", "inspection-error", "unsupported-pack", "missing-source"],
+    "queued": ["missing-pack", "stale-source", "stale-processor", "invalid-pack"],
+    "outOfScope": ["excluded", "unsupported"],
+}
+
+
+def classify_status(status) -> str | None:
+    """The class `status` belongs to, or None for a status in no class."""
+    for name, members in SDT_STATUS_CLASSES.items():
+        if status in members:
+            return name
+    return None
+
+
+def effective_status(raw, scheduler) -> str:
+    """The status the sitter itself holds for an attachment.
+
+    Raw `inspect()` cannot see the scheduler's session verdict: a document the
+    scheduler gave up on still inspects `missing-pack`, and only the scheduler's
+    own list says `failed-session` (scheduler.js, `classify`). That one status
+    is taken from the list; every other status is the fresh inspection's.
+    """
+    return "failed-session" if scheduler == "failed-session" else raw
+
+
+def account(rows: list[dict], expected: int) -> dict:
+    """Every attachment accounted for, or MenagerieFailure naming the gap.
+
+    `rows` carry `{id, key, status, class}`; `expected` is the count listed
+    from the package at run time. `queued` is the one class that is not an
+    ending, and a status in no class is a finding, never a pass. Returns the
+    per-class counts.
+    """
+    counts = {name: 0 for name in SDT_STATUS_CLASSES}
+    unforeseen, queued = [], []
+    for row in rows:
+        cls = row.get("class")
+        if cls in counts:
+            counts[cls] += 1
+        if cls is None:
+            unforeseen.append(row)
+        elif cls == "queued":
+            queued.append(row)
+    problems = []
+    if len(rows) != expected:
+        problems.append(f"{len(rows)} attachment(s) swept, {expected} listed in the package")
+    if queued:
+        problems.append(f"{len(queued)} left queued after settling: "
+                        + ", ".join(f"{r.get('key')}={r.get('status')}" for r in queued))
+    if unforeseen:
+        problems.append(f"{len(unforeseen)} in no status class: "
+                        + ", ".join(f"{r.get('key')}={r.get('status')!r}" for r in unforeseen))
+    if problems:
+        raise MenagerieFailure("not every attachment is accounted for -- "
+                               + "; ".join(problems))
+    return counts
+
+
+def pick_victim(rows: list[dict], packs: dict) -> dict | None:
+    """The attachment the invalidation cycles erase: one with a pack, smallest.
+
+    The first listed attachment was enough over four PDFs. Over the whole
+    corpus it may be an HTML page with no pack to lose -- the arm would then
+    have nothing to observe -- or a large PDF whose re-preparation cannot meet
+    the one-minute return the cycle holds the sitter to. Rows carry `size` in
+    bytes; ties break on the key, so two runs agree.
+    """
+    eligible = [r for r in rows if r.get("path") and r.get("key") in packs
+                and r.get("size") is not None]
+    if not eligible:
+        return None
+    return min(eligible, key=lambda r: (r["size"], r["key"]))
 
 
 # --------------------------------------------------------------------------
@@ -181,13 +281,72 @@ ATTACHMENTS = """
       const ids = await Zotero.Items.getAll(lib.libraryID);
       for (const item of ids) {
         if (!item.isAttachment || !item.isAttachment()) continue;
-        let path = null;
+        let path = null, size = null;
         try { path = await item.getFilePathAsync(); } catch (_e) { path = null; }
+        if (path) {
+          try { size = (await IOUtils.stat(path)).size; } catch (_e) { size = null; }
+        }
         rows.push({id: item.id, key: item.key, parentID: item.parentItemID,
-                   title: item.getField("title"), path});
+                   title: item.getField("title"), path, size});
       }
     }
     return JSON.stringify({ok: true, attachments: rows});
+  } catch (e) { return JSON.stringify({ok: false, reason: String(e)}); }
+})()
+"""
+
+#: Every attachment's status, read back through the sitter's own handle after
+#: the run settles (ticket 0821). `raw` is a fresh `inspect(id)`; `scheduler`
+#: is what the scheduler's own list holds for the id, the only place a
+#: `failed-session` verdict is visible. No sitter-side plumbing: both are on
+#: `Zotero.SDTPackSitter` already (bootstrap.js).
+SWEEP = """
+(async function() {
+  try {
+    const handle = Zotero.SDTPackSitter;
+    if (!handle) return JSON.stringify({ok: false, reason: "no-handle"});
+    const snapshot = handle.state.censusSnapshot;
+    const held = new Map(((snapshot && snapshot.members) || []).map(m => [m.id, m.status]));
+    const rows = [];
+    for (const lib of Zotero.Libraries.getAll()) {
+      for (const item of await Zotero.Items.getAll(lib.libraryID)) {
+        if (!item.isAttachment || !item.isAttachment()) continue;
+        let info;
+        try { info = await handle.inspect(item.id); }
+        catch (e) { info = {status: "threw", error: String(e)}; }
+        rows.push({id: item.id, key: item.key, filename: item.attachmentFilename || null,
+                   contentType: item.attachmentContentType || null,
+                   raw: info.status, scheduler: held.has(item.id) ? held.get(item.id) : null,
+                   reason: info.reason || null, errorClass: info.errorClass || null});
+      }
+    }
+    return JSON.stringify({ok: true, rows});
+  } catch (e) { return JSON.stringify({ok: false, reason: String(e)}); }
+})()
+"""
+
+#: The live red control (ticket 0821): make the native worker read busy once
+#: the sitter's queue is down to its last document, so that document is never
+#: admitted and stays genuinely `queued`. Over the debugger channel, no plugin
+#: edit: `_processingQueue` becomes a getter that answers true from then on,
+#: while Zotero's own writes to it still land in `real`. The latch waits until
+#: the queue has been seen longer than one, so an empty queue before the
+#: census does not freeze the whole run instead of its last document.
+HOLD_LAST = """
+(function() {
+  try {
+    const worker = Zotero.PDFWorker;
+    if (!worker) return JSON.stringify({ok: false, reason: "no-pdfworker"});
+    let real = worker._processingQueue, seen = false;
+    Object.defineProperty(worker, "_processingQueue", {configurable: true,
+      get() {
+        const s = Zotero.SDTPackSitter && Zotero.SDTPackSitter.state;
+        const left = s ? s.pending.length : 0;
+        if (left > 1) seen = true;
+        return (seen && left <= 1) || real;
+      },
+      set(v) { real = v; }});
+    return JSON.stringify({ok: true, armed: true});
   } catch (e) { return JSON.stringify({ok: false, reason: String(e)}); }
 })()
 """
@@ -261,6 +420,71 @@ def wait_for_pack_count(data_dir: Path, want: int, deadline: float, log: Log,
         f"{len(last or {})} after the deadline. Present: {sorted((last or {}))}")
 
 
+def wait_settled(run, args, log: Log, expected: int) -> dict:
+    """Wait until the sitter has nothing left to do, or has stopped doing it.
+
+    Two endings, both handed on to the sweep, which is what judges them:
+    DRAINED -- the queue is empty and no job is running -- and STALLED -- no
+    job running and no count moving for `settle_quiet` seconds, with work
+    still queued. A stall is not waited out to the deadline: whatever holds
+    the queue (a host gate, a worker that never frees) is named by the
+    sweep's `queued` rows and the `phase` recorded here, which is evidence,
+    where a timeout is not. Only a run still making progress at
+    `index_timeout` is a RungTimeout. `expected` is the attachment count
+    listed from the package.
+    """
+    started = time.monotonic()
+    deadline = started + args.index_timeout
+    last_key, quiet_since, polls = None, None, 0
+    while True:
+        s = run.state()
+        polls += 1
+        key = (s["completed"], s["failed"], s["pending"], s["total"], s["active"])
+        if key != last_key or s["busy"]:
+            last_key, quiet_since = key, time.monotonic()
+        elapsed = time.monotonic() - started
+        if polls % 30 == 1:
+            log.write(f"menagerie settling {elapsed:.0f}s: {s}")
+        # `scanned` must reach the listed count first: just after the resume the
+        # census has not yet seen the import, and an empty queue then is not
+        # a drained one.
+        if s["pending"] == 0 and not s["busy"] and s["scanned"] >= expected:
+            log.write(f"menagerie drained after {elapsed:.0f}s: {s}")
+            return {"how": "drained", "elapsed_s": round(elapsed, 1), "state": s}
+        if not s["busy"] and time.monotonic() - quiet_since >= args.settle_quiet:
+            log.write(f"menagerie STALLED after {elapsed:.0f}s: {s}")
+            return {"how": "stalled", "elapsed_s": round(elapsed, 1), "state": s}
+        if time.monotonic() >= deadline:
+            raise RungTimeout(
+                f"the sitter was still working after --index-timeout "
+                f"{args.index_timeout:.0f}s, a derived figure: {s}. Nothing is "
+                "known to be wrong; the deadline was short for this corpus.")
+        time.sleep(5.0)
+
+
+def sweep(run, args, log: Log) -> list[dict]:
+    """Every attachment's status, classed; re-polled once if any is queued.
+
+    One re-poll, `settle_quiet` seconds later, so a document the scheduler
+    was about to record when the settle read was taken is not called left
+    behind. A second `queued` is the finding.
+    """
+    def once():
+        out = run.ev_long(SWEEP, "sweep every attachment", timeout=args.sweep_timeout)
+        rows = []
+        for r in out["rows"]:
+            status = effective_status(r["raw"], r["scheduler"])
+            rows.append({**r, "status": status, "class": classify_status(status)})
+        return rows
+
+    rows = once()
+    if any(r["class"] == "queued" for r in rows):
+        log.write(f"menagerie sweep found queued rows; re-polling in {args.settle_quiet:.0f}s")
+        time.sleep(args.settle_quiet)
+        rows = once()
+    return rows
+
+
 # --------------------------------------------------------------------------
 
 class Run:
@@ -275,6 +499,37 @@ class Run:
 
     def state(self):
         return self.ev(STATE, "state")
+
+    #: Characters fetched per eval. The debugger hands back a result over
+    #: 10 000 characters as a `longString` actor rather than the string, which
+    #: the shared client does not follow; the whole-corpus sweep crossed it at
+    #: 50 files (ticket 0821's first red run). Each page is JSON-escaped on the
+    #: way back, so it stays well under the limit even for non-Latin titles.
+    PAGE = 2000
+
+    def ev_long(self, code, what, timeout=None):
+        """`ev()` for a result of any length: park it in the chrome process,
+        then read it back page by page."""
+        size = self.ev(f"""
+(async function() {{
+  try {{
+    const out = await ({code.strip()});
+    Zotero.__sdtRung3Out = out;
+    return JSON.stringify({{ok: true, length: out.length}});
+  }} catch (e) {{ return JSON.stringify({{ok: false, reason: String(e)}}); }}
+}})()
+""", f"{what} (park)", timeout)["length"]
+        pages = []
+        for start in range(0, size, self.PAGE):
+            pages.append(self.ev(
+                f"JSON.stringify({{ok: true, page: Zotero.__sdtRung3Out"
+                f".substr({start}, {self.PAGE})}})", f"{what} (page {start})")["page"])
+        self.ev("(delete Zotero.__sdtRung3Out, JSON.stringify({ok: true}))",
+                f"{what} (release)")
+        out = json.loads("".join(pages))
+        if not out.get("ok"):
+            raise MenagerieFailure(f"{what} failed: {out}")
+        return out
 
 
 def import_with_retry(run: Run, ris: Path, args, log: Log) -> dict:
@@ -295,8 +550,8 @@ def import_with_retry(run: Run, ris: Path, args, log: Log) -> dict:
     attempt = 0
     while True:
         attempt += 1
-        out = eval_action(run.client, import_menagerie_code(ris), 180.0, log,
-                          f"import fixture (attempt {attempt})")
+        out = eval_action(run.client, import_menagerie_code(ris), args.import_timeout,
+                          log, f"import fixture (attempt {attempt})")
         if out.get("ok"):
             return out
         if out.get("reason") != "no-translator":
@@ -385,12 +640,11 @@ def phase_invalidation(run: Run, data_dir: Path, fixture_dir: Path, log: Log,
     """
     what = "item" if whole_item else "attachment"
     integrity_segment(ledger, f"before {what} erase", failure=MenagerieFailure)
-    listing = run.ev(ATTACHMENTS, f"list attachments before {what} delete", timeout=90)
-    rows = [r for r in listing["attachments"] if r.get("path")]
-    if not rows:
-        raise MenagerieFailure("no attachment with a file on disk to delete")
-    victim = rows[0]
+    listing = run.ev_long(ATTACHMENTS, f"list attachments before {what} delete", timeout=90)
     before = packs_on_disk(data_dir)
+    victim = pick_victim(listing["attachments"], before)
+    if victim is None:
+        raise MenagerieFailure("no attachment with a file on disk and a pack to delete")
     log.write(f"menagerie {what} victim={victim['key']} packs_before={len(before)}")
     if victim["key"] not in before:
         raise MenagerieFailure(
@@ -428,7 +682,7 @@ def phase_invalidation(run: Run, data_dir: Path, fixture_dir: Path, log: Log,
 
     # Put it back and bound the return. `restore_timeout` defaults to 60 s
     # because that is the promise: within a minute, not eventually.
-    scratch = fixture_dir / f"restore-{victim['key']}.pdf"
+    scratch = fixture_dir / f"restore-{victim['key']}{source.suffix}"
     scratch.write_bytes(kept)
     parent = None if whole_item else victim["parentID"]
     added = run.ev(attach_code(parent, str(scratch)), f"re-add {what}", timeout=90)
@@ -516,6 +770,24 @@ def phase_uninstall(run: Run, data_dir: Path, profile: Path, log: Log, args,
         f"state survived the uninstall with diagnostics withdrawn: {residue}")
 
 
+def _tally(values) -> dict:
+    out: dict = {}
+    for v in values:
+        out[v] = out.get(v, 0) + 1
+    return dict(sorted(out.items(), key=lambda kv: str(kv[0])))
+
+
+def _timing(t: dict) -> dict:
+    """Wall-clock spans of the run, in seconds: the first measured figures for
+    a whole-corpus rung, which the deadlines below were derived without."""
+    out = {}
+    if "resumed" in t and "settled" in t:
+        out["resume_to_settled_s"] = round(t["settled"] - t["resumed"], 1)
+    if "finished" in t:
+        out["whole_run_s"] = round(t["finished"] - t["started"], 1)
+    return out
+
+
 def run_menagerie(args) -> dict:
     log = Log(args.work_dir / "menagerie.log")
     binary = find_zotero_bin(args.zotero_bin)
@@ -528,13 +800,19 @@ def run_menagerie(args) -> dict:
 
     fixture_dir = args.work_dir / "fixture"
     fixture_dir.mkdir(parents=True)
-    documents = pick_menagerie_documents(args.menagerie, args.fixture_documents)
+    # Every file of every type (ticket 0821); `--fixture-documents N` keeps a
+    # smallest-first slice of that same listing for a short run.
+    documents = pick_menagerie_documents(args.menagerie, args.fixture_documents,
+                                         suffixes=None)
     if not documents:
         raise NotRunError(
             f"no Menagerie package at {args.menagerie}; this run is about real "
             "documents with distinct hashes and will not fall back")
+    expected = len(documents)
     ris = write_menagerie_subset(fixture_dir, documents)
-    log.write(f"menagerie fixture: {[d.name for d in documents]}")
+    log.write(f"menagerie fixture: {expected} file(s) listed from "
+              f"{args.menagerie / 'attachments'}: {[d.name for d in documents]}")
+    timing = args.timing = {"started": time.time()}
 
     profile, requested = setup_profile(args.work_dir, args.port)
     proc, stdout_log = launch_zotero(binary, app_ini, profile, args.port,
@@ -550,6 +828,9 @@ def run_menagerie(args) -> dict:
         ledger = integrity_baseline(client, requested, args.eval_timeout, log,
                                     failure=MenagerieFailure)
         args.integrity_records = ledger.records
+        # The baseline itself was taken at the shared default; every segment
+        # after it waits up to --settle-timeout for the directory to hold still.
+        ledger.timeout = args.settle_timeout
 
         installed = run.ev(install_or_replace_code(xpi), "install")
         try:
@@ -581,6 +862,11 @@ def run_menagerie(args) -> dict:
 
         imported = import_with_retry(run, ris, args, log)
         prepared = imported["attachments"] - imported["missing"]
+        if imported["attachments"] != expected or imported["missing"]:
+            raise MenagerieFailure(
+                f"the import made {imported['attachments']} attachment(s), "
+                f"{imported['missing']} missing on disk, from {expected} files "
+                "listed in the package")
         if prepared < 2:
             raise NotRunError(
                 f"only {prepared} attachment(s) landed on disk; the invalidation "
@@ -593,11 +879,24 @@ def run_menagerie(args) -> dict:
         # and cannot hide inside the indexing segment that follows.
         integrity_segment(ledger, "install+pause+import", integrity.import_edit(
             imported["items"], imported["attachments"]), failure=MenagerieFailure)
+        if args.red_hold_last:
+            phases["red_control"] = run.ev(HOLD_LAST, "red control: hold the last document")
+            log.write("menagerie RED CONTROL armed: the last document is held queued")
         phases["resume"] = phase_resume(run, log)
+        timing["resumed"] = time.time()
 
-        wait_for_pack_count(data_dir, prepared,
-                            time.monotonic() + args.index_timeout, log, "indexed")
-        phases["packs"] = check_packs(data_dir, fixture_dir, prepared, log)
+        phases["settle"] = wait_settled(run, args, log, expected)
+        timing["settled"] = time.time()
+        rows = sweep(run, args, log)
+        args.attachment_records = rows
+        counts = account(rows, expected)
+        phases["accounted"] = {"expected": expected, "classes": counts,
+                               "statuses": _tally(r["status"] for r in rows)}
+        log.write(f"menagerie every attachment accounted for: {phases['accounted']}")
+        # One pack per attachment that ended with one, each naming bytes this
+        # run wrote: the sweep's own count, checked against the disk.
+        phases["packs"] = check_packs(data_dir, fixture_dir,
+                                      counts["indexed"] + counts["unindexed"], log)
 
         # Resume to indexed is the segment with no library edit in it: the
         # import closed its own segment above, so whatever changes here is the
@@ -612,7 +911,9 @@ def run_menagerie(args) -> dict:
 
         phases["uninstall"] = phase_uninstall(run, data_dir, profile, log, args, ledger)
         log.write("menagerie PASS")
-        return {"ok": True, "phases": phases, "integrity": ledger.records}
+        timing["finished"] = time.time()
+        return {"ok": True, "phases": phases, "integrity": ledger.records,
+                "timing": _timing(timing), "attachments": rows}
     finally:
         if client is not None:
             try:
@@ -632,11 +933,39 @@ def main(argv=None) -> int:
     ap.add_argument("--zotero-bin", type=Path,
                     default=Path("/home/haduong/.local/bin/zotero"))
     ap.add_argument("--menagerie", type=Path, default=DEFAULT_MENAGERIE)
-    ap.add_argument("--fixture-documents", type=int, default=4)
+    ap.add_argument("--fixture-documents", type=int, default=None,
+                    help="import only the N smallest files of the package, any "
+                         "type; the default, every file, is the rung (ticket 0821)")
     ap.add_argument("--port", type=int, default=6960)
     ap.add_argument("--eval-timeout", type=float, default=60.0)
     ap.add_argument("--arm-timeout", type=float, default=180.0)
-    ap.add_argument("--index-timeout", type=float, default=900.0)
+    # The whole-corpus deadlines (ticket 0821). The 900 s index default was
+    # tuned for four small PDFs. The one measured extraction rate
+    # (verification/SDT-CAPS-0483.md: about 5 pages/s, one PDF) puts the
+    # package's 572 MiB of PDF and EPUB near two hours -- DERIVED, NOT MEASURED
+    # -- so the default is half as long again, and the run record's `timing`
+    # carries the first measured figure. Outliving it while still progressing
+    # is a TIMEOUT, not a FAIL.
+    ap.add_argument("--index-timeout", type=float, default=3 * 3600.0,
+                    help="resume to settled, seconds; derived, see the comment")
+    ap.add_argument("--import-timeout", type=float, default=900.0,
+                    help="one RIS import eval: was an unnamed 180 s sized for "
+                         "four files; the import links every file and hands "
+                         "each to Zotero's own full-text indexer")
+    ap.add_argument("--settle-quiet", type=float, default=300.0,
+                    help="no job running and no count moving this long, with "
+                         "work still queued, is a STALL: the sweep then names "
+                         "what was left, instead of waiting out --index-timeout")
+    ap.add_argument("--settle-timeout", type=float, default=900.0,
+                    help="how long each integrity segment waits for the data "
+                         "directory to hold still; the import segment follows "
+                         "Zotero's own indexing of every imported file")
+    ap.add_argument("--sweep-timeout", type=float, default=900.0,
+                    help="one eval inspecting every attachment, each hashed")
+    ap.add_argument("--red-hold-last", action="store_true",
+                    help="RED CONTROL: hold the sitter's last queued document "
+                         "behind a native worker that reads busy, so it stays "
+                         "queued; the run must then FAIL the completeness check")
     ap.add_argument("--translator-timeout", type=float, default=180.0,
                     help="how long to wait for a fresh profile to install its "
                          "RIS translator before calling the run NOT-RUN")
@@ -653,11 +982,21 @@ def main(argv=None) -> int:
 
     args.work_dir.mkdir(parents=True, exist_ok=True)
     args.integrity_records = []
+    args.attachment_records = []
+    args.timing = {}
     try:
         result = run_menagerie(args)
     except NotRunError as exc:
         print(f"NOT-RUN: {exc}")
         return 2
+    except RungTimeout as exc:
+        print(f"TIMEOUT: {exc}")
+        if args.json_out:
+            args.json_out.write_text(json.dumps(
+                {"ok": False, "timeout": True, "error": str(exc),
+                 "integrity": args.integrity_records}, indent=2), encoding="utf-8")
+            print(f"\nwrote {args.json_out}")
+        return 3
     except Exception as exc:  # noqa: BLE001 -- MenagerieFailure, SmokeFailure, or a crash
         # The catch-all is the smoke driver's: an unattended run reports its
         # own crash -- a filesystem race inside a snapshot included -- as a
@@ -668,8 +1007,10 @@ def main(argv=None) -> int:
         # failing one included: the record is what names the bad write.
         if args.json_out:
             args.json_out.write_text(json.dumps(
-                {"ok": False, "error": str(exc), "integrity": args.integrity_records},
-                indent=2), encoding="utf-8")
+                {"ok": False, "error": str(exc), "integrity": args.integrity_records,
+                 "timing": _timing({**args.timing, "finished": time.time()})
+                 if args.timing else {},
+                 "attachments": args.attachment_records}, indent=2), encoding="utf-8")
             print(f"\nwrote {args.json_out}")
         return 1
     print("\n================ MENAGERIE: PASS ================")

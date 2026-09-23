@@ -1,0 +1,760 @@
+{
+ "_run": {
+  "version": "0.4.31",
+  "zotero": "10.0.3 (padme, ~/.local/Zotero_linux-x86_64, Xvfb :99)",
+  "host": "padme",
+  "when": "2026-09-23T16:56Z",
+  "commit": "fed31330",
+  "script": "bench/sitter_menagerie_test.py --fixture-documents 50 --red-hold-last --settle-quiet 90",
+  "fixture": "the 50 smallest files of the Menagerie package, every type (46 non-PDF, 4 PDF)",
+  "note": "RED CONTROL (ticket 0821). Zotero.PDFWorker._processingQueue was made to read true over the debugger channel once the sitter had one document left, so that document was never admitted. Expected: FAIL on the completeness check naming it. Observed: FAIL, 1 left queued after settling: HYBVX2KY=missing-pack, after a 90 s stall with phase native-worker-busy and a re-poll. No plugin edit. Arena ~/data/acceptance-arena/0821/20260923T1656Z-red on padme, deletable once this PR merges."
+ },
+ "ok": false,
+ "error": "not every attachment is accounted for -- 1 left queued after settling: HYBVX2KY=missing-pack",
+ "integrity": [
+  {
+   "segment": "install+pause+import",
+   "verdict": "PASS",
+   "violations": [],
+   "files": {
+    "sdt-sitter-cache.jsonl": "appear",
+    "storage/2MHJD6XA/.zotero-ft-cache": "appear",
+    "storage/327TRVW4/.zotero-ft-cache": "appear",
+    "storage/3BE56VT3/.zotero-ft-cache": "appear",
+    "storage/3M8K8FVF/.zotero-ft-cache": "appear",
+    "storage/3SUDRIK5/.zotero-ft-cache": "appear",
+    "storage/3YPN4LZL/.zotero-ft-cache": "appear",
+    "storage/4X9HICHP/.zotero-ft-cache": "appear",
+    "storage/5BPWAVV7/.zotero-ft-cache": "appear",
+    "storage/695RR5FL/.zotero-ft-cache": "appear",
+    "storage/6ESPIYHZ/.zotero-ft-cache": "appear",
+    "storage/8WHT7J2N/.zotero-ft-cache": "appear",
+    "storage/9VAWLQX8/.zotero-ft-cache": "appear",
+    "storage/9Y8JFCU3/.zotero-ft-cache": "appear",
+    "storage/AJK2JITZ/.zotero-ft-cache": "appear",
+    "storage/B9BH3T8F/.zotero-ft-cache": "appear",
+    "storage/C9LMG257/.zotero-ft-cache": "appear",
+    "storage/CHRLQL5G/.zotero-ft-cache": "appear",
+    "storage/CK75EXIR/.zotero-ft-cache": "appear",
+    "storage/D4SJ3546/.zotero-ft-cache": "appear",
+    "storage/D93NRIPM/.zotero-ft-cache": "appear",
+    "storage/ER2TUNDF/.zotero-ft-cache": "appear",
+    "storage/EVDXZXSS/.zotero-ft-cache": "appear",
+    "storage/FXDT797P/.zotero-ft-cache": "appear",
+    "storage/GKDW444K/.zotero-ft-cache": "appear",
+    "storage/HYBVX2KY/.zotero-ft-cache": "appear",
+    "storage/I56T6UDR/.zotero-ft-cache": "appear",
+    "storage/IRHHVL9F/.zotero-ft-cache": "appear",
+    "storage/IUN3Y2WE/.zotero-ft-cache": "appear",
+    "storage/JBA9XLDK/.zotero-ft-cache": "appear",
+    "storage/MGBP4HUC/.zotero-ft-cache": "appear",
+    "storage/MUGNADI3/.zotero-ft-cache": "appear",
+    "storage/NZDZM5HE/.zotero-ft-cache": "appear",
+    "storage/P39T3VZJ/.zotero-ft-cache": "appear",
+    "storage/SZ723ZYR/.zotero-ft-cache": "appear",
+    "storage/TF6ALKHD/.zotero-ft-cache": "appear",
+    "storage/USUYPIL3/.zotero-ft-cache": "appear",
+    "storage/WRXK4LHU/.zotero-ft-cache": "appear",
+    "storage/XM6VJPKM/.zotero-ft-cache": "appear",
+    "storage/XQ3DFMPY/.zotero-ft-cache": "appear",
+    "storage/YART8DNY/.zotero-ft-cache": "appear",
+    "storage/YJ6FQRG4/.zotero-ft-cache": "appear",
+    "storage/Z2ESZPSD/.zotero-ft-cache": "appear",
+    "storage/ZLFZMZCB/.zotero-ft-cache": "appear"
+   },
+   "tables": {
+    "fulltext.sqlite:fulltextContentCJK_data": {
+     "before": 2,
+     "after": 54
+    },
+    "fulltext.sqlite:fulltextContentCJK_docsize": {
+     "before": 0,
+     "after": 6
+    },
+    "fulltext.sqlite:fulltextContentCJK_idx": {
+     "before": 0,
+     "after": 52
+    },
+    "fulltext.sqlite:fulltextContent_data": {
+     "before": 2,
+     "after": 139
+    },
+    "fulltext.sqlite:fulltextContent_docsize": {
+     "before": 0,
+     "after": 45
+    },
+    "fulltext.sqlite:fulltextContent_idx": {
+     "before": 0,
+     "after": 137
+    },
+    "fulltext.sqlite:fulltextIndexState": {
+     "before": 0,
+     "after": 45
+    },
+    "zotero.sqlite:creators": {
+     "before": 0,
+     "after": 1
+    },
+    "zotero.sqlite:fulltextItems": {
+     "before": 0,
+     "after": 45
+    },
+    "zotero.sqlite:itemAttachments": {
+     "before": 0,
+     "after": 50
+    },
+    "zotero.sqlite:itemCreators": {
+     "before": 0,
+     "after": 50
+    },
+    "zotero.sqlite:itemData": {
+     "before": 0,
+     "after": 150
+    },
+    "zotero.sqlite:itemDataValues": {
+     "before": 0,
+     "after": 53
+    },
+    "zotero.sqlite:items": {
+     "before": 0,
+     "after": 100
+    },
+    "zotero.sqlite:libraries": {
+     "before": 1,
+     "after": 1
+    }
+   },
+   "housekeeping": {},
+   "declared": {
+    "tables": {
+     "zotero.sqlite:items": 100,
+     "zotero.sqlite:itemAttachments": 50,
+     "zotero.sqlite:itemData": null,
+     "zotero.sqlite:itemDataValues": null,
+     "zotero.sqlite:creators": null,
+     "zotero.sqlite:itemCreators": null,
+     "zotero.sqlite:libraries": null,
+     "zotero.sqlite:fulltextItems": null,
+     "fulltext.sqlite:fulltextContent_data": null,
+     "fulltext.sqlite:fulltextContent_docsize": null,
+     "fulltext.sqlite:fulltextContent_idx": null,
+     "fulltext.sqlite:fulltextContentCJK_data": null,
+     "fulltext.sqlite:fulltextContentCJK_docsize": null,
+     "fulltext.sqlite:fulltextContentCJK_idx": null,
+     "fulltext.sqlite:fulltextIndexState": null
+    },
+    "files": {
+     "storage/*/.zotero-ft-cache": [
+      "appear"
+     ]
+    }
+   }
+  }
+ ],
+ "timing": {
+  "resume_to_settled_s": 90.1,
+  "whole_run_s": 249.5
+ },
+ "attachments": [
+  {
+   "id": 78,
+   "key": "2MHJD6XA",
+   "filename": "vn-law-energy-efficiency-2010-vi-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 52,
+   "key": "327TRVW4",
+   "filename": "vn-constitution-1992-vi-chuong-vi-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 50,
+   "key": "3BE56VT3",
+   "filename": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-nuoc-viet-nam-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 64,
+   "key": "3M8K8FVF",
+   "filename": "tolstoy-1910-sueverie-gosudarstva-librue-1999-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 12,
+   "key": "3SUDRIK5",
+   "filename": "vn-constitution-1992-vi-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 6,
+   "key": "3YPN4LZL",
+   "filename": "nhandan-1998-06-21-tin-kinh-te-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 84,
+   "key": "4X9HICHP",
+   "filename": "vn-law-electricity-2004-vi-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 82,
+   "key": "5BPWAVV7",
+   "filename": "hal-04826774-lich-su-sach-nam-ky-pdf.pdf",
+   "contentType": "application/pdf",
+   "raw": "current",
+   "scheduler": "current",
+   "reason": null,
+   "errorClass": null,
+   "status": "current",
+   "class": "indexed"
+  },
+  {
+   "id": 96,
+   "key": "695RR5FL",
+   "filename": "wp-climate-change-ar-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 46,
+   "key": "6ESPIYHZ",
+   "filename": "dai-viet-su-ky-toan-thu-ngoai-ky-1-zh-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 58,
+   "key": "7E3ML8FB",
+   "filename": "schindler-2015-alien-species-health-xlsx.xlsx",
+   "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 18,
+   "key": "8DD3BWG9",
+   "filename": "yan-fu-1902-yuanfu-yishi-liyan-wikitext.wikitext",
+   "contentType": "text/plain",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 68,
+   "key": "8WHT7J2N",
+   "filename": "wp-inflation-hi-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 72,
+   "key": "9VAWLQX8",
+   "filename": "wp-climate-change-hi-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 34,
+   "key": "9Y8JFCU3",
+   "filename": "vn-constitution-1992-vi-chuong-viii-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 56,
+   "key": "AJK2JITZ",
+   "filename": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch1-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 88,
+   "key": "B9BH3T8F",
+   "filename": "wp-inflation-zh-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 90,
+   "key": "C9LMG257",
+   "filename": "hal-04332519-economies-of-scale-pdf.pdf",
+   "contentType": "application/pdf",
+   "raw": "current",
+   "scheduler": "current",
+   "reason": null,
+   "errorClass": null,
+   "status": "current",
+   "class": "indexed"
+  },
+  {
+   "id": 4,
+   "key": "CHRLQL5G",
+   "filename": "sanzijing-chinapage-1999-gb2312-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 20,
+   "key": "CK75EXIR",
+   "filename": "vn-constitution-1992-vi-chuong-ix-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 42,
+   "key": "D4SJ3546",
+   "filename": "vn-constitution-1992-vi-chuong-v-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 48,
+   "key": "D93NRIPM",
+   "filename": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 54,
+   "key": "DAMWQYTT",
+   "filename": "zenodo-11353-open-data-energy-india-xlsx.xlsx",
+   "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 38,
+   "key": "ER2TUNDF",
+   "filename": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch2-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 2,
+   "key": "EVDXZXSS",
+   "filename": "vnembassy-usa-1999-tinh-hinh-lao-dong-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 70,
+   "key": "F34KWA9B",
+   "filename": "worldbank-2009-vietnam-energy-mitigation-txt.txt",
+   "contentType": "text/plain",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 40,
+   "key": "FXDT797P",
+   "filename": "yan-fu-1902-yuanfu-yishi-liyan-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 66,
+   "key": "GKDW444K",
+   "filename": "dai-viet-su-ky-toan-thu-quyen-thu-zh-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 98,
+   "key": "HYBVX2KY",
+   "filename": "ibanez-2015-desarrollo-humano-sustentable-pdf.pdf",
+   "contentType": "application/pdf",
+   "raw": "missing-pack",
+   "scheduler": "missing-pack",
+   "reason": null,
+   "errorClass": null,
+   "status": "missing-pack",
+   "class": "queued"
+  },
+  {
+   "id": 92,
+   "key": "I56T6UDR",
+   "filename": "wp-economics-vi-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 28,
+   "key": "IRHHVL9F",
+   "filename": "vn-constitution-1992-vi-chuong-ii-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 22,
+   "key": "IUN3Y2WE",
+   "filename": "vn-constitution-1992-vi-chuong-vii-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 86,
+   "key": "JBA9XLDK",
+   "filename": "wp-inflation-ar-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 8,
+   "key": "MGBP4HUC",
+   "filename": "vn-constitution-1992-vi-chuong-xii-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 62,
+   "key": "MUGNADI3",
+   "filename": "karamzin-1818-istoriya-t1-gl1-magister-1999-cp1251-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 24,
+   "key": "NB2A7GVC",
+   "filename": "zenodo-1246601-green-economy-employment-xlsx.xlsx",
+   "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 44,
+   "key": "NZDZM5HE",
+   "filename": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch4-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 36,
+   "key": "P39T3VZJ",
+   "filename": "vn-constitution-1992-vi-chuong-iii-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 26,
+   "key": "SZ723ZYR",
+   "filename": "vn-constitution-1992-vi-chuong-x-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 76,
+   "key": "TF6ALKHD",
+   "filename": "vn-decision-11-2017-qdttg-solar-fit-en-pdf.pdf",
+   "contentType": "application/pdf",
+   "raw": "current",
+   "scheduler": "current",
+   "reason": null,
+   "errorClass": null,
+   "status": "current",
+   "class": "indexed"
+  },
+  {
+   "id": 80,
+   "key": "USUYPIL3",
+   "filename": "wp-sustainable-development-vi-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 100,
+   "key": "W9YQB6EG",
+   "filename": "epa-2016-ghg-inventory-chapter-tables-zip.zip",
+   "contentType": "application/zip",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 16,
+   "key": "WRXK4LHU",
+   "filename": "sanguo-yanyi-ch01-chinapage-1999-big5-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 32,
+   "key": "WSXYSSPZ",
+   "filename": "zenodo-1246601-green-economy-employment-docx.docx",
+   "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 10,
+   "key": "XM6VJPKM",
+   "filename": "vn-constitution-1992-vi-chuong-xi-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 74,
+   "key": "XQ3DFMPY",
+   "filename": "vn-constitution-1992-en-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 94,
+   "key": "YART8DNY",
+   "filename": "wp-inflation-ru-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 60,
+   "key": "YJ6FQRG4",
+   "filename": "tran-trong-kim-1920-viet-nam-su-luoc-wikisource-q1-p1-ch3-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 30,
+   "key": "Z2ESZPSD",
+   "filename": "vn-constitution-1992-vi-chuong-i-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  },
+  {
+   "id": 14,
+   "key": "ZLFZMZCB",
+   "filename": "vn-constitution-1992-vi-chuong-iv-html.html",
+   "contentType": "text/html",
+   "raw": "unsupported",
+   "scheduler": "unsupported",
+   "reason": "no-extractor",
+   "errorClass": null,
+   "status": "unsupported",
+   "class": "outOfScope"
+  }
+ ]
+}

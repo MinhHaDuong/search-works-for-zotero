@@ -151,6 +151,35 @@ def test_read_pack_metadata_round_trips_a_real_shaped_container(tmp_path):
     assert meta["processor"] == {"type": "pdf", "version": 3}
 
 
+def test_read_pack_metadata_skips_a_stream_that_is_not_an_object(tmp_path):
+    # Ticket 0821's whole-Menagerie run: an earlier offset inflated to a run of
+    # digits, valid JSON but an int, and the caller crashed on `.get`.
+    def deflate(data):
+        c = zlib.compressobj(9, zlib.DEFLATED, -15)
+        return c.compress(data) + c.flush()
+    meta = {"source": {"hash": FIXTURE_MD5}, "processor": {"type": "pdf", "version": 3}}
+    pack = tmp_path / ".zotero-sdt-cache"
+    pack.write_bytes(SDT_MAGIC + deflate(b"12345678901234567890")
+                     + deflate(json.dumps(meta).encode()))
+    assert read_pack_metadata(pack) == meta
+
+
+def test_read_pack_metadata_reads_where_the_header_points_past_the_scan(tmp_path):
+    # Ticket 0821: a 30 MB pack's metadata sat at byte 25 896, at `16 + a` with
+    # length `b` from the header -- beyond SDT_SCAN_LIMIT, so only the header
+    # could find it.
+    from sitter_smoke_test import SDT_SCAN_LIMIT
+    meta = {"source": {"hash": FIXTURE_MD5}, "processor": {"type": "pdf", "version": 14}}
+    c = zlib.compressobj(9, zlib.DEFLATED, -15)
+    body = c.compress(json.dumps(meta).encode()) + c.flush()
+    span = SDT_SCAN_LIMIT * 2
+    filler = bytes(span - 8)  # everything between offset 24 and 16 + span
+    pack = tmp_path / ".zotero-sdt-cache"
+    pack.write_bytes(SDT_MAGIC + bytes([1, 1, 2, 0])
+                     + struct.pack("<III", span, len(body), 0) + filler + body)
+    assert read_pack_metadata(pack) == meta
+
+
 def test_read_pack_metadata_refuses_a_file_without_the_magic(tmp_path):
     pack = tmp_path / ".zotero-sdt-cache"
     pack.write_bytes(b"GARBAGE" + _pack_bytes()[7:])
