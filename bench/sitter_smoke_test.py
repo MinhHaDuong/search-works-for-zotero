@@ -267,12 +267,15 @@ def check_packs(data_dir: Path, fixture_dir: Path, expected: int, log) -> dict:
             f"{expected} -- one per imported attachment. Found: "
             f"{[x.parent.name for x in packs]}")
 
+    # Every file, not only `*.pdf`: rung 3 hands Zotero EPUBs too, and a pack
+    # naming one must match it (ticket 0821). The smoke fixture holds PDFs only,
+    # so its set is unchanged.
     fixture_hashes = {
         hashlib.md5(f.read_bytes()).hexdigest()
-        for f in sorted((fixture_dir / "attachments").glob("*.pdf"))
+        for f in sorted((fixture_dir / "attachments").iterdir()) if f.is_file()
     }
     if not fixture_hashes:
-        raise SmokeFailure(f"no fixture PDFs under {fixture_dir / 'attachments'}")
+        raise SmokeFailure(f"no fixture files under {fixture_dir / 'attachments'}")
 
     processors = set()
     for pack in packs:

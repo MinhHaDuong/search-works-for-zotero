@@ -76,18 +76,26 @@ def write_smoke_library(dest_dir: Path) -> Path:
 DEFAULT_MENAGERIE = Path.home() / "data" / "menagerie-package"
 
 
-def pick_menagerie_documents(package_dir: Path, count: int = 3) -> list[Path]:
-    """The `count` smallest PDFs in a Menagerie package, smallest first.
+def pick_menagerie_documents(package_dir: Path, count: int | None = 3,
+                             suffixes: tuple[str, ...] | None = (".pdf",)) -> list[Path]:
+    """The `count` smallest files in a Menagerie package, smallest first.
 
     Deterministic (size, then name) so two runs on one package census the same
     documents and their `source.hash` assertions compare. Smallest first
     because this is a smoke test: the volume rig is where big documents belong.
+
+    The defaults are the smoke rung's selection -- three PDFs -- and stay so:
+    smallest files of any type would hand it HTML with no pack (ticket 0821).
+    Rung 3 widens by parameter instead: `suffixes=None` takes every file in
+    `attachments/`, and `count=None` takes all of them.
     """
     attachments = package_dir / "attachments"
     if not attachments.is_dir():
         return []
-    pdfs = sorted(attachments.glob("*.pdf"), key=lambda f: (f.stat().st_size, f.name))
-    return pdfs[:count]
+    files = [f for f in attachments.iterdir() if f.is_file()
+             and (suffixes is None or f.suffix in suffixes)]
+    files.sort(key=lambda f: (f.stat().st_size, f.name))
+    return files if count is None else files[:count]
 
 
 def write_menagerie_subset(dest_dir: Path, documents: list[Path]) -> Path:
