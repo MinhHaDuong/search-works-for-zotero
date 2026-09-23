@@ -8,6 +8,7 @@ Author: claude
 
 2026-09-23T08:53Z sim note filed by the raid of 2026-09-23 as a child of 0817
 2026-09-23T09:06Z sim note raid 2026-09-23 Plan: file:line plan and first tests appended; Phase 4 cross-ticket scan found no registry needing a coordination PR
+2026-09-23T09:12Z sim note driver and records moved, live references swept, guard tests/test_rung3_driver_name.py red (8 hits) before the sweep, green after
 --- body ---
 ## Context
 

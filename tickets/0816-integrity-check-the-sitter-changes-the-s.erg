@@ -10,6 +10,7 @@ Blocked-by: 0820
 2026-09-23T08:25Z sim note Review of PR #613 (CHANGES REQUESTED) found the write inventory incomplete: sdt-sitter-last-shutdown.json via Zotero.File.putContents, and the snapshot missing the data-directory root. Body and TESTING.md corrected in the same PR.
 2026-09-23T08:53Z sim note raid 2026-09-23 Imagine: mechanism rewritten (every *.sqlite incl. fulltext.sqlite; plain mode=ro on the WAL database, never immutable; housekeeping-file exclusions; disappearance permitted; row-count deltas, no predicted-row engine); two red controls added. Blocked-by 0820 so the rename lands first (Blind-Spot finding 2).
 2026-09-23T09:06Z sim note raid 2026-09-23 Plan: file:line plan and first tests appended; Phase 4 cross-ticket scan found no registry needing a coordination PR
+2026-09-23T09:12Z sim note 0820 renamed the rung-3 driver to bench/sitter_menagerie_test.py; Relevant files updated
 --- body ---
 ## Context
 
@@ -31,7 +32,7 @@ and is this ticket's first measurement, not an assumption.
 
 ## Relevant files
 
-- `bench/sitter_smoke_test.py`, `bench/sitter_acceptance.py` — the rung-2 and
+- `bench/sitter_smoke_test.py`, `bench/sitter_menagerie_test.py` — the rung-2 and
   rung-3 drivers the check plugs into
 - `plugins/sdt-sitter/TESTING.md` — the ladder, which states the promise
 
