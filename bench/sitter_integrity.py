@@ -104,11 +104,10 @@ PERMITTED = {
     "storage/*/.zotero-sdt-cache": frozenset({"appear", "change"}),
     # The sitter's own cache; bootstrap.js removes it on uninstall.
     "sdt-sitter-cache.jsonl": frozenset({"appear", "change", "disappear"}),
-    # Beside the cache while it is compacted, then renamed over it.
-    "sdt-sitter-cache.jsonl.tmp": frozenset({"appear", "disappear"}),
-    # The shutdown record, written when diagnostics are on.
-    "sdt-sitter-last-shutdown.json": frozenset({"appear", "change"}),
 }
+# Not permitted until a run measures them, though bootstrap.js can write both:
+# `sdt-sitter-cache.jsonl.tmp` (compaction) and `sdt-sitter-last-shutdown.json`
+# (shutdown with diagnostics on). A run that produces one fails closed.
 
 MAIN_DB = "zotero.sqlite"
 

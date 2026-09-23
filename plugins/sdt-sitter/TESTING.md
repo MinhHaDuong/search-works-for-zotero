@@ -33,8 +33,12 @@ import done before the sitter was installed, then rung 3 end to end):
 |---|---|---|
 | `storage/*/.zotero-sdt-cache` | appear, change | the pack Zotero writes when the sitter calls `ensure()` — measured |
 | `sdt-sitter-cache.jsonl` | appear, change, disappear | the sitter's own cache; `bootstrap.js` removes it on uninstall — measured |
-| `sdt-sitter-cache.jsonl.tmp` | appear, disappear | beside the cache while it is compacted — from the code; no snapshot caught one |
-| `sdt-sitter-last-shutdown.json` | appear, change | the shutdown record when diagnostics are on — from the code; no measured segment spans a shutdown with diagnostics on |
+
+Two more files are written by `bootstrap.js` but are **not** permitted, because
+no run has produced them: `sdt-sitter-cache.jsonl.tmp` (beside the cache while
+it is compacted) and `sdt-sitter-last-shutdown.json` (the shutdown record when
+diagnostics are on). A run that writes either fails closed; each joins the set
+only once a run measures it (author, 2026-09-23).
 
 Nothing else. `ensure()` was measured writing no table of `zotero.sqlite` or
 `fulltext.sqlite` and no file but the pack: no `.zotero-ft-cache`, no index

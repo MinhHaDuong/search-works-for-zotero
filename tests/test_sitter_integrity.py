@@ -99,7 +99,6 @@ def test_the_permitted_writes_pass(tmp_path):
     data = make_data_dir(tmp_path)
     before = si.snapshot(data)
     sitter_ran(data)
-    (data / "sdt-sitter-last-shutdown.json").write_text("{}")
     after = si.snapshot(data)
     assert verdict(before, after) == []
     si.assert_permitted(si.diff(before, after))  # does not raise
@@ -133,11 +132,17 @@ def test_the_housekeeping_files_are_excluded(tmp_path):
 def test_the_cache_may_disappear_on_uninstall(tmp_path):
     data = make_data_dir(tmp_path)
     sitter_ran(data)
-    (data / "sdt-sitter-cache.jsonl.tmp").write_text("x")
     before = si.snapshot(data)
     (data / "sdt-sitter-cache.jsonl").unlink()
-    (data / "sdt-sitter-cache.jsonl.tmp").unlink()
     assert verdict(before, si.snapshot(data)) == []
+
+
+@pytest.mark.parametrize("name", ["sdt-sitter-cache.jsonl.tmp", "sdt-sitter-last-shutdown.json"])
+def test_red_an_unmeasured_sitter_file_fails_closed(tmp_path, name):
+    data = make_data_dir(tmp_path)
+    before = si.snapshot(data)
+    (data / name).write_text("{}")
+    assert verdict(before, si.snapshot(data)) != []
 
 
 # --------------------------------------------------------------------------
