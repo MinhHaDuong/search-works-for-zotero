@@ -215,6 +215,35 @@ def test_repointing_prefs_rewrites_the_one_datadir_line(tmp_path):
     assert 'useDataDir", true' in text
 
 
+class _QueueRun:
+    def __init__(self, totals):
+        self.totals = list(totals)
+
+    def ev(self, _code, _what):
+        return {"ok": True, "total": self.totals.pop(0) if len(self.totals) > 1
+                else self.totals[0]}
+
+
+def _index_args(**kw):
+    return SimpleNamespace(**{"host_index_quiet": 60.0, "settle_timeout": 900.0, **kw})
+
+
+def test_the_relaunch_waits_for_zoteros_own_index_to_drain(clock):
+    out = rung.wait_host_index_drained(_QueueRun([3, 3, 1, 0]), _index_args(), _Log())
+    assert out["how"] == "drained" and out["elapsed_s"] == 15.0
+
+
+def test_a_host_queue_that_stops_shrinking_ends_the_wait(clock):
+    out = rung.wait_host_index_drained(_QueueRun([2]), _index_args(), _Log())
+    assert out["how"] == "stalled" and out["elapsed_s"] >= 60.0
+
+
+def test_a_host_queue_still_moving_at_the_deadline_fails(clock):
+    moving = _QueueRun(list(range(1000, 0, -1)))
+    with pytest.raises(rung.MenagerieFailure, match="still moving"):
+        rung.wait_host_index_drained(moving, _index_args(settle_timeout=100.0), _Log())
+
+
 def test_the_repository_check_is_seeded_off(tmp_path):
     prefs = tmp_path / "prefs.js"
     prefs.write_text('user_pref("extensions.zotero.dataDir", "/pinned");\n')

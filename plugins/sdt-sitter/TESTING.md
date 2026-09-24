@@ -134,8 +134,11 @@ one while Zotero is down, and one after the relaunch settles. The relaunch
 segment declares what Zotero writes on its own after it starts again, as
 measured: `fulltextItems` and `fulltextIndexState` rows, Zotero's keyword
 indexer catching up on documents whose full-text cache the import left
-unindexed. So a sitter write to those two tables in that segment alone would
-pass; the segments where the sitter works permit neither. The rung's profile
+unindexed. The segment closes only once Zotero's own full-text queues are
+empty or stop shrinking, since the drain runs on its own timer and its rows
+otherwise land in the next segment, which admits them nowhere. So a sitter
+write to those two tables in that segment alone would pass; the segments
+where the sitter works permit neither. The rung's profile
 turns off Zotero's automatic translator and style repository check
 (`extensions.zotero.automaticScraperUpdates`), which otherwise re-stamps the
 `version` table at every launch; that table is admitted nowhere (author,

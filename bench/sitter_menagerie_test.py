@@ -525,6 +525,23 @@ ADDON_STATE = f"""
 }})()
 """
 
+#: Zotero's own full-text queues -- the ones its background drain works
+#: through after a launch (`xpcom/fulltext.js`, `_scheduleQueueDrain`), which
+#: is what writes the `fulltextItems` and `fulltextIndexState` rows the
+#: relaunch segment admits.
+HOST_INDEX_QUEUE = """
+(async function() {
+  try {
+    const ft = Zotero.FullText;
+    const counts = {attachmentIndex: await ft.getAttachmentIndexQueueCount(),
+      attachmentExtraction: await ft.getAttachmentExtractionQueueCount(),
+      noteIndex: await ft.getNoteIndexQueueCount()};
+    return JSON.stringify({ok: true, ...counts,
+      total: counts.attachmentIndex + counts.attachmentExtraction + counts.noteIndex});
+  } catch (e) { return JSON.stringify({ok: false, reason: String(e)}); }
+})()
+"""
+
 #: Quit the way File > Quit does, dispatched so the eval can answer first.
 REQUEST_QUIT = """
 (function() {
@@ -944,6 +961,37 @@ def wait_for_handle(run: Run, deadline: float, log: Log, what: str) -> dict:
     raise MenagerieFailure(f"{what}: the sitter never published its handle again: {last}")
 
 
+def wait_host_index_drained(run: Run, args, log: Log) -> dict:
+    """Wait for Zotero's own full-text queues after the relaunch.
+
+    The relaunch segment admits the index rows Zotero writes as its drain
+    catches up; closed before the drain ran, those writes landed in the next
+    segment, which admits nothing (the run after the repository check was
+    turned off). So the segment waits: the queues empty, or unchanged for
+    `host_index_quiet` seconds (Zotero's own drain stops on a queue that
+    will not shrink), and MenagerieFailure at `settle_timeout`.
+    """
+    started = time.monotonic()
+    last, since = None, started
+    while True:
+        out = run.ev(HOST_INDEX_QUEUE, "Zotero's full-text queues")
+        now = time.monotonic()
+        if out["total"] == 0:
+            log.write(f"menagerie host index drained after {now - started:.0f}s: {out}")
+            return {"how": "drained", "elapsed_s": round(now - started, 1), "queues": out}
+        if out["total"] != last:
+            last, since = out["total"], now
+        elif now - since >= args.host_index_quiet:
+            log.write(f"menagerie host index still at {out['total']} after "
+                      f"{args.host_index_quiet:g}s unchanged: {out}")
+            return {"how": "stalled", "elapsed_s": round(now - started, 1), "queues": out}
+        if now - started >= args.settle_timeout:
+            raise MenagerieFailure(
+                f"Zotero's own full-text queues were still moving after "
+                f"{args.settle_timeout:.0f}s: {out}")
+        time.sleep(5.0)
+
+
 def settle_drained(run: Run, args, log: Log, expected: int, guard, what: str) -> dict:
     """`wait_settled`, held to the one ending a step over finished work may
     have: drained. A stall there means something went back to the queue."""
@@ -1159,11 +1207,12 @@ def phase_restart(sess: Session, run: Run, data_dir: Path, requested: Path, args
             "finished pack(s) differ: " + "; ".join(problems[:10]))
     rows = sweep(run, args, log)
     counts = account(rows, expected)
+    host_index = wait_host_index_drained(run, args, log)
     integrity_segment(ledger, "relaunch+resume", integrity.relaunch_edit(),
                       failure=MenagerieFailure)
     return {"state_before": state_before, "graceful": graceful,
             "dataDir": live.get("dataDir"), "settle": settled, "packs": len(before),
-            "classes": counts, "red": red or None}, guard
+            "classes": counts, "host_index": host_index, "red": red or None}, guard
 
 
 CLEAR_DIAGNOSTICS = """
@@ -1468,6 +1517,9 @@ def main(argv=None) -> int:
     ap.add_argument("--quit-timeout", type=float, default=60.0,
                     help="how long a requested quit may take before the "
                          "process is terminated")
+    ap.add_argument("--host-index-quiet", type=float, default=60.0,
+                    help="after the relaunch, Zotero's own full-text queues "
+                         "unchanged this long count as settled")
     ap.add_argument("--repository-check", action="store_true",
                     help="RED CONTROL: leave Zotero's automatic translator and "
                          "style repository check on; its relaunch writes to "
