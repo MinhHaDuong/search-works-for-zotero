@@ -1,0 +1,40 @@
+%erg 0.1
+Title: A Damaged PDF group: truncated files the sitter can prove broken, with advice to download again
+Created: 2026-09-24
+Author: sim
+Blocked-by: 0825
+
+--- log ---
+2026-09-24T16:21Z sim created
+
+--- body ---
+## Context
+Follow-up of 0825 (PR #633). The 0825 probe (`verification/clone/0825-ensure-probe-2026-09-24.json`)
+found that the 18 real PDFs failing native extraction every session are broken files, not
+0606's native limit: 14 truncated downloads (no `%%EOF`, or a declared length beyond the
+file's real size; MD5 equals Zotero's stored hash) and 4 complete files with a malformed
+xref (`XRefEntryException`), which Poppler reads and pdf.js rejects. Today they sit under
+"Extraction not completed this session", whose advice (wait for a retry) is wrong for them.
+
+The author's goal for the Not-indexed groups, in his words (2026-09-24): "The goal is to
+allow the user to open these in Zotero with a clear idea of what to do." His ruling on this
+group, verbatim: "Yes, Damaged PDF is helpfull".
+
+## Actions
+1. A byte test applied before a PDF is submitted: truncated when no `%%EOF` appears near
+   the end, or when the declared length (trailer or xref offsets) exceeds the file size.
+   It must never class a sound PDF as damaged; when in doubt, admit.
+2. A "Damaged PDF" Not-indexed group under the `unusable-source` status 0825 introduces,
+   with a detail sentence telling the user to download the file again. Not resubmitted.
+3. The 4 malformed-xref files stay where they are: the byte test cannot see them, and
+   `ensure()` hides the worker's message.
+
+## Test
+Red first. Controls that must still be admitted: a sound PDF; a PDF with trailing bytes
+after `%%EOF`; an incrementally updated PDF (several `%%EOF`); one of the 4 xref-damaged
+files.
+
+## Exit criteria
+- [ ] The byte test and the group land with red-first tests and the controls above
+- [ ] The 0825 probe population re-classed: the 14 truncated files are Damaged PDF, the 4 are not
+- [ ] SPEC.md §5.2.7 lists the group
