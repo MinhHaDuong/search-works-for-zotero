@@ -299,7 +299,7 @@ class RealExecutor:
     hf_token: str | None = None
     #: The "same-item" recall task's item/ord files (ticket 0037, `vec_task_recall.mjs`'s
     #: own header). Not shipped in this repo — the real corpus lives on the author's
-    #: machine (AGENTS.md's Environment notes) — so a recall cell without these two set
+    #: machine (.claude/rules/bench.md) — so a recall cell without these two set
     #: resolves as unloadable rather than crashing on a missing argument.
     recall_items_path: Path | None = None
     recall_ords_path: Path | None = None
