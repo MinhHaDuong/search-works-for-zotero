@@ -471,6 +471,30 @@ def test_the_attach_edit_permits_only_its_own_file(tmp_path):
         "storage/CCCC3333/other.pdf: appear is not permitted"]
 
 
+def _rows(before, after):
+    return {"before": before, "after": after}
+
+
+def test_the_relaunch_edit_admits_what_a_relaunch_was_measured_writing():
+    measured = si.Diff(files={}, tables={
+        "zotero.sqlite:version": _rows(10, 10),
+        "zotero.sqlite:fulltextItems": _rows(101, 104),
+        "fulltext.sqlite:fulltextIndexState": _rows(101, 104)})
+    assert si.check(measured, si.relaunch_edit()) == []
+    # The same diff with no declared edit is the live run's first FAIL.
+    assert len(si.check(measured)) == 3
+
+
+@pytest.mark.parametrize("table,rows,problem", [
+    ("zotero.sqlite:version", _rows(10, 11), "row count moved by 1"),
+    ("fulltext.sqlite:fulltextContent_data", _rows(5, 6), "no declared edit"),
+    ("zotero.sqlite:itemTags", _rows(0, 1), "no declared edit"),
+])
+def test_the_relaunch_edit_admits_nothing_more(table, rows, problem):
+    diff = si.Diff(files={}, tables={table: rows})
+    assert problem in si.check(diff, si.relaunch_edit())[0]
+
+
 def test_the_ledger_records_a_failing_segment_before_raising(tmp_path):
     data = make_data_dir(tmp_path)
     lines = []

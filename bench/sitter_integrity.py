@@ -560,6 +560,24 @@ def attach_edit(filename: str) -> LibraryEdit:
                "storage/*/.zotero-ft-cache": {"appear"}})
 
 
+def relaunch_edit() -> LibraryEdit:
+    """Zotero starting again over a library it already holds (ticket 0822).
+
+    Not a library edit the scenario makes, but writes the host makes on its
+    own at every launch, measured on the whole Menagerie on Zotero 10.0.3:
+    the `version` table's `repository` and `lastcheck` rows move to the time
+    of the translator repository check, with no row added; and Zotero's
+    indexer picks up documents whose `.zotero-ft-cache` the import left
+    unprocessed, one `fulltextItems` and one `fulltextIndexState` row each.
+    Over the same library the sitter's own segments -- resume to indexed,
+    where it did all its work, and disable and re-enable -- moved neither,
+    and after the relaunch it finished no document. Only those tables: the
+    FTS content tables did not move, so they stay unpermitted here.
+    """
+    return LibraryEdit(tables={"version": 0, "fulltextItems": None,
+                               "fulltext.sqlite:fulltextIndexState": None})
+
+
 class Ledger:
     """One driver's run, cut into segments, each checked as it closes.
 

@@ -1084,7 +1084,9 @@ def phase_restart(sess: Session, run: Run, data_dir: Path, requested: Path, args
     those before the quit -- key, source hash, bytes and mtime, since a
     resume that redoes finished work is not a resume; and every attachment is
     accounted for again. Integrity closes one segment while Zotero is down,
-    so the host's own shutdown writes are judged apart from the relaunch.
+    so the host's own shutdown writes are judged apart from the relaunch,
+    whose segment declares what Zotero writes on its own at startup
+    (`integrity.relaunch_edit`, measured).
 
     Returns the phase record and a fresh refusal guard over the new client.
     """
@@ -1135,7 +1137,8 @@ def phase_restart(sess: Session, run: Run, data_dir: Path, requested: Path, args
             "finished pack(s) differ: " + "; ".join(problems[:10]))
     rows = sweep(run, args, log)
     counts = account(rows, expected)
-    integrity_segment(ledger, "relaunch+resume", failure=MenagerieFailure)
+    integrity_segment(ledger, "relaunch+resume", integrity.relaunch_edit(),
+                      failure=MenagerieFailure)
     return {"state_before": state_before, "graceful": graceful,
             "dataDir": live.get("dataDir"), "settle": settled, "packs": len(before),
             "classes": counts, "red": red or None}, guard
