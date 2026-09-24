@@ -61,7 +61,9 @@ once, in `SPEC.md` §1. Read it there rather than here.
   (e.g. 45x and 6,8x) — see README.
 - **Tickets:** `./tickets/erg` (check / ready / new / close / log), rules in
   `tickets/AGENTS.md`. `erg check` must pass, `erg ready` is the work queue,
-  and sequencing is machine-readable `Blocked-by`, never prose.
+  and sequencing is machine-readable `Blocked-by`, never prose. Stamp log
+  entries with `erg log`, never by hand; why, and the fork-read incident, in
+  `.claude/rules/tickets.md` (it loads only when a `tickets/` file is opened).
 - **One statement per fact.** Thresholds, rules, and open questions live in
   their owning document above, and everywhere else is a pointer. Duplicated
   numbers drift — this repo's most expensive recurring defect.
