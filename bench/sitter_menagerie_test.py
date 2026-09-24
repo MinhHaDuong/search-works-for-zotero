@@ -277,6 +277,12 @@ def compare_packs(before: dict, after: dict, *, allow_new: bool) -> list[str]:
     return problems
 
 
+def _packs_named(problems: list[str]) -> int:
+    """How many packs `compare_packs` lines name: one pack can fail on several
+    fields, and the first red runs counted lines as packs."""
+    return len({line.split(":", 1)[0] for line in problems})
+
+
 def judge_disabled_hold(observations: list[dict], hold: float) -> dict:
     """Did the disable actually take, for the whole hold? Or MenagerieFailure.
 
@@ -983,7 +989,7 @@ def phase_replace_check(start: dict, data_dir: Path, log: Log) -> dict:
     problems = compare_packs(before, after, allow_new=True)
     if problems:
         raise MenagerieFailure(
-            f"the replace regressed {len(problems)} finished pack(s): "
+            f"the replace regressed {_packs_named(problems)} finished pack(s): "
             + "; ".join(problems[:10]))
     log.write(f"menagerie replace kept all {len(before)} finished pack(s); "
               f"{len(after)} after settling")
@@ -1038,7 +1044,7 @@ def phase_disable_enable(run: Run, data_dir: Path, args, log: Log, expected: int
     problems = compare_packs(before, pack_identities(data_dir), allow_new=False)
     if problems:
         raise MenagerieFailure(
-            f"disable and re-enable touched {len(problems)} finished pack(s): "
+            f"disable and re-enable touched {_packs_named(problems)} finished pack(s): "
             + "; ".join(problems[:10]))
     integrity_segment(ledger, "disable+enable", failure=MenagerieFailure)
     return {"disable": off, "held": held, "enable": on, "settle": settled,
@@ -1133,7 +1139,7 @@ def phase_restart(sess: Session, run: Run, data_dir: Path, requested: Path, args
     problems = compare_packs(before, pack_identities(data_dir), allow_new=False)
     if problems:
         raise MenagerieFailure(
-            f"the restart did not resume where it stopped: {len(problems)} "
+            f"the restart did not resume where it stopped: {_packs_named(problems)} "
             "finished pack(s) differ: " + "; ".join(problems[:10]))
     rows = sweep(run, args, log)
     counts = account(rows, expected)

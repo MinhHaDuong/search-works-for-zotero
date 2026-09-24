@@ -237,6 +237,13 @@ def test_a_pack_redone_with_identical_bytes_is_still_named_by_its_mtime():
         == ["A: pack mtime_ns 1 -> 2"]
 
 
+def test_a_pack_failing_on_two_fields_counts_once():
+    problems = rung.compare_packs({"A": PACK}, {"A": {**PACK, "sha256": "x", "mtime_ns": 2}},
+                                  allow_new=False)
+    assert len(problems) == 2
+    assert rung._packs_named(problems) == 1
+
+
 def test_a_lost_pack_is_named():
     assert rung.compare_packs({"A": PACK, "B": PACK}, {"A": PACK}, allow_new=True) \
         == ["B: pack gone"]
