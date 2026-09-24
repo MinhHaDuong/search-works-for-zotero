@@ -7936,3 +7936,13 @@ page, no merge; a verdict is quoted as received; a lane never merges a pull
 request another lane is gating; a merge is announced so live lanes re-merge
 the moved base. The two 2026-09-03 entries stay as written, the record of what
 held until today.
+
+**2026-09-24 — `.claude/rules/` and `.claude/skills/` join the tracked
+exceptions to `.claude/*`.** The 2026-08-31 entry made each new exception a
+ruling of its own. Asked on 2026-09-24 whether to rule these two in, so that
+`AGENTS.md`'s path-triggered conventions and its on-demand upstream procedure
+could move out of every session's resident text (harness ticket 0971), the
+author chose to rule both in. `AGENTS.md` stays the sole root instruction file
+of the 2026-09-02 ruling: the scoped rules and the skill are its extensions,
+named in its ownership table, and load only when their paths are touched or
+the skill is invoked.

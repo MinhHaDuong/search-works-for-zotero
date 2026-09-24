@@ -29,9 +29,16 @@ __pycache__/
 # dependencies so a fresh container can run `make check` without a human
 # installing anything (ticket 0498); the settings file is what registers it.
 # Everything else under .claude/ stays out.
+#
+# Two more exceptions, rules/ and skills/, for the same reason: they hold
+# AGENTS.md's conventions scoped out of every session (path-triggered rules,
+# on-demand procedures), and an instruction only binds if it is in the tree.
+# Per DECISIONS.md 2026-08-31, each new exception is a ruling of its own.
 .claude/*
 !.claude/settings.json
 !.claude/hooks/
+!.claude/rules/
+!.claude/skills/
 
 # Credential selection for the review seats. Names a variable, holds no secret —
 # gitignored anyway, because a .env at a repo root must never become committable
