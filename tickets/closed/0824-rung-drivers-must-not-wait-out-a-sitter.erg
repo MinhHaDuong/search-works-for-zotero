@@ -2,10 +2,13 @@
 Title: Rung drivers must not wait out a sitter refusal
 Created: 2026-09-23
 Author: sim
+Closed: autoclosed — PR #626
 
 --- log ---
 2026-09-23T14:19Z sim created
 
+2026-09-23T23:39Z sim note Scope widened by the author: bench/sitter_clone_rung.py (0818, PR #625) gets the same treatment; three drivers share the one helper
+2026-09-24T00:43Z sim closed — autoclosed — PR #626
 --- body ---
 ## Context
 
@@ -40,6 +43,11 @@ run the test.
    `$ACCEPTANCE_ARENA` layout (on `~/data`), whose retention (0720) bounds it.
 4. Both drivers, through one shared helper; 0818 (clone rung) and 0821
    (whole-corpus waits) use the same helper when they land.
+5. Scope widened by the author, 2026-09-24: the clone-rung driver
+   `bench/sitter_clone_rung.py` (landed with 0818, PR #625) waits on the
+   sitter too and gets the same treatment, so the one shared helper serves
+   three drivers: `bench/sitter_smoke_test.py`,
+   `bench/sitter_menagerie_test.py`, `bench/sitter_clone_rung.py`.
 
 ## Test
 

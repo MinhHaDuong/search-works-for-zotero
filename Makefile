@@ -27,6 +27,7 @@ IDH_HOME ?= $(HOME)/.claude
 # previous runs beyond `--keep-runs` (run.py's DEFAULT_KEEP_RUNS) before it
 # allocates its own, and touches nothing outside the run layout (ticket 0720).
 ACCEPTANCE_ARENA ?= $(HOME)/data/acceptance-arena
+export ACCEPTANCE_ARENA
 
 # Disk-backed scratch for `test-fork` (ticket 0714 — see the header above).
 FORK_TEST_TMPDIR ?= $(HOME)/data/fork-test-tmp
@@ -321,7 +322,8 @@ SITTER_SMOKE_ZOTERO ?= $(HOME)/.local/Zotero_linux-x86_64/zotero
 # Exit codes: 0 pass, 1 a real defect (the sitter never armed, the data
 # directory did not match what was requested, an assertion after import came
 # back wrong), 3 NOT-RUN -- no Zotero binary, no display, the XPI would not
-# build, or RDP never connected -- never conflated with 0.
+# build, RDP never connected, or the sitter's gate refused admission on this
+# host (ticket 0824) -- never conflated with 0.
 #
 #   DISPLAY=:1 make sitter-smoke SITTER_SMOKE_ZOTERO=~/.local/Zotero_linux-x86_64/zotero
 sitter-smoke:
