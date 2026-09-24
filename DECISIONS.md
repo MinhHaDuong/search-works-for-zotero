@@ -7920,3 +7920,19 @@ measured, not a condition of the ruling, and zero bytes carry nothing. A
 non-empty `.tmp-wal`
 must still begin with the WAL magic. `plugins/sdt-sitter/TESTING.md` states the
 resulting set.
+
+**2026-09-24 — A session may merge its own pull request once `/verify-gate`
+has returned APPROVED. This supersedes the 2026-09-03 rule that a lane does not
+press merge.** The author's instruction, verbatim: *"Edit search-works
+DECISIONS.md and AGENTS.md to let a session merge its own PR after verify-gate
+APPROVED"*, given after the harness coherence audit (harness ticket 0966,
+`docs/2026-09-24-rules-coherence-audit.md`) found that the harness merge
+procedure allows what this repository forbade. Under `/raid` the orchestrator
+still merges, as the coordinator did. Outside a raid, the session that opened a
+pull request may now merge it itself, on two conditions: `/verify-gate` has
+returned APPROVED, and that verdict is recorded on the pull request's page. The
+other rules of `AGENTS.md` § Merge authority stand unchanged: no verdict on the
+page, no merge; a verdict is quoted as received; a lane never merges a pull
+request another lane is gating; a merge is announced so live lanes re-merge
+the moved base. The two 2026-09-03 entries stay as written, the record of what
+held until today.
