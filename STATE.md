@@ -13,9 +13,9 @@ proposition, [SPEC.md](SPEC.md) the design.
 - **The sitter's test ladder** (tracker **0815**, `plugins/sdt-sitter/TESTING.md`): rungs 2–4 now run
   with the integrity check — 0816, 0818, 0821, 0824 closed on 2026-09-23. Left: **0822** (lifecycle in
   the Menagerie rung, now unblocked; tracker **0817**), **0819** (the bar for rung 3 and up), **0794**.
-- **Before any live install**: the clone run's two open findings, logged on 0818 with its record
-  `verification/clone/0818-clone-rung-2026-09-23.json` — attachments ending `failed`, and existing
-  packs rewritten on first run. Causes not established.
+- **Before any live install**: the clone run's two findings are accounted for, neither a sitter defect
+  (`verification/clone/0818-findings-2026-09-24.md`). **0825**: `failed` is absent files plus known
+  native failures. **0826**: stale-processor packs, which set the first live run's length.
 - **Rungs run on padme** under Xvfb, arenas on `~/data`; doudou's load and small `/tmp` trip the
   sitter's own gates. The dialog now names such a refusal (0823).
 - The retag is **author's hands, in order**: build, GPG-sign, publish the `.xpi`, then ONE commit
@@ -28,8 +28,9 @@ proposition, [SPEC.md](SPEC.md) the design.
 
 Open here: 0774, 0786, **0808**, 0814's guard 2. Gaps: R10 (0660–0664), R13 (0650–0652), R15
 (0654–0657), R22 (0643, 0665), fixtures 0602, 0658. #6012 train (0754–0757) unstarted.
-Proposed next: a backlog triage with the author, cluster by cluster. Cleanup owed once nothing
-cites them: the 0818 library copies (`~/data/clone-rung/2026-09-23/` on doudou and padme) and
+Proposed next: a backlog triage with the author, cluster by cluster. The pristine library copy
+lives on at padme `~/data/clone-rung/library`, refreshed by rsync from a cheap reflink snapshot
+on doudou. Cleanup owed once 0825 and 0826 settle: the dated `~/data/clone-rung/2026-09-23/` and
 the run arenas on padme. Hygiene (2026-09-24): 15 remote branches unmerged into main.
 
 ## Basic state

@@ -21,8 +21,12 @@ is whole and taken with Zotero closed, and cheap only if it is a reflink. So:
   must clear a modest floor: a reflink needs little up front, but a sitter run
   writes packs into the copy. A failed copy removes what it wrote.
 
-The destination must not exist. Copies live under
-`~/data/clone-rung/<date>/`; the run record names when each goes.
+The destination must not exist. The pristine copy of the library is
+persistent: it lives on padme at `~/data/clone-rung/library`, refreshed by
+rsync from a cheap reflink snapshot this recipe takes on doudou, and nothing
+ever points Zotero at it. Each run reflinks it to
+`~/data/clone-rung/<date>/run`, which is disposable; the run record names when
+it goes.
 
 The same recipe takes the pre-install snapshot for rung 5.
 
@@ -163,7 +167,8 @@ def main(argv=None) -> int:
                         help="the Zotero data directory to copy")
     parser.add_argument("--dest", type=Path, required=True,
                         help="where the copy goes; must not exist "
-                             "(convention: ~/data/clone-rung/<date>/Zotero)")
+                             "(convention on padme: ~/data/clone-rung/<date>/run, "
+                             "from --source ~/data/clone-rung/library)")
     parser.add_argument("--min-free-gb", type=float, default=DEFAULT_MIN_FREE_GB)
     parser.add_argument("--profiles", type=Path, default=DEFAULT_PROFILES,
                         help="the Zotero profiles directory whose locks are cross-checked")

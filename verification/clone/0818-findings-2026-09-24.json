@@ -1,0 +1,48 @@
+{
+ "zotero_last_version_on_source": "10.0.3",
+ "toast": [
+  {
+   "completed": 8103,
+   "failed": 391
+  }
+ ],
+ "a_failed": {
+  "missing_source_pristine": 367,
+  "missing_source_after_run": 367,
+  "missing_source_by_shape": {
+   "library 1 | dir-without-file | syncState 2": 3,
+   "library 1 | linked-absent | syncState 0": 3,
+   "library 1 | no-storage-dir | syncState 2": 183,
+   "library 3 | dir-without-file | syncState 1": 12,
+   "library 3 | no-path | syncState 1": 1,
+   "library 3 | no-storage-dir | syncState 1": 115,
+   "library 4 | dir-without-file | syncState 1": 47,
+   "library 4 | no-storage-dir | syncState 1": 3
+  },
+  "failed_session_settles": 24,
+  "failed_session_by_kind": {
+   "content empty | no pack before | in the 2026-09-06 error history": 2,
+   "content html | no pack before | in the 2026-09-06 error history": 3,
+   "content html | no pack before | new": 1,
+   "content pdf | no pack before | in the 2026-09-06 error history": 18
+  },
+  "sum": 391
+ },
+ "b_packs": {
+  "cache_load": [
+   {
+    "records": 0
+   }
+  ],
+  "legacy_cache_rows": {
+   "format absent": 5672
+  },
+  "packs": {
+   "rewritten | schema 1.1.0 | processor pdf@3 | not in legacy cache": 8028,
+   "kept | schema 1.1.0 | current | in legacy cache": 4729,
+   "kept | schema 1.2.0 | current | in legacy cache": 943,
+   "rewritten | schema 1.1.0 | processor epub@1 | not in legacy cache": 7,
+   "kept | schema 1.1.0 | processor pdf@3, pdf label on a zip file | not in legacy cache": 2
+  }
+ }
+}
