@@ -60,8 +60,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import sys
 import time
+import zipfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -95,10 +97,17 @@ from sitter_refusal import (  # noqa: E402
     guard_for,
     preflight,
 )
+# Lifecycle (ticket 0822) takes its probes from the retired volume rig, like
+# the rest of this list -- but never its `restart_zotero()`, a closure inside
+# that rig's `main()` that knows nothing of this rung's pinned data directory.
+# The restart here is composed below; a unit test holds the import out.
 from sitter_volume_experiment import (  # noqa: E402
+    ADDON_ID,
+    disable_enable_code,
     eval_action,
     import_menagerie_code,
     install_or_replace_code,
+    liveness_code,
     uninstall_code,
     wait_for_port,
 )
@@ -202,6 +211,109 @@ def pick_victim(rows: list[dict], packs: dict) -> dict | None:
     if not eligible:
         return None
     return min(eligible, key=lambda r: (r["size"], r["key"]))
+
+
+# --------------------------------------------------------------------------
+# lifecycle judgements (ticket 0822), pure so the unit suite can hold them red
+# --------------------------------------------------------------------------
+
+def assert_pinned_data_dir(live, requested: Path, when: str) -> Path:
+    """The data directory the running Zotero opened, or MenagerieFailure.
+
+    Ticket 0782's hazard is not a first-launch hazard: every launch reads the
+    data directory from the profile again, so every restart can land in
+    another library. Checked after the first launch and after every restart,
+    before the scenario touches anything. A reading with no directory in it is
+    refused as well -- a check that cannot see is not a pass.
+    """
+    raw = live.get("dataDir") if isinstance(live, dict) else None
+    if not raw:
+        raise MenagerieFailure(
+            f"REFUSING to go on {when}: could not read the data directory the "
+            f"running Zotero opened: {live}")
+    opened = Path(raw).resolve()
+    pinned = Path(requested).resolve()
+    if opened != pinned:
+        raise MenagerieFailure(
+            f"REFUSING to go on {when}: Zotero opened {opened}, not the pinned "
+            f"{pinned}. Nothing further was done in it.")
+    return opened
+
+
+def compare_packs(before: dict, after: dict, *, allow_new: bool) -> list[str]:
+    """What a lifecycle step did to finished work, one line per problem.
+
+    `before` and `after` are `pack_identities()` readings. Finished work must
+    survive a replace, a disable and a restart untouched: the same keys, and
+    for each the same source hash AND the same pack bytes and mtime -- a
+    count alone passes a swapped pack, and a hash set alone passes a pack
+    thrown away and extracted again, which is finished work redone. New packs
+    are allowed only where extraction was still under way (`allow_new`).
+    """
+    problems = []
+    for key in sorted(before):
+        if key not in after:
+            problems.append(f"{key}: pack gone")
+            continue
+        was, now = before[key], after[key]
+        for field_ in ("source", "sha256", "mtime_ns"):
+            if was.get(field_) != now.get(field_):
+                problems.append(f"{key}: pack {field_} {was.get(field_)!r} -> {now.get(field_)!r}")
+    if not allow_new:
+        for key in sorted(set(after) - set(before)):
+            problems.append(f"{key}: pack appeared with no work outstanding")
+    return problems
+
+
+def judge_disabled_hold(observations: list[dict], hold: float) -> dict:
+    """Did the disable actually take, for the whole hold? Or MenagerieFailure.
+
+    Each observation is `{handle, isActive}`, read while the add-on was held
+    disabled. None at all -- a zero-length hold -- is UNPROVEN, never a pass:
+    a disable nobody looked at cannot be told from one that did nothing (the
+    volume rig's arm 5 ran 17 disables and logged no disabled state). Any
+    observation with the handle still published or the add-on still active
+    is the failure itself.
+    """
+    if not observations:
+        raise MenagerieFailure(
+            f"UNPROVEN: no reading of the disabled state was taken over a "
+            f"{hold:g}s hold, so the disable was never observed. Not a pass.")
+    alive = [o for o in observations if o.get("handle") or o.get("isActive")]
+    if alive:
+        raise MenagerieFailure(
+            f"the sitter was still live while disabled in {len(alive)} of "
+            f"{len(observations)} reading(s): {alive[0]}")
+    return {"observations": len(observations), "hold_s": hold}
+
+
+def bump_payload(xpi: Path, out: Path) -> str:
+    """`xpi` repacked with its manifest version extended by `.1`, so the host
+    takes it as a replacement; every other byte of the payload is kept. The
+    volume rig's `build_payload` reads the plugin tree, not a given payload,
+    which would drop a red control's mutant on the floor."""
+    with zipfile.ZipFile(xpi) as src:
+        manifest = json.loads(src.read("manifest.json").decode("utf-8"))
+        manifest["version"] = f"{manifest['version']}.1"
+        if out.exists():
+            out.unlink()
+        with zipfile.ZipFile(out, "x", compression=zipfile.ZIP_DEFLATED) as dst:
+            for info in src.infolist():
+                data = (json.dumps(manifest, indent=2).encode("utf-8")
+                        if info.filename == "manifest.json" else src.read(info))
+                dst.writestr(info.filename, data)
+    return manifest["version"]
+
+
+def repoint_data_dir(prefs: Path, decoy: Path) -> None:
+    """RED CONTROL: rewrite the profile's pinned data directory, as a stale or
+    hand-edited prefs.js would -- ticket 0782's bug, between stop and relaunch."""
+    text = prefs.read_text(encoding="utf-8")
+    new, n = re.subn(r'(user_pref\("extensions\.zotero\.dataDir",\s*)"[^"]*"',
+                     lambda m: m.group(1) + json.dumps(str(decoy)), text)
+    if n != 1:
+        raise MenagerieFailure(f"red control: {n} dataDir line(s) in {prefs}, expected 1")
+    prefs.write_text(new, encoding="utf-8")
 
 
 # --------------------------------------------------------------------------
@@ -362,6 +474,35 @@ HOLD_LAST = """
 """
 
 
+#: The add-on as the host holds it, and whether the sitter's handle is
+#: published -- the two facts a disabled hold is judged on (ticket 0822).
+ADDON_STATE = f"""
+(async function() {{
+  try {{
+    const {{ AddonManager }} = ChromeUtils.importESModule(
+      "resource://gre/modules/AddonManager.sys.mjs");
+    const addon = await AddonManager.getAddonByID({json.dumps(ADDON_ID)});
+    return JSON.stringify({{ok: true, installed: !!addon,
+      isActive: addon ? addon.isActive : null,
+      userDisabled: addon ? addon.userDisabled : null,
+      version: addon ? addon.version : null,
+      handle: !!Zotero.SDTPackSitter}});
+  }} catch (e) {{ return JSON.stringify({{ok: false, reason: String(e)}}); }}
+}})()
+"""
+
+#: Quit the way File > Quit does, dispatched so the eval can answer first.
+REQUEST_QUIT = """
+(function() {
+  try {
+    Services.tm.dispatchToMainThread(
+      () => Services.startup.quit(Ci.nsIAppStartup.eAttemptQuit));
+    return JSON.stringify({ok: true});
+  } catch (e) { return JSON.stringify({ok: false, reason: String(e)}); }
+})()
+"""
+
+
 def erase_code(item_id: int) -> str:
     return f"""
 (async function() {{
@@ -413,6 +554,31 @@ def packs_on_disk(data_dir: Path) -> dict:
             out[pack.parent.name] = None
             continue
         out[pack.parent.name] = (meta.get("source") or {}).get("hash")
+    return out
+
+
+def pack_identities(data_dir: Path) -> dict:
+    """{storage key: {source, sha256, mtime_ns}} -- what `compare_packs` judges.
+
+    `packs_on_disk` is what the waits key on; this is what a lifecycle step is
+    held to (ticket 0822). The pack's own bytes and mtime are read because the
+    source hash alone survives a pack that was deleted and extracted again. A
+    pack that vanishes between listing and reading is left out, so a
+    comparison against it names it gone rather than crashing.
+    """
+    out = {}
+    for pack in sorted((data_dir / "storage").glob("*/.zotero-sdt-cache")):
+        try:
+            st = pack.stat()
+            digest = hashlib.sha256(pack.read_bytes()).hexdigest()
+        except FileNotFoundError:
+            continue
+        try:
+            source = (read_pack_metadata(pack).get("source") or {}).get("hash")
+        except (SmokeFailure, FileNotFoundError):
+            source = None
+        out[pack.parent.name] = {"source": source, "sha256": digest,
+                                 "mtime_ns": st.st_mtime_ns}
     return out
 
 
@@ -725,6 +891,242 @@ def phase_invalidation(run: Run, data_dir: Path, fixture_dir: Path, log: Log,
             "packs_after_restore": len(back)}
 
 
+# --------------------------------------------------------------------------
+# lifecycle (ticket 0822): replace, disable and re-enable, restart
+# --------------------------------------------------------------------------
+
+def wait_for_handle(run: Run, deadline: float, log: Log, what: str) -> dict:
+    """Poll until a sitter handle is published again after a new activation,
+    or MenagerieFailure at `deadline`. `STATE` answers `no-handle` until the
+    activation's `initialize()` has run, which is asynchronous to the host's
+    own install or enable returning."""
+    last = None
+    while time.monotonic() < deadline:
+        last = eval_action(run.client, STATE, run.timeout, log, f"{what}: state")
+        if last.get("ok"):
+            log.write(f"menagerie {what}: sitter handle back: {last}")
+            return last
+        time.sleep(2.0)
+    raise MenagerieFailure(f"{what}: the sitter never published its handle again: {last}")
+
+
+def settle_drained(run: Run, args, log: Log, expected: int, guard, what: str) -> dict:
+    """`wait_settled`, held to the one ending a step over finished work may
+    have: drained. A stall there means something went back to the queue."""
+    settled = wait_settled(run, args, log, expected, guard=guard)
+    if settled["how"] != "drained":
+        raise MenagerieFailure(
+            f"{what}: the sitter stalled with work outstanding over a library "
+            f"that was already settled: {settled}")
+    return settled
+
+
+def phase_replace_start(run: Run, replace_xpi: Path, version: str, data_dir: Path,
+                        args, log: Log, guard) -> dict:
+    """Replace the add-on while it is extracting (ticket 0822, action 1).
+
+    Waits for a warm-up -- `replace_warmup` documents finished with work still
+    queued -- so the replace lands on a busy sitter, then installs the bumped
+    payload over it and waits for the new activation's handle. A queue that
+    drains before the replace can land makes the step UNPROVEN, not passed: a
+    replace over an idle sitter is not the step. The pack identities taken
+    here are what `phase_replace_check` holds the settled run to.
+    """
+    deadline = time.monotonic() + args.warmup_timeout
+    while True:
+        s = run.state()
+        if guard is not None:
+            guard.check(s)
+        outstanding = s["pending"] > 0 or s["busy"]
+        if s["completed"] >= args.replace_warmup and outstanding:
+            break
+        if not outstanding and s["scanned"] >= 1 and s["completed"] > 0:
+            raise MenagerieFailure(
+                f"UNPROVEN: the queue drained before the replace could land "
+                f"mid-extraction (warm-up {args.replace_warmup}): {s}")
+        if time.monotonic() >= deadline:
+            raise MenagerieFailure(
+                f"the warm-up before the replace did not finish "
+                f"{args.replace_warmup} document(s) in {args.warmup_timeout:.0f}s: {s}")
+        time.sleep(1.0)
+    before = pack_identities(data_dir)
+    log.write(f"menagerie replacing mid-extraction: {s}; {len(before)} pack(s) finished")
+    installed = run.ev(install_or_replace_code(replace_xpi), "replace mid-extraction",
+                       timeout=max(run.timeout, 120.0))
+    if installed.get("version") != version:
+        raise MenagerieFailure(
+            f"the replace reported version {installed.get('version')!r}, "
+            f"not the payload's {version!r}: {installed}")
+    back = wait_for_handle(run, time.monotonic() + args.arm_timeout, log, "replace")
+    return {"at": s, "installed": installed, "rearmed": back,
+            "packs_before": len(before), "_before": before}
+
+
+def phase_replace_check(start: dict, data_dir: Path, log: Log) -> dict:
+    """Once the replaced sitter has settled: no finished pack was lost or redone."""
+    before = start.pop("_before")
+    after = pack_identities(data_dir)
+    problems = compare_packs(before, after, allow_new=True)
+    if problems:
+        raise MenagerieFailure(
+            f"the replace regressed {len(problems)} finished pack(s): "
+            + "; ".join(problems[:10]))
+    log.write(f"menagerie replace kept all {len(before)} finished pack(s); "
+              f"{len(after)} after settling")
+    return {**start, "packs_after": len(after)}
+
+
+def withdraw_diagnostics(run: Run) -> dict:
+    """Clear the rig's diagnostics opt-in, as a release ships.
+
+    With it on, a disable or an uninstall writes the death certificate
+    `sdt-sitter-last-shutdown.json`, which the integrity check fails closed on
+    until a run measures it (TESTING.md). The certificate path is the unit
+    suite's to drive; the lifecycle here runs in the shipped configuration.
+    """
+    cleared = run.ev(CLEAR_DIAGNOSTICS, "withdraw the diagnostics opt-in")
+    if cleared.get("debugAfterClear"):
+        raise MenagerieFailure(
+            f"the diagnostics pref would not clear: {cleared}. The arm below "
+            "would then pass or fail for the wrong reason.")
+    return cleared
+
+
+def phase_disable_enable(run: Run, data_dir: Path, args, log: Log, expected: int,
+                         guard, ledger: integrity.Ledger) -> dict:
+    """Disable, hold, re-enable (ticket 0822, action 2).
+
+    The hold is observed, not slept through: each reading asks the host
+    whether the add-on is active and the chrome whether the sitter's handle
+    is published, and `judge_disabled_hold` refuses a hold with no reading.
+    Re-enabled, the sitter must come back, settle drained, and leave every
+    finished pack exactly as it was. Its own integrity segment: no library
+    edit, so only the sitter's cache may move.
+    """
+    withdraw_diagnostics(run)
+    before = pack_identities(data_dir)
+    off = run.ev(disable_enable_code(ADDON_ID, True), "disable")
+    if off.get("isActive"):
+        raise MenagerieFailure(f"the disable returned with the add-on still active: {off}")
+    observations = []
+    started = time.monotonic()
+    while time.monotonic() - started < args.disable_hold:
+        observations.append(run.ev(ADDON_STATE, "read the disabled add-on"))
+        time.sleep(1.0)
+    log.write(f"menagerie disabled hold {args.disable_hold:g}s: {len(observations)} "
+              f"reading(s), last {observations[-1] if observations else None}")
+    held = judge_disabled_hold(observations, args.disable_hold)
+    on = run.ev(disable_enable_code(ADDON_ID, False), "enable")
+    if not on.get("isActive"):
+        raise MenagerieFailure(f"the enable returned with the add-on inactive: {on}")
+    wait_for_handle(run, time.monotonic() + args.arm_timeout, log, "re-enable")
+    settled = settle_drained(run, args, log, expected, guard, "re-enable")
+    problems = compare_packs(before, pack_identities(data_dir), allow_new=False)
+    if problems:
+        raise MenagerieFailure(
+            f"disable and re-enable touched {len(problems)} finished pack(s): "
+            + "; ".join(problems[:10]))
+    integrity_segment(ledger, "disable+enable", failure=MenagerieFailure)
+    return {"disable": off, "held": held, "enable": on, "settle": settled,
+            "packs": len(before)}
+
+
+class Session:
+    """The Zotero process under test, which a restart replaces."""
+
+    def __init__(self, binary: Path, app_ini: Path, profile: Path, work_dir: Path,
+                 port: int):
+        self.binary, self.app_ini, self.profile = binary, app_ini, profile
+        self.stdout_path, self.port = work_dir / "zotero-stdout.log", port
+        self.proc = self.stdout_log = self.client = None
+
+    def launch(self) -> None:
+        self.proc, self.stdout_log = launch_zotero(
+            self.binary, self.app_ini, self.profile, self.port, self.stdout_path)
+
+    def close(self) -> None:
+        if self.client is not None:
+            try:
+                self.client.close()
+            except Exception:  # noqa: BLE001
+                pass
+            self.client = None
+        if self.proc is not None:
+            stop_zotero(self.proc)
+        if self.stdout_log is not None:
+            self.stdout_log.close()
+            self.stdout_log = None
+
+
+def phase_restart(sess: Session, run: Run, data_dir: Path, requested: Path, args,
+                  log: Log, expected: int, ledger: integrity.Ledger):
+    """Quit Zotero and start it again (ticket 0822, actions 3 to 5).
+
+    Composed from the rung's own launch -- never the volume rig's
+    `restart_zotero()`, a closure over that rig's state. After the relaunch,
+    in order: the pinned data directory is checked before anything else runs
+    against the new process (0782's hazard is every launch's); the sitter
+    must come back and settle drained; the finished packs must be exactly
+    those before the quit -- key, source hash, bytes and mtime, since a
+    resume that redoes finished work is not a resume; and every attachment is
+    accounted for again. Integrity closes one segment while Zotero is down,
+    so the host's own shutdown writes are judged apart from the relaunch.
+
+    Returns the phase record and a fresh refusal guard over the new client.
+    """
+    before = pack_identities(data_dir)
+    state_before = run.state()
+    # Not `run.ev`: a process already on its way out may not answer, and the
+    # wait below is what judges whether the quit took.
+    eval_action(run.client, REQUEST_QUIT, run.timeout, log, "quit Zotero")
+    graceful = True
+    try:
+        sess.proc.wait(timeout=args.quit_timeout)
+    except Exception:  # noqa: BLE001 -- subprocess.TimeoutExpired
+        graceful = False
+        log.write(f"menagerie quit did not end the process in {args.quit_timeout:g}s")
+    sess.close()
+    run.client = None
+    log.write(f"menagerie Zotero stopped (graceful={graceful}, rc={sess.proc.returncode})")
+    integrity_segment(ledger, "quit", failure=MenagerieFailure)
+
+    red = {}
+    if args.red_restart_datadir:
+        decoy = args.work_dir / "decoy-data"
+        decoy.mkdir()
+        repoint_data_dir(sess.profile / "prefs.js", decoy)
+        red["datadir"] = str(decoy)
+        log.write(f"menagerie RED CONTROL: prefs.js dataDir repointed to {decoy}")
+    if args.red_restart_drop_pack:
+        key = sorted(before)[0]
+        (data_dir / "storage" / key / ".zotero-sdt-cache").unlink()
+        red["dropped_pack"] = key
+        log.write(f"menagerie RED CONTROL: pack {key} deleted while Zotero was down")
+
+    sess.launch()
+    wait_for_port("127.0.0.1", args.port, time.monotonic() + 90)
+    sess.client = run.client = connect_resilient("127.0.0.1", args.port,
+                                                 args.eval_timeout, log)
+    live = eval_action(run.client, liveness_code(), max(args.eval_timeout, 120.0), log,
+                       "data directory after restart")
+    assert_pinned_data_dir(live, requested, "after the restart")
+    log.write(f"menagerie restart reopened the pinned data directory {live.get('dataDir')}")
+    guard = guard_for(run.client, log, data_dir / "storage", args.eval_timeout)
+    wait_for_handle(run, time.monotonic() + args.arm_timeout, log, "restart")
+    settled = settle_drained(run, args, log, expected, guard, "restart")
+    problems = compare_packs(before, pack_identities(data_dir), allow_new=False)
+    if problems:
+        raise MenagerieFailure(
+            f"the restart did not resume where it stopped: {len(problems)} "
+            "finished pack(s) differ: " + "; ".join(problems[:10]))
+    rows = sweep(run, args, log)
+    counts = account(rows, expected)
+    integrity_segment(ledger, "relaunch+resume", failure=MenagerieFailure)
+    return {"state_before": state_before, "graceful": graceful,
+            "dataDir": live.get("dataDir"), "settle": settled, "packs": len(before),
+            "classes": counts, "red": red or None}, guard
+
+
 CLEAR_DIAGNOSTICS = """
 (function() {
   try {
@@ -756,22 +1158,18 @@ def phase_uninstall(run: Run, data_dir: Path, profile: Path, log: Log, args,
     the unit suite ("an uninstall writes one too, and an ordinary quit does
     not"), where it can be driven without spending a live run on it.
     """
-    cleared = run.ev(CLEAR_DIAGNOSTICS, "withdraw the diagnostics opt-in")
-    if cleared.get("debugAfterClear"):
-        raise MenagerieFailure(
-            f"the diagnostics pref would not clear: {cleared}. The arm below "
-            "would then pass or fail for the wrong reason.")
+    withdraw_diagnostics(run)
     stale = data_dir / "sdt-sitter-last-shutdown.json"
     if stale.exists():
-        # Nothing in this run has disabled or uninstalled yet, so a certificate
-        # here would be from a shutdown that never happened -- refuse rather
-        # than quietly delete evidence the next assertion depends on.
+        # The one disable in this run (ticket 0822) ran with diagnostics
+        # already withdrawn, and nothing has uninstalled yet, so a certificate
+        # here would be from a shutdown that should have written none -- refuse
+        # rather than quietly delete evidence the next assertion depends on.
         raise MenagerieFailure(
             f"a certificate already exists at {stale} before the uninstall step; "
             "the arm cannot tell a surviving one from a newly written one")
     integrity_segment(ledger, "before uninstall", failure=MenagerieFailure)
-    run.ev(uninstall_code("sdt-pack-sitter@search-works-for-zotero.invalid"),
-           "uninstall")
+    run.ev(uninstall_code(ADDON_ID), "uninstall")
     deadline = time.monotonic() + args.uninstall_timeout
     residue = None
     while time.monotonic() < deadline:
@@ -779,8 +1177,7 @@ def phase_uninstall(run: Run, data_dir: Path, profile: Path, log: Log, args,
             "cache": (data_dir / "sdt-sitter-cache.jsonl").exists(),
             "cache_tmp": (data_dir / "sdt-sitter-cache.jsonl.tmp").exists(),
             "certificate": (data_dir / "sdt-sitter-last-shutdown.json").exists(),
-            "xpi": (profile / "extensions"
-                    / "sdt-pack-sitter@search-works-for-zotero.invalid.xpi").exists(),
+            "xpi": (profile / "extensions" / f"{ADDON_ID}.xpi").exists(),
         }
         if not any(residue.values()):
             log.write("menagerie uninstall left nothing behind")
@@ -840,14 +1237,21 @@ def run_menagerie(args) -> dict:
               f"{args.menagerie / 'attachments'}: {[d.name for d in documents]}")
     timing = args.timing = {"started": time.time()}
 
+    # The replace's payload, built before anything is launched: the run's own
+    # payload (or --replace-xpi, a red control's) with its version bumped.
+    replace_xpi = args.work_dir / "sitter-menagerie-replace.xpi"
+    replace_version = bump_payload(args.replace_xpi or xpi, replace_xpi)
+    log.write(f"menagerie replace payload {replace_xpi} version {replace_version}"
+              f" from {args.replace_xpi or xpi}")
+
     profile, requested = setup_profile(args.work_dir, args.port)
-    proc, stdout_log = launch_zotero(binary, app_ini, profile, args.port,
-                                     args.work_dir / "zotero-stdout.log")
-    client = None
+    sess = Session(binary, app_ini, profile, args.work_dir, args.port)
+    sess.launch()
     phases = {}
     try:
         wait_for_port("127.0.0.1", args.port, time.monotonic() + 90)
-        client = connect_resilient("127.0.0.1", args.port, args.eval_timeout, log)
+        client = sess.client = connect_resilient("127.0.0.1", args.port,
+                                                 args.eval_timeout, log)
         run = Run(client, log, args.eval_timeout)
 
         # The integrity baseline, before the sitter exists in this profile.
@@ -874,11 +1278,7 @@ def run_menagerie(args) -> dict:
                                 "switch state")
             log.write(f"menagerie arm failed; switch state reads {probe}")
             raise
-        data_dir = Path(live["dataDir"]).resolve()
-        if data_dir != requested.resolve():
-            raise MenagerieFailure(
-                f"REFUSING to import: Zotero opened {data_dir}, not the pinned "
-                f"{requested.resolve()}. Nothing was imported.")
+        data_dir = assert_pinned_data_dir(live, requested, "to the import")
         phases["install"] = {"installed": installed, "dataDir": str(data_dir)}
         guard = guard_for(client, log, data_dir / "storage", args.eval_timeout)
 
@@ -912,8 +1312,14 @@ def run_menagerie(args) -> dict:
         phases["resume"] = phase_resume(run, log)
         timing["resumed"] = time.time()
 
+        # Lifecycle 1 (ticket 0822): replace the add-on while it extracts. The
+        # settle below is the replaced sitter's, and the check after it holds
+        # every pack finished before the replace to its bytes.
+        replace = phase_replace_start(run, replace_xpi, replace_version, data_dir,
+                                      args, log, guard)
         phases["settle"] = wait_settled(run, args, log, expected, guard=guard)
         timing["settled"] = time.time()
+        phases["replace"] = phase_replace_check(replace, data_dir, log)
         rows = sweep(run, args, log)
         args.attachment_records = rows
         counts = account(rows, expected)
@@ -929,7 +1335,16 @@ def run_menagerie(args) -> dict:
         # import closed its own segment above, so whatever changes here is the
         # sitter's, and only the SDT cache may. This is the segment that says
         # whether ensure() writes anything besides the pack.
-        integrity_segment(ledger, "resume+index", failure=MenagerieFailure)
+        integrity_segment(ledger, "resume+replace+index", failure=MenagerieFailure)
+
+        # Lifecycle 2 and 3 (ticket 0822), over a settled library, so every
+        # pack is finished work each step must leave exactly as it found it.
+        # Before the invalidation cycles, which change the attachment count
+        # the settles key on.
+        phases["disable_enable"] = phase_disable_enable(
+            run, data_dir, args, log, expected, guard, ledger)
+        phases["restart"], guard = phase_restart(
+            sess, run, data_dir, requested, args, log, expected, ledger)
 
         phases["attachment_cycle"] = phase_invalidation(
             run, data_dir, fixture_dir, log, args, whole_item=False, ledger=ledger,
@@ -944,13 +1359,7 @@ def run_menagerie(args) -> dict:
         return {"ok": True, "phases": phases, "integrity": ledger.records,
                 "timing": _timing(timing), "attachments": rows}
     finally:
-        if client is not None:
-            try:
-                client.close()
-            except Exception:  # noqa: BLE001
-                pass
-        stop_zotero(proc)
-        stdout_log.close()
+        sess.close()
 
 
 def main(argv=None) -> int:
@@ -1001,6 +1410,29 @@ def main(argv=None) -> int:
                     help="RED CONTROL: hold the sitter's last queued document "
                          "behind a native worker that reads busy, so it stays "
                          "queued; the run must then FAIL the completeness check")
+    # Lifecycle (ticket 0822).
+    ap.add_argument("--replace-xpi", type=Path,
+                    help="payload the replace step installs over the running "
+                         "sitter, version bumped; default the run's own. RED "
+                         "CONTROL: a build that throws finished packs away on "
+                         "activation must FAIL the replace check")
+    ap.add_argument("--replace-warmup", type=int, default=2,
+                    help="documents finished, with work still queued, before "
+                         "the replace lands")
+    ap.add_argument("--warmup-timeout", type=float, default=1800.0)
+    ap.add_argument("--disable-hold", type=float, default=10.0,
+                    help="seconds the add-on is held disabled and observed; "
+                         "RED CONTROL: 0 takes no reading and must FAIL as "
+                         "UNPROVEN, never pass")
+    ap.add_argument("--quit-timeout", type=float, default=60.0,
+                    help="how long a requested quit may take before the "
+                         "process is terminated")
+    ap.add_argument("--red-restart-datadir", action="store_true",
+                    help="RED CONTROL: repoint prefs.js's dataDir between the "
+                         "quit and the relaunch; the pinned check must FAIL")
+    ap.add_argument("--red-restart-drop-pack", action="store_true",
+                    help="RED CONTROL: delete one finished pack while Zotero is "
+                         "down; the resume check must FAIL")
     ap.add_argument("--translator-timeout", type=float, default=180.0,
                     help="how long to wait for a fresh profile to install its "
                          "RIS translator before calling the run NOT-RUN")
