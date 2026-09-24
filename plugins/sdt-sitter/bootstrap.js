@@ -280,14 +280,55 @@ var SDT_SOURCE_MAGIC = [
    before the entry was added. */
 var SDT_MAGIC_BYTES = SDT_SOURCE_MAGIC.reduce((n, entry) => Math.max(n, entry.prefix.length), 0);
 
-/* The longest prefix above, read once. A read that fails answers `null`, which
-   is the same answer as an unrecognised head: this function's job is to catch a
-   label that is provably wrong, and a file it cannot read proves nothing. The
-   file's absence is already `missing-source` two branches earlier. */
-async function sniffSDTSource(path) {
-  let head;
-  try { head = await IOUtils.read(path, { offset: 0, maxBytes: SDT_MAGIC_BYTES }); }
+/* A web page saved where a PDF was expected: the 0818 clone run found four,
+   each labelled `application/pdf` and each a publisher's login or paywall page
+   (ticket 0825). The table above cannot name them, since HTML has no signature,
+   so this is a second test and a deliberately narrow one: it may only ever
+   exclude a file whose label says PDF, and it must never exclude a real PDF.
+
+   Two conditions, both required. The head reads as HTML: after an optional
+   UTF-8 BOM and ASCII whitespace, `<!doctype html`, `<html` or `<head`, in any
+   case, followed by whitespace or `>` so that `<header` or `<htmlfoo` is not
+   taken for one. And no `%PDF-` appears in the first KiB: PDF readers accept
+   the header anywhere in that span, so a PDF behind junk -- even junk shaped
+   like an HTML head, which a mail gateway or a proxy can prepend -- is a PDF.
+   Anything else leaves the label standing, for the reason the table's comment
+   gives: under-reaching costs one failed extraction, over-reaching stops a
+   document that would have extracted. */
+var SDT_PDF_HEADER_WINDOW = 1024;
+var SDT_HTML_OPENINGS = ['<!doctype html', '<html', '<head'];
+var SDT_PDF_HEADER = [0x25, 0x50, 0x44, 0x46, 0x2D];
+
+function readsAsSDTWebPage(head) {
+  if (!head) return false;
+  const span = Math.min(head.length, SDT_PDF_HEADER_WINDOW);
+  for (let index = 0; index + SDT_PDF_HEADER.length <= span; index++) {
+    if (SDT_PDF_HEADER.every((byte, offset) => head[index + offset] === byte)) return false;
+  }
+  let start = head[0] === 0xEF && head[1] === 0xBB && head[2] === 0xBF ? 3 : 0;
+  while (start < span && [0x09, 0x0A, 0x0C, 0x0D, 0x20].includes(head[start])) start++;
+  const text = (from, to) => String.fromCharCode(...Array.from(head.slice(from, to)));
+  return SDT_HTML_OPENINGS.some(opening => {
+    const end = start + opening.length;
+    return end < span && text(start, end).toLowerCase() === opening &&
+      /[\t\n\f\r >]/.test(text(end, end + 1));
+  });
+}
+
+/* The head of a source file, read once: the longest prefix above, or the whole
+   `%PDF-` window where the label says PDF. A read that fails answers `null`,
+   which is the same answer as an unrecognised head: this function's job is to
+   catch a label that is provably wrong, and a file it cannot read proves
+   nothing. The file's absence is already `missing-source` two branches
+   earlier. */
+async function readSDTSourceHead(path, processor) {
+  const maxBytes = processor === 'pdf' ? Math.max(SDT_MAGIC_BYTES, SDT_PDF_HEADER_WINDOW) : SDT_MAGIC_BYTES;
+  try { return await IOUtils.read(path, { offset: 0, maxBytes }); }
   catch (_error) { return null; }
+}
+
+function sniffSDTSource(head) {
+  if (!head) return null;
   return SDT_SOURCE_MAGIC.find(entry => entry.prefix.length <= head.length &&
     entry.prefix.every((byte, index) => head[index] === byte)) || null;
 }
@@ -445,6 +486,10 @@ var SDT_TEXT = {
     "not-indexed-stored-file-detail": "The file is not available on this device. Zotero file sync may retrieve it if a remote copy is available and file sync is enabled.",
     "not-indexed-linked-file": "Linked file unavailable",
     "not-indexed-linked-file-detail": "The linked file is not available at its recorded location. Restoring the file or updating its link may make it accessible.",
+    "not-indexed-empty-file": "Empty file",
+    "not-indexed-empty-file-detail": "The file is empty (0 bytes), usually because a download or a sync was interrupted. Indexing it again cannot help. You can download it again, or remove the attachment and attach the file again.",
+    "not-indexed-web-page-as-pdf": "Web page saved as PDF",
+    "not-indexed-web-page-as-pdf-detail": "The file is recorded as a PDF but holds a web page, often a publisher's login or paywall page saved in place of the article. Open it to check, then replace it with the article's real PDF.",
     "not-indexed-no-extractor": "No extractor for this format",
     "not-indexed-no-extractor-detail": "The sitter has no extractor for this format. An alternative supported file may provide text.",
     "not-indexed-mismatched-type": "Recorded format differs",
@@ -517,6 +562,7 @@ var SDT_TEXT = {
     "status-inspection-error": "Could not be examined",
     "status-unsupported-pack": "Stored index format requires review",
     "status-missing-source": "Stored or linked file unavailable",
+    "status-unusable-source": "Empty file or web page",
     "status-excluded": "Trashed, or not an attachment",
     "status-unsupported": "No extractor or format mismatch",
     "diagnostics-error": "Last extraction problem: {error}",
@@ -1374,7 +1420,7 @@ function describeSDTFailures(count) {
    them and fails here for any status this list or the label table forgets. */
 var SDT_STATUS_ORDER = ['current', 'empty-pack', 'missing-pack', 'stale-source', 'stale-processor',
   'invalid-pack', 'failed-session', 'inspection-error', 'unsupported-pack',
-  'missing-source', 'unsupported', 'excluded'];
+  'missing-source', 'unusable-source', 'unsupported', 'excluded'];
 
 /* A status nobody has named renders as its own key rather than as the message id
    `sdtText` would otherwise hand back. Both are ugly; only one is greppable back
@@ -1543,6 +1589,8 @@ var SDT_NOT_INDEXED_GROUPS = {
   'unordered-format': { title: 'not-indexed-unordered-format', detail: 'not-indexed-unordered-format-detail' },
   'missing-source-stored': { title: 'not-indexed-stored-file', detail: 'not-indexed-stored-file-detail' },
   'missing-source-linked': { title: 'not-indexed-linked-file', detail: 'not-indexed-linked-file-detail' },
+  'empty-file': { title: 'not-indexed-empty-file', detail: 'not-indexed-empty-file-detail' },
+  'web-page-as-pdf': { title: 'not-indexed-web-page-as-pdf', detail: 'not-indexed-web-page-as-pdf-detail' },
   'no-extractor': { title: 'not-indexed-no-extractor', detail: 'not-indexed-no-extractor-detail' },
   'mismatched-type': { title: 'not-indexed-mismatched-type', detail: 'not-indexed-mismatched-type-detail' },
   'no-attachment': { title: 'not-indexed-no-attachment', detail: 'not-indexed-no-attachment-detail' },
@@ -1560,6 +1608,7 @@ function collectSDTNotIndexed(state) {
   for (const member of members) {
     const groupID = member.status === 'missing-source'
       ? (member.linked ? 'missing-source-linked' : 'missing-source-stored')
+      : member.status === 'unusable-source' ? member.reason
       : member.status === 'unsupported'
         ? (member.reason === 'mismatched-type' ? 'mismatched-type' : 'no-extractor')
         : member.status === 'unsupported-pack'
@@ -3751,8 +3800,8 @@ async function initialize(rootURI, token, era = shutdowns) {
     //
     // Not once each, and the exception is the population this exists for: only
     // `current` reaches cache.remember(), so a document the sniff rules out has
-    // no cache record and is re-read on every sweep. Eight bytes every thirty
-    // seconds against 39 documents, replacing a native extraction attempt of
+    // no cache record and is re-read on every sweep. Eight bytes (a KiB for a
+    // PDF, ticket 0825) every thirty seconds against 39 documents, replacing a native extraction attempt of
     // 50–90 ms each — cheap enough that memoizing it would buy a second store
     // to keep consistent for no measurable return.
     //
@@ -3765,10 +3814,24 @@ async function initialize(rootURI, token, era = shutdowns) {
     // before initialize() builds this closure, so absence is impossible — and
     // if that ever changed, a throw becoming `inspection-error` is the loud
     // failure, which is the one to have.
+    //
+    // Ticket 0825 adds two verdicts that ARE failures, and `unusable-source`
+    // says so: an empty file, or a web page where the label promised a PDF.
+    // The file is broken rather than misclassified -- nothing extracts from
+    // either whatever label it carries -- so it stays in the author's "could not
+    // be indexed" count, and like `missing-source` it names a repair the author
+    // can make, which a retry next session cannot.
     if (SDT_STATUS_CLASSES.queued.includes(result.status)) {
-      const sniffed = await sniffSDTSource(sourcePath);
-      if (sniffed && sniffed.processor !== processor) {
-        result.status = 'unsupported'; result.reason = 'mismatched-type';
+      if (source.size === 0) { result.status = 'unusable-source'; result.reason = 'empty-file'; }
+      else {
+        const head = await readSDTSourceHead(sourcePath, processor);
+        const sniffed = sniffSDTSource(head);
+        if (sniffed && sniffed.processor !== processor) {
+          result.status = 'unsupported'; result.reason = 'mismatched-type';
+        }
+        else if (processor === 'pdf' && readsAsSDTWebPage(head)) {
+          result.status = 'unusable-source'; result.reason = 'web-page-as-pdf';
+        }
       }
     }
     return result;

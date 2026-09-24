@@ -439,6 +439,88 @@ await test('a file whose bytes contradict its declared type is classified, not s
   assert.equal(Object.values(classes).reduce((n, keys) => n + tally(keys), 0), state.scanned);
 });
 
+/* Ticket 0825. The 0818 clone run's six files labelled `application/pdf` that are
+   empty (2) or a saved web page (4): each reached the native worker every session,
+   failed, and was listed under "Extraction not completed this session" with a
+   promise that a later session would try again. A retry cannot mend a file, so the
+   census now says what it is, and the dialog says what to do about it.
+
+   The population is mixed for the reason the scenario above gives, and the
+   admitted half is the half that decides: a real PDF, a PDF whose `%PDF-` sits
+   behind junk inside the first KiB (Acrobat reads those, and so does pdf.js), the
+   same with the junk shaped like an HTML head — the one control that fails if the
+   `%PDF-` clause is dropped — and a web page correctly labelled a snapshot, which
+   fails if the HTML check stops asking whether the label says PDF. */
+const bytes = text => [...Buffer.from(text, 'latin1')];
+const junkThenPDF = (junk, at) => [...bytes(junk), ...new Array(at - junk.length).fill(0x20),
+  ...bytes('%PDF-1.4\n')];
+
+await test('an empty file or a web page labelled PDF is named, never submitted, and still counted as failed', async () => {
+  const harness = createHarness({
+    attachments: [
+      { id: 1, key: 'AAAA1111', kind: 'pdf', pages: null, sourceBytes: 0 },
+      { id: 2, key: 'BBBB2222', kind: 'pdf', pages: null, sourceBytes: 4096,
+        magic: bytes('<!DOCTYPE html>\n<html lang="en"><head><title>Sign in</title>') },
+      // A BOM, blank lines and upper case: the head a CMS writes as often as not.
+      { id: 3, key: 'CCCC3333', kind: 'pdf', pages: null, sourceBytes: 4096,
+        magic: [0xEF, 0xBB, 0xBF, ...bytes('\r\n  \t<HTML>\n<HEAD>')] },
+      { id: 4, key: 'DDDD4444', kind: 'pdf', pages: null, sourceBytes: 4096, magic: bytes('<head>') },
+      // An empty file is empty whatever its label says.
+      { id: 5, key: 'EEEE5555', kind: 'snapshot', pages: null, sourceBytes: 0 },
+      // The controls, every one of which must still reach the extractor.
+      { id: 6, key: 'FFFF6666', kind: 'pdf', pages: 12, sourceBytes: 4096, magic: PDF_MAGIC },
+      { id: 7, key: 'GGGG7777', kind: 'pdf', pages: 12, sourceBytes: 4096,
+        magic: junkThenPDF('garbage from a broken proxy', 700) },
+      { id: 8, key: 'HHHH8888', kind: 'pdf', pages: 12, sourceBytes: 4096,
+        magic: junkThenPDF('<html><body>mail header</body></html>', 1000) },
+      // Short enough to fall inside the eight bytes a snapshot's head is read
+      // to, so it is the label and not the read length that keeps it admitted.
+      { id: 9, key: 'IIII9999', kind: 'snapshot', pages: null, sourceBytes: 4096,
+        magic: bytes('<html>\n<head>') },
+      // A head that merely begins like a tag it is not, which a prefix test
+      // without a delimiter would take for `<head`.
+      { id: 10, key: 'JJJJ0000', kind: 'pdf', pages: 12, sourceBytes: 4096, magic: bytes('<header>') },
+    ],
+  });
+  await harness.start();
+  const state = harness.context.sitter.state;
+
+  assert.deepEqual(harness.calls.ensure, [6, 7, 8, 9, 10],
+    'the extractor was handed the wrong set of documents');
+  assert.deepEqual(harness.records('submit').map(record => record.id), [6, 7, 8, 9, 10],
+    'a document was submitted that the census had already ruled out');
+  const members = new Map(state.censusSnapshot.members.map(member => [member.itemID, member]));
+  for (const [id, reason] of [[1, 'empty-file'], [5, 'empty-file'], [2, 'web-page-as-pdf'],
+    [3, 'web-page-as-pdf'], [4, 'web-page-as-pdf']]) {
+    assert.equal(members.get(id).status, 'unusable-source', `attachment ${id} was not ruled unusable`);
+    assert.equal(members.get(id).reason, reason, `attachment ${id} was ruled unusable for the wrong reason`);
+  }
+  assert.equal(state.counts['unusable-source'], 5);
+  assert.equal(state.counts.current, 5, 'a document that extracts fine stopped being admitted');
+  // Still the author's "could not be indexed" figure: these moved out of
+  // `failed-session`, not out of the tally (ticket 0699's accounting).
+  assert.equal(state.failed, 5, 'an unusable file dropped out of the failure count');
+  const classes = harness.context.SDT_STATUS_CLASSES;
+  assert(classes.failed.includes('unusable-source'), 'unusable-source is not a failure class');
+  const tally = keys => keys.reduce((n, key) => n + (state.counts[key] || 0), 0);
+  assert.equal(Object.values(classes).reduce((n, keys) => n + tally(keys), 0), state.scanned);
+
+  // And the reader meets each under its own heading, with its own remedy, rather
+  // than under a promise that a later session will try again.
+  const groups = new Map(harness.context.collectSDTNotIndexed(state)
+    .map(group => [group.id, [...group.members].map(member => member.itemID)]));
+  assert.deepEqual(groups.get('empty-file'), [1, 5]);
+  assert.deepEqual(groups.get('web-page-as-pdf'), [2, 3, 4]);
+  assert.equal(groups.has('failed-session'), false);
+  harness.context.openDialog(harness.windows[0]); harness.context.render();
+  const notIndexed = [...harness.context.dialogs][0].document.getElementById('sdt-not-indexed');
+  const summaries = notIndexed.descendants().filter(node => node.tagName === 'summary')
+    .map(node => node.textContent);
+  assert.deepEqual(summaries, ['Not indexed (5)', 'Empty file (2)', 'Web page saved as PDF (3)']);
+  const text = notIndexed.descendants().map(node => node.textContent || '').join('\n');
+  assert(!text.includes('later session'), 'an unusable file is still promised a retry');
+});
+
 await test('a document that yields no pack is asked once a session, and again after a restart', async () => {
   const attachments = [pdf(1, 'AAAA1111'), pdf(2, 'BBBB2222'), pdf(3, 'CCCC3333')];
   const hooks = {};
