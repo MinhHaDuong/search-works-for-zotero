@@ -27,7 +27,7 @@ proposition, [SPEC.md](SPEC.md) the design.
 ## Handoff
 
 Open here: 0774, 0786, **0808**, 0814's guard 2. Gaps: R10 (0660–0664), R13 (0650–0652), R15
-(0654–0657), R22 (0643, 0665), fixtures 0602, 0623, 0658. #6012 train (0754–0757) unstarted.
+(0654–0657), R22 (0643, 0665), fixtures 0602, 0658. #6012 train (0754–0757) unstarted.
 Proposed next: a backlog triage with the author, cluster by cluster. Cleanup owed once nothing
 cites them: the 0818 library copies (`~/data/clone-rung/2026-09-23/` on doudou and padme) and
 the run arenas on padme. Hygiene (2026-09-24): 15 remote branches unmerged into main.
