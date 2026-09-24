@@ -475,18 +475,23 @@ def _rows(before, after):
     return {"before": before, "after": after}
 
 
-def test_the_relaunch_edit_admits_what_a_relaunch_was_measured_writing():
+def test_the_relaunch_edit_admits_the_indexers_catch_up():
     measured = si.Diff(files={}, tables={
-        "zotero.sqlite:version": _rows(10, 10),
         "zotero.sqlite:fulltextItems": _rows(101, 104),
         "fulltext.sqlite:fulltextIndexState": _rows(101, 104)})
     assert si.check(measured, si.relaunch_edit()) == []
-    # The same diff with no declared edit is the live run's first FAIL.
-    assert len(si.check(measured)) == 3
+    assert len(si.check(measured)) == 2
+
+
+def test_the_relaunch_edit_does_not_admit_the_repository_check():
+    # Ruled 2026-09-24: the rung's profile turns the repository check off, so
+    # the version rows it re-stamps (the first live run's diff) must fail.
+    measured = si.Diff(files={}, tables={"zotero.sqlite:version": _rows(10, 10)})
+    assert si.check(measured, si.relaunch_edit()) == [
+        "zotero.sqlite:version: changed with no declared edit (rows 10 -> 10)"]
 
 
 @pytest.mark.parametrize("table,rows,problem", [
-    ("zotero.sqlite:version", _rows(10, 11), "row count moved by 1"),
     ("fulltext.sqlite:fulltextContent_data", _rows(5, 6), "no declared edit"),
     ("zotero.sqlite:itemTags", _rows(0, 1), "no declared edit"),
 ])

@@ -131,12 +131,15 @@ it from the profile again. The diagnostics opt-in is withdrawn before the
 disable, since with it on a disable writes the certificate the integrity check
 fails closed on. Integrity closes a segment after the disable and re-enable,
 one while Zotero is down, and one after the relaunch settles. The relaunch
-segment declares what Zotero writes on its own when it starts over a library
-it holds, as measured: the `version` table's repository-check rows, no row
-added, and `fulltextItems` and `fulltextIndexState` rows for documents whose
-full-text cache the import left unindexed. So a sitter write to those two
-tables in that segment alone would pass; the segments where the sitter works
-permit neither. Each step has a
+segment declares what Zotero writes on its own after it starts again, as
+measured: `fulltextItems` and `fulltextIndexState` rows, Zotero's keyword
+indexer catching up on documents whose full-text cache the import left
+unindexed. So a sitter write to those two tables in that segment alone would
+pass; the segments where the sitter works permit neither. The rung's profile
+turns off Zotero's automatic translator and style repository check
+(`extensions.zotero.automaticScraperUpdates`), which otherwise re-stamps the
+`version` table at every launch; that table is admitted nowhere (author,
+2026-09-24), and `--repository-check` leaves the check on as its red control. Each step has a
 red control, a driver flag, recorded under `verification/menagerie/`: a
 replacement built by `bench/sitter_lifecycle_red_payload.py` that deletes
 finished packs on activation, a zero-length disabled hold, a data directory

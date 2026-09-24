@@ -323,6 +323,22 @@ def bump_payload(xpi: Path, out: Path) -> str:
     return manifest["version"]
 
 
+#: Zotero's automatic translator and style repository check. On, every launch
+#: re-stamps the `repository` and `lastcheck` rows of `zotero.sqlite`'s
+#: `version` table (measured across rung 3's restart, ticket 0822); the pref
+#: gates the startup check in Zotero 10.0.3's `xpcom/schema.js`
+#: (`updateFromRepository(REPO_UPDATE_STARTUP)` runs only when it is true),
+#: and its default, true, is in `defaults/preferences/zotero.js`. Off here so
+#: the relaunch segment need not admit the `version` table (author, 2026-09-24).
+NO_REPOSITORY_CHECK = 'user_pref("extensions.zotero.automaticScraperUpdates", false);\n'
+
+
+def seed_no_repository_check(prefs: Path) -> None:
+    """Turn the repository check off in a fresh profile, before first launch."""
+    with prefs.open("a", encoding="utf-8") as out:
+        out.write(NO_REPOSITORY_CHECK)
+
+
 def repoint_data_dir(prefs: Path, decoy: Path) -> None:
     """RED CONTROL: rewrite the profile's pinned data directory, as a stale or
     hand-edited prefs.js would -- ticket 0782's bug, between stop and relaunch."""
@@ -1268,6 +1284,8 @@ def run_menagerie(args) -> dict:
               f" from {args.replace_xpi or xpi}")
 
     profile, requested = setup_profile(args.work_dir, args.port)
+    if not args.repository_check:
+        seed_no_repository_check(profile / "prefs.js")
     sess = Session(binary, app_ini, profile, args.work_dir, args.port)
     sess.launch()
     phases = {}
@@ -1450,6 +1468,10 @@ def main(argv=None) -> int:
     ap.add_argument("--quit-timeout", type=float, default=60.0,
                     help="how long a requested quit may take before the "
                          "process is terminated")
+    ap.add_argument("--repository-check", action="store_true",
+                    help="RED CONTROL: leave Zotero's automatic translator and "
+                         "style repository check on; its relaunch writes to "
+                         "the version table must FAIL the relaunch segment")
     ap.add_argument("--red-restart-datadir", action="store_true",
                     help="RED CONTROL: repoint prefs.js's dataDir between the "
                          "quit and the relaunch; the pinned check must FAIL")

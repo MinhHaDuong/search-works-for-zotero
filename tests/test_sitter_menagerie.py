@@ -215,6 +215,15 @@ def test_repointing_prefs_rewrites_the_one_datadir_line(tmp_path):
     assert 'useDataDir", true' in text
 
 
+def test_the_repository_check_is_seeded_off(tmp_path):
+    prefs = tmp_path / "prefs.js"
+    prefs.write_text('user_pref("extensions.zotero.dataDir", "/pinned");\n')
+    rung.seed_no_repository_check(prefs)
+    assert prefs.read_text().endswith(
+        'user_pref("extensions.zotero.automaticScraperUpdates", false);\n')
+    assert "/pinned" in prefs.read_text()
+
+
 PACK = {"source": "s", "sha256": "b", "mtime_ns": 1}
 
 
