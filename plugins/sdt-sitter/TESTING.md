@@ -22,9 +22,10 @@ other file in the tree by hash, the root included — and fails on any
 difference outside the permitted set. The instrument is
 `bench/sitter_integrity.py`; each segment's verdict is logged and carried in
 the driver's run record. Rung 2 closes one segment (install, import,
-preparation); rung 3 closes ten, and one of them — resume to indexed — holds
-no library edit at all, so it alone says whether `Zotero.SDT.ensure()` writes
-anything besides the pack.
+preparation); rung 3 closes thirteen. Resume to indexed, the replace inside
+it, holds no library edit at all, so it says whether `Zotero.SDT.ensure()`
+writes anything besides the pack; the lifecycle segments after it hold none
+either.
 
 The permitted set, as measured by ticket 0816 on Zotero 10.0.3 (a run with the
 import done before the sitter was installed, then rung 3 end to end):
@@ -116,6 +117,31 @@ through ticket 0794 — so size and wildness are one rung, not two. The behaviou
 scenario runs over it, and lifecycle is part of that scenario rather than a
 rung of its own: pause (including mid-document), the attachment and item
 invalidation cycles, replace, disable and re-enable, restart, uninstall.
+
+**Lifecycle is judged on the disk (ticket 0822).** Every pack finished before
+a replace, a disable or a restart must come out of it with the same source
+hash, the same bytes and the same mtime: a count passes a swapped pack, and a
+hash set passes a pack thrown away and extracted again, which is finished work
+redone. The replace lands mid-extraction, so it may add packs; the disable and
+the restart run over a settled library and may add none. A disabled hold is
+read while it lasts, and a hold with no reading is UNPROVEN, not a pass. After
+the relaunch the data directory Zotero opened is checked against the pinned
+one before anything else runs, as after the first launch: every launch reads
+it from the profile again. The diagnostics opt-in is withdrawn before the
+disable, since with it on a disable writes the certificate the integrity check
+fails closed on. Integrity closes a segment after the disable and re-enable,
+one while Zotero is down, and one after the relaunch settles. The relaunch
+segment declares what Zotero writes on its own when it starts over a library
+it holds, as measured: the `version` table's repository-check rows, no row
+added, and `fulltextItems` and `fulltextIndexState` rows for documents whose
+full-text cache the import left unindexed. So a sitter write to those two
+tables in that segment alone would pass; the segments where the sitter works
+permit neither. Each step has a
+red control, a driver flag, recorded under `verification/menagerie/`: a
+replacement built by `bench/sitter_lifecycle_red_payload.py` that deletes
+finished packs on activation, a zero-length disabled hold, a data directory
+repointed in `prefs.js` between quit and relaunch, and a pack deleted while
+Zotero is down.
 
 **Rung 5 comes before release.** The author installs on his live Zotero only
 after rung 4 passes, with a reflink snapshot of the data directory taken first,
