@@ -49,6 +49,11 @@ progress says TIMEOUT, not FAIL: the deadline is derived, not measured.
 Nothing here touches a real library: a fresh profile (refused if it already has
 a prefs.js) and a data directory pinned beside it, re-read from the running
 Zotero before anything is imported -- ticket 0782's refusal, kept.
+
+Exit codes: 0 PASS; 1 FAIL; 2 NOT-RUN (no Zotero, no display, or the sitter's
+gate refusing admission, ticket 0824); 3 TIMEOUT. NOT-RUN is 2 here and 3 in
+the smoke and clone drivers: this driver used 3 for TIMEOUT first, and a
+record reader that keys on the code would break if the two swapped.
 """
 from __future__ import annotations
 
@@ -100,8 +105,10 @@ from sitter_volume_experiment import (  # noqa: E402
 from sitter_watch import Log, connect_resilient  # noqa: E402
 
 
-#: This driver's NOT-RUN exit code, as it has always been; TIMEOUT is 3.
+#: This driver's exit codes; see the module docstring for why they differ
+#: from the smoke and clone drivers'.
 NOT_RUN_EXIT = 2
+TIMEOUT_EXIT = 3
 
 
 class MenagerieFailure(Exception):
@@ -1038,7 +1045,7 @@ def _main(args) -> int:
                 {"ok": False, "timeout": True, "error": str(exc),
                  "integrity": args.integrity_records}, indent=2), encoding="utf-8")
             print(f"\nwrote {args.json_out}")
-        return 3
+        return TIMEOUT_EXIT
     except Exception as exc:  # noqa: BLE001 -- MenagerieFailure, SmokeFailure, or a crash
         # The catch-all is the smoke driver's: an unattended run reports its
         # own crash -- a filesystem race inside a snapshot included -- as a

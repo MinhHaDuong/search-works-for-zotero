@@ -27,6 +27,7 @@ IDH_HOME ?= $(HOME)/.claude
 # previous runs beyond `--keep-runs` (run.py's DEFAULT_KEEP_RUNS) before it
 # allocates its own, and touches nothing outside the run layout (ticket 0720).
 ACCEPTANCE_ARENA ?= $(HOME)/data/acceptance-arena
+export ACCEPTANCE_ARENA
 
 # Disk-backed scratch for `test-fork` (ticket 0714 — see the header above).
 FORK_TEST_TMPDIR ?= $(HOME)/data/fork-test-tmp

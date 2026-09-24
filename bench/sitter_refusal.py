@@ -38,6 +38,7 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "bench"))
 
 from acceptance.run import DEFAULT_KEEP_RUNS, in_progress_marker, retain  # noqa: E402
+from zotero_rdp_client import RDPConnectionClosed, RDPTimeout  # noqa: E402
 
 BOOTSTRAP = REPO / "plugins" / "sdt-sitter" / "bootstrap.js"
 
@@ -281,25 +282,30 @@ class RefusalGuard:
     def __init__(self, evaluate, log, directory: Path, constants: dict | None = None):
         self.evaluate, self.log, self.directory = evaluate, log, Path(directory)
         self.blocked = frozenset((constants or plugin_constants())["blocked_phases"])
-        self.retried: str | None = None
+        # One forced retry per gate, not per guard: a driver reuses one guard
+        # across several waits (review of PR #626).
+        self.retried: set[str] = set()
 
     def check(self, state: dict) -> None:
         phase = state.get("phase")
         if phase not in self.blocked or not state.get("pending", 1):
             return
-        if phase in TRANSIENT_GATES and self.retried is None:
-            self.retried = phase
+        if phase in TRANSIENT_GATES and phase not in self.retried:
+            self.retried.add(phase)
             out = self.evaluate(FORCE_RETRY, f"forced retry on {phase}")
             self.log.write(f"refusal {phase} with {state.get('pending')} pending: "
                            f"one forced retry (switch off, on): {out}")
             return
         readings = self.read(phase)
         self.log.write(f"refusal {phase}: ending the wait NOT-RUN; readings {readings}")
-        raise SitterRefused(phase, readings, self.retried, state)
+        raise SitterRefused(phase, readings, phase if phase in self.retried else None, state)
 
     def read(self, phase: str) -> dict:
         try:
             out = self.evaluate(read_admission_code(phase), "read admission")
+        except (RDPConnectionClosed, RDPTimeout):
+            # A lost link is a crash, not a refusal: it must not end as NOT-RUN.
+            raise
         except Exception as exc:  # noqa: BLE001 -- a probe failure must not hide the refusal
             out = {"ok": False, "reason": f"{type(exc).__name__}: {exc}"}
         if out.get("ok"):

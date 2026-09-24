@@ -24,6 +24,7 @@ import sitter_clone_rung as clone  # noqa: E402
 import sitter_menagerie_test as menagerie  # noqa: E402
 import sitter_refusal as refusal  # noqa: E402
 import sitter_smoke_test as smoke  # noqa: E402
+from zotero_rdp_client import RDPConnectionClosed  # noqa: E402
 
 BOOTSTRAP = REPO / "plugins/sdt-sitter/bootstrap.js"
 GIB = 1024 ** 3
@@ -111,6 +112,45 @@ def test_a_transient_gate_gets_one_forced_retry_and_no_second():
         guard.check({"phase": "cpu-busy", "pending": 3})
     assert zotero.retries == 1
     assert caught.value.record["forced_retry"] == "cpu-busy"
+
+
+def test_each_transient_gate_gets_its_own_forced_retry():
+    """Review of PR #626 (red team): the menagerie driver reuses one guard
+    across three waits, so a retry spent on one gate must not be charged to
+    another met later in the run."""
+    zotero = FakeZotero()
+    guard = _guard(zotero)
+    guard.check({"phase": "cpu-busy", "pending": 3})
+    guard.check({"phase": "low-memory", "pending": 3})
+    assert zotero.retries == 2
+    with pytest.raises(refusal.SitterRefused, match="low-memory") as caught:
+        guard.check({"phase": "low-memory", "pending": 3})
+    assert caught.value.record["forced_retry"] == "low-memory"
+
+
+def test_a_lost_rdp_link_is_not_reported_as_a_refusal():
+    """Review of PR #626 (red team): a dropped debugger link while reading the
+    admission is a crash, and must not come out as a clean NOT-RUN refusal."""
+    def zotero(code, what):
+        if code.startswith(refusal.READ_ADMISSION_MARK):
+            raise RDPConnectionClosed("connection closed")
+        return {"ok": True}
+
+    guard = refusal.RefusalGuard(zotero, _Log(), directory=Path("/w/data"))
+    with pytest.raises(RDPConnectionClosed):
+        guard.check({"phase": "low-disk", "pending": 4})
+
+
+def test_the_arena_default_is_the_makefile_s_own(monkeypatch):
+    """Review of PR #626 (consistency): the default lives in the Makefile, which
+    exports it to its recipes; a driver run by hand falls back to a copy, and
+    this holds the copy to its source."""
+    make = (REPO / "Makefile").read_text(encoding="utf-8")
+    assert re.search(r"^export ACCEPTANCE_ARENA$", make, re.M), "the Makefile must export it"
+    default = re.search(r"^ACCEPTANCE_ARENA \?= (.+)$", make, re.M).group(1).strip()
+    monkeypatch.delenv("ACCEPTANCE_ARENA", raising=False)
+    expected = Path(default.replace("$(HOME)", str(Path.home())))
+    assert refusal.arena_base("smoke") == expected / "sitter-smoke"
 
 
 def test_working_phases_pass_the_guard():
