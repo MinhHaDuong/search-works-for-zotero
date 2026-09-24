@@ -471,6 +471,35 @@ def test_the_attach_edit_permits_only_its_own_file(tmp_path):
         "storage/CCCC3333/other.pdf: appear is not permitted"]
 
 
+def _rows(before, after):
+    return {"before": before, "after": after}
+
+
+def test_the_relaunch_edit_admits_the_indexers_catch_up():
+    measured = si.Diff(files={}, tables={
+        "zotero.sqlite:fulltextItems": _rows(101, 104),
+        "fulltext.sqlite:fulltextIndexState": _rows(101, 104)})
+    assert si.check(measured, si.relaunch_edit()) == []
+    assert len(si.check(measured)) == 2
+
+
+def test_the_relaunch_edit_does_not_admit_the_repository_check():
+    # Ruled 2026-09-24: the rung's profile turns the repository check off, so
+    # the version rows it re-stamps (the first live run's diff) must fail.
+    measured = si.Diff(files={}, tables={"zotero.sqlite:version": _rows(10, 10)})
+    assert si.check(measured, si.relaunch_edit()) == [
+        "zotero.sqlite:version: changed with no declared edit (rows 10 -> 10)"]
+
+
+@pytest.mark.parametrize("table,rows,problem", [
+    ("fulltext.sqlite:fulltextContent_data", _rows(5, 6), "no declared edit"),
+    ("zotero.sqlite:itemTags", _rows(0, 1), "no declared edit"),
+])
+def test_the_relaunch_edit_admits_nothing_more(table, rows, problem):
+    diff = si.Diff(files={}, tables={table: rows})
+    assert problem in si.check(diff, si.relaunch_edit())[0]
+
+
 def test_the_ledger_records_a_failing_segment_before_raising(tmp_path):
     data = make_data_dir(tmp_path)
     lines = []
