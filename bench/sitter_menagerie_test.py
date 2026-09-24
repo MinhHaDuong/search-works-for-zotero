@@ -9,12 +9,24 @@ uninstall.
     1. fresh Zotero, fresh data directory, Menagerie imported
     2. install the add-on, indexing starts
     3. PAUSE at the real switch, and verify it actually paused
-    4. RESUME, and watch it finish
+    4. RESUME; REPLACE the add-on while it extracts; watch it finish
     5. every pack's source hash checked against the bytes on disk
+       DISABLE and hold it disabled, observed; RE-ENABLE
+       QUIT and RELAUNCH Zotero; check the pinned data directory again
     6. delete an ATTACHMENT -- its pack goes, by itself
     7. put it back -- its pack returns, within a minute
     8. the same for a whole ITEM
     9. remove the add-on -- verify no state is left behind
+
+THE LIFECYCLE STEPS (ticket 0822) are judged on the disk, not on the
+sitter's counters: every pack finished before a step must come out of it
+with the same source hash, bytes and mtime. The replace may add packs, as
+extraction was under way; the disable and the restart run over a settled
+library and may add none. Each has a red control, a driver flag: a mutant
+replacement (`--replace-xpi`, built by `bench/sitter_lifecycle_red_payload.py`),
+a zero-length disabled hold (`--disable-hold 0`, UNPROVEN), a data directory
+repointed between quit and relaunch (`--red-restart-datadir`), and a pack
+deleted while Zotero is down (`--red-restart-drop-pack`).
 
 WHAT MAKES 3 A REAL STEP AND NOT A GESTURE. Pausing by writing
 `state.enabled = false` would test the scheduler's own flag against itself. This
@@ -940,7 +952,9 @@ def phase_replace_start(run: Run, replace_xpi: Path, version: str, data_dir: Pat
         outstanding = s["pending"] > 0 or s["busy"]
         if s["completed"] >= args.replace_warmup and outstanding:
             break
-        if not outstanding and s["scanned"] >= 1 and s["completed"] > 0:
+        # Drained only once the census has seen everything: mid-census an
+        # empty queue is not an empty one.
+        if not outstanding and s["total"] and s["scanned"] >= s["total"]:
             raise MenagerieFailure(
                 f"UNPROVEN: the queue drained before the replace could land "
                 f"mid-extraction (warm-up {args.replace_warmup}): {s}")
