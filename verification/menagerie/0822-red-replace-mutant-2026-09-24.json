@@ -1,0 +1,199 @@
+{
+  "ok": false,
+  "error": "the replace regressed 6 finished pack(s): 82APXL6K: pack sha256 'd2f2a16b588e116c3780b432d32888370fd6cc9e2686c1ea6defcbc17ade149f' -> '4c5f7c81ca6d32869aba1f98e06c039b5d1b205eea4d59c999b8221d1a7b3f0e'; 82APXL6K: pack mtime_ns 1790258535601739461 -> 1790258537982766191; F74T86LT: pack sha256 'a33fa5073b563ff39cb18f3d8a9b34ae0733e467387767597f44eabc6fef377c' -> '784ae48cfe41b8c91bab43e153aa3040303626b03866e50255faca205c9e9383'; F74T86LT: pack mtime_ns 1790258535438737631 -> 1790258537908765361; JYLZ4TWP: pack sha256 '734ddf7a125e571d580da48a73ee2ffd1267a5a4b3b5ec41dc59ca277f481c8f' -> '1a209b0fc295bdb47f27873f00c8ab2370be14dd3fabaaa4c93bcc606b0e3455'; JYLZ4TWP: pack mtime_ns 1790258535834742077 -> 1790258538145768021",
+  "integrity": [
+    {
+      "segment": "install+pause+import",
+      "verdict": "PASS",
+      "violations": [],
+      "files": {
+        "sdt-sitter-cache.jsonl": "appear",
+        "storage/288XH723/.zotero-ft-cache": "appear",
+        "storage/29PRW6V6/.zotero-ft-cache": "appear",
+        "storage/2ENTX3FP/.zotero-ft-cache": "appear",
+        "storage/2LCTU8FI/.zotero-ft-cache": "appear",
+        "storage/3657KKHI/.zotero-ft-cache": "appear",
+        "storage/3BMZ3BUV/.zotero-ft-cache": "appear",
+        "storage/3M9LYXPY/.zotero-ft-cache": "appear",
+        "storage/3MC8FQVB/.zotero-ft-cache": "appear",
+        "storage/4IE4ZVFE/.zotero-ft-cache": "appear",
+        "storage/4QWRKAWN/.zotero-ft-cache": "appear",
+        "storage/679KCRMU/.zotero-ft-cache": "appear",
+        "storage/6IH576HT/.zotero-ft-cache": "appear",
+        "storage/6JTWFHFV/.zotero-ft-cache": "appear",
+        "storage/7AJ5MD3A/.zotero-ft-cache": "appear",
+        "storage/7PSNJQI9/.zotero-ft-cache": "appear",
+        "storage/82APXL6K/.zotero-ft-cache": "appear",
+        "storage/8F8ZUJV3/.zotero-ft-cache": "appear",
+        "storage/9E86A3JA/.zotero-ft-cache": "appear",
+        "storage/9TSCLZWY/.zotero-ft-cache": "appear",
+        "storage/A4TJZPFR/.zotero-ft-cache": "appear",
+        "storage/A6K7F7I6/.zotero-ft-cache": "appear",
+        "storage/BVGBKSNH/.zotero-ft-cache": "appear",
+        "storage/C3ISNUPF/.zotero-ft-cache": "appear",
+        "storage/CGWC3Y26/.zotero-ft-cache": "appear",
+        "storage/CV6LHSE5/.zotero-ft-cache": "appear",
+        "storage/D2XFI68F/.zotero-ft-cache": "appear",
+        "storage/D6P5YL4U/.zotero-ft-cache": "appear",
+        "storage/DHLQU55Y/.zotero-ft-cache": "appear",
+        "storage/DU3J3AGE/.zotero-ft-cache": "appear",
+        "storage/DUBHSKG8/.zotero-ft-cache": "appear",
+        "storage/E9Z7BG6G/.zotero-ft-cache": "appear",
+        "storage/EAGPWTHE/.zotero-ft-cache": "appear",
+        "storage/ECGU6JEP/.zotero-ft-cache": "appear",
+        "storage/EMUBK2YV/.zotero-ft-cache": "appear",
+        "storage/F74T86LT/.zotero-ft-cache": "appear",
+        "storage/FU5T9DGG/.zotero-ft-cache": "appear",
+        "storage/GCFBQX75/.zotero-ft-cache": "appear",
+        "storage/H9QIQ7N9/.zotero-ft-cache": "appear",
+        "storage/HSYAFBRS/.zotero-ft-cache": "appear",
+        "storage/I54T5NZD/.zotero-ft-cache": "appear",
+        "storage/IQU6W8Z7/.zotero-ft-cache": "appear",
+        "storage/IQVXE3RZ/.zotero-ft-cache": "appear",
+        "storage/JDCDTJG2/.zotero-ft-cache": "appear",
+        "storage/JU9BUHX9/.zotero-ft-cache": "appear",
+        "storage/JYLZ4TWP/.zotero-ft-cache": "appear",
+        "storage/KE7UYW5N/.zotero-ft-cache": "appear",
+        "storage/KE946KXC/.zotero-ft-cache": "appear",
+        "storage/KVBT42WF/.zotero-ft-cache": "appear",
+        "storage/L98Z4GED/.zotero-ft-cache": "appear",
+        "storage/L9JCIF7K/.zotero-ft-cache": "appear",
+        "storage/LEGJNQL2/.zotero-ft-cache": "appear",
+        "storage/LJCBI7UP/.zotero-ft-cache": "appear",
+        "storage/LWNEJKT4/.zotero-ft-cache": "appear",
+        "storage/LYPIGW2M/.zotero-ft-cache": "appear",
+        "storage/M3HLZSBT/.zotero-ft-cache": "appear",
+        "storage/MDLF2WBR/.zotero-ft-cache": "appear",
+        "storage/MN2X9P9N/.zotero-ft-cache": "appear",
+        "storage/MYV6Y66I/.zotero-ft-cache": "appear",
+        "storage/NCNMKLS9/.zotero-ft-cache": "appear",
+        "storage/ND4EJSTV/.zotero-ft-cache": "appear",
+        "storage/P359EAYJ/.zotero-ft-cache": "appear",
+        "storage/P3ITWSS3/.zotero-ft-cache": "appear",
+        "storage/PBFEABXG/.zotero-ft-cache": "appear",
+        "storage/PN4P9LR7/.zotero-ft-cache": "appear",
+        "storage/Q3Y92C9G/.zotero-ft-cache": "appear",
+        "storage/QMPEICDC/.zotero-ft-cache": "appear",
+        "storage/QPG3NYSD/.zotero-ft-cache": "appear",
+        "storage/RYLB2ZII/.zotero-ft-cache": "appear",
+        "storage/SDCMCPM9/.zotero-ft-cache": "appear",
+        "storage/SMJAL6EX/.zotero-ft-cache": "appear",
+        "storage/T5AMVMHA/.zotero-ft-cache": "appear",
+        "storage/T76MRPZJ/.zotero-ft-cache": "appear",
+        "storage/TKHJNEXS/.zotero-ft-cache": "appear",
+        "storage/UH2ZEK29/.zotero-ft-cache": "appear",
+        "storage/URF9NA9W/.zotero-ft-cache": "appear",
+        "storage/V4XCLXKT/.zotero-ft-cache": "appear",
+        "storage/VDNM6E5V/.zotero-ft-cache": "appear",
+        "storage/VQHWD26J/.zotero-ft-cache": "appear",
+        "storage/VUVFD93Y/.zotero-ft-cache": "appear",
+        "storage/W56ZAXHP/.zotero-ft-cache": "appear",
+        "storage/WTCZME7X/.zotero-ft-cache": "appear",
+        "storage/X3EKKN6W/.zotero-ft-cache": "appear",
+        "storage/XB2U57WB/.zotero-ft-cache": "appear",
+        "storage/XBYPP7DH/.zotero-ft-cache": "appear",
+        "storage/XIXFMY2I/.zotero-ft-cache": "appear",
+        "storage/XYG8U6G7/.zotero-ft-cache": "appear",
+        "storage/Y65N9VNH/.zotero-ft-cache": "appear",
+        "storage/Y8A8NQK5/.zotero-ft-cache": "appear",
+        "storage/YFCVYS9J/.zotero-ft-cache": "appear",
+        "storage/Z8WYU9VX/.zotero-ft-cache": "appear",
+        "storage/ZGV53MRV/.zotero-ft-cache": "appear",
+        "storage/ZQYMXXWI/.zotero-ft-cache": "appear",
+        "storage/ZXCJ5J8G/.zotero-ft-cache": "appear"
+      },
+      "tables": {
+        "fulltext.sqlite:fulltextContentCJK_data": {
+          "before": 2,
+          "after": 80
+        },
+        "fulltext.sqlite:fulltextContentCJK_docsize": {
+          "before": 0,
+          "after": 8
+        },
+        "fulltext.sqlite:fulltextContentCJK_idx": {
+          "before": 0,
+          "after": 145
+        },
+        "fulltext.sqlite:fulltextContent_data": {
+          "before": 2,
+          "after": 1338
+        },
+        "fulltext.sqlite:fulltextContent_docsize": {
+          "before": 0,
+          "after": 101
+        },
+        "fulltext.sqlite:fulltextContent_idx": {
+          "before": 0,
+          "after": 1231
+        },
+        "fulltext.sqlite:fulltextIndexState": {
+          "before": 0,
+          "after": 101
+        },
+        "zotero.sqlite:creators": {
+          "before": 0,
+          "after": 1
+        },
+        "zotero.sqlite:fulltextItems": {
+          "before": 0,
+          "after": 101
+        },
+        "zotero.sqlite:itemAttachments": {
+          "before": 0,
+          "after": 114
+        },
+        "zotero.sqlite:itemCreators": {
+          "before": 0,
+          "after": 114
+        },
+        "zotero.sqlite:itemData": {
+          "before": 0,
+          "after": 342
+        },
+        "zotero.sqlite:itemDataValues": {
+          "before": 0,
+          "after": 119
+        },
+        "zotero.sqlite:items": {
+          "before": 0,
+          "after": 228
+        },
+        "zotero.sqlite:libraries": {
+          "before": 1,
+          "after": 1
+        }
+      },
+      "housekeeping": {},
+      "declared": {
+        "tables": {
+          "zotero.sqlite:items": 228,
+          "zotero.sqlite:itemAttachments": 114,
+          "zotero.sqlite:itemData": null,
+          "zotero.sqlite:itemDataValues": null,
+          "zotero.sqlite:creators": null,
+          "zotero.sqlite:itemCreators": null,
+          "zotero.sqlite:libraries": null,
+          "zotero.sqlite:fulltextItems": null,
+          "fulltext.sqlite:fulltextContent_data": null,
+          "fulltext.sqlite:fulltextContent_docsize": null,
+          "fulltext.sqlite:fulltextContent_idx": null,
+          "fulltext.sqlite:fulltextContentCJK_data": null,
+          "fulltext.sqlite:fulltextContentCJK_docsize": null,
+          "fulltext.sqlite:fulltextContentCJK_idx": null,
+          "fulltext.sqlite:fulltextIndexState": null
+        },
+        "files": {
+          "storage/*/.zotero-ft-cache": [
+            "appear"
+          ]
+        }
+      }
+    }
+  ],
+  "timing": {
+    "resume_to_settled_s": 340.7,
+    "whole_run_s": 439.9
+  },
+  "attachments": []
+}

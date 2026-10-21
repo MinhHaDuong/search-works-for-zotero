@@ -6,8 +6,11 @@ checkable here is the part that decides the verdict: which files the rung
 imports, how a status is classed, and that an attachment left `queued` fails.
 """
 
+import ast
+import json
 import re
 import sys
+import zipfile
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -180,3 +183,162 @@ def test_progress_past_the_deadline_is_a_timeout(clock):
     busy = [_state(3, busy=True, completed=n) for n in range(1000)]
     with pytest.raises(rung.RungTimeout, match="--index-timeout"):
         rung.wait_settled(_Run(busy), _args(index_timeout=50.0), _Log(), expected=5)
+
+
+# -- lifecycle (ticket 0822) ------------------------------------------------------
+
+def test_the_pinned_data_directory_passes_when_zotero_opened_it(tmp_path):
+    assert rung.assert_pinned_data_dir({"dataDir": str(tmp_path)}, tmp_path, "t") \
+        == tmp_path.resolve()
+
+
+def test_another_data_directory_is_refused(tmp_path):
+    with pytest.raises(rung.MenagerieFailure, match="REFUSING.*after the restart"):
+        rung.assert_pinned_data_dir({"dataDir": str(tmp_path / "decoy")}, tmp_path,
+                                    "after the restart")
+
+
+@pytest.mark.parametrize("live", [{}, {"ok": False, "reason": "threw"}, None])
+def test_an_unreadable_data_directory_is_refused_not_passed(tmp_path, live):
+    with pytest.raises(rung.MenagerieFailure, match="could not read"):
+        rung.assert_pinned_data_dir(live, tmp_path, "t")
+
+
+def test_repointing_prefs_rewrites_the_one_datadir_line(tmp_path):
+    prefs = tmp_path / "prefs.js"
+    prefs.write_text('user_pref("extensions.zotero.dataDir", "/pinned");\n'
+                     'user_pref("extensions.zotero.useDataDir", true);\n')
+    rung.repoint_data_dir(prefs, tmp_path / "decoy")
+    text = prefs.read_text()
+    assert f'"extensions.zotero.dataDir", "{tmp_path / "decoy"}"' in text
+    assert "/pinned" not in text
+    assert 'useDataDir", true' in text
+
+
+class _QueueRun:
+    def __init__(self, totals):
+        self.totals = list(totals)
+
+    def ev(self, _code, _what):
+        return {"ok": True, "total": self.totals.pop(0) if len(self.totals) > 1
+                else self.totals[0]}
+
+
+def _index_args(**kw):
+    return SimpleNamespace(**{"host_index_quiet": 60.0, "settle_timeout": 900.0, **kw})
+
+
+def test_the_relaunch_waits_for_zoteros_own_index_to_drain(clock):
+    out = rung.wait_host_index_drained(_QueueRun([3, 3, 1, 0]), _index_args(), _Log())
+    assert out["how"] == "drained" and out["elapsed_s"] == 15.0
+
+
+def test_a_host_queue_that_stops_shrinking_ends_the_wait(clock):
+    out = rung.wait_host_index_drained(_QueueRun([2]), _index_args(), _Log())
+    assert out["how"] == "stalled" and out["elapsed_s"] >= 60.0
+
+
+def test_a_host_queue_still_moving_at_the_deadline_fails(clock):
+    moving = _QueueRun(list(range(1000, 0, -1)))
+    with pytest.raises(rung.MenagerieFailure, match="still moving"):
+        rung.wait_host_index_drained(moving, _index_args(settle_timeout=100.0), _Log())
+
+
+def test_the_repository_check_is_seeded_off(tmp_path):
+    prefs = tmp_path / "prefs.js"
+    prefs.write_text('user_pref("extensions.zotero.dataDir", "/pinned");\n')
+    rung.seed_no_repository_check(prefs)
+    assert prefs.read_text().endswith(
+        'user_pref("extensions.zotero.automaticScraperUpdates", false);\n')
+    assert "/pinned" in prefs.read_text()
+
+
+PACK = {"source": "s", "sha256": "b", "mtime_ns": 1}
+
+
+def test_untouched_packs_compare_clean():
+    assert rung.compare_packs({"A": PACK}, {"A": dict(PACK)}, allow_new=False) == []
+
+
+@pytest.mark.parametrize("field_", ["source", "sha256", "mtime_ns"])
+def test_a_pack_rewritten_in_any_field_is_named(field_):
+    after = {"A": {**PACK, field_: "other"}}
+    assert rung.compare_packs({"A": PACK}, after, allow_new=True) \
+        == [f"A: pack {field_} {PACK[field_]!r} -> 'other'"]
+
+
+def test_a_pack_redone_with_identical_bytes_is_still_named_by_its_mtime():
+    # The resume red control's case: deleted while Zotero was down, extracted
+    # again byte for byte. Count and hash set agree; only the mtime tells.
+    after = {"A": {**PACK, "mtime_ns": 2}}
+    assert rung.compare_packs({"A": PACK}, after, allow_new=False) \
+        == ["A: pack mtime_ns 1 -> 2"]
+
+
+def test_a_pack_failing_on_two_fields_counts_once():
+    problems = rung.compare_packs({"A": PACK}, {"A": {**PACK, "sha256": "x", "mtime_ns": 2}},
+                                  allow_new=False)
+    assert len(problems) == 2
+    assert rung._packs_named(problems) == 1
+
+
+def test_a_lost_pack_is_named():
+    assert rung.compare_packs({"A": PACK, "B": PACK}, {"A": PACK}, allow_new=True) \
+        == ["B: pack gone"]
+
+
+def test_new_packs_pass_only_where_extraction_was_under_way():
+    after = {"A": PACK, "N": PACK}
+    assert rung.compare_packs({"A": PACK}, after, allow_new=True) == []
+    assert rung.compare_packs({"A": PACK}, after, allow_new=False) \
+        == ["N: pack appeared with no work outstanding"]
+
+
+def test_pack_identities_read_bytes_and_mtime(tmp_path, monkeypatch):
+    pack = tmp_path / "storage" / "KEY1" / ".zotero-sdt-cache"
+    pack.parent.mkdir(parents=True)
+    pack.write_bytes(b"pack")
+    monkeypatch.setattr(rung, "read_pack_metadata", lambda _p: {"source": {"hash": "h"}})
+    got = rung.pack_identities(tmp_path)
+    assert got["KEY1"]["source"] == "h"
+    assert got["KEY1"]["mtime_ns"] == pack.stat().st_mtime_ns
+    assert len(got["KEY1"]["sha256"]) == 64
+
+
+def test_a_zero_length_disabled_hold_is_unproven_not_passed():
+    with pytest.raises(rung.MenagerieFailure, match="UNPROVEN"):
+        rung.judge_disabled_hold([], 0.0)
+
+
+def test_a_sitter_seen_alive_while_disabled_fails():
+    readings = [{"handle": False, "isActive": False}, {"handle": True, "isActive": False}]
+    with pytest.raises(rung.MenagerieFailure, match="still live while disabled in 1 of 2"):
+        rung.judge_disabled_hold(readings, 10.0)
+
+
+def test_an_observed_disabled_hold_passes():
+    readings = [{"handle": False, "isActive": False}] * 3
+    assert rung.judge_disabled_hold(readings, 3.0) == {"observations": 3, "hold_s": 3.0}
+
+
+def test_the_replace_payload_is_the_given_one_with_a_bumped_version(tmp_path):
+    src = tmp_path / "in.xpi"
+    with zipfile.ZipFile(src, "w") as z:
+        z.writestr("manifest.json", json.dumps({"version": "0.4.33", "name": "n"}))
+        z.writestr("bootstrap.js", "mutant();")
+    out = tmp_path / "out.xpi"
+    assert rung.bump_payload(src, out) == "0.4.33.1"
+    with zipfile.ZipFile(out) as z:
+        assert json.loads(z.read("manifest.json"))["version"] == "0.4.33.1"
+        assert z.read("bootstrap.js") == b"mutant();"
+
+
+def test_the_volume_rigs_restart_closure_is_never_imported():
+    # Ticket 0822: `restart_zotero()` is a closure inside the volume rig's
+    # `main()`, blind to this rung's pinned data directory. The restart here is
+    # composed from the rung's own launch; this holds the import out.
+    tree = ast.parse((REPO / "bench/sitter_menagerie_test.py").read_text(encoding="utf-8"))
+    imported = {alias.name for node in ast.walk(tree)
+                if isinstance(node, ast.ImportFrom) for alias in node.names}
+    assert "restart_zotero" not in imported
+    assert {"disable_enable_code", "liveness_code", "ADDON_ID"} <= imported
