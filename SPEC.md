@@ -2,7 +2,7 @@
 
 - **Status:** COMPLETE
 - **Author:** Minh Ha-Duong (CNRS)
-- **Date:** 2026-09-16
+- **Date:** 2026-09-24
 
 ## 1. Introduction
 
@@ -2430,6 +2430,8 @@ the plugin's own table. The classification is:
 | Stored index format cannot be compared | Versions are malformed, unknown or move in opposite directions. |
 | Stored file unavailable | A stored attachment's file is confirmed absent. |
 | Linked file unavailable | A linked file is confirmed absent. |
+| Empty file | The source file is present and zero bytes long. |
+| Web page saved as PDF | A source declared a PDF opens as HTML — after an optional byte-order mark and whitespace, on an HTML doctype or an `html` or `head` tag — and carries no PDF header anywhere in its first kilobyte. |
 | No extractor for this format | No supported processor. |
 | Recorded format differs | Recognized source bytes contradict the declared type. |
 | Entries without any attached file | A non-deleted bibliographic item has no non-deleted file attachment. Notes and URL-only attachments do not count as files. |
@@ -2535,9 +2537,17 @@ Declared attachment content types are not trusted against the file. Before a
 document becomes a candidate the sitter reads its leading bytes; a signature that
 names a format the declared processor cannot be handling makes the attachment
 unsupported rather than a failure. An unrecognised head leaves the declared type
-standing, since the snapshot format has no signature. This verdict is recomputed
-from the file on every census and never cached, so it carries no risk of
-outliving what it describes.
+standing, since the snapshot format has no signature. Two heads are failures
+rather than mismatches, because the file itself is broken and no label would
+make it extractable: an empty file, whatever its declared type, and a source
+declared a PDF whose head reads as HTML with no PDF header in its first
+kilobyte. Both stay in the census's failure class and are never submitted; the
+remedy each names is the user's to make, a replacement file, which a retry
+cannot supply. The HTML test is held to the declared PDF alone and yields to
+any PDF header in that span, so it can rule out a web page saved in place of an
+article and never a real PDF. These verdicts are recomputed from the file on
+every census and never cached, so they carry no risk of outliving what they
+describe.
 
 The sitter records its own state transitions to the host's debug output and to
 a volatile in-session ring. A record carries a timestamp, a kind, a level and

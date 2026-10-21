@@ -1566,7 +1566,7 @@ def test_every_census_status_is_named_in_words_a_reader_can_read():
         'the total label carries a placeholder; it is composed positionally now'
 
 
-#: Which census status each "Not indexed" group speaks for. Three statuses split
+#: Which census status each "Not indexed" group speaks for. Four statuses split
 #: into several groups, because the reader is owed the remedy and the remedy
 #: differs: a stored file and a linked file are both `missing-source`, and only
 #: one of them is Zotero's to fetch. Restated here rather than read out of
@@ -1581,6 +1581,8 @@ NOT_INDEXED_OWNER = {
     'unordered-format': 'unsupported-pack',
     'missing-source-stored': 'missing-source',
     'missing-source-linked': 'missing-source',
+    'empty-file': 'unusable-source',
+    'web-page-as-pdf': 'unusable-source',
     'no-extractor': 'unsupported',
     'mismatched-type': 'unsupported',
 }
@@ -1625,6 +1627,7 @@ def test_the_not_indexed_groups_read_in_the_census_account_s_order():
     # mismatch". A reader who learned the pair from the account meets it the same
     # way here.
     for first, second in (('missing-source-stored', 'missing-source-linked'),
+                          ('empty-file', 'web-page-as-pdf'),
                           ('no-extractor', 'mismatched-type')):
         assert groups.index(first) < groups.index(second), \
             f'{first} reads after {second}, against the account row that names both'

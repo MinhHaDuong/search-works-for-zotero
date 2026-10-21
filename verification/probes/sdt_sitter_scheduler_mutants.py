@@ -113,7 +113,9 @@ MUTANTS = [
     # assertion in the suite green, because nothing throws and every bucket still
     # sums to the census.
     ('M9 inspection-error falls out of the failure classification (the 0699 under-report)',
-     "  failed: ['failed-session', 'inspection-error', 'unsupported-pack', 'missing-source'],",
+     # Re-anchored for ticket 0825, which added `unusable-source` and wrapped the line.
+     "  failed: ['failed-session', 'inspection-error', 'unsupported-pack', 'missing-source',\n"
+     "    'unusable-source'],",
      "  failed: ['failed-session'],"),
     # Ticket 0740's action 2, after the author's 2026-09-08 ruling narrowed it to
     # the session: the suppression IS this line, and nothing else in the codebase

@@ -130,7 +130,7 @@ class RungTimeout(Exception):
 SDT_STATUS_CLASSES = {
     "indexed": ["current"],
     "unindexed": ["empty-pack"],
-    "failed": ["failed-session", "inspection-error", "unsupported-pack", "missing-source"],
+    "failed": ["failed-session", "inspection-error", "unsupported-pack", "missing-source", "unusable-source"],
     "queued": ["missing-pack", "stale-source", "stale-processor", "invalid-pack"],
     "outOfScope": ["excluded", "unsupported"],
 }
