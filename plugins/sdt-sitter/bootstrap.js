@@ -775,6 +775,10 @@ function heartbeatTick() {
    just happened. */
 async function checkSDTStillInstalled() {
   if (removalNoticed || !addonID) return;
+  // Ticket 0786: the activation this query began under. The three flags below
+  // are all reset by a re-initialise, so only the generation tells a stale
+  // continuation from the current scope (the file's idiom: `token !== generation`).
+  const token = generation;
   let addon;
   try {
     const { AddonManager } = ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs');
@@ -784,7 +788,7 @@ async function checkSDTStillInstalled() {
     return;
   }
   try {
-    if (!alive || sealed || removalNoticed) return;
+    if (!alive || sealed || removalNoticed || token !== generation) return;
     // Only a definite negative fires. `addon` present with `isActive` anything
     // but `false` is read as healthy, deliberately asymmetric with the guard
     // this mirrors elsewhere in this file (`readsProcfs`): there the unsafe

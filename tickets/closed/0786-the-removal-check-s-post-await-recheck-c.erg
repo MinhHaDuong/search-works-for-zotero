@@ -2,10 +2,13 @@
 Title: The removal check's post-await recheck carries no generation token
 Created: 2026-09-13
 Author: claude
+Closed: autoclosed — PR #649
 
 --- log ---
 2026-09-13T19:23Z claude created
 2026-09-13T19:24Z claude note Found by the decorrelated Sonnet review of PR #551 (ticket 0781), which approved the PR and flagged this as a residual the implementing agent had not itself noticed. Filed rather than fixed inline because the remedy is a one-line change to a file that four PRs touched tonight, and because the reviewer's own likelihood assessment is low enough that it does not justify reopening a merged payload the same evening. PR #551 merged on the author's standing instruction; this ticket is the record of what it merged WITH.
+2026-11-09T17:08Z MinhHaDuong fixed on branch t0786-removal-recheck-generation: generation token captured before the await, mutant M85
+2026-11-09T17:42Z MinhHaDuong closed — autoclosed — PR #649
 
 --- body ---
 ## Context
