@@ -121,7 +121,7 @@ page.
 ## The cost and the reply shape (2026-09-07)
 
 Criteria 2 and 3 are answered in
-[`conception/0734-carrying-the-page-into-the-reply.md`](../conception/0734-carrying-the-page-into-the-reply.md),
+[`design/0734-carrying-the-page-into-the-reply.md`](../design/0734-carrying-the-page-into-the-reply.md),
 written as the reviewable upstream artifact criterion 4's action 4 asks for.
 The verdicts, so the ticket carries its own record:
 
