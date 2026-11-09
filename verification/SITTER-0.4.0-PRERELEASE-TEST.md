@@ -164,5 +164,5 @@ certificate while the rig's own seeded prefs had asked for one -- the
 certificate being the one file a clean uninstall must not sweep away (ruled
 2026-09-12).
 
-First recorded pass: `verification/acceptance/0.4.15-2026-09-14.json`, version
+First recorded pass: `verification/menagerie/0.4.15-2026-09-14.json`, version
 0.4.15 against Zotero 10.0.2.
