@@ -2,11 +2,13 @@
 Title: Admit the smallest attachment first, as upstream 6012 does
 Created: 2026-09-16
 Author: MinhHaDuong
+Closed: autoclosed — PR #647
 
 --- log ---
 2026-09-16T00:00Z MinhHaDuong created
 2026-11-09T17:10Z MinhHaDuong implemented: minimum selected at admission (O(n), no sort in refreshQueue); unmeasured size sorts last, ties in census order; sitter 0.4.37
 2026-11-09T17:37Z MinhHaDuong note verify-reroll — round 1: starvation case has no recorded answer
+2026-11-09T18:10Z MinhHaDuong closed — autoclosed — PR #647
 
 --- body ---
 
