@@ -1,0 +1,24 @@
+%erg 0.1
+Title: A live posture run's sudo journal line lists only allowlisted names (0829 follow-up)
+Created: 2026-11-09
+Author: claude
+
+--- log ---
+2026-11-09T16:28Z claude created
+
+--- body ---
+
+## Context
+Split from 0829 by the TLC sprint lead on 2026-11-09 (verify-gate round 1 on PR #642 ruled
+REROLL on this one criterion alone). PR #642 proves by unit tests what goes into
+`sudo --preserve-env`; it cannot prove what sudo writes to its journal, which depends on sudoers
+settings outside the code and needs a live run on padme with sudo rights.
+
+## Actions
+- On padme, run one posture acceptance run (the path that leaked on 2026-11-09 14:05:52).
+- Read sudo's journal entry for it (`journalctl`), compare its `ENV=` list with the
+  adapters' allowlist (`forwarded_environment`) plus `PATH LANG LC_ALL LC_CTYPE TZ`.
+- Record names only, never values, in this ticket's log.
+
+## Exit criteria
+- [ ] A posture run's sudo journal line lists only allowlisted names, recorded here (names only)

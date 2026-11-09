@@ -1,0 +1,24 @@
+%erg 0.1
+Title: The acceptance driver re-invocation still forwards the whole environment through sudo (run.py)
+Created: 2026-11-09
+Author: claude
+
+--- log ---
+2026-11-09T16:28Z claude created
+
+--- body ---
+
+## Context
+Found by gaze on PR #642 (ticket 0829), confirmed non-blocking by its verify-gate:
+`bench/acceptance/run.py:667` re-invokes the driver through `Posture.wrap(..., forwardable(os.environ))`.
+After #642, `wrap` drops credential-looking names (TOKEN, KEY, SECRET, PASSWORD, CREDENTIAL), but a
+secret named otherwise (a PAT, AUTH, a DSN carrying a password) would still be preserved and land in
+sudo's journal, the channel 0829 closed for the two adapters.
+
+## Actions
+- Replace `forwardable(os.environ)` with an explicit allowlist of the names the re-invoked driver
+  needs, as 0829 did for the adapters.
+
+## Exit criteria
+- [ ] run.py's re-invocation forwards an explicit allowlist, not os.environ
+- [ ] a test shows an arbitrary non-allowlisted name is not in `--preserve-env`
