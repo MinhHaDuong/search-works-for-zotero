@@ -1764,16 +1764,87 @@ assert.equal(context.estimateSDTDuration(samples, {}), null);
    state: a blocked or failed sitter must never read like a healthy idle one,
    and no internal phase name may reach it. */
 const literals = (source, pattern) => [...source.matchAll(pattern)].map(match => match[1]);
-const blockedBody = bootstrapSource.slice(bootstrapSource.indexOf('async function blocked(info)'),
-  bootstrapSource.indexOf('sitter = createSDTSitter'));
-const phases = new Set([
-  ...literals(blockedBody, /return '([^']+)'/g),
-  ...literals(schedulerSource, /state\.phase = '([^']+)'/g),
-  ...literals(schedulerSource, /phase: '([^']+)'/g),
-  ...literals(bootstrapSource, /sitter\.state\.phase = '([^']+)'/g),
-]);
-// Guard the extraction itself: a regex that matched nothing would pass vacuously.
-assert(phases.size >= 13, `phase enumeration failed: ${[...phases].join(' | ')}`);
+/* Blank out comments, keeping strings, template literals and regex literals
+   intact (a `//` inside a string is code). A small scanner, not a regex: a regex
+   that tried to find comments would repeat the defect this repairs. Newlines are
+   kept so offsets stay roughly meaningful. */
+const stripComments = source => {
+  let out = '', i = 0, last = '';
+  while (i < source.length) {
+    const c = source[i], d = source[i + 1];
+    if (c === '/' && d === '/') { while (i < source.length && source[i] !== '\n') i++; continue; }
+    if (c === '/' && d === '*') {
+      const end = source.indexOf('*/', i + 2);
+      const stop = end < 0 ? source.length : end + 2;
+      out += source.slice(i, stop).replace(/[^\n]/g, ' '); i = stop; continue;
+    }
+    let stop = -1;
+    if (c === "'" || c === '"' || c === '`') {
+      stop = i + 1;
+      while (stop < source.length && source[stop] !== c) stop += source[stop] === '\\' ? 2 : 1;
+    } else if (c === '/' && (last === '' || '(,=:[!&|?{};+-*%<>~^'.includes(last))) {
+      stop = i + 1; let inClass = false;
+      while (stop < source.length && (inClass || source[stop] !== '/')) {
+        if (source[stop] === '\\') stop++;
+        else if (source[stop] === '[') inClass = true;
+        else if (source[stop] === ']') inClass = false;
+        stop++;
+      }
+    }
+    if (stop >= 0) { out += source.slice(i, stop + 1); last = c === '/' ? ')' : c; i = stop + 1; continue; }
+    out += c; if (!/\s/.test(c)) last = c; i++;
+  }
+  return out;
+};
+const enumeratePhases = (scheduler, bootstrap, floor) => {
+  const code = stripComments(scheduler);
+  const hostCode = stripComments(bootstrap);
+  const blockedBody = hostCode.slice(hostCode.indexOf('async function blocked(info)'),
+    hostCode.indexOf('sitter = createSDTSitter'));
+  const found = new Set([
+    ...literals(blockedBody, /return '([^']+)'/g),
+    ...literals(code, /state\.phase = '([^']+)'/g),
+    ...literals(code, /phase: '([^']+)'/g),
+    ...literals(hostCode, /sitter\.state\.phase = '([^']+)'/g),
+  ]);
+  // Guard the extraction itself: a regex that matched nothing would pass vacuously.
+  assert(found.size >= floor, `phase enumeration failed: ${[...found].join(' | ')}`);
+  return found;
+};
+const PHASE_FLOOR = 13;
+const phases = enumeratePhases(schedulerSource, bootstrapSource, PHASE_FLOOR);
+/* Ticket 0802: the enumeration reads source text, and a regex cannot tell code
+   from prose. Both directions get a control that has been seen to fail: a phase
+   name written only in a comment must not be counted (over-count), and deleting
+   a genuine phase must trip the floor (under-count). The mutated copies are
+   synthetic strings, never the plugin files. */
+{
+  const comments = [
+    "// state.phase = 'ghost-line'",
+    "/* state.phase = 'ghost-block'; phase: 'ghost-object'; */",
+    "/* multi\n   return 'ghost-multi' */",
+  ].join('\n');
+  const hostComments = "// sitter.state.phase = 'ghost-host'\n/* return 'ghost-return' */\n";
+  const inBody = bootstrapSource.replace('async function blocked(info) {',
+    "async function blocked(info) {\n    // return 'ghost-body'\n    /* return 'ghost-body-block' */");
+  assert.notEqual(inBody, bootstrapSource, 'blocked() signature moved; the in-body control is blind');
+  const polluted = enumeratePhases(
+    `${comments}\n${schedulerSource}`, `${hostComments}${inBody}`, PHASE_FLOOR);
+  const ghosts = [...polluted].filter(phase => phase.startsWith('ghost-'));
+  assert.deepEqual(ghosts, [], `comment-only phase names were counted: ${ghosts.join(' | ')}`);
+  assert.deepEqual([...polluted].sort(), [...phases].sort(), 'comments changed the enumeration');
+  // A comment-looking sequence inside a string is code, not a comment.
+  assert.deepEqual(literals(stripComments(`state.phase = 'a//b'; state.phase = 'c'`),
+    /state\.phase = '([^']+)'/g), ['a//b', 'c']);
+  // Under-count: erase one genuine phase from every place either source writes it
+  // and the floor (set to today's census) must trip.
+  const victim = [...phases][0];
+  const erase = source => source.split(`'${victim}'`).join('PHASE_X');
+  assert.notEqual(erase(schedulerSource) + erase(bootstrapSource), schedulerSource + bootstrapSource,
+    `phase '${victim}' is not written in either source; the control is blind`);
+  assert.throws(() => enumeratePhases(erase(schedulerSource), erase(bootstrapSource), phases.size),
+    /phase enumeration failed/, `deleting phase '${victim}' did not trip the floor`);
+}
 // Ticket 0795, and the reason `SDT_SYNC_PHASE` is worth exporting at all: ticket
 // 0797 must special-case this phase BY NAME (its state table puts sync on the
 // checked, non-interactive side, where every other blocked phase is unchecked and
