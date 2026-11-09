@@ -5,6 +5,7 @@ Author: MinhHaDuong
 
 --- log ---
 2026-09-16T06:00Z MinhHaDuong created
+2026-11-09T17:02Z MinhHaDuong enumeration now strips comments; comment-literal and floor controls added (tests only)
 
 --- body ---
 
