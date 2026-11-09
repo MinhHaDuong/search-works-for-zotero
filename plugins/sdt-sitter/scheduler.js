@@ -339,11 +339,20 @@ var createSDTSitter = function (host) {
              this is one extra turn and not a cycle. */
           if (reconciliationPending && current()) continue;
           if (!current()) return;
-          /* Ticket 0800: the smallest untried source goes first, as Zotero's own draft
-             PR #6012 orders attachments. Nothing here can abort a wedged extraction, so
-             the order is the only lever over what a wedge costs: largest-last lets it
-             take the tail of a pass, largest-first the whole pass. The minimum is
-             selected here, once per admission (O(n)), rather than sorted into
+          /* Ticket 0800: the smallest untried source goes first. Nothing here can abort a
+             wedged extraction, so the order is the only lever over what a wedge costs:
+             largest-last lets it take the tail of a pass, largest-first the whole pass.
+             (Zotero's draft PR #6012 once did the same, but has since moved to
+             most-recently-touched first; the order is ours, not a parity claim.)
+             STARVATION, answered by argument and not by an ageing rule: a large document
+             waits only while smaller untried ones exist. The candidates are a finite
+             census, and every admission records an attempt (`attempted`), so a document
+             leaves the pool for good after one try unless its identity changes. The
+             large document is therefore delayed only by arrivals, and only while they
+             come faster than the sitter serves them; a steady trickle of small files
+             clears between arrivals, a burst is finite. The unbounded case needs an
+             endless stream of new small attachments, which is not how a library grows.
+             The minimum is selected here, once per admission (O(n)), rather than sorted into
              `pending` by refreshQueue(), which record() runs on every observation. A
              size that is absent or not a positive finite number (a failed stat) is
              unmeasured, and an unmeasured document is exactly the one whose cost

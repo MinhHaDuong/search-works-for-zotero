@@ -140,7 +140,9 @@ Queue order was a free parameter this experiment had not varied; since 0.4.37
 selected at each admission rather than sorted into the queue, with an unmeasured
 size last and ties in census order. Nothing here can abort a wedged extraction, so
 the order is the only lever over what a wedge costs: largest-last lets it take the
-tail of a pass, largest-first the whole pass. Zotero's draft
+tail of a pass, largest-first the whole pass.
+
+Starvation of the largest document is answered by argument, not by an ageing rule: it waits only while smaller untried documents exist; the pool is a finite census, and each admission records an attempt, so a document leaves the pool after one try unless its identity changes. Only an endless stream of new small attachments, arriving faster than they are served, could keep it out, and a steady trickle clears between arrivals. If a corpus shows otherwise, the repair is an ageing rule (a deferred document's effective size shrinks with its wait). Zotero's draft
 [semantic-search PR #6012](https://github.com/zotero/zotero/pull/6012) has varied
 it, and the direction it moved is the interesting part.
 
