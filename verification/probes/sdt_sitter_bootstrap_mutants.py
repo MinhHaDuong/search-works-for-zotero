@@ -98,12 +98,11 @@ MUTANTS = [
 
     # ---- the cache file, as the next session finds it ------------------------
     ("M3 one corrupt cache row aborts the whole load instead of being skipped",
-     "      } catch (error) { /* Ignore incomplete/corrupt cache rows. */ }\n",
+     "      } catch (error) { skipped.malformed++; /* Ignore incomplete/corrupt cache rows. */ }\n",
      "      } catch (error) { throw error; }\n"),
     ("M4 a row stamped with another pack version is loaded anyway",
-     "        if (row.format !== raw.format || row.versions !== raw.versions ||\n"
-     "            typeof row.key !== 'string') continue;",
-     "        if (row.format !== raw.format || typeof row.key !== 'string') continue;"),
+     "        if (row.versions !== raw.versions) { skipped.versions++; continue; }\n",
+     "        if (false) { skipped.versions++; continue; }\n"),
     ("M5 a failed cache write is silent again",
      "        if (!cacheFailing) {\n"
      "          cacheFailing = true;\n"
@@ -404,9 +403,11 @@ MUTANTS = [
      "        JSON.stringify({ format: raw.format, versions: raw.versions, ...change })",
      "        JSON.stringify({ versions: raw.versions, ...change })"),
     ("M44 the schema stamp is not read back, so another build's record shape is believed",
-     "        if (row.format !== raw.format || row.versions !== raw.versions ||\n"
-     "            typeof row.key !== 'string') continue;",
-     "        if (row.versions !== raw.versions || typeof row.key !== 'string') continue;"),
+     "        if (row.format !== raw.format) { skipped.format++; continue; }\n",
+     "        if (false) { skipped.format++; continue; }\n"),
+    ("M44a a torn row alone is told as a host change, so a crash explains itself as an upgrade",
+     "skipped.versions + skipped.format > 0 ? sdtText",
+     "skipped.versions + skipped.format + skipped.malformed > 0 ? sdtText"),
     # The round-1 verify-gate bounce on 0771, in its two halves: the guard, and
     # the counter that feeds it. Either one alone lets a startup arm orphaned by a
     # second startup write a startup record behind a shutdown record.

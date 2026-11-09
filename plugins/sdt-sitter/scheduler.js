@@ -65,7 +65,7 @@ var createSDTSitter = function (host) {
   const state = { enabled: true, busy: false, phase: 'ready', active: null, progress: null,
     lastProgressAt: null, startedAt: null, completed: 0, failed: 0,
     scanned: 0, total: 0, counts: {}, serviceMS: 0, samples: [], activeInfo: null,
-    fittedSamples: [], pending: [], candidates: 0, error: null, cacheWarning: null,
+    fittedSamples: [], pending: [], candidates: 0, error: null, cacheWarning: null, cacheNotice: null,
     censusSnapshot: null, censusBuilding: false, unattached: [],
     // Ticket 0792: the drain's remaining backlog, so the window can count it
     // down. Distinct from `candidates`, which is the census queue and does not
