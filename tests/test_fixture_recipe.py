@@ -303,6 +303,49 @@ def test_live_recipe_tally_is_swept_into_its_documentation():
     assert tuple(map(int, tally.groups()[1:])) == (len(recipe), hashed, len(recipe) - hashed)
 
 
+def readme_table_drift(recipe, readme):
+    """Offences of the README record table against the recipe, row by row. `pages` is
+    the record's page_count (an em dash when null, so a fabricated count is caught);
+    `pinned` is sha256 when every source is hashed, open when one is not, n/a for a
+    record-only item with no attachments."""
+    rows = {}
+    for line in readme.splitlines():
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if line.startswith("|") and len(cells) == 9 and cells[0] not in ("id", "---"):
+            rows[cells[0]] = cells
+    offences = [f"README row {i} has no recipe record" for i in rows if i not in {d["id"] for d in recipe}]
+    for doc in recipe:
+        row = rows.get(doc["id"])
+        if row is None:
+            offences.append(f"recipe record {doc['id']} has no README row")
+            continue
+        sources = doc.get("attachments", [])
+        pinned = "n/a" if not sources else (
+            "sha256" if all(isinstance(s.get("sha256"), str) for s in sources) else "open")
+        pages = "—" if doc.get("page_count") is None else str(doc["page_count"])
+        if (row[7], row[8]) != (pages, pinned):
+            offences.append(f"{doc['id']}: README says pages={row[7]} pinned={row[8]}, "
+                            f"recipe says pages={pages} pinned={pinned}")
+    return offences
+
+
+def test_readme_record_table_matches_recipe_row_by_row():
+    recipe = json.loads((FIXTURES / "recipe.json").read_text(encoding="utf-8"))
+    readme = (FIXTURES / "README.md").read_text(encoding="utf-8")
+    assert readme_table_drift(recipe, readme) == []
+
+
+def test_readme_table_check_catches_a_stale_row():
+    """Positive control: the PR #298 drift (fabricated page count on a hash-open row)."""
+    recipe = json.loads((FIXTURES / "recipe.json").read_text(encoding="utf-8"))
+    readme = (FIXTURES / "README.md").read_text(encoding="utf-8")
+    row = next(ln for ln in readme.splitlines() if ln.startswith("| hal-04332519-economies-of-scale "))
+    stale = row.replace("| 7 | sha256 |", "| 8 | open |")
+    assert stale != row
+    drift = readme_table_drift(recipe, readme.replace(row, stale))
+    assert len(drift) == 1 and "hal-04332519-economies-of-scale" in drift[0]
+
+
 def test_fetch_script_has_argparse_and_no_extraction():
     src = (FIXTURES / "fetch_recipe.py").read_text(encoding="utf-8")
     assert "ArgumentParser" in src and "--cache-dir" in src and "--only" in src
