@@ -203,6 +203,34 @@ await test('resources crossing the threshold halt the sweep, they do not skip on
   assert.deepEqual([...f.api.state.pending].map(item => item.id), [2, 3]);
   assert.equal(f.api.state.phase, 'low-disk');
 });
+/* Ticket 0800. Admission takes the smallest source first, so a document that wedges
+   extraction costs the tail of a pass rather than all of it. Sizes are chosen so the
+   census order (1..6), the reverse order and the size order are three different
+   sequences: 3 and 5 tie, which pins the stable tie-break (census order, so the
+   change is invisible to a queue whose sizes are all equal or all unknown); 4 has
+   no size, 6 has a non-finite one and 7 a zero, all three "unmeasured", which sort
+   last and keep census order among themselves. The pending list itself stays in
+   census order: the order is applied at admission, not by sorting the queue that
+   record() rebuilds on every observation. */
+await test('admission takes the smallest source first and defers the unmeasured', async () => {
+  const f = fixture();
+  const sizes = { 1: 900, 2: 100, 3: 400, 4: undefined, 5: 400, 6: NaN, 7: 0, 8: 50 };
+  f.host.list = async () => Object.keys(sizes).map(Number);
+  f.host.inspect = async id => ({ status: f.cached.has(id) ? 'current' : 'missing-pack',
+    identity: String(id), sourceBytes: sizes[id] });
+  await f.api.sweep();
+  assert.deepEqual(f.calls, [8, 2, 3, 5, 1, 4, 6, 7]);
+});
+await test('a failed small source does not hold the order: the next smallest follows', async () => {
+  const f = fixture();
+  const sizes = { 1: 300, 2: 100, 3: 200 };
+  f.host.list = async () => [1, 2, 3];
+  f.host.inspect = async id => ({ status: f.cached.has(id) ? 'current' : 'missing-pack',
+    identity: String(id), sourceBytes: sizes[id] });
+  f.host.ensure = async (id, progress) => { f.calls.push(id); if (id === 2) throw new Error('boom'); f.cached.add(id); return true; };
+  await f.api.sweep();
+  assert.deepEqual(f.calls, [2, 3, 1]);
+});
 await test('unsupported, missing and future-version packs are never overwritten', async () => {
   for (const status of ['unsupported', 'missing-source', 'unsupported-pack', 'excluded']) {
     const f = fixture(); f.host.inspect = async () => ({ status });
