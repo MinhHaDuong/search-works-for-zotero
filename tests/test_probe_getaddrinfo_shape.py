@@ -189,14 +189,29 @@ def test_finding1_non_dns_send_is_not_counted():
     assert shape["query_messages_sent"] == 1, shape
 
 
-def test_finding1_closed_resolver_fd_reused_elsewhere_is_not_counted():
+def test_finding1_fd_reuse_and_other_pid_under_strace_f_without_close():
+    """Real trace shape: `strace -f -e trace=network` -- pid prefixes, socket()
+    lines, no close() lines. Only the one resolver send may count."""
+    trace = "\n".join([
+        "1000 socket(AF_INET, SOCK_DGRAM|SOCK_CLOEXEC|SOCK_NONBLOCK, IPPROTO_IP) = 5",
+        "1000 " + _DNS4,
+        "1000 sendmmsg(5, [{msg_hdr={}}], 1, MSG_NOSIGNAL) = 1",
+        "1000 socket(AF_INET, SOCK_DGRAM|SOCK_CLOEXEC, IPPROTO_IP) = 5",
+        '1000 sendto(5, "quic", 4, 0, {sa_family=AF_INET, sin_port=htons(443), '
+        'sin_addr=inet_addr("1.1.1.1")}, 16) = 4',
+        '1001 sendto(5, "other", 5, 0, NULL, 0) = 5',
+    ])
+    shape = resolver_shape(trace, [_attempt("1000 " + _DNS4)])
+    assert shape["query_messages_sent"] == 1, shape
+
+
+def test_finding1_send_naming_a_non_resolver_address_on_a_resolver_fd_is_skipped():
     trace = (
         _DNS4 + "\n"
-        "close(5) = 0\n"
-        "sendto(5, \"other\", 5, 0, NULL, 0) = 5\n"
+        'sendto(5, "x", 1, 0, {sa_family=AF_INET, sin_port=htons(443), '
+        'sin_addr=inet_addr("1.1.1.1")}, 16) = 1\n'
     )
-    shape = resolver_shape(trace, [_attempt(_DNS4)])
-    assert shape["query_messages_sent"] == 0, shape
+    assert resolver_shape(trace, [_attempt(_DNS4)])["query_messages_sent"] == 0
 
 
 def test_finding2_plain_sendmsg_is_counted():

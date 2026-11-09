@@ -83,6 +83,11 @@ _OUTCOME = re.compile(
 _SEND = re.compile(r"\b(?P<call>sendmmsg|sendmsg|sendto)\((?P<fd>\d+),")
 _CONNECT_FD = re.compile(r"\bconnect\((?P<fd>\d+),")
 _CLOSE = re.compile(r"\bclose\((?P<fd>\d+)\)")
+_SOCKET = re.compile(r"\bsocket\(.*\)\s*=\s*(?P<fd>\d+)\s*(?:<[\d.]+>)?\s*$")
+#: `strace -f` prefixes each line with the pid (`1000 ` or `[pid 1000] `).
+_PID = re.compile(r"^\s*(?:\[pid\s+)?(?P<pid>\d+)\]?\s+")
+#: A send that names its own destination address.
+_NAMES_DEST = re.compile(r"sa_family=AF_INET6?\b")
 
 #: One message inside a `sendmmsg`. Counted, never read: the payload carries
 #: this machine's search-domain configuration, and `bench/results/**` is a
@@ -123,26 +128,37 @@ def resolver_shape(trace: str, attempts: list[sandbox.Attempt]) -> dict:
         match = _OUTCOME.search(attempt.line)
         key = (match.group("errno") or "ok") if match else "unparsed"
         outcomes[key] = outcomes.get(key, 0) + 1
-    # Only sends on a resolver socket count: a socket is one while a dns-
-    # detector connect names it and until it is closed (descriptor numbers are
-    # reused). A send that itself names a resolver address (unconnected
-    # socket) is a dns attempt line and counts too.
+    # Only sends on a resolver socket count. The tracer is `strace -f -e
+    # trace=network`: lines carry a pid prefix and `close()` is never traced, so
+    # a descriptor is tracked per (pid, fd), joins when a dns-detector connect
+    # names it, and leaves when `socket()` hands the number out again (or a
+    # `close()`/non-DNS connect shows it). A send that names a resolver address
+    # itself is a dns attempt line and counts; one that names any other address
+    # does not.
     dns_lines = {a.line.strip() for a in attempts if a.detector == "dns"}
-    dns_fds: set[str] = set()
+    dns_fds: set[tuple[str, str]] = set()
     messages = 0
     for line in trace.splitlines():
         stripped = line.strip()
+        pid_match = _PID.match(line)
+        pid = pid_match.group("pid") if pid_match else ""
+        bare = _PID.sub("", stripped, count=1)
         connect = _CONNECT_FD.search(line)
         if connect:
-            fd = connect.group("fd")
-            (dns_fds.add if stripped in dns_lines else dns_fds.discard)(fd)
+            key = (pid, connect.group("fd"))
+            on_resolver = stripped in dns_lines or bare in dns_lines
+            (dns_fds.add if on_resolver else dns_fds.discard)(key)
             continue
-        close = _CLOSE.search(line)
-        if close:
-            dns_fds.discard(close.group("fd"))
+        fresh = _SOCKET.search(line) or _CLOSE.search(line)
+        if fresh:
+            dns_fds.discard((pid, fresh.group("fd")))
             continue
         send = _SEND.search(line)
-        if send and (send.group("fd") in dns_fds or stripped in dns_lines):
+        if not send:
+            continue
+        is_dns_line = stripped in dns_lines or bare in dns_lines
+        names_other = _NAMES_DEST.search(line) and not is_dns_line
+        if (is_dns_line or (pid, send.group("fd")) in dns_fds) and not names_other:
             messages += _messages_sent(line, send.group("call"))
     return {
         "connect_outcomes": outcomes,
