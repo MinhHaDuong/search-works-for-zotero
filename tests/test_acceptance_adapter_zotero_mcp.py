@@ -331,3 +331,35 @@ def test_install_refuses_before_spawning_when_the_posture_is_unavailable(tmp_pat
                                posture=refused)
     with pytest.raises(posture.PostureUnavailable, match="synthetic refusal"):
         target.install()
+
+
+# --- the sudo log is a channel: no wholesale os.environ (ticket 0829) --------
+
+
+class _Recorder:
+    """A posture that records the env it is asked to wrap, then stops the run."""
+
+    refused = None
+
+    def wrap(self, argv, env, **kwargs):
+        self.env = dict(env)
+        raise RuntimeError("stop before spawning")
+
+
+@pytest.mark.parametrize("entry", ["running", "install"])
+def test_wrap_gets_an_allowlist_not_the_whole_environment(tmp_path, monkeypatch, entry):
+    monkeypatch.setenv("HF_TOKEN", "x")
+    monkeypatch.setenv("UNRELATED_AMBIENT", "x")
+    recorder = _Recorder()
+    target = adapter.ZoteroMCP(home=tmp_path / "home", venv=tmp_path / "venv",
+                               posture=recorder)
+    with pytest.raises(RuntimeError, match="stop before spawning"):
+        if entry == "running":
+            with target.running():
+                pass
+        else:
+            target.install()
+    assert "HF_TOKEN" not in recorder.env
+    assert "UNRELATED_AMBIENT" not in recorder.env
+    assert set(recorder.env) <= (set(posture.AMBIENT_ALLOWLIST)
+                                 | set(target.environment()))

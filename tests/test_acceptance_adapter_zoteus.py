@@ -365,3 +365,31 @@ def test_paused_embedding_perturbation_retains_expected_refusal(tmp_path):
 
 def test_successful_empty_search_remains_an_empty_search():
     assert adapter._payload({"result": {"structuredContent": {"hits": []}}}) == {"hits": []}
+
+
+# --- the sudo log is a channel: no wholesale os.environ (ticket 0829) ------
+
+
+class _Recorder:
+    """A posture that records the env it is asked to wrap, then stops the run."""
+
+    refused = None
+
+    def wrap(self, argv, env, **kwargs):
+        self.env = dict(env)
+        raise RuntimeError("stop before spawning")
+
+
+def test_running_hands_wrap_an_allowlist_not_the_whole_environment(tmp_path, monkeypatch):
+    monkeypatch.setenv("HF_TOKEN", "x")
+    monkeypatch.setenv("UNRELATED_AMBIENT", "x")
+    recorder = _Recorder()
+    target = adapter.Zoteus(tmp_path / "arena",
+                            entrypoint=tmp_path / "nowhere" / "index.js",
+                            posture=recorder)
+    with pytest.raises(RuntimeError, match="stop before spawning"):
+        with target.running():
+            pass
+    assert "HF_TOKEN" not in recorder.env
+    assert "UNRELATED_AMBIENT" not in recorder.env
+    assert set(recorder.env) <= set(posture.AMBIENT_ALLOWLIST) | set(target._env())

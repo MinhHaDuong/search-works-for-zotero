@@ -93,7 +93,7 @@ from ..durability import (
     RESYNC_IDENTICAL_BYTES,
 )
 from ..interface import Declaration, UnsupportedVerb
-from ..posture import Posture
+from ..posture import Posture, forwarded_environment
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from mcp_drive import Server  # noqa: E402
@@ -427,7 +427,7 @@ class Zoteus:
         # adds `--preserve-env=<names>` to `cmd`, and a refused posture raises
         # before anything starts rather than falling back to an unwrapped spawn.
         if self._posture is not None:
-            cmd = self._posture.wrap(cmd, {**os.environ, **env})
+            cmd = self._posture.wrap(cmd, forwarded_environment(env))
         self.server = Server(cmd, env, timeout=self.timeout)
         self.server.handshake()
         try:

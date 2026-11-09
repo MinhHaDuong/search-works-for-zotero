@@ -5,6 +5,7 @@ Author: MinhHaDuong
 
 --- log ---
 2026-11-09T13:12Z MinhHaDuong created
+2026-11-09T15:30Z claude-sonnet-5-5 allowlist + wrap drop implemented; journal-line check not run (no live sudo allowed)
 
 --- body ---
 ## Incident (2026-11-09, padme)
@@ -33,6 +34,6 @@ adapters pass `self.environment()` or a named `env` only.
   `--preserve-env`, and that the two adapters build their env from an allowlist.
 
 ## Exit criteria
-- [ ] zotero_mcp.py and zoteus.py forward an explicit allowlist, not os.environ
-- [ ] wrap() never preserves a credential-looking name by default; docstring names sudo's log
+- [x] zotero_mcp.py and zoteus.py forward an explicit allowlist, not os.environ
+- [x] wrap() never preserves a credential-looking name by default; docstring names sudo's log
 - [ ] tests cover both; a posture run's sudo journal line lists only allowlisted names

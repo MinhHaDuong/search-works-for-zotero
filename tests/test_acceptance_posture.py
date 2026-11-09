@@ -148,7 +148,7 @@ def test_wrap_never_puts_an_environment_value_on_the_argv(monkeypatch):
     secret = "sk-not-a-real-secret-but-shaped-like-one-9f3c7b"
     wrapped = resolved.wrap(["node", "server.js"], {
         "HOME": "/arena/home", "OPENAI_API_KEY": secret,
-    })
+    }, allow_credentials=("OPENAI_API_KEY",))  # allowed on purpose; ticket 0829
     joined = " ".join(wrapped)
     assert secret not in joined
     assert "OPENAI_API_KEY" in joined, (
@@ -282,3 +282,47 @@ def test_a_stub_target_is_unaffected_by_a_missing_account(tmp_path):
             "not-run by an unrelated account being unavailable: "
             f"{refusal}"
         )
+
+
+# --- sudo's own log is a channel (ticket 0829) -------------------------------
+
+_ACCOUNT = posture.Posture(posture.ACCOUNT_POSTURE, account="untrusted-runner")
+
+
+def _preserved(argv: list[str]) -> list[str]:
+    for arg in argv:
+        if arg.startswith("--preserve-env="):
+            return arg.split("=", 1)[1].split(",")
+    return []
+
+
+def test_wrap_does_not_preserve_a_credential_looking_name():
+    env = {"HOME": "/arena/home", "HF_TOKEN": "x", "OPENAI_API_KEY": "x",
+           "DB_PASSWORD": "x", "MY_SECRET": "x"}
+    with pytest.warns(UserWarning, match="HF_TOKEN"):
+        argv = _ACCOUNT.wrap(["node"], env)
+    assert _preserved(argv) == ["HOME"]
+    assert not any("x" == a for a in argv)
+
+
+def test_wrap_warning_names_the_variable_but_never_its_value():
+    with pytest.warns(UserWarning) as seen:
+        _ACCOUNT.wrap(["node"], {"HF_TOKEN": "hunter2-canary"})
+    assert "HF_TOKEN" in str(seen[0].message)
+    assert "hunter2-canary" not in str(seen[0].message)
+
+
+def test_wrap_keeps_a_blanked_credential_name_and_an_explicitly_allowed_one():
+    env = {"OPENAI_API_KEY": "", "ZOTERO_API_KEY": "x"}
+    argv = _ACCOUNT.wrap(["node"], env, allow_credentials=("ZOTERO_API_KEY",))
+    assert _preserved(argv) == ["OPENAI_API_KEY", "ZOTERO_API_KEY"]
+
+
+def test_forwarded_environment_is_an_allowlist_not_os_environ(monkeypatch):
+    monkeypatch.setenv("HF_TOKEN", "x")
+    monkeypatch.setenv("SOME_OTHER", "x")
+    monkeypatch.setenv("PATH", "/bin")
+    out = posture.forwarded_environment({"HOME": "/arena"})
+    assert out["PATH"] == "/bin" and out["HOME"] == "/arena"
+    assert "HF_TOKEN" not in out and "SOME_OTHER" not in out
+    assert set(out) <= set(posture.AMBIENT_ALLOWLIST) | {"HOME"}
