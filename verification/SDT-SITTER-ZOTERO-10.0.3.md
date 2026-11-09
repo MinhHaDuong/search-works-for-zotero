@@ -27,4 +27,4 @@ python3 bench/sitter_smoke_test.py \
 This is a fresh-profile installation and preparation check. It does not
 exercise an existing library through an in-place Zotero update, the sitter's
 pause control, or an uninstall cycle. The separate 10.0.2 acceptance result is
-in [`verification/acceptance/0.4.26-2026-09-17.json`](acceptance/0.4.26-2026-09-17.json).
+in [`verification/menagerie/0.4.26-2026-09-17.json`](menagerie/0.4.26-2026-09-17.json).
