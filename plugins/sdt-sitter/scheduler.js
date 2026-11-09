@@ -339,8 +339,31 @@ var createSDTSitter = function (host) {
              this is one extra turn and not a cycle. */
           if (reconciliationPending && current()) continue;
           if (!current()) return;
-          const candidate = state.pending.find(item => !attempted.has(item.id) ||
-            attempted.get(item.id) !== observed.get(item.id)?.identity);
+          /* Ticket 0800: the smallest untried source goes first. Nothing here can abort a
+             wedged extraction, so the order is the only lever over what a wedge costs:
+             largest-last lets it take the tail of a pass, largest-first the whole pass.
+             (Zotero's draft PR #6012 once did the same, but has since moved to
+             most-recently-touched first; the order is ours, not a parity claim.)
+             STARVATION, answered by argument and not by an ageing rule: a large document
+             waits only while smaller untried ones exist. The candidates are a finite
+             census, and every admission records an attempt (`attempted`), so a document
+             leaves the pool for good after one try unless its identity changes. The
+             large document is therefore delayed only by arrivals, and only while they
+             come faster than the sitter serves them; a steady trickle of small files
+             clears between arrivals, a burst is finite. The unbounded case needs an
+             endless stream of new small attachments, which is not how a library grows.
+             The minimum is selected here, once per admission (O(n)), rather than sorted into
+             `pending` by refreshQueue(), which record() runs on every observation. A
+             size that is absent or not a positive finite number (a failed stat) is
+             unmeasured, and an unmeasured document is exactly the one whose cost
+             cannot be bounded, so it sorts after every measured one. Strict `<` keeps
+             the first of equals, so ties and an all-unknown queue stay in census order. */
+          let candidate = null, candidateBytes = Infinity;
+          for (const item of state.pending) {
+            if (attempted.has(item.id) && attempted.get(item.id) === observed.get(item.id)?.identity) continue;
+            const bytes = Number.isFinite(item.sourceBytes) && item.sourceBytes > 0 ? item.sourceBytes : Infinity;
+            if (!candidate || bytes < candidateBytes) { candidate = item; candidateBytes = bytes; }
+          }
           // Ticket 0796: `continue` while events are still waiting, which is the
           // rule the `host.blocked()` gate below has always applied, for the same
           // reason. The budgeted drain above can hand this line a real

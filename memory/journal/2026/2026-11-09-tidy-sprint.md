@@ -50,3 +50,37 @@ Records captured under `memory/evidence/attribution/` for #639 and #641. Capture
 reported rather than reconstructed: #633 (two verify-gate rounds on the PR, ESCALATE then
 APPROVED, but no gaze seat or reviewer model identity in the trail), #635, #638 and #640
 (no review trail on the forge: no gaze result, no attribution block).
+
+## Round 2 (16:55Z to 18:20Z): ready tickets
+
+Seven tickets hunted, five merged, each by a Sonnet executor in its own worktree; gates by Opus seats.
+
+| Ticket | PR | State |
+|--------|----|-------|
+| 0627 README per-row table test | #645 | merged, head fa104220 |
+| 0802 phase scrape ignores comments | #644 | merged, head 42955056 (0801 still supersedes it) |
+| 0808 stall probe survives SIGINT/SIGTERM | #646 | merged, head c7f0d88c |
+| 0786 generation token on removal recheck | #649 | merged, head 7544d7d1, sitter 0.4.35 |
+| 0774 say why the cache emptied | #648 | parked: round 1 APPROVED on 7c58817c; merging main (0.4.35) forced a bump to 0.4.38, so head 399d3357 needs a fresh gaze, then gate round 2 |
+| 0800 smallest attachment first | #647 | merged after round 2, head 11c80ec1, sitter 0.4.39 (round 1 REROLL: starvation unanswered; fixed by a drain argument and mutant M37) |
+| 0631 resolver_shape hardening | #650 | parked: round 1 REROLL (scoping inert on real `-e trace=network` traces), fixed at a301308d; round 2 owed |
+
+Facts worth keeping:
+- Parallel sitter lanes collide by construction: `check_sitter_version` rule 1 refuses a lane's
+  own number once a merge of main changes its payload, so every merge-main costs a version bump
+  and a re-gate. Serialize sitter-payload tickets, or land them one per gate cycle.
+- `make check` was killed twice by an outside SIGTERM inside `sitter-mutants` (source not found);
+  re-running the remaining targets passed.
+- `sitter-version` rule 3 reads open PRs and printed NOT-RUN (HTTP 403) for several runs.
+- One codex correctness seat ran in gaze on #648 (external seat, under 0.10 USD, estimate).
+- Ticket 0715 skipped: it needs Zotero's omni.ja, not installed on padme. 0596 skipped: its code
+  is not in this repository.
+
+## Round 3 (finishing, 18:11Z-19:05Z)
+
+- #650 (0631): verify-gate round 2 APPROVED at a301308d (notes entry
+  20261109T183401084Z-padme-603bc825); merged as 61ff6c4a, head 65129d87 (close commit), read back.
+  The gate left three narrower resolver_shape miscount cases as "consider" (thread ids sharing an fd
+  table under -f; split `<... socket resumed>` lines); no follow-up filed.
+- #648 (0774): parked, too little time left. Next step is on the PR: merge main, sitter 0.4.40,
+  gaze, verify-gate round 2, merge.
