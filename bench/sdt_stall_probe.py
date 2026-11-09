@@ -76,7 +76,9 @@ import argparse
 import json
 import os
 import platform
+import signal
 import sys
+import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -458,23 +460,77 @@ def cpu_between(before: dict, after: dict) -> dict:
     }
 
 
+class StopRequest:
+    """An operator's request to stop, set by an interrupt or terminate signal (0808).
+
+    The handler only sets a flag, so the sampling loop returns normally and
+    `main()` runs its usual summary and write path. It is one-shot: the
+    default disposition is restored as soon as it fires, so a second signal
+    keeps its default effect and the probe is never unkillable short of
+    SIGKILL.
+    """
+    SIGNALS = (signal.SIGINT, signal.SIGTERM)
+
+    def __init__(self):
+        self._event = threading.Event()
+        self._previous = {}
+
+    @property
+    def requested(self) -> bool:
+        return self._event.is_set()
+
+    def wait(self, timeout: float) -> bool:
+        """Sleep up to `timeout`, waking at once on a request."""
+        return self._event.wait(timeout)
+
+    def _handle(self, signum, frame):
+        self._event.set()
+        for sig in self.SIGNALS:
+            signal.signal(sig, signal.SIG_DFL)
+
+    def install(self):
+        for sig in self.SIGNALS:
+            self._previous[sig] = signal.signal(sig, self._handle)
+
+    def restore(self):
+        for sig, prev in self._previous.items():
+            signal.signal(sig, prev)
+
+
 def sample_series(pid: int, seconds: float, interval: float = 5.0,
-                  on_sample=None) -> list[dict]:
-    """Snapshots every `interval` for `seconds`, stopping if the process dies."""
+                  on_sample=None, stop: StopRequest | None = None,
+                  outcome: dict | None = None) -> list[dict]:
+    """Snapshots every `interval` for `seconds`.
+
+    Three ways out, reported in `outcome["stoppedBy"]` when a dict is given:
+    `deadline`, `processGone` (the target died), `signal` (`stop` was set).
+    """
     series = []
     deadline = time.monotonic() + seconds
+
+    def done(reason):
+        if outcome is not None:
+            outcome["stoppedBy"] = reason
+        return series
+
     while True:
+        if stop is not None and stop.requested:
+            return done("signal")
         try:
             shot = snapshot(pid)
         except ProbeError:
-            break
+            return done("processGone")
         series.append(shot)
         if on_sample is not None:
             on_sample(shot)
         if time.monotonic() >= deadline:
-            break
-        time.sleep(min(interval, max(0.0, deadline - time.monotonic())))
-    return series
+            return done("deadline")
+        pause = min(interval, max(0.0, deadline - time.monotonic()))
+        if stop is not None:
+            if stop.wait(pause):
+                return done("signal")
+        else:
+            time.sleep(pause)
 
 
 def summarize_cpu(series: list[dict], *,
@@ -768,6 +824,7 @@ def main(argv=None) -> int:
         ap.error("give --journal, --pid, or both")
 
     phases: dict = {}
+    stopped_by = None
     reading = None
     if args.journal is not None:
         reading = analyse_journal_file(args.journal, item_id=args.item_id,
@@ -777,9 +834,22 @@ def main(argv=None) -> int:
 
     cpu = None
     if args.pid is not None:
-        series = sample_series(args.pid, args.seconds, args.interval)
-        summary = summarize_cpu(series)
-        cpu = worker_cpu(summary, comm_hint=args.comm_hint)
+        stop = StopRequest()
+        stop.install()
+        outcome: dict = {}
+        try:
+            series = sample_series(args.pid, args.seconds, args.interval,
+                                   stop=stop, outcome=outcome)
+        finally:
+            stop.restore()
+        stopped_by = outcome.get("stoppedBy")
+        if len(series) < 2 and stopped_by == "signal":
+            # Stopped before a rate exists: say so rather than crash.
+            summary = {"samples": len(series),
+                       "note": "stopped by signal before two snapshots"}
+        else:
+            summary = summarize_cpu(series)
+            cpu = worker_cpu(summary, comm_hint=args.comm_hint)
         phases["sampling"] = {"pid": args.pid, "requestedSeconds": args.seconds,
                               "intervalS": args.interval, **summary}
 
@@ -787,7 +857,8 @@ def main(argv=None) -> int:
         phases["verdict"] = stall_verdict(reading, cpu)
 
     record = build_record(ok=True, phases=phases,
-                          run={"version": args.version, "zotero": args.zotero})
+                          run={"version": args.version, "zotero": args.zotero,
+                              "stoppedBy": stopped_by})
     text = json.dumps(record, indent=2)
     if args.json_out:
         args.json_out.write_text(text + "\n", encoding="utf-8")

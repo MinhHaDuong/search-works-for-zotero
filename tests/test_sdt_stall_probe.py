@@ -592,3 +592,85 @@ def test_a_backward_wall_step_is_not_read_as_a_quiet_beat():
     # two beats stamped at the same instant are a zero-length interval, which is
     # judgeable by nothing. `wall < 0` would let it through and answer 2 here.
     assert analyse_heartbeats(_three_beats(1060000))["quietBeats"] == 0
+
+
+# --------------------------------------------------------------------------
+# ticket 0808: stopping the probe must not lose the run
+# --------------------------------------------------------------------------
+
+import os  # noqa: E402
+import signal  # noqa: E402
+
+PROBE = REPO / "bench" / "sdt_stall_probe.py"
+
+
+def _launch_probe(target_args, out, *, seconds="60"):
+    """Probe a throwaway `sleep` (fake target, no Zotero) with a 0.3 s interval."""
+    target = subprocess.Popen(target_args)
+    probe = subprocess.Popen(
+        [sys.executable, str(PROBE), "--pid", str(target.pid),
+         "--seconds", seconds, "--interval", "0.3", "--json-out", str(out)],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return target, probe
+
+
+@pytest.mark.parametrize("sig", [signal.SIGTERM, signal.SIGINT])
+def test_a_signalled_probe_still_writes_its_samples_and_says_it_was_cut(
+        tmp_path, sig):
+    out = tmp_path / "run.json"
+    target, probe = _launch_probe(["sleep", "300"], out)
+    try:
+        time.sleep(1.5)  # at least two intervals
+        probe.send_signal(sig)
+        probe.wait(timeout=15)
+        assert out.exists(), "a stopped probe wrote nothing"
+        record = json.loads(out.read_text(encoding="utf-8"))
+        assert record["phases"]["sampling"]["intervals"] >= 2
+        assert record["_run"]["stoppedBy"] == "signal"
+    finally:
+        probe.kill()
+        target.kill()
+        target.wait()
+
+
+def test_the_handler_restores_the_default_disposition_after_firing():
+    import sdt_stall_probe as mod
+
+    stop = mod.StopRequest()
+    old = signal.getsignal(signal.SIGTERM)
+    try:
+        stop.install()
+        os.kill(os.getpid(), signal.SIGTERM)
+        assert stop.requested
+        assert signal.getsignal(signal.SIGTERM) == signal.SIG_DFL
+    finally:
+        signal.signal(signal.SIGTERM, old)
+        signal.signal(signal.SIGINT, signal.default_int_handler)
+
+
+def test_a_run_that_reaches_its_deadline_says_deadline(tmp_path):
+    out = tmp_path / "run.json"
+    target, probe = _launch_probe(["sleep", "300"], out, seconds="1")
+    try:
+        probe.wait(timeout=15)
+        record = json.loads(out.read_text(encoding="utf-8"))
+        assert record["_run"]["stoppedBy"] == "deadline"
+    finally:
+        probe.kill()
+        target.kill()
+        target.wait()
+
+
+def test_a_run_whose_target_dies_says_process_gone(tmp_path):
+    out = tmp_path / "run.json"
+    target, probe = _launch_probe(["sleep", "300"], out)
+    try:
+        time.sleep(1.0)
+        target.kill()
+        target.wait()
+        probe.wait(timeout=15)
+        record = json.loads(out.read_text(encoding="utf-8"))
+        assert record["_run"]["stoppedBy"] == "processGone"
+    finally:
+        probe.kill()
+        target.kill()

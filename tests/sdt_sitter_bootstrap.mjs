@@ -2988,6 +2988,33 @@ await test('THE CONTROL: a disable or an uninstall racing the removal check stay
   }
 });
 
+await test('a stale removal check that outlives a shutdown AND a re-initialise cannot disarm the new activation (ticket 0786)', async () => {
+  // The sequence, not the end state: the query is held pending across a real
+  // teardown and a real re-startup, then resolved with a negative. The three
+  // flags the recheck reads are all clean again by then, so only a generation
+  // comparison can tell the new activation from the one the query began under.
+  const gate = deferred();
+  let asked = 0;
+  const harness = createHarness({ attachments: [pdf(1, 'AAAA1111')],
+    prefs: { 'extensions.sdt-pack-sitter.debug': true },
+    addon: async () => (asked++ === 0 ? (await gate.promise, null) : { isActive: true }) });
+  await harness.start();
+  harness.context.heartbeatTick(); // first activation's query, now held
+  await harness.turn(1);
+  assert.equal(asked, 1, 'the query was not in flight');
+  const first = harness.context.generation;
+  harness.context.shutdown(null, 4);
+  harness.context.startup({ rootURI: ROOT_URI });
+  for (let n = 0; n < 80 && !(harness.context.alive && harness.context.generation > first + 1); n++) await harness.turn(1);
+  assert.ok(harness.context.generation > first + 1, 'the re-initialise never ran');
+  assert.equal(harness.context.alive, true);
+  assert.equal(harness.context.removalNoticed, false);
+  gate.resolve();
+  await harness.turn(3);
+  assert.deepEqual(harness.records('vanished'), [], 'a stale query certified the new activation as vanished');
+  assert.equal(harness.context.removalNoticed, false, 'the new activation was latched as removed');
+});
+
 await test('a shutdown that runs before any heartbeat leaves nothing to notice, on every ordinary reason', async () => {
   // The ordinary case, without the race: shutdown() clears the heartbeat
   // interval, so no later tick ever runs checkSDTStillInstalled() at all.
