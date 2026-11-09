@@ -567,6 +567,7 @@ var SDT_TEXT = {
     "status-unsupported": "No extractor or format mismatch",
     "diagnostics-error": "Last extraction problem: {error}",
     "cache-not-saved": "Cache not saved: {error}",
+    "cache-reset": "Zotero\u2019s text extractors changed since the last session, so earlier results no longer apply and the library is being measured again.",
     "debug-label": "Log every step to Zotero’s debug output",
     "journal-copy": "Copy the log",
     "journal-copied": "Log copied to the clipboard.",
@@ -2898,6 +2899,7 @@ function renderState() {
       // the totals — but it was set and read nowhere at all, which made an
       // unwritable data directory a silence instead of a line.
       s.cacheWarning || '',
+      s.cacheNotice || '',
     ].filter(Boolean).join('\n');
     // Rebuilt only when the account itself changed, not on every 100 ms tick:
     // `replaceChildren` tears the table down to rebuild it, and doing that
@@ -3403,22 +3405,31 @@ async function initialize(rootURI, token, era = shutdowns) {
   // its own. The number lives on this line alone; the write and the read below
   // both take it from here.
   const raw = { format: 1, versions: JSON.stringify(versions), records: Object.create(null) };
+  // Ticket 0774: rows skipped, by reason, so a total invalidation after a host
+  // upgrade is a reading and not a silence. Counted per row, tombstones included.
+  const skipped = { versions: 0, format: 0, malformed: 0 };
   try {
     for (const line of (await IOUtils.readUTF8(cachePath)).split('\n')) {
+      if (!line) continue;
       try {
         const row = JSON.parse(line);
-        if (row.format !== raw.format || row.versions !== raw.versions ||
-            typeof row.key !== 'string') continue;
+        if (row.format !== raw.format) { skipped.format++; continue; }
+        if (row.versions !== raw.versions) { skipped.versions++; continue; }
+        if (typeof row.key !== 'string') { skipped.malformed++; continue; }
         if (row.record) raw.records[row.key] = row.record;
         else delete raw.records[row.key];
-      } catch (error) { /* Ignore incomplete/corrupt cache rows. */ }
+      } catch (error) { skipped.malformed++; /* Ignore incomplete/corrupt cache rows. */ }
     }
   } catch (error) { /* Disposable cache. */ }
   let cache = createSDTCache(raw, JSON.stringify(versions));
   // In memory, never on disk: the pack cache above carries claims worth keeping
   // across sessions, and a source hash is reconstructible from the file itself.
   const sourceHashes = createSDTSourceHashes();
-  emit('cache-load', { records: Object.keys(raw.records).length });
+  emit('cache-load', { records: Object.keys(raw.records).length,
+    skippedVersions: skipped.versions, skippedFormat: skipped.format,
+    skippedMalformed: skipped.malformed });
+  // A mismatch is the host's doing; a torn row is ours. Only the first is told.
+  const cacheNotice = skipped.versions + skipped.format > 0 ? sdtText('cache-reset') : null;
   let seen = null;
   const children = new Map(), parents = new Map();
   /* Ticket 0810. The no-attachment view, held by itemID between censuses so a
@@ -4020,6 +4031,9 @@ async function initialize(rootURI, token, era = shutdowns) {
     yield: () => new Promise(resolve => timers.setTimeout(resolve, 0)),
     ensure: (id, onProgress) => Zotero.SDT.ensure(id, { isPriority: false, onProgress }),
   });
+  // Held on the state, not in a pref: it ends with this activation, whose compact
+  // write replaces every row the host's extractors made obsolete.
+  sitter.state.cacheNotice = cacheNotice;
   /* NOBODY IS ASKED, and nothing is remembered (ticket 0797).
 
      "On commence allumé dès que possible" — the author, 2026-09-15. Ticket
