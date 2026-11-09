@@ -1,6 +1,6 @@
 # STATE — Search Works for Zotero
 
-*Live handoff. Updated 2026-11-09 (tidy sprint round 2: #644, #645, #646, #649 merged; #647, #648, #650 parked; #632 and #642 open). Ownership: [AGENTS.md](AGENTS.md).*
+*Live handoff. Updated 2026-11-09 (tidy sprint round 2: #644, #645, #646, #647, #649 merged; #648, #650 parked; #632 and #642 open). Ownership: [AGENTS.md](AGENTS.md).*
 
 ## North Star
 
@@ -22,14 +22,14 @@ proposition, [SPEC.md](SPEC.md) the design.
 - **Rungs run on padme** under Xvfb, arenas on `~/data`, **one Zotero at a time**: two instances
   collide even on separate displays. doudou's load and small `/tmp` trip the sitter's own gates.
 - The retag is **author's hands, in order**: build, GPG-sign, publish the `.xpi`, then ONE commit
-  adding BOTH `tag` and `update_link`. Released tag v0.4.10; code at 0.4.35 (0786). Parked lanes hold 0.4.38 (#648, 0774) and 0.4.39 (#647, 0800): whichever lands second must merge main and bump again, because `make sitter-version` refuses a number over a changed payload.
+  adding BOTH `tag` and `update_link`. Released tag v0.4.10; code at 0.4.39 (0786, 0800). Parked #648 (0774) holds 0.4.38, below main's: it must merge main and bump to 0.4.40, because `make sitter-version` refuses a number over a changed payload.
 - **0795** (pause while syncing, one unmeasured path) and **0793** (the AR6 slow tail; suspect
   **0811**) stay open. Zotero patches are followed by **0811**, **0812**, **0813**; [SYNC.md](SYNC.md).
 - Release the Multilingual test library and questions + grader as public Challenge.
 
 ## Handoff
 
-Open here: 0774 (#648: needs gaze on head 399d3357, then verify-gate round 2), 0800 (#647: gate round 2 on a12318ac), 0631 (#650: round-1 REROLL fixed at a301308d, gate round 2 owed), 0814's guard 2. Gaps: R10 (0660–0664), R13 (0650–0652), R15
+Open here: 0774 (#648: needs gaze on head 399d3357, then verify-gate round 2), 0631 (#650: round-1 REROLL fixed at a301308d, gate round 2 owed), 0814's guard 2. Gaps: R10 (0660–0664), R13 (0650–0652), R15
 (0654–0657), R22 (0643, 0665), fixtures 0602, 0658. #6012 train (0754–0757) unstarted.
 Proposed next: a backlog triage with the author, cluster by cluster. The pristine library copy
 lives on at padme `~/data/clone-rung/library`, refreshed by rsync from a cheap reflink snapshot

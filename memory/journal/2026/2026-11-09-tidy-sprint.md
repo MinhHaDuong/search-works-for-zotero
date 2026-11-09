@@ -53,7 +53,7 @@ APPROVED, but no gaze seat or reviewer model identity in the trail), #635, #638 
 
 ## Round 2 (16:55Z to 18:20Z): ready tickets
 
-Seven tickets hunted, each by a Sonnet executor in its own worktree; gates by Opus seats.
+Seven tickets hunted, five merged, each by a Sonnet executor in its own worktree; gates by Opus seats.
 
 | Ticket | PR | State |
 |--------|----|-------|
@@ -62,7 +62,7 @@ Seven tickets hunted, each by a Sonnet executor in its own worktree; gates by Op
 | 0808 stall probe survives SIGINT/SIGTERM | #646 | merged, head c7f0d88c |
 | 0786 generation token on removal recheck | #649 | merged, head 7544d7d1, sitter 0.4.35 |
 | 0774 say why the cache emptied | #648 | parked: round 1 APPROVED on 7c58817c; merging main (0.4.35) forced a bump to 0.4.38, so head 399d3357 needs a fresh gaze, then gate round 2 |
-| 0800 smallest attachment first | #647 | parked: round 1 REROLL (starvation unanswered), fixed at a12318ac (drain argument, mutant M37, 0.4.39); round 2 pending at report time |
+| 0800 smallest attachment first | #647 | merged after round 2, head 11c80ec1, sitter 0.4.39 (round 1 REROLL: starvation unanswered; fixed by a drain argument and mutant M37) |
 | 0631 resolver_shape hardening | #650 | parked: round 1 REROLL (scoping inert on real `-e trace=network` traces), fixed at a301308d; round 2 owed |
 
 Facts worth keeping:
