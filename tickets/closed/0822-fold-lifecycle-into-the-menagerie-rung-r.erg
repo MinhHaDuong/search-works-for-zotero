@@ -1,0 +1,80 @@
+%erg 0.1
+Title: Fold lifecycle into the Menagerie rung: replace, disable and re-enable, restart
+Created: 2026-09-23
+Author: claude
+Closed: autoclosed — PR #632
+
+--- log ---
+2026-09-23T08:51Z claude created
+
+2026-09-23T08:53Z sim note filed by the raid of 2026-09-23 as a child of 0817
+2026-09-23T09:06Z sim note raid 2026-09-23 Plan: file:line plan and first tests appended; Phase 4 cross-ticket scan found no registry needing a coordination PR
+2026-09-23T10:12Z sim note blocker 0820 closed — Blocked-by removed.
+2026-09-23T11:11Z sim note blocker 0816 closed — Blocked-by removed.
+2026-09-23T19:40Z sim note blocker 0821 closed — Blocked-by removed.
+2026-09-24T14:32Z sim note live runs on padme (Zotero 10.0.3, Xvfb, whole Menagerie), branch t0822-lifecycle-menagerie at 44b2b2d8. Green: exit 0, 542 s wall, 114/114 accounted (indexed 43, unindexed 3, outOfScope 68, failed 0, queued 0), all 13 integrity segments PASS; replace landed mid-extraction (3 packs finished, 43 pending) and kept all 3, 46 after settling; disable held 10 s with 10 readings all inactive, re-enable drained with 46 packs untouched; quit graceful, relaunch reopened the pinned data directory, 46 packs identical in source hash, bytes and mtime, 0 queued (verification/menagerie/0822-lifecycle-green-2026-09-24.json).
+2026-09-24T14:32Z sim note red controls at 44b2b2d8, each red on its own check and nothing earlier: replace with bench/sitter_lifecycle_red_payload.py's mutant (deletes finished packs on activation) FAILs the replace check, 3 packs redone with new bytes and mtime while integrity stayed PASS, since a recreated pack is a permitted change; --disable-hold 0 FAILs UNPROVEN; --red-restart-datadir FAILs the pinned check naming decoy-data; --red-restart-drop-pack FAILs the resume check, the dropped pack re-extracted with new bytes and mtime. Records verification/menagerie/0822-red-*-2026-09-24.json. Their messages counted problem lines as packs (6 for 3, 2 for 1), fixed after in message text only.
+2026-09-24T14:32Z sim note the first whole-corpus run (89df4cfd) failed relaunch+resume on writes the sitter does not make: version repository/lastcheck rows re-stamped at startup (10 rows before and after) and fulltextItems / fulltextIndexState 101 -> 104, Zotero indexing .zotero-ft-cache the import left; the sitter finished 0 documents after the relaunch. Declared as integrity.relaunch_edit(), narrow to those tables, version held to its row count; not measured with the sitter absent (verification/menagerie/0822-lifecycle-relaunch-undeclared-2026-09-24.json). Two ways the runs went wrong on the host: five drivers launched at once on padme collided (a second Zotero attached to the first one's instance; the pinned check refused one run), so live runs go one at a time; and a 50-file slice held too few extractable documents to replace mid-extraction, so every run is whole-corpus.
+2026-09-24T15:00Z sim note author ruling 2026-09-24 on PR #632's relaunch allowance, relayed by the coordinator, in his words: 'Have it done' -- approving: turn off Zotero's automatic translator/style repository check in the rung-3 profile and drop the version table from relaunch_edit(), which keeps fulltextItems and fulltextIndexState only. Coordinator's diagnosis, measured on padme (g2-whole, g3-whole): the version rows that move on relaunch are repository and lastcheck, the startup repository check; sync ruled out (syncCache and syncedSettings empty, no account); the +3 fulltextItems/fulltextIndexState rows are Zotero's keyword indexer catching up. Pref name checked in Zotero 10.0.3: extensions.zotero.automaticScraperUpdates, default true in defaults/preferences/zotero.js, and xpcom/schema.js runs updateFromRepository(REPO_UPDATE_STARTUP) only while it is true.
+2026-11-09T19:16Z MinhHaDuong note live runs on padme (Zotero 10.0.3, Xvfb :99, whole Menagerie) at bf9e04a0 (7fd3fd02's lifecycle code merged with main through add96381). Green: ok true (MENAGERIE: PASS, the exit-0 path), 567,6 s wall, 114/114 accounted (indexed 43, unindexed 3, outOfScope 68, failed 0, queued 0), all 13 integrity segments PASS; replace landed with 3 packs finished and 43 pending, 46 after; disable held 10 s with 10 readings; relaunch graceful on the pinned data directory, 46 packs; host_index drained in 10 s with every Zotero full-text queue at 0, and relaunch+resume admitted fulltextItems and fulltextIndexState 101 -> 104 with no violation (verification/menagerie/0822-lifecycle-green-2026-11-09.json). Red --repository-check: exit 1, 526,2 s wall, first four segments PASS, relaunch+resume FAIL on zotero.sqlite:version alone (changed with no declared edit, rows 10 -> 10), the run stopping there (verification/menagerie/0822-red-repository-check-2026-11-09.json). The missing diagnosis, from 7fd3fd02's message: the f07dc229 whole-corpus run passed relaunch+resume and failed 'before attachment erase' on fulltextItems and fulltextIndexState 101 -> 104, Zotero's own drain landing after the segment closed; that run was not recorded. Supersedes the 09-24 green record as the evidence at head.
+2026-11-09T19:43Z MinhHaDuong note green rerun at 9a63e4b6 (main through 74af3290, sitter 0.4.40, payload changed by #648 after the 19:00Z runs): exit 0, 562,9 s wall, 114/114 accounted (indexed 43, unindexed 3, outOfScope 68, failed 0, queued 0), all 13 integrity segments PASS; replace 3 packs before, 46 after; disable held 10 s with 10 readings; relaunch graceful, 46 packs; host_index drained in 15 s, every queue 0 (verification/menagerie/0822-lifecycle-green-0.4.40-2026-11-09.json). The --repository-check red was not re-run: #648 touched neither the profile pref nor relaunch_edit().
+2026-11-09T20:21Z MinhHaDuong closed — autoclosed — PR #632
+
+--- body ---
+## Context
+
+Child of 0817. The author folded lifecycle testing into the Menagerie rung
+(2026-09-23); the volume rig that hunted the disappearance is retired with
+0778 and 0782, and the disappearance itself is Zotero's (zotero/zotero#6054).
+
+## Actions
+
+1. Replace the add-on while extraction runs (`install_or_replace_code`, after a
+   warm-up so the sitter is busy), then assert no attachment regresses to
+   `queued` because of the replace.
+2. Disable and re-enable: import `disable_enable_code()` and `liveness_code()`
+   from `bench/sitter_volume_experiment.py`, as the driver already imports its
+   siblings from there.
+3. Restart Zotero: compose `stop_zotero` + `launch_zotero` +
+   `connect_resilient` as the driver already does. Do **not** import the rig's
+   `restart_zotero()` — it is a closure inside `main()`.
+4. After **every** restart, re-run the clean-room check that Zotero opened the
+   throwaway data directory (the driver does it once, after install) — 0782's
+   hazard, reintroduced by any restart.
+5. Resume means: pack count and per-attachment hash set identical before the
+   stop and after the post-restart settle.
+6. 0816's integrity check spans the whole scenario.
+
+## Test
+
+Each step red first on a payload built to fail it (e.g. a replace that
+re-queues finished work; a restart that lands in the wrong data directory).
+
+## Exit criteria
+
+The three lifecycle steps run inside the rung-3 scenario, each with its red
+control recorded, and the integrity check green across them.
+
+## Plan (raid 2026-09-23)
+
+- Import `disable_enable_code`, `liveness_code`, `ADDON_ID` from
+  `bench/sitter_volume_experiment.py` beside the existing imports; never
+  `restart_zotero` (a closure in `main()`) — a guard test asserts it.
+- Restart helper in the driver: `stop_zotero` → `launch_zotero` →
+  `wait_for_port` → `connect_resilient` → `poll_until_armed`, then
+  `assert_pinned_data_dir(live, requested)`, factored out of today's single
+  check after install so it runs after every restart.
+- Resume invariant: `packs_on_disk(data_dir)` dict equality before the stop and
+  after the post-restart settle (count and per-attachment hash together; a
+  swapped pack passes a count-only check). Same dict comparison for the
+  replace step, never the sitter's own counters.
+- Every settle waits on a predicate to a deadline, never a single read after a
+  sleep (the 0785 lesson in `wait_for_preparation`).
+- Red controls: replace with a mutant bootstrap that drops the cache on
+  activation (pattern: `verification/probes/sdt_sitter_bootstrap_mutants.py`);
+  a zero-length disabled hold must be reported as unproven, not passed; a
+  `prefs.js` dataDir rewritten between stop and relaunch must trip
+  `assert_pinned_data_dir` (0782's bug); one pack deleted between stop and
+  restart must trip the resume check.
+- Unit tests: `assert_pinned_data_dir` and the resume comparator as pure
+  functions; the no-`restart_zotero`-import guard.
