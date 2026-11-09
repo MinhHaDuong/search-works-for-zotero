@@ -35,9 +35,9 @@ Open here: 0814's guard 2. Gaps: R10 (0660–0664), R13 (0650–0652), R15
 Proposed next: a backlog triage with the author, cluster by cluster. The pristine library copy
 lives on at padme `~/data/clone-rung/library`, refreshed by rsync from a cheap reflink snapshot
 on doudou. Cleanup owed now that #632 merged (author's call): padme's `~/data/clone-rung/2026-09-23/` and arenas.
-Parked WIP: `wip/primary-dirty-check-split-20261109` (split `make check` into check-fast and
-check-full, plus a "deploy memory v8" ticket whose number 0827 clashes with main's and needs a
-claimed ID). Design notes now live under `design/` (0828; formerly `conception/`).
+Parked WIP, branches pruned 2026-11-09 and kept as tags `archive/2026-11-09/*`: the draft
+`make check` split into check-fast and check-full (with a "deploy memory v8" ticket whose number
+clashes with main's 0827) is `archive/2026-11-09/wip-primary-dirty-check-split-20261109`. Design notes now live under `design/` (0828; formerly `conception/`).
 Journal: `memory/journal/2026/2026-11-09-tidy-sprint.md`.
 
 ## Basic state
