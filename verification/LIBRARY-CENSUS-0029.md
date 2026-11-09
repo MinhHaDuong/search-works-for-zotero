@@ -1,7 +1,7 @@
 # The author's library, censused — the sampling frame for the Menagerie's representative core (ticket 0711, measured 2026-09-06)
 
 The Multilingual Menagerie's representative core is supposed to look like a real
-library (`conception/0029-golden-fixture-structure-review.md` §3). Until now
+library (`design/0029-golden-fixture-structure-review.md` §3). Until now
 nothing said which library or in what proportions. This report is that profile:
 the marginal distributions of the author's own Zotero library, measured read-only
 over the local API, so the fixture can be quota-sampled against them and the
