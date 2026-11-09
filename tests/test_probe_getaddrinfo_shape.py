@@ -161,3 +161,71 @@ def test_resolver_shape_falls_back_to_unparsed_on_an_unmatched_connect_line():
                          detector="dns", line="<... connect resumed>")]
     shape = resolver_shape("<... connect resumed>", attempts)
     assert shape["connect_outcomes"] == {"unparsed": 1}, shape
+
+
+# --- ticket 0631: hardening of resolver_shape() against traces this machine
+# --- does not produce. Synthetic text only; nothing re-runs the probe.
+
+_DNS4 = 'connect(5, {sa_family=AF_INET, sin_port=htons(53), sin_addr=inet_addr("127.0.0.53")}, 16) = 0'
+# A real IPv6 connect line shape: sin6_scope_id=0 precedes the trailing return code.
+_DNS6_FAIL = (
+    "connect(6, {sa_family=AF_INET6, sin6_port=htons(53), sin6_flowinfo=htonl(0), "
+    'inet_pton(AF_INET6, "::1", &sin6_addr), sin6_scope_id=0}, 28) '
+    "= -1 ENETUNREACH (Network is unreachable)"
+)
+
+
+def _attempt(line: str) -> Attempt:
+    return Attempt(call="connect", address="127.0.0.53", port=53, detector="dns", line=line)
+
+
+def test_finding1_non_dns_send_is_not_counted():
+    trace = (
+        _DNS4 + "\n"
+        "sendto(9, \"quic\", 4, 0, NULL, 0) = 4\n"  # other fd, other protocol
+        "sendmmsg(5, [{msg_hdr={}}], 1, 0) = 1\n"
+    )
+    shape = resolver_shape(trace, [_attempt(_DNS4)])
+    assert shape["query_messages_sent"] == 1, shape
+
+
+def test_finding1_closed_resolver_fd_reused_elsewhere_is_not_counted():
+    trace = (
+        _DNS4 + "\n"
+        "close(5) = 0\n"
+        "sendto(5, \"other\", 5, 0, NULL, 0) = 5\n"
+    )
+    shape = resolver_shape(trace, [_attempt(_DNS4)])
+    assert shape["query_messages_sent"] == 0, shape
+
+
+def test_finding2_plain_sendmsg_is_counted():
+    trace = _DNS4 + "\nsendmsg(5, {msg_name=NULL, msg_iov=[{iov_base=\"q\", iov_len=1}]}, 0) = 1\n"
+    shape = resolver_shape(trace, [_attempt(_DNS4)])
+    assert shape["query_messages_sent"] == 1, shape
+
+
+def test_finding3_failed_send_is_not_counted():
+    trace = (
+        _DNS4 + "\n"
+        "sendto(5, \"q\", 1, 0, NULL, 0) = -1 ECONNREFUSED (Connection refused)\n"
+        "sendmmsg(5, [{msg_hdr={}}, {msg_hdr={}}], 2, 0) = -1 EPERM (Operation not permitted)\n"
+    )
+    shape = resolver_shape(trace, [_attempt(_DNS4)])
+    assert shape["query_messages_sent"] == 0, shape
+
+
+def test_finding3_partial_sendmmsg_counts_only_what_was_sent():
+    trace = _DNS4 + "\nsendmmsg(5, [{msg_hdr={}}, {msg_hdr={}}], 2, 0) = 1\n"
+    shape = resolver_shape(trace, [_attempt(_DNS4)])
+    assert shape["query_messages_sent"] == 1, shape
+
+
+def test_finding4_ipv6_scope_id_does_not_hide_a_failed_connect():
+    shape = resolver_shape(_DNS6_FAIL, [_attempt(_DNS6_FAIL)])
+    assert shape["connect_outcomes"] == {"ENETUNREACH": 1}, shape
+
+
+def test_resolver_shape_never_carries_trace_text():
+    trace = _DNS4 + '\nsendto(5, "secret.search.domain", 20, 0, NULL, 0) = 20\n'
+    assert "secret" not in json.dumps(resolver_shape(trace, [_attempt(_DNS4)]))

@@ -5,6 +5,7 @@ Author: MinhHaDuong
 
 --- log ---
 2026-09-03T19:59Z MinhHaDuong created
+2026-11-09T17:29Z MinhHaDuong hardened resolver_shape: fd-scoped, sendmsg, return-code aware, anchored _OUTCOME
 
 --- body ---
 ## Context

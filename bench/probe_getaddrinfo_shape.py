@@ -71,13 +71,35 @@ DEFAULT_OUTPUT = (
 )
 
 
-#: How a `connect` line ends, in the tracer's own text: `= 0` or `= -1 ENAME (…)`.
-_OUTCOME = re.compile(r"=\s*-?\d+\s*(?P<errno>E[A-Z]+)?")
+#: How a syscall line ends, in the tracer's own text: `= 0`, `= 2` or
+#: `= -1 ENAME (…)`, optionally followed by a `-T` duration. Anchored on the end
+#: of the line so an earlier `=<digits>` field (IPv6 `sin6_scope_id=0`) cannot
+#: be mistaken for the return code.
+_OUTCOME = re.compile(
+    r"=\s*(?P<ret>-?\d+)\s*(?P<errno>E[A-Z]+)?\s*(?:\(.*\))?\s*(?:<[\d.]+>)?\s*$"
+)
 
-#: One message inside a `sendmmsg`/`sendto` on a resolver socket. Counted, never
-#: read: the payload carries this machine's search-domain configuration, and
-#: `bench/results/**` is a public tree.
-_MESSAGE = re.compile(r"msg_hdr=|sendto\(")
+#: A send on any socket: the call, its file descriptor.
+_SEND = re.compile(r"\b(?P<call>sendmmsg|sendmsg|sendto)\((?P<fd>\d+),")
+_CONNECT_FD = re.compile(r"\bconnect\((?P<fd>\d+),")
+_CLOSE = re.compile(r"\bclose\((?P<fd>\d+)\)")
+
+#: One message inside a `sendmmsg`. Counted, never read: the payload carries
+#: this machine's search-domain configuration, and `bench/results/**` is a
+#: public tree.
+_MESSAGE = re.compile(r"msg_hdr=")
+
+
+def _messages_sent(line: str, call: str) -> int:
+    """Messages this send line *delivered*: its return code decides, not its
+    arguments. A failed or unfinished call delivered none; a partial
+    `sendmmsg` delivered as many as it returned."""
+    match = _OUTCOME.search(line)
+    if not match or match.group("errno") or int(match.group("ret")) < 0:
+        return 0
+    if call == "sendmmsg":
+        return min(int(match.group("ret")), len(_MESSAGE.findall(line)))
+    return 1
 
 
 def resolver_shape(trace: str, attempts: list[sandbox.Attempt]) -> dict:
@@ -101,11 +123,27 @@ def resolver_shape(trace: str, attempts: list[sandbox.Attempt]) -> dict:
         match = _OUTCOME.search(attempt.line)
         key = (match.group("errno") or "ok") if match else "unparsed"
         outcomes[key] = outcomes.get(key, 0) + 1
-    messages = sum(
-        len(_MESSAGE.findall(line))
-        for line in trace.splitlines()
-        if "sendmmsg(" in line or "sendto(" in line
-    )
+    # Only sends on a resolver socket count: a socket is one while a dns-
+    # detector connect names it and until it is closed (descriptor numbers are
+    # reused). A send that itself names a resolver address (unconnected
+    # socket) is a dns attempt line and counts too.
+    dns_lines = {a.line.strip() for a in attempts if a.detector == "dns"}
+    dns_fds: set[str] = set()
+    messages = 0
+    for line in trace.splitlines():
+        stripped = line.strip()
+        connect = _CONNECT_FD.search(line)
+        if connect:
+            fd = connect.group("fd")
+            (dns_fds.add if stripped in dns_lines else dns_fds.discard)(fd)
+            continue
+        close = _CLOSE.search(line)
+        if close:
+            dns_fds.discard(close.group("fd"))
+            continue
+        send = _SEND.search(line)
+        if send and (send.group("fd") in dns_fds or stripped in dns_lines):
+            messages += _messages_sent(line, send.group("call"))
     return {
         "connect_outcomes": outcomes,
         "query_messages_sent": messages,
