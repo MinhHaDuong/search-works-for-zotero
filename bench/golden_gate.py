@@ -1485,7 +1485,7 @@ def stability_reading(
     previous_export = (previous.get("run") or {}).get("export_sha256")
     current_export = (replies.get("run") or {}).get("export_sha256")
     if previous_export and current_export and previous_export != current_export:
-        # A re-pin (conception note B.6): the export changed, so item keys and the passage
+        # A re-pin (design note B.6): the export changed, so item keys and the passage
         # distribution moved with it, and a Jaccard against the old run measures the re-pin.
         return {
             "state": NOT_RUN,

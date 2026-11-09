@@ -203,6 +203,9 @@ MUTANTS = [
      "            state.phase = 'waiting'; break;\n"
      '          }',
      "          if (!candidate) { state.phase = 'waiting'; break; }"),
+    ('M37 admission ignores size and takes the first candidate in census order (ticket 0800)',
+     "if (!candidate || bytes < candidateBytes) {",
+     "if (!candidate) {"),
 ]
 
 
