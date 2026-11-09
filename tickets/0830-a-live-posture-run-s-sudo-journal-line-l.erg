@@ -1,0 +1,25 @@
+%erg 0.1
+Title: A live posture run's sudo journal line lists only allowlisted names (0829 follow-up)
+Created: 2026-11-09
+Author: claude
+
+--- log ---
+2026-11-09T16:28Z claude created
+2026-11-09T19:06Z MinhHaDuong live check on padme 2026-11-09 20:04 local, make check at 185e1230 (PR #642 head merged with main add96381; 1618 passed, 16 skipped). sudo journal, names only: the probes carry _ACCEPTANCE_POSTURE_PROBE alone; the python3 entries carry no ENV; the one strace entry (test_acceptance_posture_isolation_order, posture.forwardable(os.environ)) carries 80 names with NO credential-looking name. Control run at the same minute from an unfixed tree (t0774 at main's posture.py): 85 names including HF_TOKEN and CLAUDE_CODE_MESSAGING_TOKEN. So the fix removes credential names from the journal on the path that leaked at 14:05 (that line was the strace re-invocation, PWD /tmp/erg-roll/swz, not the adapters' python3 line, whose ENV was already empty). The criterion as written (only allowlisted names) is NOT met on the strace path: 80 ambient names remain, 0831's scope. Left open pending the author's reading.
+
+--- body ---
+
+## Context
+Split from 0829 by the TLC sprint lead on 2026-11-09 (verify-gate round 1 on PR #642 ruled
+REROLL on this one criterion alone). PR #642 proves by unit tests what goes into
+`sudo --preserve-env`; it cannot prove what sudo writes to its journal, which depends on sudoers
+settings outside the code and needs a live run on padme with sudo rights.
+
+## Actions
+- On padme, run one posture acceptance run (the path that leaked on 2026-11-09 14:05:52).
+- Read sudo's journal entry for it (`journalctl`), compare its `ENV=` list with the
+  adapters' allowlist (`forwarded_environment`) plus `PATH LANG LC_ALL LC_CTYPE TZ`.
+- Record names only, never values, in this ticket's log.
+
+## Exit criteria
+- [ ] A posture run's sudo journal line lists only allowlisted names, recorded here (names only)

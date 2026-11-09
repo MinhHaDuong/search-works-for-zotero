@@ -110,7 +110,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from ..interface import Declaration, UnsupportedVerb
-from ..posture import Posture
+from ..posture import Posture, forwarded_environment
 
 #: The distribution name on PyPI, which is NOT the repository's name.
 DISTRIBUTION = "zotero-mcp-server"
@@ -407,14 +407,15 @@ class ZoteroMCP:
         # why a value must never ride on a command line). `wrap` only adds
         # `--preserve-env=<names>` to `cmd`, naming — never valuing — which of
         # that merged environment's keys `sudo` forwards on to `untrusted-runner`, which
-        # is why it is handed the full merged view rather than this adapter's
-        # own partial `env`: a name absent from `os.environ` here (say,
-        # `OPENAI_API_KEY`, blanked by `environment()` on purpose) still needs
-        # naming, or the blank never reaches the target either. `wrap` raises
+        # is why it is handed `forwarded_environment(env)` -- this adapter's
+        # own names plus a short ambient allowlist, NEVER `os.environ` (ticket
+        # 0829: sudo logs preserved values, an `HF_TOKEN` reached a journal).
+        # The blanks `environment()` sets on purpose are in `env`, so they
+        # are still named and still reach the target. `wrap` raises
         # `PostureUnavailable` before anything is started if the posture is
         # refused; never caught here to fall back to an unwrapped spawn.
         if self._posture is not None:
-            cmd = self._posture.wrap(cmd, {**os.environ, **env})
+            cmd = self._posture.wrap(cmd, forwarded_environment(env))
         self.home.mkdir(parents=True, exist_ok=True)
         server = drive.Server(cmd, env, self.timeout)
         self._server = server
@@ -512,7 +513,7 @@ class ZoteroMCP:
         env = {**os.environ, **self.environment()}
         ran = []
         for step in steps:
-            argv = self._posture.wrap(step, env) if self._posture is not None else step
+            argv = self._posture.wrap(step, forwarded_environment(self.environment())) if self._posture is not None else step
             done = subprocess.run(argv, capture_output=True, text=True, env=env,
                                   check=False)
             ran.append({"argv": step, "returncode": done.returncode,
