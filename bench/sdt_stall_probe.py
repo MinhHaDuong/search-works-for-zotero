@@ -461,7 +461,7 @@ def cpu_between(before: dict, after: dict) -> dict:
 
 
 class StopRequest:
-    """An operator's request to stop, set by SIGINT/SIGTERM (ticket 0808).
+    """An operator's request to stop, set by an interrupt or terminate signal (0808).
 
     The handler only sets a flag, so the sampling loop returns normally and
     `main()` runs its usual summary and write path. It is one-shot: the
