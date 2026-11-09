@@ -287,6 +287,53 @@ await test('a corrupt cache row is dropped and its attachment re-inspected nativ
   assert.equal(state.samples[0].milliseconds, 12000);
 });
 
+await test('a cache dropped for foreign versions says why once; a first run says nothing; the next run is silent', async () => {
+  const attachments = [1, 2, 3].map(n =>
+    pdf(n, `${'ABC'[n - 1].repeat(4)}${String(n).repeat(4)}`, { pack: { lastModified: 900 } }));
+  const shape = createHarness({ attachments });
+  const record = key => ({ signature: shape.identity(key), fingerprint: shape.fingerprint(key),
+    sourceBytes: 4096, pages: 12 });
+  const stale = key => JSON.stringify({ format: CACHE_FORMAT,
+    versions: '{"SDT_PACK_VERSION":"0"}', key: `1/${key}`, record: record(key) });
+  const oldFormat = JSON.stringify({ format: CACHE_FORMAT + 1, versions: VERSIONS_JSON,
+    key: '1/CCCC3333', record: record('CCCC3333') });
+  const cache = [stale('AAAA1111'), stale('BBBB2222'), oldFormat, '{"torn', ''].join('\n');
+  const notice = harness => {
+    const window = harness.windows[0];
+    harness.context.openDialog(window);
+    return window.dialogs[window.dialogs.length - 1].document
+      .getElementById('sdt-diagnostics').textContent;
+  };
+
+  const dropped = createHarness({ attachments, cache });
+  await dropped.start();
+  const load = dropped.records('cache-load')[0];
+  assert.equal(load.records, 0);
+  assert.deepEqual([load.skippedVersions, load.skippedFormat, load.skippedMalformed], [2, 1, 1]);
+  const sentence = dropped.context.sitter.state.cacheNotice;
+  assert(sentence && /text extractor|extractors/.test(sentence), String(sentence));
+  assert(notice(dropped).includes(sentence), 'the window does not say why');
+
+  // A first install has nothing to explain.
+  const fresh = createHarness({ attachments });
+  await fresh.start();
+  const first = fresh.records('cache-load')[0];
+  assert.deepEqual([first.skippedVersions, first.skippedFormat, first.skippedMalformed], [0, 0, 0]);
+  assert.equal(fresh.context.sitter.state.cacheNotice, null);
+
+  // Malformed rows alone are a torn write, not a changed host.
+  const torn = createHarness({ attachments, cache: '{"torn\n' });
+  await torn.start();
+  assert.equal(torn.context.sitter.state.cacheNotice, null);
+
+  // The next activation reads the file the dropped one rewrote.
+  const next = createHarness({ attachments, cache: dropped.files.text(CACHE_PATH) });
+  await next.start();
+  assert.equal(next.context.sitter.state.cacheNotice, null);
+  assert.equal(next.records('cache-load')[0].skippedVersions, 0);
+  assert(!notice(next).includes(sentence));
+});
+
 await test('a quit halfway through a cache append leaves a partial line the next session drops', async () => {
   let writes = 0;
   const first = createHarness({
