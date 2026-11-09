@@ -1,0 +1,27 @@
+%erg 0.1
+Title: Déployer la mémoire v8
+Created: 2026-10-05
+Author: codex
+
+--- log ---
+2026-10-05T19:32Z codex created
+
+--- body ---
+
+--- body ---
+
+## Contexte
+Adopter progressivement la convention de mémoire Markdown v8 dans ce projet, après l’évaluation et avec une revue propre au dépôt. Le pilote de référence et ses limites sont décrits dans la [convention et ses gabarits](https://github.com/MinhHaDuong/ImperialDragonHarness/blob/main/docs/memory-v8/README.md), le [plan de livraison](https://github.com/MinhHaDuong/ImperialDragonHarness/blob/main/docs/2026-09-11-memory-implementation-plan.md) et le [ticket parent 0913](https://github.com/MinhHaDuong/ImperialDragonHarness/blob/main/tickets/closed/0913-retire-the-dead-retention-machinery-and.erg).
+
+Commencer par vérifier si ce dépôt est un projet actif. Pour un projet dormant ou remplacé, établir une disposition sourcée et ne pas simuler une migration. Ne pas importer les souvenirs d’un autre projet.
+
+## Critères de sortie
+- [ ] Inventorier les sources de mémoire et leurs consommateurs; consigner les correspondances, les dispositions et exceptions, la provenance, l’audience, les limites runtime et un rollback possible.
+- [ ] Intégrer les instructions de lecture v8 dans les instructions existantes sans les remplacer; créer ou adapter `memory/MEMORY.md` avec des liens vers les sources réelles (100 lignes maximum), `memory/DREAM.md` avec sa révision de référence, et les répertoires v8 utiles.
+- [ ] Examiner l’audience avant reprise de chaque source. Garder toute donnée privée uniquement comme `.age` chiffré dans le dépôt; ne jamais y enregistrer de plaintext ni de clé. Préserver les sources et provenance, traiter les inconnues comme inconnues.
+- [ ] Retirer une ancienne voie seulement après preuve de remplacement et de couverture de ses consommateurs. Ne pas introduire de TTL destructif, promotion automatique ou second écrivain d’index.
+- [ ] Vérifier les liens, les scénarios d’échec et les contrôles adaptés au diff; déposer les preuves dans la PR du projet.
+
+## Suivi GitHub
+
+Issue : https://github.com/MinhHaDuong/search-works-for-zotero/issues/636
