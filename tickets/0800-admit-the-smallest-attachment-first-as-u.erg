@@ -5,6 +5,7 @@ Author: MinhHaDuong
 
 --- log ---
 2026-09-16T00:00Z MinhHaDuong created
+2026-11-09T17:10Z MinhHaDuong implemented: minimum selected at admission (O(n), no sort in refreshQueue); unmeasured size sorts last, ties in census order; sitter 0.4.37
 
 --- body ---
 
