@@ -75,3 +75,12 @@ Facts worth keeping:
 - One codex correctness seat ran in gaze on #648 (external seat, under 0.10 USD, estimate).
 - Ticket 0715 skipped: it needs Zotero's omni.ja, not installed on padme. 0596 skipped: its code
   is not in this repository.
+
+## Round 3 (finishing, 18:11Z-19:05Z)
+
+- #650 (0631): verify-gate round 2 APPROVED at a301308d (notes entry
+  20261109T183401084Z-padme-603bc825); merged as 61ff6c4a, head 65129d87 (close commit), read back.
+  The gate left three narrower resolver_shape miscount cases as "consider" (thread ids sharing an fd
+  table under -f; split `<... socket resumed>` lines); no follow-up filed.
+- #648 (0774): parked, too little time left. Next step is on the PR: merge main, sitter 0.4.40,
+  gaze, verify-gate round 2, merge.
