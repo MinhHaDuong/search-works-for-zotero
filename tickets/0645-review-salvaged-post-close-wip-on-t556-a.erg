@@ -5,6 +5,7 @@ Author: MinhHaDuong
 
 --- log ---
 2026-09-04T08:54Z MinhHaDuong created
+2026-11-09T21:33Z MinhHaDuong branches pruned (author ruling 2026-11-09 "Prune the housekeeping branches"): t556-v2-content-schema and t0583-zotero-6012-adapter deleted; their tips live on as tags archive/2026-11-09/t556-v2-content-schema (b0969e47) and archive/2026-11-09/t0583-zotero-6012-adapter (778478a4). Review from the tags: git branch <name> <tag>.
 
 --- body ---
 

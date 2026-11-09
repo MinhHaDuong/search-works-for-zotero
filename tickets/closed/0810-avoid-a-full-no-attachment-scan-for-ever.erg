@@ -16,6 +16,8 @@ Closed: autoclosed — PR #607
 2026-09-22T10:56Z MinhHaDuong Round 2: coalescing unit moved from the drain pass to the published generation (B1), the view's sort memoized behind a mutation flag instead of running per refresh (S1), and a falsy parent -- Zotero answers false for none -- filtered in consider() (B2). Read count for the 20-event burst is now 20, not 5: the burst's five parents are each named by four events, so the coordinator's premise that they are mentioned once each did not hold. The test now asserts library-independence directly, running the same burst over a 7-record and a 45-record library and requiring equal counts.
 2026-09-22T11:12Z MinhHaDuong closed — autoclosed — PR #607
 2026-09-22T11:23Z MinhHaDuong bump circuit-breaker — execute agent died with the previous session; WIP (8 files) salvaged and pushed on t810-targeted-unattached-refresh at b337533e; finisher relaunched on that branch (re-landed: original line sat on the abandoned ticket/0810-targeted-unattached-refresh branch)
+2026-11-09T21:33Z MinhHaDuong branch pruned (author ruling 2026-11-09 "Prune the housekeeping branches"): ticket/0810-targeted-unattached-refresh (one unlanded ticket-log commit) kept as tag archive/2026-11-09/ticket-0810-targeted-unattached-refresh (767134bd); the wip/primary-dirty-check-split-20261109 branch (draft check-fast/check-full split, 0810 log lines) kept as archive/2026-11-09/wip-primary-dirty-check-split-20261109 (abb677ad).
+
 --- body ---
 ## Problem
 
