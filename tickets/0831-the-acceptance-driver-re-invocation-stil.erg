@@ -1,0 +1,25 @@
+%erg 0.1
+Title: The acceptance driver re-invocation still forwards the whole environment through sudo (run.py)
+Created: 2026-11-09
+Author: claude
+
+--- log ---
+2026-11-09T16:28Z claude created
+2026-11-09T19:06Z MinhHaDuong journal reading 2026-11-09 (see 0830 log): the live strace line that leaked HF_TOKEN at 14:05 comes from tests/test_acceptance_posture_isolation_order.py:385 (posture.forwardable(os.environ)) as much as from run.py:664; after #642 it still carries 80 ambient names (CLAUDE_CODE_*, XDG_*, SSH_AUTH_SOCK, GH_CONFIG_DIR...), credential-looking ones dropped. The allowlist fix must cover the test's composition too.
+
+--- body ---
+
+## Context
+Found by gaze on PR #642 (ticket 0829), confirmed non-blocking by its verify-gate:
+`bench/acceptance/run.py:667` re-invokes the driver through `Posture.wrap(..., forwardable(os.environ))`.
+After #642, `wrap` drops credential-looking names (TOKEN, KEY, SECRET, PASSWORD, CREDENTIAL), but a
+secret named otherwise (a PAT, AUTH, a DSN carrying a password) would still be preserved and land in
+sudo's journal, the channel 0829 closed for the two adapters.
+
+## Actions
+- Replace `forwardable(os.environ)` with an explicit allowlist of the names the re-invoked driver
+  needs, as 0829 did for the adapters.
+
+## Exit criteria
+- [ ] run.py's re-invocation forwards an explicit allowlist, not os.environ
+- [ ] a test shows an arbitrary non-allowlisted name is not in `--preserve-env`

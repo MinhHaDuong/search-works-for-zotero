@@ -2,9 +2,13 @@
 Title: Acceptance adapters pass the whole environment to sudo --preserve-env; sudo logs the values (HF_TOKEN in the journal)
 Created: 2026-11-09
 Author: MinhHaDuong
+Closed: autoclosed — PR #642
 
 --- log ---
 2026-11-09T13:12Z MinhHaDuong created
+2026-11-09T15:30Z claude-sonnet-5-5 allowlist + wrap drop implemented; journal-line check not run (no live sudo allowed)
+2026-11-09T16:29Z MinhHaDuong note verify-reroll — round 1: a posture run's sudo journal line lists only allowlisted names (unverified live); split to 0830 by the sprint lead, run.py follow-up filed as 0831
+2026-11-09T19:36Z MinhHaDuong closed — autoclosed — PR #642
 
 --- body ---
 ## Incident (2026-11-09, padme)
@@ -33,6 +37,7 @@ adapters pass `self.environment()` or a named `env` only.
   `--preserve-env`, and that the two adapters build their env from an allowlist.
 
 ## Exit criteria
-- [ ] zotero_mcp.py and zoteus.py forward an explicit allowlist, not os.environ
-- [ ] wrap() never preserves a credential-looking name by default; docstring names sudo's log
-- [ ] tests cover both; a posture run's sudo journal line lists only allowlisted names
+- [x] zotero_mcp.py and zoteus.py forward an explicit allowlist, not os.environ
+- [x] wrap() never preserves a credential-looking name by default; docstring names sudo's log
+- [x] tests cover both
+- (moved to 0830 on 2026-11-09: a posture run's sudo journal line lists only allowlisted names; needs a live run on padme)

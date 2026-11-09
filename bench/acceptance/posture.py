@@ -160,7 +160,9 @@ promise `sandbox.py` makes about itself.
 
 import os
 import pwd
+import re
 import subprocess
+import warnings
 from dataclasses import dataclass
 
 #: The account name the recipe above provisions. Not configurable from the
@@ -172,6 +174,34 @@ ACCOUNT = "untrusted-runner"
 ACCOUNT_POSTURE = "account"
 ISOLATED_POSTURE = "already-isolated"
 POSTURES: tuple[str, ...] = (ACCOUNT_POSTURE, ISOLATED_POSTURE)
+
+#: Ambient variables a wrapped target may inherit from the operator's shell.
+#: Everything else must be named by the adapter itself. `sudo` logs the NAME
+#: and the VALUE of every variable it is told to preserve (its own journal
+#: entry, readable by the journal group), so forwarding the whole environment
+#: put an `HF_TOKEN` in a system journal (ticket 0829). Nothing here can carry
+#: a credential.
+AMBIENT_ALLOWLIST: tuple[str, ...] = (
+    "PATH", "LANG", "LC_ALL", "LC_CTYPE", "TZ",
+)
+
+#: Names that look like credentials; `Posture.wrap` refuses to preserve them
+#: with a non-empty value unless the caller allows the name explicitly.
+_CREDENTIAL_NAME = re.compile(r"TOKEN|KEY|SECRET|PASSWORD|CREDENTIAL", re.I)
+
+
+def looks_like_credential(name: str) -> bool:
+    return _CREDENTIAL_NAME.search(name) is not None
+
+
+def forwarded_environment(extra: dict[str, str]) -> dict[str, str]:
+    """The environment an adapter hands `Posture.wrap`: the ambient allowlist
+    (those names that are set) overlaid with the adapter's own `extra`.
+
+    Never `os.environ` wholesale; see `AMBIENT_ALLOWLIST`.
+    """
+    ambient = {n: os.environ[n] for n in AMBIENT_ALLOWLIST if n in os.environ}
+    return {**ambient, **extra}
 
 
 class PostureUnavailable(Exception):
@@ -206,7 +236,8 @@ class Posture:
     #: from a place where it is refused (module docstring, ticket 0637).
     inherited: bool = False
 
-    def wrap(self, argv: list[str], env: dict[str, str]) -> list[str]:
+    def wrap(self, argv: list[str], env: dict[str, str],
+             allow_credentials: tuple[str, ...] = ()) -> list[str]:
         """The argv a target's spawn actually runs, under this posture.
 
         Raises `PostureUnavailable` rather than returning anything if this
@@ -250,6 +281,17 @@ class Posture:
         the listed names, so a misconfigured sudoers rule fails the `_works`
         probe rather than quietly narrowing what reaches the target.
 
+        **`sudo`'s own log is a channel too** (ticket 0829). Keeping values off
+        argv is not enough: `sudo` writes the preserved variables, values
+        included, to its journal entry, which the journal group can read. So
+        a name that looks like a credential (`*TOKEN*`, `*KEY*`, `*SECRET*`,
+        `*PASSWORD*`) with a non-empty value is dropped from
+        `--preserve-env` with a warning that names it (never its value),
+        unless listed in `allow_credentials`. An empty value is kept: the
+        adapters blank target variables on purpose, and an empty string is no
+        secret. Callers should still pass an explicit allowlist
+        (`forwarded_environment`), never `os.environ`.
+
         `-n` is load-bearing: without it a `sudo` with no working NOPASSWD rule
         blocks on a password prompt nothing will ever answer, which is a hang
         dressed as a working boundary rather than the honest refusal `_works`
@@ -259,7 +301,13 @@ class Posture:
             raise PostureUnavailable(self.refused)
         if self.account is None or self.inherited:
             return list(argv)
-        names = ",".join(sorted(env))
+        dropped = sorted(n for n, v in env.items()
+                         if v and looks_like_credential(n) and n not in allow_credentials)
+        if dropped:
+            warnings.warn(
+                "not preserving credential-looking names across sudo, whose log "
+                f"records values: {', '.join(dropped)}", stacklevel=2)
+        names = ",".join(sorted(n for n in env if n not in dropped))
         preserve = [f"--preserve-env={names}"] if names else []
         return ["sudo", "-n", "-u", self.account, *preserve, "--", *argv]
 

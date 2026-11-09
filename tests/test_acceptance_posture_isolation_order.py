@@ -364,6 +364,7 @@ def test_assess_hands_the_outer_wrap_to_the_egress_check_and_nothing_else(monkey
 # --------------------------------------------------------------------------
 
 
+@pytest.mark.filterwarnings("ignore:not preserving credential-looking names:UserWarning")  # ticket 0829: wrap drops ambient tokens, by design
 @pytest.mark.integration
 def test_identity_switch_outside_the_namespace_runs_where_the_reverse_is_refused(tmp_path):
     """The ticket's own reproduction and its fix, as one test with a control.
