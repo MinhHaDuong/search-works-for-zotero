@@ -6,6 +6,7 @@ Author: haduong
 --- log ---
 2026-09-15T16:02Z haduong created
 2026-09-15T16:02Z haduong note Settled in session: Malynes stays, the final EIS is rejected, the draft is taken. Reasons in the body.
+2026-11-09T21:26Z MinhHaDuong author ruling 2026-11-09, verbatim: "Close 0817, move the rerun to 0794". Exit criterion added: a whole-Menagerie rung-3 run recorded with both new documents in the corpus (0817's clause).
 
 --- body ---
 ## Context
@@ -162,3 +163,4 @@ document from a bimodal one has not been shown to work.
 - The plates volume's `cap_expectations` carry real page locators, not prose.
 - At least two new questions, each naming the page its answer sits on.
 - README census updated and consistent with the recipe.
+- A whole-Menagerie rung-3 run (`bench/sitter_menagerie_test.py`, lifecycle and integrity included) recorded under `verification/menagerie/` with both new documents in the corpus (moved from tracker 0817 by author ruling, 2026-11-09).

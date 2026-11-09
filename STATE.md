@@ -11,10 +11,9 @@ proposition, [SPEC.md](SPEC.md) the design.
 ## Current Goals
 
 - **The sitter's test ladder** (tracker **0815**, `plugins/sdt-sitter/TESTING.md`): **0822**
-  (lifecycle in the Menagerie rung) closed with PR #632, green live at sitter 0.4.40. Tracker **0817**:
-  integration review passed (2026-11-09); left open only on its clause that the recorded pass include
-  **0794**'s two documents, which 0794's own criteria do not ask for. Author's call: close 0817 and move
-  that rerun to 0794, or keep it open behind 0794. Then **0819** (the bar for rung 3 and up) opens.
+  (lifecycle in the Menagerie rung) closed with PR #632, green live at sitter 0.4.40. Tracker **0817** closed 2026-11-09;
+  its rerun with **0794**'s two documents is now one of 0794's exit criteria. **0819** (the bar for rung 3
+  and up) is unblocked.
 - **Before any live install**: 0826 closed (doudou holds 8 037 stale-processor packs, about 8 035 to
   regenerate on the first run). 0825 closed (PR #633, sitter 0.4.34: "Empty file" and "Web page saved
   as PDF" groups). **0827** ("Damaged PDF", 14 truncated files) is now unblocked.

@@ -2,6 +2,7 @@
 Title: Tracker: the Menagerie rung, whole corpus with lifecycle folded in
 Created: 2026-09-23
 Author: claude
+Closed: integration review passed 2026-11-09; 0794 clause moved to 0794 by author ruling
 
 --- log ---
 2026-09-23T08:15Z claude created
@@ -13,6 +14,8 @@ Author: claude
 2026-09-23T19:40Z sim note blocker 0821 closed — Blocked-by removed.
 2026-11-09T20:21Z MinhHaDuong note blocker 0822 closed — Blocked-by removed.
 2026-11-09T20:51Z MinhHaDuong integration review 2026-11-09 (roar, after #632): children 0820/0821/0822 closed, each merged with its own gate (#616, #624, #632); full make check on main 8907331d exit 0 (sitter-mutants 97/97 and 22/22 caught, 1646 passed, 16 skipped); recorded whole-Menagerie pass with lifecycle and integrity 13/13 PASS: verification/menagerie/0822-lifecycle-green-0.4.40-2026-11-09.json. Union sweep: two report links still named the pre-0820 records folder after the rename, repointed to verification/menagerie/ in the roar bundle; no other stale name. Left OPEN: the exit criterion's 0794 clause (pass includes its two documents) is unmet and 0794's own criteria do not ask for the rerun; the author decides whether to close here and move the rerun to 0794, or keep this open behind 0794.
+2026-11-09T21:26Z MinhHaDuong author ruling 2026-11-09, verbatim: "Close 0817, move the rerun to 0794". The 0794 clause moves to 0794's exit criteria; the integration review logged above stands.
+2026-11-09T21:26Z MinhHaDuong closed — integration review passed 2026-11-09; 0794 clause moved to 0794 by author ruling
 
 --- body ---
 ## Context
