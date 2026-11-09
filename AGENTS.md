@@ -29,7 +29,7 @@ one of them.
 | [`bench/results/`](bench/results/) | Committed raw evidence behind reported figures |
 | [`plugins/`](plugins/) | Zotero plugins this repo ships: source with its own manifest, version and install lifecycle — a probe belongs in `bench/` |
 | [`verification/`](verification/) | Reports that settle a factual question, and the probes that produced them |
-| [`conception/`](conception/) | Thinking before ratification: scoping briefs, design explorations, proposal ideas. Owns no promise and no number — what survives review leaves here for `SPEC.md` or a ticket |
+| [`design/`](design/) | Thinking before ratification: scoping briefs, design explorations, proposal ideas. Owns no promise and no number — what survives review leaves here for `SPEC.md` or a ticket |
 | [`UPSTREAM`](UPSTREAM) | Machine-readable zoteus review baseline |
 
 How authority passes between `SPEC.md`, `DECISIONS.md`,

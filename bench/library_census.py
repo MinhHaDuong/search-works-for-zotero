@@ -6,7 +6,7 @@ until now nothing said what. This measures the marginal distributions of the
 author's own library — item types, attachments per item, attachment formats,
 notes, languages, collections, full-text coverage and document lengths — so the
 fixture can be quota-sampled against a real profile and claim representativeness
-(conception/0029-golden-fixture-structure-review.md §3).
+(design/0029-golden-fixture-structure-review.md §3).
 
     python3 bench/library_census.py \\
         --output bench/results/0029-library-census/census.json \\
