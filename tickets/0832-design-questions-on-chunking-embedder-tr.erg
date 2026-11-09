@@ -7,3 +7,22 @@ Author: MinhHaDuong
 2026-11-09T18:47Z MinhHaDuong created
 
 --- body ---
+
+## Context
+Eight questions found as an untracked note, `questions for future work.txt`, on the doudou
+clone of the old-name repo zoteus-fts5 during the 2026-11-09 erg claims rollout clone sweep
+(harness tracker 1478). Filed verbatim as a ticket on the author's decision to process the
+leftovers; the note's date is unknown (the clone was 2469 commits behind).
+
+## Questions
+1. Is this needed at all? Zotero has an active PR on semantic search.
+2. Chunking. Zotero does structured text extraction lazily, on PDF read.
+   2.1 How? Is the extractor good enough?
+   2.2 Can we use this to chunk structurally? How?
+   2.3 Do their chunker and ours add a context preamble to chunks?
+3. Do we track the embedder and the exact document version in chunks?
+4. What is the CLI like?
+   4.1 Bash discoverable through --help for an LLM, or a server?
+
+## Exit criteria
+- [ ] each question answered in a design note or turned into its own ticket, or closed as moot
