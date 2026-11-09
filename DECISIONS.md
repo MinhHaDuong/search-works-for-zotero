@@ -7946,3 +7946,21 @@ author chose to rule both in. `AGENTS.md` stays the sole root instruction file
 of the 2026-09-02 ruling: the scoped rules and the skill are its extensions,
 named in its ownership table, and load only when their paths are touched or
 the skill is invoked.
+
+**2026-09-24 — An empty file, and a web page labelled PDF, are named as
+failures the user can repair, and are not resubmitted.** Ticket 0825. The 0818
+clone run listed six files labelled `application/pdf` — two empty, four HTML —
+under "Extraction not completed this session", whose explanation promised a
+retry that cannot mend a broken file. The author's goal, verbatim: *"The goal
+is to allow the user to open these in Zotero with a clear idea of what to
+do."* His rulings, as the lead session relayed them the same day: an empty
+(0-byte) file gets its own group, "Empty file", kept with missing sources in
+spirit — library state the user can fix — and still counted as failed; an HTML
+file labelled PDF gets its own group, classed HTML only when its head reads as
+HTML (after an optional byte-order mark and whitespace, `<!doctype html`,
+`<html` or `<head`, in any case) and no `%PDF-` appears in its first 1 024
+bytes, and only where the label says PDF, so that no real PDF is ever
+excluded; neither is submitted to the native worker again; each group's
+explanation tells the user what to do, the wording delegated. The 18 real PDFs
+among the 24 stay where they are pending the reading of the worker's message.
+`SPEC.md` §5.2.7 carries the two groups and the label-check paragraph.

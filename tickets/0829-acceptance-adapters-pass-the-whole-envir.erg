@@ -1,0 +1,38 @@
+%erg 0.1
+Title: Acceptance adapters pass the whole environment to sudo --preserve-env; sudo logs the values (HF_TOKEN in the journal)
+Created: 2026-11-09
+Author: MinhHaDuong
+
+--- log ---
+2026-11-09T13:12Z MinhHaDuong created
+
+--- body ---
+## Incident (2026-11-09, padme)
+At 14:05:52 sudo logged, in padme's system journal (readable by the journal group), an
+invocation as `untrusted-runner` from `/tmp/erg-roll/swz` whose `ENV=` list carried the whole
+inherited environment, an `HF_TOKEN` value among it. The run was a `make check` by a harness
+rollout agent (erg ID-claims migration). The posture probes just before passed only
+`_ACCEPTANCE_POSTURE_PROBE`. Reported by the padme session; the value was not copied anywhere.
+Rotating the token is the author's decision.
+
+## Cause (from the source on origin/main)
+`bench/acceptance/adapters/zotero_mcp.py:417` and `bench/acceptance/adapters/zoteus.py:430`
+call `self._posture.wrap(cmd, {**os.environ, **env})`. `Posture.wrap`
+(`bench/acceptance/posture.py:209-264`) turns every key into `sudo --preserve-env=<names>`.
+Its docstring keeps values off argv, but sudo itself logs the preserved variables and their
+values in its journal entry, so `--preserve-env` of the whole environment is the leak. The other
+adapters pass `self.environment()` or a named `env` only.
+
+## Fix wanted
+- Never forward `os.environ` wholesale: pass an explicit allowlist of the names the target needs
+  (as the other adapters do), in both adapters.
+- Make `Posture.wrap` refuse (or drop with a warning) names that look like credentials
+  (`*TOKEN*`, `*KEY*`, `*SECRET*`, `*PASSWORD*`) unless explicitly allowed, and update its
+  docstring: sudo's own log is a channel too.
+- A test that `wrap()` of a mapping containing `HF_TOKEN` does not put that name in
+  `--preserve-env`, and that the two adapters build their env from an allowlist.
+
+## Exit criteria
+- [ ] zotero_mcp.py and zoteus.py forward an explicit allowlist, not os.environ
+- [ ] wrap() never preserves a credential-looking name by default; docstring names sudo's log
+- [ ] tests cover both; a posture run's sudo journal line lists only allowlisted names

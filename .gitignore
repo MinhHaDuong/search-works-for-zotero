@@ -66,6 +66,6 @@ bench/results/**/traces/
 # is already named.
 .pytest_cache/
 
-# /review-pr writes its perspectives here, per worktree. Untracked and
+# /gaze writes its perspectives here, per worktree. Untracked and
 # unignored they sit one `git add -A` away from a sibling commit.
 .panel/

@@ -1,0 +1,24 @@
+%erg 0.1
+Title: Adopt design/: rename conception/ to design/
+Created: 2026-11-09
+Author: reviewer
+
+--- log ---
+2026-11-09T12:14Z reviewer created
+
+--- body ---
+## Context
+Author decision (2026-11-09): the design-history directory convention is renamed `conception/` -> `design/`. The harness does it first: harness ticket 1477, repo MinhHaDuong/ImperialDragonHarness, `tickets/1477-rename-conception-to-design-across-the-h.erg`. In addition, `docs/` is meant to be git-ignored staging for external documents, but a 2026-11-09 sweep found this project still tracks files under it.
+
+Tracked on 2026-11-09:
+- `conception/`: about 6 tracked files
+
+Wait for harness 1477 to land before starting if this project relies on harness skills that cite `conception/`.
+
+## Actions
+- RENAME: `git mv conception design`; update live references (code, docs, scripts, AGENTS.md/CLAUDE.md, .gitignore allowlists). History (closed tickets, journals, commit messages) stays as written.
+
+## Exit criteria
+- [ ] `conception/` no longer exists; its files live under `design/` with history-preserving renames
+- [ ] `git grep -n 'conception/'` outside closed tickets, journals and other history returns nothing, or each remaining hit is deliberate and listed in the PR
+- [ ] The project's own gate passes (`make check` or its equivalent)

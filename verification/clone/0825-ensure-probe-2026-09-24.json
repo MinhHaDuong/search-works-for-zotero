@@ -1,0 +1,419 @@
+{
+ "ticket": "0825",
+ "date": "2026-09-24",
+ "host": "padme",
+ "zotero": "10.0.3",
+ "arena": "cp --reflink=always of ~/data/clone-rung/library; fresh profile; debug.store on",
+ "call": "await Zotero.SDT.ensure(itemID, { isPriority: false, onProgress })",
+ "note": "ensure() does not throw: it catches the worker's error, logs it through Zotero.logError and resolves false. The message is the debug-output line \"Worker action 'getStructuredDocumentText' failed\".",
+ "attachments": [
+  {
+   "attachment": "1/J2XJRQXE",
+   "contentType": "application/pdf",
+   "size": 1444259,
+   "pdfHeaderInFirstKiB": true,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": null,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 305
+   },
+   "packAfter": false,
+   "workerError": "InvalidPDFException: Invalid PDF structure.",
+   "class": "truncated-file"
+  },
+  {
+   "attachment": "1/WQJGM6NN",
+   "contentType": "application/pdf",
+   "size": 2610033,
+   "pdfHeaderInFirstKiB": true,
+   "tailHasEOF": true,
+   "linearizedDeclaredLength": null,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 81
+   },
+   "packAfter": false,
+   "workerError": "XRefEntryException: Bad (uncompressed) XRef entry: 12R",
+   "class": "complete-file-malformed-xref"
+  },
+  {
+   "attachment": "1/SQZ2YLVK",
+   "contentType": "application/pdf",
+   "size": 2523118,
+   "pdfHeaderInFirstKiB": true,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": null,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 66
+   },
+   "packAfter": false,
+   "workerError": "InvalidPDFException: Invalid PDF structure.",
+   "class": "truncated-file"
+  },
+  {
+   "attachment": "1/S6V7C3BR",
+   "contentType": "application/pdf",
+   "size": 369681,
+   "pdfHeaderInFirstKiB": true,
+   "tailHasEOF": true,
+   "linearizedDeclaredLength": 1006863,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 856
+   },
+   "packAfter": false,
+   "workerError": "FormatError: Illegal character: 41",
+   "class": "truncated-file"
+  },
+  {
+   "attachment": "1/57N5KAS9",
+   "contentType": "application/pdf",
+   "size": 0,
+   "pdfHeaderInFirstKiB": false,
+   "tailHasEOF": null,
+   "linearizedDeclaredLength": null,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 1
+   },
+   "packAfter": false,
+   "workerError": "InvalidPDFException: The PDF file is empty, i.e. its size is zero bytes.",
+   "class": "empty-file"
+  },
+  {
+   "attachment": "1/7RIMK3ME",
+   "contentType": "application/pdf",
+   "size": 4641,
+   "pdfHeaderInFirstKiB": false,
+   "tailHasEOF": null,
+   "linearizedDeclaredLength": null,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 4
+   },
+   "packAfter": false,
+   "workerError": "InvalidPDFException: Invalid PDF structure.",
+   "class": "web-page-as-pdf"
+  },
+  {
+   "attachment": "1/95V787TH",
+   "contentType": "application/pdf",
+   "size": 441671,
+   "pdfHeaderInFirstKiB": true,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": 6285283,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 14
+   },
+   "packAfter": false,
+   "workerError": "InvalidPDFException: Invalid Root reference.",
+   "class": "truncated-file"
+  },
+  {
+   "attachment": "1/MPQHJR2E",
+   "contentType": "application/pdf",
+   "size": 111548,
+   "pdfHeaderInFirstKiB": true,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": 7201318,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 6
+   },
+   "packAfter": false,
+   "workerError": "InvalidPDFException: Invalid PDF structure.",
+   "class": "truncated-file"
+  },
+  {
+   "attachment": "1/KFPF5X8K",
+   "contentType": "application/pdf",
+   "size": 111548,
+   "pdfHeaderInFirstKiB": true,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": 7201318,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 8
+   },
+   "packAfter": false,
+   "workerError": "InvalidPDFException: Invalid PDF structure.",
+   "class": "truncated-file"
+  },
+  {
+   "attachment": "1/XHGZQG38",
+   "contentType": "application/pdf",
+   "size": 47554858,
+   "pdfHeaderInFirstKiB": true,
+   "tailHasEOF": true,
+   "linearizedDeclaredLength": null,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 370
+   },
+   "packAfter": false,
+   "workerError": "XRefEntryException: Bad (uncompressed) XRef entry: 124R",
+   "class": "complete-file-malformed-xref"
+  },
+  {
+   "attachment": "1/EDHRH5EL",
+   "contentType": "application/pdf",
+   "size": 393216,
+   "pdfHeaderInFirstKiB": true,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": null,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 17
+   },
+   "packAfter": false,
+   "workerError": "InvalidPDFException: Invalid PDF structure.",
+   "class": "truncated-file"
+  },
+  {
+   "attachment": "1/SCF8K4KD",
+   "contentType": "application/pdf",
+   "size": 190798,
+   "pdfHeaderInFirstKiB": true,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": 666654,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 7
+   },
+   "packAfter": false,
+   "workerError": "InvalidPDFException: Invalid PDF structure.",
+   "class": "truncated-file"
+  },
+  {
+   "attachment": "1/3JJT7BNI",
+   "contentType": "application/pdf",
+   "size": 629415,
+   "pdfHeaderInFirstKiB": true,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": 1125594,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 13
+   },
+   "packAfter": false,
+   "workerError": "InvalidPDFException: Invalid PDF structure.",
+   "class": "truncated-file"
+  },
+  {
+   "attachment": "1/ARZZRZ7R",
+   "contentType": "application/pdf",
+   "size": 2610033,
+   "pdfHeaderInFirstKiB": true,
+   "tailHasEOF": true,
+   "linearizedDeclaredLength": null,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 92
+   },
+   "packAfter": false,
+   "workerError": "XRefEntryException: Bad (uncompressed) XRef entry: 12R",
+   "class": "complete-file-malformed-xref"
+  },
+  {
+   "attachment": "1/33MW9SNW",
+   "contentType": "application/pdf",
+   "size": 132013,
+   "pdfHeaderInFirstKiB": false,
+   "tailHasEOF": null,
+   "linearizedDeclaredLength": null,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 9
+   },
+   "packAfter": false,
+   "workerError": "InvalidPDFException: Invalid PDF structure.",
+   "class": "web-page-as-pdf"
+  },
+  {
+   "attachment": "1/4XAHR6WB",
+   "contentType": "application/pdf",
+   "size": 224679,
+   "pdfHeaderInFirstKiB": false,
+   "tailHasEOF": null,
+   "linearizedDeclaredLength": null,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 11
+   },
+   "packAfter": false,
+   "workerError": "InvalidPDFException: Invalid PDF structure.",
+   "class": "web-page-as-pdf"
+  },
+  {
+   "attachment": "3/NGUUZCNS",
+   "contentType": "application/pdf",
+   "size": 4641,
+   "pdfHeaderInFirstKiB": false,
+   "tailHasEOF": null,
+   "linearizedDeclaredLength": null,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 244
+   },
+   "packAfter": false,
+   "workerError": "InvalidPDFException: Invalid PDF structure.",
+   "class": "web-page-as-pdf"
+  },
+  {
+   "attachment": "3/E9C7EGDF",
+   "contentType": "application/pdf",
+   "size": 0,
+   "pdfHeaderInFirstKiB": false,
+   "tailHasEOF": null,
+   "linearizedDeclaredLength": null,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 2
+   },
+   "packAfter": false,
+   "workerError": "InvalidPDFException: The PDF file is empty, i.e. its size is zero bytes.",
+   "class": "empty-file"
+  },
+  {
+   "attachment": "3/735ST7E7",
+   "contentType": "application/pdf",
+   "size": 369681,
+   "pdfHeaderInFirstKiB": true,
+   "tailHasEOF": true,
+   "linearizedDeclaredLength": 1006863,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 853
+   },
+   "packAfter": false,
+   "workerError": "FormatError: Illegal character: 41",
+   "class": "truncated-file"
+  },
+  {
+   "attachment": "3/NQ5T9K9B",
+   "contentType": "application/pdf",
+   "size": 441671,
+   "pdfHeaderInFirstKiB": true,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": 6285283,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 15
+   },
+   "packAfter": false,
+   "workerError": "InvalidPDFException: Invalid Root reference.",
+   "class": "truncated-file"
+  },
+  {
+   "attachment": "3/HRNG6PBM",
+   "contentType": "application/pdf",
+   "size": 111548,
+   "pdfHeaderInFirstKiB": true,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": 7201318,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 5
+   },
+   "packAfter": false,
+   "workerError": "InvalidPDFException: Invalid PDF structure.",
+   "class": "truncated-file"
+  },
+  {
+   "attachment": "3/FTGHUPF2",
+   "contentType": "application/pdf",
+   "size": 111548,
+   "pdfHeaderInFirstKiB": true,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": 7201318,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 7
+   },
+   "packAfter": false,
+   "workerError": "InvalidPDFException: Invalid PDF structure.",
+   "class": "truncated-file"
+  },
+  {
+   "attachment": "3/BFYBZ2XF",
+   "contentType": "application/pdf",
+   "size": 47554858,
+   "pdfHeaderInFirstKiB": true,
+   "tailHasEOF": true,
+   "linearizedDeclaredLength": null,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 359
+   },
+   "packAfter": false,
+   "workerError": "XRefEntryException: Bad (uncompressed) XRef entry: 124R",
+   "class": "complete-file-malformed-xref"
+  },
+  {
+   "attachment": "3/2AQUZJZY",
+   "contentType": "application/pdf",
+   "size": 393216,
+   "pdfHeaderInFirstKiB": true,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": null,
+   "md5MatchesZoteroStorageHash": true,
+   "ensure": {
+    "threw": false,
+    "resolved": "false",
+    "ms": 16
+   },
+   "packAfter": false,
+   "workerError": "InvalidPDFException: Invalid PDF structure.",
+   "class": "truncated-file"
+  }
+ ]
+}

@@ -28,7 +28,13 @@ var SDT_STATUS_CLASSES = {
   // verified rather than extend it. A failure stays in this class while it is
   // held — the author's "could not be indexed" figure must not shrink because
   // the sitter stopped asking within the session.
-  failed: ['failed-session', 'inspection-error', 'unsupported-pack', 'missing-source'],
+  //
+  // `unusable-source` is a file that is there and cannot be what its label says:
+  // empty, or a web page recorded as a PDF (ticket 0825). Like `missing-source`
+  // it is library state the author can repair and a retry cannot, so it is held
+  // here rather than resubmitted every session as `failed-session` was.
+  failed: ['failed-session', 'inspection-error', 'unsupported-pack', 'missing-source',
+    'unusable-source'],
   // Not indexed yet. Exactly the statuses admission accepts, and nothing else.
   queued: ['missing-pack', 'stale-source', 'stale-processor', 'invalid-pack'],
   // Not the sitter's business: trashed or not an attachment, or no processor exists.
