@@ -2,9 +2,13 @@
 Title: resolver_shape()'s query_messages_sent is unscoped, misses sendmsg(), ignores return code
 Created: 2026-09-03
 Author: MinhHaDuong
+Closed: autoclosed — PR #650
 
 --- log ---
 2026-09-03T19:59Z MinhHaDuong created
+2026-11-09T17:29Z MinhHaDuong hardened resolver_shape: fd-scoped, sendmsg, return-code aware, anchored _OUTCOME
+2026-11-09T17:58Z MinhHaDuong note verify-reroll — round 1: finding 1 scoping inert on real traces (close() never traced under -e trace=network; fds not keyed by pid)
+2026-11-09T18:34Z MinhHaDuong closed — autoclosed — PR #650
 
 --- body ---
 ## Context

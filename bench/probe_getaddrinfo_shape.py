@@ -71,13 +71,40 @@ DEFAULT_OUTPUT = (
 )
 
 
-#: How a `connect` line ends, in the tracer's own text: `= 0` or `= -1 ENAME (…)`.
-_OUTCOME = re.compile(r"=\s*-?\d+\s*(?P<errno>E[A-Z]+)?")
+#: How a syscall line ends, in the tracer's own text: `= 0`, `= 2` or
+#: `= -1 ENAME (…)`, optionally followed by a `-T` duration. Anchored on the end
+#: of the line so an earlier `=<digits>` field (IPv6 `sin6_scope_id=0`) cannot
+#: be mistaken for the return code.
+_OUTCOME = re.compile(
+    r"=\s*(?P<ret>-?\d+)\s*(?P<errno>E[A-Z]+)?\s*(?:\(.*\))?\s*(?:<[\d.]+>)?\s*$"
+)
 
-#: One message inside a `sendmmsg`/`sendto` on a resolver socket. Counted, never
-#: read: the payload carries this machine's search-domain configuration, and
-#: `bench/results/**` is a public tree.
-_MESSAGE = re.compile(r"msg_hdr=|sendto\(")
+#: A send on any socket: the call, its file descriptor.
+_SEND = re.compile(r"\b(?P<call>sendmmsg|sendmsg|sendto)\((?P<fd>\d+),")
+_CONNECT_FD = re.compile(r"\bconnect\((?P<fd>\d+),")
+_CLOSE = re.compile(r"\bclose\((?P<fd>\d+)\)")
+_SOCKET = re.compile(r"\bsocket\(.*\)\s*=\s*(?P<fd>\d+)\s*(?:<[\d.]+>)?\s*$")
+#: `strace -f` prefixes each line with the pid (`1000 ` or `[pid 1000] `).
+_PID = re.compile(r"^\s*(?:\[pid\s+)?(?P<pid>\d+)\]?\s+")
+#: A send that names its own destination address.
+_NAMES_DEST = re.compile(r"sa_family=AF_INET6?\b")
+
+#: One message inside a `sendmmsg`. Counted, never read: the payload carries
+#: this machine's search-domain configuration, and `bench/results/**` is a
+#: public tree.
+_MESSAGE = re.compile(r"msg_hdr=")
+
+
+def _messages_sent(line: str, call: str) -> int:
+    """Messages this send line *delivered*: its return code decides, not its
+    arguments. A failed or unfinished call delivered none; a partial
+    `sendmmsg` delivered as many as it returned."""
+    match = _OUTCOME.search(line)
+    if not match or match.group("errno") or int(match.group("ret")) < 0:
+        return 0
+    if call == "sendmmsg":
+        return min(int(match.group("ret")), len(_MESSAGE.findall(line)))
+    return 1
 
 
 def resolver_shape(trace: str, attempts: list[sandbox.Attempt]) -> dict:
@@ -101,11 +128,38 @@ def resolver_shape(trace: str, attempts: list[sandbox.Attempt]) -> dict:
         match = _OUTCOME.search(attempt.line)
         key = (match.group("errno") or "ok") if match else "unparsed"
         outcomes[key] = outcomes.get(key, 0) + 1
-    messages = sum(
-        len(_MESSAGE.findall(line))
-        for line in trace.splitlines()
-        if "sendmmsg(" in line or "sendto(" in line
-    )
+    # Only sends on a resolver socket count. The tracer is `strace -f -e
+    # trace=network`: lines carry a pid prefix and `close()` is never traced, so
+    # a descriptor is tracked per (pid, fd), joins when a dns-detector connect
+    # names it, and leaves when `socket()` hands the number out again (or a
+    # `close()`/non-DNS connect shows it). A send that names a resolver address
+    # itself is a dns attempt line and counts; one that names any other address
+    # does not.
+    dns_lines = {a.line.strip() for a in attempts if a.detector == "dns"}
+    dns_fds: set[tuple[str, str]] = set()
+    messages = 0
+    for line in trace.splitlines():
+        stripped = line.strip()
+        pid_match = _PID.match(line)
+        pid = pid_match.group("pid") if pid_match else ""
+        bare = _PID.sub("", stripped, count=1)
+        connect = _CONNECT_FD.search(line)
+        if connect:
+            key = (pid, connect.group("fd"))
+            on_resolver = stripped in dns_lines or bare in dns_lines
+            (dns_fds.add if on_resolver else dns_fds.discard)(key)
+            continue
+        fresh = _SOCKET.search(line) or _CLOSE.search(line)
+        if fresh:
+            dns_fds.discard((pid, fresh.group("fd")))
+            continue
+        send = _SEND.search(line)
+        if not send:
+            continue
+        is_dns_line = stripped in dns_lines or bare in dns_lines
+        names_other = _NAMES_DEST.search(line) and not is_dns_line
+        if (is_dns_line or (pid, send.group("fd")) in dns_fds) and not names_other:
+            messages += _messages_sent(line, send.group("call"))
     return {
         "connect_outcomes": outcomes,
         "query_messages_sent": messages,
