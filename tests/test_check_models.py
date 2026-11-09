@@ -22,6 +22,10 @@ import importlib.util
 import json
 from pathlib import Path
 
+import pytest
+
+pytestmark = pytest.mark.precommit
+
 REPO = Path(__file__).resolve().parent.parent
 
 

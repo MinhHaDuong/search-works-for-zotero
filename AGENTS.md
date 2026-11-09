@@ -78,8 +78,10 @@ once, in `SPEC.md` §1. Read it there rather than here.
 
 ## Conventions
 
-- **`make check` green before any commit.** The Makefile's `check` target is
-  what actually runs; any list of guards in prose drifts. The figure guard
+- **`make check` green before any commit.** It aliases `check-fast`, the
+  quick guard and marked-test gate; use `make check-full` for a release or explicit full
+  validation. The Makefile owns the target lists; any list of guards in prose
+  drifts. The figure guard
   (`bench/check_figures.py`) is load-bearing: every measurement quoted in
   prose is declared there with an anchor, so when you quote a number from
   `bench/results/`, declare it, and when you re-measure, the guard names every
@@ -92,7 +94,7 @@ once, in `SPEC.md` §1. Read it there rather than here.
 - **Two dependency sets.** `requirements-check.txt` is what the gate needs to
   run at all (`ruff`, `pytest`, `numpy`); `requirements-drivers.txt` is what a
   measurement driver needs on top, so nobody installs a model runtime to run a
-  lint gate. `bench/check_deps.py` runs FIRST in `make check` and names a
+  lint gate. `bench/check_deps.py` runs FIRST in the check targets and names a
   missing package before any guard prints, so a failure cannot hide in the
   tail of a green-looking run.
 - **One model name, one place:** `bench/models.json`. Every driver names a

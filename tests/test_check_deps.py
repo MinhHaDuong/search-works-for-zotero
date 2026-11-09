@@ -17,6 +17,10 @@ import importlib.util
 import sys
 from pathlib import Path
 
+import pytest
+
+pytestmark = pytest.mark.precommit
+
 REPO = Path(__file__).resolve().parent.parent
 
 MODULE_GATE = "check:\n\tpython3 -m pytest tests/ -q\n"

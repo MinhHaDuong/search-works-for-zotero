@@ -2,13 +2,18 @@
 
 A guard that exists without running is worse than no guard: its presence looks
 like coverage. These tests derive the inventory from ``bench/check_*.py`` and
-refuse both silent gaps — absent from ``make check``, or tested only on toy
-fixtures.
+refuse both silent gaps — absent from ``make check-full``, or tested only on toy
+fixtures. The full gate owns the complete inventory; the pre-commit gate runs
+the quick guards and selected tests.
 """
 
 import ast
 import re
 from pathlib import Path
+
+import pytest
+
+pytestmark = pytest.mark.precommit
 
 REPO = Path(__file__).resolve().parent.parent
 GUARD = re.compile(r"\bpython3\s+(bench/check_[A-Za-z0-9_]+\.py)\b")
@@ -36,11 +41,11 @@ def make_targets(text: str) -> tuple[dict[str, list[str]], dict[str, list[str]]]
     return dependencies, recipes
 
 
-def guards_reached_by_check(makefile: str) -> set[str]:
-    """Guard scripts invoked by the transitive dependency tree of ``check``."""
+def guards_reached_by_target(makefile: str, target: str) -> set[str]:
+    """Guard scripts invoked by a target's transitive dependency tree."""
     dependencies, recipes = make_targets(makefile)
     reached: set[str] = set()
-    pending = ["check"]
+    pending = [target]
     seen = set()
     while pending:
         target = pending.pop()
@@ -77,7 +82,7 @@ def test_unwired_guard_positive_control(tmp_path):
     """A newly added guard absent from the Makefile is named, not skipped."""
     (tmp_path / "bench").mkdir()
     (tmp_path / "bench" / "check_nothing.py").write_text("pass\n")
-    missing = guard_scripts(tmp_path) - guards_reached_by_check("check: check-fast\n")
+    missing = guard_scripts(tmp_path) - guards_reached_by_target("check-full: check-fast\n", "check-full")
     assert missing == {"bench/check_nothing.py"}
 
 
@@ -92,10 +97,24 @@ def test_fixture_only_suite_positive_control(tmp_path):
     assert suites_without_live_repo(tmp_path) == ["tests/test_check_nothing.py"]
 
 
-def test_every_guard_is_reached_by_make_check():
+def test_every_guard_is_reached_by_make_check_full():
     makefile = (REPO / "Makefile").read_text(encoding="utf-8")
-    missing = guard_scripts(REPO) - guards_reached_by_check(makefile)
-    assert not missing, f"guard scripts not reached by make check: {sorted(missing)}"
+    missing = guard_scripts(REPO) - guards_reached_by_target(makefile, "check-full")
+    assert not missing, f"guard scripts not reached by make check-full: {sorted(missing)}"
+
+
+def test_check_aliases_fast_and_full_retains_all_tests_and_mutants():
+    makefile = (REPO / "Makefile").read_text(encoding="utf-8")
+    dependencies, recipes = make_targets(makefile)
+    assert dependencies["check"] == ["check-fast"]
+    assert "deps" in dependencies["check-fast"]
+    assert "figures" in dependencies["check-fast"]
+    assert "tickets" in dependencies["check-fast"]
+    assert "python3 -m pytest tests/ -m precommit -q" in recipes["check-fast"]
+    assert "check-fast" in dependencies["check-full"]
+    assert "sitter-mutants" in dependencies["check-full"]
+    assert "sitter-mutants" not in dependencies["check-fast"]
+    assert "python3 -m pytest tests/ -q" in recipes["check-full"]
 
 
 def test_every_guard_suite_exercises_the_live_repository():
@@ -104,7 +123,7 @@ def test_every_guard_suite_exercises_the_live_repository():
 
 
 def test_check_prerequisites_are_phony_or_pathless():
-    """A `check` prerequisite that names an existing path and is not .PHONY is
+    """A check target prerequisite that names an existing path and is not .PHONY is
     a silent no-op: make reports it up to date and its recipe never runs.
 
     Caught live on the `tickets` target (t0507, 2026-08-31): it collided with
@@ -117,16 +136,17 @@ def test_check_prerequisites_are_phony_or_pathless():
 
     text = (REPO / "Makefile").read_text(encoding="utf-8")
     phony_lines = re.findall(r"^\.PHONY:(.*)$", text, re.M)
-    check_lines = re.findall(r"^check:(.*)$", text, re.M)
-    # A second .PHONY or check: line would silently escape a single-match
+    targets = ("check", "check-fast", "check-full")
+    # A second .PHONY or target line would silently escape a single-match
     # read; fail loud instead of under-reading (red-team seat, PR #127).
     assert len(phony_lines) == 1, "expected exactly one .PHONY line; update this parser"
-    assert len(check_lines) == 1, "expected exactly one check: line; update this parser"
     phony = set(phony_lines[0].split())
-    prereqs = check_lines[0].split()
-    for target in prereqs:
-        assert target in phony or not os.path.exists(REPO / target), (
-            f"'check' prerequisite {target!r} collides with an existing path "
-            "and is not .PHONY: make reports it up to date and its recipe "
-            "never runs"
-        )
+    for check_target in targets:
+        lines = re.findall(rf"^{re.escape(check_target)}:(.*)$", text, re.M)
+        assert len(lines) == 1, f"expected exactly one {check_target}: line"
+        for prerequisite in lines[0].split():
+            assert prerequisite in phony or not os.path.exists(REPO / prerequisite), (
+                f"'{check_target}' prerequisite {prerequisite!r} collides with an existing path "
+                "and is not .PHONY: make reports it up to date and its recipe "
+                "never runs"
+            )

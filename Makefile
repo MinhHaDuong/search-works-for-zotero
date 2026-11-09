@@ -1,13 +1,12 @@
 # Gates for this repo's own harness code.
 #
 # The TypeScript under test lives in `fork/`, a separate checkout with its own
-# suite (`npx vitest run` there) — `check`/`check-fast` don't run it, only
+# suite (`npx vitest run` there) — no check target runs it; only
 # `test-fork` does (ticket 0714: the fork suite's own test files leak
 # `mkdtempSync` directories under `tmpdir()` with no cleanup — 116 of them,
 # 16 MB, in one `npx vitest run` — and vitest's default TMPDIR is /tmp, which
-# on this host is a quota'd tmpfs). What `check`/`check-fast` cover is the
-# measurement harness in `bench/` and the figure guard that keeps the prose
-# honest about it.
+# on this host is a quota'd tmpfs). The check targets cover this repository's
+# harness and consistency guards at different costs.
 #
 # Added 2026-08-22 because `project-state.py` reported `tests.runner: none` on a
 # repo that had acquired a pytest suite the same day: with no runner declared,
@@ -16,7 +15,7 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate schema-gate sitter-version sitter-mutants sitter-install sitter-verify-install sitter-smoke golden golden-run menagerie-ris menagerie-package test-fork
+.PHONY: check check-fast check-full deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate schema-gate sitter-version sitter-mutants sitter-install sitter-verify-install sitter-smoke golden golden-run menagerie-ris menagerie-package test-fork
 
 # Where the acceptance layer's arenas live: outside the repository, because the
 # residue sweep fills them with a target's derived state and bench/ is scanned
@@ -134,8 +133,9 @@ FORK_TEST_TMPDIR ?= $(HOME)/data/fork-test-tmp
 #   getfacl /path/to/the/acceptance/arena
 
 help:
-	@echo "make check       — everything: lint, figures, tests"
-	@echo "make check-fast  — the tests alone"
+	@echo "make check       — fast pre-commit gate (same as check-fast)"
+	@echo "make check-fast  — quick guards and marked pre-commit tests"
+	@echo "make check-full  — all guards, pytest tests and sitter mutants; release or explicit validation"
 	@echo "make deps        — the gate's dependencies are declared, present and used"
 	@echo "make lint        — ruff over the harness"
 	@echo "make figures     — every figure quoted in the prose still matches its artifact"
@@ -162,13 +162,16 @@ help:
 	@echo "make menagerie-package — MENAGERIE_PACKAGE=/path/out.zip: the RIS beside attachments/, each file sha256-checked against the recipe from MENAGERIE_CACHE (never committed)"
 	@echo "make test-fork   — the fork suite with TMPDIR off the /tmp tmpfs (FORK_TEST_TMPDIR, ticket 0714)"
 
-check: deps lint figures models names progress tickets ticket-logs sitter-version sitter-mutants check-fast
+check: check-fast
 
-check-fast:
+check-fast: deps lint figures models names progress tickets ticket-logs sitter-version
+	python3 -m pytest tests/ -m precommit -q
+
+check-full: check-fast sitter-mutants
 	python3 -m pytest tests/ -q
 
 # The preflight, and the only guard that runs before the dependencies it checks
-# for. It is first in `check` for the reason ticket 0498 filed it: the gate died
+# for. It is first in the check targets for the reason ticket 0498 filed it: the gate died
 # on `No module named pytest` at its LAST step, after eight guards had printed
 # success, and a session reading the tail of that output can take it for green.
 # What the gate needs is requirements-check.txt; what a driver needs is
@@ -186,7 +189,7 @@ lint:
 
 # The guard against the defect this repo spent a session on: a figure updated in
 # an artifact and left stale in the paragraph quoting it. Also run by the test
-# suite, so `check-fast` alone still catches it; kept as its own target because
+# marked pre-commit suite, so `check-fast` also catches it; kept as its own target because
 # it is the one to run after any re-measurement.
 figures:
 	python3 bench/check_figures.py
@@ -257,15 +260,14 @@ sitter-version:
 # a file that asserts something nobody has checked since it was written.
 #
 # Cost, measured 2026-09-11, one run each on the same runner: 45,5 s for the 30
-# bootstrap mutants and 2,3 s for the 19 scheduler ones standalone, and `check`
-# itself 71 s before, 108 s after. The two figures do not add up to each other
+# bootstrap mutants and 2,3 s for the 19 scheduler ones standalone, and the
+# then-full `check` itself 71 s before, 108 s after. The two figures do not add up to each other
 # and neither is a mean; they are what a single run reported, which is the only
 # thing one run can say. Each mutant re-runs a node suite from a fresh copy of
 # the tree, so the cost is inherent rather than tunable, and it is written down
-# here so that whoever next wonders why `check` got slower reads an answer
-# instead of measuring it again. It stays IN `check`: the fallback ticket 0763
-# allows -- a separate target the release gate runs -- is how both probes came
-# to be unrun in the first place.
+# here so that whoever next wonders why the full gate got slower reads an answer
+# instead of measuring it again. `check-full` runs both probes for release or
+# explicit validation; `check` is the fast pre-commit gate.
 sitter-mutants:
 	python3 verification/probes/sdt_sitter_bootstrap_mutants.py
 	python3 verification/probes/sdt_sitter_scheduler_mutants.py

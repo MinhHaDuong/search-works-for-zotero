@@ -47,8 +47,8 @@ REPO = Path(__file__).resolve().parent.parent
 GATE = "requirements-check.txt"
 DRIVERS = "requirements-drivers.txt"
 
-#: The gate's own scope: what `make check` executes. `bench/check_*.py` is the
-#: guards themselves; `tests/` is the suite `check-fast` runs.
+#: The check targets' shared dependency scope: `bench/check_*.py` is the
+#: full gate's guards; `tests/` contains both pre-commit and full-suite tests.
 GATE_SCOPE = ("bench/check_*.py", "tests/*.py")
 
 #: Everything else that is Python and ours: the measurement drivers, and the
