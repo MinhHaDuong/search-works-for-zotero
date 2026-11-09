@@ -261,20 +261,40 @@ MUTANTS = [
     # again, so a page scan recorded as `text/html` is handed to a text extractor
     # that cannot read a photograph — 39 documents resubmitted every session on
     # the author's library.
+    # Re-anchored for ticket 0825, which put the empty-file and web-page checks
+    # inside the same block: the mutation is unchanged, the whole label check
+    # removed, and it now also resubmits the six files 0825 rules out.
     ("M29 the declared content type is trusted again, so a JPEG reaches the extractor",
      "    if (SDT_STATUS_CLASSES.queued.includes(result.status)) {\n"
-     "      const sniffed = await sniffSDTSource(sourcePath);\n"
-     "      if (sniffed && sniffed.processor !== processor) {\n"
-     "        result.status = 'unsupported'; result.reason = 'mismatched-type';\n"
-     "      }\n"
-     "    }\n",
-     ""),
+     "      if (source.size === 0) { result.status = 'unusable-source'; result.reason = 'empty-file'; }\n",
+     "    if (false) {\n"
+     "      if (source.size === 0) { result.status = 'unusable-source'; result.reason = 'empty-file'; }\n"),
     # The over-reach, which is the failure an all-failures fixture cannot see: a
     # head the table does not recognise is not evidence of anything, and HTML has
     # no signature at all. Inverted, the check refuses every genuine snapshot.
     ("M30 an unrecognised head is read as a mismatch, so real snapshots stop being admitted",
      "      if (sniffed && sniffed.processor !== processor) {",
      "      if (!sniffed || sniffed.processor !== processor) {"),
+    # ---- ticket 0825: an empty file, and a web page labelled PDF ----
+    # The empty check gone: a 0-byte file reaches the worker every session again.
+    ("M81 an empty file is submitted to the extractor",
+     "      if (source.size === 0) { result.status = 'unusable-source'; result.reason = 'empty-file'; }\n"
+     "      else {\n",
+     "      {\n"),
+    # The `%PDF-` clause dropped: a real PDF behind HTML-shaped junk is excluded,
+    # the over-reach the author's rule forbids outright.
+    ("M82 a PDF behind HTML-shaped junk is taken for a web page",
+     "    if (SDT_PDF_HEADER.every((byte, offset) => head[index + offset] === byte)) return false;\n",
+     ""),
+    # The label no longer asked: a web page correctly recorded as a snapshot is
+    # ruled out, and every snapshot in the library stops being indexed.
+    ("M83 the web-page check applies whatever the label says",
+     "        else if (processor === 'pdf' && readsAsSDTWebPage(head)) {",
+     "        else if (readsAsSDTWebPage(head)) {"),
+    # No delimiter after the opening: `<header` is read as `<head`.
+    ("M84 an opening tag is matched as a bare prefix",
+     "      /[\\t\\n\\f\\r >]/.test(text(end, end + 1));",
+     "      true;"),
     # ---- ticket 0686 item (1): the status region speaks transitions only ----
     # Opening the window is read as a change of state, so every open is spoken.
     ("M31 opening the window is announced as a transition",
