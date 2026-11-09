@@ -5,6 +5,7 @@ Author: claude
 
 --- log ---
 2026-11-09T16:28Z claude created
+2026-11-09T19:06Z MinhHaDuong journal reading 2026-11-09 (see 0830 log): the live strace line that leaked HF_TOKEN at 14:05 comes from tests/test_acceptance_posture_isolation_order.py:385 (posture.forwardable(os.environ)) as much as from run.py:664; after #642 it still carries 80 ambient names (CLAUDE_CODE_*, XDG_*, SSH_AUTH_SOCK, GH_CONFIG_DIR...), credential-looking ones dropped. The allowlist fix must cover the test's composition too.
 
 --- body ---
 

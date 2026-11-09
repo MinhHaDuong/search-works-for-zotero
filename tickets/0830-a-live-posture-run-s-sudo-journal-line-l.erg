@@ -5,6 +5,7 @@ Author: claude
 
 --- log ---
 2026-11-09T16:28Z claude created
+2026-11-09T19:06Z MinhHaDuong live check on padme 2026-11-09 20:04 local, make check at 185e1230 (PR #642 head merged with main add96381; 1618 passed, 16 skipped). sudo journal, names only: the probes carry _ACCEPTANCE_POSTURE_PROBE alone; the python3 entries carry no ENV; the one strace entry (test_acceptance_posture_isolation_order, posture.forwardable(os.environ)) carries 80 names with NO credential-looking name. Control run at the same minute from an unfixed tree (t0774 at main's posture.py): 85 names including HF_TOKEN and CLAUDE_CODE_MESSAGING_TOKEN. So the fix removes credential names from the journal on the path that leaked at 14:05 (that line was the strace re-invocation, PWD /tmp/erg-roll/swz, not the adapters' python3 line, whose ENV was already empty). The criterion as written (only allowlisted names) is NOT met on the strace path: 80 ambient names remain, 0831's scope. Left open pending the author's reading.
 
 --- body ---
 
