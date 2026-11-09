@@ -135,7 +135,7 @@ rewrote its cache only after the large one had finished, while an isolated
 control of the same attachment finished quickly
 ([live probe](../../verification/INDEX-SITTER-LIVE.md)).
 
-Queue order was a free parameter this experiment had not varied; since 0.4.38
+Queue order was a free parameter this experiment had not varied; since 0.4.39
 (ticket 0800) pending attachments are admitted smallest source first, the minimum
 selected at each admission rather than sorted into the queue, with an unmeasured
 size last and ties in census order. Nothing here can abort a wedged extraction, so
