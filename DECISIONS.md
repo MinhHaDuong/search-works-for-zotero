@@ -7964,3 +7964,13 @@ excluded; neither is submitted to the native worker again; each group's
 explanation tells the user what to do, the wording delegated. The 18 real PDFs
 among the 24 stay where they are pending the reading of the worker's message.
 `SPEC.md` §5.2.7 carries the two groups and the label-check paragraph.
+
+**2026-11-12 — The path-scoped rules return to `AGENTS.md`; the `.claude/`
+exception for them is withdrawn.** Ticket 0833. The author, verbatim:
+*"retire this repository's `.claude/rules/` directory. Every runtime we use
+(Claude Code, Codex, Pi) now reads AGENTS.md natively, but only Claude Code
+reads `.claude/rules/`, so those rules are invisible to the others. Merge
+their content into AGENTS.md and delete the directory."* This reverses the
+rules half of the 2026-09-24 entry; its skills half stands. Each former rule
+file is now a section of `AGENTS.md` § Path-scoped rules headed by the paths
+it governed.
