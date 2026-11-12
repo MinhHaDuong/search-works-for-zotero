@@ -1,0 +1,24 @@
+%erg 0.1
+Title: make check-diff fails by default: IDH_HOME points at ~/.claude, scripts moved to ~/.agents
+Created: 2026-11-12
+Author: claude
+
+--- log ---
+2026-11-12T10:02Z claude created
+
+--- body ---
+## Context
+On padme, 2026-11-12, `make check-diff` on a clean checkout exits 2:
+`python3: can't open file '/home/haduong/.claude/scripts/scoped-check.py'`.
+`Makefile:21` sets `IDH_HOME ?= $(HOME)/.claude`. The harness scripts now
+live under `~/.agents/scripts/`, and `~/.claude/scripts` does not exist.
+With `IDH_HOME=$HOME/.agents` the target runs and passes (PR #661's gate).
+AGENTS.md prescribes this command before every commit, so every lane hits it.
+Cause not established past that: when the harness moved, and whether it
+meant to leave a `~/.claude/scripts` link, are unknown.
+
+## Exit criteria
+- [ ] `make check-diff` runs from a clean checkout with `IDH_HOME` unset
+      (default fixed, or resolved via `$IDH_ROOT`)
+- [ ] Every other `$(IDH_HOME)` use in the Makefile resolves too
+- [ ] `make check-diff` green
