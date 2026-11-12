@@ -187,9 +187,10 @@ Each subsection binds only when you edit the paths in its heading.
   authoritative source. Stop, trace the consequences through design,
   requirements, tickets, evidence and implementation, correct the fact,
   propagate only its forced consequences, and record the evidence and that
-  analysis in `DECISIONS.md` in the same change. Requirements, thresholds,
-  design choices, interpretations, mechanism substitutions and choices among
-  consequences are decisions, not facts: they still need the ruling first.
+  analysis in `DECISIONS.md` in the same change, without waiting for
+  ratification. Requirements, thresholds, design choices, interpretations,
+  mechanism substitutions and choices among consequences are decisions, not
+  facts: they still need the ruling first.
 - **`SPEC.md` owns every design number**, and nothing else carries one: gate
   thresholds §5.2.8, the fixture contract's per-cell minima §5.2.10,
   experiment decision rules §5.3, budgets §5.2.9. §2 Terminology and §6
@@ -198,9 +199,10 @@ Each subsection binds only when you edit the paths in its heading.
   requirement in §3 second. The header date is the version: bump it on every
   substantive change, and leave `Status: DRAFT` until the author declares
   otherwise. `SPEC.md` speaks only of the system; ruling provenance, ticket
-  tracking and process narration go elsewhere. Handles (R requirements,
-  C constraints, D resolved decisions, X experiments) outlive renumbering: cite
-  a handle on its own, a section as `SPEC.md §N.M`.
+  tracking and process narration belong in `DECISIONS.md`, the tickets and
+  `AGENTS.md`. Handles (R requirements, C constraints, D resolved decisions,
+  X experiments) outlive renumbering: cite a handle on its own, a section as
+  `SPEC.md §N.M`.
 - **`README.md` tracks deliverables, not the design process.** It names the
   formal specification, the Multilingual Menagerie and the verification bench,
   expanding only the unfinished ones, and carries no workflow procedure,
