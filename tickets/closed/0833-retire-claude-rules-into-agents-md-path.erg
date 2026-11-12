@@ -1,0 +1,32 @@
+%erg 0.1
+Title: Retire .claude/rules into AGENTS.md path-scoped sections
+Created: 2026-11-12
+Author: claude
+Closed: autoclosed — PR #661
+
+--- log ---
+2026-11-12T08:34Z claude created
+2026-11-12T09:59Z MinhHaDuong closed — autoclosed — PR #661
+
+--- body ---
+## Context
+The author, 2026-11-12, verbatim: *"retire this repository's `.claude/rules/`
+directory. Every runtime we use (Claude Code, Codex, Pi) now reads AGENTS.md
+natively, but only Claude Code reads `.claude/rules/`, so those rules are
+invisible to the others. Merge their content into AGENTS.md and delete the
+directory."*
+
+The three rule files (`bench.md`, `documents.md`, `tickets.md`) were each
+path-scoped by `paths:` frontmatter. Their content moves into `AGENTS.md` as
+sections headed by the paths they govern, merged rather than pasted: what
+`AGENTS.md` already says is not repeated, dated incident narratives shrink to
+the mechanism they taught.
+
+## Exit criteria
+- [ ] `.claude/rules/` deleted; `.gitignore` no longer excepts it
+- [ ] Every project-specific requirement of the three files appears in an
+      `AGENTS.md` section headed by its original `paths:`
+- [ ] `git grep -n '.claude/rules'` returns only history records
+      (`DECISIONS.md`, `tickets/closed/`, this ticket)
+- [ ] The retirement is recorded in `DECISIONS.md` in the author's words
+- [ ] `make check-diff` green, `selected:`/`skipped:` quoted on the PR

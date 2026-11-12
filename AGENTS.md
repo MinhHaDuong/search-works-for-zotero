@@ -7,16 +7,15 @@ and in the author's fork, not here.
 
 ## The document set
 
-This file owns workflow conventions alone, with its scoped extensions under
-`.claude/`: project state, measurements, requirements, and history live in the
-documents that own them. The table says what each is for; what an agent must do
-differently in each is `.claude/rules/documents.md`, which loads when you touch
-one of them.
+This file owns workflow conventions alone: project state, measurements,
+requirements, and history live in the documents that own them. The table says
+what each is for; what an agent must do differently in each is
+§ Path-scoped rules below.
 
 | Document or directory | Role |
 |---|---|
 | [`AGENTS.md`](AGENTS.md) | Instructions and workflow conventions for agents; owns no project state |
-| [`.claude/rules/`](.claude/rules/), [`.claude/skills/`](.claude/skills/) | `AGENTS.md`'s conventions scoped out of every session: a rule loads when its `paths:` are touched, a skill when invoked |
+| [`.claude/skills/`](.claude/skills/) | `AGENTS.md`'s on-demand procedures, loaded when invoked |
 | [`SPEC.md`](SPEC.md) | What the system promises, what the world imposes, how it answers both, the shared vocabulary, and where it can leak |
 | [`DECISIONS.md`](DECISIONS.md) | Append-only record of ratified choices and later vetoes |
 | [`README.md`](README.md) | Public landing page: proposition and the three deliverables' compact status |
@@ -62,8 +61,7 @@ once, in `SPEC.md` §1. Read it there rather than here.
 - **Tickets:** `./tickets/erg` (check / ready / new / close / log), rules in
   `tickets/AGENTS.md`. `erg check` must pass, `erg ready` is the work queue,
   and sequencing is machine-readable `Blocked-by`, never prose. Stamp log
-  entries with `erg log`, never by hand; why, and the fork-read incident, in
-  `.claude/rules/tickets.md` (it loads only when a `tickets/` file is opened).
+  entries with `erg log`, never by hand (§ Path-scoped rules, `tickets/**`).
 - **One statement per fact.** Thresholds, rules, and open questions live in
   their owning document above, and everywhere else is a pointer. Duplicated
   numbers drift — this repo's most expensive recurring defect.
@@ -155,15 +153,15 @@ you send — so read what you send, as sent.
 
 Before filing a ticket that specifies new code, read the fork's `src/` and
 `SYNC.md`'s upstream rows: the implementation may already exist. Why, and the
-mirror error of reading a built ticket as unbuilt, are in
-`.claude/rules/tickets.md`.
+mirror error of reading a built ticket as unbuilt: § Path-scoped rules,
+`tickets/**`.
 
 ## Environment notes
 
 - Upstream movement, catch-up and re-baseline: the `upstream-catchup` skill.
-  The harness's scoped notes (dependency sets, the model registry, probe
-  lifecycle, the full-text plugin, where the corpora live) are
-  `.claude/rules/bench.md`.
+  The harness's notes (dependency sets, the model registry, probe lifecycle,
+  the full-text plugin, where the corpora live): § Path-scoped rules,
+  `bench/**`.
 - The author's fork (`FORK_REPOSITORY` in `UPSTREAM`) is authorized for direct
   pushes from agent sessions; in a remote session attach it with `add_repo`
   rather than reporting it unreachable. The upstream repository is read-only,
@@ -176,3 +174,97 @@ mirror error of reading a built ticket as unbuilt, are in
   recording it here.
 - **Once authorized, execute.** Do not hand the author a URL to click or a
   body to paste: mechanical work the agent can do is the agent's.
+
+## Path-scoped rules
+
+Each subsection applies only when you touch the paths in its heading.
+
+### `SPEC.md`, `DECISIONS.md`, `README.md`, `STATE.md`, `verification/**`, `fork/**`, `fork-*/**`
+
+- **`DECISIONS.md` is append-only.** The author's rulings land there first and
+  `SPEC.md` is edited to match; never edit a ratified entry. One exception: a
+  false factual statement proved by a reproducible measurement or an
+  authoritative source. Stop, trace the consequences through design,
+  requirements, tickets, evidence and implementation, correct the fact,
+  propagate only its forced consequences, and record the evidence and that
+  analysis in `DECISIONS.md` in the same change, without waiting for
+  ratification. Requirements, thresholds, design choices, interpretations,
+  mechanism substitutions and choices among consequences are decisions, not
+  facts: they still need the ruling first.
+- **`SPEC.md` owns every design number**, and nothing else carries one: gate
+  thresholds §5.2.8, the fixture contract's per-cell minima §5.2.10,
+  experiment decision rules §5.3, budgets §5.2.9. §2 Terminology and §6
+  Security own none and point at the owner; §6 discloses rather than decides,
+  so closing a gap it names is a ruling in `DECISIONS.md` first and a
+  requirement in §3 second. The header date is the version: bump it on every
+  substantive change, and leave `Status: DRAFT` until the author declares
+  otherwise. `SPEC.md` speaks only of the system; ruling provenance, ticket
+  tracking and process narration belong in `DECISIONS.md`, the tickets and
+  `AGENTS.md`. Handles (R requirements, C constraints, D resolved decisions,
+  X experiments) outlive renumbering: cite a handle on its own, a section as
+  `SPEC.md §N.M`.
+- **`README.md` tracks deliverables, not the design process.** It names the
+  formal specification, the Multilingual Menagerie and the verification bench,
+  expanding only the unfinished ones, and carries no workflow procedure,
+  design ledger, threshold, measurement history or per-requirement board.
+- **`STATE.md` stays under forty lines and pointer-only.**
+- **`verification/` is evidence, not authority.** A report is cited by path
+  from the ticket it serves; where it touches the design, the owning `SPEC.md`
+  section is the record. Commit reports there: an uncommitted one dies with
+  its worktree.
+- **`fork/` never contains a `tickets/` directory**, or it shows up in a diff
+  sent upstream.
+
+### `bench/**`, `verification/probes/**`, `requirements-check.txt`, `requirements-drivers.txt`
+
+- **Two dependency sets.** `requirements-check.txt` is what the gate needs
+  (`ruff`, `pytest`, `numpy`); `requirements-drivers.txt` is what a measurement
+  driver adds, so nobody installs a model runtime to run a lint gate.
+  `bench/check_deps.py` runs first in `make check` and names a missing package
+  before any guard prints.
+- **One model name, one place: `bench/models.json`.** Drivers name a model by
+  registry id and resolve it — `pooling` mode, `input_template` prefixes, ONNX
+  mirror or the author's own repository — through `bench/registry.mjs` or
+  `bench/registry.py`; adding a model means adding a record.
+  `bench/check_models.py` fails on a model id, pooling mode or input template
+  written literally elsewhere under `bench/`, and on a candidate missing the
+  `pooling` / `pooling_source` pair. Read pooling off the model's own
+  `1_Pooling/config.json`, never from a sibling: a wrong pooling degrades
+  retrieval silently and reads as a worse model, not a bug.
+- **Throwaway probe state gets a lifecycle before it gets a path.** The
+  acceptance runner allocates a fresh arena per run under
+  `$ACCEPTANCE_ARENA/<date>/<time>-<check>` and keeps the three most recent
+  runs per base (ticket 0720). Nothing else under `~/data` is ever swept, so a
+  hand-made directory beside the run layout is invisible to every cleanup (on
+  2026-09-03 one afternoon left five, 613 MB, each with its own model
+  weights). Put an ad-hoc probe under a job's `tmp/` or inside the run layout;
+  if it must live beside the arena, name it in the ticket or verification note
+  that consumes it, with when it can go.
+- **The full-text plugin.** Zotero's local API cannot request extraction and
+  Zotero 10 has no bulk reindex, so the author's Zotero carries
+  `bench/zotero-fulltext-plugin/`: two endpoints on Zotero's own server that
+  reindex named attachments in full and report their state; the client is
+  `bench/zotero_fulltext.py`. Group-library items answer only under the local
+  API's group path (`/api/groups/<id>/…`); the plugin resolves keys across
+  libraries. The page cap was lifted and the X5 arm documents re-extracted on
+  2026-09-02 (ticket 0025's log); every other cache holds at most 100 pages,
+  so census numbers measured before that date stand.
+- **The measurement corpora are not in this repo.** Real vectors, the 477k
+  index and the 44,9 MB extraction live on the author's machine;
+  `bench/results/` holds committed JSON summaries. Ticket 0025's substrate map
+  says which experiments run where.
+
+### `tickets/**`
+
+- **Stamp ticket logs with `erg log`**, which reads the real clock: hand-typed
+  stamps named times that had not happened, and `bench/check_ticket_logs.py`
+  fails on a stamp later than its commit. Out-of-order entries are fine:
+  parallel sessions merge into one log.
+- **Why the fork is read before filing new code** (§ Upstream relations): the
+  code lives in a separate repository, so a null search here reads exactly
+  like a real absence. On 2026-09-01 two of tracker 0557's children were filed
+  for work shipped upstream in v1.10.0 on 2026-08-29: 0560 (embedded-TOC
+  extraction, shipped as `extractPdfOutline`) and 0558 (attachment file
+  access, `SYNC.md` issue #29). The mirror error — reporting built work as
+  unbuilt, as seg/1 was the day after its fork branch was tested — is fixed by
+  reading the ticket's own log, which carries branch, SHA and measurements.
