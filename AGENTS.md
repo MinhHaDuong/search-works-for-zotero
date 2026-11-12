@@ -177,7 +177,7 @@ mirror error of reading a built ticket as unbuilt: § Path-scoped rules,
 
 ## Path-scoped rules
 
-Each subsection binds only when you edit the paths in its heading.
+Each subsection applies only when you touch the paths in its heading.
 
 ### `SPEC.md`, `DECISIONS.md`, `README.md`, `STATE.md`, `verification/**`, `fork/**`, `fork-*/**`
 
