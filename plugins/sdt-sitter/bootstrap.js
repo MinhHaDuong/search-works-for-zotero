@@ -345,22 +345,62 @@ function tailHasSDTEOF(tail) {
   return false;
 }
 
+/* Mask the lexical channels that can carry arbitrary bytes in a PDF without
+   being structure: comments (`%` to end of line) and strings (literal
+   `(...)` with escapes and balanced nesting, and hex `<...>`). What survives
+   is structural text, so a structural match cannot be faked by content. Both
+   channels are legal anywhere in ISO 32000, and each was reproduced in
+   review on PR #664 as classing a sound PDF damaged: first through a `%`
+   comment, then through a literal string carrying `/Linearized /L 9999999`
+   in the first KiB. An unclosed string (a truncated file) swallows the rest
+   of the window, which can only fail to match — the admit side. */
+function maskSDTPdfLexicals(text) {
+  let out = '';
+  let index = 0;
+  while (index < text.length) {
+    const ch = text[index];
+    if (ch === '%') {
+      while (index < text.length && text[index] !== '\n' && text[index] !== '\r') index++;
+    } else if (ch === '(') {
+      let depth = 0;
+      while (index < text.length) {
+        const c = text[index];
+        if (c === '\\') { index += 2; continue; }
+        if (c === '(') depth++;
+        if (c === ')') { depth--; index++; if (depth === 0) break; continue; }
+        index++;
+      }
+      out += '()';
+    } else if (ch === '<' && /[0-9A-Fa-f>]/.test(text[index + 1] ?? '')) {
+      // A hex string: '<' followed by hex digits (or immediately '>'). '<<'
+      // is a dictionary start and must survive — checking the NEXT byte for
+      // a hex digit, not just for '<', is what keeps '<< /Linearized ... >>'
+      // structural.
+      index++;
+      while (index < text.length && text[index] !== '>') index++;
+      if (index < text.length) index++;
+      out += '<>';
+    } else {
+      out += ch;
+      index++;
+    }
+  }
+  return out;
+}
+
 function readsAsSDTDamagedPdf(head, tail, size) {
   if (!tail || typeof size !== 'number' || !Number.isFinite(size) || size <= 0) return false;
   if (!tailHasSDTEOF(tail)) return true;
   const text = bytes => String.fromCharCode(...Array.from(bytes));
   // startxref: the LAST one in the tail is the one the trailer honors.
-  const startxref = [...text(tail).matchAll(/startxref\s+(\d+)/g)].pop();
+  const tailText = maskSDTPdfLexicals(text(tail));
+  const startxref = [...tailText.matchAll(/startxref\s+(\d+)/g)].pop();
   if (startxref && Number(startxref[1]) > size) return true;
   // A linearized file declares its total length in its first-page
-  // dictionary. Comments are stripped before matching: a legal `%` comment
-  // may carry the bytes `/Linearized /L 9999999` without being a dictionary
-  // (reproduced in review on PR #664: a sound PDF with such a comment in its
-  // first KiB was classed damaged), and ISO 32000 allows comments anywhere.
-  // /L is sought only within 200 bytes after /Linearized, inside the small
-  // first-page dictionary. When in doubt, admit.
+  // dictionary: /L sought only within 200 bytes after /Linearized, inside
+  // the small first-page dictionary. When in doubt, admit.
   if (head) {
-    const headText = text(head).replace(/%[^\n\r]*/g, '');
+    const headText = maskSDTPdfLexicals(text(head));
     const linearized = /\/Linearized\b[\s\S]{0,200}?\/L\s+(\d+)/.exec(headText);
     if (linearized && Number(linearized[1]) > size) return true;
   }
