@@ -1583,6 +1583,7 @@ NOT_INDEXED_OWNER = {
     'missing-source-linked': 'missing-source',
     'empty-file': 'unusable-source',
     'web-page-as-pdf': 'unusable-source',
+    'damaged-pdf': 'unusable-source',
     'no-extractor': 'unsupported',
     'mismatched-type': 'unsupported',
 }
@@ -1628,6 +1629,7 @@ def test_the_not_indexed_groups_read_in_the_census_account_s_order():
     # way here.
     for first, second in (('missing-source-stored', 'missing-source-linked'),
                           ('empty-file', 'web-page-as-pdf'),
+                          ('web-page-as-pdf', 'damaged-pdf'),
                           ('no-extractor', 'mismatched-type')):
         assert groups.index(first) < groups.index(second), \
             f'{first} reads after {second}, against the account row that names both'

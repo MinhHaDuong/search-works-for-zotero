@@ -315,6 +315,46 @@ function readsAsSDTWebPage(head) {
   });
 }
 
+/* A truncated download where a PDF was expected (ticket 0827): the 0825 clone
+   probe found real files that fail native extraction every session because
+   the download was short. The byte test is deliberately a single check — no
+   `%%EOF` anywhere in the last kilobyte — and nothing else. Every structural
+   variant (startxref beyond size, a linearized `/L` beyond size) was tried
+   here first and withdrawn after review: PDF lexical structure is too loose
+   for text matching (comments, strings, hex and raw stream bytes can carry
+   any token), so each added check misclassed some sound PDF as damaged, and
+   the ticket's bar is "must never class a sound PDF as damaged; when in
+   doubt, admit" (author's ruling 2026-11-23, option A). A file whose last
+   kilobyte holds no `%%EOF` is the one condition no sound PDF can meet and
+   no content can fake. Files with a valid `%%EOF` but a declared length
+   beyond their size are NOT caught here; they stay in the honest
+   failed-session class instead. */
+var SDT_PDF_TAIL_WINDOW = 1024;
+var SDT_PDF_EOF = [0x25, 0x25, 0x45, 0x4F, 0x46];  // %%EOF
+
+function tailHasSDTEOF(tail) {
+  if (!tail) return false;
+  for (let index = 0; index + SDT_PDF_EOF.length <= tail.length; index++) {
+    if (SDT_PDF_EOF.every((byte, offset) => tail[index + offset] === byte)) return true;
+  }
+  return false;
+}
+
+function readsAsSDTDamagedPdf(tail) {
+  // A tail that could not be read proves nothing — the same rule as the head
+  // read: fail open, admit (review round on PR #664 reproduced the inverted
+  // null reading classing a sound PDF damaged).
+  return tail != null && !tailHasSDTEOF(tail);
+}
+
+/* The tail of a source file, read once, for the test above. The window is
+   clamped at the file size, so a short file reads whole. */
+async function readSDTSourceTail(path, size) {
+  const window = Math.min(size, SDT_PDF_TAIL_WINDOW);
+  try { return await IOUtils.read(path, { offset: size - window, maxBytes: window }); }
+  catch (_error) { return null; }
+}
+
 /* The head of a source file, read once: the longest prefix above, or the whole
    `%PDF-` window where the label says PDF. A read that fails answers `null`,
    which is the same answer as an unrecognised head: this function's job is to
@@ -490,6 +530,8 @@ var SDT_TEXT = {
     "not-indexed-empty-file-detail": "The file is empty (0 bytes), usually because a download or a sync was interrupted. Indexing it again cannot help. You can download it again, or remove the attachment and attach the file again.",
     "not-indexed-web-page-as-pdf": "Web page saved as PDF",
     "not-indexed-web-page-as-pdf-detail": "The file is recorded as a PDF but holds a web page, often a publisher's login or paywall page saved in place of the article. Open it to check, then replace it with the article's real PDF.",
+    "not-indexed-damaged-pdf": "Damaged PDF",
+    "not-indexed-damaged-pdf-detail": "The file is truncated: no end-of-file marker in its last kilobyte. No extractor can read it and retrying cannot help. Download the file again, or remove the attachment and attach the file again.",
     "not-indexed-no-extractor": "No extractor for this format",
     "not-indexed-no-extractor-detail": "The sitter has no extractor for this format. An alternative supported file may provide text.",
     "not-indexed-mismatched-type": "Recorded format differs",
@@ -562,7 +604,7 @@ var SDT_TEXT = {
     "status-inspection-error": "Could not be examined",
     "status-unsupported-pack": "Stored index format requires review",
     "status-missing-source": "Stored or linked file unavailable",
-    "status-unusable-source": "Empty file or web page",
+    "status-unusable-source": "Unusable source file",
     "status-excluded": "Trashed, or not an attachment",
     "status-unsupported": "No extractor or format mismatch",
     "diagnostics-error": "Last extraction problem: {error}",
@@ -1596,6 +1638,7 @@ var SDT_NOT_INDEXED_GROUPS = {
   'missing-source-linked': { title: 'not-indexed-linked-file', detail: 'not-indexed-linked-file-detail' },
   'empty-file': { title: 'not-indexed-empty-file', detail: 'not-indexed-empty-file-detail' },
   'web-page-as-pdf': { title: 'not-indexed-web-page-as-pdf', detail: 'not-indexed-web-page-as-pdf-detail' },
+  'damaged-pdf': { title: 'not-indexed-damaged-pdf', detail: 'not-indexed-damaged-pdf-detail' },
   'no-extractor': { title: 'not-indexed-no-extractor', detail: 'not-indexed-no-extractor-detail' },
   'mismatched-type': { title: 'not-indexed-mismatched-type', detail: 'not-indexed-mismatched-type-detail' },
   'no-attachment': { title: 'not-indexed-no-attachment', detail: 'not-indexed-no-attachment-detail' },
@@ -3832,10 +3875,12 @@ async function initialize(rootURI, token, era = shutdowns) {
     //
     // Ticket 0825 adds two verdicts that ARE failures, and `unusable-source`
     // says so: an empty file, or a web page where the label promised a PDF.
-    // The file is broken rather than misclassified -- nothing extracts from
-    // either whatever label it carries -- so it stays in the author's "could not
-    // be indexed" count, and like `missing-source` it names a repair the author
-    // can make, which a retry next session cannot.
+    // Ticket 0827 adds a third: a truncated PDF, proved broken at the byte
+    // level before the worker is asked. The file is broken rather than
+    // misclassified -- nothing extracts from any of them whatever label they
+    // carry -- so they stay in the author's "could not be indexed" count, and
+    // like `missing-source` they name a repair the author can make, which a
+    // retry next session cannot.
     if (SDT_STATUS_CLASSES.queued.includes(result.status)) {
       if (source.size === 0) { result.status = 'unusable-source'; result.reason = 'empty-file'; }
       else {
@@ -3846,6 +3891,12 @@ async function initialize(rootURI, token, era = shutdowns) {
         }
         else if (processor === 'pdf' && readsAsSDTWebPage(head)) {
           result.status = 'unusable-source'; result.reason = 'web-page-as-pdf';
+        }
+        else if (processor === 'pdf') {
+          const tail = await readSDTSourceTail(sourcePath, source.size);
+          if (readsAsSDTDamagedPdf(tail)) {
+            result.status = 'unusable-source'; result.reason = 'damaged-pdf';
+          }
         }
       }
     }

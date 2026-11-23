@@ -343,6 +343,13 @@ export function createHarness(options = {}) {
   const sourceBody = row => {
     const body = new Uint8Array(row.sourceBytes).fill(0x78);
     if (row.magic) body.set(row.magic, 0);
+    // A real PDF ends with %%EOF, so a pdf row carries one in its last bytes
+    // unless the fixture overrides the tail (`row.tail`) — the override is how
+    // a truncated download is shaped (ticket 0827's byte test reads the tail).
+    if (row.tail) body.set(row.tail, body.length - row.tail.length);
+    else if (row.kind === 'pdf' && body.length >= 6) {
+      body.set([0x25, 0x25, 0x45, 0x4F, 0x46, 0x0A], body.length - 6);  // %%EOF\n
+    }
     return body;
   };
   for (const row of rows) {

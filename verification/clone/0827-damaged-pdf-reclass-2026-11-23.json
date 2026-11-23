@@ -1,0 +1,229 @@
+{
+ "ticket": "0827",
+ "date": "2026-11-23",
+ "source": "verification/clone/0825-ensure-probe-2026-09-24.json",
+ "rule": "no %%EOF in the last kilobyte (readsAsSDTDamagedPdf, %%EOF-only per the author's 2026-11-23 ruling, option A)",
+ "summary": {
+  "probeAttachments": 24,
+  "damagedPdf": 12,
+  "unchanged": 12
+ },
+ "attachments": [
+  {
+   "attachment": "1/J2XJRQXE",
+   "probeClass": "truncated-file",
+   "size": 1444259,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": null,
+   "byteTest": "damaged-pdf",
+   "groupUnder0827": "damaged-pdf"
+  },
+  {
+   "attachment": "1/WQJGM6NN",
+   "probeClass": "complete-file-malformed-xref",
+   "size": 2610033,
+   "tailHasEOF": true,
+   "linearizedDeclaredLength": null,
+   "byteTest": "admit",
+   "groupUnder0827": "complete-file-malformed-xref"
+  },
+  {
+   "attachment": "1/SQZ2YLVK",
+   "probeClass": "truncated-file",
+   "size": 2523118,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": null,
+   "byteTest": "damaged-pdf",
+   "groupUnder0827": "damaged-pdf"
+  },
+  {
+   "attachment": "1/S6V7C3BR",
+   "probeClass": "truncated-file",
+   "size": 369681,
+   "tailHasEOF": true,
+   "linearizedDeclaredLength": 1006863,
+   "byteTest": "admit",
+   "groupUnder0827": "truncated-file"
+  },
+  {
+   "attachment": "1/57N5KAS9",
+   "probeClass": "empty-file",
+   "size": 0,
+   "tailHasEOF": null,
+   "linearizedDeclaredLength": null,
+   "byteTest": "admit",
+   "groupUnder0827": "empty-file"
+  },
+  {
+   "attachment": "1/7RIMK3ME",
+   "probeClass": "web-page-as-pdf",
+   "size": 4641,
+   "tailHasEOF": null,
+   "linearizedDeclaredLength": null,
+   "byteTest": "admit",
+   "groupUnder0827": "web-page-as-pdf"
+  },
+  {
+   "attachment": "1/95V787TH",
+   "probeClass": "truncated-file",
+   "size": 441671,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": 6285283,
+   "byteTest": "damaged-pdf",
+   "groupUnder0827": "damaged-pdf"
+  },
+  {
+   "attachment": "1/MPQHJR2E",
+   "probeClass": "truncated-file",
+   "size": 111548,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": 7201318,
+   "byteTest": "damaged-pdf",
+   "groupUnder0827": "damaged-pdf"
+  },
+  {
+   "attachment": "1/KFPF5X8K",
+   "probeClass": "truncated-file",
+   "size": 111548,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": 7201318,
+   "byteTest": "damaged-pdf",
+   "groupUnder0827": "damaged-pdf"
+  },
+  {
+   "attachment": "1/XHGZQG38",
+   "probeClass": "complete-file-malformed-xref",
+   "size": 47554858,
+   "tailHasEOF": true,
+   "linearizedDeclaredLength": null,
+   "byteTest": "admit",
+   "groupUnder0827": "complete-file-malformed-xref"
+  },
+  {
+   "attachment": "1/EDHRH5EL",
+   "probeClass": "truncated-file",
+   "size": 393216,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": null,
+   "byteTest": "damaged-pdf",
+   "groupUnder0827": "damaged-pdf"
+  },
+  {
+   "attachment": "1/SCF8K4KD",
+   "probeClass": "truncated-file",
+   "size": 190798,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": 666654,
+   "byteTest": "damaged-pdf",
+   "groupUnder0827": "damaged-pdf"
+  },
+  {
+   "attachment": "1/3JJT7BNI",
+   "probeClass": "truncated-file",
+   "size": 629415,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": 1125594,
+   "byteTest": "damaged-pdf",
+   "groupUnder0827": "damaged-pdf"
+  },
+  {
+   "attachment": "1/ARZZRZ7R",
+   "probeClass": "complete-file-malformed-xref",
+   "size": 2610033,
+   "tailHasEOF": true,
+   "linearizedDeclaredLength": null,
+   "byteTest": "admit",
+   "groupUnder0827": "complete-file-malformed-xref"
+  },
+  {
+   "attachment": "1/33MW9SNW",
+   "probeClass": "web-page-as-pdf",
+   "size": 132013,
+   "tailHasEOF": null,
+   "linearizedDeclaredLength": null,
+   "byteTest": "admit",
+   "groupUnder0827": "web-page-as-pdf"
+  },
+  {
+   "attachment": "1/4XAHR6WB",
+   "probeClass": "web-page-as-pdf",
+   "size": 224679,
+   "tailHasEOF": null,
+   "linearizedDeclaredLength": null,
+   "byteTest": "admit",
+   "groupUnder0827": "web-page-as-pdf"
+  },
+  {
+   "attachment": "3/NGUUZCNS",
+   "probeClass": "web-page-as-pdf",
+   "size": 4641,
+   "tailHasEOF": null,
+   "linearizedDeclaredLength": null,
+   "byteTest": "admit",
+   "groupUnder0827": "web-page-as-pdf"
+  },
+  {
+   "attachment": "3/E9C7EGDF",
+   "probeClass": "empty-file",
+   "size": 0,
+   "tailHasEOF": null,
+   "linearizedDeclaredLength": null,
+   "byteTest": "admit",
+   "groupUnder0827": "empty-file"
+  },
+  {
+   "attachment": "3/735ST7E7",
+   "probeClass": "truncated-file",
+   "size": 369681,
+   "tailHasEOF": true,
+   "linearizedDeclaredLength": 1006863,
+   "byteTest": "admit",
+   "groupUnder0827": "truncated-file"
+  },
+  {
+   "attachment": "3/NQ5T9K9B",
+   "probeClass": "truncated-file",
+   "size": 441671,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": 6285283,
+   "byteTest": "damaged-pdf",
+   "groupUnder0827": "damaged-pdf"
+  },
+  {
+   "attachment": "3/HRNG6PBM",
+   "probeClass": "truncated-file",
+   "size": 111548,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": 7201318,
+   "byteTest": "damaged-pdf",
+   "groupUnder0827": "damaged-pdf"
+  },
+  {
+   "attachment": "3/FTGHUPF2",
+   "probeClass": "truncated-file",
+   "size": 111548,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": 7201318,
+   "byteTest": "damaged-pdf",
+   "groupUnder0827": "damaged-pdf"
+  },
+  {
+   "attachment": "3/BFYBZ2XF",
+   "probeClass": "complete-file-malformed-xref",
+   "size": 47554858,
+   "tailHasEOF": true,
+   "linearizedDeclaredLength": null,
+   "byteTest": "admit",
+   "groupUnder0827": "complete-file-malformed-xref"
+  },
+  {
+   "attachment": "3/2AQUZJZY",
+   "probeClass": "truncated-file",
+   "size": 393216,
+   "tailHasEOF": false,
+   "linearizedDeclaredLength": null,
+   "byteTest": "damaged-pdf",
+   "groupUnder0827": "damaged-pdf"
+  }
+ ]
+}
