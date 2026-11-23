@@ -152,7 +152,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from ..interface import Declaration, UnsupportedVerb
-from ..posture import Posture
+from ..posture import Posture, forwarded_environment
 
 # Not a relative import: `run.py` puts `bench/` itself on sys.path and imports
 # this package as `acceptance.…`, where the shared module sits one level ABOVE
@@ -721,7 +721,8 @@ class Beaver:
         # before this Popen if the posture could not be established; it is
         # never caught to fall back to spawning `argv` as the operator.
         if self._posture is not None:
-            argv = self._posture.wrap(argv, self.environment())
+            argv = self._posture.wrap(argv, forwarded_environment(
+                {"HOME": str(self.home), "DISPLAY": self.display}))
         # `start_new_session` puts the host in a process group of its own, and
         # stopping it signals that GROUP rather than the process. This is not
         # tidiness: the host's launcher is a shell script that runs the real

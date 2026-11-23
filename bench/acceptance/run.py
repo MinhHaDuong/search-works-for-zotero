@@ -655,13 +655,15 @@ def main() -> int:
     # The identity switch around the egress assertion's subject arm — the
     # whole re-invocation, tracer included, because `sudo` is refused from
     # inside either (`posture.py`'s module docstring, ticket 0637). What
-    # crosses with it is the operator's environment minus the names that say
-    # WHO is running (`posture.forwardable`): the account's own HOME and
-    # runtime directory are what a rootless container engine started as the
-    # account needs, and `sudo` supplies them. A refused posture raises here,
+    # crosses with it is `posture.forwardable`'s explicit allowlist
+    # (ticket 0831: `sudo` journals every preserved name's value, so the
+    # operator's environment must not cross wholesale), minus the names that
+    # say WHO is running: the account's own HOME and runtime directory are
+    # what a rootless container engine started as the account needs, and
+    # `sudo` supplies them. A refused posture raises here,
     # inside `record`, and lands as `not-run` naming the reason, exactly as an
     # adapter's own `wrap` does.
-    forwarded = posture_mod.forwardable(os.environ)
+    forwarded = posture_mod.forwardable(os.environ, extra=adapters.declared_env_names())
 
     def under(command: list[str]) -> list[str]:
         return resolved_posture.wrap(command, forwarded)

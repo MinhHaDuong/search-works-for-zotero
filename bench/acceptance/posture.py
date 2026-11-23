@@ -343,16 +343,32 @@ IDENTITY_BOUND: frozenset[str] = frozenset({
 })
 
 
-def forwardable(env) -> dict[str, str]:
+#: The names a whole re-invoked `--drive` driver may carry across the switch
+#: (ticket 0831), beyond `IDENTITY_BOUND` stripping: the ambient allowlist,
+#: the arena root the Makefile exports, and the display the desktop adapters
+#: read. The run's own target-configuration names are NOT written here — this
+#: module is target-neutral (the names a target reads are declared by its
+#: adapter, and `run.py` passes them in as `extra`). An explicit allowlist
+#: rather than the whole environment: `sudo` journals the NAME and VALUE of
+#: every preserved variable (ticket 0829), so an arbitrary ambient name must
+#: not be preserved at all — after 0829's credential filter, the strace
+#: re-invocation's journal still carried 80 ambient names. `wrap`'s
+#: credential-name filter still applies on top, so an `extra` name that looks
+#: like a credential is refused there even though the allowlist admits it.
+DRIVER_ALLOWLIST: tuple[str, ...] = (*AMBIENT_ALLOWLIST, "ACCEPTANCE_ARENA", "DISPLAY")
+
+
+def forwardable(env, extra: tuple[str, ...] = ()) -> dict[str, str]:
     """The names in `env` a whole re-invoked driver may carry across the switch.
 
-    Everything the run itself needs stays — `PATH`, and any variable the
-    operator exported for the target to see (`Server` merges `os.environ`
-    into the target's environment, so an export in the invoking shell reaches
-    the target exactly as it did before the switch). Only `IDENTITY_BOUND`
-    goes; see its comment.
+    An explicit allowlist (ticket 0831): `DRIVER_ALLOWLIST` plus `extra` (the
+    target-configuration names the adapters declare, passed by `run.py`),
+    minus `IDENTITY_BOUND` (see its comment — `sudo` sets the account's own
+    values for those).
     """
-    return {name: value for name, value in dict(env).items() if name not in IDENTITY_BOUND}
+    allowed = set(DRIVER_ALLOWLIST) | set(extra)
+    return {name: value for name, value in dict(env).items()
+            if name not in IDENTITY_BOUND and name in allowed}
 
 
 def inherited(account: str) -> Posture:

@@ -164,7 +164,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from ..interface import Declaration, UnsupportedVerb
-from ..posture import Posture
+from ..posture import Posture, forwarded_environment
 
 #: The head `gh api repos/zotero/zotero/pulls/6012` returned on 2026-09-03. The
 #: pull request force-pushed off `77e2c4b` at 2026-09-02T19:23:11Z, so the ref
@@ -804,7 +804,8 @@ class ZoteroCore6012:
         # raises before this Popen on a refused posture and is never caught
         # here to fall back to an unwrapped spawn.
         if self._posture is not None:
-            argv = self._posture.wrap(argv, self.environment())
+            argv = self._posture.wrap(argv, forwarded_environment(
+                {"HOME": str(self.home), "DISPLAY": self.display}))
         log = self.arena / HOST_LOG
         started = time.monotonic()
         with log.open("wb") as sink:
