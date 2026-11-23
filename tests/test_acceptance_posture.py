@@ -326,3 +326,41 @@ def test_forwarded_environment_is_an_allowlist_not_os_environ(monkeypatch):
     assert out["PATH"] == "/bin" and out["HOME"] == "/arena"
     assert "HF_TOKEN" not in out and "SOME_OTHER" not in out
     assert set(out) <= set(posture.AMBIENT_ALLOWLIST) | {"HOME"}
+
+
+# --- the re-invocation carries an explicit allowlist too (ticket 0831) ------
+
+def test_forwardable_is_an_explicit_allowlist_not_the_whole_environment():
+    """`sudo` journals the name AND value of every preserved variable, so the
+    re-invoked driver must carry an explicit allowlist, not the operator's
+    environment minus identity (ticket 0831: the strace path journalled 80
+    ambient names after 0829's credential filter). The target-configuration
+    names arrive via `extra` — declared by the adapters, which are the one
+    place a target's vocabulary may live — not written in the layer."""
+    env = {"PATH": "/usr/bin", "DISPLAY": ":1", "ACCEPTANCE_ARENA": "/data/arena",
+           "ZOTEUS_UPDATE_CHECK": "false", "SOME_ARBITRARY_NAME": "x",
+           "HF_TOKEN": "x", "HOME": "/home/operator", "USER": "operator"}
+    kept = posture.forwardable(env, extra=("ZOTEUS_UPDATE_CHECK",))
+    assert "SOME_ARBITRARY_NAME" not in kept
+    assert "HF_TOKEN" not in kept
+    assert kept["PATH"] == "/usr/bin"
+    assert kept["DISPLAY"] == ":1"
+    assert kept["ACCEPTANCE_ARENA"] == "/data/arena"
+    assert kept["ZOTEUS_UPDATE_CHECK"] == "false"
+    for name in posture.IDENTITY_BOUND:
+        assert name not in kept
+    # Without `extra`, even a declared target name does not cross by default.
+    assert "ZOTEUS_UPDATE_CHECK" not in posture.forwardable(env)
+
+
+def test_reinvocation_preserve_env_names_only_the_allowlist():
+    """The exit criterion: an arbitrary non-allowlisted name must not reach
+    `--preserve-env`, because that is the list sudo writes to its journal."""
+    env = {"PATH": "/usr/bin", "ZOTEUS_UPDATE_CHECK": "false",
+           "SOME_ARBITRARY_NAME": "x", "HF_TOKEN": "x"}
+    argv = _ACCOUNT.wrap(["run"], posture.forwardable(env, extra=("ZOTEUS_UPDATE_CHECK",)))
+    preserved = _preserved(argv)
+    assert "SOME_ARBITRARY_NAME" not in preserved
+    assert "HF_TOKEN" not in preserved
+    assert "PATH" in preserved
+    assert "ZOTEUS_UPDATE_CHECK" in preserved
