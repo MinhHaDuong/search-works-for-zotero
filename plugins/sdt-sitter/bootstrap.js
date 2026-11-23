@@ -345,16 +345,16 @@ function tailHasSDTEOF(tail) {
   return false;
 }
 
-/* Mask the lexical channels that can carry arbitrary bytes in a PDF without
-   being structure: comments (`%` to end of line), strings (literal `(...)`
-   with escapes and balanced nesting, and hex `<...>`), and raw stream data
-   (`stream` ... `endstream`). What survives is structural text. Each channel
-   was reproduced in review on PR #664 as classing a sound PDF damaged —
-   comment-carried, then string-carried, then stream-carried `/Linearized
-   /L 9999999` in the first KiB — so all three are masked, and the linearized
-   match below is anchored to the first object's dictionary on top of that.
-   An unclosed string or stream (a truncated file) swallows the rest of the
-   window, which can only fail to match — the admit side. */
+/* Mask the channels that can carry arbitrary bytes in a PDF without being
+   structure, so that what survives is structural text: comments (`%` to end
+   of line), literal strings `(...)` with escapes and balanced nesting, and
+   hex strings `<...>`. Stream data is NOT masked by a regex — raw stream
+   bytes can contain fake `stream`/`endstream`/paren tokens, which review
+   rounds on PR #664 reproduced classing sound PDFs damaged — and does not
+   need to be: no stream can begin before the first object's dictionary has
+   closed, and the linearized match below reads only that dictionary. An
+   unclosed string (a truncated file) swallows the rest of the window, which
+   can only fail to match — the admit side. */
 function maskSDTPdfLexicals(text) {
   let out = '';
   let index = 0;
@@ -375,8 +375,7 @@ function maskSDTPdfLexicals(text) {
     } else if (ch === '<' && /[0-9A-Fa-f>]/.test(text[index + 1] ?? '')) {
       // A hex string: '<' followed by hex digits (or immediately '>'). '<<'
       // is a dictionary start and must survive — checking the NEXT byte for
-      // a hex digit, not just for '<', is what keeps '<< /Linearized ... >>'
-      // structural.
+      // a hex digit, not just for '<', is what keeps dictionaries structural.
       index++;
       while (index < text.length && text[index] !== '>') index++;
       if (index < text.length) index++;
@@ -386,30 +385,61 @@ function maskSDTPdfLexicals(text) {
       index++;
     }
   }
-  // Raw stream data is arbitrary bytes; mask whole stream...endstream spans.
-  return out.replace(/\bstream(?:\r\n|\n|\r)[\s\S]*?\bendstream\b/g, 'stream endstream');
+  return out;
+}
+
+/* The first object's TOP-LEVEL dictionary entries in masked head text. `<<`/`>>`
+   are balanced (a non-greedy regex capture stops at the first `>>` and so
+   misreads nested dictionaries — reproduced in review on PR #664: a nested
+   `/Private << /Linearized 1 /L 9999999 >>` fired the match). Only depth-1
+   entries are returned, because the linearization parameters are direct
+   entries of the first-page dictionary, not of a nested one. Anchored at the
+   start of the file, since a linearized PDF's first-page dictionary is its
+   first object. Null when no balanced dictionary closes inside the window —
+   the admit side. */
+function firstObjectDictionary(maskedHead) {
+  const start = /^\s*\d+\s+\d+\s+obj\s*<</.exec(maskedHead);
+  if (!start) return null;
+  let index = start.index + start[0].length;
+  let depth = 1;
+  let top = '';
+  while (index < maskedHead.length) {
+    if (maskedHead.startsWith('<<', index)) { depth++; index += 2; }
+    else if (maskedHead.startsWith('>>', index)) {
+      depth--; index += 2;
+      if (depth === 0) return top;
+    } else {
+      if (depth === 1) top += maskedHead[index];
+      index++;
+    }
+  }
+  return null;
 }
 
 function readsAsSDTDamagedPdf(head, tail, size) {
   if (!tail || typeof size !== 'number' || !Number.isFinite(size) || size <= 0) return false;
   if (!tailHasSDTEOF(tail)) return true;
   const text = bytes => String.fromCharCode(...Array.from(bytes));
-  // startxref: the LAST one in the tail is the one the trailer honors.
-  const tailText = maskSDTPdfLexicals(text(tail));
-  const startxref = [...tailText.matchAll(/startxref\s+(\d+)/g)].pop();
+  // startxref: the trailer's own offset is the LAST one BEFORE the final
+  // %%EOF. Taken over the raw tail without any masking: anything after
+  // %%EOF is trailing junk, and anything inside stream data precedes the
+  // operative offset, so `.pop()` on the pre-%%EOF span cannot be faked by
+  // content (reproduced in review: a tail comment or stream carrying a
+  // beyond-size startxref used to override the real one).
+  const tailText = text(tail);
+  const eofAt = tailText.lastIndexOf('%%EOF');
+  const operative = eofAt >= 0 ? tailText.slice(0, eofAt) : tailText;
+  const startxref = [...operative.matchAll(/startxref\s+(\d+)/g)].pop();
   if (startxref && Number(startxref[1]) > size) return true;
-  // A linearized file declares its total length in its FIRST-PAGE dictionary,
-  // which is the first object in the file. The match is anchored there and
-  // reads only that dictionary's own bytes (the capture stops at its closing
-  // >>), so content anywhere else in the first KiB — comments, strings, hex,
-  // stream data — cannot fire it. When in doubt, admit.
+  // A linearized file declares its total length in its first-page dictionary.
+  // The check reads only that dictionary's balanced bytes, over head text
+  // with comments and strings masked, so content anywhere else in the first
+  // KiB cannot fire it. The exact name /Linearized, not /Linearized-Note:
+  // \b matches before '-', so the token must end at a PDF delimiter.
   if (head) {
-    const headText = maskSDTPdfLexicals(text(head));
-    const firstDict = /^\s*\d+\s+\d+\s+obj\s*<<([\s\S]{0,300}?)>>/.exec(headText);
-    // The exact name /Linearized, not /Linearized-Note: \b matches before
-    // '-', so the token must be followed by a PDF delimiter, not a name char.
-    if (firstDict && /\/Linearized(?![^\s/<>\[\]()#])/.test(firstDict[1])) {
-      const declared = /\/L\s+(\d+)/.exec(firstDict[1]);
+    const dict = firstObjectDictionary(maskSDTPdfLexicals(text(head)));
+    if (dict && /\/Linearized(?![^\s/<>\[\]()#])/.test(dict)) {
+      const declared = /\/L\s+(\d+)/.exec(dict);
       if (declared && Number(declared[1]) > size) return true;
     }
   }
