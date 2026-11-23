@@ -2,11 +2,15 @@
 Title: The acceptance driver re-invocation still forwards the whole environment through sudo (run.py)
 Created: 2026-11-09
 Author: claude
+Closed: autoclosed — PR #663
 
 --- log ---
 2026-11-09T16:28Z claude created
 2026-11-09T19:06Z MinhHaDuong journal reading 2026-11-09 (see 0830 log): the live strace line that leaked HF_TOKEN at 14:05 comes from tests/test_acceptance_posture_isolation_order.py:385 (posture.forwardable(os.environ)) as much as from run.py:664; after #642 it still carries 80 ambient names (CLAUDE_CODE_*, XDG_*, SSH_AUTH_SOCK, GH_CONFIG_DIR...), credential-looking ones dropped. The allowlist fix must cover the test's composition too.
 2026-11-09T20:44Z MinhHaDuong roar 2026-11-09: gaze on #642 (answer 20261109T191826930Z) also found zotseek.py:682, zotero_core_6012.py:807 and beaver.py:724 handing wrap() an environment() seeded from dict(os.environ); after #642 credential-looking names are dropped there too, but ambient names still reach sudo's journal. The allowlist work here should cover those three adapters with run.py:664 and the isolation-order test.
+2026-11-23T09:04Z MinhHaDuong red tests added (arbitrary name must not reach --preserve-env), then fix: posture.forwardable is now an explicit allowlist (DRIVER_ALLOWLIST + ZOTEUS_* prefix, minus IDENTITY_BOUND); run.py re-invocation uses it; zotseek/zotero_core_6012/beaver wrap() now receive forwarded_environment({HOME, DISPLAY}) instead of dict(os.environ)-derived env, mirroring zotero_mcp 0829. 33 posture tests pass, lint green.
+2026-11-23T10:31Z MinhHaDuong full make check green after the target-neutrality fix: driver allowlist is DRIVER_ALLOWLIST + adapters.declared_env_names() (AST-read TARGET_ENVIRONMENT in adapters, the only place target vocabulary may live); posture.py carries no target literal. 38 posture/neutrality tests pass.
+2026-11-23T19:21Z MinhHaDuong closed — autoclosed — PR #663
 
 --- body ---
 
@@ -22,5 +26,5 @@ sudo's journal, the channel 0829 closed for the two adapters.
   needs, as 0829 did for the adapters.
 
 ## Exit criteria
-- [ ] run.py's re-invocation forwards an explicit allowlist, not os.environ
-- [ ] a test shows an arbitrary non-allowlisted name is not in `--preserve-env`
+- [x] run.py's re-invocation forwards an explicit allowlist, not os.environ
+- [x] a test shows an arbitrary non-allowlisted name is not in `--preserve-env`

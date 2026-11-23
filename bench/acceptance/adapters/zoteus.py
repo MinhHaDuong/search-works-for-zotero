@@ -100,6 +100,16 @@ from mcp_drive import Server  # noqa: E402
 
 NAMES = ("zoteus",)
 
+#: Every environment variable the target reads, declared here because the
+#: layer proper is target-neutral and may not name them (the same rule as
+#: `zotero_mcp`'s `TARGET_ENVIRONMENT`): `run.py` forwards exactly these
+#: across the re-invocation's account switch (ticket 0831).
+TARGET_ENVIRONMENT = (
+    "ZOTEUS_DATA_DIR", "ZOTEUS_EMBEDDINGS", "ZOTEUS_INDEX_AUTO_REFRESH",
+    "ZOTEUS_INDEX_BACKEND", "ZOTEUS_INDEX_FULLTEXT", "ZOTEUS_READ_ONLY",
+    "ZOTEUS_TRANSFORMERS_PATH", "ZOTERO_DATA_DIR",
+)
+
 #: R33's three retrieval modes in the layer's vocabulary, mapped onto the names
 #: this target uses for them. The layer never sees the right-hand side.
 MODES = {"exact": "keyword", "meaning": "semantic", "combined": "auto"}

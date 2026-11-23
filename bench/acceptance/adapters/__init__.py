@@ -19,6 +19,7 @@ the harness's. Construction is not one of the seven verbs, so this parameter
 changes nothing about the interface.
 """
 
+import ast
 import importlib
 import pkgutil
 from pathlib import Path
@@ -38,6 +39,33 @@ def _modules() -> dict[str, str]:
 
 def available() -> list[str]:
     return sorted(_modules())
+
+
+def declared_env_names() -> tuple[str, ...]:
+    """Every environment variable an adapter declares its target reads.
+
+    AST-parsed rather than imported — the same shape the target-neutrality
+    guard uses for `NAMES` — so the layer can forward the run's own
+    target-configuration names across the account switch without naming a
+    target itself (ticket 0831: `sudo` journals every preserved name, so the
+    set must be explicit, and the adapters are the one allowed home for a
+    target's vocabulary).
+    """
+    names: set[str] = set()
+    for info in pkgutil.iter_modules(__path__):
+        source = Path(__file__).parent / f"{info.name}.py"
+        if not source.is_file():
+            continue
+        for node in ast.walk(ast.parse(source.read_text(encoding="utf-8"))):
+            if not isinstance(node, ast.Assign):
+                continue
+            if not any(isinstance(t, ast.Name) and t.id == "TARGET_ENVIRONMENT"
+                       for t in node.targets):
+                continue
+            for element in getattr(node.value, "elts", []):
+                if isinstance(element, ast.Constant) and isinstance(element.value, str):
+                    names.add(element.value)
+    return tuple(sorted(names))
 
 
 def fixtures() -> list[str]:
