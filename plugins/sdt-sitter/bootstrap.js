@@ -406,7 +406,9 @@ function readsAsSDTDamagedPdf(head, tail, size) {
   if (head) {
     const headText = maskSDTPdfLexicals(text(head));
     const firstDict = /^\s*\d+\s+\d+\s+obj\s*<<([\s\S]{0,300}?)>>/.exec(headText);
-    if (firstDict && /\/Linearized\b/.test(firstDict[1])) {
+    // The exact name /Linearized, not /Linearized-Note: \b matches before
+    // '-', so the token must be followed by a PDF delimiter, not a name char.
+    if (firstDict && /\/Linearized(?![^\s/<>\[\]()#])/.test(firstDict[1])) {
       const declared = /\/L\s+(\d+)/.exec(firstDict[1]);
       if (declared && Number(declared[1]) > size) return true;
     }
