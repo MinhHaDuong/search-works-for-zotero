@@ -346,14 +346,15 @@ function tailHasSDTEOF(tail) {
 }
 
 /* Mask the lexical channels that can carry arbitrary bytes in a PDF without
-   being structure: comments (`%` to end of line) and strings (literal
-   `(...)` with escapes and balanced nesting, and hex `<...>`). What survives
-   is structural text, so a structural match cannot be faked by content. Both
-   channels are legal anywhere in ISO 32000, and each was reproduced in
-   review on PR #664 as classing a sound PDF damaged: first through a `%`
-   comment, then through a literal string carrying `/Linearized /L 9999999`
-   in the first KiB. An unclosed string (a truncated file) swallows the rest
-   of the window, which can only fail to match — the admit side. */
+   being structure: comments (`%` to end of line), strings (literal `(...)`
+   with escapes and balanced nesting, and hex `<...>`), and raw stream data
+   (`stream` ... `endstream`). What survives is structural text. Each channel
+   was reproduced in review on PR #664 as classing a sound PDF damaged —
+   comment-carried, then string-carried, then stream-carried `/Linearized
+   /L 9999999` in the first KiB — so all three are masked, and the linearized
+   match below is anchored to the first object's dictionary on top of that.
+   An unclosed string or stream (a truncated file) swallows the rest of the
+   window, which can only fail to match — the admit side. */
 function maskSDTPdfLexicals(text) {
   let out = '';
   let index = 0;
@@ -385,7 +386,8 @@ function maskSDTPdfLexicals(text) {
       index++;
     }
   }
-  return out;
+  // Raw stream data is arbitrary bytes; mask whole stream...endstream spans.
+  return out.replace(/\bstream(?:\r\n|\n|\r)[\s\S]*?\bendstream\b/g, 'stream endstream');
 }
 
 function readsAsSDTDamagedPdf(head, tail, size) {
@@ -396,13 +398,18 @@ function readsAsSDTDamagedPdf(head, tail, size) {
   const tailText = maskSDTPdfLexicals(text(tail));
   const startxref = [...tailText.matchAll(/startxref\s+(\d+)/g)].pop();
   if (startxref && Number(startxref[1]) > size) return true;
-  // A linearized file declares its total length in its first-page
-  // dictionary: /L sought only within 200 bytes after /Linearized, inside
-  // the small first-page dictionary. When in doubt, admit.
+  // A linearized file declares its total length in its FIRST-PAGE dictionary,
+  // which is the first object in the file. The match is anchored there and
+  // reads only that dictionary's own bytes (the capture stops at its closing
+  // >>), so content anywhere else in the first KiB — comments, strings, hex,
+  // stream data — cannot fire it. When in doubt, admit.
   if (head) {
     const headText = maskSDTPdfLexicals(text(head));
-    const linearized = /\/Linearized\b[\s\S]{0,200}?\/L\s+(\d+)/.exec(headText);
-    if (linearized && Number(linearized[1]) > size) return true;
+    const firstDict = /^\s*\d+\s+\d+\s+obj\s*<<([\s\S]{0,300}?)>>/.exec(headText);
+    if (firstDict && /\/Linearized\b/.test(firstDict[1])) {
+      const declared = /\/L\s+(\d+)/.exec(firstDict[1]);
+      if (declared && Number(declared[1]) > size) return true;
+    }
   }
   return false;
 }
