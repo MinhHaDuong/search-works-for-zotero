@@ -668,6 +668,10 @@ await test('a truncated PDF is named Damaged PDF and never submitted; the sound 
   const summaries = notIndexed.descendants().filter(node => node.tagName === 'summary')
     .map(node => node.textContent);
   assert.deepEqual(summaries, ['Not indexed (1)', 'Damaged PDF (1)']);
+  // An unreadable tail proves nothing: fail open, admit (review finding,
+  // reproduced — the inverted null read used to class a sound PDF damaged).
+  assert.equal(harness.context.readsAsSDTDamagedPdf(null), false,
+    'a null tail (read error) must admit, not class damaged');
 });
 
 await test('a document that yields no pack is asked once a session, and again after a restart', async () => {

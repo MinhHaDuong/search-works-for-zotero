@@ -9,7 +9,7 @@ re-classification here runs the same rule the plugin runs, over the recorded
 measurements:
 
   damaged  <=>  no `%%EOF` in the last kilobyte (`tailHasEOF` false)
-            OR a declared linearized length beyond the file's real size
+            — %%EOF-only per the author's 2026-11-23 ruling (option A)
 
 Everything else is unchanged: the 4 malformed-xref files carry `%%EOF` and no
 declared length, which is precisely why the byte test cannot see them and they

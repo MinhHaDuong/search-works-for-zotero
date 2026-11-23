@@ -341,7 +341,10 @@ function tailHasSDTEOF(tail) {
 }
 
 function readsAsSDTDamagedPdf(tail) {
-  return !tailHasSDTEOF(tail);
+  // A tail that could not be read proves nothing — the same rule as the head
+  // read: fail open, admit (review round on PR #664 reproduced the inverted
+  // null reading classing a sound PDF damaged).
+  return tail != null && !tailHasSDTEOF(tail);
 }
 
 /* The tail of a source file, read once, for the test above. The window is
@@ -528,7 +531,7 @@ var SDT_TEXT = {
     "not-indexed-web-page-as-pdf": "Web page saved as PDF",
     "not-indexed-web-page-as-pdf-detail": "The file is recorded as a PDF but holds a web page, often a publisher's login or paywall page saved in place of the article. Open it to check, then replace it with the article's real PDF.",
     "not-indexed-damaged-pdf": "Damaged PDF",
-    "not-indexed-damaged-pdf-detail": "The file is truncated: no end-of-file marker in its last kilobyte, or a length or offset it declares beyond its real size. No extractor can read it and retrying cannot help. Download the file again, or remove the attachment and attach the file again.",
+    "not-indexed-damaged-pdf-detail": "The file is truncated: no end-of-file marker in its last kilobyte. No extractor can read it and retrying cannot help. Download the file again, or remove the attachment and attach the file again.",
     "not-indexed-no-extractor": "No extractor for this format",
     "not-indexed-no-extractor-detail": "The sitter has no extractor for this format. An alternative supported file may provide text.",
     "not-indexed-mismatched-type": "Recorded format differs",
