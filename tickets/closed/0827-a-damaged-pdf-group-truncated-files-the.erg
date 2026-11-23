@@ -2,6 +2,7 @@
 Title: A Damaged PDF group: truncated files the sitter can prove broken, with advice to download again
 Created: 2026-09-24
 Author: sim
+Closed: autoclosed — PR #664
 
 --- log ---
 2026-09-24T16:21Z sim created
@@ -16,6 +17,7 @@ Author: sim
 2026-11-23T20:58Z MinhHaDuong final tightening: /Linearized must carry a numeric version value (rejects name values like /Custom /Linearized, #-escaped names /Linearized#2DNote, and /Linearized-Note); startxref-before-last-%%EOF also covers trailing junk (P5). 16-case repro green; controls 17/18 added. Bump to 0.4.47.
 2026-11-23T22:45Z MinhHaDuong author's ruling 2026-11-23 (option A): the byte test is %%EOF-only — no %%EOF in the last KiB; the startxref and linearized-/L checks are withdrawn after 8 review rounds showed lexical content can fake any structural token (diagnosis recorded in the PR #664 review notes). SPEC row, reclass probe and ticket criterion amended: 12 truncated rows (6 files x 2 libraries) damaged-pdf, the 2 %%EOF-carrying truncated rows and 4 xref rows stay failed-session. Bump to 0.4.48.
 2026-11-23T23:11Z MinhHaDuong review fix: null tail (read error) now fails open — admits, matching the head-read rule (inverted null used to class a sound PDF damaged); detail string and probe docstring no longer describe the withdrawn structural checks; null-tail control added. Bump to 0.4.49.
+2026-11-23T23:43Z MinhHaDuong closed — autoclosed — PR #664
 
 --- body ---
 ## Context
