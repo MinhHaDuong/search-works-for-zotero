@@ -35,7 +35,7 @@ import pytest
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "bench"))
 
-from acceptance import assertions, posture, sandbox  # noqa: E402
+from acceptance import adapters, assertions, posture, sandbox  # noqa: E402
 from acceptance.adapters import stubs  # noqa: E402
 from acceptance.interface import NOT_RUN, PASS  # noqa: E402
 from acceptance.sandbox import Attempt, TraceResult  # noqa: E402
@@ -193,8 +193,11 @@ def test_forwardable_drops_the_names_bound_to_the_operator_and_keeps_the_rest():
         "USER": "operator", "LOGNAME": "operator", "XDG_RUNTIME_DIR": "/run/user/1000",
         "DBUS_SESSION_BUS_ADDRESS": "unix:path=/run/user/1000/bus",
     }
-    kept = posture.forwardable(env)
+    # Ticket 0831: the allowlist is explicit, so a run's own variable crosses
+    # only when the adapters declared it and the caller passes it in `extra`.
+    kept = posture.forwardable(env, extra=("ZOTEUS_UPDATE_CHECK",))
     assert kept == {"PATH": "/usr/bin", "ZOTEUS_UPDATE_CHECK": "false"}
+    assert "ZOTEUS_UPDATE_CHECK" not in posture.forwardable(env)
     for name in posture.IDENTITY_BOUND:
         assert name not in kept
 
@@ -382,7 +385,7 @@ def test_identity_switch_outside_the_namespace_runs_where_the_reverse_is_refused
     if mechanism is None:
         pytest.skip(f"no isolation mechanism runs here: {why}")
 
-    env = posture.forwardable(os.environ)
+    env = posture.forwardable(os.environ, extra=adapters.declared_env_names())
 
     # The tracer now runs as the account and writes its log as the account, so
     # the log directory has to be one the account can write — the arena is, by
