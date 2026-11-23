@@ -438,6 +438,11 @@ const JPEG = [0xFF, 0xD8, 0xFF, 0xE0];
 const PNG = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
 const ZIP = [0x50, 0x4B, 0x03, 0x04];
 const PDF_MAGIC = [0x25, 0x50, 0x44, 0x46];
+// A replacement source file shaped like a sound PDF (header, %%EOF tail),
+// so the 0827 byte test admits it: these scenarios replace the file, they
+// do not test damage.
+const soundPdf = size => { const b = new Uint8Array(size);
+  b.set(PDF_MAGIC, 0); b.set([0x25, 0x25, 0x45, 0x4F, 0x46, 0x0A], size - 6); return b; };
 // '<!DOCTYPE ' — a real snapshot's opening bytes, which name no format at all.
 const DOCTYPE = [0x3C, 0x21, 0x44, 0x4F, 0x43, 0x54, 0x59, 0x50, 0x45];
 
@@ -566,6 +571,63 @@ await test('an empty file or a web page labelled PDF is named, never submitted, 
   assert.deepEqual(summaries, ['Not indexed (5)', 'Empty file (2)', 'Web page saved as PDF (3)']);
   const text = notIndexed.descendants().map(node => node.textContent || '').join('\n');
   assert(!text.includes('later session'), 'an unusable file is still promised a retry');
+});
+
+await test('a truncated PDF is named Damaged PDF and never submitted; the sound controls still reach the extractor', async () => {
+  // Ticket 0827. The byte test may only ever exclude a file whose label says
+  // PDF, and must never exclude a real one: every control below is admitted.
+  const harness = createHarness({
+    attachments: [
+      // No %%EOF in the last kilobyte: truncated mid-download.
+      { id: 1, key: 'AAAA1111', kind: 'pdf', pages: null, sourceBytes: 4096,
+        magic: PDF_MAGIC, tail: bytes('the download stopped here') },
+      // startxref points past the end of the file.
+      { id: 2, key: 'BBBB2222', kind: 'pdf', pages: null, sourceBytes: 4096,
+        magic: PDF_MAGIC, tail: bytes('startxref\n9999999\n%%EOF\n') },
+      // A linearized first-page dictionary declaring a length beyond the file.
+      { id: 3, key: 'CCCC3333', kind: 'pdf', pages: null, sourceBytes: 4096,
+        magic: bytes('%PDF-1.4\n1 0 obj\n<< /Linearized 1 /L 9999999 /H [1 2] >>\nendobj\n'),
+        tail: bytes('%%EOF\n') },
+      // Controls, every one of which must still reach the extractor.
+      // Trailing bytes AFTER the final %%EOF: still a complete file.
+      { id: 4, key: 'DDDD4444', kind: 'pdf', pages: 12, sourceBytes: 4096,
+        magic: PDF_MAGIC, tail: bytes('%%EOF\ntrailing junk a proxy appended') },
+      // Incrementally updated: several %%EOF, the last one near the end.
+      { id: 5, key: 'EEEE5555', kind: 'pdf', pages: 12, sourceBytes: 4096,
+        magic: PDF_MAGIC, tail: bytes('%%EOF\n%%EOF\n%%EOF\n') },
+      // A sound PDF with a valid startxref (the 4 malformed-xref files of the
+      // 0825 probe are exactly this shape: byte test cannot see them).
+      { id: 6, key: 'FFFF6666', kind: 'pdf', pages: 12, sourceBytes: 4096,
+        magic: PDF_MAGIC, tail: bytes('startxref\n3800\n%%EOF\n') },
+      // A plain sound PDF: the mock ends pdf rows with %%EOF by default.
+      { id: 7, key: 'GGGG7777', kind: 'pdf', pages: 12, sourceBytes: 4096, magic: PDF_MAGIC },
+      // A declared length WITHIN the file size is not damage.
+      { id: 8, key: 'HHHH8888', kind: 'pdf', pages: 12, sourceBytes: 4096,
+        magic: bytes('%PDF-1.4\n1 0 obj\n<< /Linearized 1 /L 4096 >>\nendobj\n') },
+    ],
+  });
+  await harness.start();
+  const state = harness.context.sitter.state;
+
+  assert.deepEqual(harness.calls.ensure, [4, 5, 6, 7, 8],
+    'the extractor was handed the wrong set of documents');
+  const members = new Map(state.censusSnapshot.members.map(member => [member.itemID, member]));
+  for (const id of [1, 2, 3]) {
+    assert.equal(members.get(id).status, 'unusable-source', `attachment ${id} was not ruled unusable`);
+    assert.equal(members.get(id).reason, 'damaged-pdf', `attachment ${id} was ruled unusable for the wrong reason`);
+  }
+  assert.equal(state.counts['unusable-source'], 3);
+  assert.equal(state.counts.current, 5, 'a sound PDF stopped being admitted');
+  assert.equal(state.failed, 3, 'a damaged file dropped out of the failure count');
+
+  const groups = new Map(harness.context.collectSDTNotIndexed(state)
+    .map(group => [group.id, [...group.members].map(member => member.itemID)]));
+  assert.deepEqual(groups.get('damaged-pdf'), [1, 2, 3]);
+  harness.context.openDialog(harness.windows[0]); harness.context.render();
+  const notIndexed = [...harness.context.dialogs][0].document.getElementById('sdt-not-indexed');
+  const summaries = notIndexed.descendants().filter(node => node.tagName === 'summary')
+    .map(node => node.textContent);
+  assert.deepEqual(summaries, ['Not indexed (3)', 'Damaged PDF (3)']);
 });
 
 await test('a document that yields no pack is asked once a session, and again after a restart', async () => {
@@ -2486,7 +2548,7 @@ await test('source replacement and processor upgrades invalidate pack identity a
   const h = createHarness({ attachments: [pdf(1, 'AAAA1111')], versions: () => versions });
   await h.start();
   const row = h.library.get(1); row.pack.hash = row.hash; row.hash = 'replacement-md5';
-  h.files.put(`${STORAGE}/AAAA1111/file.pdf`, new Uint8Array(8192), 501);
+  h.files.put(`${STORAGE}/AAAA1111/file.pdf`, soundPdf(8192), 501);
   await h.nextSweep(); assert.deepEqual(h.calls.ensure, [1, 1]);
   assert.equal(h.context.sitter.state.samples.length, 1, 'old source duration survived changed identity');
   assert.equal(h.context.sitter.state.samples[0].sourceBytes, 8192);
@@ -2652,7 +2714,7 @@ await test('download notifications restore missing sources and late observers ar
   const h = createHarness({ attachments: [pdf(1, 'AAAA1111', { missingSource: true })] }); await h.start();
   const old = [...h.observers.values()][0].observer;
   h.library.get(1).missingSource = false;
-  h.files.put(`${STORAGE}/AAAA1111/file.pdf`, new Uint8Array(4096), 500);
+  h.files.put(`${STORAGE}/AAAA1111/file.pdf`, soundPdf(4096), 500);
   h.notify('download', 'file', [1]); await h.quiet();
   assert.deepEqual(h.calls.ensure, [1]); assert.equal(h.calls.list, 1);
   h.context.shutdown({}, 4); assert.equal(h.observers.size, 0);
@@ -2690,7 +2752,7 @@ await test('a targeted replacement removes old-source ETA samples before resourc
   const h = createHarness({ attachments: [pdf(1, 'AAAA1111')] }); await h.start();
   assert.equal(h.context.sitter.state.samples.length, 1);
   const row = h.library.get(1); row.pack.hash = row.hash; row.hash = 'changed';
-  h.files.put(`${STORAGE}/AAAA1111/file.pdf`, new Uint8Array(8192), 501);
+  h.files.put(`${STORAGE}/AAAA1111/file.pdf`, soundPdf(8192), 501);
   h.Zotero.PDFWorker._processingQueue = true;
   h.notify('modify', 'item', [1]); await h.quiet();
   assert.equal(h.calls.list, 1); assert.equal(h.context.sitter.state.samples.length, 0);
@@ -2703,7 +2765,7 @@ await test('targeted observations preserve completion refit cadence while droppi
   await h.start(); assert.equal(h.context.sitter.state.fittedSamples.length, 3);
   for (const id of [4, 5, 6]) {
     h.library.get(id).missingSource = false;
-    h.files.put(`${STORAGE}/KEY${id}/file.pdf`, new Uint8Array(4096), 500);
+    h.files.put(`${STORAGE}/KEY${id}/file.pdf`, soundPdf(4096), 500);
     h.notify('download', 'file', [id]); await h.quiet();
     assert.equal(h.context.sitter.state.samples.length, id);
     assert.equal(h.context.sitter.state.fittedSamples.length, id === 6 ? 6 : 3);
@@ -3214,7 +3276,7 @@ await test('a cached empty verdict does not survive a source replacement or a pr
   assert(replaced.files.text(CACHE_PATH).includes('"empty":true'),
     'nothing cached the empty verdict, so there is nothing below to invalidate');
   const row = replaced.library.get(1); row.pack.hash = row.hash; row.hash = 'replacement-md5';
-  replaced.files.put(`${STORAGE}/AAAA1111/file.pdf`, new Uint8Array(8192), 501);
+  replaced.files.put(`${STORAGE}/AAAA1111/file.pdf`, soundPdf(8192), 501);
   // Blocked so the re-inspection's own verdict can be read before admission
   // overwrites it with the result of a fresh extraction.
   replaced.Zotero.PDFWorker._processingQueue = true;

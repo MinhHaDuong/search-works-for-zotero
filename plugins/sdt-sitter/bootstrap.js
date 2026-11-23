@@ -315,6 +315,59 @@ function readsAsSDTWebPage(head) {
   });
 }
 
+/* A truncated download where a PDF was expected (ticket 0827): the 0825 clone
+   probe found 14 real files that fail native extraction every session for this
+   reason — no `%%EOF` near the end, or a declared length beyond the file's
+   real size — with the stored hash equal to Zotero's own, so the download
+   itself was short. Like the web-page test above, this one may only ever
+   exclude a file whose label says PDF, and it must never exclude a real PDF:
+   every condition below is "declared beyond actual" or "end marker absent",
+   and anything merely doubtful is admitted, because under-reaching costs one
+   failed extraction while over-reaching stops a document that would have
+   extracted.
+
+   Three conditions, each sufficient. (a) No `%%EOF` anywhere in the last
+   kilobyte: real files — including incrementally updated ones, whose last
+   `%%EOF` is the final marker, and files with a short run of trailing bytes —
+   keep theirs inside that window. (b) A `startxref` offset in the tail beyond
+   the file's size: the cross-reference table the trailer points at does not
+   exist. (c) A linearized first-page dictionary whose `/L` declares a length
+   beyond the file's size. A read failure answers `null` and proves nothing,
+   same as the head read below. */
+var SDT_PDF_TAIL_WINDOW = 1024;
+var SDT_PDF_EOF = [0x25, 0x25, 0x45, 0x4F, 0x46];  // %%EOF
+
+function tailHasSDTEOF(tail) {
+  if (!tail) return false;
+  for (let index = 0; index + SDT_PDF_EOF.length <= tail.length; index++) {
+    if (SDT_PDF_EOF.every((byte, offset) => tail[index + offset] === byte)) return true;
+  }
+  return false;
+}
+
+function readsAsSDTDamagedPdf(head, tail, size) {
+  if (!tail || typeof size !== 'number' || !Number.isFinite(size) || size <= 0) return false;
+  if (!tailHasSDTEOF(tail)) return true;
+  const text = bytes => String.fromCharCode(...Array.from(bytes));
+  // startxref: the LAST one in the tail is the one the trailer honors.
+  const startxref = [...text(tail).matchAll(/startxref\s+(\d+)/g)].pop();
+  if (startxref && Number(startxref[1]) > size) return true;
+  // A linearized file declares its total length in the first-page dictionary.
+  if (head && text(head).includes('/Linearized')) {
+    const linearized = /\/L\s+(\d+)/.exec(text(head));
+    if (linearized && Number(linearized[1]) > size) return true;
+  }
+  return false;
+}
+
+/* The tail of a source file, read once, for the test above. The window is
+   clamped at the file size, so a short file reads whole. */
+async function readSDTSourceTail(path, size) {
+  const window = Math.min(size, SDT_PDF_TAIL_WINDOW);
+  try { return await IOUtils.read(path, { offset: size - window, maxBytes: window }); }
+  catch (_error) { return null; }
+}
+
 /* The head of a source file, read once: the longest prefix above, or the whole
    `%PDF-` window where the label says PDF. A read that fails answers `null`,
    which is the same answer as an unrecognised head: this function's job is to
@@ -490,6 +543,8 @@ var SDT_TEXT = {
     "not-indexed-empty-file-detail": "The file is empty (0 bytes), usually because a download or a sync was interrupted. Indexing it again cannot help. You can download it again, or remove the attachment and attach the file again.",
     "not-indexed-web-page-as-pdf": "Web page saved as PDF",
     "not-indexed-web-page-as-pdf-detail": "The file is recorded as a PDF but holds a web page, often a publisher's login or paywall page saved in place of the article. Open it to check, then replace it with the article's real PDF.",
+    "not-indexed-damaged-pdf": "Damaged PDF",
+    "not-indexed-damaged-pdf-detail": "The file is truncated: no end-of-file marker in its last kilobyte, or a length or offset it declares beyond its real size. No extractor can read it and retrying cannot help. Download the file again, or remove the attachment and attach the file again.",
     "not-indexed-no-extractor": "No extractor for this format",
     "not-indexed-no-extractor-detail": "The sitter has no extractor for this format. An alternative supported file may provide text.",
     "not-indexed-mismatched-type": "Recorded format differs",
@@ -562,7 +617,7 @@ var SDT_TEXT = {
     "status-inspection-error": "Could not be examined",
     "status-unsupported-pack": "Stored index format requires review",
     "status-missing-source": "Stored or linked file unavailable",
-    "status-unusable-source": "Empty file or web page",
+    "status-unusable-source": "Unusable source file",
     "status-excluded": "Trashed, or not an attachment",
     "status-unsupported": "No extractor or format mismatch",
     "diagnostics-error": "Last extraction problem: {error}",
@@ -1596,6 +1651,7 @@ var SDT_NOT_INDEXED_GROUPS = {
   'missing-source-linked': { title: 'not-indexed-linked-file', detail: 'not-indexed-linked-file-detail' },
   'empty-file': { title: 'not-indexed-empty-file', detail: 'not-indexed-empty-file-detail' },
   'web-page-as-pdf': { title: 'not-indexed-web-page-as-pdf', detail: 'not-indexed-web-page-as-pdf-detail' },
+  'damaged-pdf': { title: 'not-indexed-damaged-pdf', detail: 'not-indexed-damaged-pdf-detail' },
   'no-extractor': { title: 'not-indexed-no-extractor', detail: 'not-indexed-no-extractor-detail' },
   'mismatched-type': { title: 'not-indexed-mismatched-type', detail: 'not-indexed-mismatched-type-detail' },
   'no-attachment': { title: 'not-indexed-no-attachment', detail: 'not-indexed-no-attachment-detail' },
@@ -3832,10 +3888,12 @@ async function initialize(rootURI, token, era = shutdowns) {
     //
     // Ticket 0825 adds two verdicts that ARE failures, and `unusable-source`
     // says so: an empty file, or a web page where the label promised a PDF.
-    // The file is broken rather than misclassified -- nothing extracts from
-    // either whatever label it carries -- so it stays in the author's "could not
-    // be indexed" count, and like `missing-source` it names a repair the author
-    // can make, which a retry next session cannot.
+    // Ticket 0827 adds a third: a truncated PDF, proved broken at the byte
+    // level before the worker is asked. The file is broken rather than
+    // misclassified -- nothing extracts from any of them whatever label they
+    // carry -- so they stay in the author's "could not be indexed" count, and
+    // like `missing-source` they name a repair the author can make, which a
+    // retry next session cannot.
     if (SDT_STATUS_CLASSES.queued.includes(result.status)) {
       if (source.size === 0) { result.status = 'unusable-source'; result.reason = 'empty-file'; }
       else {
@@ -3846,6 +3904,12 @@ async function initialize(rootURI, token, era = shutdowns) {
         }
         else if (processor === 'pdf' && readsAsSDTWebPage(head)) {
           result.status = 'unusable-source'; result.reason = 'web-page-as-pdf';
+        }
+        else if (processor === 'pdf') {
+          const tail = await readSDTSourceTail(sourcePath, source.size);
+          if (readsAsSDTDamagedPdf(head, tail, source.size)) {
+            result.status = 'unusable-source'; result.reason = 'damaged-pdf';
+          }
         }
       }
     }

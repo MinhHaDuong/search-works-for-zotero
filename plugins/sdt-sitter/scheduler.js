@@ -30,7 +30,8 @@ var SDT_STATUS_CLASSES = {
   // the sitter stopped asking within the session.
   //
   // `unusable-source` is a file that is there and cannot be what its label says:
-  // empty, or a web page recorded as a PDF (ticket 0825). Like `missing-source`
+  // empty, a web page recorded as a PDF (ticket 0825), or a truncated PDF proved
+  // broken at the byte level (ticket 0827). Like `missing-source`
   // it is library state the author can repair and a retry cannot, so it is held
   // here rather than resubmitted every session as `failed-session` was.
   failed: ['failed-session', 'inspection-error', 'unsupported-pack', 'missing-source',
