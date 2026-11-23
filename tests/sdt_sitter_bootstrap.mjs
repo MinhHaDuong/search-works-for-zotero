@@ -636,12 +636,18 @@ await test('a truncated PDF is named Damaged PDF and never submitted; the sound 
       { id: 16, key: 'PPPP6666', kind: 'pdf', pages: 12, sourceBytes: 4096,
         magic: PDF_MAGIC,
         tail: bytes('stream\nendstream\nstartxref 9999999\n(\nendstream\nendobj\nstartxref\n3800\n%%EOF\n') },
+      // /Linearized as a VALUE, and #-escaped as a longer name: the
+      // linearization parameter is the NAME with a numeric version.
+      { id: 17, key: 'QQQQ7777', kind: 'pdf', pages: 12, sourceBytes: 4096,
+        magic: bytes('%PDF-1.4\n1 0 obj\n<< /Custom /Linearized /L 9999999 >>\nendobj\n') },
+      { id: 18, key: 'RRRR8888', kind: 'pdf', pages: 12, sourceBytes: 4096,
+        magic: bytes('%PDF-1.4\n1 0 obj\n<< /Linearized#2DNote true /L 9999999 >>\nendobj\n') },
     ],
   });
   await harness.start();
   const state = harness.context.sitter.state;
 
-  assert.deepEqual(harness.calls.ensure, [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+  assert.deepEqual(harness.calls.ensure, [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
     'the extractor was handed the wrong set of documents');
   const members = new Map(state.censusSnapshot.members.map(member => [member.itemID, member]));
   for (const id of [1, 2, 3]) {
@@ -649,7 +655,7 @@ await test('a truncated PDF is named Damaged PDF and never submitted; the sound 
     assert.equal(members.get(id).reason, 'damaged-pdf', `attachment ${id} was ruled unusable for the wrong reason`);
   }
   assert.equal(state.counts['unusable-source'], 3);
-  assert.equal(state.counts.current, 13, 'a sound PDF stopped being admitted');
+  assert.equal(state.counts.current, 15, 'a sound PDF stopped being admitted');
   assert.equal(state.failed, 3, 'a damaged file dropped out of the failure count');
 
   const groups = new Map(harness.context.collectSDTNotIndexed(state)

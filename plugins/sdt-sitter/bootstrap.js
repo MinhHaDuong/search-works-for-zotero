@@ -438,7 +438,13 @@ function readsAsSDTDamagedPdf(head, tail, size) {
   // \b matches before '-', so the token must end at a PDF delimiter.
   if (head) {
     const dict = firstObjectDictionary(maskSDTPdfLexicals(text(head)));
-    if (dict && /\/Linearized(?![^\s/<>\[\]()#])/.test(dict)) {
+    // The linearization parameter is the NAME /Linearized with a numeric
+  // version value (`/Linearized 1`). Requiring the number rejects a name
+  // value like `/Custom /Linearized`, a `#`-escaped longer name
+  // (`/Linearized#2DNote` is Linearized-Note, `#` is not a delimiter), and
+  // `/Linearized-Note` — all reproduced in review on PR #664.
+    const lin = /\/Linearized\s+[\d.]+/.exec(dict);
+    if (lin) {
       const declared = /\/L\s+(\d+)/.exec(dict);
       if (declared && Number(declared[1]) > size) return true;
     }
