@@ -352,9 +352,16 @@ function readsAsSDTDamagedPdf(head, tail, size) {
   // startxref: the LAST one in the tail is the one the trailer honors.
   const startxref = [...text(tail).matchAll(/startxref\s+(\d+)/g)].pop();
   if (startxref && Number(startxref[1]) > size) return true;
-  // A linearized file declares its total length in the first-page dictionary.
-  if (head && text(head).includes('/Linearized')) {
-    const linearized = /\/L\s+(\d+)/.exec(text(head));
+  // A linearized file declares its total length in its first-page
+  // dictionary. Comments are stripped before matching: a legal `%` comment
+  // may carry the bytes `/Linearized /L 9999999` without being a dictionary
+  // (reproduced in review on PR #664: a sound PDF with such a comment in its
+  // first KiB was classed damaged), and ISO 32000 allows comments anywhere.
+  // /L is sought only within 200 bytes after /Linearized, inside the small
+  // first-page dictionary. When in doubt, admit.
+  if (head) {
+    const headText = text(head).replace(/%[^\n\r]*/g, '');
+    const linearized = /\/Linearized\b[\s\S]{0,200}?\/L\s+(\d+)/.exec(headText);
     if (linearized && Number(linearized[1]) > size) return true;
   }
   return false;

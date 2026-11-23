@@ -7,6 +7,7 @@ Author: sim
 2026-09-24T16:21Z sim created
 2026-11-23T09:22Z MinhHaDuong byte test (readsAsSDTDamagedPdf: no %%EOF in last KiB, startxref or linearized /L beyond file size) + 'damaged-pdf' reason under unusable-source + Not-indexed group + SPEC §5.2.7 row + manifest/update.json bumped to 0.4.41. Red-first mjs test with controls (trailing bytes after %%EOF, several %%EOF, valid startxref, /L within size, xref-damaged shape) all admitted; truncated variants named Damaged PDF and never submitted. 0825 probe population re-classed: 14 truncated -> damaged-pdf, 4 malformed-xref unchanged (verification/clone/0827-damaged-pdf-reclass-2026-11-23.json). All four mjs suites pass; test_sdt_sitter.py 59 passed.
 2026-11-23T09:47Z MinhHaDuong blocker 0825 closed — Blocked-by removed.
+2026-11-23T19:21Z MinhHaDuong review fix (gaze rv-20261123-pr-664-a90e r2, 1 blocking finding reproduced): the /Linearized /L match now strips PDF comments and scopes /L to 200 bytes after /Linearized inside the first-page dictionary; new control (sound PDF with a '% /Linearized /L 9999999' comment) is admitted — red before the fix, green after. All four mjs suites + 59 python tests pass.
 
 --- body ---
 ## Context

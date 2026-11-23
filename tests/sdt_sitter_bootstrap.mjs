@@ -604,12 +604,16 @@ await test('a truncated PDF is named Damaged PDF and never submitted; the sound 
       // A declared length WITHIN the file size is not damage.
       { id: 8, key: 'HHHH8888', kind: 'pdf', pages: 12, sourceBytes: 4096,
         magic: bytes('%PDF-1.4\n1 0 obj\n<< /Linearized 1 /L 4096 >>\nendobj\n') },
+      // A legal comment carrying the linearization bytes is not a
+      // dictionary: the match must not fire on commented-out text.
+      { id: 9, key: 'IIII9999', kind: 'pdf', pages: 12, sourceBytes: 4096,
+        magic: bytes('%PDF-1.4\n% /Linearized /L 9999999\n') },
     ],
   });
   await harness.start();
   const state = harness.context.sitter.state;
 
-  assert.deepEqual(harness.calls.ensure, [4, 5, 6, 7, 8],
+  assert.deepEqual(harness.calls.ensure, [4, 5, 6, 7, 8, 9],
     'the extractor was handed the wrong set of documents');
   const members = new Map(state.censusSnapshot.members.map(member => [member.itemID, member]));
   for (const id of [1, 2, 3]) {
@@ -617,7 +621,7 @@ await test('a truncated PDF is named Damaged PDF and never submitted; the sound 
     assert.equal(members.get(id).reason, 'damaged-pdf', `attachment ${id} was ruled unusable for the wrong reason`);
   }
   assert.equal(state.counts['unusable-source'], 3);
-  assert.equal(state.counts.current, 5, 'a sound PDF stopped being admitted');
+  assert.equal(state.counts.current, 6, 'a sound PDF stopped being admitted');
   assert.equal(state.failed, 3, 'a damaged file dropped out of the failure count');
 
   const groups = new Map(harness.context.collectSDTNotIndexed(state)
