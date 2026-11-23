@@ -2432,7 +2432,7 @@ the plugin's own table. The classification is:
 | Linked file unavailable | A linked file is confirmed absent. |
 | Empty file | The source file is present and zero bytes long. |
 | Web page saved as PDF | A source declared a PDF opens as HTML — after an optional byte-order mark and whitespace, on an HTML doctype or an `html` or `head` tag — and carries no PDF header anywhere in its first kilobyte. |
-| Damaged PDF | A source declared a PDF fails the byte-level completeness test: no `%%EOF` anywhere in its last kilobyte, or a `startxref` offset or a linearized first-page `/L` length declared beyond the file's actual size. |
+| Damaged PDF | A source declared a PDF has no `%%EOF` anywhere in its last kilobyte. No other byte-level condition is tested: structural indicators (startxref or declared length beyond the file size) are deliberately not used, because PDF lexical content can fake them. |
 | No extractor for this format | No supported processor. |
 | Recorded format differs | Recognized source bytes contradict the declared type. |
 | Entries without any attached file | A non-deleted bibliographic item has no non-deleted file attachment. Notes and URL-only attachments do not count as files. |

@@ -316,24 +316,19 @@ function readsAsSDTWebPage(head) {
 }
 
 /* A truncated download where a PDF was expected (ticket 0827): the 0825 clone
-   probe found 14 real files that fail native extraction every session for this
-   reason — no `%%EOF` near the end, or a declared length beyond the file's
-   real size — with the stored hash equal to Zotero's own, so the download
-   itself was short. Like the web-page test above, this one may only ever
-   exclude a file whose label says PDF, and it must never exclude a real PDF:
-   every condition below is "declared beyond actual" or "end marker absent",
-   and anything merely doubtful is admitted, because under-reaching costs one
-   failed extraction while over-reaching stops a document that would have
-   extracted.
-
-   Three conditions, each sufficient. (a) No `%%EOF` anywhere in the last
-   kilobyte: real files — including incrementally updated ones, whose last
-   `%%EOF` is the final marker, and files with a short run of trailing bytes —
-   keep theirs inside that window. (b) A `startxref` offset in the tail beyond
-   the file's size: the cross-reference table the trailer points at does not
-   exist. (c) A linearized first-page dictionary whose `/L` declares a length
-   beyond the file's size. A read failure answers `null` and proves nothing,
-   same as the head read below. */
+   probe found real files that fail native extraction every session because
+   the download was short. The byte test is deliberately a single check — no
+   `%%EOF` anywhere in the last kilobyte — and nothing else. Every structural
+   variant (startxref beyond size, a linearized `/L` beyond size) was tried
+   here first and withdrawn after review: PDF lexical structure is too loose
+   for text matching (comments, strings, hex and raw stream bytes can carry
+   any token), so each added check misclassed some sound PDF as damaged, and
+   the ticket's bar is "must never class a sound PDF as damaged; when in
+   doubt, admit" (author's ruling 2026-11-23, option A). A file whose last
+   kilobyte holds no `%%EOF` is the one condition no sound PDF can meet and
+   no content can fake. Files with a valid `%%EOF` but a declared length
+   beyond their size are NOT caught here; they stay in the honest
+   failed-session class instead. */
 var SDT_PDF_TAIL_WINDOW = 1024;
 var SDT_PDF_EOF = [0x25, 0x25, 0x45, 0x4F, 0x46];  // %%EOF
 
@@ -345,111 +340,8 @@ function tailHasSDTEOF(tail) {
   return false;
 }
 
-/* Mask the channels that can carry arbitrary bytes in a PDF without being
-   structure, so that what survives is structural text: comments (`%` to end
-   of line), literal strings `(...)` with escapes and balanced nesting, and
-   hex strings `<...>`. Stream data is NOT masked by a regex — raw stream
-   bytes can contain fake `stream`/`endstream`/paren tokens, which review
-   rounds on PR #664 reproduced classing sound PDFs damaged — and does not
-   need to be: no stream can begin before the first object's dictionary has
-   closed, and the linearized match below reads only that dictionary. An
-   unclosed string (a truncated file) swallows the rest of the window, which
-   can only fail to match — the admit side. */
-function maskSDTPdfLexicals(text) {
-  let out = '';
-  let index = 0;
-  while (index < text.length) {
-    const ch = text[index];
-    if (ch === '%') {
-      while (index < text.length && text[index] !== '\n' && text[index] !== '\r') index++;
-    } else if (ch === '(') {
-      let depth = 0;
-      while (index < text.length) {
-        const c = text[index];
-        if (c === '\\') { index += 2; continue; }
-        if (c === '(') depth++;
-        if (c === ')') { depth--; index++; if (depth === 0) break; continue; }
-        index++;
-      }
-      out += '()';
-    } else if (ch === '<' && /[0-9A-Fa-f>]/.test(text[index + 1] ?? '')) {
-      // A hex string: '<' followed by hex digits (or immediately '>'). '<<'
-      // is a dictionary start and must survive — checking the NEXT byte for
-      // a hex digit, not just for '<', is what keeps dictionaries structural.
-      index++;
-      while (index < text.length && text[index] !== '>') index++;
-      if (index < text.length) index++;
-      out += '<>';
-    } else {
-      out += ch;
-      index++;
-    }
-  }
-  return out;
-}
-
-/* The first object's TOP-LEVEL dictionary entries in masked head text. `<<`/`>>`
-   are balanced (a non-greedy regex capture stops at the first `>>` and so
-   misreads nested dictionaries — reproduced in review on PR #664: a nested
-   `/Private << /Linearized 1 /L 9999999 >>` fired the match). Only depth-1
-   entries are returned, because the linearization parameters are direct
-   entries of the first-page dictionary, not of a nested one. Anchored at the
-   start of the file, since a linearized PDF's first-page dictionary is its
-   first object. Null when no balanced dictionary closes inside the window —
-   the admit side. */
-function firstObjectDictionary(maskedHead) {
-  const start = /^\s*\d+\s+\d+\s+obj\s*<</.exec(maskedHead);
-  if (!start) return null;
-  let index = start.index + start[0].length;
-  let depth = 1;
-  let top = '';
-  while (index < maskedHead.length) {
-    if (maskedHead.startsWith('<<', index)) { depth++; index += 2; }
-    else if (maskedHead.startsWith('>>', index)) {
-      depth--; index += 2;
-      if (depth === 0) return top;
-    } else {
-      if (depth === 1) top += maskedHead[index];
-      index++;
-    }
-  }
-  return null;
-}
-
-function readsAsSDTDamagedPdf(head, tail, size) {
-  if (!tail || typeof size !== 'number' || !Number.isFinite(size) || size <= 0) return false;
-  if (!tailHasSDTEOF(tail)) return true;
-  const text = bytes => String.fromCharCode(...Array.from(bytes));
-  // startxref: the trailer's own offset is the LAST one BEFORE the final
-  // %%EOF. Taken over the raw tail without any masking: anything after
-  // %%EOF is trailing junk, and anything inside stream data precedes the
-  // operative offset, so `.pop()` on the pre-%%EOF span cannot be faked by
-  // content (reproduced in review: a tail comment or stream carrying a
-  // beyond-size startxref used to override the real one).
-  const tailText = text(tail);
-  const eofAt = tailText.lastIndexOf('%%EOF');
-  const operative = eofAt >= 0 ? tailText.slice(0, eofAt) : tailText;
-  const startxref = [...operative.matchAll(/startxref\s+(\d+)/g)].pop();
-  if (startxref && Number(startxref[1]) > size) return true;
-  // A linearized file declares its total length in its first-page dictionary.
-  // The check reads only that dictionary's balanced bytes, over head text
-  // with comments and strings masked, so content anywhere else in the first
-  // KiB cannot fire it. The exact name /Linearized, not /Linearized-Note:
-  // \b matches before '-', so the token must end at a PDF delimiter.
-  if (head) {
-    const dict = firstObjectDictionary(maskSDTPdfLexicals(text(head)));
-    // The linearization parameter is the NAME /Linearized with a numeric
-  // version value (`/Linearized 1`). Requiring the number rejects a name
-  // value like `/Custom /Linearized`, a `#`-escaped longer name
-  // (`/Linearized#2DNote` is Linearized-Note, `#` is not a delimiter), and
-  // `/Linearized-Note` — all reproduced in review on PR #664.
-    const lin = /\/Linearized\s+[\d.]+/.exec(dict);
-    if (lin) {
-      const declared = /\/L\s+(\d+)/.exec(dict);
-      if (declared && Number(declared[1]) > size) return true;
-    }
-  }
-  return false;
+function readsAsSDTDamagedPdf(tail) {
+  return !tailHasSDTEOF(tail);
 }
 
 /* The tail of a source file, read once, for the test above. The window is
@@ -3999,7 +3891,7 @@ async function initialize(rootURI, token, era = shutdowns) {
         }
         else if (processor === 'pdf') {
           const tail = await readSDTSourceTail(sourcePath, source.size);
-          if (readsAsSDTDamagedPdf(head, tail, source.size)) {
+          if (readsAsSDTDamagedPdf(tail)) {
             result.status = 'unusable-source'; result.reason = 'damaged-pdf';
           }
         }

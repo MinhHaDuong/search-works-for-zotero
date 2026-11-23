@@ -14,6 +14,7 @@ Author: sim
 2026-11-23T20:20Z MinhHaDuong review round 6 residual: the /Linearized token match now requires a PDF delimiter after the name (\b matched before '-', so /Linearized-Note fired); control id 14 added. Stream-carried channels from round 5/6 are covered by the cbc7799c anchoring + stream masking, reproduced green. Bump to 0.4.45.
 2026-11-23T20:44Z MinhHaDuong redesign per the review's escalation signal (rounds r2-r6 each found one lexical channel): the byte test no longer regex-matches masked text. startxref is the last offset BEFORE the last %%EOF in the raw tail (nothing after EOF, nothing inside streams, can fake it); the linearized /L is read from the first object's balanced TOP-LEVEL dictionary only (nested dicts, comments, strings, hex masked; /Linearized must end at a PDF delimiter). 13 node repro cases green, incl. every channel the reviews found; controls 15/16 added to the mjs test. Bump to 0.4.46.
 2026-11-23T20:58Z MinhHaDuong final tightening: /Linearized must carry a numeric version value (rejects name values like /Custom /Linearized, #-escaped names /Linearized#2DNote, and /Linearized-Note); startxref-before-last-%%EOF also covers trailing junk (P5). 16-case repro green; controls 17/18 added. Bump to 0.4.47.
+2026-11-23T22:45Z MinhHaDuong author's ruling 2026-11-23 (option A): the byte test is %%EOF-only — no %%EOF in the last KiB; the startxref and linearized-/L checks are withdrawn after 8 review rounds showed lexical content can fake any structural token (diagnosis recorded in the PR #664 review notes). SPEC row, reclass probe and ticket criterion amended: 12 truncated rows (6 files x 2 libraries) damaged-pdf, the 2 %%EOF-carrying truncated rows and 4 xref rows stay failed-session. Bump to 0.4.48.
 
 --- body ---
 ## Context
@@ -44,5 +45,5 @@ files.
 
 ## Exit criteria
 - [x] The byte test and the group land with red-first tests and the controls above
-- [x] The 0825 probe population re-classed: the 14 truncated files are Damaged PDF, the 4 are not (verification/clone/0827-damaged-pdf-reclass-2026-11-23.json)
+- [x] The 0825 probe population re-classed per the author's 2026-11-23 ruling (option A, %%EOF-only byte test): the 12 truncated rows (6 files across 2 libraries) with no %%EOF in the last KiB are Damaged PDF; the 2 truncated rows with a valid %%EOF (declared length beyond size only) and the 4 malformed-xref files are not — they stay failed-session (verification/clone/0827-damaged-pdf-reclass-2026-11-23.json)
 - [x] SPEC.md §5.2.7 lists the group

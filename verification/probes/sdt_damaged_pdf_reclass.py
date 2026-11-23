@@ -29,14 +29,14 @@ PROBE = ROOT / "verification" / "clone" / "0825-ensure-probe-2026-09-24.json"
 
 def byte_test_verdict(attachment: dict) -> str | None:
     """'damaged-pdf' when the byte test fires, else None (admitted as far as
-    this test is concerned). Mirrors readsAsSDTDamagedPdf in bootstrap.js."""
-    size = attachment["size"]
-    if size == 0:
+    this test is concerned). Mirrors readsAsSDTDamagedPdf in bootstrap.js,
+    which by the author's 2026-11-23 ruling (option A) is %%EOF-only: no
+    %%EOF in the last kilobyte. Structural indicators (startxref, linearized
+    /L beyond size) are deliberately not tested — eight review rounds on
+    PR #664 showed lexical content can fake them."""
+    if attachment["size"] == 0:
         return None  # empty files are 0825's 'empty-file', not this test's
     if attachment["tailHasEOF"] is False:
-        return "damaged-pdf"
-    declared = attachment["linearizedDeclaredLength"]
-    if declared is not None and declared > size:
         return "damaged-pdf"
     return None
 
@@ -60,8 +60,8 @@ def main() -> int:
         "ticket": "0827",
         "date": "2026-11-23",
         "source": str(PROBE.relative_to(ROOT)),
-        "rule": "no %%EOF in the last kilobyte, or a declared linearized "
-                "length beyond the file size (readsAsSDTDamagedPdf)",
+        "rule": "no %%EOF in the last kilobyte (readsAsSDTDamagedPdf, "
+                "%%EOF-only per the author's 2026-11-23 ruling, option A)",
         "summary": {
             "probeAttachments": len(rows),
             "damagedPdf": len(damaged),
@@ -73,11 +73,17 @@ def main() -> int:
     dest.write_text(json.dumps(out, indent=1) + "\n", encoding="utf-8")
     print(json.dumps(out["summary"], indent=1))
     print("wrote", dest.relative_to(ROOT))
-    # The exit criterion, as a non-zero exit if it does not hold: exactly the
-    # 14 truncated files come out damaged, none of the 4 xref files does.
+    # The exit criterion as amended by the author's ruling (option A): every
+    # truncated row with no %%EOF in its tail comes out damaged (12 of the 14
+    # truncated rows — 6 files across 2 libraries); the 2 truncated rows that
+    # carry a valid %%EOF (declared length beyond size only) and the 4 xref
+    # rows are NOT classed damaged — they stay failed-session.
     truncated = [r for r in rows if r["probeClass"] == "truncated-file"]
     xref = [r for r in rows if r["probeClass"] == "complete-file-malformed-xref"]
-    if not (len(damaged) == 14 and all(r["byteTest"] == "damaged-pdf" for r in truncated)
+    no_eof = [r for r in truncated if r["tailHasEOF"] is False]
+    if not (len(no_eof) == 12 and len(damaged) == len(no_eof)
+            and all(r["byteTest"] == "damaged-pdf" for r in no_eof)
+            and all(r["byteTest"] == "admit" for r in truncated if r not in no_eof)
             and all(r["byteTest"] == "admit" for r in xref)):
         print("FAIL: the re-classification does not match the ticket's criterion", file=sys.stderr)
         return 1

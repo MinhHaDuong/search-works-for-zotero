@@ -2,11 +2,11 @@
  "ticket": "0827",
  "date": "2026-11-23",
  "source": "verification/clone/0825-ensure-probe-2026-09-24.json",
- "rule": "no %%EOF in the last kilobyte, or a declared linearized length beyond the file size (readsAsSDTDamagedPdf)",
+ "rule": "no %%EOF in the last kilobyte (readsAsSDTDamagedPdf, %%EOF-only per the author's 2026-11-23 ruling, option A)",
  "summary": {
   "probeAttachments": 24,
-  "damagedPdf": 14,
-  "unchanged": 10
+  "damagedPdf": 12,
+  "unchanged": 12
  },
  "attachments": [
   {
@@ -42,8 +42,8 @@
    "size": 369681,
    "tailHasEOF": true,
    "linearizedDeclaredLength": 1006863,
-   "byteTest": "damaged-pdf",
-   "groupUnder0827": "damaged-pdf"
+   "byteTest": "admit",
+   "groupUnder0827": "truncated-file"
   },
   {
    "attachment": "1/57N5KAS9",
@@ -177,8 +177,8 @@
    "size": 369681,
    "tailHasEOF": true,
    "linearizedDeclaredLength": 1006863,
-   "byteTest": "damaged-pdf",
-   "groupUnder0827": "damaged-pdf"
+   "byteTest": "admit",
+   "groupUnder0827": "truncated-file"
   },
   {
    "attachment": "3/NQ5T9K9B",

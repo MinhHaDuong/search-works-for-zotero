@@ -581,11 +581,13 @@ await test('a truncated PDF is named Damaged PDF and never submitted; the sound 
       // No %%EOF in the last kilobyte: truncated mid-download.
       { id: 1, key: 'AAAA1111', kind: 'pdf', pages: null, sourceBytes: 4096,
         magic: PDF_MAGIC, tail: bytes('the download stopped here') },
-      // startxref points past the end of the file.
-      { id: 2, key: 'BBBB2222', kind: 'pdf', pages: null, sourceBytes: 4096,
+      // Structural damage indicators are NOT checked — the byte test is
+      // %%EOF-only by the author's ruling (2026-11-23, option A): eight review
+      // rounds showed text-matched structure can always be faked by content.
+      // These two carry a valid %%EOF, so they are admitted like any sound PDF.
+      { id: 2, key: 'BBBB2222', kind: 'pdf', pages: 12, sourceBytes: 4096,
         magic: PDF_MAGIC, tail: bytes('startxref\n9999999\n%%EOF\n') },
-      // A linearized first-page dictionary declaring a length beyond the file.
-      { id: 3, key: 'CCCC3333', kind: 'pdf', pages: null, sourceBytes: 4096,
+      { id: 3, key: 'CCCC3333', kind: 'pdf', pages: 12, sourceBytes: 4096,
         magic: bytes('%PDF-1.4\n1 0 obj\n<< /Linearized 1 /L 9999999 /H [1 2] >>\nendobj\n'),
         tail: bytes('%%EOF\n') },
       // Controls, every one of which must still reach the extractor.
@@ -647,25 +649,25 @@ await test('a truncated PDF is named Damaged PDF and never submitted; the sound 
   await harness.start();
   const state = harness.context.sitter.state;
 
-  assert.deepEqual(harness.calls.ensure, [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+  assert.deepEqual(harness.calls.ensure, [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
     'the extractor was handed the wrong set of documents');
   const members = new Map(state.censusSnapshot.members.map(member => [member.itemID, member]));
-  for (const id of [1, 2, 3]) {
+  for (const id of [1]) {
     assert.equal(members.get(id).status, 'unusable-source', `attachment ${id} was not ruled unusable`);
     assert.equal(members.get(id).reason, 'damaged-pdf', `attachment ${id} was ruled unusable for the wrong reason`);
   }
-  assert.equal(state.counts['unusable-source'], 3);
-  assert.equal(state.counts.current, 15, 'a sound PDF stopped being admitted');
-  assert.equal(state.failed, 3, 'a damaged file dropped out of the failure count');
+  assert.equal(state.counts['unusable-source'], 1);
+  assert.equal(state.counts.current, 17, 'a sound PDF stopped being admitted');
+  assert.equal(state.failed, 1, 'a damaged file dropped out of the failure count');
 
   const groups = new Map(harness.context.collectSDTNotIndexed(state)
     .map(group => [group.id, [...group.members].map(member => member.itemID)]));
-  assert.deepEqual(groups.get('damaged-pdf'), [1, 2, 3]);
+  assert.deepEqual(groups.get('damaged-pdf'), [1]);
   harness.context.openDialog(harness.windows[0]); harness.context.render();
   const notIndexed = [...harness.context.dialogs][0].document.getElementById('sdt-not-indexed');
   const summaries = notIndexed.descendants().filter(node => node.tagName === 'summary')
     .map(node => node.textContent);
-  assert.deepEqual(summaries, ['Not indexed (3)', 'Damaged PDF (3)']);
+  assert.deepEqual(summaries, ['Not indexed (1)', 'Damaged PDF (1)']);
 });
 
 await test('a document that yields no pack is asked once a session, and again after a restart', async () => {
